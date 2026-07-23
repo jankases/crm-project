@@ -93,18 +93,18 @@
 
   <script>
     // ==========================================
-    // 🌟 4. ตั้งค่าเชื่อมต่อ Supabase
+    // 🌟 4. ตั้งค่าเชื่อมต่อ Supabase (แก้ไขชื่อตัวแปรเป็น supabaseClient)
     // ==========================================
-    const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; // ดึงจาก Project ID
-    const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; // ดึงจากหน้า API Keys
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); // เปลี่ยนตรงนี้
 
     window.addEventListener('load', () => {
       checkSession();
     });
 
     // ==========================================
-    // 🌟 5. ตัวอย่างการแปลงฟังก์ชัน Login ให้ใช้ Supabase
+    // 🌟 5. ฟังก์ชัน Login
     // ==========================================
     async function handleLogin(e) {
       e.preventDefault();
@@ -116,14 +116,13 @@
       const pass = document.getElementById('loginPassword').value.trim();
 
       try {
-        // ค้นหาข้อมูลผู้ใช้จากตาราง 'Rep_Users' ใน Supabase โดยตรง
-        // (คุณต้องแน่ใจว่าได้อิมพอร์ตข้อมูลพนักงานเข้าตาราง Rep_Users ใน Supabase แล้ว)
-        const { data: users, error } = await supabase
+        // ใช้ตัวแปร supabaseClient ที่เราเพิ่งเปลี่ยนชื่อ
+        const { data: users, error } = await supabaseClient
           .from('Rep_Users') 
           .select('*')
           .eq('email', email)
           .eq('password', pass)
-          .eq('status', 'Active'); // เช็คเฉพาะคนที่ Active
+          .eq('status', 'Active'); 
 
         if (error) throw error;
 
@@ -136,10 +135,6 @@
           
           document.getElementById('loginForm').reset();
           checkSession();
-          
-          // ⚠️ หลังจากย้ายมา Supabase แล้ว ฟังก์ชันเหล่านี้ต้องถูกแปลงด้วย
-          // if (typeof loadVisitLogs === 'function') loadVisitLogs();
-          // if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
           
         } else {
           alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ");
@@ -167,7 +162,6 @@
           appContainer.style.display = 'block';
         }
         const nameDisplay = document.getElementById('displayUserName');
-        // ปรับชื่อคอลัมน์ให้ตรงกับที่อยู่ใน Supabase
         if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + (user.name || user.email); 
       } else {
         if (loginScreen) {
