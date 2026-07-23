@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM System</title>
+  
+  <!-- CSS Libraries -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+  <!-- 🌟 1. เพิ่ม Library ของ Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+    #appContainer { padding-top: 15px; display: none; } 
+    .nav-tabs { background: #fff; padding: 10px 10px 0; border-bottom: 2px solid #e7f1ff; border-radius: 15px 15px 0 0; margin: 0 15px; }
+    .nav-link { border: none !important; color: #6c757d; font-weight: 500; padding: 12px 20px; border-radius: 10px 10px 0 0 !important; margin-right: 5px; }
+    .nav-link.active { background-color: #e7f1ff !important; color: #0d6efd !important; font-weight: bold; border-bottom: 3px solid #0d6efd !important; }
+    .tab-content { background: #fff; padding: 20px; border-radius: 0 0 15px 15px; margin: 0 15px 20px; min-height: 80vh; }
+    .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin: 0 15px 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- ================= 2. ส่วนหน้า Login ================= -->
+  <div id="loginScreen" class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background-color: #f0f2f5; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;">
+    <div class="card p-5 shadow-lg border-0" style="width: 100%; max-width: 420px; border-radius: 20px;">
+      <div class="text-center mb-4">
+        <div class="bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 70px; height: 70px; border-radius: 50%;">
+          <i class="fa-solid fa-user-lock fs-2"></i>
+        </div>
+        <h3 class="fw-bold text-primary">ระบบ CRM</h3>
+        <p class="text-muted">กรุณาเข้าสู่ระบบด้วยอีเมลบริษัท</p>
+      </div>
+      
+      <form id="loginForm" onsubmit="handleLogin(event); return false;">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">อีเมล (Email)</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-envelope"></i></span>
+            <input type="email" class="form-control" id="loginEmail" required placeholder="เช่น surasak.jankasem@roche.com">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-medium text-dark">รหัสผ่าน (Password)</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-key"></i></span>
+            <input type="password" class="form-control" id="loginPassword" required placeholder="ใส่รหัสผ่านของคุณ">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-2" id="loginBtn" style="border-radius: 8px; font-size: 1.1rem;">
+          เข้าสู่ระบบ
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 3. ส่วนหน้า Application หลัก ================= -->
+  <div id="appContainer" class="container-fluid max-width-md" style="max-width: 1200px;">
+    <div class="header-bar">
+      <h5 class="m-0 text-primary fw-bold"><i class="fa-solid fa-cube me-2"></i>CRM System</h5>
+      <div>
+        <span class="me-3 fw-medium text-muted" id="displayUserName">Welcome</span>
+        <button class="btn btn-sm btn-outline-danger" onclick="logout()"><i class="fa-solid fa-right-from-bracket me-1"></i>ออกจากระบบ</button>
+      </div>
+    </div>
+
+    <!-- แท็บเมนู -->
+    <ul class="nav nav-tabs" id="crmTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visit" type="button"><i class="fa-solid fa-notes-medical me-2"></i>บันทึกเยี่ยม</button>
+      </li>
+      <!-- เพิ่มเมนูอื่นๆ ตามต้องการ -->
+    </ul>
+
+    <div class="tab-content" id="crmTabsContent">
+      <div class="tab-pane fade show active" id="visit">
+        <!-- ⚠️ พื้นที่สำหรับนำ HTML ของ ManageVisits.html มาวางตรงนี้ -->
+        <h4>(นำ HTML จากหน้า ManageVisits มาใส่ตรงนี้)</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+  <script>
+    // ==========================================
+    // 🌟 4. ตั้งค่าเชื่อมต่อ Supabase
+    // ==========================================
+    const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; // ดึงจาก Project ID
+    const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; // ดึงจากหน้า API Keys
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    window.addEventListener('load', () => {
+      checkSession();
+    });
+
+    // ==========================================
+    // 🌟 5. ตัวอย่างการแปลงฟังก์ชัน Login ให้ใช้ Supabase
+    // ==========================================
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังตรวจสอบ...`;
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+
+      try {
+        // ค้นหาข้อมูลผู้ใช้จากตาราง 'Rep_Users' ใน Supabase โดยตรง
+        // (คุณต้องแน่ใจว่าได้อิมพอร์ตข้อมูลพนักงานเข้าตาราง Rep_Users ใน Supabase แล้ว)
+        const { data: users, error } = await supabase
+          .from('Rep_Users') 
+          .select('*')
+          .eq('email', email)
+          .eq('password', pass)
+          .eq('status', 'Active'); // เช็คเฉพาะคนที่ Active
+
+        if (error) throw error;
+
+        if (users && users.length > 0) {
+          const user = users[0];
+          
+          // ล็อกอินสำเร็จ เก็บ Session
+          sessionStorage.setItem('crmUser', JSON.stringify(user));
+          sessionStorage.setItem('loginTime', Date.now()); 
+          
+          document.getElementById('loginForm').reset();
+          checkSession();
+          
+          // ⚠️ หลังจากย้ายมา Supabase แล้ว ฟังก์ชันเหล่านี้ต้องถูกแปลงด้วย
+          // if (typeof loadVisitLogs === 'function') loadVisitLogs();
+          // if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
+          
+        } else {
+          alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ");
+        }
+      } catch (err) {
+        alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'เข้าสู่ระบบ';
+      }
+    }
+
+    function checkSession() {
+      const userStr = sessionStorage.getItem('crmUser');
+      const loginScreen = document.getElementById('loginScreen');
+      const appContainer = document.getElementById('appContainer');
+
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (loginScreen) {
+          loginScreen.classList.remove('d-flex'); 
+          loginScreen.style.display = 'none';
+        }
+        if (appContainer) {
+          appContainer.style.display = 'block';
+        }
+        const nameDisplay = document.getElementById('displayUserName');
+        // ปรับชื่อคอลัมน์ให้ตรงกับที่อยู่ใน Supabase
+        if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + (user.name || user.email); 
+      } else {
+        if (loginScreen) {
+          loginScreen.classList.add('d-flex'); 
+          loginScreen.style.display = '';
+        }
+        if (appContainer) {
+          appContainer.style.display = 'none';
+        }
+      }
+    }
+
+    function logout() { 
+      sessionStorage.removeItem('crmUser');
+      sessionStorage.removeItem('loginTime'); 
+      checkSession();
+    }
+  </script>
+</body>
+</html>
