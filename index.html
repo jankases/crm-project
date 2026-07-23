@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 
-  <!-- 🌟 1. เพิ่ม Library ของ Supabase -->
+  <!-- Library ของ Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -27,7 +27,7 @@
 </head>
 <body>
 
-  <!-- ================= 2. ส่วนหน้า Login ================= -->
+  <!-- ================= หน้า Login ================= -->
   <div id="loginScreen" class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background-color: #f0f2f5; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;">
     <div class="card p-5 shadow-lg border-0" style="width: 100%; max-width: 420px; border-radius: 20px;">
       <div class="text-center mb-4">
@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <!-- ================= 3. ส่วนหน้า Application หลัก ================= -->
+  <!-- ================= หน้า Application หลัก ================= -->
   <div id="appContainer" class="container-fluid max-width-md" style="max-width: 1200px;">
     <div class="header-bar">
       <h5 class="m-0 text-primary fw-bold"><i class="fa-solid fa-cube me-2"></i>CRM System</h5>
@@ -75,13 +75,16 @@
       <li class="nav-item">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visit" type="button"><i class="fa-solid fa-notes-medical me-2"></i>บันทึกเยี่ยม</button>
       </li>
-      <!-- เพิ่มเมนูอื่นๆ ตามต้องการ -->
+      <!-- เตรียมไว้เพิ่มเมนูอื่นๆ ในอนาคต -->
     </ul>
 
     <div class="tab-content" id="crmTabsContent">
       <div class="tab-pane fade show active" id="visit">
-        <!-- ⚠️ พื้นที่สำหรับนำ HTML ของ ManageVisits.html มาวางตรงนี้ -->
-        <h4>(นำ HTML จากหน้า ManageVisits มาใส่ตรงนี้)</h4>
+        <!-- 🌟 ไฟล์ ManageVisits.html จะถูกดูดมาแสดงผลตรงนี้ 🌟 -->
+        <div id="loadingVisit" class="text-center py-5">
+           <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+           <p>กำลังโหลดหน้าระบบ...</p>
+        </div>
       </div>
     </div>
   </div>
@@ -92,20 +95,44 @@
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
   <script>
-    // ==========================================
-    // 🌟 4. ตั้งค่าเชื่อมต่อ Supabase (แก้ไขชื่อตัวแปรเป็น supabaseClient)
-    // ==========================================
+    // 🌟 ตั้งค่าเชื่อมต่อ Supabase
     const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); // เปลี่ยนตรงนี้
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
     window.addEventListener('load', () => {
       checkSession();
+      // 🌟 ดึงไฟล์ ManageVisits มาเตรียมไว้ตั้งแต่ตอนเปิดเว็บ
+      loadComponent('visit', 'ManageVisits.html'); 
     });
 
-    // ==========================================
-    // 🌟 5. ฟังก์ชัน Login
-    // ==========================================
+    // 🌟 ฟังก์ชันดูดไฟล์ HTML ย่อยมาแปะ
+    async function loadComponent(elementId, filePath) {
+      try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error("ไม่พบไฟล์ " + filePath);
+        const htmlText = await response.text();
+        
+        // เอา HTML ไปยัดใส่กล่องเป้าหมาย
+        const container = document.getElementById(elementId);
+        container.innerHTML = htmlText;
+        
+        // ⚠️ สำคัญมาก: เพื่อให้โค้ด <script> ในไฟล์ที่ดูดมาทำงานได้
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+          const newScript = document.createElement('script');
+          if (oldScript.src) newScript.src = oldScript.src;
+          if (oldScript.innerHTML) newScript.innerHTML = oldScript.innerHTML;
+          document.body.appendChild(newScript);
+        });
+
+      } catch (error) {
+        console.error(error);
+        document.getElementById(elementId).innerHTML = `<div class="alert alert-danger">❌ โหลดไฟล์ล้มเหลว: ${error.message}</div>`;
+      }
+    }
+
+    // ฟังก์ชัน Login
     async function handleLogin(e) {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
@@ -116,7 +143,6 @@
       const pass = document.getElementById('loginPassword').value.trim();
 
       try {
-        // ใช้ตัวแปร supabaseClient ที่เราเพิ่งเปลี่ยนชื่อ
         const { data: users, error } = await supabaseClient
           .from('Rep_Users') 
           .select('*')
@@ -128,13 +154,14 @@
 
         if (users && users.length > 0) {
           const user = users[0];
-          
-          // ล็อกอินสำเร็จ เก็บ Session
           sessionStorage.setItem('crmUser', JSON.stringify(user));
           sessionStorage.setItem('loginTime', Date.now()); 
-          
           document.getElementById('loginForm').reset();
           checkSession();
+          
+          // สั่งโหลดข้อมูลตารางทันทีหลังล็อกอินเสร็จ
+          if (typeof loadVisitLogs === 'function') loadVisitLogs();
+          if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
           
         } else {
           alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ");
@@ -162,7 +189,7 @@
           appContainer.style.display = 'block';
         }
         const nameDisplay = document.getElementById('displayUserName');
-        if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + (user.name || user.email); 
+        if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + (user.Rep_Name || user.Email); 
       } else {
         if (loginScreen) {
           loginScreen.classList.add('d-flex'); 
