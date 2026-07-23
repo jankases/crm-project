@@ -1,0 +1,570 @@
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
+  <div id="visitListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">📅 ประวัติการบันทึกเยี่ยม (Visit Logs)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddVisitModal()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มบันทึกการเยี่ยม (Add Visit)
+      </button>
+    </div>
+
+    <div class="row mb-4 g-2">
+      <div class="col-md-2">
+        <label class="form-label fw-medium text-muted small mb-1">Sales Rep</label>
+        <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()" style="border-radius: 8px;">
+          <option value="">- All Reps -</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-medium text-muted small mb-1">Territory</label>
+        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()" style="border-radius: 8px;">
+          <option value="">- All Territories -</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-medium text-muted small mb-1">Doctor</label>
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="filterVisitDoctor" placeholder="ค้นหาชื่อแพทย์..." onkeyup="filterVisits()">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-medium text-muted small mb-1">Product</label>
+        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()" style="border-radius: 8px;">
+          <option value="">- All Products -</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-medium text-muted small mb-1">Status</label>
+        <select class="form-select shadow-sm" id="filterVisitStatus" onchange="filterVisits()" style="border-radius: 8px;">
+          <option value="">- All Status -</option>
+          <option value="Pending">Pending</option>
+          <option value="Submitted">Submitted</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายการบันทึกการเข้าพบทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" style="font-size: 0.9rem;">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Doctor</th> <th>Product</th>
+              <th>Purpose</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="visitTableBody">
+            <tr><td colspan="7" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. หน้าฟอร์มบันทึกเยี่ยม ================= -->
+  <div id="visitFormView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="closeVisitForm(true)">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0" id="visitViewTitle">📑 บันทึกการเข้าพบคุณหมอ</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="visitLogForm" onsubmit="handleSubmitVisit(event)">
+        <input type="hidden" id="visitId">
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-medium text-muted">ผู้แทนขาย (Sales Rep)</label>
+            <div class="form-control bg-light text-muted fw-medium" id="visitRepNameDisplay" style="min-height: 38px;">-</div>
+            <input type="hidden" id="visitRepId">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-medium text-muted">เขตพื้นที่ (Territory)</label>
+            <div class="form-control bg-light text-muted fw-medium" id="visitTerritoryNameDisplay" style="min-height: 38px;">-</div>
+            <input type="hidden" id="visitTerritoryId">
+          </div>
+        </div>
+
+        <div class="row mb-3 border-top pt-4 mt-2">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-primary">คุณหมอที่เข้าพบ (Doctor)</label>
+            <select class="form-select" id="visitDocId" required>
+              <option value="">-- กำลังโหลดข้อมูล... --</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-primary">สินค้าที่นำเสนอ (Product)</label>
+            <select class="form-select" id="visitProductId" required>
+              <option value="">-- กำลังโหลดข้อมูล... --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4 mb-3">
+            <label class="form-label fw-medium">วันที่เข้าพบ</label>
+            <input type="text" class="form-control bg-white" id="visitDate" required placeholder="เลือกวันที่">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label fw-medium">เวลาเริ่ม</label>
+            <input type="time" class="form-control" id="visitStartTime" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label fw-medium">เวลาสิ้นสุด</label>
+            <input type="time" class="form-control" id="visitEndTime" required>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">วัตถุประสงค์ (Purpose)</label>
+          <select class="form-select" id="visitPurpose" required>
+            <option value="">-- เลือกวัตถุประสงค์ --</option>
+            <option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>
+            <option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>
+            <option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>
+            <option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">รายละเอียด (Details)</label>
+          <textarea class="form-control" id="visitDetails" rows="3" required></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-medium">สิ่งที่จะทำต่อ (Next Action)</label>
+          <input type="text" class="form-control" id="visitNextAction">
+        </div>
+
+        <div class="p-3 border rounded mb-4" style="background-color: #f8f9fa;">
+          <label class="form-label fw-bold">สถานะรายการ (Status)</label>
+          <select class="form-select border-primary" id="visitStatus" required>
+            <option value="Pending">⏳ Pending (บันทึกร่าง)</option>
+            <option value="Submitted">✅ Submitted (ส่งข้อมูลสมบูรณ์)</option>
+          </select>
+        </div>
+
+        <div class="d-flex justify-content-between border-top pt-4 mt-4">
+          <div>
+            <button type="button" class="btn btn-danger fw-bold px-4 d-none" id="btnDeleteVisit" onclick="deleteVisit()">
+              <i class="fa-solid fa-trash me-2"></i>ลบข้อมูล (Delete)
+            </button>
+          </div>
+          <div>
+            <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="closeVisitForm(true)">ยกเลิก (Cancel)</button>
+            <button type="submit" class="btn btn-primary fw-bold px-4" id="btnSubmitVisit">บันทึกข้อมูล (Save)</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var globalVisitsList = [];
+  var globalTerritories = []; 
+  var globalDoctors = [];
+  var globalProducts = [];
+  var globalReps = [];
+  var isVisitEditMode = false;
+  var visitDatePicker; 
+  let isVisitDataLoaded = false; 
+
+  // สร้าง Datepicker ถ้ายังไม่เคยถูกสร้าง (ป้องกันการสร้างซ้ำ)
+  if (!visitDatePicker && document.getElementById('visitDate')) {
+    visitDatePicker = flatpickr("#visitDate", {
+      altInput: true,
+      altFormat: "d/m/Y",
+      dateFormat: "Y-m-d",
+      defaultDate: "today"
+    });
+  }
+  
+  function switchVisitView(viewId) {
+    document.getElementById('visitListView').classList.add('d-none');
+    document.getElementById('visitFormView').classList.add('d-none');
+    document.getElementById(viewId).classList.remove('d-none');
+  }
+
+  function closeVisitForm(isCancel = true) {
+    if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.clear();
+    if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.clear();
+    document.getElementById('visitLogForm').reset();
+    switchVisitView('visitListView'); 
+  }
+
+  // ===============================================
+  // 🌟 ฟังก์ชันดึงข้อมูลจาก Supabase โดยตรง
+  // ===============================================
+
+  async function loadVisitDropdowns() {
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
+    
+    try {
+      // 1. ดึงข้อมูล 3 ตารางพร้อมกัน (Territory, Doctors, Products)
+      const [terRes, docRes, prodRes] = await Promise.all([
+        supabaseClient.from('Territory').select('Territory_ID, Territory_Name'),
+        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name_EN, Doc_Name_TH').eq('Status', 'Active'),
+        supabaseClient.from('Products').select('Product_ID, Product_Name').eq('Status', 'Active')
+      ]);
+
+      if (terRes.error) throw terRes.error;
+      if (docRes.error) throw docRes.error;
+      if (prodRes.error) throw prodRes.error;
+
+      globalTerritories = terRes.data || [];
+      // จัดรูปแบบให้เหมือนที่ตารางเก่าต้องการ: [{id, name}]
+      const mappedDocs = (docRes.data || []).map(d => ({ id: d.Doc_ID, name: d.Doc_Name_EN || d.Doc_Name_TH || d.Doc_ID }));
+      const mappedProds = (prodRes.data || []).map(p => ({ id: p.Product_ID, name: p.Product_Name }));
+      
+      globalDoctors = mappedDocs;
+      globalProducts = mappedProds;
+
+      populateVisitSelect('visitDocId', mappedDocs, '-- เลือกคุณหมอ --');
+      populateVisitSelect('visitProductId', mappedProds, '-- เลือกสินค้า --');
+
+      if (crmUser) {
+        document.getElementById('visitRepId').value = crmUser.Rep_ID || "-";
+        document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (${crmUser.Rep_ID || "-"})`;
+        document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "-";
+        
+        const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
+        document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory_Name} (${tObj.Territory_ID})` : crmUser.Territory_ID;
+      }
+    } catch (err) {
+      console.error("Error loadVisitDropdowns:", err.message);
+    }
+  }
+
+  async function loadVisitLogs() {
+    isVisitDataLoaded = false; 
+    const tbody = document.getElementById('visitTableBody'); 
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+
+    try {
+      // 1. ดึงตาราง Rep_Users เพื่อเอาชื่อพนักงานขาย
+      const repRes = await supabaseClient.from('Rep_Users').select('Rep_ID, Rep_Name');
+      globalReps = repRes.data || [];
+
+      // 2. ดึงตาราง Visit_Logs (เอาทั้งหมดก่อน แล้วค่อยเอามากรอง)
+      const { data: visits, error } = await supabaseClient
+        .from('Visit_Logs')
+        .select('*')
+        .order('id', { ascending: false }); // เรียงล่าสุดขึ้นก่อน
+
+      if (error) throw error;
+
+      // จัดรูปข้อมูลให้ตารางหน้าบ้านเข้าใจ
+      globalVisitsList = visits.map(v => {
+        // หาชื่อเซลส์
+        const rep = globalReps.find(r => r.Rep_ID === v.repId);
+        // หาชื่อหมอ
+        const doc = globalDoctors.find(d => d.id === v.docId);
+        // หาชื่อสินค้า
+        const prod = globalProducts.find(p => p.id === v.productId);
+        // หาชื่อเขต
+        const ter = globalTerritories.find(t => t.Territory_ID === v.territoryId);
+
+        return {
+          id: v.id,
+          date: v.visitDate || "-", 
+          dateRaw: v.visitDate,
+          startTime: v.startTime,
+          endTime: v.endTime,
+          purpose: v.purpose,
+          details: v.details,
+          nextAction: v.nextAction,
+          status: v.status,
+          repId: v.repId,
+          repName: rep ? rep.Rep_Name : v.repId,
+          docId: v.docId,
+          docName: doc ? doc.name : v.docId,
+          prodId: v.productId,
+          prodName: prod ? prod.name : v.productId,
+          territoryId: v.territoryId,
+          territoryName: ter ? ter.Territory_Name : v.territoryId
+        };
+      });
+
+      isVisitDataLoaded = true;
+      setupVisitFilters(); 
+      filterVisits(); 
+      
+    } catch (err) {
+      console.error("Error loading visits:", err.message);
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
+    }
+  }
+
+  function populateVisitSelect(id, arr, defaultText) {
+    let html = `<option value="">${defaultText}</option>`;
+    if (arr && arr.length > 0) {
+      arr.forEach(item => html += `<option value="${item.id}">${item.name} (${item.id})</option>`);
+    }
+    const el = document.getElementById(id);
+    if(el) {
+      if (el.tomselect) el.tomselect.destroy();
+      el.innerHTML = html;
+      new TomSelect(el, { create: false, sortField: { field: "text", direction: "asc" } });
+    }
+  }
+
+  function renderVisitTable(data) {
+    const tbody = document.getElementById('visitTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    
+    // กรองถ้าเป็น Sales ให้เห็นเฉพาะของตัวเอง
+    const filtered = (crmUser && (crmUser.Role === 'Admin' || crmUser.Role === 'BU Head')) 
+      ? data 
+      : data.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
+
+    if(!filtered.length) return tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">ไม่พบรายการบันทึก</td></tr>';
+
+    filtered.forEach(v => {
+      const statusBadge = v.status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-center"><small>${v.id}</small></td>
+          <td class="text-center">${v.date}</td>
+          <td><div class="fw-medium">${v.docName}</div><small class="text-muted">${v.repName}</small></td>
+          <td>${v.prodName}</td>
+          <td><small>${v.purpose}</small></td>
+          <td class="text-center"><span class="badge ${statusBadge}">${v.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditVisitModal('${v.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function filterVisits() {
+    if (!isVisitDataLoaded) return; 
+    const repTerm = document.getElementById('filterVisitRep').value;
+    const terTerm = document.getElementById('filterVisitTerritory').value;
+    const docTerm = document.getElementById('filterVisitDoctor').value.toLowerCase().trim();
+    const prodTerm = document.getElementById('filterVisitProduct').value;
+    const statusTerm = document.getElementById('filterVisitStatus').value;
+
+    const filtered = globalVisitsList.filter(v => {
+      const matchRep = (repTerm === "") || (v.repName === repTerm);
+      const matchTer = (terTerm === "") || (v.territoryName === terTerm);
+      const docSearchStr = ((v.docName || "") + " " + (v.docId || "")).toLowerCase();
+      const matchDoc = (docTerm === "") || docSearchStr.includes(docTerm);
+      const matchProd = (prodTerm === "") || (v.prodName === prodTerm);
+      const matchStatus = (statusTerm === "") || (v.status === statusTerm);
+      return matchRep && matchTer && matchDoc && matchProd && matchStatus;
+    });
+    renderVisitTable(filtered);
+  }
+
+  function setupVisitFilters() {
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    const visibleData = (crmUser && (crmUser.Role === 'Admin' || crmUser.Role === 'BU Head')) ? globalVisitsList : globalVisitsList.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
+    
+    const reps = [...new Set(visibleData.map(v => v.repName).filter(r => r))].sort();
+    const repSelect = document.getElementById('filterVisitRep');
+    if(repSelect) {
+      let repHtml = '<option value="">- All Reps -</option>';
+      reps.forEach(r => repHtml += `<option value="${r}">${r}</option>`);
+      repSelect.innerHTML = repHtml;
+    }
+
+    const ters = [...new Set(visibleData.map(v => v.territoryName).filter(t => t))].sort();
+    const terSelect = document.getElementById('filterVisitTerritory');
+    if(terSelect) {
+      let terHtml = '<option value="">- All Territories -</option>';
+      ters.forEach(t => terHtml += `<option value="${t}">${t}</option>`);
+      terSelect.innerHTML = terHtml;
+    }
+
+    const prods = [...new Set(visibleData.map(v => v.prodName).filter(p => p))].sort();
+    const prodSelect = document.getElementById('filterVisitProduct');
+    if(prodSelect) {
+      let prodHtml = '<option value="">- All Products -</option>';
+      prods.forEach(p => prodHtml += `<option value="${p}">${p}</option>`);
+      prodSelect.innerHTML = prodHtml;
+    }
+  }
+
+  function openAddVisitModal() {
+    isVisitEditMode = false;
+    document.getElementById('visitLogForm').reset();
+    document.getElementById('visitViewTitle').innerHTML = '📑 บันทึกการเข้าพบคุณหมอ (ใหม่)';
+    document.getElementById('visitStatus').value = "Pending";
+    document.getElementById('btnDeleteVisit').classList.add('d-none');
+    
+    if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.clear();
+    if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.clear();
+    if (visitDatePicker) visitDatePicker.setDate("today");
+    
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    
+    if(crmUser) {
+      document.getElementById('visitRepId').value = crmUser.Rep_ID || "";
+      document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (${crmUser.Rep_ID || "-"})`;
+      document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "";
+      const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
+      document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory_Name} (${tObj.Territory_ID})` : crmUser.Territory_ID;
+    }
+
+    const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if(el) {
+        el.disabled = false;
+        if(el.tomselect) el.tomselect.enable();
+      }
+    });
+    
+    document.getElementById('visitDate').disabled = false;
+    const dateInput = document.getElementById('visitDate').nextElementSibling;
+    if(dateInput) dateInput.disabled = false;
+
+    const btnSubmit = document.getElementById('btnSubmitVisit');
+    btnSubmit.style.display = 'inline-block';
+    btnSubmit.disabled = false;
+    switchVisitView('visitFormView');
+  }
+
+  function openEditVisitModal(id) {
+    const v = globalVisitsList.find(x => x.id === id);
+    if(!v) return;
+    
+    isVisitEditMode = true;
+    document.getElementById('visitId').value = v.id;
+    document.getElementById('visitRepId').value = v.repId;
+    document.getElementById('visitRepNameDisplay').innerText = `${v.repName} (${v.repId})`;
+    document.getElementById('visitTerritoryId').value = v.territoryId;
+    document.getElementById('visitTerritoryNameDisplay').innerText = v.territoryName ? `${v.territoryName} (${v.territoryId})` : v.territoryId;
+
+    if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.setValue(v.docId);
+    if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.setValue(v.prodId);
+    if (visitDatePicker && v.dateRaw) visitDatePicker.setDate(v.dateRaw);
+    
+    document.getElementById('visitStartTime').value = v.startTime;
+    document.getElementById('visitEndTime').value = v.endTime;
+    document.getElementById('visitPurpose').value = v.purpose;
+    document.getElementById('visitDetails').value = v.details;
+    document.getElementById('visitNextAction').value = v.nextAction;
+    document.getElementById('visitStatus').value = v.status;
+    
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    
+    const btnDelete = document.getElementById('btnDeleteVisit');
+    if (crmUser && crmUser.Role === 'Admin') btnDelete.classList.remove('d-none'); 
+    else btnDelete.classList.add('d-none');
+
+    const isReadOnly = (v.status === 'Submitted' && crmUser && crmUser.Role !== 'Admin');
+    const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if(el) {
+        el.disabled = isReadOnly;
+        if(el.tomselect) isReadOnly ? el.tomselect.disable() : el.tomselect.enable();
+      }
+    });
+    
+    document.getElementById('visitDate').disabled = isReadOnly;
+    const dateInput = document.getElementById('visitDate').nextElementSibling;
+    if(dateInput) dateInput.disabled = isReadOnly;
+
+    const btnSubmit = document.getElementById('btnSubmitVisit');
+    if (isReadOnly) {
+      document.getElementById('visitViewTitle').innerHTML = '👁️ ดูบันทึกเยี่ยม ' + v.id + ' (อ่านได้อย่างเดียว)';
+      btnSubmit.style.display = 'none'; 
+    } else {
+      document.getElementById('visitViewTitle').innerHTML = '✏️ แก้ไขบันทึกเยี่ยม ' + v.id;
+      btnSubmit.style.display = 'inline-block'; 
+      btnSubmit.disabled = false;
+    }
+    switchVisitView('visitFormView');
+  }
+
+  // บันทึก หรือ แก้ไข ข้อมูล
+  async function handleSubmitVisit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitVisit');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+
+    const payload = {
+      repId: document.getElementById('visitRepId').value,  
+      territoryId: document.getElementById('visitTerritoryId').value, 
+      docId: document.getElementById('visitDocId').value,
+      productId: document.getElementById('visitProductId').value,
+      visitDate: document.getElementById('visitDate').value,
+      startTime: document.getElementById('visitStartTime').value,
+      endTime: document.getElementById('visitEndTime').value,
+      purpose: document.getElementById('visitPurpose').value,
+      details: document.getElementById('visitDetails').value,
+      nextAction: document.getElementById('visitNextAction').value,
+      status: document.getElementById('visitStatus').value,
+      whoUpdated: crmUser ? crmUser.Email : "System"
+    };
+
+    try {
+      if (isVisitEditMode) {
+        const id = document.getElementById('visitId').value;
+        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('id', id);
+        if (error) throw error;
+        alert("✅ อัปเดตข้อมูลการเยี่ยมสำเร็จ");
+      } else {
+        // ให้ Supabase Generate ID อัตโนมัติ (ถ้าคอลัมน์ id เป็น Auto Increment)
+        const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
+        if (error) throw error;
+        alert("✅ บันทึกข้อมูลการเยี่ยมใหม่สำเร็จ");
+      }
+      closeVisitForm(false); 
+      loadVisitLogs(); // รีโหลดตารางใหม่
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล (Save)";
+    }
+  }
+
+  // ลบข้อมูล
+  async function deleteVisit() {
+    const visitId = document.getElementById('visitId').value;
+    if (!visitId) return;
+
+    if (confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการเยี่ยม ${visitId}?\n(การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
+      const btn = document.getElementById('btnDeleteVisit');
+      btn.disabled = true; btn.innerHTML = "กำลังลบ...";
+
+      try {
+        const { error } = await supabaseClient.from('Visit_Logs').delete().eq('id', visitId);
+        if (error) throw error;
+        
+        alert("✅ ลบข้อมูลสำเร็จ");
+        closeVisitForm(false); 
+        loadVisitLogs();
+      } catch (err) {
+        alert("❌ เกิดข้อผิดพลาดในการลบ: " + err.message);
+      } finally {
+        btn.disabled = false; btn.innerHTML = "ลบข้อมูล (Delete)";
+      }
+    }
+  }
+</script>
