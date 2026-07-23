@@ -120,9 +120,9 @@
         const { data: users, error } = await supabaseClient
           .from('Rep_Users') 
           .select('*')
-          .eq('email', email)
-          .eq('password', pass)
-          .eq('status', 'Active'); 
+          .eq('Email', email)
+          .eq('Password', pass)
+          .eq('Status', 'Active'); 
 
         if (error) throw error;
 
