@@ -142,8 +142,8 @@
 
   // โหลดข้อมูลเมื่อเปิดหน้า
   setTimeout(function() { 
-    loadBUDropdownsForTeam(); 
-    loadTeams(); 
+    await loadBUDropdownsForTeam(); 
+    await loadTeams(); 
   }, 300);
 
   function switchTeamView(viewId) {
