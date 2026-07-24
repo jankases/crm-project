@@ -47,17 +47,28 @@
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <form id="addTerritoryForm" onsubmit="handleAddTerritory(event)">
-        <div class="mb-3">
-          <label class="form-label fw-medium text-dark">ชื่อเขตพื้นที่ (Territory Name)</label>
-          <input type="text" class="form-control bg-white" id="terName" required placeholder="เช่น BKK_1">
-        </div>
-        
+        <!-- สลับ ทีมที่ดูแล ขึ้นมาด้านบน -->
         <div class="mb-3">
           <label class="form-label fw-medium text-dark">ทีมที่ดูแล (Team)</label>
           <select class="form-select bg-white" id="terTeamIdAdd" required>
             <option value="">- เลือกทีม -</option>
           </select>
         </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อเขตพื้นที่ (Territory Name)</label>
+          <input type="text" class="form-control bg-white" id="terName" required placeholder="เช่น BKK_1">
+        </div>
+        
+        <!-- เพิ่มฟิลด์ Status -->
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สถานะ (Status)</label>
+          <select class="form-select bg-white" id="terStatusAdd" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
         <div class="text-end mt-4">
           <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTerritoryView('territoryListView')">ยกเลิก</button>
           <button type="submit" class="btn btn-primary fw-bold px-4" id="submitTerBtn">บันทึกพื้นที่ใหม่</button>
@@ -77,14 +88,15 @@
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <form id="editTerritoryForm" onsubmit="handleUpdateTerritory(event)">
         <input type="hidden" id="editTerId">
-        <div class="mb-3">
-          <label class="form-label fw-medium text-dark">ชื่อเขตพื้นที่</label>
-          <input type="text" class="form-control bg-white" id="editTerName" required>
-        </div>
-        
+        <!-- สลับ ทีมที่ดูแล ขึ้นมาด้านบน -->
         <div class="mb-3">
           <label class="form-label fw-medium text-dark">ทีมที่ดูแล</label>
           <select class="form-select bg-white" id="editTerTeamId" required></select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อเขตพื้นที่</label>
+          <input type="text" class="form-control bg-white" id="editTerName" required>
         </div>
 
         <div class="mb-3">
@@ -114,13 +126,14 @@
     </div>
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
-      <div class="mb-3">
-        <label class="text-muted small">ชื่อเขตพื้นที่</label>
-        <input type="text" class="form-control bg-light" id="viewTerName" disabled>
-      </div>
+      <!-- สลับ ทีมที่ดูแล ขึ้นมาด้านบน -->
       <div class="mb-3">
         <label class="text-muted small">ทีมที่ดูแล</label>
         <input type="text" class="form-control bg-light" id="viewTerTeam" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">ชื่อเขตพื้นที่</label>
+        <input type="text" class="form-control bg-light" id="viewTerName" disabled>
       </div>
       <div class="mb-3">
         <label class="text-muted small">สถานะ</label>
@@ -132,15 +145,15 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let เป็น var
   var globalTerritoriesList = [];
   var globalTeamsForTerritory = [];
   var currentSelectedTerritoryId = "";
 
-  window.addEventListener('load', function() {
-    loadTeamDropdownsForTerritory();
-    loadTerritories();
-  });
+  // โหลดข้อมูลแบบรอให้ Team โหลดเสร็จก่อน
+  setTimeout(async function() {
+    await loadTeamDropdownsForTerritory();
+    await loadTerritories();
+  }, 300);
 
   function switchTerritoryView(viewId) {
     const views = ['territoryListView', 'territoryAddView', 'territoryEditView', 'territoryProfileView'];
@@ -157,7 +170,7 @@
       const { data, error } = await supabaseClient.from('Team').select('Team_ID, Team, Status').eq('Status', 'Active');
       if (error) throw error;
       
-      globalTeamsForTerritory = data;
+      globalTeamsForTerritory = data || [];
       
       let opts = '<option value="">- เลือกทีม -</option>';
       globalTeamsForTerritory.forEach(t => {
@@ -181,7 +194,7 @@
       const { data, error } = await supabaseClient.from('Territory').select('*').order('Territory', { ascending: true });
       if (error) throw error;
 
-      globalTerritoriesList = data.map(t => {
+      globalTerritoriesList = (data || []).map(t => {
         const teamObj = globalTeamsForTerritory.find(team => team.Team_ID === t.Team_ID);
         const teamName = teamObj ? teamObj.Team : t.Team_ID;
 
@@ -240,6 +253,7 @@
 
   function openAddTerritoryView() {
     document.getElementById('addTerritoryForm').reset();
+    document.getElementById('terStatusAdd').value = 'Active'; // ตั้งค่า Default ให้ Status
     switchTerritoryView('territoryAddView');
   }
 
@@ -249,8 +263,8 @@
     if (!t) return;
 
     document.getElementById('viewTerritoryTitleName').innerText = `🗺️ ข้อมูลเขตพื้นที่: ${t.name}`;
-    document.getElementById('viewTerName').value = t.name || '-';
     document.getElementById('viewTerTeam').value = t.teamName || t.teamId || '-';
+    document.getElementById('viewTerName').value = t.name || '-';
     document.getElementById('viewTerStatus').value = t.status || '-';
 
     switchTerritoryView('territoryProfileView');
@@ -261,8 +275,8 @@
     if (!t) return;
 
     document.getElementById('editTerId').value = t.id;
-    document.getElementById('editTerName').value = t.name;
     document.getElementById('editTerTeamId').value = t.teamId;
+    document.getElementById('editTerName').value = t.name;
     document.getElementById('editTerStatus').value = t.status;
 
     switchTerritoryView('territoryEditView');
@@ -279,7 +293,7 @@
     const payload = {
       Territory: document.getElementById('terName').value.trim(),
       Team_ID: document.getElementById('terTeamIdAdd').value,
-      Status: 'Active',
+      Status: document.getElementById('terStatusAdd').value, // ดึงค่าจากฟิลด์
       Whoupdated: crmUser ? crmUser.Email : "Unknown"
     };
 
