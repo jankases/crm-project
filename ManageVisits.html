@@ -206,6 +206,7 @@
   // ===============================================
   // 🌟 ฟังก์ชันดึงข้อมูลจาก Supabase โดยตรง
   // ===============================================
+ 
 
   async function loadVisitDropdowns() {
     let crmUser = null;
@@ -214,7 +215,8 @@
     try {
       const [terRes, docRes, prodRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory'), 
-        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name_EN, Doc_Name_TH').eq('Status', 'Active'),
+        // ⚠️ แก้ไขให้ตรงกับตาราง Doctors ของคุณ (ใช้ Doc_Name)
+        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
         supabaseClient.from('Products').select('Product_ID, Product_Name').eq('Status', 'Active')
       ]);
 
@@ -223,7 +225,13 @@
       if (prodRes.error) throw prodRes.error;
 
       globalTerritories = terRes.data || [];
-      const mappedDocs = (docRes.data || []).map(d => ({ id: d.Doc_ID, name: d.Doc_Name_EN || d.Doc_Name_TH || d.Doc_ID }));
+      
+      // ⚠️ แก้ไขการดึงชื่อมาแสดง (ใช้ d.Doc_Name)
+      const mappedDocs = (docRes.data || []).map(d => ({ 
+        id: d.Doc_ID, 
+        name: d.Doc_Name || d.Doc_Name_TH || d.Doc_ID 
+      }));
+      
       const mappedProds = (prodRes.data || []).map(p => ({ id: p.Product_ID, name: p.Product_Name }));
       
       globalDoctors = mappedDocs;
@@ -238,7 +246,7 @@
         document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "-";
         
         const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-        document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory} (${tObj.Territory_ID})` : crmUser.Territory_ID;
+        document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory}` : crmUser.Territory_ID;
       }
     } catch (err) {
       console.error("Error loadVisitDropdowns:", err.message);
