@@ -1,0 +1,335 @@
+<div class="container-fluid p-0" style="max-width: 900px; margin: 0 auto;">
+  
+  <div id="teamListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">🏢 จัดการโครงสร้างทีม (Teams)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddTeamView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มทีมใหม่ (Add Team)
+      </button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="searchTeam" placeholder="ค้นหาชื่อทีม, BU..." onkeyup="filterTeams()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อทีมทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Team Name</th>
+              <th>สังกัด BU</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="teamTableBody">
+            <tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="teamAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTeamView('teamListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🏢 เพิ่มข้อมูลทีมใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addTeamForm" onsubmit="handleAddTeam(event)">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อทีม (Team Name)</label>
+          <input type="text" class="form-control bg-white" id="teamName" required placeholder="เช่น HEME1">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สังกัด BU</label>
+          <select class="form-select bg-white" id="buIdSelect" required>
+            <option value="">-- เลือก BU --</option>
+          </select>
+        </div>
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTeamView('teamListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitTeamBtn">บันทึกทีมใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="teamEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTeamView('teamListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลทีม</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editTeamForm" onsubmit="handleUpdateTeam(event)">
+        <input type="hidden" id="editTeamId">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อทีม (Team Name)</label>
+          <input type="text" class="form-control bg-white" id="editTeamName" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สังกัด BU</label>
+          <select class="form-select bg-white" id="editBuIdSelect" required></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สถานะ</label>
+          <select class="form-select bg-white" id="editTeamStatus" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTeamView('teamListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateTeamBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="teamProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTeamView('teamListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditTeamView(currentSelectedTeamId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลทีม
+      </button>
+      <h4 class="text-info fw-bold mb-0" id="viewTeamTitleName">🏢 ข้อมูลโครงสร้างทีม (Team)</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="mb-3">
+        <label class="text-muted small">ชื่อทีม (Team Name)</label>
+        <input type="text" class="form-control bg-light" id="viewTeamName" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">สังกัด BU</label>
+        <input type="text" class="form-control bg-light" id="viewTeamBU" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">สถานะ</label>
+        <input type="text" class="form-control bg-light" id="viewTeamStatus" disabled>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalTeams = [];
+  let globalBUsForTeam = []; 
+  let currentSelectedTeamId = ""; 
+
+  window.addEventListener('load', function() {
+    loadBUDropdownsForTeam();
+    loadTeams();
+  });
+
+  function switchTeamView(viewId) {
+    const views = ['teamListView', 'teamAddView', 'teamEditView', 'teamProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  function openAddTeamView() {
+    document.getElementById('addTeamForm').reset();
+    populateBUDropdowns();
+    switchTeamView('teamAddView');
+  }
+
+  // 🌟 ดึงข้อมูล BU มาใส่ Dropdown (เชื่อม Supabase ตรงๆ)
+  async function loadBUDropdownsForTeam() {
+    try {
+      const { data, error } = await supabaseClient.from('BU').select('BU_ID, BU_Name, Status');
+      if (error) throw error;
+      globalBUsForTeam = data;
+      populateBUDropdowns();
+    } catch (err) {
+      console.error("Error loading BU:", err.message);
+    }
+  }
+
+  function populateBUDropdowns() {
+    const addSelect = document.getElementById('buIdSelect');
+    const editSelect = document.getElementById('editBuIdSelect');
+    
+    let html = '<option value="">-- เลือก BU --</option>';
+    if (Array.isArray(globalBUsForTeam)) {
+      globalBUsForTeam.filter(b => b.Status === 'Active').forEach(bu => {
+        // ใช้ชื่อ BU ถ้ามี ถ้าไม่มีให้โชว์รหัส
+        const displayName = bu.BU_Name || bu.BU_ID;
+        html += `<option value="${bu.BU_ID}">${displayName}</option>`;
+      });
+    }
+    
+    if(addSelect) addSelect.innerHTML = html;
+    if(editSelect) editSelect.innerHTML = html;
+  }
+
+  // 🌟 โหลดข้อมูลทีมทั้งหมด (เชื่อม Supabase ตรงๆ)
+  async function loadTeams() {
+    const tbody = document.getElementById('teamTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const { data, error } = await supabaseClient.from('Team').select('*').order('Team', { ascending: true });
+      if (error) throw error;
+
+      globalTeams = data.map(t => {
+        // หาชื่อ BU มาแสดง
+        const buInfo = globalBUsForTeam.find(b => b.BU_ID === t.BU_ID);
+        const buName = buInfo ? (buInfo.BU_Name || buInfo.BU_ID) : t.BU_ID;
+
+        return {
+          id: t.Team_ID,
+          name: t.Team,
+          buId: t.BU_ID,
+          buName: buName,
+          status: t.Status
+        };
+      });
+
+      filterTeams();
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function filterTeams() {
+    const term = document.getElementById('searchTeam').value.toLowerCase();
+    const filtered = globalTeams.filter(t => 
+      (t.name && t.name.toLowerCase().includes(term)) || 
+      (t.buName && t.buName.toLowerCase().includes(term))
+    );
+    renderTeamTable(filtered);
+  }
+
+  function renderTeamTable(data) {
+    const tbody = document.getElementById('teamTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if(!Array.isArray(data) || data.length === 0) {
+      return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">ไม่พบข้อมูล</td></tr>';
+    }
+    
+    data.forEach(t => {
+      const badge = t.status === 'Active' ? 'bg-success' : 'bg-danger';
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewTeamProfile('${t.id}'); return false;">
+              ${t.name}
+            </a>
+          </td>
+          <td class="text-center">${t.buName}</td>
+          <td class="text-center"><span class="badge ${badge}">${t.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditTeamView('${t.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openViewTeamProfile(id) {
+    currentSelectedTeamId = id; 
+    const t = globalTeams.find(x => x.id === id);
+    if (!t) return;
+
+    document.getElementById('viewTeamTitleName').innerText = `🏢 ข้อมูลทีม: ${t.name}`;
+    document.getElementById('viewTeamName').value = t.name || '-';
+    document.getElementById('viewTeamBU').value = t.buName || t.buId || '-';
+    document.getElementById('viewTeamStatus').value = t.status || '-';
+
+    switchTeamView('teamProfileView');
+  }
+
+  function openEditTeamView(id) {
+    const t = globalTeams.find(x => x.id === id);
+    if (!t) return;
+    document.getElementById('editTeamId').value = t.id;
+    document.getElementById('editTeamName').value = t.name;
+    document.getElementById('editBuIdSelect').value = t.buId;
+    document.getElementById('editTeamStatus').value = t.status;
+    switchTeamView('teamEditView');
+  }
+
+  // 🌟 บันทึกทีมใหม่
+  async function handleAddTeam(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitTeamBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Team: document.getElementById('teamName').value.trim(),
+      BU_ID: document.getElementById('buIdSelect').value,
+      Status: 'Active',
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+    
+    try {
+      const { error } = await supabaseClient.from('Team').insert([payload]);
+      if (error) throw error;
+      
+      alert("✅ บันทึกทีมใหม่สำเร็จ");
+      switchTeamView('teamListView');
+      loadTeams();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกทีมใหม่";
+    }
+  }
+
+  // 🌟 แก้ไขทีม
+  async function handleUpdateTeam(e) {
+    e.preventDefault();
+    const btn = document.getElementById('updateTeamBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    const teamId = document.getElementById('editTeamId').value;
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Team: document.getElementById('editTeamName').value.trim(),
+      BU_ID: document.getElementById('editBuIdSelect').value,
+      Status: document.getElementById('editTeamStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+    
+    try {
+      const { error } = await supabaseClient.from('Team').update(payload).eq('Team_ID', teamId);
+      if (error) throw error;
+
+      alert("✅ บันทึกการเปลี่ยนแปลงสำเร็จ");
+      switchTeamView('teamListView');
+      loadTeams();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+    }
+  }
+</script>
