@@ -1,0 +1,379 @@
+<div class="container-fluid p-0" style="max-width: 900px; margin: 0 auto;">
+  
+  <div id="targetListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">🎯 จัดการเป้าหมายการเข้าพบ (Target Call)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddTargetView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่ม Target ใหม่
+      </button>
+    </div>
+
+    <div class="row mb-3 g-2">
+      <div class="col-md-5">
+        <label class="form-label fw-medium text-muted small mb-1">สินค้า (Product)</label>
+        <select class="form-select shadow-sm" id="filterTargetProduct" onchange="filterTargets()" style="border-radius: 8px;">
+          <option value="">- ทุกสินค้า -</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label fw-medium text-muted small mb-1">Classification</label>
+        <select class="form-select shadow-sm" id="filterTargetClass" onchange="filterTargets()" style="border-radius: 8px;">
+          <option value="">- ทุก Classification -</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายการ Target ทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle text-center">
+          <thead class="table-dark">
+            <tr>
+              <th>Product Name</th>
+              <th>Classification</th>
+              <th>Target Call</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="targetTableBody">
+            <tr><td colspan="4" class="py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="targetAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTargetView('targetListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🎯 เพิ่มข้อมูล Target ใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addTargetForm" onsubmit="handleAddTarget(event)">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สินค้า (Product)</label>
+          <select class="form-select bg-white" id="addTargetProduct" required>
+            <option value="">- โหลดข้อมูลสินค้า... -</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">กลุ่มลูกค้า (Classification)</label>
+          <select class="form-select bg-white" id="addTargetClass" required>
+            <option value="">- โหลดข้อมูล Classification... -</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-medium text-dark">จำนวนเป้าหมายการเข้าพบ (Target Call)</label>
+          <input type="number" class="form-control bg-white" id="addTargetNum" min="0" required placeholder="ระบุจำนวนครั้ง">
+        </div>
+        <div class="text-end">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTargetView('targetListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitTargetBtn">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="targetEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTargetView('targetListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูล Target</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editTargetForm" onsubmit="handleUpdateTarget(event)">
+        <input type="hidden" id="editTargetOldProduct">
+        <input type="hidden" id="editTargetOldClass">
+        
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สินค้า (Product)</label>
+          <select class="form-select bg-white" id="editTargetProduct" required></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">กลุ่มลูกค้า (Classification)</label>
+          <select class="form-select bg-white" id="editTargetClass" required></select>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-medium text-dark">จำนวนเป้าหมายการเข้าพบ (Target Call)</label>
+          <input type="number" class="form-control bg-white" id="editTargetNum" min="0" required>
+        </div>
+        <div class="text-end">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTargetView('targetListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateTargetBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="targetProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTargetView('targetListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditTargetView(currentSelectedTargetId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูล Target
+      </button>
+      <h4 class="text-info fw-bold mb-0" id="viewTargetTitleName" style="color: #0dcaf0 !important;">🎯 ข้อมูลเป้าหมาย (Target Call)</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="mb-3">
+        <label class="text-muted small">สินค้า (Product)</label>
+        <input type="text" class="form-control bg-light fw-medium" id="viewTargetProduct" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">กลุ่มลูกค้า (Classification)</label>
+        <input type="text" class="form-control bg-light fw-medium" id="viewTargetClass" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">จำนวนเป้าหมายการเข้าพบ (Target Call)</label>
+        <input type="text" class="form-control bg-light fw-bold fs-5 text-primary" id="viewTargetNum" disabled>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalTargetsList = [];
+  let globalTargetProducts = [];
+  
+  // สร้าง Dropdown แบบตายตัว (ปรับเพิ่มลดได้)
+  const CLASSIFICATIONS = ['A', 'B', 'C', 'D', 'E'];
+  let isTargetDataLoaded = false;
+  let currentSelectedTargetId = ""; 
+
+  window.addEventListener('load', function() {
+    loadTargetDropdowns();
+  });
+
+  function switchTargetView(viewId) {
+    const views = ['targetListView', 'targetAddView', 'targetEditView', 'targetProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  // 🌟 โหลดชื่อสินค้าลง Dropdown
+  async function loadTargetDropdowns() {
+    try {
+      const { data, error } = await supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active');
+      if (error) throw error;
+
+      globalTargetProducts = data;
+      
+      let pOpts = '<option value="">- เลือกสินค้า -</option>';
+      let pFilterOpts = '<option value="">- ทุกสินค้า -</option>';
+      globalTargetProducts.forEach(p => { 
+        pOpts += `<option value="${p.Product_ID}">${p.Product}</option>`;
+        pFilterOpts += `<option value="${p.Product_ID}">${p.Product}</option>`;
+      });
+      document.getElementById('addTargetProduct').innerHTML = pOpts;
+      document.getElementById('editTargetProduct').innerHTML = pOpts;
+      document.getElementById('filterTargetProduct').innerHTML = pFilterOpts;
+
+      let cOpts = '<option value="">- เลือก Classification -</option>';
+      let cFilterOpts = '<option value="">- ทุก Classification -</option>';
+      CLASSIFICATIONS.forEach(c => {
+        cOpts += `<option value="${c}">${c}</option>`;
+        cFilterOpts += `<option value="${c}">${c}</option>`;
+      });
+      document.getElementById('addTargetClass').innerHTML = cOpts;
+      document.getElementById('editTargetClass').innerHTML = cOpts;
+      document.getElementById('filterTargetClass').innerHTML = cFilterOpts;
+
+      loadTargetData();
+    } catch (err) {
+      console.error("Error loading Dropdowns:", err.message);
+    }
+  }
+
+  // 🌟 ดึงข้อมูล Target จาก Supabase
+  async function loadTargetData() {
+    isTargetDataLoaded = false;
+    const tbody = document.getElementById('targetTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const { data, error } = await supabaseClient.from('Target').select('*');
+      if (error) throw error;
+
+      globalTargetsList = data.map(t => {
+        const prodObj = globalTargetProducts.find(p => p.Product_ID === t.Product_ID);
+        const prodName = prodObj ? prodObj.Product : t.Product_ID;
+
+        return {
+          compositeId: `${t.Product_ID}|${t.Classification}`, // ผูก PK ให้เชื่อมโยงกัน
+          productId: t.Product_ID,
+          productName: prodName,
+          classification: t.Classification,
+          target: t.Target
+        };
+      });
+
+      isTargetDataLoaded = true;
+      filterTargets();
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function filterTargets() {
+    if (!isTargetDataLoaded) return;
+    
+    const prodTerm = document.getElementById('filterTargetProduct').value;
+    const classTerm = document.getElementById('filterTargetClass').value;
+
+    const filtered = globalTargetsList.filter(t => {
+      const matchProd = (prodTerm === "") || (t.productId === prodTerm);
+      const matchClass = (classTerm === "") || (t.classification === classTerm);
+      return matchProd && matchClass;
+    });
+
+    renderTargetTable(filtered);
+  }
+
+  function renderTargetTable(data) {
+    const tbody = document.getElementById('targetTableBody');
+    tbody.innerHTML = '';
+    
+    if(!data.length) return tbody.innerHTML = '<tr><td colspan="4" class="text-danger py-4">ไม่พบข้อมูลที่ค้นหา</td></tr>';
+
+    data.forEach(t => {
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium text-start">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewTargetProfile('${t.compositeId}'); return false;">
+              ${t.productName}
+            </a>
+          </td>
+          <td><span class="badge bg-secondary">${t.classification}</span></td>
+          <td class="fw-bold fs-5">${t.target}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditTargetView('${t.compositeId}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openViewTargetProfile(compositeId) {
+    currentSelectedTargetId = compositeId; 
+    const t = globalTargetsList.find(x => x.compositeId === compositeId);
+    if (!t) return;
+
+    document.getElementById('viewTargetTitleName').innerText = `🎯 ข้อมูลเป้าหมาย: ${t.productName}`;
+    document.getElementById('viewTargetProduct').value = t.productName;
+    document.getElementById('viewTargetClass').value = t.classification || '-';
+    document.getElementById('viewTargetNum').value = t.target || '0';
+
+    switchTargetView('targetProfileView');
+  }
+
+  function openAddTargetView() {
+    document.getElementById('addTargetForm').reset();
+    switchTargetView('targetAddView');
+  }
+
+  function openEditTargetView(compositeId) {
+    const t = globalTargetsList.find(x => x.compositeId === compositeId);
+    if (!t) return;
+
+    document.getElementById('editTargetOldProduct').value = t.productId;
+    document.getElementById('editTargetOldClass').value = t.classification;
+    
+    document.getElementById('editTargetProduct').value = t.productId;
+    document.getElementById('editTargetClass').value = t.classification;
+    document.getElementById('editTargetNum').value = t.target;
+
+    switchTargetView('targetEditView');
+  }
+
+  // 🌟 บันทึก Target ใหม่
+  async function handleAddTarget(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitTargetBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Product_ID: document.getElementById('addTargetProduct').value,
+      Classification: document.getElementById('addTargetClass').value,
+      Target: document.getElementById('addTargetNum').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Target').insert([payload]);
+      if (error) {
+        if(error.code === '23505') throw new Error("มีการกำหนดเป้าหมายสำหรับสินค้านี้และกลุ่มลูกค้านี้แล้ว");
+        throw error;
+      }
+      
+      alert("✅ บันทึกข้อมูลสำเร็จ");
+      switchTargetView('targetListView');
+      loadTargetData();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล";
+    }
+  }
+
+  // 🌟 แก้ไข Target
+  async function handleUpdateTarget(e) {
+    e.preventDefault();
+    const btn = document.getElementById('updateTargetBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const oldProduct = document.getElementById('editTargetOldProduct').value;
+    const oldClass = document.getElementById('editTargetOldClass').value;
+    
+    const newProduct = document.getElementById('editTargetProduct').value;
+    const newClass = document.getElementById('editTargetClass').value;
+    const newTarget = document.getElementById('editTargetNum').value;
+
+    const payload = {
+      Product_ID: newProduct,
+      Classification: newClass,
+      Target: newTarget,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      if (oldProduct !== newProduct || oldClass !== newClass) {
+        // หากมีการเปลี่ยน PK ให้ลบของเก่า แล้วเพิ่มของใหม่
+        await supabaseClient.from('Target').delete().eq('Product_ID', oldProduct).eq('Classification', oldClass);
+        const { error } = await supabaseClient.from('Target').insert([payload]);
+        if (error) throw error;
+      } else {
+        // ถ้าแก้แค่ Target (PK เหมือนเดิม) ใช้วิธีอัปเดตปกติ
+        const { error } = await supabaseClient.from('Target')
+          .update({ Target: newTarget, Whoupdated: payload.Whoupdated })
+          .eq('Product_ID', oldProduct).eq('Classification', oldClass);
+        if (error) throw error;
+      }
+
+      alert("✅ บันทึกการเปลี่ยนแปลงสำเร็จ");
+      switchTargetView('targetListView');
+      loadTargetData();
+    } catch (err) {
+      alert("❌ อัปเดตไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+    }
+  }
+</script>
