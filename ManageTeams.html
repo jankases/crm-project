@@ -133,10 +133,9 @@
   var globalTeams = [];
   var globalBUsForTeam = []; 
   var currentSelectedTeamId = ""; 
+ 
 
-  window.addEventListener('load', function() {
-    loadBUDropdownsForTeam();
-    loadTeams();
+    setTimeout(function() { loadBUDropdownsForTeam(); loadTeams(); }, 300);
   });
 
   function switchTeamView(viewId) {
