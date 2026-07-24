@@ -61,7 +61,6 @@
             <label class="fw-medium mb-1">ชื่อโรงพยาบาล (Hospital)</label>
             <input type="text" class="form-control bg-white" id="hospName" placeholder="เช่น Siriraj Hospital" required>
           </div>
-          <!-- 🌟 เพิ่มช่อง Known_As -->
           <div class="col-md-6 mb-3">
             <label class="fw-medium mb-1">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
             <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="เช่น โรงพยาบาลศิริราช">
@@ -70,7 +69,6 @@
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="fw-medium mb-1">จังหวัด (Province)</label>
-            <!-- เราใช้พิมพ์เอาได้เลย หรือจะดึงจาก Database ก็ได้ (ในที่นี้ให้พิมพ์อิสระหรือเลือกจากที่เคยมี) -->
             <input type="text" class="form-control bg-white" id="hospProvince" placeholder="เช่น Bangkok" required>
           </div>
           <div class="col-md-6 mb-3">
@@ -108,7 +106,6 @@
             <label class="fw-medium mb-1">ชื่อโรงพยาบาล (Hospital)</label>
             <input type="text" class="form-control bg-white" id="editHospName" required>
           </div>
-          <!-- 🌟 เพิ่มช่อง Known_As -->
           <div class="col-md-6 mb-3">
             <label class="fw-medium mb-1">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
             <input type="text" class="form-control bg-white" id="editHospKnownAs">
@@ -161,7 +158,6 @@
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <div class="row mb-3">
         <div class="col-md-6"><label class="text-muted small">ชื่อโรงพยาบาล</label><input type="text" class="form-control bg-light" id="viewHospName" disabled></div>
-        <!-- 🌟 เพิ่มช่อง Known_As -->
         <div class="col-md-6"><label class="text-muted small">ชื่อที่เรียกทั่วไป (Known As)</label><input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled></div>
       </div>
       <div class="row mb-3">
@@ -180,8 +176,9 @@
 </div>
 
 <script>
-  let globalHospitals = [];
-  let currentSelectedHospId = ""; 
+  // 🌟 เปลียนจาก let เป็น var
+  var globalHospitals = [];
+  var currentSelectedHospId = ""; 
 
   window.addEventListener('load', function() {
     loadHospitals();
@@ -198,7 +195,7 @@
       globalHospitals = hospitals.map(h => ({
         id: h.Hospital_ID,
         name: h.Hospital,
-        knownAs: h.Known_As, // 🌟 เพิ่มมารับข้อมูลจาก DB
+        knownAs: h.Known_As, 
         province: h.Province,
         address: h.Address,
         salesId: h.Sales_ID,
@@ -247,7 +244,7 @@
     const filtered = globalHospitals.filter(h => {
       const hospId = String(h.id || "").toLowerCase();
       const hospName = String(h.name || "").toLowerCase();
-      const hospKnownAs = String(h.knownAs || "").toLowerCase(); // 🌟 ค้นหาจากชื่อภาษาไทยได้ด้วย
+      const hospKnownAs = String(h.knownAs || "").toLowerCase(); 
       const strForSearch = `${hospId} ${hospName} ${hospKnownAs}`;
       
       const matchName = (nameTerm === "") || strForSearch.includes(nameTerm);
@@ -294,7 +291,7 @@
 
     document.getElementById('viewHospTitleName').innerText = `🏥 ${h.name}`;
     document.getElementById('viewHospName').value = h.name || '-';
-    document.getElementById('viewHospKnownAs').value = h.knownAs || '-'; // 🌟 โชว์ Known As
+    document.getElementById('viewHospKnownAs').value = h.knownAs || '-'; 
     document.getElementById('viewHospProvince').value = h.province || '-';
     document.getElementById('viewHospAddress').value = h.address || '-';
     document.getElementById('viewHospSalesId').value = h.salesId || '-';
@@ -314,7 +311,7 @@
 
     document.getElementById('editHospId').value = h.id;
     document.getElementById('editHospName').value = h.name || '';
-    document.getElementById('editHospKnownAs').value = h.knownAs || ''; // 🌟 ดึง Known As มาแก้ไข
+    document.getElementById('editHospKnownAs').value = h.knownAs || ''; 
     document.getElementById('editHospProvince').value = h.province || '';
     document.getElementById('editHospAddress').value = h.address || '';
     document.getElementById('editHospSalesId').value = h.salesId || '';
@@ -333,7 +330,7 @@
 
     const payload = {
       Hospital: document.getElementById('hospName').value.trim(),
-      Known_As: document.getElementById('hospKnownAs').value.trim(), // 🌟 ส่งไปบันทึก
+      Known_As: document.getElementById('hospKnownAs').value.trim(), 
       Province: document.getElementById('hospProvince').value.trim(),
       Address: document.getElementById('hospAddress').value.trim(),
       Sales_ID: document.getElementById('hospSalesId').value.trim(),
@@ -366,7 +363,7 @@
 
     const payload = {
       Hospital: document.getElementById('editHospName').value.trim(),
-      Known_As: document.getElementById('editHospKnownAs').value.trim(), // 🌟 อัปเดตช่องใหม่
+      Known_As: document.getElementById('editHospKnownAs').value.trim(), 
       Province: document.getElementById('editHospProvince').value.trim(),
       Address: document.getElementById('editHospAddress').value.trim(),
       Sales_ID: document.getElementById('editHospSalesId').value.trim(),
