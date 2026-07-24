@@ -147,7 +147,6 @@
   var globalProductTeams = []; 
   var currentSelectedProductId = ""; 
 
-  // 🌟 แก้ไขตรงนี้ ให้โหลดข้อมูลได้ทันทีแบบ async
   setTimeout(async function() {
     await loadTeamsForProducts();
     await loadProducts();
@@ -167,7 +166,7 @@
     try {
       const { data, error } = await supabaseClient.from('Team').select('*').eq('Status', 'Active');
       if (error) throw error;
-      globalTeamsList = data;
+      globalTeamsList = data || [];
     } catch (err) { console.error("Error loading Teams:", err.message); }
   }
 
@@ -177,10 +176,16 @@
     row.className = 'row align-items-center mb-2 prod-team-row pb-2 border-bottom';
 
     let optionsHtml = '<option value="">- เลือกทีม -</option>';
-    globalTeamsList.forEach(t => {
-      const selected = t.Team_ID === selectedTeamId ? 'selected' : '';
-      optionsHtml += `<option value="${t.Team_ID}" ${selected}>${t.Team}</option>`;
-    });
+    
+    // 🌟 ดักเช็คว่าถ้าไม่มีทีมในระบบ ให้แสดงข้อความแจ้งเตือน
+    if (globalTeamsList.length === 0) {
+      optionsHtml = '<option value="">- ไม่มีทีมที่ใช้งานได้ (กรุณาไปเพิ่มทีมก่อน) -</option>';
+    } else {
+      globalTeamsList.forEach(t => {
+        const selected = t.Team_ID === selectedTeamId ? 'selected' : '';
+        optionsHtml += `<option value="${t.Team_ID}" ${selected}>${t.Team}</option>`;
+      });
+    }
 
     row.innerHTML = `
       <div class="col-md-9">
@@ -206,7 +211,9 @@
     return [...new Set(teams)]; 
   }
 
-  function openAddProductView() {
+  // 🌟 บังคับดึงข้อมูลทีมใหม่ให้ชัวร์ ก่อนเปิดหน้า Add
+  async function openAddProductView() {
+    await loadTeamsForProducts(); 
     document.getElementById('addProductForm').reset();
     document.getElementById('teamContainerAdd').innerHTML = ''; 
     addTeamRow('teamContainerAdd'); 
@@ -299,7 +306,10 @@
     switchProductView('productProfileView');
   }
 
-  function openEditProductView(id) {
+  // 🌟 บังคับดึงข้อมูลทีมใหม่ให้ชัวร์ ก่อนเปิดหน้า Edit
+  async function openEditProductView(id) {
+    await loadTeamsForProducts(); 
+    
     const p = globalProducts.find(x => x.id === id);
     if (!p) return;
 
