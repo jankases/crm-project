@@ -17,13 +17,13 @@
       <table class="table table-bordered table-striped align-middle text-center mb-0">
         <thead class="table-dark">
           <tr>
-            <th>IndexType_ID (UUID)</th>
+            <!-- ลบคอลัมน์ UUID ออกตามรูปแล้วครับ -->
             <th>ชื่อหมวดหมู่ (Name)</th>
             <th style="width: 100px;">Action</th>
           </tr>
         </thead>
         <tbody id="indexTypeTableBody">
-          <tr><td colspan="3" class="py-3">กำลังโหลดข้อมูล...</td></tr>
+          <tr><td colspan="2" class="py-3">กำลังโหลดข้อมูล...</td></tr>
         </tbody>
       </table>
     </div>
@@ -122,17 +122,18 @@
 </div>
 
 <script>
-  let globalIndexTypes = [];
-  let globalIndexes = [];
+  // 🌟 เปลียนจาก let เป็น var ทั้งหมด
+  var globalIndexTypes = [];
+  var globalIndexes = [];
+  var indexTypeModalInstance;
+  var indexModalInstance;
 
-  let indexTypeModalInstance;
-  let indexModalInstance;
-
-  window.addEventListener('load', function() {
+  // 🌟 เปลียนจาก window.addEventListener เป็น setTimeout
+  setTimeout(function() {
     indexTypeModalInstance = new bootstrap.Modal(document.getElementById('indexTypeModal'));
     indexModalInstance = new bootstrap.Modal(document.getElementById('indexModal'));
     loadAllIndexData();
-  });
+  }, 300);
 
   // 🌟 โหลดข้อมูลทั้งหมด (ดึงพร้อมกัน 2 ตาราง)
   async function loadAllIndexData() {
@@ -164,15 +165,13 @@
     tbody.innerHTML = '';
     
     if(!globalIndexTypes.length) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-muted py-3">ยังไม่มีหมวดหมู่</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="2" class="text-muted py-3">ยังไม่มีหมวดหมู่</td></tr>';
       return;
     }
 
     globalIndexTypes.forEach(t => {
-      const shortId = t.IndexType_ID.substring(0, 8) + '...';
       tbody.innerHTML += `
         <tr>
-          <td><small class="text-muted" title="${t.IndexType_ID}">${shortId}</small></td>
           <td class="fw-medium">${t.Name}</td>
           <td>
             <button class="btn btn-sm btn-outline-dark" onclick="openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')">แก้ไข</button>
@@ -281,7 +280,7 @@
     if(globalIndexTypes.length === 0) return alert("❌ กรุณาสร้างหมวดหมู่ (IndexType) ก่อนครับ");
     
     document.getElementById('modalIndexId').value = "";
-    document.getElementById('modalIndexSelectType').value = document.getElementById('filterIndexType').value || ""; // ถ้าฟิลเตอร์ไว้ ให้ใช้ค่านั้นเป็นค่า default
+    document.getElementById('modalIndexSelectType').value = document.getElementById('filterIndexType').value || ""; 
     document.getElementById('modalIndexValue').value = "";
     document.getElementById('indexModalTitle').innerText = "เพิ่มตัวเลือก";
     indexModalInstance.show();
