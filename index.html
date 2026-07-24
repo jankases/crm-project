@@ -24,37 +24,8 @@
 </head>
 <body>
 
-  <div id="loginScreen" class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background-color: #f0f2f5; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;">
-    <div class="card p-5 shadow-lg border-0" style="width: 100%; max-width: 420px; border-radius: 20px;">
-      <div class="text-center mb-4">
-        <div class="bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 70px; height: 70px; border-radius: 50%;">
-          <i class="fa-solid fa-user-lock fs-2"></i>
-        </div>
-        <h3 class="fw-bold text-primary">ระบบ CRM</h3>
-        <p class="text-muted">กรุณาเข้าสู่ระบบด้วยอีเมลบริษัท</p>
-      </div>
-      
-      <form id="loginForm" onsubmit="handleLogin(event); return false;">
-        <div class="mb-3">
-          <label class="form-label fw-medium text-dark">อีเมล (Email)</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-envelope"></i></span>
-            <input type="email" class="form-control" id="loginEmail" required placeholder="เช่น surasak.jankasem@roche.com">
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="form-label fw-medium text-dark">รหัสผ่าน (Password)</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-key"></i></span>
-            <input type="password" class="form-control" id="loginPassword" required placeholder="ใส่รหัสผ่านของคุณ">
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-2" id="loginBtn" style="border-radius: 8px; font-size: 1.1rem;">
-          เข้าสู่ระบบ
-        </button>
-      </form>
-    </div>
-  </div>
+  <!-- 🌟 พื้นที่สำหรับดึงหน้า Login.html มาแปะ 🌟 -->
+  <div id="loginComponent"></div>
 
   <div id="appContainer" class="container-fluid max-width-md" style="max-width: 1200px;">
     <div class="header-bar">
@@ -65,27 +36,37 @@
       </div>
     </div>
 
-    <!-- แท็บเมนู -->
     <ul class="nav nav-tabs" id="crmTabs" role="tablist">
-      <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visit" type="button"><i class="fa-solid fa-notes-medical me-2"></i>บันทึกเยี่ยม</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#doctors" type="button"><i class="fa-solid fa-user-doctor me-2"></i>แพทย์</button>
-      </li>
-      <!-- 🌟 เพิ่มแท็บโรงพยาบาล -->
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hospitals" type="button"><i class="fa-solid fa-hospital me-2"></i>โรงพยาบาล</button>
-      </li>
-      <li class="nav-item" id="navUsersTab" style="display: none;">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#users" type="button"><i class="fa-solid fa-user-group me-2"></i>ผู้ใช้งาน</button>
-      </li>
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visit" type="button"><i class="fa-solid fa-notes-medical me-2"></i>บันทึกเยี่ยม</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#doctors" type="button"><i class="fa-solid fa-user-doctor me-2"></i>แพทย์</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#hospitals" type="button"><i class="fa-solid fa-hospital me-2"></i>โรงพยาบาล</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#products" type="button"><i class="fa-solid fa-box-open me-2"></i>สินค้า</button></li>
+      
+      <!-- Admin Tabs -->
+      <li class="nav-item" id="navBUTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#bu" type="button"><i class="fa-solid fa-building me-2"></i>BU</button></li>
+      <li class="nav-item" id="navTeamsTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#teams" type="button"><i class="fa-solid fa-users-viewfinder me-2"></i>ทีม</button></li>
+      <li class="nav-item" id="navTerritoryTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#territory" type="button"><i class="fa-solid fa-map-location-dot me-2"></i>พื้นที่</button></li>
+      <li class="nav-item" id="navMatrixTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#matrix" type="button"><i class="fa-solid fa-table-cells me-2"></i>Rating Matrix</button></li>
+      <li class="nav-item" id="navTargetTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#target" type="button"><i class="fa-solid fa-bullseye me-2"></i>Target Call</button></li>
+      <li class="nav-item" id="navAssignmentTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#assignment" type="button"><i class="fa-solid fa-link me-2"></i>Assignment</button></li>
+      <li class="nav-item" id="navIndexTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#indexSetup" type="button"><i class="fa-solid fa-list-ul me-2"></i>ตั้งค่าตัวเลือก</button></li>
+      <li class="nav-item" id="navDCRTab" style="display: none;"><button class="nav-link text-danger" data-bs-toggle="tab" data-bs-target="#dcr" type="button"><i class="fa-solid fa-clipboard-list me-2"></i>อนุมัติข้อมูล (DCR)</button></li>
+      <li class="nav-item" id="navUsersTab" style="display: none;"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#users" type="button"><i class="fa-solid fa-user-group me-2"></i>ผู้ใช้งาน</button></li>
     </ul>
 
     <div class="tab-content" id="crmTabsContent">
       <div class="tab-pane fade show active" id="visit"><div id="loadingVisit" class="text-center py-5"></div></div>
       <div class="tab-pane fade" id="doctors"><div id="loadingDoctors" class="text-center py-5"></div></div>
       <div class="tab-pane fade" id="hospitals"><div id="loadingHospitals" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="products"><div id="loadingProducts" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="bu"><div id="loadingBU" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="teams"><div id="loadingTeams" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="territory"><div id="loadingTerritory" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="matrix"><div id="loadingMatrix" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="target"><div id="loadingTarget" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="assignment"><div id="loadingAssignment" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="indexSetup"><div id="loadingIndex" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="dcr"><div id="loadingDCR" class="text-center py-5"></div></div>
       <div class="tab-pane fade" id="users"><div id="loadingUsers" class="text-center py-5"></div></div>
     </div>
   </div>
@@ -99,11 +80,25 @@
     const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
+      // 🌟 โหลดหน้า Login มาแปะก่อนอันดับแรก
+      await loadComponent('loginComponent', 'Login.html');
+      
       checkSession();
+
+      // โหลดหน้าย่อยอื่นๆ
       loadComponent('visit', 'ManageVisits.html'); 
       loadComponent('doctors', 'ManageDoctors.html'); 
-      loadComponent('hospitals', 'ManageHospitals.html'); // 🌟 โหลดไฟล์ ManageHospitals.html
+      loadComponent('hospitals', 'ManageHospitals.html'); 
+      loadComponent('products', 'ManageProducts.html'); 
+      loadComponent('bu', 'ManageBUs.html'); 
+      loadComponent('teams', 'ManageTeams.html'); 
+      loadComponent('territory', 'ManageTerritory.html'); 
+      loadComponent('matrix', 'ManageMatrix.html'); 
+      loadComponent('target', 'ManageTarget.html'); 
+      loadComponent('assignment', 'ManageAssignment.html'); 
+      loadComponent('indexSetup', 'ManageIndex.html'); 
+      loadComponent('dcr', 'ManageDCR.html'); 
       loadComponent('users', 'ManageUsers.html'); 
     });
 
@@ -131,46 +126,15 @@
     async function saveUserLog(user, action, duration = "-") {
       try {
         const logData = {
-          Rep_ID: user.Rep_ID,       
+          Rep_ID: user.Rep_ID || user.id,       
           Action: action,            
-          Role: user.Role,           
+          Role: user.Role || user.role,           
           Device: navigator.userAgent, 
           "Session Duration": duration, 
-          Whoupdated: user.Email
+          Whoupdated: user.Email || user.email
         };
         await supabaseClient.from('User_Logs').insert([logData]);
-      } catch (err) {}
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const btn = document.getElementById('loginBtn');
-      btn.disabled = true; btn.innerHTML = "...";
-
-      const email = document.getElementById('loginEmail').value.trim();
-      const pass = document.getElementById('loginPassword').value.trim();
-
-      try {
-        const { data: users, error } = await supabaseClient
-          .from('Rep_Users').select('*').eq('Email', email).eq('Password', pass).eq('Status', 'Active'); 
-        if (error) throw error;
-
-        if (users && users.length > 0) {
-          const user = users[0];
-          sessionStorage.setItem('crmUser', JSON.stringify(user));
-          sessionStorage.setItem('loginTime', Date.now()); 
-          
-          saveUserLog(user, "Login");
-          document.getElementById('loginForm').reset();
-          checkSession();
-          
-          if (typeof loadVisitLogs === 'function') loadVisitLogs();
-          if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
-        } else {
-          alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ");
-        }
-      } catch (err) { alert("❌ Error: " + err.message); } 
-      finally { btn.disabled = false; btn.innerHTML = 'เข้าสู่ระบบ'; }
+      } catch (err) { console.error("Log error:", err); }
     }
 
     function checkSession() {
@@ -184,16 +148,24 @@
         if (appContainer) appContainer.style.display = 'block';
         
         const nameDisplay = document.getElementById('displayUserName');
-        if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + (user.Rep_Name || user.Email); 
+        // ใช้ชื่อ หรือ email (รองรับทั้ง key ตัวพิมพ์เล็กและใหญ่)
+        const dName = user.Rep_Name || user.rep_name || user.name || user.Email || user.email;
+        if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + dName; 
         
-        const usersTab = document.getElementById('navUsersTab');
-        if (user.Role === 'Admin') {
-          if (usersTab) usersTab.style.display = 'block';
-        } else {
-          if (usersTab) usersTab.style.display = 'none';
-        }
+        const userRole = user.Role || user.role;
+        const adminTabs = [
+          'navUsersTab', 'navTeamsTab', 'navBUTab', 'navTerritoryTab', 
+          'navMatrixTab', 'navTargetTab', 'navAssignmentTab', 'navIndexTab', 'navDCRTab'
+        ];
+
+        adminTabs.forEach(tabId => {
+          const tab = document.getElementById(tabId);
+          if (tab) {
+             tab.style.display = (userRole === 'Admin') ? 'block' : 'none';
+          }
+        });
       } else {
-        if (loginScreen) loginScreen.style.display = '';
+        if (loginScreen) loginScreen.style.display = 'flex';
         if (appContainer) appContainer.style.display = 'none';
       }
     }
