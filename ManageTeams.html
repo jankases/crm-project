@@ -129,9 +129,10 @@
 </div>
 
 <script>
-  let globalTeams = [];
-  let globalBUsForTeam = []; 
-  let currentSelectedTeamId = ""; 
+  // 🌟 เปลียนจาก let เป็น var
+  var globalTeams = [];
+  var globalBUsForTeam = []; 
+  var currentSelectedTeamId = ""; 
 
   window.addEventListener('load', function() {
     loadBUDropdownsForTeam();
@@ -154,10 +155,9 @@
     switchTeamView('teamAddView');
   }
 
-  // 🌟 ดึงข้อมูล BU มาใส่ Dropdown (เชื่อม Supabase ตรงๆ)
   async function loadBUDropdownsForTeam() {
     try {
-      const { data, error } = await supabaseClient.from('BU').select('BU_ID, BU_Name, Status');
+      const { data, error } = await supabaseClient.from('BU').select('BU_ID, BU, Status');
       if (error) throw error;
       globalBUsForTeam = data;
       populateBUDropdowns();
@@ -173,8 +173,7 @@
     let html = '<option value="">-- เลือก BU --</option>';
     if (Array.isArray(globalBUsForTeam)) {
       globalBUsForTeam.filter(b => b.Status === 'Active').forEach(bu => {
-        // ใช้ชื่อ BU ถ้ามี ถ้าไม่มีให้โชว์รหัส
-        const displayName = bu.BU_Name || bu.BU_ID;
+        const displayName = bu.BU || bu.BU_ID;
         html += `<option value="${bu.BU_ID}">${displayName}</option>`;
       });
     }
@@ -183,7 +182,6 @@
     if(editSelect) editSelect.innerHTML = html;
   }
 
-  // 🌟 โหลดข้อมูลทีมทั้งหมด (เชื่อม Supabase ตรงๆ)
   async function loadTeams() {
     const tbody = document.getElementById('teamTableBody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
@@ -193,9 +191,8 @@
       if (error) throw error;
 
       globalTeams = data.map(t => {
-        // หาชื่อ BU มาแสดง
         const buInfo = globalBUsForTeam.find(b => b.BU_ID === t.BU_ID);
-        const buName = buInfo ? (buInfo.BU_Name || buInfo.BU_ID) : t.BU_ID;
+        const buName = buInfo ? (buInfo.BU || buInfo.BU_ID) : t.BU_ID;
 
         return {
           id: t.Team_ID,
@@ -272,7 +269,6 @@
     switchTeamView('teamEditView');
   }
 
-  // 🌟 บันทึกทีมใหม่
   async function handleAddTeam(e) {
     e.preventDefault();
     const btn = document.getElementById('submitTeamBtn');
@@ -302,7 +298,6 @@
     }
   }
 
-  // 🌟 แก้ไขทีม
   async function handleUpdateTeam(e) {
     e.preventDefault();
     const btn = document.getElementById('updateTeamBtn');
