@@ -213,7 +213,7 @@
     
     try {
       const [terRes, docRes, prodRes] = await Promise.all([
-        supabaseClient.from('Territory').select('Territory_ID, Territory'), // ⚠️ แก้ไขเป็น Territory
+        supabaseClient.from('Territory').select('Territory_ID, Territory'), 
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name_EN, Doc_Name_TH').eq('Status', 'Active'),
         supabaseClient.from('Products').select('Product_ID, Product_Name').eq('Status', 'Active')
       ]);
@@ -238,7 +238,6 @@
         document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "-";
         
         const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-        // ⚠️ แก้ไขให้ดึง tObj.Territory
         document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory} (${tObj.Territory_ID})` : crmUser.Territory_ID;
       }
     } catch (err) {
@@ -258,7 +257,7 @@
       const { data: visits, error } = await supabaseClient
         .from('Visit_Logs')
         .select('*')
-        .order('Visit_ID', { ascending: false }); 
+        .order('Visit_Date', { ascending: false }); // ⚠️ เรียงด้วย Visit_Date แทนเพราะ UUID เรียงไม่ได้เหมือนตัวเลข
 
       if (error) throw error;
 
@@ -285,7 +284,7 @@
           prodId: v.Product_ID, 
           prodName: prod ? prod.name : v.Product_ID,
           territoryId: v.Territory_ID, 
-          territoryName: ter ? ter.Territory : v.Territory_ID // ⚠️ แก้ไขเป็น ter.Territory
+          territoryName: ter ? ter.Territory : v.Territory_ID 
         };
       });
 
@@ -302,7 +301,7 @@
   function populateVisitSelect(id, arr, defaultText) {
     let html = `<option value="">${defaultText}</option>`;
     if (arr && arr.length > 0) {
-      arr.forEach(item => html += `<option value="${item.id}">${item.name} (${item.id})</option>`);
+      arr.forEach(item => html += `<option value="${item.id}">${item.name}</option>`);
     }
     const el = document.getElementById(id);
     if(el) {
@@ -328,9 +327,12 @@
 
     filtered.forEach(v => {
       const statusBadge = v.status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
+      // เนื่องจาก ID ตอนนี้เป็น UUID ยาวมาก จึงดึงมาแสดงแค่ 6 ตัวแรกพอให้ดูง่าย
+      const shortId = v.id ? v.id.substring(0, 6) + "..." : "-";
+      
       tbody.innerHTML += `
         <tr>
-          <td class="text-center"><small>${v.id}</small></td>
+          <td class="text-center"><small title="${v.id}">${shortId}</small></td>
           <td class="text-center">${v.date}</td>
           <td><div class="fw-medium">${v.docName}</div><small class="text-muted">${v.repName}</small></td>
           <td>${v.prodName}</td>
@@ -412,8 +414,7 @@
       document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (${crmUser.Rep_ID || "-"})`;
       document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "";
       const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-      // ⚠️ แก้ไขเป็น tObj.Territory
-      document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory} (${tObj.Territory_ID})` : crmUser.Territory_ID;
+      document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory}` : crmUser.Territory_ID;
     }
 
     const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
@@ -442,9 +443,9 @@
     isVisitEditMode = true;
     document.getElementById('visitId').value = v.id;
     document.getElementById('visitRepId').value = v.repId;
-    document.getElementById('visitRepNameDisplay').innerText = `${v.repName} (${v.repId})`;
+    document.getElementById('visitRepNameDisplay').innerText = `${v.repName}`;
     document.getElementById('visitTerritoryId').value = v.territoryId;
-    document.getElementById('visitTerritoryNameDisplay').innerText = v.territoryName ? `${v.territoryName} (${v.territoryId})` : v.territoryId;
+    document.getElementById('visitTerritoryNameDisplay').innerText = v.territoryName ? `${v.territoryName}` : v.territoryId;
 
     if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.setValue(v.docId);
     if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.setValue(v.prodId);
@@ -480,16 +481,17 @@
 
     const btnSubmit = document.getElementById('btnSubmitVisit');
     if (isReadOnly) {
-      document.getElementById('visitViewTitle').innerHTML = '👁️ ดูบันทึกเยี่ยม ' + v.id + ' (อ่านได้อย่างเดียว)';
+      document.getElementById('visitViewTitle').innerHTML = '👁️ ดูบันทึกเยี่ยม (อ่านได้อย่างเดียว)';
       btnSubmit.style.display = 'none'; 
     } else {
-      document.getElementById('visitViewTitle').innerHTML = '✏️ แก้ไขบันทึกเยี่ยม ' + v.id;
+      document.getElementById('visitViewTitle').innerHTML = '✏️ แก้ไขบันทึกเยี่ยม';
       btnSubmit.style.display = 'inline-block'; 
       btnSubmit.disabled = false;
     }
     switchVisitView('visitFormView');
   }
 
+  // 🌟 บันทึก หรือ แก้ไข ข้อมูล
   async function handleSubmitVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitVisit');
@@ -520,8 +522,7 @@
         if (error) throw error;
         alert("✅ อัปเดตข้อมูลการเยี่ยมสำเร็จ");
       } else {
-        payload.Visit_ID = "V" + Date.now(); 
-        
+        // 🌟 เอาโค้ดสร้าง ID ออก ให้ Supabase Gen UUID ให้เราเอง
         const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
         if (error) throw error;
         alert("✅ บันทึกข้อมูลการเยี่ยมใหม่สำเร็จ");
@@ -535,11 +536,12 @@
     }
   }
 
+  // ลบข้อมูล
   async function deleteVisit() {
     const visitId = document.getElementById('visitId').value;
     if (!visitId) return;
 
-    if (confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการเยี่ยม ${visitId}?\n(การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
+    if (confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการเยี่ยมนี้?\n(การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
       const btn = document.getElementById('btnDeleteVisit');
       btn.disabled = true; btn.innerHTML = "กำลังลบ...";
 
