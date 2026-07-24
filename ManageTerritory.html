@@ -1,0 +1,335 @@
+<div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
+  
+  <div id="territoryListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">🗺️ จัดการเขตพื้นที่ (Territory)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddTerritoryView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มพื้นที่ใหม่ (Add Territory)
+      </button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-5">
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="searchTerritory" placeholder="ค้นหาชื่อพื้นที่, ทีม หรือ สถานะ..." onkeyup="filterTerritories()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อเขตพื้นที่ทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Territory Name</th>
+              <th>ทีมที่ดูแล (Team)</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="territoryTableBody">
+            <tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="territoryAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTerritoryView('territoryListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🗺️ เพิ่มข้อมูลเขตพื้นที่ใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addTerritoryForm" onsubmit="handleAddTerritory(event)">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อเขตพื้นที่ (Territory Name)</label>
+          <input type="text" class="form-control bg-white" id="terName" required placeholder="เช่น BKK_1">
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ทีมที่ดูแล (Team)</label>
+          <select class="form-select bg-white" id="terTeamIdAdd" required>
+            <option value="">- เลือกทีม -</option>
+          </select>
+        </div>
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTerritoryView('territoryListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitTerBtn">บันทึกพื้นที่ใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="territoryEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTerritoryView('territoryListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลเขตพื้นที่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editTerritoryForm" onsubmit="handleUpdateTerritory(event)">
+        <input type="hidden" id="editTerId">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อเขตพื้นที่</label>
+          <input type="text" class="form-control bg-white" id="editTerName" required>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ทีมที่ดูแล</label>
+          <select class="form-select bg-white" id="editTerTeamId" required></select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สถานะ</label>
+          <select class="form-select bg-white" id="editTerStatus" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTerritoryView('territoryListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateTerBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="territoryProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchTerritoryView('territoryListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditTerritoryView(currentSelectedTerritoryId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลเขตพื้นที่
+      </button>
+      <h4 class="text-info fw-bold mb-0" id="viewTerritoryTitleName">🗺️ ข้อมูลเขตพื้นที่ (Territory)</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="mb-3">
+        <label class="text-muted small">ชื่อเขตพื้นที่</label>
+        <input type="text" class="form-control bg-light" id="viewTerName" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">ทีมที่ดูแล</label>
+        <input type="text" class="form-control bg-light" id="viewTerTeam" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">สถานะ</label>
+        <input type="text" class="form-control bg-light" id="viewTerStatus" disabled>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalTerritoriesList = [];
+  let globalTeamsForTerritory = [];
+  let currentSelectedTerritoryId = "";
+
+  window.addEventListener('load', function() {
+    loadTeamDropdownsForTerritory();
+    loadTerritories();
+  });
+
+  function switchTerritoryView(viewId) {
+    const views = ['territoryListView', 'territoryAddView', 'territoryEditView', 'territoryProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  // 🌟 ดึงทีมจาก Supabase มาทำ Dropdown
+  async function loadTeamDropdownsForTerritory() {
+    try {
+      const { data, error } = await supabaseClient.from('Team').select('Team_ID, Team, Status').eq('Status', 'Active');
+      if (error) throw error;
+      
+      globalTeamsForTerritory = data;
+      
+      let opts = '<option value="">- เลือกทีม -</option>';
+      globalTeamsForTerritory.forEach(t => {
+        opts += `<option value="${t.Team_ID}">${t.Team}</option>`;
+      });
+
+      const addSelect = document.getElementById('terTeamIdAdd');
+      const editSelect = document.getElementById('editTerTeamId');
+      if(addSelect) addSelect.innerHTML = opts;
+      if(editSelect) editSelect.innerHTML = opts;
+    } catch (err) {
+      console.error("Error loading Teams for Territory:", err.message);
+    }
+  }
+
+  // 🌟 ดึงข้อมูลพื้นที่จาก Supabase
+  async function loadTerritories() {
+    const tbody = document.getElementById('territoryTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const { data, error } = await supabaseClient.from('Territory').select('*').order('Territory', { ascending: true });
+      if (error) throw error;
+
+      globalTerritoriesList = data.map(t => {
+        // หาชื่อทีม
+        const teamObj = globalTeamsForTerritory.find(team => team.Team_ID === t.Team_ID);
+        const teamName = teamObj ? teamObj.Team : t.Team_ID;
+
+        return {
+          id: t.Territory_ID,
+          name: t.Territory,
+          teamId: t.Team_ID,
+          teamName: teamName,
+          status: t.Status
+        };
+      });
+
+      filterTerritories();
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function filterTerritories() {
+    const term = document.getElementById('searchTerritory').value.toLowerCase();
+    const filtered = globalTerritoriesList.filter(t =>
+      (t.name && t.name.toLowerCase().includes(term)) ||
+      (t.teamName && t.teamName.toLowerCase().includes(term)) ||
+      (t.status && t.status.toLowerCase().includes(term))
+    );
+    renderTerritoryTable(filtered);
+  }
+
+  function renderTerritoryTable(data) {
+    const tbody = document.getElementById('territoryTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+
+    if(!data || !data.length) {
+      return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">ไม่พบข้อมูล</td></tr>';
+    }
+
+    data.forEach(t => {
+      const badge = t.status === 'Active' ? 'bg-success' : 'bg-danger';
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewTerritoryProfile('${t.id}'); return false;">
+              ${t.name}
+            </a>
+          </td>
+          <td>${t.teamName || t.teamId || '-'}</td>
+          <td class="text-center"><span class="badge ${badge}">${t.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditTerritoryView('${t.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openAddTerritoryView() {
+    document.getElementById('addTerritoryForm').reset();
+    switchTerritoryView('territoryAddView');
+  }
+
+  function openViewTerritoryProfile(id) {
+    currentSelectedTerritoryId = id; 
+    const t = globalTerritoriesList.find(x => x.id === id);
+    if (!t) return;
+
+    document.getElementById('viewTerritoryTitleName').innerText = `🗺️ ข้อมูลเขตพื้นที่: ${t.name}`;
+    document.getElementById('viewTerName').value = t.name || '-';
+    document.getElementById('viewTerTeam').value = t.teamName || t.teamId || '-';
+    document.getElementById('viewTerStatus').value = t.status || '-';
+
+    switchTerritoryView('territoryProfileView');
+  }
+
+  function openEditTerritoryView(id) {
+    const t = globalTerritoriesList.find(x => x.id === id);
+    if (!t) return;
+
+    document.getElementById('editTerId').value = t.id;
+    document.getElementById('editTerName').value = t.name;
+    document.getElementById('editTerTeamId').value = t.teamId;
+    document.getElementById('editTerStatus').value = t.status;
+
+    switchTerritoryView('territoryEditView');
+  }
+
+  // 🌟 บันทึกเพิ่มข้อมูล
+  async function handleAddTerritory(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitTerBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Territory: document.getElementById('terName').value.trim(),
+      Team_ID: document.getElementById('terTeamIdAdd').value,
+      Status: 'Active',
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Territory').insert([payload]);
+      if (error) throw error;
+      
+      alert("✅ บันทึกพื้นที่ใหม่สำเร็จ");
+      switchTerritoryView('territoryListView');
+      document.getElementById('searchTerritory').value = '';
+      loadTerritories();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกพื้นที่ใหม่";
+    }
+  }
+
+  // 🌟 อัปเดตข้อมูล
+  async function handleUpdateTerritory(e) {
+    e.preventDefault();
+    const btn = document.getElementById('updateTerBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    const terId = document.getElementById('editTerId').value;
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Territory: document.getElementById('editTerName').value.trim(),
+      Team_ID: document.getElementById('editTerTeamId').value,
+      Status: document.getElementById('editTerStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Territory').update(payload).eq('Territory_ID', terId);
+      if (error) throw error;
+
+      alert("✅ บันทึกการเปลี่ยนแปลงสำเร็จ");
+      switchTerritoryView('territoryListView');
+      document.getElementById('searchTerritory').value = '';
+      loadTerritories();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+    }
+  }
+</script>
