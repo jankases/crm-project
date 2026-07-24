@@ -149,7 +149,7 @@
   var globalTeamsForTerritory = [];
   var currentSelectedTerritoryId = "";
 
-  // โหลดข้อมูลแบบรอให้ Team โหลดเสร็จก่อน
+  // 🌟 จุดที่มีปัญหา ผมแก้ให้รองรับ async/await อย่างถูกต้องแล้วครับ
   setTimeout(async function() {
     await loadTeamDropdownsForTerritory();
     await loadTerritories();
@@ -253,7 +253,7 @@
 
   function openAddTerritoryView() {
     document.getElementById('addTerritoryForm').reset();
-    document.getElementById('terStatusAdd').value = 'Active'; // ตั้งค่า Default ให้ Status
+    document.getElementById('terStatusAdd').value = 'Active'; 
     switchTerritoryView('territoryAddView');
   }
 
@@ -293,7 +293,7 @@
     const payload = {
       Territory: document.getElementById('terName').value.trim(),
       Team_ID: document.getElementById('terTeamIdAdd').value,
-      Status: document.getElementById('terStatusAdd').value, // ดึงค่าจากฟิลด์
+      Status: document.getElementById('terStatusAdd').value, 
       Whoupdated: crmUser ? crmUser.Email : "Unknown"
     };
 
