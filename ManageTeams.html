@@ -133,7 +133,7 @@
   var globalBUsForTeam = []; 
   var currentSelectedTeamId = ""; 
 
-  // 🔥 ใช้แค่นี้พอครับ ไม่ต้องมี window.addEventListener ครอบ
+  // โหลดข้อมูลเมื่อเปิดหน้า
   setTimeout(function() { 
     loadBUDropdownsForTeam(); 
     loadTeams(); 
@@ -159,7 +159,7 @@
     try {
       const { data, error } = await supabaseClient.from('BU').select('BU_ID, BU, Status');
       if (error) throw error;
-      globalBUsForTeam = data;
+      globalBUsForTeam = data || [];
       populateBUDropdowns();
     } catch (err) {
       console.error("Error loading BU:", err.message);
@@ -190,7 +190,7 @@
       const { data, error } = await supabaseClient.from('Team').select('*').order('Team', { ascending: true });
       if (error) throw error;
 
-      globalTeams = data.map(t => {
+      globalTeams = (data || []).map(t => {
         const buInfo = globalBUsForTeam.find(b => b.BU_ID === t.BU_ID);
         const buName = buInfo ? (buInfo.BU || buInfo.BU_ID) : t.BU_ID;
 
