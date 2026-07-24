@@ -47,15 +47,16 @@
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <form id="addTeamForm" onsubmit="handleAddTeam(event)">
-        <div class="mb-3">
-          <label class="form-label fw-medium text-dark">ชื่อทีม (Team Name)</label>
-          <input type="text" class="form-control bg-white" id="teamName" required placeholder="เช่น HEME1">
-        </div>
+        <!-- สลับ สังกัด BU ขึ้นมาด้านบน -->
         <div class="mb-3">
           <label class="form-label fw-medium text-dark">สังกัด BU</label>
           <select class="form-select bg-white" id="buIdSelect" required>
             <option value="">-- เลือก BU --</option>
           </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อทีม (Team Name)</label>
+          <input type="text" class="form-control bg-white" id="teamName" required placeholder="เช่น HEME1">
         </div>
         <div class="text-end mt-4">
           <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchTeamView('teamListView')">ยกเลิก</button>
@@ -76,13 +77,14 @@
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <form id="editTeamForm" onsubmit="handleUpdateTeam(event)">
         <input type="hidden" id="editTeamId">
-        <div class="mb-3">
-          <label class="form-label fw-medium text-dark">ชื่อทีม (Team Name)</label>
-          <input type="text" class="form-control bg-white" id="editTeamName" required>
-        </div>
+        <!-- สลับ สังกัด BU ขึ้นมาด้านบน -->
         <div class="mb-3">
           <label class="form-label fw-medium text-dark">สังกัด BU</label>
           <select class="form-select bg-white" id="editBuIdSelect" required></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อทีม (Team Name)</label>
+          <input type="text" class="form-control bg-white" id="editTeamName" required>
         </div>
         <div class="mb-3">
           <label class="form-label fw-medium text-dark">สถานะ</label>
@@ -111,13 +113,14 @@
     </div>
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
-      <div class="mb-3">
-        <label class="text-muted small">ชื่อทีม (Team Name)</label>
-        <input type="text" class="form-control bg-light" id="viewTeamName" disabled>
-      </div>
+      <!-- สลับ สังกัด BU ขึ้นมาด้านบน -->
       <div class="mb-3">
         <label class="text-muted small">สังกัด BU</label>
         <input type="text" class="form-control bg-light" id="viewTeamBU" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">ชื่อทีม (Team Name)</label>
+        <input type="text" class="form-control bg-light" id="viewTeamName" disabled>
       </div>
       <div class="mb-3">
         <label class="text-muted small">สถานะ</label>
@@ -252,8 +255,8 @@
     if (!t) return;
 
     document.getElementById('viewTeamTitleName').innerText = `🏢 ข้อมูลทีม: ${t.name}`;
-    document.getElementById('viewTeamName').value = t.name || '-';
     document.getElementById('viewTeamBU').value = t.buName || t.buId || '-';
+    document.getElementById('viewTeamName').value = t.name || '-';
     document.getElementById('viewTeamStatus').value = t.status || '-';
 
     switchTeamView('teamProfileView');
@@ -263,8 +266,8 @@
     const t = globalTeams.find(x => x.id === id);
     if (!t) return;
     document.getElementById('editTeamId').value = t.id;
-    document.getElementById('editTeamName').value = t.name;
     document.getElementById('editBuIdSelect').value = t.buId;
+    document.getElementById('editTeamName').value = t.name;
     document.getElementById('editTeamStatus').value = t.status;
     switchTeamView('teamEditView');
   }
