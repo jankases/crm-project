@@ -113,16 +113,16 @@
 </div>
 
 <script>
-  let globalMatrixList = [];
-  let globalProductsForMatrix = [];
-  let isMatrixDataLoaded = false;
-  let isMatrixEditMode = false;
-  let currentSelectedMatrixId = ""; 
+  // 🌟 เปลียนจาก let/const เป็น var ทั้งหมด
+  var globalMatrixList = [];
+  var globalProductsForMatrix = [];
+  var isMatrixDataLoaded = false;
+  var isMatrixEditMode = false;
+  var currentSelectedMatrixId = ""; 
 
-  // ข้อมูลคงที่สำหรับ Dropdown (หากมีตารางแยกในอนาคตก็ปรับดึงจากฐานข้อมูลได้)
-  const ADOPTION_OPTS = ['A', 'B', 'C', 'D'];
-  const POTENTIAL_OPTS = ['High', 'Medium', 'Low', 'None'];
-  const CLASS_OPTS = ['A', 'B', 'C', 'D', 'E'];
+  var ADOPTION_OPTS = ['A', 'B', 'C', 'D'];
+  var POTENTIAL_OPTS = ['High', 'Medium', 'Low', 'None'];
+  var CLASS_OPTS = ['A', 'B', 'C', 'D', 'E'];
 
   window.addEventListener('load', function() {
     loadProductsForMatrix();
@@ -138,7 +138,6 @@
     if(target) target.classList.remove('d-none');
   }
 
-  // 🌟 ดึงข้อมูลสินค้ามาเพื่อใช้ใน Dropdown และแสดงผล
   async function loadProductsForMatrix() {
     try {
       const { data, error } = await supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active');
@@ -154,7 +153,6 @@
       document.getElementById('matrixProduct').innerHTML = pOptions;
       document.getElementById('filterMatrixProduct').innerHTML = pfOptions;
 
-      // สร้าง Dropdown แบบตายตัว
       let adoptOpts = '<option value="">- เลือก -</option>'; ADOPTION_OPTS.forEach(v => adoptOpts += `<option value="${v}">${v}</option>`);
       let potOpts = '<option value="">- เลือก -</option>'; POTENTIAL_OPTS.forEach(v => potOpts += `<option value="${v}">${v}</option>`);
       let classOpts = '<option value="">- เลือก -</option>'; CLASS_OPTS.forEach(v => classOpts += `<option value="${v}">${v}</option>`);
@@ -169,7 +167,6 @@
     }
   }
 
-  // 🌟 ดึงข้อมูล Matrix จาก Supabase
   async function loadMatrixData() {
     isMatrixDataLoaded = false;
     const tbody = document.getElementById('matrixTableBody');
@@ -184,7 +181,7 @@
         const prodName = prodInfo ? prodInfo.Product : m.Product_ID;
 
         return {
-          compositeId: `${m.Product_ID}|${m.Adoption}|${m.Potential}`, // ใช้ขีดคั่นสร้าง ID ปลอมไว้ใช้อ้างอิง
+          compositeId: `${m.Product_ID}|${m.Adoption}|${m.Potential}`,
           productId: m.Product_ID,
           productName: prodName,
           adoption: m.Adoption,
@@ -265,7 +262,6 @@
     switchMatrixView('matrixFormView');
   }
 
-  // 🌟 ฟังก์ชันบันทึกและแก้ไขข้อมูล
   async function handleSaveMatrix(e) {
     e.preventDefault();
     const btn = document.getElementById('submitMatrixBtn');
@@ -289,23 +285,20 @@
 
     try {
       if (isMatrixEditMode) {
-        // 🌟 ดึงค่า PK เก่ามาเช็ค ถ้ามีการแก้ PK เราต้องลบตัวเก่าทิ้งแล้วใส่ใหม่ (เพราะ Supabase แก้ PK โดยตรงไม่ได้ง่ายๆ)
         const oldProductId = document.getElementById('editMatrixOldProduct').value;
         const oldAdopt = document.getElementById('editMatrixOldAdopt').value;
         const oldPot = document.getElementById('editMatrixOldPot').value;
 
         if (oldProductId !== newProductId || oldAdopt !== newAdopt || oldPot !== newPot) {
-          // ลบของเก่าออกก่อน
           await supabaseClient.from('Rating_Matrix')
             .delete()
             .eq('Product_ID', oldProductId)
             .eq('Adoption', oldAdopt)
             .eq('Potential', oldPot);
-          // ใส่ตัวใหม่เข้าไป
+            
           const { error } = await supabaseClient.from('Rating_Matrix').insert([payload]);
           if (error) throw error;
         } else {
-          // ถ้า PK ไม่เปลี่ยน แปลว่าแค่อัปเดต Classification
           const { error } = await supabaseClient.from('Rating_Matrix')
             .update({ Classification: newClass, Whoupdated: payload.Whoupdated })
             .eq('Product_ID', oldProductId)
@@ -315,7 +308,6 @@
         }
         alert("✅ อัปเดตเงื่อนไขสำเร็จ");
       } else {
-        // กรณี Insert ปกติ
         const { error } = await supabaseClient.from('Rating_Matrix').insert([payload]);
         if (error) {
           if (error.code === '23505') throw new Error("มีการกำหนดเงื่อนไขสินค้านี้ซ้ำ (Adoption และ Potential ซ้ำกัน)");
