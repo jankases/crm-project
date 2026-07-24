@@ -1,19 +1,19 @@
-<div class="container-fluid p-0" style="max-width: 1100px; margin: 0 auto;">
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
   <!-- ================= 1. หน้ารายชื่อผู้ใช้งาน (List View) ================= -->
   <div id="userListView">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="text-primary fw-bold mb-0">👥 จัดการผู้ใช้งาน (Users)</h4>
+      <h4 class="text-success fw-bold mb-0">👥 จัดการผู้ใช้งาน (Users)</h4>
       <button type="button" class="btn btn-success fw-bold shadow-sm" onclick="openAddUserView()">
         <i class="fa-solid fa-user-plus me-2"></i>เพิ่มผู้ใช้งานใหม่ (Add User)
       </button>
     </div>
 
     <div class="row mb-3">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 ps-0" id="searchUser" placeholder="ค้นหาด้วยชื่อ, อีเมล หรือบทบาท..." onkeyup="filterUsers()">
+          <input type="text" class="form-control border-start-0 ps-0" id="searchUserName" placeholder="ค้นหาด้วยชื่อหรือบทบาท..." onkeyup="filterUsers()">
         </div>
       </div>
     </div>
@@ -21,11 +21,11 @@
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <h5 class="mb-3 fw-bold">รายชื่อผู้ใช้งานทั้งหมด</h5>
       <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle text-center">
-          <thead class="table-dark">
+        <table class="table table-bordered table-striped align-middle" style="font-size: 0.95rem;">
+          <thead class="table-dark text-center">
             <tr>
               <th>Name</th>
-              <th>ขอบเขตความรับผิดชอบ (Territory)</th>
+              <th>ขอบเขตความรับผิดชอบ</th>
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
@@ -33,253 +33,483 @@
             </tr>
           </thead>
           <tbody id="userTableBody">
-            <tr><td colspan="6" class="py-4">กำลังโหลดข้อมูล...</td></tr>
+            <tr><td colspan="6" class="text-center py-4">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= 2. หน้าเพิ่ม/แก้ไข ข้อมูลผู้ใช้งาน (Form View) ================= -->
-  <div id="userFormView" class="d-none">
+  <!-- ================= 2. หน้าเพิ่มผู้ใช้งานใหม่ (Add View) ================= -->
+  <div id="userAddView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchUserView('userListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <h4 class="text-primary fw-bold mb-0" id="userFormTitle">เพิ่มผู้ใช้งานใหม่</h4>
+      <h4 class="text-success fw-bold mb-0">👥 เพิ่มข้อมูลผู้ใช้งานใหม่</h4>
     </div>
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
-      <form id="userForm" onsubmit="handleSaveUser(event)">
-        <input type="hidden" id="editUserId">
-        
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label fw-medium">ชื่อ-นามสกุล (Name)</label>
-            <input type="text" class="form-control bg-white" id="userName" required placeholder="เช่น สมชาย ใจดี">
+      <form id="addUserForm" onsubmit="handleAddUser(event)">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">ชื่อ-นามสกุล</label>
+            <input type="text" class="form-control bg-white" id="repName" required>
           </div>
-          <div class="col-md-6">
-            <label class="form-label fw-medium">อีเมล (Email)</label>
-            <input type="email" class="form-control bg-white" id="userEmail" required placeholder="example@roche.com">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">อีเมล</label>
+            <input type="email" class="form-control bg-white" id="email" required>
           </div>
         </div>
-
-        <div class="row mb-3">
-          <div class="col-md-6" id="passwordContainer">
-            <label class="form-label fw-medium">รหัสผ่าน (Password)</label>
-            <input type="text" class="form-control bg-white" id="userPassword">
-            <small class="text-muted" id="passwordHint">ใส่เพื่อเปลี่ยนรหัสผ่าน (ถ้าไม่เปลี่ยนให้เว้นว่างไว้)</small>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-medium">บทบาท (Role)</label>
-            <select class="form-select bg-white" id="userRole" required>
-              <option value="Admin">Admin</option>
-              <option value="BU Head">BU Head</option>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">บทบาท (Role)</label>
+            <select class="form-select bg-white" id="role" required onchange="handleRoleChange('role', 'territoryId', 'scopeLabel')">
+              <option value="Sales">Sales</option>
               <option value="Manager">Manager</option>
-              <option value="Sales Rep">Sales Rep</option>
+              <option value="BU Head">BU Head</option>
+              <option value="Admin">Admin</option>
             </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-primary" id="scopeLabel">เขตพื้นที่ (Territory)</label>
+            <select class="form-select bg-white" id="territoryId"></select>
           </div>
         </div>
+        <div class="row border-top pt-3 mt-1">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">รหัสผ่าน (Password)</label>
+            <input type="password" class="form-control bg-white" id="password" required placeholder="อย่างน้อย 5 ตัวอักษร, พิมพ์ใหญ่ 1, ตัวเลข 1">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">ยืนยันรหัสผ่าน</label>
+            <input type="password" class="form-control bg-white" id="confirmPassword" required placeholder="พิมพ์รหัสผ่านอีกครั้ง">
+          </div>
+        </div>
+        <div class="text-end mt-3">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchUserView('userListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-success fw-bold px-4" id="submitUserBtn">บันทึกผู้ใช้งานใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label fw-medium">เขตพื้นที่ (Territory)</label>
-            <select class="form-select bg-white" id="userTerritory">
-              <option value="">- ไม่ระบุ -</option>
+  <!-- ================= 3. หน้าแก้ไขข้อมูลผู้ใช้ (Edit View) ================= -->
+  <div id="userEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchUserView('userListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-success fw-bold mb-0">✏️ แก้ไขข้อมูลผู้ใช้</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editUserForm" onsubmit="handleUpdateUser(event)">
+        <input type="hidden" id="editRepId">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">ชื่อ-นามสกุล</label>
+            <input type="text" class="form-control bg-white" id="editRepName" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">อีเมล</label>
+            <input type="email" class="form-control bg-white" id="editEmail" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">บทบาท (Role)</label>
+            <select class="form-select bg-white" id="editRole" required onchange="handleRoleChange('editRole', 'editTerritoryId', 'editScopeLabel')">
+              <option value="Sales">Sales</option>
+              <option value="Manager">Manager</option>
+              <option value="BU Head">BU Head</option>
+              <option value="Admin">Admin</option>
             </select>
           </div>
-          <div class="col-md-6">
-            <label class="form-label fw-medium">สถานะ (Status)</label>
-            <select class="form-select bg-white" id="userStatus" required>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-primary mb-1" id="editScopeLabel">เขตพื้นที่ (Territory)</label>
+            <select class="form-select bg-white" id="editTerritoryId"></select>
+          </div>
+        </div>
+        <div class="row border-top pt-3 mt-1">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">เปลี่ยนรหัสผ่าน</label>
+            <input type="password" class="form-control bg-white" id="editPassword" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">ยืนยันรหัสผ่านใหม่</label>
+            <input type="password" class="form-control bg-white" id="editConfirmPassword" required>
+          </div>
+        </div>
+        <div class="row border-top pt-3 mt-1">
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium text-dark mb-1">สถานะ</label>
+            <select class="form-select bg-white" id="editStatus" required>
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
           </div>
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium text-dark mb-1">Start Date</label>
+            <input type="date" class="form-control bg-white" id="editStartDate">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium text-dark mb-1">End Date</label>
+            <input type="date" class="form-control bg-white" id="editEndDate">
+          </div>
         </div>
-
-        <div class="text-end mt-4">
+        <div class="text-end mt-3">
           <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchUserView('userListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitUserBtn">บันทึกข้อมูล</button>
+          <button type="submit" class="btn btn-success fw-bold px-4" id="updateUserBtn">บันทึกการเปลี่ยนแปลง</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ================= 4. หน้าดูโปรไฟล์ผู้ใช้งาน (Profile View) ================= -->
+  <div id="userProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchUserView('userListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditUserView(currentSelectedUserId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลผู้ใช้
+      </button>
+      <h4 class="text-success fw-bold mb-0" id="viewUserTitleName">👥 ข้อมูลผู้ใช้งาน</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="row mb-3">
+        <div class="col-md-6"><label class="text-muted small">ชื่อ-นามสกุล</label><input type="text" class="form-control bg-light" id="viewRepName" disabled></div>
+        <div class="col-md-6"><label class="text-muted small">อีเมล</label><input type="text" class="form-control bg-light" id="viewEmail" disabled></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6"><label class="text-muted small">บทบาท (Role)</label><input type="text" class="form-control bg-light" id="viewRole" disabled></div>
+        <div class="col-md-6"><label class="text-muted small">ขอบเขตความรับผิดชอบ</label><input type="text" class="form-control bg-light" id="viewScopeName" disabled></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label class="text-muted small">สถานะ</label><input type="text" class="form-control bg-light" id="viewStatus" disabled></div>
+        <div class="col-md-4"><label class="text-muted small">Start Date</label><input type="date" class="form-control bg-light" id="viewStartDate" disabled></div>
+        <div class="col-md-4"><label class="text-muted small">End Date</label><input type="date" class="form-control bg-light" id="viewEndDate" disabled></div>
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-  // 🌟 ใช้ var เพื่อป้องกัน Error ตัวแปรชนกันข้ามหน้า
+  // 🌟 เปลียนจาก let เป็น var ทั้งหมด
   var globalUsers = [];
-  var globalUserTerritories = [];
-  var isUserEditMode = false;
+  var globalTerritoriesDropdown = [];
+  var globalTeamsDropdown = [];
+  var globalBUsDropdown = []; 
+  var currentSelectedUserId = ""; 
 
-  window.addEventListener('load', function() {
-    loadUserDropdowns();
+  window.addEventListener('load', () => { 
+    loadScopeDropdowns(); 
   });
 
   function switchUserView(viewId) {
-    document.getElementById('userListView').classList.add('d-none');
-    document.getElementById('userFormView').classList.add('d-none');
-    document.getElementById(viewId).classList.remove('d-none');
+    const views = ['userListView', 'userAddView', 'userEditView', 'userProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
   }
 
-  // ดึงข้อมูลพื้นที่มาใส่ Dropdown
-  async function loadUserDropdowns() {
+  // 🌟 ดึงข้อมูล Dropdown ขอบเขตความรับผิดชอบจาก Supabase
+  async function loadScopeDropdowns() { 
     try {
-      const { data, error } = await supabaseClient.from('Territory').select('Territory_ID, Territory').eq('Status', 'Active');
-      if (error) throw error;
-      
-      globalUserTerritories = data || [];
-      let opts = '<option value="">- ไม่ระบุ -</option>';
-      globalUserTerritories.forEach(t => {
-        opts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
-      });
-      document.getElementById('userTerritory').innerHTML = opts;
+      const [terRes, teamRes, buRes] = await Promise.all([
+        supabaseClient.from('Territory').select('*').eq('Status', 'Active'),
+        supabaseClient.from('Team').select('*').eq('Status', 'Active'),
+        supabaseClient.from('BU').select('*').eq('Status', 'Active')
+      ]);
 
-      // โหลดผู้ใช้ต่อ
+      globalTerritoriesDropdown = terRes.data || [];
+      globalTeamsDropdown = teamRes.data || [];
+      globalBUsDropdown = buRes.data || [];
+
+      // หลังจากโหลด Dropdown เสร็จ ค่อยไปโหลดผู้ใช้ทั้งหมด
       loadUsers();
     } catch (err) {
-      console.error("Error loading User Dropdowns:", err);
+      console.error("Error loading dropdowns:", err.message);
     }
   }
 
-  // ดึงข้อมูลผู้ใช้งานทั้งหมด
-  async function loadUsers() {
+  // 🌟 ดึงรายชื่อผู้ใช้งานจาก Supabase
+  async function loadUsers() { 
     const tbody = document.getElementById('userTableBody');
-    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="py-4">กำลังโหลดข้อมูล...</td></tr>`;
+    if(tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
     
     try {
-      const { data, error } = await supabaseClient.from('Rep_Users').select('*').order('Rep_Name', { ascending: true });
+      const { data: users, error } = await supabaseClient.from('Rep_Users').select('*').order('Rep_Name', { ascending: true });
       if (error) throw error;
 
-      globalUsers = data.map(u => {
-        const ter = globalUserTerritories.find(t => t.Territory_ID === u.Territory_ID);
+      globalUsers = users.map(u => {
+        let tName = "-";
+        
+        if (!u.Territory_ID) {
+          tName = 'ALL (ดูแลทั้งหมด)';
+        } else {
+          if (u.Role === 'Sales') {
+            const ter = globalTerritoriesDropdown.find(t => t.Territory_ID === u.Territory_ID);
+            if (ter) tName = ter.Territory || ter.Territory_ID;
+          } else if (u.Role === 'Manager') {
+            const team = globalTeamsDropdown.find(t => t.Team_ID === u.Territory_ID);
+            if (team) tName = team.Team || u.Territory_ID;
+          } else if (u.Role === 'BU Head') {
+            const bu = globalBUsDropdown.find(b => b.BU_ID === u.Territory_ID);
+            if (bu) tName = bu.BU || u.Territory_ID;
+          } else {
+            tName = u.Territory_ID;
+          }
+        }
+
         return {
           id: u.Rep_ID,
           name: u.Rep_Name,
           email: u.Email,
           role: u.Role,
-          status: u.Status,
           territoryId: u.Territory_ID,
-          territoryName: ter ? ter.Territory : u.Territory_ID
+          territoryName: tName,
+          status: u.Status,
+          password: u.Password,
+          startDate: u.StartDate,
+          endDate: u.EndDate
         };
       });
 
-      filterUsers();
+      renderUserTable(globalUsers);
     } catch (err) {
       console.error(err);
-      if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+      if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function handleRoleChange(roleSelectId, scopeSelectId, labelId, selectedValue = '') {
+    const role = document.getElementById(roleSelectId).value;
+    const scopeSelect = document.getElementById(scopeSelectId);
+    const label = document.getElementById(labelId);
+    
+    scopeSelect.innerHTML = '';
+
+    if (role === 'Admin') {
+      label.innerHTML = 'ขอบเขตความรับผิดชอบ (Scope)';
+      scopeSelect.innerHTML = '<option value="">ALL (ดูแลทั้งหมด)</option>';
+      scopeSelect.value = ''; 
+      scopeSelect.disabled = true; 
+    } 
+    else if (role === 'BU Head') {
+      label.innerHTML = 'กลุ่มธุรกิจ (BU)';
+      scopeSelect.disabled = false;
+      let opts = '<option value="">- เลือก BU ที่ดูแล -</option>';
+      globalBUsDropdown.forEach(b => {
+        opts += `<option value="${b.BU_ID}">${b.BU}</option>`;
+      });
+      scopeSelect.innerHTML = opts;
+    }
+    else if (role === 'Manager') {
+      label.innerHTML = 'ทีมที่ดูแล (Team)';
+      scopeSelect.disabled = false;
+      let opts = '<option value="">- เลือกทีมที่ดูแล -</option>';
+      globalTeamsDropdown.forEach(t => {
+        opts += `<option value="${t.Team_ID}">${t.Team}</option>`;
+      });
+      scopeSelect.innerHTML = opts;
+    } 
+    else { 
+      label.innerHTML = 'เขตพื้นที่ (Territory)';
+      scopeSelect.disabled = false;
+      let opts = '<option value="">- เลือกพื้นที่ -</option>';
+      globalTerritoriesDropdown.forEach(t => {
+        opts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
+      });
+      scopeSelect.innerHTML = opts;
+    }
+
+    if (selectedValue) {
+      scopeSelect.value = selectedValue;
     }
   }
 
   function filterUsers() {
-    const term = document.getElementById('searchUser').value.toLowerCase().trim();
-    const filtered = globalUsers.filter(u => 
-      (u.name && u.name.toLowerCase().includes(term)) ||
-      (u.role && u.role.toLowerCase().includes(term)) ||
-      (u.email && u.email.toLowerCase().includes(term))
-    );
+    const term = document.getElementById('searchUserName').value.toLowerCase();
+    const filtered = globalUsers.filter(u => u.name.toLowerCase().includes(term) || u.role.toLowerCase().includes(term));
     renderUserTable(filtered);
   }
 
   function renderUserTable(data) {
-    const tbody = document.getElementById('userTableBody');
+    const tbody = document.getElementById('userTableBody'); 
     if(!tbody) return;
     tbody.innerHTML = '';
+    if(!data.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">ไม่พบข้อมูล</td></tr>';
     
-    if(!data.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-danger py-4">ไม่พบข้อมูลผู้ใช้งาน</td></tr>';
-
     data.forEach(u => {
-      const badge = u.status === 'Active' ? 'bg-success' : 'bg-danger';
-      const roleBadge = u.role === 'Admin' ? 'bg-danger' : (u.role === 'Sales Rep' ? 'bg-info text-dark' : 'bg-primary');
-      
+      const badgeClass = u.status === 'Active' ? 'bg-success' : 'bg-danger';
+      const roleBadge = u.role === 'Admin' ? 'bg-dark' : (u.role === 'Manager' ? 'bg-primary' : 'bg-info text-dark');
       tbody.innerHTML += `
         <tr>
-          <td class="fw-medium text-start text-primary">${u.name || '-'}</td>
-          <td>${u.territoryName || '-'}</td>
-          <td>${u.email || '-'}</td>
-          <td><span class="badge ${roleBadge}">${u.role || '-'}</span></td>
-          <td><span class="badge ${badge}">${u.status}</span></td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="openEditUserView('${u.id}')">แก้ไข</button>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewUserProfile('${u.id}'); return false;">
+              ${u.name}
+            </a>
+          </td>
+          <td class="text-primary text-center"><small class="fw-medium">${u.territoryName}</small></td>
+          <td><small>${u.email}</small></td>
+          <td class="text-center"><span class="badge ${roleBadge}">${u.role}</span></td>
+          <td class="text-center"><span class="badge ${badgeClass}">${u.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-success" onclick="openEditUserView('${u.id}')">แก้ไข</button>
           </td>
         </tr>`;
     });
   }
 
   function openAddUserView() {
-    isUserEditMode = false;
-    document.getElementById('userFormTitle').innerText = '👤 เพิ่มผู้ใช้งานใหม่ (Add User)';
-    document.getElementById('userForm').reset();
-    document.getElementById('editUserId').value = '';
-    document.getElementById('userPassword').required = true;
-    document.getElementById('passwordHint').innerText = "ต้องระบุรหัสผ่านสำหรับการสร้างบัญชีใหม่";
-    switchUserView('userFormView');
+    document.getElementById('addUserForm').reset();
+    handleRoleChange('role', 'territoryId', 'scopeLabel'); 
+    switchUserView('userAddView');
+  }
+
+  function openViewUserProfile(id) {
+    currentSelectedUserId = id; 
+    const u = globalUsers.find(x => x.id === id); 
+    if(!u) return;
+
+    document.getElementById('viewUserTitleName').innerText = `👥 ข้อมูลผู้ใช้งาน: ${u.name}`;
+    document.getElementById('viewRepName').value = u.name || '-';
+    document.getElementById('viewEmail').value = u.email || '-';
+    document.getElementById('viewRole').value = u.role || '-';
+    document.getElementById('viewScopeName').value = u.territoryName || '-';
+    document.getElementById('viewStatus').value = u.status || '-';
+    document.getElementById('viewStartDate').value = formatHTMLDate(u.startDate);
+    document.getElementById('viewEndDate').value = formatHTMLDate(u.endDate);
+
+    switchUserView('userProfileView');
   }
 
   function openEditUserView(id) {
-    const u = globalUsers.find(x => x.id === id);
+    const u = globalUsers.find(x => x.id === id); 
     if(!u) return;
-
-    isUserEditMode = true;
-    document.getElementById('userFormTitle').innerText = '✏️ แก้ไขข้อมูลผู้ใช้งาน';
-    document.getElementById('editUserId').value = u.id;
-    document.getElementById('userName').value = u.name;
-    document.getElementById('userEmail').value = u.email;
-    document.getElementById('userRole').value = u.role;
-    document.getElementById('userTerritory').value = u.territoryId || '';
-    document.getElementById('userStatus').value = u.status;
+    document.getElementById('editRepId').value = u.id; 
+    document.getElementById('editRepName').value = u.name;
+    document.getElementById('editEmail').value = u.email; 
+    document.getElementById('editRole').value = u.role; 
     
-    document.getElementById('userPassword').value = '';
-    document.getElementById('userPassword').required = false;
-    document.getElementById('passwordHint').innerText = "ใส่เฉพาะกรณีที่ต้องการเปลี่ยนรหัสผ่าน (ถ้าไม่เปลี่ยนให้เว้นว่างไว้)";
+    handleRoleChange('editRole', 'editTerritoryId', 'editScopeLabel', u.territoryId);
     
-    switchUserView('userFormView');
+    document.getElementById('editPassword').value = u.password; 
+    document.getElementById('editConfirmPassword').value = u.password;
+    document.getElementById('editStatus').value = u.status;
+    document.getElementById('editStartDate').value = formatHTMLDate(u.startDate); 
+    document.getElementById('editEndDate').value = formatHTMLDate(u.endDate);
+    
+    switchUserView('userEditView');
   }
 
-  async function handleSaveUser(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitUserBtn');
-    btn.disabled = true; btn.innerHTML = 'กำลังบันทึก...';
+  function formatHTMLDate(d) { 
+    if(!d) return ''; 
+    const dt = new Date(d); 
+    return dt.getFullYear() >= 9999 || isNaN(dt) ? '' : dt.toISOString().split('T')[0]; 
+  }
+
+  function validatePassword(password, confirmPassword) {
+    if (password.length < 5) return "รหัสผ่านต้องมีอย่างน้อย 5 ตัวอักษร";
+    if (!/[A-Z]/.test(password)) return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว (A-Z)";
+    if (!/[0-9]/.test(password)) return "รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว (0-9)";
+    if (password !== confirmPassword) return "รหัสผ่านไม่ตรงกัน";
+    return "OK";
+  }
+
+  // 🌟 บันทึกเพิ่มผู้ใช้ลง Supabase
+  async function handleAddUser(e) {
+    e.preventDefault(); 
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const validationResult = validatePassword(password, confirmPassword);
+    if (validationResult !== "OK") { alert("❌ " + validationResult); return; }
+    
+    const btn = document.getElementById('submitUserBtn'); 
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    let terId = document.getElementById('territoryId').value;
+    if (terId === "") terId = null; 
 
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
-    const payload = {
-      Rep_Name: document.getElementById('userName').value.trim(),
-      Email: document.getElementById('userEmail').value.trim(),
-      Role: document.getElementById('userRole').value,
-      Territory_ID: document.getElementById('userTerritory').value || null,
-      Status: document.getElementById('userStatus').value,
-      Whoupdated: crmUser ? (crmUser.Email || crmUser.email) : 'System'
+    const payload = { 
+      Rep_Name: document.getElementById('repName').value.trim(), 
+      Email: document.getElementById('email').value.trim(), 
+      Territory_ID: terId, 
+      Role: document.getElementById('role').value,
+      Password: password,
+      Status: 'Active',
+      StartDate: new Date().toISOString().split('T')[0]
     };
 
-    const pwd = document.getElementById('userPassword').value.trim();
-    if (pwd) payload.Password = pwd; // อัปเดตรหัสผ่านเฉพาะตอนที่มีการพิมพ์เข้ามา
+    try {
+      const { error } = await supabaseClient.from('Rep_Users').insert([payload]);
+      if (error) {
+        if(error.code === '23505') throw new Error("อีเมลนี้มีอยู่ในระบบแล้ว");
+        throw error;
+      }
+      
+      alert("✅ บันทึกผู้ใช้งานใหม่สำเร็จ");
+      switchUserView('userListView');
+      loadUsers(); 
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกผู้ใช้งานใหม่"; 
+    }
+  }
+
+  // 🌟 อัปเดตข้อมูลผู้ใช้ใน Supabase
+  async function handleUpdateUser(e) {
+    e.preventDefault(); 
+    const password = document.getElementById('editPassword').value;
+    const confirmPassword = document.getElementById('editConfirmPassword').value;
+    const validationResult = validatePassword(password, confirmPassword);
+    if (validationResult !== "OK") { alert("❌ " + validationResult); return; }
+
+    const btn = document.getElementById('updateUserBtn'); 
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    let terId = document.getElementById('editTerritoryId').value;
+    if (terId === "") terId = null;
+
+    const repId = document.getElementById('editRepId').value;
+
+    const payload = { 
+      Rep_Name: document.getElementById('editRepName').value.trim(), 
+      Email: document.getElementById('editEmail').value.trim(), 
+      Territory_ID: terId, 
+      Password: password, 
+      Role: document.getElementById('editRole').value, 
+      Status: document.getElementById('editStatus').value, 
+      StartDate: document.getElementById('editStartDate').value || null, 
+      EndDate: document.getElementById('editEndDate').value || null
+    };
 
     try {
-      if (isUserEditMode) {
-        const id = document.getElementById('editUserId').value;
-        const { error } = await supabaseClient.from('Rep_Users').update(payload).eq('Rep_ID', id);
-        if (error) {
-          if (error.code === '23505') throw new Error("อีเมลนี้มีอยู่ในระบบแล้ว");
-          throw error;
-        }
-        alert("✅ แก้ไขข้อมูลผู้ใช้งานสำเร็จ");
-      } else {
-        const { error } = await supabaseClient.from('Rep_Users').insert([payload]);
-        if (error) {
-          if (error.code === '23505') throw new Error("อีเมลนี้มีอยู่ในระบบแล้ว");
-          throw error;
-        }
-        alert("✅ เพิ่มผู้ใช้งานใหม่สำเร็จ");
+      const { error } = await supabaseClient.from('Rep_Users').update(payload).eq('Rep_ID', repId);
+      if (error) {
+        if(error.code === '23505') throw new Error("อีเมลนี้มีอยู่ในระบบแล้ว");
+        throw error;
       }
+
+      alert("✅ อัปเดตข้อมูลสำเร็จ");
       switchUserView('userListView');
-      loadUsers();
+      loadUsers(); 
     } catch (err) {
-      alert("❌ ไม่สามารถบันทึกได้: " + err.message);
+      alert("❌ อัปเดตไม่สำเร็จ: " + err.message);
     } finally {
-      btn.disabled = false; btn.innerHTML = 'บันทึกข้อมูล';
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง"; 
     }
   }
 </script>
