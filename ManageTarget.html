@@ -140,13 +140,12 @@
 </div>
 
 <script>
-  let globalTargetsList = [];
-  let globalTargetProducts = [];
-  
-  // สร้าง Dropdown แบบตายตัว (ปรับเพิ่มลดได้)
-  const CLASSIFICATIONS = ['A', 'B', 'C', 'D', 'E'];
-  let isTargetDataLoaded = false;
-  let currentSelectedTargetId = ""; 
+  // 🌟 เปลียนจาก let/const เป็น var ทั้งหมด
+  var globalTargetsList = [];
+  var globalTargetProducts = [];
+  var CLASSIFICATIONS = ['A', 'B', 'C', 'D', 'E'];
+  var isTargetDataLoaded = false;
+  var currentSelectedTargetId = ""; 
 
   window.addEventListener('load', function() {
     loadTargetDropdowns();
@@ -162,7 +161,6 @@
     if(target) target.classList.remove('d-none');
   }
 
-  // 🌟 โหลดชื่อสินค้าลง Dropdown
   async function loadTargetDropdowns() {
     try {
       const { data, error } = await supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active');
@@ -196,7 +194,6 @@
     }
   }
 
-  // 🌟 ดึงข้อมูล Target จาก Supabase
   async function loadTargetData() {
     isTargetDataLoaded = false;
     const tbody = document.getElementById('targetTableBody');
@@ -211,7 +208,7 @@
         const prodName = prodObj ? prodObj.Product : t.Product_ID;
 
         return {
-          compositeId: `${t.Product_ID}|${t.Classification}`, // ผูก PK ให้เชื่อมโยงกัน
+          compositeId: `${t.Product_ID}|${t.Classification}`, 
           productId: t.Product_ID,
           productName: prodName,
           classification: t.Classification,
@@ -297,7 +294,6 @@
     switchTargetView('targetEditView');
   }
 
-  // 🌟 บันทึก Target ใหม่
   async function handleAddTarget(e) {
     e.preventDefault();
     const btn = document.getElementById('submitTargetBtn');
@@ -330,7 +326,6 @@
     }
   }
 
-  // 🌟 แก้ไข Target
   async function handleUpdateTarget(e) {
     e.preventDefault();
     const btn = document.getElementById('updateTargetBtn');
@@ -355,12 +350,10 @@
 
     try {
       if (oldProduct !== newProduct || oldClass !== newClass) {
-        // หากมีการเปลี่ยน PK ให้ลบของเก่า แล้วเพิ่มของใหม่
         await supabaseClient.from('Target').delete().eq('Product_ID', oldProduct).eq('Classification', oldClass);
         const { error } = await supabaseClient.from('Target').insert([payload]);
         if (error) throw error;
       } else {
-        // ถ้าแก้แค่ Target (PK เหมือนเดิม) ใช้วิธีอัปเดตปกติ
         const { error } = await supabaseClient.from('Target')
           .update({ Target: newTarget, Whoupdated: payload.Whoupdated })
           .eq('Product_ID', oldProduct).eq('Classification', oldClass);
