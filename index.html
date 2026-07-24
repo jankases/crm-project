@@ -70,9 +70,12 @@
       <li class="nav-item">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visit" type="button"><i class="fa-solid fa-notes-medical me-2"></i>บันทึกเยี่ยม</button>
       </li>
-      <!-- 🌟 เพิ่มแท็บแพทย์ -->
       <li class="nav-item">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#doctors" type="button"><i class="fa-solid fa-user-doctor me-2"></i>แพทย์</button>
+      </li>
+      <!-- 🌟 เพิ่มแท็บโรงพยาบาล -->
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hospitals" type="button"><i class="fa-solid fa-hospital me-2"></i>โรงพยาบาล</button>
       </li>
       <li class="nav-item" id="navUsersTab" style="display: none;">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#users" type="button"><i class="fa-solid fa-user-group me-2"></i>ผู้ใช้งาน</button>
@@ -80,22 +83,10 @@
     </ul>
 
     <div class="tab-content" id="crmTabsContent">
-      <div class="tab-pane fade show active" id="visit">
-        <div id="loadingVisit" class="text-center py-5">
-           <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-3"></i><p>กำลังโหลดหน้าบันทึกเยี่ยม...</p>
-        </div>
-      </div>
-      <!-- 🌟 โหลดหน้าแพทย์ -->
-      <div class="tab-pane fade" id="doctors">
-        <div id="loadingDoctors" class="text-center py-5">
-           <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-3"></i><p>กำลังโหลดหน้าข้อมูลแพทย์...</p>
-        </div>
-      </div>
-      <div class="tab-pane fade" id="users">
-        <div id="loadingUsers" class="text-center py-5">
-           <i class="fa-solid fa-spinner fa-spin fa-2x text-success mb-3"></i><p>กำลังโหลดหน้าผู้ใช้งาน...</p>
-        </div>
-      </div>
+      <div class="tab-pane fade show active" id="visit"><div id="loadingVisit" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="doctors"><div id="loadingDoctors" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="hospitals"><div id="loadingHospitals" class="text-center py-5"></div></div>
+      <div class="tab-pane fade" id="users"><div id="loadingUsers" class="text-center py-5"></div></div>
     </div>
   </div>
 
@@ -111,7 +102,8 @@
     window.addEventListener('load', () => {
       checkSession();
       loadComponent('visit', 'ManageVisits.html'); 
-      loadComponent('doctors', 'ManageDoctors.html'); // 🌟 โหลดไฟล์ ManageDoctors.html
+      loadComponent('doctors', 'ManageDoctors.html'); 
+      loadComponent('hospitals', 'ManageHospitals.html'); // 🌟 โหลดไฟล์ ManageHospitals.html
       loadComponent('users', 'ManageUsers.html'); 
     });
 
@@ -146,30 +138,21 @@
           "Session Duration": duration, 
           Whoupdated: user.Email
         };
-        const { error } = await supabaseClient.from('User_Logs').insert([logData]);
-        if (error) throw error;
-      } catch (err) {
-        console.error("❌ ไม่สามารถบันทึก Log ได้:", err.message);
-      }
+        await supabaseClient.from('User_Logs').insert([logData]);
+      } catch (err) {}
     }
 
     async function handleLogin(e) {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังตรวจสอบ...`;
+      btn.disabled = true; btn.innerHTML = "...";
 
       const email = document.getElementById('loginEmail').value.trim();
       const pass = document.getElementById('loginPassword').value.trim();
 
       try {
         const { data: users, error } = await supabaseClient
-          .from('Rep_Users') 
-          .select('*')
-          .eq('Email', email)
-          .eq('Password', pass)
-          .eq('Status', 'Active'); 
-
+          .from('Rep_Users').select('*').eq('Email', email).eq('Password', pass).eq('Status', 'Active'); 
         if (error) throw error;
 
         if (users && users.length > 0) {
@@ -183,16 +166,11 @@
           
           if (typeof loadVisitLogs === 'function') loadVisitLogs();
           if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
-          
         } else {
           alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ");
         }
-      } catch (err) {
-        alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'เข้าสู่ระบบ';
-      }
+      } catch (err) { alert("❌ Error: " + err.message); } 
+      finally { btn.disabled = false; btn.innerHTML = 'เข้าสู่ระบบ'; }
     }
 
     function checkSession() {
@@ -214,7 +192,6 @@
         } else {
           if (usersTab) usersTab.style.display = 'none';
         }
-
       } else {
         if (loginScreen) loginScreen.style.display = '';
         if (appContainer) appContainer.style.display = 'none';
@@ -230,12 +207,10 @@
         let sessionDuration = "-";
         if (loginTime) {
           const diffMs = Date.now() - parseInt(loginTime);
-          const diffMins = Math.round(diffMs / 60000); 
-          sessionDuration = diffMins + " mins";
+          sessionDuration = Math.round(diffMs / 60000) + " mins";
         }
         saveUserLog(user, "Logout", sessionDuration);
       }
-
       sessionStorage.removeItem('crmUser');
       sessionStorage.removeItem('loginTime'); 
       checkSession();
