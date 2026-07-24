@@ -1,0 +1,216 @@
+<div class="container-fluid p-4">
+  <h4 class="fw-bold text-danger mb-4"><i class="fa-solid fa-clipboard-list me-2"></i>คำขออนุมัติเปลี่ยนแปลงข้อมูล (DCR Pending)</h4>
+  
+  <div class="card p-3 border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle">
+        <thead class="table-light text-center">
+          <tr>
+            <th>ประเภทคำขอ (Action)</th>
+            <th>รหัสอ้างอิง (Ref ID)</th>
+            <th>ผู้ส่งคำขอ</th>
+            <th>เวลาที่ขอ</th>
+            <th>รายละเอียดคำขอ (Requested Details)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="dcrTableBody">
+          <tr><td colspan="6" class="text-center py-4">กำลังโหลดคำขอ...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  let globalPendingDCRs = [];
+
+  window.addEventListener('load', function() {
+    loadPendingDCRs();
+  });
+
+  // 🌟 ฟังก์ชันโหลดข้อมูล DCR จาก Supabase ที่มี Status = 'Pending'
+  async function loadPendingDCRs() {
+    const tbody = document.getElementById('dcrTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const { data, error } = await supabaseClient.from('DCR').select('*').eq('Status', 'Pending').order('Whenupdated', { ascending: false });
+      if (error) throw error;
+
+      globalPendingDCRs = data;
+      renderDCRTable(globalPendingDCRs);
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  // 🌟 นำข้อมูล DCR มาแสดงในตาราง
+  function renderDCRTable(dcrs) {
+    const tbody = document.getElementById('dcrTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if (!dcrs || !dcrs.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ไม่มีคำขอที่รออนุมัติ 🎉</td></tr>';
+
+    dcrs.forEach(d => {
+      let detailsHtml = "<span class='text-danger'>ข้อมูลไม่ถูกต้อง</span>";
+      
+      try {
+        // Requested_Data ใน Supabase ถ้าเป็น jsonb มันจะถูกแปลงเป็น Object แล้ว 
+        // แต่ถ้ามาเป็น String ให้ parse ก่อน
+        const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+        
+        // จัดการหน้าตาของรายละเอียดตามประเภทคำขอ
+        if (d.Action === "Update Workplace") {
+          detailsHtml = req.map(w => `🏥 ${w.hospitalId} ${w.isPrimary ? '<span class="badge bg-primary ms-1">หลัก</span>' : ''}`).join('<br>');
+        } 
+        else if (d.Action === "Add Doctor" || d.Action === "Edit Doctor") {
+          detailsHtml = `
+            <div class="small">
+              <b>ชื่อ:</b> ${req.title || ''} ${req.nameEn || ''} ${req.nameTh ? `(${req.nameTh})` : ''}<br>
+              <b>ความเชี่ยวชาญ:</b> ${req.specialty || '-'}<br>
+              <b>สถานที่ทำงาน:</b> ${req.workplaces ? req.workplaces.length + ' แห่ง' : '-'}
+            </div>
+          `;
+        }
+        else if (d.Action === "Add Hospital" || d.Action === "Edit Hospital") {
+          detailsHtml = `
+            <div class="small">
+              <b>ชื่อ รพ.:</b> ${req.name || '-'}<br>
+              <b>จังหวัด:</b> ${req.province || '-'}<br>
+              <b>ที่อยู่:</b> <span class="text-muted">${req.address || '-'}</span>
+            </div>
+          `;
+        } 
+        else {
+          detailsHtml = `<span class="text-muted">โครงสร้างข้อมูลไม่ระบุประเภท</span>`;
+        }
+      } catch(e) {
+        console.error("JSON Parse error:", e);
+      }
+
+      // ปรับสี Badge
+      let actionBadge = 'bg-secondary';
+      if(d.Action.includes('Doctor')) actionBadge = 'bg-info text-dark';
+      else if(d.Action.includes('Hospital')) actionBadge = 'bg-warning text-dark';
+      else if(d.Action.includes('Workplace')) actionBadge = 'bg-primary';
+
+      // แปลงวันที่ให้อ่านง่าย
+      const dateStr = d.Whenupdated ? new Date(d.Whenupdated).toLocaleString('th-TH') : '-';
+      
+      // เราจะไม่โชว์ ID ยาวๆ บนหน้าเว็บ ให้โชว์แค่รหัสอ้างอิงก็พอ
+      const shortRef = d.Doc_ID ? d.Doc_ID.substring(0, 8) + '...' : '-';
+
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-center"><span class="badge ${actionBadge}">${d.Action}</span></td>
+          <td class="text-center fw-bold text-primary" title="${d.Doc_ID}">${shortRef}</td>
+          <td><small>${d.Whoupdated}</small></td>
+          <td class="text-center"><small>${dateStr}</small></td>
+          <td>${detailsHtml}</td>
+          <td class="text-center" style="min-width: 90px;">
+            <button class="btn btn-sm btn-success mb-1 w-100 fw-bold" onclick="processDCR('${d.DCR_ID}', 'Approved')">อนุมัติ</button>
+            <button class="btn btn-sm btn-outline-danger w-100 fw-bold" onclick="processDCR('${d.DCR_ID}', 'Rejected')">ปฏิเสธ</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  // 🌟 ฟังก์ชันกดอนุมัติ/ปฏิเสธ (ระบบหลัก)
+  async function processDCR(dcrId, decision) {
+    const actionTh = decision === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ';
+    if (!confirm(`ยืนยันการ ${actionTh} คำขอนี้หรือไม่?`)) return;
+
+    // หาเรคคอร์ดจาก global variable
+    const dcrData = globalPendingDCRs.find(x => x.DCR_ID === dcrId);
+    if (!dcrData) return alert("❌ ไม่พบข้อมูลคำขอนี้ในระบบ");
+
+    try {
+      let crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      const adminEmail = crmUser ? crmUser.Email : "Admin";
+
+      // 🌟 ถ้าอนุมัติ เราต้องดึง Requested_Data ออกมาแล้วเอาไปยัดใส่ตารางปลายทาง
+      if (decision === 'Approved') {
+        const req = typeof dcrData.Requested_Data === 'string' ? JSON.parse(dcrData.Requested_Data) : dcrData.Requested_Data;
+
+        if (dcrData.Action === 'Add Doctor' || dcrData.Action === 'Edit Doctor') {
+          const docPayload = {
+            Title: req.title,
+            Doc_Name: req.nameEn,
+            Doc_Name_TH: req.nameTh,
+            Specialty: req.specialty,
+            Type: req.type,
+            Email: req.email,
+            Mobile: req.mobile,
+            Privacy_Policy: req.privacy,
+            Terms_of_Service: req.tos,
+            Status: req.status || 'Active',
+            Whoupdated: adminEmail
+          };
+
+          let targetDocId = dcrData.Doc_ID;
+
+          if (dcrData.Action === 'Add Doctor') {
+            const { data: newDoc, error: e1 } = await supabaseClient.from('Doctors').insert([docPayload]).select();
+            if (e1) throw e1;
+            targetDocId = newDoc[0].Doc_ID;
+          } else {
+            const { error: e2 } = await supabaseClient.from('Doctors').update(docPayload).eq('Doc_ID', targetDocId);
+            if (e2) throw e2;
+          }
+
+          // จัดการ Workplace
+          if (req.workplaces && req.workplaces.length > 0) {
+            await supabaseClient.from('Workplace').delete().eq('Doc_ID', targetDocId);
+            const wpPayload = req.workplaces.map(w => ({
+              Doc_ID: targetDocId,
+              Hospital_ID: w.hospitalId,
+              Primary_Workplace: w.isPrimary,
+              Whoupdated: adminEmail
+            }));
+            const { error: e3 } = await supabaseClient.from('Workplace').insert(wpPayload);
+            if (e3) throw e3;
+          }
+        } 
+        
+        else if (dcrData.Action === 'Add Hospital' || dcrData.Action === 'Edit Hospital') {
+          const hospPayload = {
+            Hospital: req.name,
+            Known_As: req.knownAs,
+            Province: req.province,
+            Address: req.address,
+            Sales_ID: req.salesId,
+            Status: req.status || 'Active',
+            Whoupdated: adminEmail
+          };
+
+          if (dcrData.Action === 'Add Hospital') {
+            const { error: e1 } = await supabaseClient.from('Hospitals').insert([hospPayload]);
+            if (e1) throw e1;
+          } else {
+            const { error: e2 } = await supabaseClient.from('Hospitals').update(hospPayload).eq('Hospital_ID', dcrData.Doc_ID);
+            if (e2) throw e2;
+          }
+        }
+      }
+
+      // 🌟 อัปเดตสถานะ DCR ว่า 처리เรียบร้อยแล้ว
+      const { error: updateDcrError } = await supabaseClient.from('DCR').update({ 
+        Status: decision, 
+        Whoupdated: adminEmail 
+      }).eq('DCR_ID', dcrId);
+      
+      if (updateDcrError) throw updateDcrError;
+
+      alert(`✅ ${actionTh} เรียบร้อยแล้ว`);
+      loadPendingDCRs(); // รีเฟรชตาราง
+
+    } catch (err) {
+      alert("❌ เกิดข้อผิดพลาดระหว่างทำรายการ: " + err.message);
+    }
+  }
+</script>
