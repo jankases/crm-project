@@ -212,9 +212,8 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
     
     try {
-      // ⚠️ สมมติว่าในตาราง Territory ใช้ชื่อคอลัมน์ Territory_ID และ Territory_Name (ถ้าไม่ใช่ ต้องแก้ตรงนี้นะครับ)
       const [terRes, docRes, prodRes] = await Promise.all([
-        supabaseClient.from('Territory').select('Territory_ID, Territory_Name'),
+        supabaseClient.from('Territory').select('Territory_ID, Territory'), // ⚠️ แก้ไขเป็น Territory
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name_EN, Doc_Name_TH').eq('Status', 'Active'),
         supabaseClient.from('Products').select('Product_ID, Product_Name').eq('Status', 'Active')
       ]);
@@ -239,7 +238,8 @@
         document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "-";
         
         const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-        document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory_Name} (${tObj.Territory_ID})` : crmUser.Territory_ID;
+        // ⚠️ แก้ไขให้ดึง tObj.Territory
+        document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory} (${tObj.Territory_ID})` : crmUser.Territory_ID;
       }
     } catch (err) {
       console.error("Error loadVisitDropdowns:", err.message);
@@ -258,35 +258,34 @@
       const { data: visits, error } = await supabaseClient
         .from('Visit_Logs')
         .select('*')
-        .order('Visit_ID', { ascending: false }); // ⚠️ แก้ไขให้ใช้คอลัมน์ Visit_ID
+        .order('Visit_ID', { ascending: false }); 
 
       if (error) throw error;
 
       globalVisitsList = visits.map(v => {
-        // ⚠️ แก้ไขให้ดึงข้อมูลจากชื่อคอลัมน์ใหม่ทั้งหมด
         const rep = globalReps.find(r => r.Rep_ID === v.Rep_ID);
         const doc = globalDoctors.find(d => d.id === v.Doc_ID);
         const prod = globalProducts.find(p => p.id === v.Product_ID);
         const ter = globalTerritories.find(t => t.Territory_ID === v.Territory_ID);
 
         return {
-          id: v.Visit_ID, // ⚠️ แก้ไข
-          date: v.Visit_Date || "-", // ⚠️ แก้ไข
-          dateRaw: v.Visit_Date, // ⚠️ แก้ไข
-          startTime: v.Start_Time, // ⚠️ แก้ไข
-          endTime: v.End_Time, // ⚠️ แก้ไข
-          purpose: v.Purpose, // ⚠️ แก้ไข
-          details: v.Details, // ⚠️ แก้ไข
-          nextAction: v.Next_Action, // ⚠️ แก้ไข
-          status: v.Status, // ⚠️ แก้ไข
-          repId: v.Rep_ID, // ⚠️ แก้ไข
+          id: v.Visit_ID, 
+          date: v.Visit_Date || "-", 
+          dateRaw: v.Visit_Date, 
+          startTime: v.Start_Time, 
+          endTime: v.End_Time, 
+          purpose: v.Purpose, 
+          details: v.Details, 
+          nextAction: v.Next_Action, 
+          status: v.Status, 
+          repId: v.Rep_ID, 
           repName: rep ? rep.Rep_Name : v.Rep_ID,
-          docId: v.Doc_ID, // ⚠️ แก้ไข
+          docId: v.Doc_ID, 
           docName: doc ? doc.name : v.Doc_ID,
-          prodId: v.Product_ID, // ⚠️ แก้ไข
+          prodId: v.Product_ID, 
           prodName: prod ? prod.name : v.Product_ID,
-          territoryId: v.Territory_ID, // ⚠️ แก้ไข
-          territoryName: ter ? ter.Territory_Name : v.Territory_ID
+          territoryId: v.Territory_ID, 
+          territoryName: ter ? ter.Territory : v.Territory_ID // ⚠️ แก้ไขเป็น ter.Territory
         };
       });
 
@@ -413,7 +412,8 @@
       document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (${crmUser.Rep_ID || "-"})`;
       document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "";
       const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-      document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory_Name} (${tObj.Territory_ID})` : crmUser.Territory_ID;
+      // ⚠️ แก้ไขเป็น tObj.Territory
+      document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory} (${tObj.Territory_ID})` : crmUser.Territory_ID;
     }
 
     const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
@@ -498,7 +498,6 @@
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-    // ⚠️ โครงสร้างที่ส่งไปเซฟ ต้องตรงกับชื่อคอลัมน์ใน Supabase เป๊ะๆ
     const payload = {
       Rep_ID: document.getElementById('visitRepId').value,  
       Territory_ID: document.getElementById('visitTerritoryId').value, 
@@ -517,12 +516,10 @@
     try {
       if (isVisitEditMode) {
         const id = document.getElementById('visitId').value;
-        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', id); // ⚠️ แก้ไข
+        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', id); 
         if (error) throw error;
         alert("✅ อัปเดตข้อมูลการเยี่ยมสำเร็จ");
       } else {
-        // กรณี Insert ใหม่
-        // ⚠️ สุ่มสร้าง Visit_ID ขึ้นมาเองชั่วคราว (ถ้าในระบบคุณให้มันเป็น Auto หรือทำ Trigger ไว้ ก็ไม่ต้องแนบ Visit_ID ไปครับ)
         payload.Visit_ID = "V" + Date.now(); 
         
         const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
@@ -547,7 +544,7 @@
       btn.disabled = true; btn.innerHTML = "กำลังลบ...";
 
       try {
-        const { error } = await supabaseClient.from('Visit_Logs').delete().eq('Visit_ID', visitId); // ⚠️ แก้ไข
+        const { error } = await supabaseClient.from('Visit_Logs').delete().eq('Visit_ID', visitId); 
         if (error) throw error;
         
         alert("✅ ลบข้อมูลสำเร็จ");
