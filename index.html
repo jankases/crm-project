@@ -132,7 +132,32 @@
       }
     }
 
+    // ==========================================
+    // 🌟 ระบบบันทึก Log การใช้งาน
+    // ==========================================
+    async function saveUserLog(user, action, duration = "-") {
+      try {
+        const logData = {
+          // ไม่ต้องใส่ Log_ID เพราะ Supabase จัดการ gen_random_uuid() ให้แล้ว
+          Rep_ID: user.Rep_ID,       // UUID จากตาราง Rep_Users
+          Action: action,            // "Login" หรือ "Logout"
+          Role: user.Role,           
+          Device: navigator.userAgent, 
+          "Session Duration": duration, // ชื่อคอลัมน์มีช่องว่าง ต้องใส่ Quote
+          Whoupdated: user.Email
+        };
+
+        const { error } = await supabaseClient.from('User_Logs').insert([logData]);
+        if (error) throw error;
+        console.log(`✅ บันทึก Log [${action}] สำเร็จ`);
+      } catch (err) {
+        console.error("❌ ไม่สามารถบันทึก Log ได้:", err.message);
+      }
+    }
+
+    // ==========================================
     // ฟังก์ชัน Login
+    // ==========================================
     async function handleLogin(e) {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
@@ -156,10 +181,14 @@
           const user = users[0];
           sessionStorage.setItem('crmUser', JSON.stringify(user));
           sessionStorage.setItem('loginTime', Date.now()); 
+          
+          // 🌟 บันทึก Log การเข้าสู่ระบบ
+          saveUserLog(user, "Login");
+
           document.getElementById('loginForm').reset();
           checkSession();
           
-          // สั่งโหลดข้อมูลตารางทันทีหลังล็อกอินเสร็จ
+          // สั่งโหลดข้อมูลตารางทันทีหลังล็อกอินเสร็จ (ฟังก์ชันเหล่านี้อยู่ใน ManageVisits)
           if (typeof loadVisitLogs === 'function') loadVisitLogs();
           if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
           
@@ -201,7 +230,28 @@
       }
     }
 
+    // ==========================================
+    // ฟังก์ชัน Logout
+    // ==========================================
     function logout() { 
+      const userStr = sessionStorage.getItem('crmUser');
+      const loginTime = sessionStorage.getItem('loginTime');
+
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        let sessionDuration = "-";
+        
+        // คำนวณเวลาที่อยู่ในระบบ
+        if (loginTime) {
+          const diffMs = Date.now() - parseInt(loginTime);
+          const diffMins = Math.round(diffMs / 60000); 
+          sessionDuration = diffMins + " mins";
+        }
+
+        // 🌟 บันทึก Log การออกจากระบบ
+        saveUserLog(user, "Logout", sessionDuration);
+      }
+
       sessionStorage.removeItem('crmUser');
       sessionStorage.removeItem('loginTime'); 
       checkSession();
