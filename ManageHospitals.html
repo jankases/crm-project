@@ -1,0 +1,390 @@
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <div id="hospitalListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">🏥 จัดการข้อมูลโรงพยาบาล (Hospitals)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddHospitalView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มโรงพยาบาลใหม่
+      </button>
+    </div>
+
+    <div class="row mb-4 g-2">
+      <div class="col-md-6">
+        <label class="form-label fw-medium text-muted small mb-1">ค้นหาชื่อ รพ., ชื่อไทย (Known As), หรือ รหัส</label>
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="filterHospName" placeholder="พิมพ์ชื่อ รพ., ชื่อไทย, หรือ รหัส..." onkeyup="filterHospitals()">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-medium text-muted small mb-1">จังหวัด (Province)</label>
+        <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" style="border-radius: 8px;">
+          <option value="">- ทุกจังหวัด -</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อโรงพยาบาลทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" style="font-size: 0.9rem;">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Hospital Name</th>
+              <th>ชื่อภาษาไทย (Known As)</th>
+              <th>Province</th>
+              <th>Sales ID</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="hospitalTableBody">
+            <tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="hospitalAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchHospitalView('hospitalListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🏥 เพิ่มข้อมูลโรงพยาบาลใหม่</h4>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addHospitalForm" onsubmit="handleAddHospital(event)">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">ชื่อโรงพยาบาล (Hospital)</label>
+            <input type="text" class="form-control bg-white" id="hospName" placeholder="เช่น Siriraj Hospital" required>
+          </div>
+          <!-- 🌟 เพิ่มช่อง Known_As -->
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
+            <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="เช่น โรงพยาบาลศิริราช">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">จังหวัด (Province)</label>
+            <!-- เราใช้พิมพ์เอาได้เลย หรือจะดึงจาก Database ก็ได้ (ในที่นี้ให้พิมพ์อิสระหรือเลือกจากที่เคยมี) -->
+            <input type="text" class="form-control bg-white" id="hospProvince" placeholder="เช่น Bangkok" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">Sales ID</label>
+            <input type="text" class="form-control bg-white" id="hospSalesId" placeholder="เช่น 17000280">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 mb-3">
+            <label class="fw-medium mb-1">ที่อยู่ (Address)</label>
+            <textarea class="form-control bg-white" id="hospAddress" rows="2" placeholder="กรอกข้อมูลที่อยู่ รพ...." required></textarea>
+          </div>
+        </div>
+        <div class="text-end mt-3">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitHospBtn">บันทึกข้อมูลโรงพยาบาล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="hospitalEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchHospitalView('hospitalListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลโรงพยาบาล</h4>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editHospitalForm" onsubmit="handleUpdateHospital(event)">
+        <input type="hidden" id="editHospId">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">ชื่อโรงพยาบาล (Hospital)</label>
+            <input type="text" class="form-control bg-white" id="editHospName" required>
+          </div>
+          <!-- 🌟 เพิ่มช่อง Known_As -->
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
+            <input type="text" class="form-control bg-white" id="editHospKnownAs">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">จังหวัด (Province)</label>
+            <input type="text" class="form-control bg-white" id="editHospProvince" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium mb-1">Sales ID</label>
+            <input type="text" class="form-control bg-white" id="editHospSalesId">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 mb-3">
+            <label class="fw-medium mb-1">ที่อยู่ (Address)</label>
+            <textarea class="form-control bg-white" id="editHospAddress" rows="2" required></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium mb-1">สถานะ</label>
+            <select class="form-select bg-white" id="editHospStatus">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="text-end mt-3">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateHospBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="hospitalProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchHospitalView('hospitalListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditHospitalView(currentSelectedHospId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลโรงพยาบาล
+      </button>
+      <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 ข้อมูลโรงพยาบาล</h4>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="row mb-3">
+        <div class="col-md-6"><label class="text-muted small">ชื่อโรงพยาบาล</label><input type="text" class="form-control bg-light" id="viewHospName" disabled></div>
+        <!-- 🌟 เพิ่มช่อง Known_As -->
+        <div class="col-md-6"><label class="text-muted small">ชื่อที่เรียกทั่วไป (Known As)</label><input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6"><label class="text-muted small">จังหวัด</label><input type="text" class="form-control bg-light" id="viewHospProvince" disabled></div>
+        <div class="col-md-6"><label class="text-muted small">Sales ID</label><input type="text" class="form-control bg-light" id="viewHospSalesId" disabled></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-12"><label class="text-muted small">ที่อยู่</label><textarea class="form-control bg-light" id="viewHospAddress" rows="2" disabled></textarea></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label class="text-muted small">สถานะ</label><input type="text" class="form-control bg-light" id="viewHospStatus" disabled></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalHospitals = [];
+  let currentSelectedHospId = ""; 
+
+  window.addEventListener('load', function() {
+    loadHospitals();
+  });
+
+  async function loadHospitals() {
+    const tbody = document.getElementById('hospitalTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+    
+    try {
+      const { data: hospitals, error } = await supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true });
+      if (error) throw error;
+
+      globalHospitals = hospitals.map(h => ({
+        id: h.Hospital_ID,
+        name: h.Hospital,
+        knownAs: h.Known_As, // 🌟 เพิ่มมารับข้อมูลจาก DB
+        province: h.Province,
+        address: h.Address,
+        salesId: h.Sales_ID,
+        status: h.Status
+      }));
+
+      setupHospitalFilters(); 
+      filterHospitals(); 
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function switchHospitalView(viewId) {
+    const views = ['hospitalListView', 'hospitalAddView', 'hospitalEditView', 'hospitalProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  function setupHospitalFilters() {
+    const provSelect = document.getElementById('filterHospProvince');
+    const currentProv = provSelect ? provSelect.value : "";
+
+    const provinces = [...new Set(globalHospitals.map(h => h.province).filter(p => p))].sort();
+    let html = '<option value="">- ทุกจังหวัด -</option>';
+    provinces.forEach(p => html += `<option value="${p}">${p}</option>`);
+    
+    if(provSelect) {
+      provSelect.innerHTML = html;
+      provSelect.value = currentProv; 
+    }
+  }
+
+  function filterHospitals() {
+    const nameEl = document.getElementById('filterHospName');
+    const provEl = document.getElementById('filterHospProvince');
+    
+    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
+    const provTerm = provEl ? provEl.value : "";
+
+    const filtered = globalHospitals.filter(h => {
+      const hospId = String(h.id || "").toLowerCase();
+      const hospName = String(h.name || "").toLowerCase();
+      const hospKnownAs = String(h.knownAs || "").toLowerCase(); // 🌟 ค้นหาจากชื่อภาษาไทยได้ด้วย
+      const strForSearch = `${hospId} ${hospName} ${hospKnownAs}`;
+      
+      const matchName = (nameTerm === "") || strForSearch.includes(nameTerm);
+      const matchProv = (provTerm === "") || (h.province === provTerm);
+      return matchName && matchProv;
+    });
+
+    renderHospitalTable(filtered);
+  }
+
+  function renderHospitalTable(data) {
+    const tbody = document.getElementById('hospitalTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if(!Array.isArray(data) || data.length === 0) {
+      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">ไม่พบข้อมูลที่ค้นหา</td></tr>';
+    }
+    
+    data.forEach(h => {
+      const badge = h.status === 'Active' ? 'bg-success' : 'bg-danger';
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewHospitalProfile('${h.id}'); return false;">
+              ${h.name || '-'}
+            </a>
+          </td>
+          <td>${h.knownAs || '-'}</td>
+          <td>${h.province || '-'}</td>
+          <td class="text-center">${h.salesId || '-'}</td>
+          <td class="text-center"><span class="badge ${badge}">${h.status || 'Active'}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditHospitalView('${h.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openViewHospitalProfile(id) {
+    currentSelectedHospId = id; 
+    const h = globalHospitals.find(x => x.id === id);
+    if(!h) return;
+
+    document.getElementById('viewHospTitleName').innerText = `🏥 ${h.name}`;
+    document.getElementById('viewHospName').value = h.name || '-';
+    document.getElementById('viewHospKnownAs').value = h.knownAs || '-'; // 🌟 โชว์ Known As
+    document.getElementById('viewHospProvince').value = h.province || '-';
+    document.getElementById('viewHospAddress').value = h.address || '-';
+    document.getElementById('viewHospSalesId').value = h.salesId || '-';
+    document.getElementById('viewHospStatus').value = h.status || '-';
+
+    switchHospitalView('hospitalProfileView');
+  }
+
+  function openAddHospitalView() {
+    document.getElementById('addHospitalForm').reset();
+    switchHospitalView('hospitalAddView');
+  }
+
+  function openEditHospitalView(id) {
+    const h = globalHospitals.find(x => x.id === id);
+    if(!h) return;
+
+    document.getElementById('editHospId').value = h.id;
+    document.getElementById('editHospName').value = h.name || '';
+    document.getElementById('editHospKnownAs').value = h.knownAs || ''; // 🌟 ดึง Known As มาแก้ไข
+    document.getElementById('editHospProvince').value = h.province || '';
+    document.getElementById('editHospAddress').value = h.address || '';
+    document.getElementById('editHospSalesId').value = h.salesId || '';
+    document.getElementById('editHospStatus').value = h.status || 'Active';
+
+    switchHospitalView('hospitalEditView');
+  }
+
+  async function handleAddHospital(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitHospBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Hospital: document.getElementById('hospName').value.trim(),
+      Known_As: document.getElementById('hospKnownAs').value.trim(), // 🌟 ส่งไปบันทึก
+      Province: document.getElementById('hospProvince').value.trim(),
+      Address: document.getElementById('hospAddress').value.trim(),
+      Sales_ID: document.getElementById('hospSalesId').value.trim(),
+      Status: 'Active',
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Hospitals').insert([payload]);
+      if (error) throw error;
+      
+      alert("✅ บันทึกโรงพยาบาลใหม่สำเร็จ");
+      switchHospitalView('hospitalListView');
+      loadHospitals();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูลโรงพยาบาล";
+    }
+  }
+
+  async function handleUpdateHospital(e) {
+    e.preventDefault();
+    const btn = document.getElementById('updateHospBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    const hospId = document.getElementById('editHospId').value;
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Hospital: document.getElementById('editHospName').value.trim(),
+      Known_As: document.getElementById('editHospKnownAs').value.trim(), // 🌟 อัปเดตช่องใหม่
+      Province: document.getElementById('editHospProvince').value.trim(),
+      Address: document.getElementById('editHospAddress').value.trim(),
+      Sales_ID: document.getElementById('editHospSalesId').value.trim(),
+      Status: document.getElementById('editHospStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Hospitals').update(payload).eq('Hospital_ID', hospId);
+      if (error) throw error;
+
+      alert("✅ แก้ไขข้อมูลโรงพยาบาลสำเร็จ");
+      switchHospitalView('hospitalListView');
+      loadHospitals();
+    } catch (err) {
+      alert("❌ แก้ไขไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+    }
+  }
+</script>
