@@ -172,6 +172,7 @@
 </div>
 
 <script>
+  // 🌟 เปลียนจาก let เป็น var
   var globalVisitsList = [];
   var globalTerritories = []; 
   var globalDoctors = [];
@@ -179,7 +180,7 @@
   var globalReps = [];
   var isVisitEditMode = false;
   var visitDatePicker; 
-  let isVisitDataLoaded = false; 
+  var isVisitDataLoaded = false; 
 
   if (!visitDatePicker && document.getElementById('visitDate')) {
     visitDatePicker = flatpickr("#visitDate", {
@@ -203,11 +204,6 @@
     switchVisitView('visitListView'); 
   }
 
-  // ===============================================
-  // 🌟 ฟังก์ชันดึงข้อมูลจาก Supabase โดยตรง
-  // ===============================================
- 
-
   async function loadVisitDropdowns() {
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
@@ -215,9 +211,9 @@
     try {
       const [terRes, docRes, prodRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory'), 
-        // ⚠️ แก้ไขให้ตรงกับตาราง Doctors ของคุณ (ใช้ Doc_Name)
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
-        supabaseClient.from('Products').select('Product_ID, Product_Name').eq('Status', 'Active')
+        // 🌟 แก้ไขตรงนี้: ดึงฟิลด์ 'Product' แทน 'Product_Name'
+        supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active')
       ]);
 
       if (terRes.error) throw terRes.error;
@@ -226,13 +222,16 @@
 
       globalTerritories = terRes.data || [];
       
-      // ⚠️ แก้ไขการดึงชื่อมาแสดง (ใช้ d.Doc_Name)
       const mappedDocs = (docRes.data || []).map(d => ({ 
         id: d.Doc_ID, 
         name: d.Doc_Name || d.Doc_Name_TH || d.Doc_ID 
       }));
       
-      const mappedProds = (prodRes.data || []).map(p => ({ id: p.Product_ID, name: p.Product_Name }));
+      // 🌟 แก้ไขตรงนี้: อ้างอิง p.Product แทน p.Product_Name
+      const mappedProds = (prodRes.data || []).map(p => ({ 
+        id: p.Product_ID, 
+        name: p.Product 
+      }));
       
       globalDoctors = mappedDocs;
       globalProducts = mappedProds;
@@ -265,7 +264,7 @@
       const { data: visits, error } = await supabaseClient
         .from('Visit_Logs')
         .select('*')
-        .order('Visit_Date', { ascending: false }); // ⚠️ เรียงด้วย Visit_Date แทนเพราะ UUID เรียงไม่ได้เหมือนตัวเลข
+        .order('Visit_Date', { ascending: false }); 
 
       if (error) throw error;
 
@@ -335,7 +334,6 @@
 
     filtered.forEach(v => {
       const statusBadge = v.status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
-      // เนื่องจาก ID ตอนนี้เป็น UUID ยาวมาก จึงดึงมาแสดงแค่ 6 ตัวแรกพอให้ดูง่าย
       const shortId = v.id ? v.id.substring(0, 6) + "..." : "-";
       
       tbody.innerHTML += `
@@ -499,7 +497,6 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 บันทึก หรือ แก้ไข ข้อมูล
   async function handleSubmitVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitVisit');
@@ -530,7 +527,6 @@
         if (error) throw error;
         alert("✅ อัปเดตข้อมูลการเยี่ยมสำเร็จ");
       } else {
-        // 🌟 เอาโค้ดสร้าง ID ออก ให้ Supabase Gen UUID ให้เราเอง
         const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
         if (error) throw error;
         alert("✅ บันทึกข้อมูลการเยี่ยมใหม่สำเร็จ");
@@ -544,7 +540,6 @@
     }
   }
 
-  // ลบข้อมูล
   async function deleteVisit() {
     const visitId = document.getElementById('visitId').value;
     if (!visitId) return;
