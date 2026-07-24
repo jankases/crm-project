@@ -23,13 +23,13 @@
 </div>
 
 <script>
-  let globalPendingDCRs = [];
+  // 🌟 เปลียนจาก let เป็น var
+  var globalPendingDCRs = [];
 
   window.addEventListener('load', function() {
     loadPendingDCRs();
   });
 
-  // 🌟 ฟังก์ชันโหลดข้อมูล DCR จาก Supabase ที่มี Status = 'Pending'
   async function loadPendingDCRs() {
     const tbody = document.getElementById('dcrTableBody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
@@ -46,7 +46,6 @@
     }
   }
 
-  // 🌟 นำข้อมูล DCR มาแสดงในตาราง
   function renderDCRTable(dcrs) {
     const tbody = document.getElementById('dcrTableBody');
     if(!tbody) return;
@@ -58,11 +57,8 @@
       let detailsHtml = "<span class='text-danger'>ข้อมูลไม่ถูกต้อง</span>";
       
       try {
-        // Requested_Data ใน Supabase ถ้าเป็น jsonb มันจะถูกแปลงเป็น Object แล้ว 
-        // แต่ถ้ามาเป็น String ให้ parse ก่อน
         const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
         
-        // จัดการหน้าตาของรายละเอียดตามประเภทคำขอ
         if (d.Action === "Update Workplace") {
           detailsHtml = req.map(w => `🏥 ${w.hospitalId} ${w.isPrimary ? '<span class="badge bg-primary ms-1">หลัก</span>' : ''}`).join('<br>');
         } 
@@ -91,16 +87,12 @@
         console.error("JSON Parse error:", e);
       }
 
-      // ปรับสี Badge
       let actionBadge = 'bg-secondary';
       if(d.Action.includes('Doctor')) actionBadge = 'bg-info text-dark';
       else if(d.Action.includes('Hospital')) actionBadge = 'bg-warning text-dark';
       else if(d.Action.includes('Workplace')) actionBadge = 'bg-primary';
 
-      // แปลงวันที่ให้อ่านง่าย
       const dateStr = d.Whenupdated ? new Date(d.Whenupdated).toLocaleString('th-TH') : '-';
-      
-      // เราจะไม่โชว์ ID ยาวๆ บนหน้าเว็บ ให้โชว์แค่รหัสอ้างอิงก็พอ
       const shortRef = d.Doc_ID ? d.Doc_ID.substring(0, 8) + '...' : '-';
 
       tbody.innerHTML += `
@@ -119,12 +111,10 @@
     });
   }
 
-  // 🌟 ฟังก์ชันกดอนุมัติ/ปฏิเสธ (ระบบหลัก)
   async function processDCR(dcrId, decision) {
     const actionTh = decision === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ';
     if (!confirm(`ยืนยันการ ${actionTh} คำขอนี้หรือไม่?`)) return;
 
-    // หาเรคคอร์ดจาก global variable
     const dcrData = globalPendingDCRs.find(x => x.DCR_ID === dcrId);
     if (!dcrData) return alert("❌ ไม่พบข้อมูลคำขอนี้ในระบบ");
 
@@ -133,7 +123,6 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
       const adminEmail = crmUser ? crmUser.Email : "Admin";
 
-      // 🌟 ถ้าอนุมัติ เราต้องดึง Requested_Data ออกมาแล้วเอาไปยัดใส่ตารางปลายทาง
       if (decision === 'Approved') {
         const req = typeof dcrData.Requested_Data === 'string' ? JSON.parse(dcrData.Requested_Data) : dcrData.Requested_Data;
 
@@ -163,7 +152,6 @@
             if (e2) throw e2;
           }
 
-          // จัดการ Workplace
           if (req.workplaces && req.workplaces.length > 0) {
             await supabaseClient.from('Workplace').delete().eq('Doc_ID', targetDocId);
             const wpPayload = req.workplaces.map(w => ({
@@ -198,7 +186,6 @@
         }
       }
 
-      // 🌟 อัปเดตสถานะ DCR ว่า 처리เรียบร้อยแล้ว
       const { error: updateDcrError } = await supabaseClient.from('DCR').update({ 
         Status: decision, 
         Whoupdated: adminEmail 
@@ -207,7 +194,7 @@
       if (updateDcrError) throw updateDcrError;
 
       alert(`✅ ${actionTh} เรียบร้อยแล้ว`);
-      loadPendingDCRs(); // รีเฟรชตาราง
+      loadPendingDCRs(); 
 
     } catch (err) {
       alert("❌ เกิดข้อผิดพลาดระหว่างทำรายการ: " + err.message);
