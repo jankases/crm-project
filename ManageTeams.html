@@ -134,8 +134,12 @@
   var globalBUsForTeam = []; 
   var currentSelectedTeamId = ""; 
  
-
-    setTimeout(function() { loadBUDropdownsForTeam(); loadTeams(); }, 300);
+  // 🌟 จุดที่หายไปคือบรรทัดนี้ครับ
+  window.addEventListener('load', function() {
+    setTimeout(function() { 
+      loadBUDropdownsForTeam(); 
+      loadTeams(); 
+    }, 300);
   });
 
   function switchTeamView(viewId) {
