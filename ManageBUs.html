@@ -1,0 +1,269 @@
+<div class="container-fluid p-0" style="max-width: 900px; margin: 0 auto;">
+  
+  <div id="buListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">🏢 จัดการข้อมูลกลุ่มธุรกิจ (BU)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddBUView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่ม BU ใหม่ (Add BU)
+      </button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="searchBU" placeholder="ค้นหาชื่อ BU..." onkeyup="filterBUs()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อ BU ทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>BU Name</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="buTableBody">
+            <tr><td colspan="3" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="buAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchBUView('buListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🏢 เพิ่มข้อมูล BU ใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addBUForm" onsubmit="handleAddBU(event)">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อ BU (BU Name)</label>
+          <input type="text" class="form-control bg-white" id="buName" required placeholder="เช่น HEME">
+        </div>
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchBUView('buListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitBUBtn">บันทึก BU ใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="buEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchBUView('buListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูล BU</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editBUForm" onsubmit="handleUpdateBU(event)">
+        <input type="hidden" id="editBUId">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อ BU</label>
+          <input type="text" class="form-control bg-white" id="editBUName" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สถานะ</label>
+          <select class="form-select bg-white" id="editBUStatus" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchBUView('buListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateBUBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="buProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchBUView('buListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditBUView(currentSelectedBUId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูล BU
+      </button>
+      <h4 class="text-info fw-bold mb-0" id="viewBUTitleName">🏢 ข้อมูลกลุ่มธุรกิจ (BU)</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="mb-3">
+        <label class="text-muted small">ชื่อ BU</label>
+        <input type="text" class="form-control bg-light" id="viewBUName" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">สถานะ</label>
+        <input type="text" class="form-control bg-light" id="viewBUStatus" disabled>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalBUs = [];
+  let currentSelectedBUId = ""; 
+
+  window.addEventListener('load', function() { loadBUs(); });
+
+  function switchBUView(viewId) {
+    const views = ['buListView', 'buAddView', 'buEditView', 'buProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  function openAddBUView() {
+    document.getElementById('addBUForm').reset();
+    switchBUView('buAddView');
+  }
+
+  async function loadBUs() {
+    const tbody = document.getElementById('buTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const { data, error } = await supabaseClient.from('BU').select('*').order('BU', { ascending: true });
+      if (error) throw error;
+
+      globalBUs = data.map(b => ({
+        id: b.BU_ID,
+        name: b.BU,
+        status: b.Status
+      }));
+
+      filterBUs();
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function filterBUs() {
+    const term = document.getElementById('searchBU').value.toLowerCase();
+    const filtered = globalBUs.filter(b => b.name && b.name.toLowerCase().includes(term));
+    renderBUTable(filtered);
+  }
+
+  function renderBUTable(data) {
+    const tbody = document.getElementById('buTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if(!Array.isArray(data) || data.length === 0) {
+      return tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-3">ไม่พบข้อมูล</td></tr>';
+    }
+    
+    data.forEach(b => {
+      const badge = b.status === 'Active' ? 'bg-success' : 'bg-danger';
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewBUProfile('${b.id}'); return false;">
+              ${b.name || '-'}
+            </a>
+          </td>
+          <td class="text-center"><span class="badge ${badge}">${b.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditBUView('${b.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openViewBUProfile(id) {
+    currentSelectedBUId = id; 
+    const b = globalBUs.find(x => x.id === id);
+    if (!b) return;
+
+    document.getElementById('viewBUTitleName').innerText = `🏢 ข้อมูลกลุ่มธุรกิจ: ${b.name}`;
+    document.getElementById('viewBUName').value = b.name || '-';
+    document.getElementById('viewBUStatus').value = b.status || '-';
+
+    switchBUView('buProfileView');
+  }
+
+  function openEditBUView(id) {
+    const b = globalBUs.find(x => x.id === id);
+    if (!b) return;
+    document.getElementById('editBUId').value = b.id;
+    document.getElementById('editBUName').value = b.name;
+    document.getElementById('editBUStatus').value = b.status;
+    switchBUView('buEditView');
+  }
+
+  async function handleAddBU(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBUBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = { 
+      BU: document.getElementById('buName').value.trim(),
+      Status: 'Active',
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+    
+    try {
+      const { error } = await supabaseClient.from('BU').insert([payload]);
+      if (error) throw error;
+      
+      alert("✅ บันทึก BU ใหม่สำเร็จ");
+      switchBUView('buListView');
+      document.getElementById('searchBU').value = '';
+      loadBUs();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึก BU ใหม่";
+    }
+  }
+
+  async function handleUpdateBU(e) {
+    e.preventDefault();
+    const btn = document.getElementById('updateBUBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    const buId = document.getElementById('editBUId').value;
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      BU: document.getElementById('editBUName').value.trim(),
+      Status: document.getElementById('editBUStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+    
+    try {
+      const { error } = await supabaseClient.from('BU').update(payload).eq('BU_ID', buId);
+      if (error) throw error;
+
+      alert("✅ บันทึกการเปลี่ยนแปลงสำเร็จ");
+      switchBUView('buListView');
+      document.getElementById('searchBU').value = '';
+      loadBUs();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+    }
+  }
+</script>
