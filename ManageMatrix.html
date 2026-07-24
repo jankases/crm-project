@@ -124,9 +124,10 @@
   var POTENTIAL_OPTS = ['High', 'Medium', 'Low', 'None'];
   var CLASS_OPTS = ['A', 'B', 'C', 'D', 'E'];
 
-  window.addEventListener('load', function() {
-    loadProductsForMatrix();
-  });
+  // 🌟 แก้ไขจุดนี้ให้ใช้ setTimeout แทน window.addEventListener
+  setTimeout(async function() {
+    await loadProductsForMatrix();
+  }, 300);
 
   function switchMatrixView(viewId) {
     const views = ['matrixListView', 'matrixFormView', 'matrixProfileView'];
