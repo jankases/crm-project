@@ -39,7 +39,6 @@
     </form>
   </div>
 
-  <!-- Modal ลืมรหัสผ่าน -->
   <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
@@ -47,13 +46,9 @@
           <h5 class="modal-title fw-bold">📧 ลืมรหัสผ่าน</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)">
+        <form onsubmit="handleForgotPassword(event)">
           <div class="modal-body p-4">
             <p class="text-muted mb-3" style="font-size: 0.95rem;"><i>ฟีเจอร์ส่งอีเมลไม่รองรับบนฐานข้อมูล Supabase แบบ Custom Auth กรุณาติดต่อผู้ดูแลระบบเพื่อขอรหัสผ่านใหม่ครับ</i></p>
-            <div class="mb-3">
-              <label class="form-label text-dark fw-medium">อีเมล (Email)</label>
-              <input type="email" class="form-control bg-light" id="fpEmail" required placeholder="ใส่อีเมลของคุณ">
-            </div>
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button type="button" class="btn btn-secondary fw-bold w-100 py-2" data-bs-dismiss="modal" style="border-radius: 8px;">
@@ -65,7 +60,6 @@
     </div>
   </div>
 
-  <!-- Modal เปลี่ยนรหัสผ่าน -->
   <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
@@ -106,7 +100,6 @@
 </div>
 
 <script>
-  // 1. ฟังก์ชันเข้าสู่ระบบโดยเช็คจาก Supabase
   async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('loginBtn');
@@ -117,7 +110,6 @@
     const pass = document.getElementById('loginPassword').value.trim();
 
     try {
-      // ค้นหาผู้ใช้จากตาราง Rep_Users
       const { data: users, error } = await supabaseClient
         .from('Rep_Users')
         .select('*')
@@ -129,19 +121,15 @@
 
       if (users && users.length > 0) {
         const user = users[0];
-        
-        // เซ็ตลง Session
         sessionStorage.setItem('crmUser', JSON.stringify(user));
         sessionStorage.setItem('loginTime', Date.now()); 
         
-        // บันทึกประวัติ
         if (typeof saveUserLog === 'function') {
           saveUserLog(user, "Login");
         }
         
         document.getElementById('loginForm').reset();
         
-        // เรียกใช้ฟังก์ชันใน index.html เพื่อสลับหน้า
         if (typeof checkSession === 'function') checkSession(); 
         if (typeof loadVisitLogs === 'function') loadVisitLogs();
         if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
@@ -156,13 +144,10 @@
     }
   }
 
-  // 2. ฟังก์ชันขอรหัสผ่านผ่านอีเมล (ระบบ Custom DB ส่งเมลล์ตรงๆ ไม่ได้ ต้องแจ้งแอดมิน)
   function handleForgotPassword(e) {
     e.preventDefault();
-    alert("ระบบนี้ไม่ได้ต่อกับบริการส่งอีเมล กรุณาติดต่อผู้ดูแลระบบเพื่อขอรหัสผ่านใหม่ครับ");
   }
 
-  // 3. ฟังก์ชันเปลี่ยนรหัสผ่าน
   async function handleChangePassword(e) {
     e.preventDefault();
     
@@ -181,7 +166,6 @@
     btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังตรวจสอบ...`;
     
     try {
-      // 1. ตรวจสอบว่าผู้ใช้มีจริงและรหัสผ่านเดิมถูกต้อง
       const { data: users, error: checkError } = await supabaseClient
         .from('Rep_Users')
         .select('*')
@@ -194,8 +178,6 @@
         throw new Error("อีเมลหรือรหัสผ่านเดิมไม่ถูกต้อง");
       }
 
-      // 2. อัปเดตรหัสผ่านใหม่
-      const userId = users[0].Rep_ID || users[0].id; // เช็คชื่อ PK
       const { error: updateError } = await supabaseClient
         .from('Rep_Users')
         .update({ Password: newPassword })
