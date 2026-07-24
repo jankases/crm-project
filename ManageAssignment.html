@@ -1,0 +1,332 @@
+<div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
+  
+  <div id="assignListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0"><i class="fa-solid fa-link me-2"></i>จัดการ Assignment (Account vs Territory)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddAssignView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่ม Assignment ใหม่
+      </button>
+    </div>
+
+    <div class="row mb-3 g-2">
+      <div class="col-md-4">
+        <label class="form-label fw-medium text-muted small mb-1">ประเภท (Type)</label>
+        <select class="form-select shadow-sm" id="filterAssignType" onchange="filterAssignments()" style="border-radius: 8px;">
+          <option value="">- ทุกประเภท -</option>
+          <option value="Doctor">Doctor (แพทย์)</option>
+          <option value="Hospital">Hospital (โรงพยาบาล)</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-medium text-muted small mb-1">ค้นหา Account (ชื่อ)</label>
+        <input type="text" class="form-control shadow-sm" id="filterAssignAccount" placeholder="พิมพ์เพื่อค้นหา..." onkeyup="filterAssignments()" style="border-radius: 8px;">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-medium text-muted small mb-1">เขตพื้นที่ (Territory)</label>
+        <select class="form-select shadow-sm" id="filterAssignTer" onchange="filterAssignments()" style="border-radius: 8px;">
+          <option value="">- ทุกพื้นที่ -</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle text-center">
+          <thead class="table-dark">
+            <tr>
+              <th>Type</th>
+              <th>Account Name</th>
+              <th>Territory</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="assignTableBody">
+            <tr><td colspan="4" class="py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="assignFormView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchAssignView('assignListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0" id="assignFormTitle">เพิ่ม Assignment ใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="assignForm" onsubmit="handleSaveAssign(event)">
+        <!-- ไว้เก็บ PK เดิมเวลา Edit -->
+        <input type="hidden" id="editAssignOldAcc">
+        <input type="hidden" id="editAssignOldTer">
+        
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label fw-medium">ประเภท (Type)</label>
+            <select class="form-select bg-white" id="assignType" required onchange="populateAssignAccounts('assignType', 'assignAccount')">
+              <option value="">- เลือก -</option>
+              <option value="Doctor">Doctor</option>
+              <option value="Hospital">Hospital</option>
+            </select>
+          </div>
+          <div class="col-md-8 mb-3">
+            <label class="form-label fw-medium">Account (แพทย์ / รพ.)</label>
+            <select class="form-select bg-white" id="assignAccount" required>
+              <option value="">- กรุณาเลือกประเภทก่อน -</option>
+            </select>
+          </div>
+          <div class="col-md-12 mb-4">
+            <label class="form-label fw-medium text-primary">กำหนดให้เขตพื้นที่ (Territory)</label>
+            <select class="form-select border-primary" id="assignTerritory" required></select>
+          </div>
+        </div>
+        <div class="text-end mt-2">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchAssignView('assignListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitAssignBtn">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalAssignList = [];
+  let globalAssignDoctors = [];
+  let globalAssignHospitals = [];
+  let globalAssignTerritories = [];
+  let isAssignDataLoaded = false;
+  let isAssignEditMode = false;
+
+  window.addEventListener('load', function() {
+    loadAssignmentDropdowns();
+  });
+
+  function switchAssignView(viewId) {
+    document.getElementById('assignListView').classList.add('d-none');
+    document.getElementById('assignFormView').classList.add('d-none');
+    document.getElementById(viewId).classList.remove('d-none');
+  }
+
+  // 🌟 ดึงข้อมูลจาก 3 ตาราง (หมอ, รพ, พื้นที่) เพื่อนำมาแมปชื่อ
+  async function loadAssignmentDropdowns() {
+    try {
+      const [docRes, hospRes, terRes] = await Promise.all([
+        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name').eq('Status', 'Active'),
+        supabaseClient.from('Hospitals').select('Hospital_ID, Hospital').eq('Status', 'Active'),
+        supabaseClient.from('Territory').select('Territory_ID, Territory').eq('Status', 'Active')
+      ]);
+
+      if (docRes.error) throw docRes.error;
+      if (hospRes.error) throw hospRes.error;
+      if (terRes.error) throw terRes.error;
+
+      globalAssignDoctors = docRes.data || [];
+      globalAssignHospitals = hospRes.data || [];
+      globalAssignTerritories = terRes.data || [];
+
+      // ใส่ตัวเลือกพื้นที่ในหน้า List และ Form
+      let terOpts = '<option value="">- ทุกพื้นที่ -</option>';
+      let formTerOpts = '<option value="">- เลือกเขตพื้นที่ -</option>';
+      globalAssignTerritories.forEach(t => {
+        terOpts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
+        formTerOpts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
+      });
+      document.getElementById('filterAssignTer').innerHTML = terOpts;
+      document.getElementById('assignTerritory').innerHTML = formTerOpts;
+
+      // เมื่อดึงของครบแล้ว ค่อยโหลดตาราง Assignment
+      loadAssignmentData();
+    } catch (err) {
+      console.error("Error loading Dropdowns for Assignment:", err.message);
+    }
+  }
+
+  // 🌟 โหลดข้อมูล Assignment ตัวหลัก
+  async function loadAssignmentData() {
+    isAssignDataLoaded = false;
+    const tbody = document.getElementById('assignTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const { data, error } = await supabaseClient.from('Assignment').select('*');
+      if (error) throw error;
+
+      globalAssignList = data.map(a => {
+        // หาชื่อบัญชี (Account Name) ว่าเป็นของใคร
+        let accName = a.Account_ID;
+        if (a.Type === 'Doctor') {
+          const doc = globalAssignDoctors.find(d => d.Doc_ID === a.Account_ID);
+          if (doc) accName = doc.Doc_Name;
+        } else if (a.Type === 'Hospital') {
+          const hosp = globalAssignHospitals.find(h => h.Hospital_ID === a.Account_ID);
+          if (hosp) accName = hosp.Hospital;
+        }
+
+        // หาชื่อ Territory
+        const ter = globalAssignTerritories.find(t => t.Territory_ID === a.Territory_ID);
+        const terName = ter ? ter.Territory : a.Territory_ID;
+
+        return {
+          compositeId: `${a.Account_ID}|${a.Territory_ID}`, // 🌟 ผูก PK ทั้งคู่ไว้ด้วยกัน เพื่อใช้แก้/ลบ
+          accountId: a.Account_ID,
+          accountName: accName,
+          territoryId: a.Territory_ID,
+          territoryName: terName,
+          type: a.Type
+        };
+      });
+
+      isAssignDataLoaded = true;
+      filterAssignments();
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function populateAssignAccounts(typeElId, accElId, selectedVal = '') {
+    const type = document.getElementById(typeElId).value;
+    const accEl = document.getElementById(accElId);
+    let html = '<option value="">- เลือก Account -</option>';
+    
+    if (type === 'Doctor') {
+      globalAssignDoctors.forEach(d => {
+        html += `<option value="${d.Doc_ID}" ${d.Doc_ID === selectedVal ? 'selected' : ''}>${d.Doc_Name}</option>`;
+      });
+    } else if (type === 'Hospital') {
+      globalAssignHospitals.forEach(h => {
+        html += `<option value="${h.Hospital_ID}" ${h.Hospital_ID === selectedVal ? 'selected' : ''}>${h.Hospital}</option>`;
+      });
+    } else {
+      html = '<option value="">- กรุณาเลือกประเภทก่อน -</option>';
+    }
+    
+    // อัปเดต Dropdown และเรียก TomSelect หากมีการใช้งาน library นี้ (จาก index.html มีการ include ไว้)
+    accEl.innerHTML = html;
+  }
+
+  function filterAssignments() {
+    if (!isAssignDataLoaded) return;
+    
+    const typeTerm = document.getElementById('filterAssignType').value;
+    const accTerm = document.getElementById('filterAssignAccount').value.toLowerCase().trim();
+    const terTerm = document.getElementById('filterAssignTer').value;
+
+    const filtered = globalAssignList.filter(a => {
+      const matchType = (typeTerm === "") || (a.type === typeTerm);
+      const matchTer = (terTerm === "") || (a.territoryId === terTerm);
+      const searchStr = `${a.accountName}`.toLowerCase();
+      const matchAcc = (accTerm === "") || searchStr.includes(accTerm);
+      return matchType && matchTer && matchAcc;
+    });
+
+    const tbody = document.getElementById('assignTableBody');
+    tbody.innerHTML = '';
+    
+    if(!filtered.length) return tbody.innerHTML = '<tr><td colspan="4" class="text-danger py-4">ไม่พบข้อมูล</td></tr>';
+
+    filtered.forEach(a => {
+      const badge = a.type === 'Doctor' ? 'bg-info text-dark' : 'bg-warning text-dark';
+      tbody.innerHTML += `
+        <tr>
+          <td><span class="badge ${badge}">${a.type}</span></td>
+          <td class="text-start fw-medium">${a.accountName}</td>
+          <td class="text-primary fw-medium">${a.territoryName}</td>
+          <td><button class="btn btn-sm btn-outline-primary" onclick="openEditAssignView('${a.compositeId}')">แก้ไข</button></td>
+        </tr>`;
+    });
+  }
+
+  function openAddAssignView() {
+    isAssignEditMode = false;
+    document.getElementById('assignFormTitle').innerText = "เพิ่ม Assignment ใหม่";
+    document.getElementById('assignForm').reset();
+    document.getElementById('assignAccount').innerHTML = '<option value="">- กรุณาเลือกประเภทก่อน -</option>';
+    document.getElementById('assignType').disabled = false;
+    switchAssignView('assignFormView');
+  }
+
+  function openEditAssignView(compositeId) {
+    const a = globalAssignList.find(x => x.compositeId === compositeId);
+    if (!a) return;
+    
+    isAssignEditMode = true;
+    document.getElementById('assignFormTitle').innerText = "✏️ แก้ไข Assignment";
+    
+    document.getElementById('editAssignOldAcc').value = a.accountId;
+    document.getElementById('editAssignOldTer').value = a.territoryId;
+    
+    document.getElementById('assignType').value = a.type;
+    populateAssignAccounts('assignType', 'assignAccount', a.accountId);
+    document.getElementById('assignTerritory').value = a.territoryId;
+    
+    switchAssignView('assignFormView');
+  }
+
+  // 🌟 บันทึก/อัปเดตข้อมูล Assignment ลง Supabase
+  async function handleSaveAssign(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitAssignBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const newAccountId = document.getElementById('assignAccount').value;
+    const newTerritoryId = document.getElementById('assignTerritory').value;
+    const typeValue = document.getElementById('assignType').value;
+
+    const payload = {
+      Account_ID: newAccountId,
+      Territory_ID: newTerritoryId,
+      Type: typeValue,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      if (isAssignEditMode) {
+        const oldAccountId = document.getElementById('editAssignOldAcc').value;
+        const oldTerritoryId = document.getElementById('editAssignOldTer').value;
+
+        // 🌟 ถ้าแก้ PK อย่างใดอย่างหนึ่ง ต้องลบเรคคอร์ดเก่าแล้ว insert ใหม่
+        if (oldAccountId !== newAccountId || oldTerritoryId !== newTerritoryId) {
+          await supabaseClient.from('Assignment').delete()
+            .eq('Account_ID', oldAccountId).eq('Territory_ID', oldTerritoryId);
+            
+          const { error } = await supabaseClient.from('Assignment').insert([payload]);
+          if (error) {
+             // ถ้าย้ายไปทับอันที่มีอยู่แล้ว
+            if(error.code === '23505') throw new Error("มีการกำหนด Account และพื้นที่นี้ไว้ในระบบแล้ว");
+            throw error;
+          }
+        } else {
+          // ถ้าแก้แค่ Type (ถึงแม้ตามหลัก Account ควรตายตัวกับ Type)
+          const { error } = await supabaseClient.from('Assignment').update({
+            Type: typeValue,
+            Whoupdated: payload.Whoupdated
+          }).eq('Account_ID', oldAccountId).eq('Territory_ID', oldTerritoryId);
+          if (error) throw error;
+        }
+
+        alert("✅ แก้ไข Assignment สำเร็จ");
+      } else {
+        const { error } = await supabaseClient.from('Assignment').insert([payload]);
+        if (error) {
+          if(error.code === '23505') throw new Error("มีการกำหนด Account และพื้นที่นี้ไว้ในระบบแล้ว");
+          throw error;
+        }
+        alert("✅ เพิ่ม Assignment ใหม่สำเร็จ");
+      }
+
+      switchAssignView('assignListView');
+      loadAssignmentData();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล";
+    }
+  }
+</script>
