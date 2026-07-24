@@ -74,13 +74,15 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-
-  <script>
+<script>
     const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
+    
+    // 🌟 เปลี่ยนเป็น var เพื่อรับประกันว่าทุกไฟล์ (รวมถึง Login.html) จะมองเห็นตัวแปรนี้ 100%
+    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
     window.addEventListener('load', async () => {
+      // โหลดหน้า Login มาแปะก่อน
       await loadComponent('loginComponent', 'Login.html');
       
       checkSession();
@@ -121,23 +123,20 @@
       }
     }
 
-    // 🌟 แก้ไขตรงนี้ เพื่อรับมือกับชื่อคอลัมน์และการเว้นวรรค
     async function saveUserLog(user, action, duration = "-") {
       try {
         let repId = user.Rep_ID || user.id;
-        // ป้องกันกรณี Type พัง ถ้า Supabase เป็น UUID แต่ค่าที่ส่งมาเป็นอย่างอื่น
-        // ถ้าคุณเปลี่ยน Rep_ID ใน Supabase เป็น Text แล้ว บรรทัดนี้ไม่ต้องกังวลครับ
         if (!repId) repId = null;
 
         const logData = {
           Action: action,            
           Role: user.Role || user.role || "-",           
           Device: navigator.userAgent, 
-          "Session Duration": duration, // ส่งไปแบบมีเว้นวรรค (ตามรูป)
-          Whoupdated: user.Email || user.email || "System"
+          "Session Duration": duration, 
+          Whoupdated: user.Email || user.email || "System",
+          Whenupdated: new Date().toISOString()
         };
 
-        // ถ้ามี Rep_ID ค่อยส่งไปด้วย
         if (repId) logData.Rep_ID = repId;
 
         const { error } = await supabaseClient.from('User_Logs').insert([logData]);
@@ -147,6 +146,7 @@
       }
     }
 
+    // 🌟 พระเอกของเรา แก้ไขฟังก์ชันนี้ให้จัดการ CSS Classes ได้ถูกต้อง
     function checkSession() {
       const userStr = sessionStorage.getItem('crmUser');
       const loginScreen = document.getElementById('loginScreen');
@@ -154,8 +154,17 @@
 
       if (userStr) {
         const user = JSON.parse(userStr);
-        if (loginScreen) loginScreen.style.display = 'none';
-        if (appContainer) appContainer.style.display = 'block';
+        
+        // 🌟 ถอดคลาส d-flex ออก เพื่อให้สามารถซ่อนหน้าเว็บได้
+        if (loginScreen) {
+          loginScreen.classList.remove('d-flex');
+          loginScreen.classList.add('d-none');
+        }
+        
+        if (appContainer) {
+          appContainer.classList.remove('d-none');
+          appContainer.style.display = 'block';
+        }
         
         const nameDisplay = document.getElementById('displayUserName');
         const dName = user.Rep_Name || user.rep_name || user.name || user.Email || user.email;
@@ -174,8 +183,14 @@
           }
         });
       } else {
-        if (loginScreen) loginScreen.style.display = 'flex';
-        if (appContainer) appContainer.style.display = 'none';
+        // 🌟 ใส่คลาส d-flex กลับเข้าไป เพื่อให้หน้า Login กลับมาอยู่ตรงกลาง
+        if (loginScreen) {
+          loginScreen.classList.remove('d-none');
+          loginScreen.classList.add('d-flex');
+        }
+        if (appContainer) {
+          appContainer.style.display = 'none';
+        }
       }
     }
 
