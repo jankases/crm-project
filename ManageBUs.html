@@ -118,7 +118,7 @@
   var globalBUs = [];
   var currentSelectedBUId = ""; 
 
-  setTimeout(function() { loadBUs(); }, 300);
+  setTimeout(function() { await loadBUs(); }, 300);
 
   function switchBUView(viewId) {
     const views = ['buListView', 'buAddView', 'buEditView', 'buProfileView'];
