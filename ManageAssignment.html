@@ -58,7 +58,6 @@
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
       <form id="assignForm" onsubmit="handleSaveAssign(event)">
-        <!-- ไว้เก็บ PK เดิมเวลา Edit -->
         <input type="hidden" id="editAssignOldAcc">
         <input type="hidden" id="editAssignOldTer">
         
@@ -93,12 +92,13 @@
 </div>
 
 <script>
-  let globalAssignList = [];
-  let globalAssignDoctors = [];
-  let globalAssignHospitals = [];
-  let globalAssignTerritories = [];
-  let isAssignDataLoaded = false;
-  let isAssignEditMode = false;
+  // 🌟 เปลียนจาก let เป็น var ทั้งหมด
+  var globalAssignList = [];
+  var globalAssignDoctors = [];
+  var globalAssignHospitals = [];
+  var globalAssignTerritories = [];
+  var isAssignDataLoaded = false;
+  var isAssignEditMode = false;
 
   window.addEventListener('load', function() {
     loadAssignmentDropdowns();
@@ -110,7 +110,6 @@
     document.getElementById(viewId).classList.remove('d-none');
   }
 
-  // 🌟 ดึงข้อมูลจาก 3 ตาราง (หมอ, รพ, พื้นที่) เพื่อนำมาแมปชื่อ
   async function loadAssignmentDropdowns() {
     try {
       const [docRes, hospRes, terRes] = await Promise.all([
@@ -127,7 +126,6 @@
       globalAssignHospitals = hospRes.data || [];
       globalAssignTerritories = terRes.data || [];
 
-      // ใส่ตัวเลือกพื้นที่ในหน้า List และ Form
       let terOpts = '<option value="">- ทุกพื้นที่ -</option>';
       let formTerOpts = '<option value="">- เลือกเขตพื้นที่ -</option>';
       globalAssignTerritories.forEach(t => {
@@ -137,14 +135,12 @@
       document.getElementById('filterAssignTer').innerHTML = terOpts;
       document.getElementById('assignTerritory').innerHTML = formTerOpts;
 
-      // เมื่อดึงของครบแล้ว ค่อยโหลดตาราง Assignment
       loadAssignmentData();
     } catch (err) {
       console.error("Error loading Dropdowns for Assignment:", err.message);
     }
   }
 
-  // 🌟 โหลดข้อมูล Assignment ตัวหลัก
   async function loadAssignmentData() {
     isAssignDataLoaded = false;
     const tbody = document.getElementById('assignTableBody');
@@ -155,7 +151,6 @@
       if (error) throw error;
 
       globalAssignList = data.map(a => {
-        // หาชื่อบัญชี (Account Name) ว่าเป็นของใคร
         let accName = a.Account_ID;
         if (a.Type === 'Doctor') {
           const doc = globalAssignDoctors.find(d => d.Doc_ID === a.Account_ID);
@@ -165,12 +160,11 @@
           if (hosp) accName = hosp.Hospital;
         }
 
-        // หาชื่อ Territory
         const ter = globalAssignTerritories.find(t => t.Territory_ID === a.Territory_ID);
         const terName = ter ? ter.Territory : a.Territory_ID;
 
         return {
-          compositeId: `${a.Account_ID}|${a.Territory_ID}`, // 🌟 ผูก PK ทั้งคู่ไว้ด้วยกัน เพื่อใช้แก้/ลบ
+          compositeId: `${a.Account_ID}|${a.Territory_ID}`, 
           accountId: a.Account_ID,
           accountName: accName,
           territoryId: a.Territory_ID,
@@ -204,7 +198,6 @@
       html = '<option value="">- กรุณาเลือกประเภทก่อน -</option>';
     }
     
-    // อัปเดต Dropdown และเรียก TomSelect หากมีการใช้งาน library นี้ (จาก index.html มีการ include ไว้)
     accEl.innerHTML = html;
   }
 
@@ -266,7 +259,6 @@
     switchAssignView('assignFormView');
   }
 
-  // 🌟 บันทึก/อัปเดตข้อมูล Assignment ลง Supabase
   async function handleSaveAssign(e) {
     e.preventDefault();
     const btn = document.getElementById('submitAssignBtn');
@@ -291,19 +283,16 @@
         const oldAccountId = document.getElementById('editAssignOldAcc').value;
         const oldTerritoryId = document.getElementById('editAssignOldTer').value;
 
-        // 🌟 ถ้าแก้ PK อย่างใดอย่างหนึ่ง ต้องลบเรคคอร์ดเก่าแล้ว insert ใหม่
         if (oldAccountId !== newAccountId || oldTerritoryId !== newTerritoryId) {
           await supabaseClient.from('Assignment').delete()
             .eq('Account_ID', oldAccountId).eq('Territory_ID', oldTerritoryId);
             
           const { error } = await supabaseClient.from('Assignment').insert([payload]);
           if (error) {
-             // ถ้าย้ายไปทับอันที่มีอยู่แล้ว
             if(error.code === '23505') throw new Error("มีการกำหนด Account และพื้นที่นี้ไว้ในระบบแล้ว");
             throw error;
           }
         } else {
-          // ถ้าแก้แค่ Type (ถึงแม้ตามหลัก Account ควรตายตัวกับ Type)
           const { error } = await supabaseClient.from('Assignment').update({
             Type: typeValue,
             Whoupdated: payload.Whoupdated
