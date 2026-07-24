@@ -1,0 +1,408 @@
+<div class="container-fluid p-0" style="max-width: 900px; margin: 0 auto;">
+  
+  <div id="productListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">📦 จัดการสินค้า (Products)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddProductView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มสินค้าใหม่ (Add Product)
+      </button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="searchProduct" placeholder="ค้นหาชื่อสินค้า, ทีม หรือ สถานะ..." onkeyup="filterProducts()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อสินค้าทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Product Name</th>
+              <th>สังกัดทีม (Teams)</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+            <tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="productAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchProductView('productListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">📦 เพิ่มข้อมูลสินค้าใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addProductForm" onsubmit="handleAddProduct(event)">
+        <div class="mb-4">
+          <label class="form-label fw-medium text-dark">ชื่อสินค้า (Product Name)</label>
+          <input type="text" class="form-control bg-white" id="productName" required placeholder="เช่น Product A">
+        </div>
+        
+        <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-primary mb-0"><i class="fa-solid fa-users me-2"></i>สังกัดทีม (Teams)</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTeamRow('teamContainerAdd')">
+              <i class="fa-solid fa-plus"></i> เพิ่มทีม
+            </button>
+          </div>
+          <div id="teamContainerAdd"></div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchProductView('productListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitProductBtn">บันทึกสินค้าใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="productEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchProductView('productListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลสินค้า</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editProductForm" onsubmit="handleUpdateProduct(event)">
+        <input type="hidden" id="editProductId">
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">ชื่อสินค้า</label>
+          <input type="text" class="form-control bg-white" id="editProductName" required>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label fw-medium text-dark">สถานะ</label>
+          <select class="form-select bg-white" id="editProductStatus" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div class="border rounded p-3 mb-2" style="background-color: #f8f9fa;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-primary mb-0"><i class="fa-solid fa-users me-2"></i>สังกัดทีม (Teams)</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTeamRow('teamContainerEdit')">
+              <i class="fa-solid fa-plus"></i> เพิ่มทีม
+            </button>
+          </div>
+          <div id="teamContainerEdit"></div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchProductView('productListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateProductBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="productProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchProductView('productListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditProductView(currentSelectedProductId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลสินค้า
+      </button>
+      <h4 class="text-info fw-bold mb-0" id="viewProductTitleName">📦 ข้อมูลสินค้า (Product)</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="mb-3">
+        <label class="text-muted small">ชื่อสินค้า</label>
+        <input type="text" class="form-control bg-light" id="viewProductName" disabled>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">สังกัดทีม (Teams)</label>
+        <textarea class="form-control bg-light" id="viewProductTeams" rows="2" disabled></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small">สถานะ</label>
+        <input type="text" class="form-control bg-light" id="viewProductStatus" disabled>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalProducts = [];
+  let globalTeamsList = [];
+  let globalProductTeams = []; 
+  let currentSelectedProductId = ""; 
+
+  window.addEventListener('load', function() {
+    loadTeamsForProducts();
+    loadProducts();
+  });
+
+  function switchProductView(viewId) {
+    const views = ['productListView', 'productAddView', 'productEditView', 'productProfileView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  async function loadTeamsForProducts() {
+    try {
+      const { data, error } = await supabaseClient.from('Team').select('*').eq('Status', 'Active');
+      if (error) throw error;
+      globalTeamsList = data;
+    } catch (err) { console.error("Error loading Teams:", err.message); }
+  }
+
+  function addTeamRow(containerId, selectedTeamId = '') {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'row align-items-center mb-2 prod-team-row pb-2 border-bottom';
+
+    let optionsHtml = '<option value="">- เลือกทีม -</option>';
+    globalTeamsList.forEach(t => {
+      const selected = t.Team_ID === selectedTeamId ? 'selected' : '';
+      optionsHtml += `<option value="${t.Team_ID}" ${selected}>${t.Team}</option>`;
+    });
+
+    row.innerHTML = `
+      <div class="col-md-9">
+        <select class="form-select team-select bg-white" required>
+          ${optionsHtml}
+        </select>
+      </div>
+      <div class="col-md-3 text-end">
+        <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.closest('.prod-team-row').remove()">ลบ</button>
+      </div>
+    `;
+    container.appendChild(row);
+  }
+
+  function extractTeams(containerId) {
+    const container = document.getElementById(containerId);
+    const rows = container.querySelectorAll('.prod-team-row');
+    const teams = [];
+    rows.forEach(row => {
+      const tId = row.querySelector('.team-select').value;
+      if (tId) teams.push(tId);
+    });
+    return [...new Set(teams)]; 
+  }
+
+  function openAddProductView() {
+    document.getElementById('addProductForm').reset();
+    document.getElementById('teamContainerAdd').innerHTML = ''; 
+    addTeamRow('teamContainerAdd'); 
+    switchProductView('productAddView');
+  }
+
+  async function loadProducts() {
+    const tbody = document.getElementById('productTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+
+    try {
+      const pRes = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
+      if (pRes.error) throw pRes.error;
+      
+      // 🌟 ดึงข้อมูลจากตาราง Products_Team (ตารางใหม่)
+      const ptRes = await supabaseClient.from('Products_Team').select('*').eq('Status', 'Active');
+      globalProductTeams = ptRes.data || [];
+
+      globalProducts = pRes.data.map(p => {
+        const myTeams = globalProductTeams.filter(pt => pt.Product_ID === p.Product_ID);
+        let teamNames = [];
+        
+        myTeams.forEach(mt => {
+          const tInfo = globalTeamsList.find(t => t.Team_ID === mt.Team_ID);
+          if (tInfo) teamNames.push(tInfo.Team);
+        });
+
+        return {
+          id: p.Product_ID,
+          name: p.Product,
+          status: p.Status,
+          teamIds: myTeams.map(mt => mt.Team_ID), 
+          teamsText: teamNames.length > 0 ? teamNames.join(', ') : '-' 
+        };
+      });
+
+      filterProducts();
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function filterProducts() {
+    const term = document.getElementById('searchProduct').value.toLowerCase();
+    const filtered = globalProducts.filter(p =>
+      (p.name && p.name.toLowerCase().includes(term)) ||
+      (p.teamsText && p.teamsText.toLowerCase().includes(term)) ||
+      (p.status && p.status.toLowerCase().includes(term))
+    );
+    renderProductTable(filtered);
+  }
+
+  function renderProductTable(data) {
+    const tbody = document.getElementById('productTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+
+    if(!data || !data.length) {
+      return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">ไม่พบข้อมูลที่ค้นหา</td></tr>';
+    }
+
+    data.forEach(p => {
+      const badge = p.status === 'Active' ? 'bg-success' : 'bg-danger';
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewProductProfile('${p.id}'); return false;">
+              ${p.name}
+            </a>
+          </td>
+          <td class="text-primary"><small>${p.teamsText || '-'}</small></td>
+          <td class="text-center"><span class="badge ${badge}">${p.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditProductView('${p.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openViewProductProfile(id) {
+    currentSelectedProductId = id; 
+    const p = globalProducts.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById('viewProductTitleName').innerText = `📦 ข้อมูลสินค้า: ${p.name}`;
+    document.getElementById('viewProductName').value = p.name || '-';
+    document.getElementById('viewProductTeams').value = p.teamsText || '-';
+    document.getElementById('viewProductStatus').value = p.status || '-';
+
+    switchProductView('productProfileView');
+  }
+
+  function openEditProductView(id) {
+    const p = globalProducts.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById('editProductId').value = p.id;
+    document.getElementById('editProductName').value = p.name;
+    document.getElementById('editProductStatus').value = p.status;
+    
+    document.getElementById('teamContainerEdit').innerHTML = '';
+    if (!p.teamIds || p.teamIds.length === 0) {
+      addTeamRow('teamContainerEdit');
+    } else {
+      p.teamIds.forEach(tId => addTeamRow('teamContainerEdit', tId));
+    }
+    
+    switchProductView('productEditView');
+  }
+
+  async function handleAddProduct(e) {
+    e.preventDefault();
+    const teams = extractTeams('teamContainerAdd');
+    if (teams.length === 0) return alert("❌ กรุณาเลือกทีมที่รับผิดชอบอย่างน้อย 1 ทีม");
+
+    const btn = document.getElementById('submitProductBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Product: document.getElementById('productName').value.trim(),
+      Status: 'Active',
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { data: newProd, error: pError } = await supabaseClient.from('Products').insert([payload]).select();
+      if (pError) throw pError;
+      
+      const newProdId = newProd[0].Product_ID;
+
+      // 🌟 บันทึกทีมลงตาราง Products_Team พร้อมข้อมูล Status และ Whoupdated
+      const teamMappings = teams.map(tId => ({
+        Product_ID: newProdId,
+        Team_ID: tId,
+        Status: 'Active',
+        Whoupdated: crmUser ? crmUser.Email : "Unknown"
+      }));
+      
+      const { error: ptError } = await supabaseClient.from('Products_Team').insert(teamMappings);
+      if (ptError) console.error("Warning: Failed to save teams:", ptError.message);
+
+      alert("✅ บันทึกสินค้าใหม่สำเร็จ");
+      switchProductView('productListView');
+      document.getElementById('searchProduct').value = '';
+      loadProducts();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกสินค้าใหม่";
+    }
+  }
+
+  async function handleUpdateProduct(e) {
+    e.preventDefault();
+    const teams = extractTeams('teamContainerEdit');
+    if (teams.length === 0) return alert("❌ กรุณาเลือกทีมที่รับผิดชอบอย่างน้อย 1 ทีม");
+
+    const btn = document.getElementById('updateProductBtn');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    const prodId = document.getElementById('editProductId').value;
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Product: document.getElementById('editProductName').value.trim(),
+      Status: document.getElementById('editProductStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      const { error: pError } = await supabaseClient.from('Products').update(payload).eq('Product_ID', prodId);
+      if (pError) throw pError;
+
+      // 🌟 ลบทีมเก่า และเพิ่มทีมใหม่ลงตาราง Products_Team
+      await supabaseClient.from('Products_Team').delete().eq('Product_ID', prodId);
+      
+      const teamMappings = teams.map(tId => ({
+        Product_ID: prodId,
+        Team_ID: tId,
+        Status: 'Active',
+        Whoupdated: crmUser ? crmUser.Email : "Unknown"
+      }));
+      await supabaseClient.from('Products_Team').insert(teamMappings);
+
+      alert("✅ บันทึกการเปลี่ยนแปลงสำเร็จ");
+      switchProductView('productListView');
+      document.getElementById('searchProduct').value = '';
+      loadProducts();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+    }
+  }
+</script>
