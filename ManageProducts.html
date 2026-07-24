@@ -142,16 +142,16 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let เป็น var ทั้งหมด
   var globalProducts = [];
   var globalTeamsList = [];
   var globalProductTeams = []; 
   var currentSelectedProductId = ""; 
 
-  window.addEventListener('load', function() {
-    loadTeamsForProducts();
-    loadProducts();
-  });
+  // 🌟 แก้ไขตรงนี้ ให้โหลดข้อมูลได้ทันทีแบบ async
+  setTimeout(async function() {
+    await loadTeamsForProducts();
+    await loadProducts();
+  }, 300);
 
   function switchProductView(viewId) {
     const views = ['productListView', 'productAddView', 'productEditView', 'productProfileView'];
