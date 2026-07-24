@@ -141,7 +141,7 @@
   var currentSelectedTeamId = ""; 
 
   // โหลดข้อมูลเมื่อเปิดหน้า
-  setTimeout(function() { 
+  setTimeout(async function() { 
     await loadBUDropdownsForTeam(); 
     await loadTeams(); 
   }, 300);
