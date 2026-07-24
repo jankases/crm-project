@@ -142,10 +142,11 @@
 </div>
 
 <script>
+  // 🌟 เปลียนจาก let เป็น var ทั้งหมด
   var globalProducts = [];
   var globalTeamsList = [];
   var globalProductTeams = []; 
-  let currentSelectedProductId = ""; 
+  var currentSelectedProductId = ""; 
 
   window.addEventListener('load', function() {
     loadTeamsForProducts();
@@ -220,7 +221,6 @@
       const pRes = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
       if (pRes.error) throw pRes.error;
       
-      // 🌟 ดึงข้อมูลจากตาราง Products_Team (ตารางใหม่)
       const ptRes = await supabaseClient.from('Products_Team').select('*').eq('Status', 'Active');
       globalProductTeams = ptRes.data || [];
 
@@ -340,7 +340,6 @@
       
       const newProdId = newProd[0].Product_ID;
 
-      // 🌟 บันทึกทีมลงตาราง Products_Team พร้อมข้อมูล Status และ Whoupdated
       const teamMappings = teams.map(tId => ({
         Product_ID: newProdId,
         Team_ID: tId,
@@ -384,7 +383,6 @@
       const { error: pError } = await supabaseClient.from('Products').update(payload).eq('Product_ID', prodId);
       if (pError) throw pError;
 
-      // 🌟 ลบทีมเก่า และเพิ่มทีมใหม่ลงตาราง Products_Team
       await supabaseClient.from('Products_Team').delete().eq('Product_ID', prodId);
       
       const teamMappings = teams.map(tId => ({
