@@ -1,0 +1,516 @@
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <!-- ================= 1. หน้ารายชื่อผู้ใช้งาน (List View) ================= -->
+  <div id="userListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-success fw-bold mb-0">👥 จัดการผู้ใช้งาน (Users)</h4>
+      <button type="button" class="btn btn-success fw-bold shadow-sm" onclick="openAddUserView()">
+        <i class="fa-solid fa-user-plus me-2"></i>เพิ่มผู้ใช้งานใหม่ (Add User)
+      </button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="searchUserName" placeholder="ค้นหาด้วยชื่อหรือบทบาท..." onkeyup="filterUsers()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อผู้ใช้งานทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" style="font-size: 0.95rem;">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Name</th>
+              <th>ขอบเขตความรับผิดชอบ</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td colspan="6" class="text-center py-4">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. หน้าเพิ่มผู้ใช้งานใหม่ (Add View) ================= -->
+  <div id="userAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchUserView('userListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-success fw-bold mb-0">👥 เพิ่มข้อมูลผู้ใช้งานใหม่</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addUserForm" onsubmit="handleAddUser(event)">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">ชื่อ-นามสกุล</label>
+            <input type="text" class="form-control bg-white" id="repName" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">อีเมล</label>
+            <input type="email" class="form-control bg-white" id="email" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">บทบาท (Role)</label>
+            <select class="form-select bg-white" id="role" required onchange="handleRoleChange('role', 'territoryId', 'scopeLabel')">
+              <option value="Sales">Sales</option>
+              <option value="Manager">Manager</option>
+              <option value="BU Head">BU Head</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-primary" id="scopeLabel">เขตพื้นที่ (Territory)</label>
+            <select class="form-select bg-white" id="territoryId"></select>
+          </div>
+        </div>
+        <div class="row border-top pt-3 mt-1">
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">รหัสผ่าน (Password)</label>
+            <input type="password" class="form-control bg-white" id="password" required placeholder="อย่างน้อย 5 ตัวอักษร, พิมพ์ใหญ่ 1, ตัวเลข 1">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium text-dark">ยืนยันรหัสผ่าน</label>
+            <input type="password" class="form-control bg-white" id="confirmPassword" required placeholder="พิมพ์รหัสผ่านอีกครั้ง">
+          </div>
+        </div>
+        <div class="text-end mt-3">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchUserView('userListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-success fw-bold px-4" id="submitUserBtn">บันทึกผู้ใช้งานใหม่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 3. หน้าแก้ไขข้อมูลผู้ใช้ (Edit View) ================= -->
+  <div id="userEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchUserView('userListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-success fw-bold mb-0">✏️ แก้ไขข้อมูลผู้ใช้</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editUserForm" onsubmit="handleUpdateUser(event)">
+        <input type="hidden" id="editRepId">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">ชื่อ-นามสกุล</label>
+            <input type="text" class="form-control bg-white" id="editRepName" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">อีเมล</label>
+            <input type="email" class="form-control bg-white" id="editEmail" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">บทบาท (Role)</label>
+            <select class="form-select bg-white" id="editRole" required onchange="handleRoleChange('editRole', 'editTerritoryId', 'editScopeLabel')">
+              <option value="Sales">Sales</option>
+              <option value="Manager">Manager</option>
+              <option value="BU Head">BU Head</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-primary mb-1" id="editScopeLabel">เขตพื้นที่ (Territory)</label>
+            <select class="form-select bg-white" id="editTerritoryId"></select>
+          </div>
+        </div>
+        <div class="row border-top pt-3 mt-1">
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">เปลี่ยนรหัสผ่าน</label>
+            <input type="password" class="form-control bg-white" id="editPassword" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="fw-medium text-dark mb-1">ยืนยันรหัสผ่านใหม่</label>
+            <input type="password" class="form-control bg-white" id="editConfirmPassword" required>
+          </div>
+        </div>
+        <div class="row border-top pt-3 mt-1">
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium text-dark mb-1">สถานะ</label>
+            <select class="form-select bg-white" id="editStatus" required>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium text-dark mb-1">Start Date</label>
+            <input type="date" class="form-control bg-white" id="editStartDate">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="fw-medium text-dark mb-1">End Date</label>
+            <input type="date" class="form-control bg-white" id="editEndDate">
+          </div>
+        </div>
+        <div class="text-end mt-3">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchUserView('userListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-success fw-bold px-4" id="updateUserBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 4. หน้าดูโปรไฟล์ผู้ใช้งาน (Profile View) ================= -->
+  <div id="userProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchUserView('userListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditUserView(currentSelectedUserId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลผู้ใช้
+      </button>
+      <h4 class="text-success fw-bold mb-0" id="viewUserTitleName">👥 ข้อมูลผู้ใช้งาน</h4>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <div class="row mb-3">
+        <div class="col-md-6"><label class="text-muted small">ชื่อ-นามสกุล</label><input type="text" class="form-control bg-light" id="viewRepName" disabled></div>
+        <div class="col-md-6"><label class="text-muted small">อีเมล</label><input type="text" class="form-control bg-light" id="viewEmail" disabled></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6"><label class="text-muted small">บทบาท (Role)</label><input type="text" class="form-control bg-light" id="viewRole" disabled></div>
+        <div class="col-md-6"><label class="text-muted small">ขอบเขตความรับผิดชอบ</label><input type="text" class="form-control bg-light" id="viewScopeName" disabled></div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4"><label class="text-muted small">สถานะ</label><input type="text" class="form-control bg-light" id="viewStatus" disabled></div>
+        <div class="col-md-4"><label class="text-muted small">Start Date</label><input type="date" class="form-control bg-light" id="viewStartDate" disabled></div>
+        <div class="col-md-4"><label class="text-muted small">End Date</label><input type="date" class="form-control bg-light" id="viewEndDate" disabled></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalUsers = [];
+  let globalTerritoriesDropdown = [];
+  let globalTeamsDropdown = [];
+  let globalBUsDropdown = []; 
+  let currentSelectedUserId = ""; 
+
+  window.addEventListener('load', () => { 
+    // โหลดข้อมูลอัตโนมัติเฉพาะตอนแท็บถูกคลิก หรือโหลดครั้งแรก
+    loadScopeDropdowns(); 
+    loadUsers(); 
+  });
+
+  function switchUserView(viewId) {
+    const list = document.getElementById('userListView');
+    const add = document.getElementById('userAddView');
+    const edit = document.getElementById('userEditView');
+    const profile = document.getElementById('userProfileView');
+    
+    if(list) list.classList.add('d-none');
+    if(add) add.classList.add('d-none');
+    if(edit) edit.classList.add('d-none');
+    if(profile) profile.classList.add('d-none');
+    
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  // 🌟 ดึงข้อมูล Dropdown จาก Supabase
+  async function loadScopeDropdowns() { 
+    try {
+      // ใช้ .select('*') เผื่อไม่แน่ใจชื่อคอลัมน์ของ Team กับ BU
+      const [terRes, teamRes, buRes] = await Promise.all([
+        supabaseClient.from('Territory').select('*').eq('Status', 'Active'),
+        supabaseClient.from('Team').select('*').eq('Status', 'Active'),
+        supabaseClient.from('BU').select('*').eq('Status', 'Active')
+      ]);
+
+      globalTerritoriesDropdown = terRes.data || [];
+      globalTeamsDropdown = teamRes.data || [];
+      globalBUsDropdown = buRes.data || [];
+    } catch (err) {
+      console.error("Error loading dropdowns:", err.message);
+    }
+  }
+
+  // 🌟 ฟังก์ชันดึงรายชื่อผู้ใช้งานจาก Supabase
+  async function loadUsers() { 
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+    
+    try {
+      const { data: users, error } = await supabaseClient.from('Rep_Users').select('*').order('Rep_Name', { ascending: true });
+      if (error) throw error;
+
+      // จัดรูปข้อมูลให้หน้าบ้านเอาไปแสดงผลง่ายๆ
+      globalUsers = users.map(u => {
+        let tName = "-";
+        
+        // ⚠️ ถ้าเป็น Admin เราจะเซ็ตค่าให้ฐานข้อมูลเป็น NULL แทน 'ALL' 
+        // ดังนั้นตอนดึงมาโชว์ ถ้าเจอค่าว่าง (null) ให้โชว์คำว่า ALL แทน
+        if (!u.Territory_ID) {
+          tName = 'ALL (ดูแลทั้งหมด)';
+        } else {
+          // ถ้ามี ID ให้ไปงมหาชื่อในตาราง Territory, Team หรือ BU (อิงจาก Role)
+          if (u.Role === 'Sales') {
+            const ter = globalTerritoriesDropdown.find(t => t.Territory_ID === u.Territory_ID);
+            if (ter) tName = ter.Territory || ter.Territory_Name || u.Territory_ID;
+          } else if (u.Role === 'Manager') {
+            const team = globalTeamsDropdown.find(t => t.Team_ID === u.Territory_ID || t.id === u.Territory_ID);
+            if (team) tName = team.Team_Name || team.name || u.Territory_ID;
+          } else if (u.Role === 'BU Head') {
+            const bu = globalBUsDropdown.find(b => b.BU_ID === u.Territory_ID || b.id === u.Territory_ID);
+            if (bu) tName = bu.BU_Name || bu.name || u.Territory_ID;
+          } else {
+            tName = u.Territory_ID;
+          }
+        }
+
+        return {
+          id: u.Rep_ID,
+          name: u.Rep_Name,
+          email: u.Email,
+          role: u.Role,
+          territoryId: u.Territory_ID,
+          territoryName: tName,
+          status: u.Status,
+          password: u.Password,
+          startDate: u.StartDate,
+          endDate: u.EndDate
+        };
+      });
+
+      renderUserTable(globalUsers);
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function handleRoleChange(roleSelectId, scopeSelectId, labelId, selectedValue = '') {
+    const role = document.getElementById(roleSelectId).value;
+    const scopeSelect = document.getElementById(scopeSelectId);
+    const label = document.getElementById(labelId);
+    
+    scopeSelect.innerHTML = '';
+
+    if (role === 'Admin') {
+      label.innerHTML = 'ขอบเขตความรับผิดชอบ (Scope)';
+      scopeSelect.innerHTML = '<option value="">ALL (ดูแลทั้งหมด)</option>';
+      scopeSelect.value = ''; // ⚠️ Admin ส่งค่าว่าง (null) ไปให้ Supabase
+      scopeSelect.disabled = true; 
+    } 
+    else if (role === 'BU Head') {
+      label.innerHTML = 'กลุ่มธุรกิจ (BU)';
+      scopeSelect.disabled = false;
+      let opts = '<option value="">- เลือก BU ที่ดูแล -</option>';
+      globalBUsDropdown.forEach(b => {
+        opts += `<option value="${b.BU_ID || b.id}">${b.BU_Name || b.name}</option>`;
+      });
+      scopeSelect.innerHTML = opts;
+    }
+    else if (role === 'Manager') {
+      label.innerHTML = 'ทีมที่ดูแล (BU + Team)';
+      scopeSelect.disabled = false;
+      let opts = '<option value="">- เลือกทีมที่ดูแล -</option>';
+      globalTeamsDropdown.forEach(t => {
+        opts += `<option value="${t.Team_ID || t.id}">[${t.BU_ID || 'BU'}] ${t.Team_Name || t.name}</option>`;
+      });
+      scopeSelect.innerHTML = opts;
+    } 
+    else { 
+      label.innerHTML = 'เขตพื้นที่ (Territory)';
+      scopeSelect.disabled = false;
+      let opts = '<option value="">- เลือกพื้นที่ -</option>';
+      globalTerritoriesDropdown.forEach(t => {
+        opts += `<option value="${t.Territory_ID || t.id}">${t.Territory || t.name}</option>`;
+      });
+      scopeSelect.innerHTML = opts;
+    }
+
+    if (selectedValue) {
+      scopeSelect.value = selectedValue;
+    }
+  }
+
+  function filterUsers() {
+    const term = document.getElementById('searchUserName').value.toLowerCase();
+    const filtered = globalUsers.filter(u => u.name.toLowerCase().includes(term) || u.role.toLowerCase().includes(term));
+    renderUserTable(filtered);
+  }
+
+  function renderUserTable(data) {
+    const tbody = document.getElementById('userTableBody'); 
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    if(!data.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">ไม่พบข้อมูล</td></tr>';
+    
+    data.forEach(u => {
+      const badgeClass = u.status === 'Active' ? 'bg-success' : 'bg-danger';
+      const roleBadge = u.role === 'Admin' ? 'bg-dark' : (u.role === 'Manager' ? 'bg-primary' : 'bg-info text-dark');
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewUserProfile('${u.id}'); return false;">
+              ${u.name}
+            </a>
+          </td>
+          <td class="text-primary text-center"><small class="fw-medium">${u.territoryName}</small></td>
+          <td><small>${u.email}</small></td>
+          <td class="text-center"><span class="badge ${roleBadge}">${u.role}</span></td>
+          <td class="text-center"><span class="badge ${badgeClass}">${u.status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-success" onclick="openEditUserView('${u.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openAddUserView() {
+    document.getElementById('addUserForm').reset();
+    handleRoleChange('role', 'territoryId', 'scopeLabel'); 
+    switchUserView('userAddView');
+  }
+
+  function openViewUserProfile(id) {
+    currentSelectedUserId = id; 
+    const u = globalUsers.find(x => x.id === id); 
+    if(!u) return;
+
+    document.getElementById('viewUserTitleName').innerText = `👥 ข้อมูลผู้ใช้งาน: ${u.name}`;
+    document.getElementById('viewRepName').value = u.name || '-';
+    document.getElementById('viewEmail').value = u.email || '-';
+    document.getElementById('viewRole').value = u.role || '-';
+    document.getElementById('viewScopeName').value = u.territoryName || '-';
+    document.getElementById('viewStatus').value = u.status || '-';
+    document.getElementById('viewStartDate').value = formatHTMLDate(u.startDate);
+    document.getElementById('viewEndDate').value = formatHTMLDate(u.endDate);
+
+    switchUserView('userProfileView');
+  }
+
+  function openEditUserView(id) {
+    const u = globalUsers.find(x => x.id === id); 
+    if(!u) return;
+    document.getElementById('editRepId').value = u.id; 
+    document.getElementById('editRepName').value = u.name;
+    document.getElementById('editEmail').value = u.email; 
+    document.getElementById('editRole').value = u.role; 
+    
+    handleRoleChange('editRole', 'editTerritoryId', 'editScopeLabel', u.territoryId);
+    
+    document.getElementById('editPassword').value = u.password; 
+    document.getElementById('editConfirmPassword').value = u.password;
+    document.getElementById('editStatus').value = u.status;
+    document.getElementById('editStartDate').value = formatHTMLDate(u.startDate); 
+    document.getElementById('editEndDate').value = formatHTMLDate(u.endDate);
+    
+    switchUserView('userEditView');
+  }
+
+  function formatHTMLDate(d) { 
+    if(!d) return ''; 
+    const dt = new Date(d); 
+    return dt.getFullYear() >= 9999 || isNaN(dt) ? '' : dt.toISOString().split('T')[0]; 
+  }
+
+  function validatePassword(password, confirmPassword) {
+    if (password.length < 5) return "รหัสผ่านต้องมีอย่างน้อย 5 ตัวอักษร";
+    if (!/[A-Z]/.test(password)) return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว (A-Z)";
+    if (!/[0-9]/.test(password)) return "รหัสผ่านต้องมีตัวเลขอย่างน้อย 1 ตัว (0-9)";
+    if (password !== confirmPassword) return "รหัสผ่านไม่ตรงกัน";
+    return "OK";
+  }
+
+  // 🌟 บันทึกเพิ่มผู้ใช้ลง Supabase
+  async function handleAddUser(e) {
+    e.preventDefault(); 
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const validationResult = validatePassword(password, confirmPassword);
+    if (validationResult !== "OK") { alert("❌ " + validationResult); return; }
+    
+    const btn = document.getElementById('submitUserBtn'); 
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    // ดึงค่าอาณาเขต ถ้าเป็นค่าว่าง (เช่น Admin) ให้ส่ง null ไปเพื่อไม่ให้ UUID ฟ้อง Error
+    let terId = document.getElementById('territoryId').value;
+    if (terId === "") terId = null; 
+
+    // ไม่ต้องแนบ Rep_ID เข้าไป เพื่อให้ Supabase จัดการ gen_random_uuid() ให้อัตโนมัติ
+    const payload = { 
+      Rep_Name: document.getElementById('repName').value.trim(), 
+      Email: document.getElementById('email').value.trim(), 
+      Territory_ID: terId, 
+      Role: document.getElementById('role').value,
+      Password: password,
+      Status: 'Active',
+      StartDate: new Date().toISOString().split('T')[0]
+      // ⚠️ ละ EndDate ไว้ให้เป็น NULL ได้ หรือจะฟิกซ์ค่าไกลๆ ไว้ตามความต้องการของระบบ
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Rep_Users').insert([payload]);
+      if (error) throw error;
+      
+      alert("✅ บันทึกผู้ใช้งานใหม่สำเร็จ");
+      switchUserView('userListView');
+      loadUsers(); 
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกผู้ใช้งานใหม่"; 
+    }
+  }
+
+  // 🌟 อัปเดตข้อมูลผู้ใช้ใน Supabase
+  async function handleUpdateUser(e) {
+    e.preventDefault(); 
+    const password = document.getElementById('editPassword').value;
+    const confirmPassword = document.getElementById('editConfirmPassword').value;
+    const validationResult = validatePassword(password, confirmPassword);
+    if (validationResult !== "OK") { alert("❌ " + validationResult); return; }
+
+    const btn = document.getElementById('updateUserBtn'); 
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    
+    let terId = document.getElementById('editTerritoryId').value;
+    if (terId === "") terId = null;
+
+    const repId = document.getElementById('editRepId').value;
+
+    const payload = { 
+      Rep_Name: document.getElementById('editRepName').value.trim(), 
+      Email: document.getElementById('editEmail').value.trim(), 
+      Territory_ID: terId, 
+      Password: password, 
+      Role: document.getElementById('editRole').value, 
+      Status: document.getElementById('editStatus').value, 
+      StartDate: document.getElementById('editStartDate').value || null, 
+      EndDate: document.getElementById('editEndDate').value || null
+    };
+
+    try {
+      const { error } = await supabaseClient.from('Rep_Users').update(payload).eq('Rep_ID', repId);
+      if (error) throw error;
+
+      alert("✅ อัปเดตข้อมูลสำเร็จ");
+      switchUserView('userListView');
+      loadUsers(); 
+    } catch (err) {
+      alert("❌ อัปเดตไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง"; 
+    }
+  }
+</script>
