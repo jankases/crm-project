@@ -75,15 +75,22 @@
       <li class="nav-item">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#visit" type="button"><i class="fa-solid fa-notes-medical me-2"></i>บันทึกเยี่ยม</button>
       </li>
-      <!-- เตรียมไว้เพิ่มเมนูอื่นๆ ในอนาคต -->
+      <!-- 🌟 เพิ่มแท็บ Users ซ่อนไว้ก่อน จะโชว์แค่ Admin -->
+      <li class="nav-item" id="navUsersTab" style="display: none;">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#users" type="button"><i class="fa-solid fa-user-group me-2"></i>ผู้ใช้งาน</button>
+      </li>
     </ul>
 
     <div class="tab-content" id="crmTabsContent">
       <div class="tab-pane fade show active" id="visit">
-        <!-- 🌟 ไฟล์ ManageVisits.html จะถูกดูดมาแสดงผลตรงนี้ 🌟 -->
         <div id="loadingVisit" class="text-center py-5">
-           <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-3"></i>
-           <p>กำลังโหลดหน้าระบบ...</p>
+           <i class="fa-solid fa-spinner fa-spin fa-2x text-primary mb-3"></i><p>กำลังโหลดหน้าระบบ...</p>
+        </div>
+      </div>
+      <!-- 🌟 พื้นที่สำหรับดูดหน้า ManageUsers มาแปะ -->
+      <div class="tab-pane fade" id="users">
+        <div id="loadingUsers" class="text-center py-5">
+           <i class="fa-solid fa-spinner fa-spin fa-2x text-success mb-3"></i><p>กำลังโหลดหน้าผู้ใช้งาน...</p>
         </div>
       </div>
     </div>
@@ -95,29 +102,26 @@
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
   <script>
-    // 🌟 ตั้งค่าเชื่อมต่อ Supabase
+    // ตั้งค่าเชื่อมต่อ Supabase
     const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
     window.addEventListener('load', () => {
       checkSession();
-      // 🌟 ดึงไฟล์ ManageVisits มาเตรียมไว้ตั้งแต่ตอนเปิดเว็บ
+      // ดึงไฟล์ HTML ย่อยมาเตรียมไว้
       loadComponent('visit', 'ManageVisits.html'); 
+      loadComponent('users', 'ManageUsers.html'); 
     });
 
-    // 🌟 ฟังก์ชันดูดไฟล์ HTML ย่อยมาแปะ
     async function loadComponent(elementId, filePath) {
       try {
         const response = await fetch(filePath);
         if (!response.ok) throw new Error("ไม่พบไฟล์ " + filePath);
         const htmlText = await response.text();
-        
-        // เอา HTML ไปยัดใส่กล่องเป้าหมาย
         const container = document.getElementById(elementId);
         container.innerHTML = htmlText;
         
-        // ⚠️ สำคัญมาก: เพื่อให้โค้ด <script> ในไฟล์ที่ดูดมาทำงานได้
         const scripts = container.querySelectorAll('script');
         scripts.forEach(oldScript => {
           const newScript = document.createElement('script');
@@ -125,39 +129,29 @@
           if (oldScript.innerHTML) newScript.innerHTML = oldScript.innerHTML;
           document.body.appendChild(newScript);
         });
-
       } catch (error) {
         console.error(error);
         document.getElementById(elementId).innerHTML = `<div class="alert alert-danger">❌ โหลดไฟล์ล้มเหลว: ${error.message}</div>`;
       }
     }
 
-    // ==========================================
-    // 🌟 ระบบบันทึก Log การใช้งาน
-    // ==========================================
     async function saveUserLog(user, action, duration = "-") {
       try {
         const logData = {
-          // ไม่ต้องใส่ Log_ID เพราะ Supabase จัดการ gen_random_uuid() ให้แล้ว
-          Rep_ID: user.Rep_ID,       // UUID จากตาราง Rep_Users
-          Action: action,            // "Login" หรือ "Logout"
+          Rep_ID: user.Rep_ID,       
+          Action: action,            
           Role: user.Role,           
           Device: navigator.userAgent, 
-          "Session Duration": duration, // ชื่อคอลัมน์มีช่องว่าง ต้องใส่ Quote
+          "Session Duration": duration, 
           Whoupdated: user.Email
         };
-
         const { error } = await supabaseClient.from('User_Logs').insert([logData]);
         if (error) throw error;
-        console.log(`✅ บันทึก Log [${action}] สำเร็จ`);
       } catch (err) {
         console.error("❌ ไม่สามารถบันทึก Log ได้:", err.message);
       }
     }
 
-    // ==========================================
-    // ฟังก์ชัน Login
-    // ==========================================
     async function handleLogin(e) {
       e.preventDefault();
       const btn = document.getElementById('loginBtn');
@@ -182,13 +176,10 @@
           sessionStorage.setItem('crmUser', JSON.stringify(user));
           sessionStorage.setItem('loginTime', Date.now()); 
           
-          // 🌟 บันทึก Log การเข้าสู่ระบบ
           saveUserLog(user, "Login");
-
           document.getElementById('loginForm').reset();
           checkSession();
           
-          // สั่งโหลดข้อมูลตารางทันทีหลังล็อกอินเสร็จ (ฟังก์ชันเหล่านี้อยู่ใน ManageVisits)
           if (typeof loadVisitLogs === 'function') loadVisitLogs();
           if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
           
@@ -210,29 +201,26 @@
 
       if (userStr) {
         const user = JSON.parse(userStr);
-        if (loginScreen) {
-          loginScreen.classList.remove('d-flex'); 
-          loginScreen.style.display = 'none';
-        }
-        if (appContainer) {
-          appContainer.style.display = 'block';
-        }
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (appContainer) appContainer.style.display = 'block';
+        
         const nameDisplay = document.getElementById('displayUserName');
         if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + (user.Rep_Name || user.Email); 
+        
+        // 🌟 เช็คสิทธิ์ เปิด/ปิด แท็บตาม Role 
+        const usersTab = document.getElementById('navUsersTab');
+        if (user.Role === 'Admin') {
+          if (usersTab) usersTab.style.display = 'block';
+        } else {
+          if (usersTab) usersTab.style.display = 'none';
+        }
+
       } else {
-        if (loginScreen) {
-          loginScreen.classList.add('d-flex'); 
-          loginScreen.style.display = '';
-        }
-        if (appContainer) {
-          appContainer.style.display = 'none';
-        }
+        if (loginScreen) loginScreen.style.display = '';
+        if (appContainer) appContainer.style.display = 'none';
       }
     }
 
-    // ==========================================
-    // ฟังก์ชัน Logout
-    // ==========================================
     function logout() { 
       const userStr = sessionStorage.getItem('crmUser');
       const loginTime = sessionStorage.getItem('loginTime');
@@ -240,15 +228,11 @@
       if (userStr) {
         const user = JSON.parse(userStr);
         let sessionDuration = "-";
-        
-        // คำนวณเวลาที่อยู่ในระบบ
         if (loginTime) {
           const diffMs = Date.now() - parseInt(loginTime);
           const diffMins = Math.round(diffMs / 60000); 
           sessionDuration = diffMins + " mins";
         }
-
-        // 🌟 บันทึก Log การออกจากระบบ
         saveUserLog(user, "Logout", sessionDuration);
       }
 
