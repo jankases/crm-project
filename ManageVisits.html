@@ -181,7 +181,6 @@
   var visitDatePicker; 
   let isVisitDataLoaded = false; 
 
-  // สร้าง Datepicker ถ้ายังไม่เคยถูกสร้าง (ป้องกันการสร้างซ้ำ)
   if (!visitDatePicker && document.getElementById('visitDate')) {
     visitDatePicker = flatpickr("#visitDate", {
       altInput: true,
@@ -213,7 +212,7 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
     
     try {
-      // 1. ดึงข้อมูล 3 ตารางพร้อมกัน (Territory, Doctors, Products)
+      // ⚠️ สมมติว่าในตาราง Territory ใช้ชื่อคอลัมน์ Territory_ID และ Territory_Name (ถ้าไม่ใช่ ต้องแก้ตรงนี้นะครับ)
       const [terRes, docRes, prodRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory_Name'),
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name_EN, Doc_Name_TH').eq('Status', 'Active'),
@@ -225,7 +224,6 @@
       if (prodRes.error) throw prodRes.error;
 
       globalTerritories = terRes.data || [];
-      // จัดรูปแบบให้เหมือนที่ตารางเก่าต้องการ: [{id, name}]
       const mappedDocs = (docRes.data || []).map(d => ({ id: d.Doc_ID, name: d.Doc_Name_EN || d.Doc_Name_TH || d.Doc_ID }));
       const mappedProds = (prodRes.data || []).map(p => ({ id: p.Product_ID, name: p.Product_Name }));
       
@@ -254,47 +252,41 @@
     tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
 
     try {
-      // 1. ดึงตาราง Rep_Users เพื่อเอาชื่อพนักงานขาย
       const repRes = await supabaseClient.from('Rep_Users').select('Rep_ID, Rep_Name');
       globalReps = repRes.data || [];
 
-      // 2. ดึงตาราง Visit_Logs (เอาทั้งหมดก่อน แล้วค่อยเอามากรอง)
       const { data: visits, error } = await supabaseClient
         .from('Visit_Logs')
         .select('*')
-        .order('id', { ascending: false }); // เรียงล่าสุดขึ้นก่อน
+        .order('Visit_ID', { ascending: false }); // ⚠️ แก้ไขให้ใช้คอลัมน์ Visit_ID
 
       if (error) throw error;
 
-      // จัดรูปข้อมูลให้ตารางหน้าบ้านเข้าใจ
       globalVisitsList = visits.map(v => {
-        // หาชื่อเซลส์
-        const rep = globalReps.find(r => r.Rep_ID === v.repId);
-        // หาชื่อหมอ
-        const doc = globalDoctors.find(d => d.id === v.docId);
-        // หาชื่อสินค้า
-        const prod = globalProducts.find(p => p.id === v.productId);
-        // หาชื่อเขต
-        const ter = globalTerritories.find(t => t.Territory_ID === v.territoryId);
+        // ⚠️ แก้ไขให้ดึงข้อมูลจากชื่อคอลัมน์ใหม่ทั้งหมด
+        const rep = globalReps.find(r => r.Rep_ID === v.Rep_ID);
+        const doc = globalDoctors.find(d => d.id === v.Doc_ID);
+        const prod = globalProducts.find(p => p.id === v.Product_ID);
+        const ter = globalTerritories.find(t => t.Territory_ID === v.Territory_ID);
 
         return {
-          id: v.id,
-          date: v.visitDate || "-", 
-          dateRaw: v.visitDate,
-          startTime: v.startTime,
-          endTime: v.endTime,
-          purpose: v.purpose,
-          details: v.details,
-          nextAction: v.nextAction,
-          status: v.status,
-          repId: v.repId,
-          repName: rep ? rep.Rep_Name : v.repId,
-          docId: v.docId,
-          docName: doc ? doc.name : v.docId,
-          prodId: v.productId,
-          prodName: prod ? prod.name : v.productId,
-          territoryId: v.territoryId,
-          territoryName: ter ? ter.Territory_Name : v.territoryId
+          id: v.Visit_ID, // ⚠️ แก้ไข
+          date: v.Visit_Date || "-", // ⚠️ แก้ไข
+          dateRaw: v.Visit_Date, // ⚠️ แก้ไข
+          startTime: v.Start_Time, // ⚠️ แก้ไข
+          endTime: v.End_Time, // ⚠️ แก้ไข
+          purpose: v.Purpose, // ⚠️ แก้ไข
+          details: v.Details, // ⚠️ แก้ไข
+          nextAction: v.Next_Action, // ⚠️ แก้ไข
+          status: v.Status, // ⚠️ แก้ไข
+          repId: v.Rep_ID, // ⚠️ แก้ไข
+          repName: rep ? rep.Rep_Name : v.Rep_ID,
+          docId: v.Doc_ID, // ⚠️ แก้ไข
+          docName: doc ? doc.name : v.Doc_ID,
+          prodId: v.Product_ID, // ⚠️ แก้ไข
+          prodName: prod ? prod.name : v.Product_ID,
+          territoryId: v.Territory_ID, // ⚠️ แก้ไข
+          territoryName: ter ? ter.Territory_Name : v.Territory_ID
         };
       });
 
@@ -329,7 +321,6 @@
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     
-    // กรองถ้าเป็น Sales ให้เห็นเฉพาะของตัวเอง
     const filtered = (crmUser && (crmUser.Role === 'Admin' || crmUser.Role === 'BU Head')) 
       ? data 
       : data.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
@@ -499,7 +490,6 @@
     switchVisitView('visitFormView');
   }
 
-  // บันทึก หรือ แก้ไข ข้อมูล
   async function handleSubmitVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitVisit');
@@ -508,35 +498,39 @@
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
+    // ⚠️ โครงสร้างที่ส่งไปเซฟ ต้องตรงกับชื่อคอลัมน์ใน Supabase เป๊ะๆ
     const payload = {
-      repId: document.getElementById('visitRepId').value,  
-      territoryId: document.getElementById('visitTerritoryId').value, 
-      docId: document.getElementById('visitDocId').value,
-      productId: document.getElementById('visitProductId').value,
-      visitDate: document.getElementById('visitDate').value,
-      startTime: document.getElementById('visitStartTime').value,
-      endTime: document.getElementById('visitEndTime').value,
-      purpose: document.getElementById('visitPurpose').value,
-      details: document.getElementById('visitDetails').value,
-      nextAction: document.getElementById('visitNextAction').value,
-      status: document.getElementById('visitStatus').value,
-      whoUpdated: crmUser ? crmUser.Email : "System"
+      Rep_ID: document.getElementById('visitRepId').value,  
+      Territory_ID: document.getElementById('visitTerritoryId').value, 
+      Doc_ID: document.getElementById('visitDocId').value,
+      Product_ID: document.getElementById('visitProductId').value,
+      Visit_Date: document.getElementById('visitDate').value,
+      Start_Time: document.getElementById('visitStartTime').value,
+      End_Time: document.getElementById('visitEndTime').value,
+      Purpose: document.getElementById('visitPurpose').value,
+      Details: document.getElementById('visitDetails').value,
+      Next_Action: document.getElementById('visitNextAction').value,
+      Status: document.getElementById('visitStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "System"
     };
 
     try {
       if (isVisitEditMode) {
         const id = document.getElementById('visitId').value;
-        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('id', id);
+        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', id); // ⚠️ แก้ไข
         if (error) throw error;
         alert("✅ อัปเดตข้อมูลการเยี่ยมสำเร็จ");
       } else {
-        // ให้ Supabase Generate ID อัตโนมัติ (ถ้าคอลัมน์ id เป็น Auto Increment)
+        // กรณี Insert ใหม่
+        // ⚠️ สุ่มสร้าง Visit_ID ขึ้นมาเองชั่วคราว (ถ้าในระบบคุณให้มันเป็น Auto หรือทำ Trigger ไว้ ก็ไม่ต้องแนบ Visit_ID ไปครับ)
+        payload.Visit_ID = "V" + Date.now(); 
+        
         const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
         if (error) throw error;
         alert("✅ บันทึกข้อมูลการเยี่ยมใหม่สำเร็จ");
       }
       closeVisitForm(false); 
-      loadVisitLogs(); // รีโหลดตารางใหม่
+      loadVisitLogs(); 
     } catch (err) {
       alert("❌ บันทึกไม่สำเร็จ: " + err.message);
     } finally {
@@ -544,7 +538,6 @@
     }
   }
 
-  // ลบข้อมูล
   async function deleteVisit() {
     const visitId = document.getElementById('visitId').value;
     if (!visitId) return;
@@ -554,7 +547,7 @@
       btn.disabled = true; btn.innerHTML = "กำลังลบ...";
 
       try {
-        const { error } = await supabaseClient.from('Visit_Logs').delete().eq('id', visitId);
+        const { error } = await supabaseClient.from('Visit_Logs').delete().eq('Visit_ID', visitId); // ⚠️ แก้ไข
         if (error) throw error;
         
         alert("✅ ลบข้อมูลสำเร็จ");
