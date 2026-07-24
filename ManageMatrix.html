@@ -113,20 +113,19 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let/const เป็น var ทั้งหมด
   var globalMatrixList = [];
   var globalProductsForMatrix = [];
   var isMatrixDataLoaded = false;
   var isMatrixEditMode = false;
   var currentSelectedMatrixId = ""; 
 
-  var ADOPTION_OPTS = ['A', 'B', 'C', 'D'];
-  var POTENTIAL_OPTS = ['High', 'Medium', 'Low', 'None'];
-  var CLASS_OPTS = ['A', 'B', 'C', 'D', 'E'];
+  // 🌟 เก็บตัวเลือกแบบไดนามิกจาก DB
+  var dynamicAdoptionOpts = [];
+  var dynamicPotentialOpts = [];
+  var dynamicClassOpts = [];
 
-  // 🌟 แก้ไขจุดนี้ให้ใช้ setTimeout แทน window.addEventListener
   setTimeout(async function() {
-    await loadProductsForMatrix();
+    await loadInitialDataForMatrix();
   }, 300);
 
   function switchMatrixView(viewId) {
@@ -139,12 +138,21 @@
     if(target) target.classList.remove('d-none');
   }
 
-  async function loadProductsForMatrix() {
+  // 🌟 ดึงข้อมูลสินค้า และ ข้อมูลจากตาราง Index รวดเดียว
+  async function loadInitialDataForMatrix() {
     try {
-      const { data, error } = await supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active');
-      if (error) throw error;
-      globalProductsForMatrix = data;
-      
+      const [prodRes, typeRes, idxRes] = await Promise.all([
+        supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active'),
+        supabaseClient.from('IndexType').select('*'),
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+      ]);
+
+      if (prodRes.error) throw prodRes.error;
+      if (typeRes.error) throw typeRes.error;
+      if (idxRes.error) throw idxRes.error;
+
+      // 1. จัดการตัวเลือก Product
+      globalProductsForMatrix = prodRes.data || [];
       let pOptions = '<option value="">- เลือกสินค้า -</option>';
       let pfOptions = '<option value="">- ทุกสินค้า -</option>';
       globalProductsForMatrix.forEach(p => { 
@@ -154,17 +162,38 @@
       document.getElementById('matrixProduct').innerHTML = pOptions;
       document.getElementById('filterMatrixProduct').innerHTML = pfOptions;
 
-      let adoptOpts = '<option value="">- เลือก -</option>'; ADOPTION_OPTS.forEach(v => adoptOpts += `<option value="${v}">${v}</option>`);
-      let potOpts = '<option value="">- เลือก -</option>'; POTENTIAL_OPTS.forEach(v => potOpts += `<option value="${v}">${v}</option>`);
-      let classOpts = '<option value="">- เลือก -</option>'; CLASS_OPTS.forEach(v => classOpts += `<option value="${v}">${v}</option>`);
-      
-      document.getElementById('matrixAdopt').innerHTML = adoptOpts;
-      document.getElementById('matrixPot').innerHTML = potOpts;
-      document.getElementById('matrixClass').innerHTML = classOpts;
+      // 2. จัดการตัวเลือก Adoption, Potential, Classification จาก DB
+      const types = typeRes.data || [];
+      const indexes = idxRes.data || [];
 
+      // หา ID ของแต่ละหมวดหมู่ (อิงตามชื่อ Name)
+      const adoptType = types.find(t => t.Name.toLowerCase() === 'adoption');
+      const potType = types.find(t => t.Name.toLowerCase() === 'potential');
+      const classType = types.find(t => t.Name.toLowerCase() === 'classification');
+
+      // ดึง Value ออกมาใส่ Array
+      dynamicAdoptionOpts = adoptType ? indexes.filter(i => i.IndexType_ID === adoptType.IndexType_ID).map(i => i.Value) : [];
+      dynamicPotentialOpts = potType ? indexes.filter(i => i.IndexType_ID === potType.IndexType_ID).map(i => i.Value) : [];
+      dynamicClassOpts = classType ? indexes.filter(i => i.IndexType_ID === classType.IndexType_ID).map(i => i.Value) : [];
+
+      // สร้าง HTML Dropdown
+      let adoptHtml = '<option value="">- เลือก -</option>'; 
+      dynamicAdoptionOpts.forEach(v => adoptHtml += `<option value="${v}">${v}</option>`);
+      
+      let potHtml = '<option value="">- เลือก -</option>'; 
+      dynamicPotentialOpts.forEach(v => potHtml += `<option value="${v}">${v}</option>`);
+      
+      let classHtml = '<option value="">- เลือก -</option>'; 
+      dynamicClassOpts.forEach(v => classHtml += `<option value="${v}">${v}</option>`);
+      
+      document.getElementById('matrixAdopt').innerHTML = adoptHtml;
+      document.getElementById('matrixPot').innerHTML = potHtml;
+      document.getElementById('matrixClass').innerHTML = classHtml;
+
+      // โหลดตาราง Matrix
       loadMatrixData();
     } catch (err) {
-      console.error("Error loading products for Matrix:", err.message);
+      console.error("Error loading initial data for Matrix:", err.message);
     }
   }
 
