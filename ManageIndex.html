@@ -1,0 +1,333 @@
+<div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-primary fw-bold mb-0"><i class="fa-solid fa-list-ul me-2"></i>ตั้งค่าตัวเลือกในระบบ (Index Management)</h4>
+  </div>
+
+  <!-- ================= ส่วนบน: จัดการ IndexType (หมวดหมู่) ================= -->
+  <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; background-color: #f8f9fa;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-layer-group me-2"></i>1. หมวดหมู่ตัวเลือก (IndexType)</h5>
+      <button class="btn btn-sm btn-dark fw-bold" onclick="openAddIndexTypeModal()">
+        <i class="fa-solid fa-plus me-1"></i>เพิ่มหมวดหมู่
+      </button>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>IndexType_ID (UUID)</th>
+            <th>ชื่อหมวดหมู่ (Name)</th>
+            <th style="width: 100px;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="indexTypeTableBody">
+          <tr><td colspan="3" class="py-3">กำลังโหลดข้อมูล...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= ส่วนล่าง: จัดการ Index (ตัวเลือกย่อย) ================= -->
+  <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-list-check me-2"></i>2. รายการตัวเลือก (Index Values)</h5>
+      <button class="btn btn-sm btn-primary fw-bold" onclick="openAddIndexModal()">
+        <i class="fa-solid fa-plus me-1"></i>เพิ่มตัวเลือก
+      </button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-medium text-muted small mb-1">กรองตามหมวดหมู่ (Filter by Type)</label>
+        <select class="form-select shadow-sm" id="filterIndexType" onchange="filterIndexValues()">
+          <option value="">- ทุกหมวดหมู่ -</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center mb-0">
+        <thead class="table-primary border-primary">
+          <tr>
+            <th>หมวดหมู่ (IndexType)</th>
+            <th>ตัวเลือก (Value)</th>
+            <th style="width: 100px;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="indexTableBody">
+          <tr><td colspan="3" class="py-3">กำลังโหลดข้อมูล...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= Modals ================= -->
+
+  <!-- Modal สำหรับ IndexType -->
+  <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold" id="indexTypeModalTitle">เพิ่มหมวดหมู่</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form onsubmit="handleSaveIndexType(event)">
+          <div class="modal-body">
+            <input type="hidden" id="modalIndexTypeId">
+            <div class="mb-3">
+              <label class="form-label fw-medium">ชื่อหมวดหมู่ (Name)</label>
+              <input type="text" class="form-control" id="modalIndexTypeName" required placeholder="เช่น DoctorType, Specialty">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="submit" class="btn btn-dark" id="btnSaveIndexType">บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับ Index Value -->
+  <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold" id="indexModalTitle">เพิ่มตัวเลือก</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form onsubmit="handleSaveIndex(event)">
+          <div class="modal-body">
+            <input type="hidden" id="modalIndexId">
+            <div class="mb-3">
+              <label class="form-label fw-medium">หมวดหมู่ (IndexType)</label>
+              <select class="form-select" id="modalIndexSelectType" required></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">ตัวเลือก (Value)</label>
+              <input type="text" class="form-control" id="modalIndexValue" required placeholder="เช่น KOL, Cardiology">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveIndex">บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let globalIndexTypes = [];
+  let globalIndexes = [];
+
+  let indexTypeModalInstance;
+  let indexModalInstance;
+
+  window.addEventListener('load', function() {
+    indexTypeModalInstance = new bootstrap.Modal(document.getElementById('indexTypeModal'));
+    indexModalInstance = new bootstrap.Modal(document.getElementById('indexModal'));
+    loadAllIndexData();
+  });
+
+  // 🌟 โหลดข้อมูลทั้งหมด (ดึงพร้อมกัน 2 ตาราง)
+  async function loadAllIndexData() {
+    try {
+      const [typeRes, idxRes] = await Promise.all([
+        supabaseClient.from('IndexType').select('*').order('Name', { ascending: true }),
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+      ]);
+
+      if (typeRes.error) throw typeRes.error;
+      if (idxRes.error) throw idxRes.error;
+
+      globalIndexTypes = typeRes.data || [];
+      globalIndexes = idxRes.data || [];
+
+      renderIndexTypeTable();
+      populateIndexTypeDropdowns();
+      filterIndexValues();
+    } catch (err) {
+      console.error("Error loading Index data:", err.message);
+      alert("❌ โหลดข้อมูลไม่สำเร็จ: " + err.message);
+    }
+  }
+
+  // ================= ส่วนจัดการ IndexType (บน) =================
+
+  function renderIndexTypeTable() {
+    const tbody = document.getElementById('indexTypeTableBody');
+    tbody.innerHTML = '';
+    
+    if(!globalIndexTypes.length) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-muted py-3">ยังไม่มีหมวดหมู่</td></tr>';
+      return;
+    }
+
+    globalIndexTypes.forEach(t => {
+      const shortId = t.IndexType_ID.substring(0, 8) + '...';
+      tbody.innerHTML += `
+        <tr>
+          <td><small class="text-muted" title="${t.IndexType_ID}">${shortId}</small></td>
+          <td class="fw-medium">${t.Name}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-dark" onclick="openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openAddIndexTypeModal() {
+    document.getElementById('modalIndexTypeId').value = "";
+    document.getElementById('modalIndexTypeName').value = "";
+    document.getElementById('indexTypeModalTitle').innerText = "เพิ่มหมวดหมู่";
+    indexTypeModalInstance.show();
+  }
+
+  function openEditIndexTypeModal(id, name) {
+    document.getElementById('modalIndexTypeId').value = id;
+    document.getElementById('modalIndexTypeName').value = name;
+    document.getElementById('indexTypeModalTitle').innerText = "แก้ไขหมวดหมู่";
+    indexTypeModalInstance.show();
+  }
+
+  async function handleSaveIndexType(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveIndexType');
+    btn.disabled = true; btn.innerHTML = "...";
+
+    const id = document.getElementById('modalIndexTypeId').value;
+    const name = document.getElementById('modalIndexTypeName').value.trim();
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Name: name,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      if (id) {
+        const { error } = await supabaseClient.from('IndexType').update(payload).eq('IndexType_ID', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('IndexType').insert([payload]);
+        if (error) throw error;
+      }
+      
+      indexTypeModalInstance.hide();
+      loadAllIndexData();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึก";
+    }
+  }
+
+  // ================= ส่วนจัดการ Index Value (ล่าง) =================
+
+  function populateIndexTypeDropdowns() {
+    let opts = '<option value="">- เลือกหมวดหมู่ -</option>';
+    let filterOpts = '<option value="">- ทุกหมวดหมู่ -</option>';
+    
+    globalIndexTypes.forEach(t => {
+      opts += `<option value="${t.IndexType_ID}">${t.Name}</option>`;
+      filterOpts += `<option value="${t.IndexType_ID}">${t.Name}</option>`;
+    });
+
+    document.getElementById('modalIndexSelectType').innerHTML = opts;
+    const filterEl = document.getElementById('filterIndexType');
+    const currentFilter = filterEl.value;
+    filterEl.innerHTML = filterOpts;
+    filterEl.value = currentFilter;
+  }
+
+  function filterIndexValues() {
+    const typeTerm = document.getElementById('filterIndexType').value;
+    
+    const filtered = globalIndexes.filter(i => {
+      return (typeTerm === "") || (i.IndexType_ID === typeTerm);
+    });
+
+    const tbody = document.getElementById('indexTableBody');
+    tbody.innerHTML = '';
+    
+    if(!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-muted py-3">ยังไม่มีข้อมูล</td></tr>';
+      return;
+    }
+
+    filtered.forEach(i => {
+      const typeObj = globalIndexTypes.find(t => t.IndexType_ID === i.IndexType_ID);
+      const typeName = typeObj ? typeObj.Name : i.IndexType_ID;
+
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-muted">${typeName}</td>
+          <td class="fw-bold text-primary">${i.Value}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditIndexModal('${i.Index_ID}', '${i.IndexType_ID}', '${i.Value}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openAddIndexModal() {
+    if(globalIndexTypes.length === 0) return alert("❌ กรุณาสร้างหมวดหมู่ (IndexType) ก่อนครับ");
+    
+    document.getElementById('modalIndexId').value = "";
+    document.getElementById('modalIndexSelectType').value = document.getElementById('filterIndexType').value || ""; // ถ้าฟิลเตอร์ไว้ ให้ใช้ค่านั้นเป็นค่า default
+    document.getElementById('modalIndexValue').value = "";
+    document.getElementById('indexModalTitle').innerText = "เพิ่มตัวเลือก";
+    indexModalInstance.show();
+  }
+
+  function openEditIndexModal(id, typeId, val) {
+    document.getElementById('modalIndexId').value = id;
+    document.getElementById('modalIndexSelectType').value = typeId;
+    document.getElementById('modalIndexValue').value = val;
+    document.getElementById('indexModalTitle').innerText = "แก้ไขตัวเลือก";
+    indexModalInstance.show();
+  }
+
+  async function handleSaveIndex(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveIndex');
+    btn.disabled = true; btn.innerHTML = "...";
+
+    const id = document.getElementById('modalIndexId').value;
+    const typeId = document.getElementById('modalIndexSelectType').value;
+    const val = document.getElementById('modalIndexValue').value.trim();
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      IndexType_ID: typeId,
+      Value: val,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    try {
+      if (id) {
+        const { error } = await supabaseClient.from('Index').update(payload).eq('Index_ID', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('Index').insert([payload]);
+        if (error) throw error;
+      }
+      
+      indexModalInstance.hide();
+      loadAllIndexData();
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึก";
+    }
+  }
+</script>
