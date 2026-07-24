@@ -24,7 +24,7 @@
 </head>
 <body>
 
-  <!-- 🌟 พื้นที่สำหรับดึงหน้า Login.html มาแปะ 🌟 -->
+  <!-- 🌟 พื้นที่สำหรับดึงหน้า Login.html มาแปะ -->
   <div id="loginComponent"></div>
 
   <div id="appContainer" class="container-fluid max-width-md" style="max-width: 1200px;">
@@ -81,12 +81,10 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
     window.addEventListener('load', async () => {
-      // 🌟 โหลดหน้า Login มาแปะก่อนอันดับแรก
       await loadComponent('loginComponent', 'Login.html');
       
       checkSession();
 
-      // โหลดหน้าย่อยอื่นๆ
       loadComponent('visit', 'ManageVisits.html'); 
       loadComponent('doctors', 'ManageDoctors.html'); 
       loadComponent('hospitals', 'ManageHospitals.html'); 
@@ -148,7 +146,6 @@
         if (appContainer) appContainer.style.display = 'block';
         
         const nameDisplay = document.getElementById('displayUserName');
-        // ใช้ชื่อ หรือ email (รองรับทั้ง key ตัวพิมพ์เล็กและใหญ่)
         const dName = user.Rep_Name || user.rep_name || user.name || user.Email || user.email;
         if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + dName; 
         
