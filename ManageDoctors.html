@@ -1,0 +1,388 @@
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <div id="doctorListView">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="text-primary fw-bold mb-0">🩺 จัดการข้อมูลแพทย์ (Doctors)</h4>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddDoctorView()">
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มแพทย์ใหม่ (Add Doctor)
+      </button>
+    </div>
+
+    <div class="row mb-4 g-2">
+      <div class="col-md-4">
+        <label class="form-label fw-medium text-muted small mb-1">ค้นหาชื่อ หรือ รหัสแพทย์</label>
+        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN, TH หรือ รหัส..." onkeyup="filterDoctors()">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-medium text-muted small mb-1">ความเชี่ยวชาญ (Specialty)</label>
+        <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()" style="border-radius: 8px;">
+          <option value="">- ทุกความเชี่ยวชาญ -</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <h5 class="mb-3 fw-bold">รายชื่อแพทย์ทั้งหมด</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" style="font-size: 0.9rem;">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Name (EN)</th>
+              <th>Name (TH)</th>
+              <th>Specialty</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="doctorTableBody">
+            <tr><td colspan="5" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="doctorAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🩺 เพิ่มข้อมูลแพทย์ใหม่</h4>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="addDoctorForm" onsubmit="handleAddDoctor(event)">
+        <div class="border rounded p-3 mb-4" style="background-color: #f8f9fa;">
+          <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-address-card me-2"></i>Information (ข้อมูลทั่วไป)</h6>
+          <div class="row">
+            <div class="col-md-3 mb-3"><label class="fw-medium">Title</label><input type="text" class="form-control bg-white" id="docTitle" placeholder="เช่น นพ."></div>
+            <div class="col-md-4 mb-3"><label class="fw-medium">Name (EN)</label><input type="text" class="form-control bg-white" id="docNameEn" placeholder="เช่น Somchai"></div>
+            <div class="col-md-5 mb-3"><label class="fw-medium">Name (TH)</label><input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-2"><label class="fw-medium">Specialty</label><select class="form-select bg-white" id="docSpecialty"></select></div>
+            <div class="col-md-6 mb-2"><label class="fw-medium">Type</label><select class="form-select bg-white" id="docType"></select></div>
+          </div>
+        </div>
+
+        <div class="border rounded p-3 mb-4" style="background-color: #f8f9fa;">
+          <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-check-to-slot me-2"></i>Opt-in & Contact (การยินยอมและติดต่อ)</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="fw-medium">Privacy Policy</label>
+              <select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="fw-medium">Terms of Service</label>
+              <select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-2"><label class="fw-medium">Email</label><input type="email" class="form-control bg-white" id="docEmail"></div>
+            <div class="col-md-6 mb-2"><label class="fw-medium">Mobile</label><input type="text" class="form-control bg-white" id="docMobile"></div>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitDoctorBtn">บันทึกข้อมูลแพทย์</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="doctorEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลแพทย์</h4>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+      <form id="editDoctorForm" onsubmit="handleUpdateDoctor(event)">
+        <input type="hidden" id="editDocId">
+        
+        <div class="border rounded p-3 mb-4" style="background-color: #f8f9fa;">
+          <h6 class="fw-bold text-primary mb-3">Information (ข้อมูลทั่วไป)</h6>
+          <div class="row">
+            <div class="col-md-3 mb-3"><label class="fw-medium">Title</label><input type="text" class="form-control bg-white" id="editDocTitle"></div>
+            <div class="col-md-4 mb-3"><label class="fw-medium">Name (EN)</label><input type="text" class="form-control bg-white" id="editDocNameEn"></div>
+            <div class="col-md-5 mb-3"><label class="fw-medium">Name (TH)</label><input type="text" class="form-control bg-white" id="editDocNameTh"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-2"><label class="fw-medium">Specialty</label><select class="form-select bg-white" id="editDocSpecialty"></select></div>
+            <div class="col-md-4 mb-2"><label class="fw-medium">Type</label><select class="form-select bg-white" id="editDocType"></select></div>
+            <div class="col-md-4 mb-2">
+              <label class="fw-medium">Status</label>
+              <select class="form-select bg-white" id="editDocStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="border rounded p-3 mb-4" style="background-color: #f8f9fa;">
+          <h6 class="fw-bold text-primary mb-3">Opt-in & Contact (การยินยอมและติดต่อ)</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="fw-medium">Privacy Policy</label>
+              <select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="fw-medium">Terms of Service</label>
+              <select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-2"><label class="fw-medium">Email</label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
+            <div class="col-md-6 mb-2"><label class="fw-medium">Mobile</label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateDoctorBtn">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let globalDoctors = [];
+  
+  // ชุดข้อมูลจำลองสำหรับ Dropdown (ในระบบจริงสามารถดึงจากตาราง Specialty/Type ได้)
+  const SPECIALTIES = ["Cardiology", "Neurology", "Oncology", "Pediatrics", "General", "Dermatology"];
+  const DOCTOR_TYPES = ["KOL", "Speaker", "Physician", "Fellow"];
+
+  window.addEventListener('load', function() {
+    loadDropdowns(); 
+    loadDoctors();
+  });
+
+  function switchDoctorView(viewId) {
+    const views = ['doctorListView', 'doctorAddView', 'doctorEditView'];
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      if (el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId);
+    if(target) target.classList.remove('d-none');
+  }
+
+  function loadDropdowns() {
+    populateSelect('docSpecialty', SPECIALTIES);
+    populateSelect('editDocSpecialty', SPECIALTIES);
+    populateSelect('docType', DOCTOR_TYPES);
+    populateSelect('editDocType', DOCTOR_TYPES);
+  }
+
+  function populateSelect(id, arr) {
+    const el = document.getElementById(id);
+    if(!el) return;
+    let html = '<option value="">- เลือก -</option>';
+    arr.forEach(item => html += `<option value="${item}">${item}</option>`);
+    el.innerHTML = html;
+  }
+
+  function openAddDoctorView() {
+    document.getElementById('addDoctorForm').reset();
+    switchDoctorView('doctorAddView');
+  }
+
+  async function loadDoctors() {
+    const tbody = document.getElementById('doctorTableBody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+    
+    try {
+      const { data: doctors, error } = await supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true });
+      if (error) throw error;
+
+      globalDoctors = doctors.map(d => ({
+        id: d.Doc_ID,
+        title: d.Title,
+        nameEn: d.Doc_Name,
+        nameTh: d.Doc_Name_TH,
+        specialty: d.Specialty,
+        type: d.Type,
+        privacy: d.Privacy_Policy,
+        tos: d.Terms_of_Service,
+        email: d.Email,
+        mobile: d.Mobile,
+        status: d.Status
+      }));
+
+      setupDoctorFilters(); 
+      filterDoctors(); 
+    } catch (err) {
+      console.error(err);
+      if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+    }
+  }
+
+  function setupDoctorFilters() {
+    const specSelect = document.getElementById('filterDocSpecialty');
+    const currentSpec = specSelect ? specSelect.value : "";
+
+    const specs = [...new Set(globalDoctors.map(d => d.specialty).filter(s => s))].sort();
+    let specHtml = '<option value="">- ทุกความเชี่ยวชาญ -</option>';
+    specs.forEach(s => specHtml += `<option value="${s}">${s}</option>`);
+    
+    if(specSelect) {
+      specSelect.innerHTML = specHtml;
+      specSelect.value = currentSpec; 
+    }
+  }
+
+  function filterDoctors() {
+    const nameEl = document.getElementById('filterDocName');
+    const specEl = document.getElementById('filterDocSpecialty');
+    
+    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
+    const specTerm = specEl ? specEl.value : "";
+
+    const filtered = globalDoctors.filter(d => {
+      const docId = String(d.id || "").toLowerCase();
+      const docNameEn = String(d.nameEn || "").toLowerCase();
+      const docNameTh = String(d.nameTh || "").toLowerCase();
+      const strForSearch = `${docId} ${docNameEn} ${docNameTh}`; 
+      
+      const matchName = (nameTerm === "") || strForSearch.includes(nameTerm);
+      const matchSpec = (specTerm === "") || (d.specialty === specTerm);
+      
+      return matchName && matchSpec;
+    });
+
+    renderDoctorTable(filtered); 
+  }
+
+  function renderDoctorTable(data) {
+    const tbody = document.getElementById('doctorTableBody'); 
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if(!Array.isArray(data) || data.length === 0) {
+      return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">ไม่พบข้อมูลที่ค้นหา</td></tr>';
+    }
+    
+    data.forEach(d => {
+      const badge = d.status === 'Active' ? 'bg-success' : 'bg-danger';
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-medium text-primary">${d.nameEn || '-'}</td>
+          <td class="fw-medium">${d.nameTh || '-'}</td>
+          <td><small>${d.specialty || '-'}</small></td>
+          <td class="text-center"><span class="badge ${badge}">${d.status || 'Active'}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditDoctorView('${d.id}')">แก้ไข</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function openEditDoctorView(id) {
+    const d = globalDoctors.find(x => x.id === id); 
+    if(!d) return;
+    
+    document.getElementById('editDocId').value = d.id; 
+    document.getElementById('editDocTitle').value = d.title || ''; 
+    document.getElementById('editDocNameEn').value = d.nameEn || ''; 
+    document.getElementById('editDocNameTh').value = d.nameTh || ''; 
+    document.getElementById('editDocSpecialty').value = d.specialty || '';
+    document.getElementById('editDocType').value = d.type || '';
+    document.getElementById('editDocEmail').value = d.email || '';
+    document.getElementById('editDocMobile').value = d.mobile || '';
+    document.getElementById('editDocPrivacy').value = d.privacy || 'Yes';
+    document.getElementById('editDocTos').value = d.tos || 'Yes';
+    document.getElementById('editDocStatus').value = d.status || 'Active';
+
+    switchDoctorView('doctorEditView');
+  }
+
+  async function handleAddDoctor(e) {
+    e.preventDefault(); 
+    const btn = document.getElementById('submitDoctorBtn'); 
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Title: document.getElementById('docTitle').value.trim(),
+      Doc_Name: document.getElementById('docNameEn').value.trim(),
+      Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
+      Specialty: document.getElementById('docSpecialty').value, 
+      Type: document.getElementById('docType').value,           
+      Email: document.getElementById('docEmail').value.trim(),
+      Mobile: document.getElementById('docMobile').value.trim(),
+      Privacy_Policy: document.getElementById('docPrivacy').value,
+      Terms_of_Service: document.getElementById('docTos').value,
+      Status: 'Active',
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    if (!payload.Doc_Name && !payload.Doc_Name_TH) { 
+      alert("❌ กรุณากรอกชื่อแพทย์ อย่างน้อย 1 ภาษา"); 
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูลแพทย์";
+      return; 
+    }
+
+    try {
+      const { error } = await supabaseClient.from('Doctors').insert([payload]);
+      if (error) throw error;
+      
+      alert("✅ บันทึกแพทย์ใหม่สำเร็จ");
+      switchDoctorView('doctorListView'); 
+      loadDoctors(); 
+    } catch (err) {
+      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูลแพทย์"; 
+    }
+  }
+
+  async function handleUpdateDoctor(e) {
+    e.preventDefault(); 
+    const btn = document.getElementById('updateDoctorBtn'); 
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+
+    const docId = document.getElementById('editDocId').value;
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+      Title: document.getElementById('editDocTitle').value.trim(),
+      Doc_Name: document.getElementById('editDocNameEn').value.trim(),
+      Doc_Name_TH: document.getElementById('editDocNameTh').value.trim(),
+      Specialty: document.getElementById('editDocSpecialty').value,
+      Type: document.getElementById('editDocType').value,
+      Email: document.getElementById('editDocEmail').value.trim(),
+      Mobile: document.getElementById('editDocMobile').value.trim(),
+      Privacy_Policy: document.getElementById('editDocPrivacy').value,
+      Terms_of_Service: document.getElementById('editDocTos').value,
+      Status: document.getElementById('editDocStatus').value,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+    };
+
+    if (!payload.Doc_Name && !payload.Doc_Name_TH) { 
+      alert("❌ กรุณากรอกชื่อแพทย์ อย่างน้อย 1 ภาษา"); 
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
+      return; 
+    }
+
+    try {
+      const { error } = await supabaseClient.from('Doctors').update(payload).eq('Doc_ID', docId);
+      if (error) throw error;
+
+      alert("✅ แก้ไขข้อมูลแพทย์สำเร็จ");
+      switchDoctorView('doctorListView'); 
+      loadDoctors(); 
+    } catch (err) {
+      alert("❌ แก้ไขไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง"; 
+    }
+  }
+</script>
