@@ -121,18 +121,30 @@
       }
     }
 
+    // 🌟 แก้ไขตรงนี้ เพื่อรับมือกับชื่อคอลัมน์และการเว้นวรรค
     async function saveUserLog(user, action, duration = "-") {
       try {
+        let repId = user.Rep_ID || user.id;
+        // ป้องกันกรณี Type พัง ถ้า Supabase เป็น UUID แต่ค่าที่ส่งมาเป็นอย่างอื่น
+        // ถ้าคุณเปลี่ยน Rep_ID ใน Supabase เป็น Text แล้ว บรรทัดนี้ไม่ต้องกังวลครับ
+        if (!repId) repId = null;
+
         const logData = {
-          Rep_ID: user.Rep_ID || user.id,       
           Action: action,            
-          Role: user.Role || user.role,           
+          Role: user.Role || user.role || "-",           
           Device: navigator.userAgent, 
-          "Session Duration": duration, 
-          Whoupdated: user.Email || user.email
+          "Session Duration": duration, // ส่งไปแบบมีเว้นวรรค (ตามรูป)
+          Whoupdated: user.Email || user.email || "System"
         };
-        await supabaseClient.from('User_Logs').insert([logData]);
-      } catch (err) { console.error("Log error:", err); }
+
+        // ถ้ามี Rep_ID ค่อยส่งไปด้วย
+        if (repId) logData.Rep_ID = repId;
+
+        const { error } = await supabaseClient.from('User_Logs').insert([logData]);
+        if (error) console.error("Supabase Log Insert Error:", error.message);
+      } catch (err) { 
+        console.error("System Log error:", err); 
+      }
     }
 
     function checkSession() {
