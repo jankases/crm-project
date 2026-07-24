@@ -129,18 +129,15 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let เป็น var
   var globalTeams = [];
   var globalBUsForTeam = []; 
   var currentSelectedTeamId = ""; 
- 
-  // 🌟 จุดที่หายไปคือบรรทัดนี้ครับ
-  window.addEventListener('load', function() {
-    setTimeout(function() { 
-      loadBUDropdownsForTeam(); 
-      loadTeams(); 
-    }, 300);
-  });
+
+  // 🔥 ใช้แค่นี้พอครับ ไม่ต้องมี window.addEventListener ครอบ
+  setTimeout(function() { 
+    loadBUDropdownsForTeam(); 
+    loadTeams(); 
+  }, 300);
 
   function switchTeamView(viewId) {
     const views = ['teamListView', 'teamAddView', 'teamEditView', 'teamProfileView'];
