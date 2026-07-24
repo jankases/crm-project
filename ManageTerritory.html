@@ -132,9 +132,10 @@
 </div>
 
 <script>
-  let globalTerritoriesList = [];
-  let globalTeamsForTerritory = [];
-  let currentSelectedTerritoryId = "";
+  // 🌟 เปลียนจาก let เป็น var
+  var globalTerritoriesList = [];
+  var globalTeamsForTerritory = [];
+  var currentSelectedTerritoryId = "";
 
   window.addEventListener('load', function() {
     loadTeamDropdownsForTerritory();
@@ -151,7 +152,6 @@
     if(target) target.classList.remove('d-none');
   }
 
-  // 🌟 ดึงทีมจาก Supabase มาทำ Dropdown
   async function loadTeamDropdownsForTerritory() {
     try {
       const { data, error } = await supabaseClient.from('Team').select('Team_ID, Team, Status').eq('Status', 'Active');
@@ -173,7 +173,6 @@
     }
   }
 
-  // 🌟 ดึงข้อมูลพื้นที่จาก Supabase
   async function loadTerritories() {
     const tbody = document.getElementById('territoryTableBody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
@@ -183,7 +182,6 @@
       if (error) throw error;
 
       globalTerritoriesList = data.map(t => {
-        // หาชื่อทีม
         const teamObj = globalTeamsForTerritory.find(team => team.Team_ID === t.Team_ID);
         const teamName = teamObj ? teamObj.Team : t.Team_ID;
 
@@ -270,7 +268,6 @@
     switchTerritoryView('territoryEditView');
   }
 
-  // 🌟 บันทึกเพิ่มข้อมูล
   async function handleAddTerritory(e) {
     e.preventDefault();
     const btn = document.getElementById('submitTerBtn');
@@ -301,7 +298,6 @@
     }
   }
 
-  // 🌟 อัปเดตข้อมูล
   async function handleUpdateTerritory(e) {
     e.preventDefault();
     const btn = document.getElementById('updateTerBtn');
