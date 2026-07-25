@@ -2,7 +2,6 @@
   .org-nav-pills .nav-link { color: #6c757d; font-weight: 600; border-radius: 10px; margin-right: 5px; padding: 10px 20px; transition: all 0.3s ease; }
   .org-nav-pills .nav-link:hover { background-color: #f8f9fa; color: #0d6efd; }
   .org-nav-pills .nav-link.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3); transform: translateY(-2px); }
-  
   .hub-card { border-radius: 15px; border: 1px solid #e9ecef; transition: transform 0.2s; height: 100%;}
   .hub-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
   .hub-icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
@@ -13,156 +12,275 @@
   <div class="d-flex justify-content-between align-items-end mb-4">
     <div>
       <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-sitemap me-2"></i>โครงสร้างองค์กร (Organization)</h3>
-      <p class="text-muted mb-0">ศูนย์รวมการจัดการ ทีม, สินค้า, พื้นที่ และ หมวดธุรกิจ (BU) ในที่เดียว</p>
+      <p class="text-muted mb-0">ศูนย์รวมการจัดการ ทีม, สินค้า, พื้นที่ และ หมวดธุรกิจ (BU)</p>
     </div>
   </div>
 
   <!-- 🌟 แถบเมนู Tabs -->
   <div class="bg-white p-2 rounded-4 shadow-sm mb-4 d-inline-block border">
     <ul class="nav nav-pills org-nav-pills" id="orgTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-teams" type="button" onclick="loadAllOrgData()">
-          <i class="fa-solid fa-users me-2"></i>ศูนย์กลางทีม (Teams Hub)
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-products" type="button" onclick="loadAllOrgData()">
-          <i class="fa-solid fa-box-open me-2"></i>สินค้า (Products)
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-territory" type="button" onclick="loadAllOrgData()">
-          <i class="fa-solid fa-map-location-dot me-2"></i>พื้นที่ (Territory)
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bu" type="button" onclick="loadAllOrgData()">
-          <i class="fa-solid fa-building me-2"></i>หมวดธุรกิจ (BU)
-        </button>
-      </li>
+      <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-teams" type="button"><i class="fa-solid fa-users me-2"></i>ศูนย์กลางทีม (Teams Hub)</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-products" type="button"><i class="fa-solid fa-box-open me-2"></i>สินค้า (Products)</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-territory" type="button"><i class="fa-solid fa-map-location-dot me-2"></i>พื้นที่ (Territory)</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bu" type="button"><i class="fa-solid fa-building me-2"></i>หมวดธุรกิจ (BU)</button></li>
     </ul>
   </div>
 
   <div class="tab-content" id="orgTabsContent">
     
-    <!-- ==================== TAB 1: TEAMS HUB (ศูนย์กลาง) ==================== -->
+    <!-- ==================== TAB 1: TEAMS HUB ==================== -->
     <div class="tab-pane fade show active" id="tab-teams" role="tabpanel">
-      
-      <!-- หน้า List: รายชื่อทีม -->
+      <!-- 1.1 List View -->
       <div id="teamListView">
         <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="fw-bold text-dark mb-0">รายชื่อทีมทั้งหมด</h5>
-            <button class="btn btn-primary fw-bold px-4 rounded-pill" onclick="alert('ไปสร้างทีมใหม่ที่แถบเมนูอื่นก่อนได้เลยครับ')">
-              <i class="fa-solid fa-users me-2"></i>ข้อมูลทีม
-            </button>
+            <button class="btn btn-primary fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('teamAddView', 'team')"><i class="fa-solid fa-plus me-2"></i>เพิ่มทีมใหม่</button>
           </div>
           <div class="table-responsive">
             <table class="table table-hover align-middle text-center">
-              <thead class="table-light">
-                <tr>
-                  <th>ชื่อทีม (Team)</th>
-                  <th>หมวดธุรกิจ (BU)</th>
-                  <th>จำนวนพื้นที่ (Territory)</th>
-                  <th>จำนวนสินค้า (Product)</th>
-                  <th>จัดการ (Action)</th>
-                </tr>
-              </thead>
-              <tbody id="hubTeamTableBody">
-                <tr><td colspan="5" class="py-4">กำลังโหลดข้อมูล...</td></tr>
-              </tbody>
+              <thead class="table-light"><tr><th>ชื่อทีม (Team)</th><th>หมวดธุรกิจ (BU)</th><th>จำนวนพื้นที่</th><th>จำนวนสินค้า</th><th>จัดการ (Action)</th></tr></thead>
+              <tbody id="hubTeamTableBody"><tr><td colspan="5" class="py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- หน้า Hub: เจาะลึกรายทีม -->
+      <!-- 1.2 Add View (สร้างทีมใหม่) -->
+      <div id="teamAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('teamListView', 'team')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-primary fw-bold mb-0">👥 เพิ่มข้อมูลทีมใหม่</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddTeam(event)">
+            <div class="mb-3">
+              <label class="form-label fw-medium">ชื่อทีม (Team Name)</label>
+              <input type="text" class="form-control" id="addTeamName" required placeholder="เช่น LUNG1">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">สังกัด BU</label>
+              <select class="form-select" id="addTeamBuId" required></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill">บันทึกทีมใหม่</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 1.3 Hub Profile View -->
       <div id="teamHubProfile" class="d-none">
         <div class="d-flex align-items-center mb-4">
-          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="closeTeamHub()">
-            <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
-          </button>
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('teamListView', 'team')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
           <h4 class="text-primary fw-bold mb-0">🛠️ บริหารจัดการทีม: <span id="hubTeamName" class="text-dark"></span></h4>
         </div>
 
         <div class="row g-4">
-          <!-- กล่องที่ 1: สังกัด BU -->
+          <!-- กล่อง 1: BU -->
           <div class="col-md-4">
             <div class="card p-4 bg-white shadow-sm hub-card">
               <div class="d-flex align-items-center mb-3">
                 <div class="hub-icon-box bg-primary text-white me-3"><i class="fa-solid fa-building"></i></div>
                 <h6 class="fw-bold mb-0 text-secondary">สังกัดหมวดธุรกิจ (BU)</h6>
               </div>
-              <p class="text-muted small mb-2">ระบุว่าทีมนี้อยู่ภายใต้ธุรกิจใด</p>
               <select class="form-select border-primary fw-bold text-primary mb-3" id="hubBuSelect"></select>
               <button class="btn btn-primary btn-sm w-100 fw-bold rounded-pill mt-auto" onclick="updateTeamBU()">บันทึก BU ใหม่</button>
             </div>
           </div>
-
-          <!-- กล่องที่ 2: สินค้า (Products) -->
+          <!-- กล่อง 2: Products -->
           <div class="col-md-4">
             <div class="card p-4 bg-white shadow-sm hub-card">
               <div class="d-flex align-items-center mb-3">
                 <div class="hub-icon-box bg-success text-white me-3"><i class="fa-solid fa-box-open"></i></div>
                 <h6 class="fw-bold mb-0 text-secondary">สินค้าที่รับผิดชอบ</h6>
               </div>
-              <ul class="list-group list-group-flush mb-3" id="hubProductList">
-                <li class="list-group-item text-center text-muted">กำลังโหลด...</li>
-              </ul>
+              <ul class="list-group list-group-flush mb-3" id="hubProductList" style="max-height: 150px; overflow-y: auto;"></ul>
+              <div class="mt-auto d-flex gap-2">
+                <select class="form-select form-select-sm" id="hubAddProductSelect"></select>
+                <button class="btn btn-success btn-sm fw-bold rounded-pill px-3" onclick="addProductToTeam()"><i class="fa-solid fa-plus"></i></button>
+              </div>
             </div>
           </div>
-
-          <!-- กล่องที่ 3: พื้นที่ (Territory) -->
+          <!-- กล่อง 3: Territory -->
           <div class="col-md-4">
             <div class="card p-4 bg-white shadow-sm hub-card">
               <div class="d-flex align-items-center mb-3">
                 <div class="hub-icon-box bg-warning text-dark me-3"><i class="fa-solid fa-map-location-dot"></i></div>
                 <h6 class="fw-bold mb-0 text-secondary">พื้นที่ดูแล (Territory)</h6>
               </div>
-              <ul class="list-group list-group-flush mb-3" id="hubTerritoryList">
-                <li class="list-group-item text-center text-muted">กำลังโหลด...</li>
-              </ul>
+              <ul class="list-group list-group-flush mb-3" id="hubTerritoryList" style="max-height: 150px; overflow-y: auto;"></ul>
+              <div class="mt-auto d-flex gap-2">
+                <select class="form-select form-select-sm" id="hubAddTerritorySelect"></select>
+                <button class="btn btn-warning text-dark btn-sm fw-bold rounded-pill px-3" onclick="addTerritoryToTeam()"><i class="fa-solid fa-plus"></i></button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ==================== TAB 2: PRODUCTS (Master) ==================== -->
+    <!-- ==================== TAB 2: PRODUCTS ==================== -->
     <div class="tab-pane fade" id="tab-products" role="tabpanel">
-      <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
-        <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-box-open me-2"></i>ฐานข้อมูลสินค้า (Master Products)</h5>
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle text-center">
-            <thead class="table-dark"><tr><th>Product Name</th><th>Status</th></tr></thead>
-            <tbody id="masterProductTableBody"><tr><td colspan="2" class="py-3">กำลังโหลด...</td></tr></tbody>
-          </table>
+      <!-- 2.1 List View -->
+      <div id="productListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-box-open me-2"></i>จัดการสินค้า (Products)</h5>
+            <button class="btn btn-success fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('productAddView', 'product')"><i class="fa-solid fa-plus me-2"></i>เพิ่มสินค้าใหม่</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-dark"><tr><th>Product Name</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="productTableBody"><tr><td colspan="3">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 Add View -->
+      <div id="productAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('productListView', 'product')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-success fw-bold mb-0">📦 เพิ่มข้อมูลสินค้าใหม่</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddProduct(event)">
+            <div class="mb-3">
+              <label class="form-label fw-medium">ชื่อสินค้า (Product Name)</label>
+              <input type="text" class="form-control" id="addProductName" required>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-success fw-bold px-4 rounded-pill">บันทึกสินค้าใหม่</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2.3 Edit View -->
+      <div id="productEditView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('productListView', 'product')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-success fw-bold mb-0">✏️ แก้ไขข้อมูลสินค้า</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleEditProduct(event)">
+            <input type="hidden" id="editProductId">
+            <div class="mb-3"><label class="form-label fw-medium">ชื่อสินค้า</label><input type="text" class="form-control" id="editProductName" required></div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">สถานะ</label>
+              <select class="form-select" id="editProductStatus" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-success fw-bold px-4 rounded-pill">บันทึกการแก้ไข</button></div>
+          </form>
         </div>
       </div>
     </div>
 
-    <!-- ==================== TAB 3: TERRITORY (Master) ==================== -->
+    <!-- ==================== TAB 3: TERRITORY ==================== -->
     <div class="tab-pane fade" id="tab-territory" role="tabpanel">
-      <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
-        <h5 class="fw-bold text-warning text-dark mb-3"><i class="fa-solid fa-map-location-dot me-2"></i>ฐานข้อมูลพื้นที่ (Master Territory)</h5>
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle text-center">
-            <thead class="table-dark"><tr><th>Territory Name</th><th>Team Assigned</th><th>Status</th></tr></thead>
-            <tbody id="masterTerritoryTableBody"><tr><td colspan="3" class="py-3">กำลังโหลด...</td></tr></tbody>
-          </table>
+      <!-- 3.1 List View -->
+      <div id="territoryListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-warning text-dark mb-0"><i class="fa-solid fa-map-location-dot me-2"></i>จัดการพื้นที่ (Territory)</h5>
+            <button class="btn btn-warning text-dark fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('territoryAddView', 'territory')"><i class="fa-solid fa-plus me-2"></i>เพิ่มพื้นที่ใหม่</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-dark"><tr><th>Territory Name</th><th>Team Assigned</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="territoryTableBody"><tr><td colspan="4">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.2 Add View -->
+      <div id="territoryAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('territoryListView', 'territory')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-warning text-dark fw-bold mb-0">🗺️ เพิ่มข้อมูลพื้นที่ใหม่</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddTerritory(event)">
+            <div class="mb-3">
+              <label class="form-label fw-medium">ชื่อพื้นที่ (Territory Name)</label>
+              <input type="text" class="form-control" id="addTerritoryName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">กำหนดให้ทีม (ไม่บังคับ)</label>
+              <select class="form-select" id="addTerritoryTeamId"><option value="">- ว่าง -</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-warning text-dark fw-bold px-4 rounded-pill">บันทึกพื้นที่ใหม่</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 3.3 Edit View -->
+      <div id="territoryEditView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('territoryListView', 'territory')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-warning text-dark fw-bold mb-0">✏️ แก้ไขข้อมูลพื้นที่</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleEditTerritory(event)">
+            <input type="hidden" id="editTerritoryId">
+            <div class="mb-3"><label class="form-label fw-medium">ชื่อพื้นที่</label><input type="text" class="form-control" id="editTerritoryName" required></div>
+            <div class="mb-3"><label class="form-label fw-medium">ทีมที่ดูแล</label><select class="form-select" id="editTerritoryTeamId"><option value="">- ว่าง -</option></select></div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">สถานะ</label>
+              <select class="form-select" id="editTerritoryStatus" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-warning text-dark fw-bold px-4 rounded-pill">บันทึกการแก้ไข</button></div>
+          </form>
         </div>
       </div>
     </div>
 
-    <!-- ==================== TAB 4: BU (Master) ==================== -->
+    <!-- ==================== TAB 4: BU ==================== -->
     <div class="tab-pane fade" id="tab-bu" role="tabpanel">
-      <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
-        <h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-building me-2"></i>ฐานข้อมูลหมวดธุรกิจ (Master BU)</h5>
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle text-center">
-            <thead class="table-dark"><tr><th>BU Name</th><th>Status</th></tr></thead>
-            <tbody id="masterBuTableBody"><tr><td colspan="2" class="py-3">กำลังโหลด...</td></tr></tbody>
-          </table>
+      <!-- 4.1 List View -->
+      <div id="buListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-building me-2"></i>จัดการหมวดธุรกิจ (BU)</h5>
+            <button class="btn btn-secondary fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('buAddView', 'bu')"><i class="fa-solid fa-plus me-2"></i>เพิ่ม BU ใหม่</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-dark"><tr><th>BU Name</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="buTableBody"><tr><td colspan="3">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.2 Add View -->
+      <div id="buAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('buListView', 'bu')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-secondary fw-bold mb-0">🏢 เพิ่มข้อมูล BU ใหม่</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddBU(event)">
+            <div class="mb-3"><label class="form-label fw-medium">ชื่อ BU</label><input type="text" class="form-control" id="addBuName" required></div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-secondary fw-bold px-4 rounded-pill">บันทึก BU ใหม่</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 4.3 Edit View -->
+      <div id="buEditView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('buListView', 'bu')"><i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ</button>
+          <h4 class="text-secondary fw-bold mb-0">✏️ แก้ไขข้อมูล BU</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleEditBU(event)">
+            <input type="hidden" id="editBuId">
+            <div class="mb-3"><label class="form-label fw-medium">ชื่อ BU</label><input type="text" class="form-control" id="editBuName" required></div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">สถานะ</label>
+              <select class="form-select" id="editBuStatus" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-secondary fw-bold px-4 rounded-pill">บันทึกการแก้ไข</button></div>
+          </form>
         </div>
       </div>
     </div>
@@ -171,26 +289,46 @@
 </div>
 
 <script>
+  // ตัวแปรส่วนกลาง
   var globalBUs = [];
   var globalTeams = [];
   var globalTerritories = [];
   var globalProducts = [];
   var globalProductTeams = [];
-  
   var currentHubTeamId = "";
 
   setTimeout(async function() { 
     await loadAllOrgData(); 
   }, 300);
 
-  // โหลดข้อมูลทุกอย่างรวดเดียว เพื่อให้ Hub ทำงานได้รวดเร็ว
+  // สลับหน้าจอภายใน Tab เดียวกัน
+  function switchView(targetViewId, module) {
+    const views = {
+      'team': ['teamListView', 'teamAddView', 'teamHubProfile'],
+      'product': ['productListView', 'productAddView', 'productEditView'],
+      'territory': ['territoryListView', 'territoryAddView', 'territoryEditView'],
+      'bu': ['buListView', 'buAddView', 'buEditView']
+    };
+    views[module].forEach(v => document.getElementById(v).classList.add('d-none'));
+    document.getElementById(targetViewId).classList.remove('d-none');
+    
+    // ถ้ากลับไปหน้า List ให้เคลียร์ Form ด้วย
+    if(targetViewId.includes('List')) {
+      if(module==='team') document.getElementById('addTeamName').value = '';
+      if(module==='product') document.getElementById('addProductName').value = '';
+      if(module==='territory') document.getElementById('addTerritoryName').value = '';
+      if(module==='bu') document.getElementById('addBuName').value = '';
+    }
+  }
+
+  // ================= 1. โหลดข้อมูลทั้งหมด =================
   async function loadAllOrgData() {
     try {
       const [buRes, teamRes, terrRes, prodRes, ptRes] = await Promise.all([
-        supabaseClient.from('BU').select('*'),
+        supabaseClient.from('BU').select('*').order('BU', { ascending: true }),
         supabaseClient.from('Team').select('*').order('Team', { ascending: true }),
-        supabaseClient.from('Territory').select('*'),
-        supabaseClient.from('Products').select('*'),
+        supabaseClient.from('Territory').select('*').order('Territory', { ascending: true }),
+        supabaseClient.from('Products').select('*').order('Product', { ascending: true }),
         supabaseClient.from('Products_Team').select('*')
       ]);
 
@@ -202,25 +340,38 @@
 
       renderTeamsHub();
       renderMasterTables();
+      populateDropdowns();
 
     } catch (err) {
       console.error("Error loading Org Data:", err.message);
     }
   }
 
-  // ================= 1. ฟังก์ชันสำหรับ Teams Hub =================
+  function populateDropdowns() {
+    let buOptions = '<option value="">- เลือก BU -</option>';
+    globalBUs.filter(b => b.Status === 'Active').forEach(b => { buOptions += `<option value="${b.BU_ID}">${b.BU}</option>`; });
+    document.getElementById('addTeamBuId').innerHTML = buOptions;
+
+    let teamOptions = '<option value="">- ไม่กำหนด / ว่าง -</option>';
+    globalTeams.filter(t => t.Status === 'Active').forEach(t => { teamOptions += `<option value="${t.Team_ID}">${t.Team}</option>`; });
+    document.getElementById('addTerritoryTeamId').innerHTML = teamOptions;
+    document.getElementById('editTerritoryTeamId').innerHTML = teamOptions;
+  }
+
+  function getUserEmail() {
+    let email = "System";
+    try { const u = JSON.parse(sessionStorage.getItem('crmUser')); if(u && u.Email) email = u.Email; } catch(e){}
+    return email;
+  }
+
+  // ================= 2. TEAMS HUB LOGIC =================
   function renderTeamsHub() {
     const tbody = document.getElementById('hubTeamTableBody');
     tbody.innerHTML = '';
-
-    if (globalTeams.length === 0) {
-      return tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-muted">ยังไม่มีข้อมูลทีมในระบบ</td></tr>';
-    }
+    if (globalTeams.length === 0) return tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-muted">ยังไม่มีข้อมูล</td></tr>';
 
     globalTeams.forEach(t => {
-      const buInfo = globalBUs.find(b => b.BU_ID === t.BU_ID);
-      const buName = buInfo ? buInfo.BU : '-';
-      
+      const buName = (globalBUs.find(b => b.BU_ID === t.BU_ID) || {}).BU || '-';
       const terrCount = globalTerritories.filter(tr => tr.Team_ID === t.Team_ID).length;
       const prodCount = globalProductTeams.filter(pt => pt.Team_ID === t.Team_ID).length;
 
@@ -230,152 +381,210 @@
           <td><span class="badge bg-secondary">${buName}</span></td>
           <td class="text-muted fw-medium">${terrCount} พื้นที่</td>
           <td class="text-muted fw-medium">${prodCount} สินค้า</td>
-          <td>
-            <button class="btn btn-sm btn-dark px-3 rounded-pill shadow-sm" onclick="openTeamHub('${t.Team_ID}')">
-              จัดการทีม <i class="fa-solid fa-arrow-right ms-1"></i>
-            </button>
-          </td>
-        </tr>
-      `;
+          <td><button class="btn btn-sm btn-dark px-3 rounded-pill shadow-sm" onclick="openTeamHub('${t.Team_ID}')">จัดการทีม <i class="fa-solid fa-arrow-right ms-1"></i></button></td>
+        </tr>`;
     });
+  }
+
+  async function handleAddTeam(e) {
+    e.preventDefault();
+    const payload = { Team: document.getElementById('addTeamName').value.trim(), BU_ID: document.getElementById('addTeamBuId').value, Status: 'Active', Whoupdated: getUserEmail() };
+    try {
+      const { error } = await supabaseClient.from('Team').insert([payload]);
+      if (error) throw error;
+      switchView('teamListView', 'team');
+      await loadAllOrgData();
+      alert("✅ สร้างทีมใหม่สำเร็จ!");
+    } catch(err) { alert("❌ สร้างทีมไม่สำเร็จ: " + err.message); }
   }
 
   function openTeamHub(teamId) {
     currentHubTeamId = teamId;
     const t = globalTeams.find(x => x.Team_ID === teamId);
     if (!t) return;
-
     document.getElementById('hubTeamName').innerText = t.Team;
 
-    // 1. สร้าง Dropdown BU
-    let buHtml = '<option value="">- ไม่ระบุสังกัด -</option>';
+    // Dropdown BU
+    let buHtml = '<option value="">- ไม่ระบุ -</option>';
     globalBUs.filter(b => b.Status === 'Active').forEach(b => {
-      const isSelected = (b.BU_ID === t.BU_ID) ? 'selected' : '';
-      buHtml += `<option value="${b.BU_ID}" ${isSelected}>${b.BU}</option>`;
+      buHtml += `<option value="${b.BU_ID}" ${b.BU_ID === t.BU_ID ? 'selected' : ''}>${b.BU}</option>`;
     });
     document.getElementById('hubBuSelect').innerHTML = buHtml;
 
-    // 2. สร้าง List สินค้าของทีม
+    // List สินค้าในทีม
     const myProdTeams = globalProductTeams.filter(pt => pt.Team_ID === teamId);
     let prodHtml = '';
     myProdTeams.forEach(pt => {
       const pInfo = globalProducts.find(p => p.Product_ID === pt.Product_ID);
       if (pInfo) {
-        prodHtml += `
-          <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1">
-            <span class="fw-medium text-dark"><i class="fa-solid fa-check text-success me-2"></i>${pInfo.Product}</span>
-            <button class="btn btn-sm btn-outline-danger border-0" onclick="removeProductFromTeam('${pt.Product_ID}')" title="ลบสินค้าออกจากทีม">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </li>`;
+        prodHtml += `<li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1"><span class="fw-medium text-dark"><i class="fa-solid fa-check text-success me-2"></i>${pInfo.Product}</span><button class="btn btn-sm btn-outline-danger border-0" onclick="removeProductFromTeam('${pt.Product_ID}')"><i class="fa-solid fa-trash"></i></button></li>`;
       }
     });
-    document.getElementById('hubProductList').innerHTML = prodHtml || '<li class="list-group-item text-muted border-0 px-0 text-center small">ยังไม่มีสินค้าในทีมนี้</li>';
+    document.getElementById('hubProductList').innerHTML = prodHtml || '<li class="list-group-item text-muted border-0 px-0 text-center small">ไม่มีสินค้า</li>';
 
-    // 3. สร้าง List พื้นที่ของทีม
+    // List พื้นที่ในทีม
     const myTerrs = globalTerritories.filter(tr => tr.Team_ID === teamId);
     let terrHtml = '';
     myTerrs.forEach(tr => {
-      terrHtml += `
-        <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1">
-          <span class="fw-medium text-dark"><i class="fa-solid fa-location-dot text-warning me-2"></i>${tr.Territory}</span>
-          <button class="btn btn-sm btn-outline-danger border-0" onclick="removeTerritoryFromTeam('${tr.Territory_ID}')" title="ลบพื้นที่ออกจากทีม">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </li>`;
+      terrHtml += `<li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1"><span class="fw-medium text-dark"><i class="fa-solid fa-location-dot text-warning me-2"></i>${tr.Territory}</span><button class="btn btn-sm btn-outline-danger border-0" onclick="removeTerritoryFromTeam('${tr.Territory_ID}')"><i class="fa-solid fa-trash"></i></button></li>`;
     });
-    document.getElementById('hubTerritoryList').innerHTML = terrHtml || '<li class="list-group-item text-muted border-0 px-0 text-center small">ยังไม่มีพื้นที่ในทีมนี้</li>';
+    document.getElementById('hubTerritoryList').innerHTML = terrHtml || '<li class="list-group-item text-muted border-0 px-0 text-center small">ไม่มีพื้นที่</li>';
 
-    // สลับหน้าจอ
-    document.getElementById('teamListView').classList.add('d-none');
-    document.getElementById('teamHubProfile').classList.remove('d-none');
+    // Dropdown เพิ่มสินค้า (เอาเฉพาะที่ยังไม่อยู่ในทีม)
+    let addProdHtml = '<option value="">- เลือกสินค้าเพิ่ม -</option>';
+    globalProducts.filter(p => p.Status === 'Active' && !myProdTeams.some(pt => pt.Product_ID === p.Product_ID)).forEach(p => {
+      addProdHtml += `<option value="${p.Product_ID}">${p.Product}</option>`;
+    });
+    document.getElementById('hubAddProductSelect').innerHTML = addProdHtml;
+
+    // Dropdown เพิ่มพื้นที่ (เอาเฉพาะที่ยังไม่มีทีม)
+    let addTerrHtml = '<option value="">- เลือกพื้นที่เพิ่ม -</option>';
+    globalTerritories.filter(tr => tr.Status === 'Active' && tr.Team_ID !== teamId).forEach(tr => {
+      addTerrHtml += `<option value="${tr.Territory_ID}">${tr.Territory}</option>`;
+    });
+    document.getElementById('hubAddTerritorySelect').innerHTML = addTerrHtml;
+
+    switchView('teamHubProfile', 'team');
   }
 
-  function closeTeamHub() {
-    document.getElementById('teamHubProfile').classList.add('d-none');
-    document.getElementById('teamListView').classList.remove('d-none');
-    currentHubTeamId = "";
-    loadAllOrgData(); // รีเฟรชตัวเลขสรุปหน้าแรกใหม่
-  }
-
-  // ================= 2. ฟังก์ชันแก้ไขใน Hub =================
   async function updateTeamBU() {
     const newBuId = document.getElementById('hubBuSelect').value;
-    if(!currentHubTeamId) return;
-
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-
     try {
-      const { error } = await supabaseClient.from('Team')
-        .update({ BU_ID: newBuId, Whoupdated: crmUser ? crmUser.Email : "Unknown" })
-        .eq('Team_ID', currentHubTeamId);
-      
+      const { error } = await supabaseClient.from('Team').update({ BU_ID: newBuId, Whoupdated: getUserEmail() }).eq('Team_ID', currentHubTeamId);
       if (error) throw error;
-      alert('✅ อัปเดตสังกัด BU สำเร็จ!');
-      await loadAllOrgData(); // ดึงข้อมูลใหม่
-    } catch(err) {
-      alert("❌ อัปเดตไม่สำเร็จ: " + err.message);
-    }
+      await loadAllOrgData();
+      alert('✅ อัปเดต BU สำเร็จ!');
+    } catch(err) { alert("❌ อัปเดตไม่สำเร็จ: " + err.message); }
+  }
+
+  async function addProductToTeam() {
+    const pId = document.getElementById('hubAddProductSelect').value;
+    if(!pId) return;
+    try {
+      const { error } = await supabaseClient.from('Products_Team').insert([{ Product_ID: pId, Team_ID: currentHubTeamId, Status: 'Active', Whoupdated: getUserEmail() }]);
+      if (error) throw error;
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ เพิ่มสินค้าไม่สำเร็จ: " + err.message); }
   }
 
   async function removeProductFromTeam(productId) {
-    if(!confirm("คุณต้องการนำสินค้านี้ออกจากทีมใช่หรือไม่?")) return;
+    if(!confirm("ต้องการลบสินค้าออกจากทีม?")) return;
     try {
-      const { error } = await supabaseClient.from('Products_Team')
-        .delete()
-        .eq('Product_ID', productId)
-        .eq('Team_ID', currentHubTeamId);
-      
+      await supabaseClient.from('Products_Team').delete().eq('Product_ID', productId).eq('Team_ID', currentHubTeamId);
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ ลบไม่สำเร็จ"); }
+  }
+
+  async function addTerritoryToTeam() {
+    const tId = document.getElementById('hubAddTerritorySelect').value;
+    if(!tId) return;
+    try {
+      const { error } = await supabaseClient.from('Territory').update({ Team_ID: currentHubTeamId, Whoupdated: getUserEmail() }).eq('Territory_ID', tId);
       if (error) throw error;
-      await loadAllOrgData(); 
-      openTeamHub(currentHubTeamId); // วาดกล่องใหม่
-    } catch (err) {
-      alert("❌ ลบไม่สำเร็จ: " + err.message);
-    }
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ เพิ่มพื้นที่ไม่สำเร็จ: " + err.message); }
   }
 
   async function removeTerritoryFromTeam(territoryId) {
-    if(!confirm("คุณต้องการถอดพื้นที่นี้ออกจากทีมใช่หรือไม่? (ระบบจะล้างค่า Team ของพื้นที่นี้เป็นว่างเปล่า)")) return;
+    if(!confirm("ต้องการลบพื้นที่ออกจากทีม?")) return;
     try {
-      // ถอดทีมออก โดยตั้งค่า Team_ID ให้เป็น null
-      const { error } = await supabaseClient.from('Territory')
-        .update({ Team_ID: null })
-        .eq('Territory_ID', territoryId);
-      
-      if (error) throw error;
-      await loadAllOrgData(); 
-      openTeamHub(currentHubTeamId); 
-    } catch (err) {
-      alert("❌ ถอดพื้นที่ไม่สำเร็จ: " + err.message);
-    }
+      await supabaseClient.from('Territory').update({ Team_ID: null }).eq('Territory_ID', territoryId);
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ ลบไม่สำเร็จ"); }
   }
 
-  // ================= 3. ฟังก์ชันสร้างตาราง Master =================
+
+  // ================= 3. CRUD MASTER TABLES =================
   function renderMasterTables() {
     // 3.1 Products
     let pBody = '';
     globalProducts.forEach(p => {
       const badge = p.Status === 'Active' ? 'bg-success' : 'bg-danger';
-      pBody += `<tr><td class="fw-bold">${p.Product}</td><td><span class="badge ${badge}">${p.Status}</span></td></tr>`;
+      pBody += `<tr><td class="fw-bold">${p.Product}</td><td><span class="badge ${badge}">${p.Status}</span></td>
+                <td><button class="btn btn-sm btn-outline-success" onclick="openEditProduct('${p.Product_ID}')">แก้ไข</button></td></tr>`;
     });
-    document.getElementById('masterProductTableBody').innerHTML = pBody || '<tr><td colspan="2">ไม่มีข้อมูล</td></tr>';
+    document.getElementById('productTableBody').innerHTML = pBody || '<tr><td colspan="3">ไม่มีข้อมูล</td></tr>';
 
     // 3.2 Territory
     let tBody = '';
     globalTerritories.forEach(t => {
       const badge = t.Status === 'Active' ? 'bg-success' : 'bg-danger';
       const teamObj = globalTeams.find(tm => tm.Team_ID === t.Team_ID);
-      const teamStr = teamObj ? teamObj.Team : '<span class="text-danger small">ว่าง/ยังไม่กำหนดทีม</span>';
-      tBody += `<tr><td class="fw-bold">${t.Territory}</td><td>${teamStr}</td><td><span class="badge ${badge}">${t.Status}</span></td></tr>`;
+      const teamStr = teamObj ? teamObj.Team : '<span class="text-danger small">ยังไม่กำหนดทีม</span>';
+      tBody += `<tr><td class="fw-bold">${t.Territory}</td><td>${teamStr}</td><td><span class="badge ${badge}">${t.Status}</span></td>
+                <td><button class="btn btn-sm btn-outline-warning text-dark" onclick="openEditTerritory('${t.Territory_ID}')">แก้ไข</button></td></tr>`;
     });
-    document.getElementById('masterTerritoryTableBody').innerHTML = tBody || '<tr><td colspan="3">ไม่มีข้อมูล</td></tr>';
+    document.getElementById('territoryTableBody').innerHTML = tBody || '<tr><td colspan="4">ไม่มีข้อมูล</td></tr>';
 
     // 3.3 BU
     let bBody = '';
     globalBUs.forEach(b => {
       const badge = b.Status === 'Active' ? 'bg-success' : 'bg-danger';
-      bBody += `<tr><td class="fw-bold">${b.BU}</td><td><span class="badge ${badge}">${b.Status}</span></td></tr>`;
+      bBody += `<tr><td class="fw-bold">${b.BU}</td><td><span class="badge ${badge}">${b.Status}</span></td>
+                <td><button class="btn btn-sm btn-outline-secondary" onclick="openEditBU('${b.BU_ID}')">แก้ไข</button></td></tr>`;
     });
-    document.getElementById('masterBuTableBody').innerHTML = bBody || '<tr><td colspan="2">ไม่มีข้อมูล</td></tr>';
+    document.getElementById('buTableBody').innerHTML = bBody || '<tr><td colspan="3">ไม่มีข้อมูล</td></tr>';
+  }
+
+  // ==== Products CRUD ====
+  async function handleAddProduct(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('Products').insert([{ Product: document.getElementById('addProductName').value.trim(), Status: 'Active', Whoupdated: getUserEmail() }]);
+      switchView('productListView', 'product'); await loadAllOrgData();
+    } catch(err) { alert("❌ พลาด: " + err.message); }
+  }
+  function openEditProduct(id) {
+    const p = globalProducts.find(x => x.Product_ID === id);
+    if(p) { document.getElementById('editProductId').value = p.Product_ID; document.getElementById('editProductName').value = p.Product; document.getElementById('editProductStatus').value = p.Status; switchView('productEditView', 'product'); }
+  }
+  async function handleEditProduct(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('Products').update({ Product: document.getElementById('editProductName').value.trim(), Status: document.getElementById('editProductStatus').value, Whoupdated: getUserEmail() }).eq('Product_ID', document.getElementById('editProductId').value);
+      switchView('productListView', 'product'); await loadAllOrgData();
+    } catch(err) { alert("❌ พลาด: " + err.message); }
+  }
+
+  // ==== Territory CRUD ====
+  async function handleAddTerritory(e) {
+    e.preventDefault();
+    const tId = document.getElementById('addTerritoryTeamId').value;
+    try {
+      await supabaseClient.from('Territory').insert([{ Territory: document.getElementById('addTerritoryName').value.trim(), Team_ID: tId || null, Status: 'Active', Whoupdated: getUserEmail() }]);
+      switchView('territoryListView', 'territory'); await loadAllOrgData();
+    } catch(err) { alert("❌ พลาด: " + err.message); }
+  }
+  function openEditTerritory(id) {
+    const t = globalTerritories.find(x => x.Territory_ID === id);
+    if(t) { document.getElementById('editTerritoryId').value = t.Territory_ID; document.getElementById('editTerritoryName').value = t.Territory; document.getElementById('editTerritoryTeamId').value = t.Team_ID || ""; document.getElementById('editTerritoryStatus').value = t.Status; switchView('territoryEditView', 'territory'); }
+  }
+  async function handleEditTerritory(e) {
+    e.preventDefault();
+    const tId = document.getElementById('editTerritoryTeamId').value;
+    try {
+      await supabaseClient.from('Territory').update({ Territory: document.getElementById('editTerritoryName').value.trim(), Team_ID: tId || null, Status: document.getElementById('editTerritoryStatus').value, Whoupdated: getUserEmail() }).eq('Territory_ID', document.getElementById('editTerritoryId').value);
+      switchView('territoryListView', 'territory'); await loadAllOrgData();
+    } catch(err) { alert("❌ พลาด: " + err.message); }
+  }
+
+  // ==== BU CRUD ====
+  async function handleAddBU(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('BU').insert([{ BU: document.getElementById('addBuName').value.trim(), Status: 'Active', Whoupdated: getUserEmail() }]);
+      switchView('buListView', 'bu'); await loadAllOrgData();
+    } catch(err) { alert("❌ พลาด: " + err.message); }
+  }
+  function openEditBU(id) {
+    const b = globalBUs.find(x => x.BU_ID === id);
+    if(b) { document.getElementById('editBuId').value = b.BU_ID; document.getElementById('editBuName').value = b.BU; document.getElementById('editBuStatus').value = b.Status; switchView('buEditView', 'bu'); }
+  }
+  async function handleEditBU(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('BU').update({ BU: document.getElementById('editBuName').value.trim(), Status: document.getElementById('editBuStatus').value, Whoupdated: getUserEmail() }).eq('BU_ID', document.getElementById('editBuId').value);
+      switchView('buListView', 'bu'); await loadAllOrgData();
+    } catch(err) { alert("❌ พลาด: " + err.message); }
   }
 </script>
