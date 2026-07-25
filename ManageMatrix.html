@@ -4,7 +4,7 @@
   .matrix-box:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); filter: brightness(1.05); }
   .matrix-top { padding: 12px; border-radius: 8px 8px 0 0; text-align: center; flex-grow: 1; display: flex; align-items: center; justify-content: center;}
   .matrix-bottom { background-color: #f1f3f5; color: #6c757d; font-size: 0.75rem; padding: 4px 8px; border-radius: 0 0 8px 8px; border: 1px solid #dee2e6; border-top: none; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .matrix-axis-label { border: 2px solid #ced4da; border-radius: 8px; padding: 10px 15px; background: white; font-weight: bold; color: #555; text-align: center; min-width: 140px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+  .matrix-axis-label { border: 2px solid #ced4da; border-radius: 8px; padding: 10px 15px; background: white; font-weight: bold; color: #555; text-align: center; min-width: 120px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
   .matrix-empty-box { border: 2px dashed #ced4da; border-radius: 8px; min-height: 70px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #adb5bd; background-color: #f8f9fa; transition: all 0.2s ease;}
   .matrix-empty-box:hover { background-color: #e9ecef; color: #495057; border-color: #adb5bd; }
 </style>
@@ -114,6 +114,26 @@
   var dynamicPotentialOpts = [];
   var dynamicClassOpts = [];
 
+  // 🌟 กำหนดลำดับการจัดเรียง (Sorting Template) ตามรูป
+  var potentialSortOrder = ['No', 'Low', 'Medium', 'High'];
+  var adoptionSortOrder = ['High', 'Medium-High', 'Medium', 'Medium-Low', 'Low', 'Non User'];
+
+  // ฟังก์ชันจัดเรียง
+  function customSortOptions(optionsArray, templateArray) {
+    const lowerTemplate = templateArray.map(v => v.toLowerCase());
+    return optionsArray.sort((a, b) => {
+      let indexA = lowerTemplate.indexOf(a.toLowerCase());
+      let indexB = lowerTemplate.indexOf(b.toLowerCase());
+      
+      // ถ้าหาไม่เจอใน Template ให้เอาไปต่อท้ายสุด (999)
+      if(indexA === -1) indexA = 999;
+      if(indexB === -1) indexB = 999;
+      
+      if(indexA !== indexB) return indexA - indexB;
+      return a.localeCompare(b); // ถ้าไม่เจอทั้งคู่ให้เรียงตามตัวอักษร
+    });
+  }
+
   setTimeout(async function() {
     await loadInitialDataForMatrix();
   }, 300);
@@ -157,9 +177,12 @@
       const potType = types.find(t => t.Name.toLowerCase() === 'potential');
       const classType = types.find(t => t.Name.toLowerCase() === 'classification');
 
-      // เรียงลำดับตัวเลือก (สามารถเขียน Logic ให้เรียงตามต้องการได้ที่นี่)
-      dynamicAdoptionOpts = adoptType ? indexes.filter(i => i.IndexType_ID === adoptType.IndexType_ID).map(i => i.Value) : [];
-      dynamicPotentialOpts = potType ? indexes.filter(i => i.IndexType_ID === potType.IndexType_ID).map(i => i.Value) : [];
+      // ดึงข้อมูลและนำไปจัดเรียงด้วยฟังก์ชัน Custom Sort
+      let rawAdopt = adoptType ? indexes.filter(i => i.IndexType_ID === adoptType.IndexType_ID).map(i => i.Value) : [];
+      let rawPot = potType ? indexes.filter(i => i.IndexType_ID === potType.IndexType_ID).map(i => i.Value) : [];
+      
+      dynamicAdoptionOpts = customSortOptions(rawAdopt, adoptionSortOrder);
+      dynamicPotentialOpts = customSortOptions(rawPot, potentialSortOrder);
       dynamicClassOpts = classType ? indexes.filter(i => i.IndexType_ID === classType.IndexType_ID).map(i => i.Value) : [];
 
       let adoptHtml = '<option value="">- เลือก -</option>'; dynamicAdoptionOpts.forEach(v => adoptHtml += `<option value="${v}">${v}</option>`);
@@ -210,12 +233,10 @@
     const tbody = document.getElementById('matrixTableBody');
 
     if (prodTerm !== "") {
-      // ✅ เลือกสินค้า 1 ตัว -> โชว์ตารางแบบ Grid
       visualWrapper.classList.remove('d-none');
       tableWrapper.classList.add('d-none');
       renderVisualMatrixGrid(prodTerm);
     } else {
-      // ✅ ไม่เลือกสินค้า -> โชว์แบบตารางรายการปกติ
       visualWrapper.classList.add('d-none');
       tableWrapper.classList.remove('d-none');
       tbody.innerHTML = '';
@@ -236,30 +257,48 @@
     }
   }
 
-  // 🌟 ฟังก์ชันวาดรูปตาราง Grid (เหมือนรูปที่คุณส่งมา)
+  // 🌟 ฟังก์ชันวาดรูปตาราง (มี Label ตามแกน)
   function renderVisualMatrixGrid(productId) {
     const prodInfo = globalProductsForMatrix.find(p => p.Product_ID === productId);
     document.getElementById('visualMatrixTitle').innerHTML = `<i class="fa-solid fa-border-all me-2"></i>ตาราง Matrix: <span class="text-dark">${prodInfo ? prodInfo.Product : 'Unknown'}</span>`;
     
     let html = '<table class="table table-borderless text-center align-middle mb-0" style="min-width: 700px;">';
     
-    // Header Row (แกน X: Potential)
-    html += '<tr><td style="width: 20%; padding: 10px;"></td>';
+    const numPotCols = dynamicPotentialOpts.length;
+    const numAdoptRows = dynamicAdoptionOpts.length;
+    
+    // Header Row 1: ตัวหนังสือ Potential ตรงกลางด้านบน
+    html += '<tr>';
+    html += '<td colspan="2"></td>';
+    html += `<td colspan="${numPotCols}" class="fw-bold fs-5 text-dark pb-2" style="letter-spacing: 1px;">Potential</td>`;
+    html += '</tr>';
+
+    // Header Row 2: ตัวเลือกแกน X
+    html += '<tr>';
+    html += '<td colspan="2" style="width: 20%; padding: 10px;"></td>'; // พื้นที่ว่างมุมซ้ายบน
+    const colWidth = 80 / (numPotCols || 1);
     dynamicPotentialOpts.forEach(pot => {
-      html += `<td style="width: 25%; padding: 10px;"><div class="matrix-axis-label">${pot}</div></td>`;
+      html += `<td style="width: ${colWidth}%; padding: 10px;"><div class="matrix-axis-label">${pot}</div></td>`;
     });
     html += '</tr>';
 
-    // Body Rows (แกน Y: Adoption)
-    dynamicAdoptionOpts.forEach(adopt => {
+    // Body Rows: ตัวอักษร Adoption และข้อมูลด้านใน
+    dynamicAdoptionOpts.forEach((adopt, index) => {
       html += '<tr>';
-      html += `<td style="padding: 10px;"><div class="matrix-axis-label">${adopt}</div></td>`;
       
+      // ตัวหนังสือ Adoption เรียงแนวตั้ง (ดึงให้คร่อมทุกแถวของแกน Y)
+      if (index === 0) {
+        html += `<td rowspan="${numAdoptRows}" class="fw-bold fs-5 text-dark px-0" style="writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; width: 5%; letter-spacing: 1px;">Adoption</td>`;
+      }
+      
+      // ตัวเลือกแกน Y
+      html += `<td style="width: 15%; padding: 10px;"><div class="matrix-axis-label">${adopt}</div></td>`;
+      
+      // สร้างกล่อง Matrix (แกนตัดกัน)
       dynamicPotentialOpts.forEach(pot => {
         const record = globalMatrixList.find(m => m.productId === productId && m.adoption === adopt && m.potential === pot);
         
         if (record) {
-          // มีข้อมูลแล้ว -> แสดงกล่องสี
           const color = getClassificationColor(record.classification);
           html += `
           <td style="padding: 10px;">
@@ -273,7 +312,6 @@
             </div>
           </td>`;
         } else {
-          // ไม่มีข้อมูล -> แสดงกล่องว่างให้กดเพิ่ม
           html += `
           <td style="padding: 10px;">
             <div class="matrix-empty-box" onclick="openAddMatrixViewPreFilled('${productId}', '${adopt}', '${pot}')">
@@ -289,17 +327,15 @@
     document.getElementById('visualMatrixContainer').innerHTML = html;
   }
 
-  // 🌟 ฟังก์ชันกำหนดสีให้กล่อง (อิงตามรูป)
   function getClassificationColor(cls) {
     const val = String(cls).trim().toUpperCase();
-    if (val === 'A' || val.includes('P1') || val === '1') return { bg: '#c0392b', text: '#ffffff' }; // แดงเข้ม
-    if (val === 'B' || val.includes('P2') || val === '2') return { bg: '#e67e22', text: '#ffffff' }; // ส้ม
-    if (val === 'C' || val.includes('P3') || val === '3') return { bg: '#f39c12', text: '#ffffff' }; // ส้มเหลือง
-    if (val === 'D' || val.includes('P4') || val === '4') return { bg: '#fadbd8', text: '#555555' }; // สีเนื้อ (Peach)
-    return { bg: '#34495e', text: '#ffffff' }; // สีเทา (ถ้าไม่ตรงกับเงื่อนไขบน)
+    if (val === 'A' || val.includes('P1') || val === '1') return { bg: '#c0392b', text: '#ffffff' }; 
+    if (val === 'B' || val.includes('P2') || val === '2') return { bg: '#e67e22', text: '#ffffff' }; 
+    if (val === 'C' || val.includes('P3') || val === '3') return { bg: '#f39c12', text: '#ffffff' }; 
+    if (val === 'D' || val.includes('P4') || val === '4') return { bg: '#fadbd8', text: '#555555' }; 
+    return { bg: '#34495e', text: '#ffffff' }; 
   }
 
-  // 🌟 เปิดฟอร์มและใส่ค่าให้ล่วงหน้าเมื่อคลิกกล่องว่าง
   function openAddMatrixViewPreFilled(prodId, adopt, pot) {
     openAddMatrixView();
     setTimeout(() => {
@@ -314,7 +350,6 @@
     document.getElementById('matrixFormTitle').innerHTML = '<i class="fa-solid fa-plus-circle me-2"></i>เพิ่มเงื่อนไข Matrix ใหม่';
     document.getElementById('matrixForm').reset();
     
-    // ตั้งค่าสินค้า default ตามที่กำลัง filter อยู่ (ถ้ามี)
     const currentFilter = document.getElementById('filterMatrixProduct').value;
     if (currentFilter) document.getElementById('matrixProduct').value = currentFilter;
 
@@ -391,11 +426,9 @@
         }
       }
 
-      // บังคับให้ Dropdown หน้าแรกเลือกสินค้านี้ไว้เลย จะได้เด้งกลับไปดูตารางได้สวยๆ
       document.getElementById('filterMatrixProduct').value = newProductId;
-
       switchMatrixView('matrixListView');
-      loadMatrixData(); // โหลดข้อมูลใหม่ตารางจะอัปเดตออโต้
+      loadMatrixData(); 
     } catch (err) {
       alert("❌ บันทึกไม่สำเร็จ: " + err.message);
     } finally {
