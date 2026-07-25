@@ -23,7 +23,6 @@
       </button>
     </div>
 
-    <!-- Dropdown สำหรับเลือกสินค้า -->
     <div class="row mb-4 align-items-end">
       <div class="col-md-5">
         <label class="form-label fw-bold text-dark mb-1">เลือกสินค้าเพื่อตั้งค่า (Product)</label>
@@ -33,7 +32,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนที่ 1: ตารางแบบภาพ Grid (จะแสดงเมื่อเลือกสินค้า) -->
+    <!-- ส่วนที่ 1: ตารางแบบภาพ Grid -->
     <div id="visualMatrixWrapper" class="d-none mb-4">
       <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; overflow-x: auto; background-color: #ffffff;">
         <h5 class="fw-bold text-primary mb-4" id="visualMatrixTitle"><i class="fa-solid fa-border-all me-2"></i>1. โครงสร้างเงื่อนไขลูกค้า (Rating Matrix)</h5>
@@ -42,7 +41,7 @@
         </div>
       </div>
 
-      <!-- 🌟 ส่วนที่ 2: ตั้งค่า Target Call (จะแสดงเมื่อเลือกสินค้า) -->
+      <!-- ส่วนที่ 2: ตั้งค่า Target Call -->
       <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px; background-color: #f8f9fa;">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-bullseye me-2"></i>2. กำหนดเป้าหมายการเข้าพบ (Target Call)</h5>
@@ -71,11 +70,12 @@
               <th>Adoption</th>
               <th>Potential</th>
               <th>Classification</th>
+              <th>Target Call</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody id="matrixTableBody">
-            <tr><td colspan="5" class="py-4 text-muted">กรุณาเลือกสินค้า หรือ กำลังโหลดข้อมูล...</td></tr>
+            <tr><td colspan="6" class="py-4 text-muted">กรุณาเลือกสินค้า หรือ กำลังโหลดข้อมูล...</td></tr>
           </tbody>
         </table>
       </div>
@@ -127,7 +127,7 @@
 
 <script>
   var globalMatrixList = [];
-  var globalTargetList = []; // 🌟 เก็บข้อมูล Target
+  var globalTargetList = []; 
   var globalProductsForMatrix = [];
   var isMatrixDataLoaded = false;
   var isMatrixEditMode = false;
@@ -215,7 +215,6 @@
     }
   }
 
-  // 🌟 ดึงข้อมูล Matrix และ Target พร้อมกัน
   async function loadData() {
     isMatrixDataLoaded = false;
     try {
@@ -245,7 +244,7 @@
       filterMatrix();
     } catch (err) {
       console.error(err);
-      document.getElementById('matrixTableBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
+      document.getElementById('matrixTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
     }
   }
 
@@ -260,22 +259,26 @@
       visualWrapper.classList.remove('d-none');
       tableWrapper.classList.add('d-none');
       renderVisualMatrixGrid(prodTerm);
-      renderTargetInputs(prodTerm); // 🌟 วาดฟอร์ม Target ด้วย
+      renderTargetInputs(prodTerm); 
     } else {
       visualWrapper.classList.add('d-none');
       tableWrapper.classList.remove('d-none');
       tbody.innerHTML = '';
       
-      if(!globalMatrixList.length) return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีข้อมูลในระบบ</td></tr>';
+      if(!globalMatrixList.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ยังไม่มีข้อมูลในระบบ</td></tr>';
 
       globalMatrixList.forEach(m => {
         const color = getClassificationColor(m.classification);
+        const targetData = globalTargetList.find(t => t.Product_ID === m.productId && t.Classification === m.classification);
+        const targetCall = targetData ? targetData.Target : '-';
+        
         tbody.innerHTML += `
           <tr>
             <td class="text-start fw-medium">${m.productName}</td>
             <td>${m.adoption}</td>
             <td>${m.potential}</td>
             <td><span class="badge fs-6" style="background-color: ${color.bg}; color: ${color.text};">${m.classification}</span></td>
+            <td class="fw-bold text-primary">${targetCall}</td>
             <td><button class="btn btn-sm btn-outline-primary" onclick="openEditMatrixView('${m.compositeId}')">แก้ไข</button></td>
           </tr>`;
       });
@@ -311,10 +314,19 @@
         const record = globalMatrixList.find(m => m.productId === productId && m.adoption === adopt && m.potential === pot);
         if (record) {
           const color = getClassificationColor(record.classification);
+          
+          // 🌟 ดึงข้อมูล Target มาโชว์มุมขวาบน
+          const targetObj = globalTargetList.find(t => t.Product_ID === productId && t.Classification === record.classification);
+          const targetNum = (targetObj && targetObj.Target !== null && targetObj.Target !== undefined) ? targetObj.Target : '-';
+          const targetBadge = `<span class="position-absolute top-0 end-0 m-1 badge bg-light text-dark shadow-sm border border-secondary" style="font-size: 0.7rem; z-index: 5;" title="Target Call">🎯 ${targetNum}</span>`;
+
           html += `
           <td style="padding: 10px;">
             <div class="matrix-box" onclick="openEditMatrixView('${record.compositeId}')">
-              <div class="matrix-top" style="background-color: ${color.bg}; color: ${color.text};"><h5 class="fw-bold mb-0">${record.classification}</h5></div>
+              <div class="matrix-top position-relative" style="background-color: ${color.bg}; color: ${color.text};">
+                ${targetBadge}
+                <h5 class="fw-bold mb-0">${record.classification}</h5>
+              </div>
               <div class="matrix-bottom" title="${adopt} / ${pot}"><i class="fa-solid fa-pen fa-xs me-1"></i> ${adopt} + ${pot}</div>
             </div>
           </td>`;
@@ -333,15 +345,13 @@
     document.getElementById('visualMatrixContainer').innerHTML = html;
   }
 
-  // 🌟 ฟังก์ชันวาดช่องกรอก Target
   function renderTargetInputs(productId) {
     const container = document.getElementById('targetInputContainer');
     let html = '';
 
     dynamicClassOpts.forEach(cls => {
-      // ค้นหาว่ามี Target ของสินค้านี้ และ Classification นี้ เซฟไว้หรือยัง
       const targetData = globalTargetList.find(t => t.Product_ID === productId && t.Classification === cls);
-      const val = targetData ? targetData.Target : '';
+      const val = (targetData && targetData.Target !== null) ? targetData.Target : '';
       const color = getClassificationColor(cls);
 
       html += `
@@ -358,7 +368,6 @@
     container.innerHTML = html;
   }
 
-  // 🌟 ฟังก์ชันบันทึก Target ทั้งหมดของสินค้านั้น
   async function saveTargetCalls() {
     const prodId = document.getElementById('filterMatrixProduct').value;
     if(!prodId) return alert("กรุณาเลือกสินค้าก่อนครับ");
@@ -385,14 +394,13 @@
     });
 
     try {
-      // ลบของเก่าที่เป็นของสินค้านี้ทิ้งก่อน แล้ว Insert ชุดใหม่เข้าไป
       await supabaseClient.from('Target').delete().eq('Product_ID', prodId);
       if(payload.length > 0) {
         const { error } = await supabaseClient.from('Target').insert(payload);
         if (error) throw error;
       }
       alert("✅ บันทึกเป้าหมายการเข้าพบ (Target Call) สำเร็จ");
-      await loadData(); // รีเฟรชข้อมูลเบื้องหลัง
+      await loadData(); 
     } catch(err) {
       alert("❌ บันทึก Target ไม่สำเร็จ: " + err.message);
     } finally {
