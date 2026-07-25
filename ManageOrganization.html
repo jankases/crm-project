@@ -1,0 +1,197 @@
+<style>
+  .org-nav-pills .nav-link { color: #6c757d; font-weight: 600; border-radius: 10px; margin-right: 5px; padding: 10px 20px; transition: all 0.3s ease; }
+  .org-nav-pills .nav-link:hover { background-color: #f8f9fa; color: #0d6efd; }
+  .org-nav-pills .nav-link.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3); transform: translateY(-2px); }
+  
+  .hub-card { border-radius: 15px; border: 1px solid #e9ecef; transition: transform 0.2s; height: 100%;}
+  .hub-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+  .hub-icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+</style>
+
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-sitemap me-2"></i>โครงสร้างองค์กร (Organization)</h3>
+      <p class="text-muted mb-0">ศูนย์รวมการจัดการ ทีม, สินค้า, พื้นที่ และ หมวดธุรกิจ (BU) ในที่เดียว</p>
+    </div>
+  </div>
+
+  <!-- 🌟 แถบเมนู Tabs (Idea 1) -->
+  <div class="bg-white p-2 rounded-4 shadow-sm mb-4 d-inline-block border">
+    <ul class="nav nav-pills org-nav-pills" id="orgTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-teams" type="button">
+          <i class="fa-solid fa-users me-2"></i>ศูนย์กลางทีม (Teams Hub)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-products" type="button">
+          <i class="fa-solid fa-box-open me-2"></i>สินค้า (Products)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-territory" type="button">
+          <i class="fa-solid fa-map-location-dot me-2"></i>พื้นที่ (Territory)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bu" type="button">
+          <i class="fa-solid fa-building me-2"></i>หมวดธุรกิจ (BU)
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 🌟 เนื้อหาแต่ละ Tab -->
+  <div class="tab-content" id="orgTabsContent">
+    
+    <!-- ==================== TAB 1: TEAMS HUB (ศูนย์กลาง) ==================== -->
+    <div class="tab-pane fade show active" id="tab-teams" role="tabpanel">
+      
+      <!-- หน้า List: รายชื่อทีม -->
+      <div id="teamListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-dark mb-0">รายชื่อทีมทั้งหมด</h5>
+            <button class="btn btn-primary fw-bold px-4 rounded-pill"><i class="fa-solid fa-plus me-2"></i>สร้างทีมใหม่</button>
+          </div>
+          <table class="table table-hover align-middle text-center">
+            <thead class="table-light">
+              <tr>
+                <th>ชื่อทีม (Team)</th>
+                <th>หมวดธุรกิจ (BU)</th>
+                <th>จำนวนพื้นที่ (Territory)</th>
+                <th>จำนวนสินค้า (Product)</th>
+                <th>จัดการ (Action)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ตัวอย่างข้อมูลจำลอง -->
+              <tr>
+                <td class="fw-bold text-primary">LUNG1</td>
+                <td><span class="badge bg-secondary">Oncology</span></td>
+                <td>3 พื้นที่</td>
+                <td>2 สินค้า</td>
+                <td><button class="btn btn-sm btn-dark px-3 rounded-pill" onclick="openTeamHub('LUNG1')">จัดการทีม <i class="fa-solid fa-arrow-right ms-1"></i></button></td>
+              </tr>
+              <tr>
+                <td class="fw-bold text-primary">HEME1</td>
+                <td><span class="badge bg-secondary">Hematology</span></td>
+                <td>5 พื้นที่</td>
+                <td>1 สินค้า</td>
+                <td><button class="btn btn-sm btn-dark px-3 rounded-pill" onclick="openTeamHub('HEME1')">จัดการทีม <i class="fa-solid fa-arrow-right ms-1"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- หน้า Hub: เจาะลึกรายทีม (Idea 2) -->
+      <div id="teamHubProfile" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="closeTeamHub()">
+            <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+          </button>
+          <h4 class="text-primary fw-bold mb-0">🛠️ บริหารจัดการทีม: <span id="hubTeamName" class="text-dark">LUNG1</span></h4>
+        </div>
+
+        <div class="row g-4">
+          <!-- กล่องที่ 1: สังกัด BU -->
+          <div class="col-md-4">
+            <div class="card p-4 bg-white shadow-sm hub-card">
+              <div class="d-flex align-items-center mb-3">
+                <div class="hub-icon-box bg-primary text-white me-3"><i class="fa-solid fa-building"></i></div>
+                <h6 class="fw-bold mb-0 text-secondary">สังกัดหมวดธุรกิจ (BU)</h6>
+              </div>
+              <p class="text-muted small mb-2">ระบุว่าทีมนี้อยู่ภายใต้ธุรกิจใด</p>
+              <select class="form-select border-primary fw-bold text-primary">
+                <option value="1" selected>Oncology (มะเร็งวิทยา)</option>
+                <option value="2">Hematology (โลหิตวิทยา)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- กล่องที่ 2: สินค้า (Products) -->
+          <div class="col-md-4">
+            <div class="card p-4 bg-white shadow-sm hub-card">
+              <div class="d-flex align-items-center mb-3">
+                <div class="hub-icon-box bg-success text-white me-3"><i class="fa-solid fa-box-open"></i></div>
+                <h6 class="fw-bold mb-0 text-secondary">สินค้าที่รับผิดชอบ</h6>
+              </div>
+              <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1">
+                  <span class="fw-medium"><i class="fa-solid fa-check text-success me-2"></i>Tecentriq</span>
+                  <button class="btn btn-sm text-danger"><i class="fa-solid fa-trash"></i></button>
+                </li>
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1">
+                  <span class="fw-medium"><i class="fa-solid fa-check text-success me-2"></i>Alecensa</span>
+                  <button class="btn btn-sm text-danger"><i class="fa-solid fa-trash"></i></button>
+                </li>
+              </ul>
+              <button class="btn btn-outline-success btn-sm w-100 fw-bold rounded-pill mt-auto"><i class="fa-solid fa-plus me-1"></i> เพิ่มสินค้าให้ทีมนี้</button>
+            </div>
+          </div>
+
+          <!-- กล่องที่ 3: พื้นที่ (Territory) -->
+          <div class="col-md-4">
+            <div class="card p-4 bg-white shadow-sm hub-card">
+              <div class="d-flex align-items-center mb-3">
+                <div class="hub-icon-box bg-warning text-dark me-3"><i class="fa-solid fa-map-location-dot"></i></div>
+                <h6 class="fw-bold mb-0 text-secondary">พื้นที่ดูแล (Territory)</h6>
+              </div>
+              <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1">
+                  <span class="fw-medium"><i class="fa-solid fa-location-dot text-warning me-2"></i>BKK_North</span>
+                  <button class="btn btn-sm text-danger"><i class="fa-solid fa-trash"></i></button>
+                </li>
+              </ul>
+              <button class="btn btn-outline-warning text-dark btn-sm w-100 fw-bold rounded-pill mt-auto"><i class="fa-solid fa-plus me-1"></i> เพิ่มพื้นที่รับผิดชอบ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: PRODUCTS ==================== -->
+    <div class="tab-pane fade" id="tab-products" role="tabpanel">
+      <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+        <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-box-open me-2"></i>ฐานข้อมูลสินค้า (Master Products)</h5>
+        <p class="text-muted">สร้างรายชื่อสินค้าไว้ที่นี่ เพื่อนำไปจ่ายให้แต่ละ "ทีม" ในหน้า Teams Hub</p>
+        <!-- ใส่ตารางจัดการ Product เดิมมาไว้ตรงนี้ได้เลย -->
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: TERRITORY ==================== -->
+    <div class="tab-pane fade" id="tab-territory" role="tabpanel">
+      <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+        <h5 class="fw-bold text-warning text-dark mb-3"><i class="fa-solid fa-map-location-dot me-2"></i>ฐานข้อมูลพื้นที่ (Master Territory)</h5>
+        <p class="text-muted">สร้างรายชื่อเขต/พื้นที่ไว้ที่นี่ เพื่อนำไปแจกจ่ายให้ "ทีม"</p>
+        <!-- ใส่ตารางจัดการ Territory เดิมมาไว้ตรงนี้ -->
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: BU ==================== -->
+    <div class="tab-pane fade" id="tab-bu" role="tabpanel">
+      <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+        <h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-building me-2"></i>ฐานข้อมูลหมวดธุรกิจ (Master BU)</h5>
+        <p class="text-muted">โครงสร้างระดับสูงสุด (1 BU มีได้หลายทีม)</p>
+        <!-- ใส่ตารางจัดการ BU เดิมมาไว้ตรงนี้ -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openTeamHub(teamName) {
+    document.getElementById('teamListView').classList.add('d-none');
+    document.getElementById('teamHubProfile').classList.remove('d-none');
+    document.getElementById('hubTeamName').innerText = teamName;
+  }
+
+  function closeTeamHub() {
+    document.getElementById('teamHubProfile').classList.add('d-none');
+    document.getElementById('teamListView').classList.remove('d-none');
+  }
+</script>
