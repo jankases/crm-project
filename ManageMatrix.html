@@ -1,5 +1,4 @@
 <style>
-  /* ตกแต่งกล่อง Matrix ให้เหมือนในรูป */
   .matrix-box { transition: all 0.2s ease-in-out; cursor: pointer; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 100%; min-height: 70px;}
   .matrix-box:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); filter: brightness(1.05); }
   .matrix-top { padding: 12px; border-radius: 8px 8px 0 0; text-align: center; flex-grow: 1; display: flex; align-items: center; justify-content: center;}
@@ -7,41 +6,63 @@
   .matrix-axis-label { border: 2px solid #ced4da; border-radius: 8px; padding: 10px 15px; background: white; font-weight: bold; color: #555; text-align: center; min-width: 120px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
   .matrix-empty-box { border: 2px dashed #ced4da; border-radius: 8px; min-height: 70px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #adb5bd; background-color: #f8f9fa; transition: all 0.2s ease;}
   .matrix-empty-box:hover { background-color: #e9ecef; color: #495057; border-color: #adb5bd; }
+  .target-input { text-align: center; font-weight: bold; font-size: 1.1rem; color: #0d6efd; border: 2px solid #dee2e6; border-radius: 8px;}
+  .target-input:focus { border-color: #0d6efd; box-shadow: none; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1100px; margin: 0 auto;">
   
   <div id="matrixListView">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="text-primary fw-bold mb-0">🔠 จัดการเงื่อนไขลูกค้า (Rating Matrix)</h4>
+      <div>
+        <h4 class="text-primary fw-bold mb-1">🔠 จัดการเงื่อนไขและเป้าหมาย (Matrix & Target)</h4>
+        <p class="text-muted small mb-0">ตั้งค่าเกรดลูกค้า (Classification) และกำหนดจำนวนเข้าพบ (Target Call) ในหน้าเดียว</p>
+      </div>
       <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddMatrixView()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่มเงื่อนไขใหม่
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มเงื่อนไข Matrix
       </button>
     </div>
 
     <!-- Dropdown สำหรับเลือกสินค้า -->
     <div class="row mb-4 align-items-end">
       <div class="col-md-5">
-        <label class="form-label fw-bold text-dark mb-1">เลือกสินค้าเพื่อดูตาราง Matrix (Product)</label>
+        <label class="form-label fw-bold text-dark mb-1">เลือกสินค้าเพื่อตั้งค่า (Product)</label>
         <select class="form-select shadow-sm border-primary" id="filterMatrixProduct" onchange="filterMatrix()" style="border-radius: 8px; border-width: 2px;">
           <option value="">- กรุณาเลือกสินค้า -</option>
         </select>
       </div>
     </div>
 
-    <!-- ส่วนที่ 1: ตารางแบบภาพ Grid (จะแสดงเมื่อเลือกสินค้า) -->
+    <!-- 🌟 ส่วนที่ 1: ตารางแบบภาพ Grid (จะแสดงเมื่อเลือกสินค้า) -->
     <div id="visualMatrixWrapper" class="d-none mb-4">
-      <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px; overflow-x: auto; background-color: #ffffff;">
-        <h5 class="fw-bold text-primary mb-4" id="visualMatrixTitle"><i class="fa-solid fa-border-all me-2"></i>ตารางโครงสร้าง Matrix</h5>
+      <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; overflow-x: auto; background-color: #ffffff;">
+        <h5 class="fw-bold text-primary mb-4" id="visualMatrixTitle"><i class="fa-solid fa-border-all me-2"></i>1. โครงสร้างเงื่อนไขลูกค้า (Rating Matrix)</h5>
         <div id="visualMatrixContainer" class="pb-2">
           <!-- ตาราง Matrix จะถูกวาดตรงนี้ด้วย JS -->
         </div>
       </div>
+
+      <!-- 🌟 ส่วนที่ 2: ตั้งค่า Target Call (จะแสดงเมื่อเลือกสินค้า) -->
+      <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px; background-color: #f8f9fa;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-bullseye me-2"></i>2. กำหนดเป้าหมายการเข้าพบ (Target Call)</h5>
+          <button class="btn btn-success fw-bold px-4 shadow-sm" id="btnSaveTarget" onclick="saveTargetCalls()">
+            <i class="fa-solid fa-save me-2"></i>บันทึก Target
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-borderless align-middle mb-0" style="max-width: 800px;">
+            <tbody id="targetInputContainer" class="d-flex flex-wrap gap-3">
+              <!-- ช่องกรอก Target จะถูกสร้างด้วย JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <!-- ส่วนที่ 2: ตารางข้อมูลแบบธรรมดา (จะแสดงเมื่อยังไม่เลือกสินค้า หรือแสดงทั้งหมด) -->
+    <!-- ส่วนที่ 3: ตารางข้อมูลแบบธรรมดา (จะแสดงเมื่อยังไม่เลือกสินค้า) -->
     <div id="tableMatrixWrapper" class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
-      <h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list me-2"></i>รายการเงื่อนไขทั้งหมด</h5>
+      <h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-list me-2"></i>รายการเงื่อนไขทั้งหมด (ภาพรวม)</h5>
       <div class="table-responsive">
         <table class="table table-bordered table-striped align-middle text-center">
           <thead class="table-dark">
@@ -61,7 +82,7 @@
     </div>
   </div>
 
-  <!-- Form View -->
+  <!-- Form View สำหรับแก้ไข/เพิ่ม Matrix Cell -->
   <div id="matrixFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchMatrixView('matrixListView')">
@@ -96,7 +117,7 @@
         </div>
         <div class="text-end mt-2">
           <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchMatrixView('matrixListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitMatrixBtn">บันทึกข้อมูล</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitMatrixBtn">บันทึกเงื่อนไข</button>
         </div>
       </form>
     </div>
@@ -106,6 +127,7 @@
 
 <script>
   var globalMatrixList = [];
+  var globalTargetList = []; // 🌟 เก็บข้อมูล Target
   var globalProductsForMatrix = [];
   var isMatrixDataLoaded = false;
   var isMatrixEditMode = false;
@@ -114,23 +136,18 @@
   var dynamicPotentialOpts = [];
   var dynamicClassOpts = [];
 
-  // 🌟 กำหนดลำดับการจัดเรียง (Sorting Template) ตามรูป
   var potentialSortOrder = ['No', 'Low', 'Medium', 'High'];
   var adoptionSortOrder = ['High', 'Medium-High', 'Medium', 'Medium-Low', 'Low', 'Non User'];
 
-  // ฟังก์ชันจัดเรียง
   function customSortOptions(optionsArray, templateArray) {
     const lowerTemplate = templateArray.map(v => v.toLowerCase());
     return optionsArray.sort((a, b) => {
       let indexA = lowerTemplate.indexOf(a.toLowerCase());
       let indexB = lowerTemplate.indexOf(b.toLowerCase());
-      
-      // ถ้าหาไม่เจอใน Template ให้เอาไปต่อท้ายสุด (999)
       if(indexA === -1) indexA = 999;
       if(indexB === -1) indexB = 999;
-      
       if(indexA !== indexB) return indexA - indexB;
-      return a.localeCompare(b); // ถ้าไม่เจอทั้งคู่ให้เรียงตามตัวอักษร
+      return a.localeCompare(b); 
     });
   }
 
@@ -162,7 +179,7 @@
 
       globalProductsForMatrix = prodRes.data || [];
       let pOptions = '<option value="">- เลือกสินค้า -</option>';
-      let pfOptions = '<option value="">- ดูภาพรวมทุกสินค้า (List) -</option>';
+      let pfOptions = '<option value="">- เลือกสินค้าเพื่อเริ่มตั้งค่า -</option>';
       globalProductsForMatrix.forEach(p => { 
         pOptions += `<option value="${p.Product_ID}">${p.Product}</option>`;
         pfOptions += `<option value="${p.Product_ID}">${p.Product}</option>`;
@@ -177,7 +194,6 @@
       const potType = types.find(t => t.Name.toLowerCase() === 'potential');
       const classType = types.find(t => t.Name.toLowerCase() === 'classification');
 
-      // ดึงข้อมูลและนำไปจัดเรียงด้วยฟังก์ชัน Custom Sort
       let rawAdopt = adoptType ? indexes.filter(i => i.IndexType_ID === adoptType.IndexType_ID).map(i => i.Value) : [];
       let rawPot = potType ? indexes.filter(i => i.IndexType_ID === potType.IndexType_ID).map(i => i.Value) : [];
       
@@ -193,19 +209,25 @@
       document.getElementById('matrixPot').innerHTML = potHtml;
       document.getElementById('matrixClass').innerHTML = classHtml;
 
-      loadMatrixData();
+      loadData();
     } catch (err) {
-      console.error("Error loading initial data for Matrix:", err.message);
+      console.error("Error loading initial data:", err.message);
     }
   }
 
-  async function loadMatrixData() {
+  // 🌟 ดึงข้อมูล Matrix และ Target พร้อมกัน
+  async function loadData() {
     isMatrixDataLoaded = false;
     try {
-      const { data, error } = await supabaseClient.from('Rating_Matrix').select('*');
-      if (error) throw error;
+      const [matrixRes, targetRes] = await Promise.all([
+        supabaseClient.from('Rating_Matrix').select('*'),
+        supabaseClient.from('Target').select('*')
+      ]);
 
-      globalMatrixList = data.map(m => {
+      if (matrixRes.error) throw matrixRes.error;
+      if (targetRes.error) throw targetRes.error;
+
+      globalMatrixList = matrixRes.data.map(m => {
         const prodInfo = globalProductsForMatrix.find(p => p.Product_ID === m.Product_ID);
         return {
           compositeId: `${m.Product_ID}|${m.Adoption}|${m.Potential}`,
@@ -216,6 +238,8 @@
           classification: m.Classification
         };
       });
+
+      globalTargetList = targetRes.data || [];
 
       isMatrixDataLoaded = true;
       filterMatrix();
@@ -236,12 +260,13 @@
       visualWrapper.classList.remove('d-none');
       tableWrapper.classList.add('d-none');
       renderVisualMatrixGrid(prodTerm);
+      renderTargetInputs(prodTerm); // 🌟 วาดฟอร์ม Target ด้วย
     } else {
       visualWrapper.classList.add('d-none');
       tableWrapper.classList.remove('d-none');
       tbody.innerHTML = '';
       
-      if(!globalMatrixList.length) return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีข้อมูล Matrix ในระบบ</td></tr>';
+      if(!globalMatrixList.length) return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีข้อมูลในระบบ</td></tr>';
 
       globalMatrixList.forEach(m => {
         const color = getClassificationColor(m.classification);
@@ -257,58 +282,40 @@
     }
   }
 
-  // 🌟 ฟังก์ชันวาดรูปตาราง (มี Label ตามแกน)
   function renderVisualMatrixGrid(productId) {
     const prodInfo = globalProductsForMatrix.find(p => p.Product_ID === productId);
-    document.getElementById('visualMatrixTitle').innerHTML = `<i class="fa-solid fa-border-all me-2"></i>ตาราง Matrix: <span class="text-dark">${prodInfo ? prodInfo.Product : 'Unknown'}</span>`;
+    document.getElementById('visualMatrixTitle').innerHTML = `<i class="fa-solid fa-border-all me-2"></i>1. โครงสร้างเงื่อนไขลูกค้า: <span class="text-dark">${prodInfo ? prodInfo.Product : 'Unknown'}</span>`;
     
     let html = '<table class="table table-borderless text-center align-middle mb-0" style="min-width: 700px;">';
-    
     const numPotCols = dynamicPotentialOpts.length;
     const numAdoptRows = dynamicAdoptionOpts.length;
     
-    // Header Row 1: ตัวหนังสือ Potential ตรงกลางด้านบน
-    html += '<tr>';
-    html += '<td colspan="2"></td>';
-    html += `<td colspan="${numPotCols}" class="fw-bold fs-5 text-dark pb-2" style="letter-spacing: 1px;">Potential</td>`;
-    html += '</tr>';
+    html += '<tr><td colspan="2"></td>';
+    html += `<td colspan="${numPotCols}" class="fw-bold fs-5 text-dark pb-2" style="letter-spacing: 1px;">Potential</td></tr>`;
 
-    // Header Row 2: ตัวเลือกแกน X
-    html += '<tr>';
-    html += '<td colspan="2" style="width: 20%; padding: 10px;"></td>'; // พื้นที่ว่างมุมซ้ายบน
+    html += '<tr><td colspan="2" style="width: 20%; padding: 10px;"></td>'; 
     const colWidth = 80 / (numPotCols || 1);
     dynamicPotentialOpts.forEach(pot => {
       html += `<td style="width: ${colWidth}%; padding: 10px;"><div class="matrix-axis-label">${pot}</div></td>`;
     });
     html += '</tr>';
 
-    // Body Rows: ตัวอักษร Adoption และข้อมูลด้านใน
     dynamicAdoptionOpts.forEach((adopt, index) => {
       html += '<tr>';
-      
-      // ตัวหนังสือ Adoption เรียงแนวตั้ง (ดึงให้คร่อมทุกแถวของแกน Y)
       if (index === 0) {
         html += `<td rowspan="${numAdoptRows}" class="fw-bold fs-5 text-dark px-0" style="writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; width: 5%; letter-spacing: 1px;">Adoption</td>`;
       }
-      
-      // ตัวเลือกแกน Y
       html += `<td style="width: 15%; padding: 10px;"><div class="matrix-axis-label">${adopt}</div></td>`;
       
-      // สร้างกล่อง Matrix (แกนตัดกัน)
       dynamicPotentialOpts.forEach(pot => {
         const record = globalMatrixList.find(m => m.productId === productId && m.adoption === adopt && m.potential === pot);
-        
         if (record) {
           const color = getClassificationColor(record.classification);
           html += `
           <td style="padding: 10px;">
             <div class="matrix-box" onclick="openEditMatrixView('${record.compositeId}')">
-              <div class="matrix-top" style="background-color: ${color.bg}; color: ${color.text};">
-                <h5 class="fw-bold mb-0">${record.classification}</h5>
-              </div>
-              <div class="matrix-bottom" title="${adopt} / ${pot}">
-                <i class="fa-solid fa-pen fa-xs me-1"></i> ${adopt} + ${pot}
-              </div>
+              <div class="matrix-top" style="background-color: ${color.bg}; color: ${color.text};"><h5 class="fw-bold mb-0">${record.classification}</h5></div>
+              <div class="matrix-bottom" title="${adopt} / ${pot}"><i class="fa-solid fa-pen fa-xs me-1"></i> ${adopt} + ${pot}</div>
             </div>
           </td>`;
         } else {
@@ -323,8 +330,74 @@
       html += '</tr>';
     });
     html += '</table>';
-    
     document.getElementById('visualMatrixContainer').innerHTML = html;
+  }
+
+  // 🌟 ฟังก์ชันวาดช่องกรอก Target
+  function renderTargetInputs(productId) {
+    const container = document.getElementById('targetInputContainer');
+    let html = '';
+
+    dynamicClassOpts.forEach(cls => {
+      // ค้นหาว่ามี Target ของสินค้านี้ และ Classification นี้ เซฟไว้หรือยัง
+      const targetData = globalTargetList.find(t => t.Product_ID === productId && t.Classification === cls);
+      const val = targetData ? targetData.Target : '';
+      const color = getClassificationColor(cls);
+
+      html += `
+        <div class="d-flex align-items-center bg-white p-3 border shadow-sm" style="border-radius: 12px; min-width: 200px; flex: 1;">
+          <span class="badge fs-4 me-3" style="background-color: ${color.bg}; color: ${color.text}; width: 50px;">${cls}</span>
+          <div class="flex-grow-1">
+            <label class="text-muted small fw-bold mb-1">Target Call</label>
+            <input type="number" class="form-control target-input" data-class="${cls}" value="${val}" min="0" placeholder="0">
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  }
+
+  // 🌟 ฟังก์ชันบันทึก Target ทั้งหมดของสินค้านั้น
+  async function saveTargetCalls() {
+    const prodId = document.getElementById('filterMatrixProduct').value;
+    if(!prodId) return alert("กรุณาเลือกสินค้าก่อนครับ");
+
+    const btn = document.getElementById('btnSaveTarget');
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>บันทึก...`;
+
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const inputs = document.querySelectorAll('.target-input');
+    const payload = [];
+
+    inputs.forEach(inp => {
+      const val = inp.value.trim();
+      if(val !== "") {
+        payload.push({
+          Product_ID: prodId,
+          Classification: inp.getAttribute('data-class'),
+          Target: parseInt(val, 10),
+          Whoupdated: crmUser ? crmUser.Email : "Unknown"
+        });
+      }
+    });
+
+    try {
+      // ลบของเก่าที่เป็นของสินค้านี้ทิ้งก่อน แล้ว Insert ชุดใหม่เข้าไป
+      await supabaseClient.from('Target').delete().eq('Product_ID', prodId);
+      if(payload.length > 0) {
+        const { error } = await supabaseClient.from('Target').insert(payload);
+        if (error) throw error;
+      }
+      alert("✅ บันทึกเป้าหมายการเข้าพบ (Target Call) สำเร็จ");
+      await loadData(); // รีเฟรชข้อมูลเบื้องหลัง
+    } catch(err) {
+      alert("❌ บันทึก Target ไม่สำเร็จ: " + err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-save me-2"></i>บันทึก Target`;
+    }
   }
 
   function getClassificationColor(cls) {
@@ -349,10 +422,8 @@
     isMatrixEditMode = false;
     document.getElementById('matrixFormTitle').innerHTML = '<i class="fa-solid fa-plus-circle me-2"></i>เพิ่มเงื่อนไข Matrix ใหม่';
     document.getElementById('matrixForm').reset();
-    
     const currentFilter = document.getElementById('filterMatrixProduct').value;
     if (currentFilter) document.getElementById('matrixProduct').value = currentFilter;
-
     switchMatrixView('matrixFormView');
   }
 
@@ -370,7 +441,6 @@
     document.getElementById('matrixAdopt').value = m.adoption;
     document.getElementById('matrixPot').value = m.potential;
     document.getElementById('matrixClass').value = m.classification;
-
     switchMatrixView('matrixFormView');
   }
 
@@ -402,20 +472,11 @@
         const oldPot = document.getElementById('editMatrixOldPot').value;
 
         if (oldProductId !== newProductId || oldAdopt !== newAdopt || oldPot !== newPot) {
-          await supabaseClient.from('Rating_Matrix')
-            .delete()
-            .eq('Product_ID', oldProductId)
-            .eq('Adoption', oldAdopt)
-            .eq('Potential', oldPot);
-            
+          await supabaseClient.from('Rating_Matrix').delete().eq('Product_ID', oldProductId).eq('Adoption', oldAdopt).eq('Potential', oldPot);
           const { error } = await supabaseClient.from('Rating_Matrix').insert([payload]);
           if (error) throw error;
         } else {
-          const { error } = await supabaseClient.from('Rating_Matrix')
-            .update({ Classification: newClass, Whoupdated: payload.Whoupdated })
-            .eq('Product_ID', oldProductId)
-            .eq('Adoption', oldAdopt)
-            .eq('Potential', oldPot);
+          const { error } = await supabaseClient.from('Rating_Matrix').update({ Classification: newClass, Whoupdated: payload.Whoupdated }).eq('Product_ID', oldProductId).eq('Adoption', oldAdopt).eq('Potential', oldPot);
           if (error) throw error;
         }
       } else {
@@ -428,11 +489,11 @@
 
       document.getElementById('filterMatrixProduct').value = newProductId;
       switchMatrixView('matrixListView');
-      loadMatrixData(); 
+      loadData(); 
     } catch (err) {
       alert("❌ บันทึกไม่สำเร็จ: " + err.message);
     } finally {
-      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล";
+      btn.disabled = false; btn.innerHTML = "บันทึกเงื่อนไข";
     }
   }
 </script>
