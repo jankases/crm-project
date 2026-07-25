@@ -35,7 +35,7 @@
             </tr>
           </thead>
           <tbody id="userTableBody">
-            <tr><td colspan="6" class="text-center py-4">กำลังโหลด...</td></tr>
+            <tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
           </tbody>
         </table>
       </div>
@@ -74,6 +74,8 @@
               <option value="Sales">Sales (เซลส์พื้นที่)</option>
               <option value="Manager">Manager (ผู้จัดการทีม)</option>
               <option value="BU Head">BU Head (หัวหน้าหมวดธุรกิจ)</option>
+              <option value="Product Manager">Product Manager (ผู้จัดการผลิตภัณฑ์)</option>
+              <option value="Staff">Staff (ส่วนกลาง/เลขา)</option>
               <option value="Admin">Admin (ผู้ดูแลระบบสูงสุด)</option>
             </select>
           </div>
@@ -136,6 +138,8 @@
               <option value="Sales">Sales</option>
               <option value="Manager">Manager</option>
               <option value="BU Head">BU Head</option>
+              <option value="Product Manager">Product Manager</option>
+              <option value="Staff">Staff</option>
               <option value="Admin">Admin</option>
             </select>
           </div>
@@ -222,7 +226,6 @@
   var globalBUsDropdown = []; 
   var currentSelectedUserId = ""; 
 
-  // 🌟 แก้ไขจุดนี้: เปลี่ยนจาก window.addEventListener เป็น setTimeout 
   setTimeout(async function() { 
     await loadScopeDropdowns(); 
   }, 300);
@@ -266,7 +269,8 @@
       globalUsers = users.map(u => {
         let tName = "-";
         
-        if (!u.Territory_ID) {
+        // ให้ Admin, Product Manager และ Staff เห็นข้อมูลทั้งหมด
+        if (!u.Territory_ID || ['Admin', 'Product Manager', 'Staff'].includes(u.Role)) {
           tName = '<span class="badge bg-danger">ALL (ดูแลทั้งหมด)</span>';
         } else {
           if (u.Role === 'Sales') {
@@ -311,7 +315,8 @@
     
     scopeSelect.innerHTML = '';
 
-    if (role === 'Admin') {
+    // 🌟 3 กลุ่มนี้ดูแลทั้งหมด
+    if (['Admin', 'Product Manager', 'Staff'].includes(role)) {
       label.innerHTML = 'ขอบเขตความรับผิดชอบ (Scope)';
       scopeSelect.innerHTML = '<option value="">ALL (ดูแลทั้งหมด)</option>';
       scopeSelect.value = ''; 
@@ -364,7 +369,14 @@
     
     data.forEach(u => {
       const badgeClass = u.status === 'Active' ? 'bg-success' : 'bg-danger';
-      const roleBadge = u.role === 'Admin' ? 'bg-danger' : (u.role === 'BU Head' ? 'bg-dark' : (u.role === 'Manager' ? 'bg-primary' : 'bg-info text-dark'));
+      
+      // จัดการสีป้าย Role ให้สวยงามแยกตามตำแหน่ง
+      let roleBadge = 'bg-info text-dark';
+      if (u.role === 'Admin') roleBadge = 'bg-danger';
+      else if (u.role === 'BU Head') roleBadge = 'bg-dark';
+      else if (u.role === 'Manager') roleBadge = 'bg-primary';
+      else if (u.role === 'Product Manager') roleBadge = 'bg-warning text-dark';
+      else if (u.role === 'Staff') roleBadge = 'bg-secondary';
       
       tbody.innerHTML += `
         <tr>
@@ -398,7 +410,7 @@
     if(!u) return;
 
     let tName = "-";
-    if (!u.territoryId) tName = 'ALL (ดูแลทั้งหมด)';
+    if (!u.territoryId || ['Admin', 'Product Manager', 'Staff'].includes(u.role)) tName = 'ALL (ดูแลทั้งหมด)';
     else if (u.role === 'Sales') tName = (globalTerritoriesDropdown.find(t => t.Territory_ID === u.territoryId) || {}).Territory || u.territoryId;
     else if (u.role === 'Manager') tName = (globalTeamsDropdown.find(t => t.Team_ID === u.territoryId) || {}).Team || u.territoryId;
     else if (u.role === 'BU Head') tName = (globalBUsDropdown.find(b => b.BU_ID === u.territoryId) || {}).BU || u.territoryId;
@@ -462,7 +474,10 @@
     btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
     
     let terId = document.getElementById('territoryId').value;
-    if (terId === "") terId = null; 
+    // เคลียร์ Territory_ID ทิ้งเป็นค่าว่าง ถ้าเป็น Role ที่ดูภาพรวมทั้งหมด
+    if (['Admin', 'Product Manager', 'Staff'].includes(document.getElementById('role').value) || terId === "") {
+        terId = null; 
+    }
 
     const payload = { 
       Rep_Name: document.getElementById('repName').value.trim(), 
@@ -502,7 +517,9 @@
     btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
     
     let terId = document.getElementById('editTerritoryId').value;
-    if (terId === "") terId = null;
+    if (['Admin', 'Product Manager', 'Staff'].includes(document.getElementById('editRole').value) || terId === "") {
+        terId = null; 
+    }
 
     const repId = document.getElementById('editRepId').value;
 
