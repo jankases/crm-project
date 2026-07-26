@@ -1,23 +1,17 @@
-<!-- นำเข้าไลบรารีปฏิทิน (Flatpickr) เพื่อแก้ปัญหาปฏิทินไม่ขึ้น -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
 <style>
-  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad ได้ดีขึ้น */
-  .visit-filter-group .form-control, .visit-filter-group .form-select {
-    min-height: 42px; border-radius: 10px;
-  }
-  .table-visit th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
-  .table-visit td { vertical-align: middle; }
-  .tom-select .ts-control { border-radius: 10px; min-height: 42px; padding: 10px 15px; }
-  @media (max-width: 991px) { .filter-col { margin-bottom: 10px; } }
+  .visit-card { border-radius: 15px; }
+  .form-control, .form-select { min-height: 42px; border-radius: 10px; }
   
-  /* บังคับปฏิทินให้อยู่หน้าสุด */
-  .flatpickr-calendar { z-index: 9999 !important; }
-
-  /* Effect สำหรับปุ่มไมค์ตอนกำลังฟังเสียง */
-  .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
-  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+  /* ตกแต่งปุ่มไมค์ขณะอัดเสียง */
+  .mic-active { 
+    animation: pulse-red 1.5s infinite; 
+    border-color: #dc3545 !important; 
+  }
+  @keyframes pulse-red { 
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
+  }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -26,183 +20,142 @@
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>ประวัติการบันทึกเยี่ยม</h3>
-        <p class="text-muted mb-0">รายการเข้าพบแพทย์และบันทึกกิจกรรม (Visit Logs)</p>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>ประวัติการบันทึกเยี่ยม (Visit Logs)</h3>
+        <p class="text-muted mb-0">รายการเข้าพบแพทย์และบันทึกกิจกรรมประจำวัน</p>
       </div>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitModal()">
+      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
         <i class="fa-solid fa-plus me-2"></i>สร้างบันทึกใหม่
       </button>
     </div>
 
     <!-- ส่วนค้นหา (Filters) -->
-    <div class="row mb-4 visit-filter-group">
-      <div class="col-sm-6 col-md-4 col-lg-2 filter-col">
-        <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
-        <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()"><option value="">- All Reps -</option></select>
-      </div>
-      <div class="col-sm-6 col-md-4 col-lg-2 filter-col">
-        <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
-        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()"><option value="">- All Territories -</option></select>
-      </div>
-      <div class="col-sm-12 col-md-4 col-lg-3 filter-col">
-        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาแพทย์ (Doctor)</label>
+    <div class="row mb-4 g-3">
+      <div class="col-sm-12 col-md-6 col-lg-4">
+        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาแพทย์ หรือ สินค้า</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="พิมพ์หรือพูดชื่อแพทย์..." onkeyup="filterVisits()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearchVisit" onclick="toggleSearchVisitDictation()" title="ค้นหาด้วยเสียง">
-            <i class="fa-solid fa-microphone text-muted" id="micSearchVisitIcon"></i>
-          </button>
+          <input type="text" class="form-control border-start-0 ps-0" id="filterVisitSearch" placeholder="พิมพ์ชื่อแพทย์ หรือ สินค้า..." onkeyup="filterVisits()">
         </div>
-      </div>
-      <div class="col-sm-6 col-md-6 col-lg-3 filter-col">
-        <label class="form-label fw-bold text-secondary small mb-1">สินค้า (Product)</label>
-        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()"><option value="">- All Products -</option></select>
-      </div>
-      <div class="col-sm-6 col-md-6 col-lg-2 filter-col">
-        <label class="form-label fw-bold text-secondary small mb-1">สถานะ (Status)</label>
-        <select class="form-select shadow-sm border-primary" id="filterVisitStatus" onchange="filterVisits()">
-          <option value="">- All Status -</option>
-          <option value="Pending">⏳ Pending</option>
-          <option value="Submitted">✅ Submitted</option>
-        </select>
       </div>
     </div>
 
-    <!-- ตารางข้อมูล -->
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+    <!-- ตารางประวัติ -->
+    <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
-        <table class="table table-hover table-visit align-middle" style="font-size: 0.95rem;">
-          <thead class="text-center">
-            <tr><th>วันที่ (Date)</th><th>แพทย์ (Doctor)</th><th>สินค้า (Product)</th><th>วัตถุประสงค์ (Purpose)</th><th>สถานะ (Status)</th><th>จัดการ (Action)</th></tr>
+        <table class="table table-hover align-middle" style="font-size: 0.95rem;">
+          <thead class="table-light text-center">
+            <tr>
+              <th class="py-3">วันที่ (Date)</th>
+              <th class="py-3">แพทย์ (Doctor)</th>
+              <th class="py-3">สินค้า (Product)</th>
+              <th class="py-3">วัตถุประสงค์ (Purpose)</th>
+              <th class="py-3">สถานะ (Status)</th>
+              <th class="py-3">จัดการ (Action)</th>
+            </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= 2. หน้าฟอร์มบันทึกเยี่ยม ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="closeVisitForm(true)">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchVisitView('visitListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <h4 class="text-primary fw-bold mb-0" id="visitViewTitle">📑 บันทึกการเข้าพบคุณหมอ</h4>
+      <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 บันทึกข้อมูลการเข้าพบ</h4>
     </div>
 
-    <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
-      <form id="visitLogForm" onsubmit="handleSubmitVisit(event)">
+    <div class="card p-4 p-md-5 border-0 shadow-sm visit-card">
+      <form id="visitForm" onsubmit="handleSaveVisit(event)">
         <input type="hidden" id="visitId">
-        
-        <!-- โซนข้อมูลพนักงาน -->
-        <div class="row mb-4 bg-light p-3 rounded-3 border">
-          <div class="col-md-6 mb-2 mb-md-0">
-            <label class="form-label fw-bold text-muted small mb-1"><i class="fa-solid fa-user-tag me-1"></i> ผู้แทนขาย (Sales Rep)</label>
-            <div class="fw-bold text-dark fs-6" id="visitRepNameDisplay">-</div>
-            <input type="hidden" id="visitRepId">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-bold text-muted small mb-1"><i class="fa-solid fa-map-location-dot me-1"></i> เขตพื้นที่ (Territory)</label>
-            <div class="fw-bold text-dark fs-6" id="visitTerritoryNameDisplay">-</div>
-            <input type="hidden" id="visitTerritoryId">
+
+        <!-- ส่วนข้อมูลผู้แทน -->
+        <div class="p-3 rounded-4 mb-4 border bg-light">
+          <div class="row align-items-center">
+            <div class="col-md-6 mb-2 mb-md-0">
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i>ผู้แทนขาย (Sales Rep)</span>
+              <span class="fw-bold text-dark fs-6" id="dispSalesRepName">-</span>
+            </div>
           </div>
         </div>
 
-        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
-        <div class="row mb-4">
-          <div class="col-md-6 mb-3">
-            <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor)</label>
-            <!-- 🌟 เพิ่มกล่อง d-flex และปุ่มไมค์ตรงนี้ -->
-            <div class="d-flex gap-2">
-              <div class="flex-grow-1">
-                <select class="form-select" id="visitDocId" required><option value="">-- กำลังโหลดข้อมูล... --</option></select>
+        <!-- โซนเลือกคุณหมอ และ สินค้า -->
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
+          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
+          
+          <div class="row g-3">
+            <!-- 🌟 ค้นหาคุณหมอพร้อมปุ่มไมค์พูดภาษาไทย-อังกฤษ -->
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor) <span class="text-danger">*</span></label>
+              <div class="input-group shadow-sm" style="border-radius: 10px; overflow: visible;">
+                <select class="form-select bg-white" id="visitDocId" required style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                  <option value="">-- ค้นหา/เลือกคุณหมอ --</option>
+                </select>
+                <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="กดพูดเพื่อค้นหาชื่อหมอ (ไทย/EN)">
+                  <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                </button>
               </div>
-              <button type="button" class="btn btn-outline-danger shadow-sm px-3" id="btnMicDocSelect" onclick="toggleDocSelectDictation()" title="ค้นหาหมอด้วยเสียง" style="border-radius: 10px;">
-                <i class="fa-solid fa-microphone" id="micDocSelectIcon"></i>
-              </button>
+              <small class="text-muted" style="font-size:0.75rem;">💡 กดไอคอนไมค์ แล้วพูดชื่อหมอภาษาไทย หรือ ภาษาอังกฤษได้เลย</small>
+            </div>
+
+            <!-- เลือกสินค้า -->
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product) <span class="text-danger">*</span></label>
+              <select class="form-select bg-white shadow-sm" id="visitProductId" required>
+                <option value="">-- ค้นหา/เลือกสินค้า --</option>
+              </select>
             </div>
           </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product)</label>
-            <select class="form-select" id="visitProductId" required><option value="">-- กำลังโหลดข้อมูล... --</option></select>
-          </div>
-        </div>
 
-        <div class="row mb-4">
-          <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold text-dark">วันที่เข้าพบ (Date)</label>
-            <div class="input-group">
-              <span class="input-group-text bg-white text-primary"><i class="fa-solid fa-calendar-day"></i></span>
-              <input type="text" class="form-control bg-white" id="visitDate" required placeholder="เลือกวันที่">
+          <div class="row g-3 mt-1">
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-dark">วันที่เข้าพบ (Date) <span class="text-danger">*</span></label>
+              <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-dark">เวลาเริ่ม (Start)</label>
+              <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-dark">เวลาสิ้นสุด (End)</label>
+              <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
             </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold text-dark">เวลาเริ่ม (Start)</label>
-            <input type="time" class="form-control" id="visitStartTime" style="min-height: 42px; border-radius: 10px;" required>
-          </div>
-          <div class="col-md-4 mb-3">
-            <label class="form-label fw-bold text-dark">เวลาสิ้นสุด (End)</label>
-            <input type="time" class="form-control" id="visitEndTime" style="min-height: 42px; border-radius: 10px;" required>
-          </div>
         </div>
 
-        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2 mt-4"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
-        
-        <div class="mb-4">
-          <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose)</label>
-          <select class="form-select" id="visitPurpose" style="min-height: 42px; border-radius: 10px;" required>
-            <option value="">-- กำลังโหลดข้อมูล... --</option>
-          </select>
-        </div>
-
-        <!-- โซนรายละเอียดงาน (Details) -->
-        <div class="mb-4">
-          <div class="d-flex flex-wrap justify-content-between align-items-end mb-2 gap-2">
-            <label class="form-label fw-bold text-dark mb-0">รายละเอียด/ข้อคิดเห็น (Details)</label>
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMicDetails" onclick="toggleDictation('visitDetails', 'btnMicDetails')">
-                <i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์
-              </button>
+        <!-- รายละเอียดกิจกรรม -->
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
+          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
+          <div class="row g-3">
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose) <span class="text-danger">*</span></label>
+              <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
+                <option value="">-- เลือกวัตถุประสงค์ --</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">สถานะการบันทึก (Status)</label>
+              <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
+                <option value="Submitted" class="text-success">Submitted (ส่งบันทึกแล้ว)</option>
+                <option value="Draft" class="text-warning">Draft (แบบร่าง)</option>
+              </select>
+            </div>
+            <div class="col-md-12 mb-2">
+              <label class="form-label fw-bold text-dark">บันทึกรายละเอียดเพิ่มเติม (Remarks)</label>
+              <textarea class="form-control bg-white shadow-sm" id="visitRemarks" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือ Action Plan ถัดไป..."></textarea>
             </div>
           </div>
-          <textarea class="form-control" id="visitDetails" rows="4" style="border-radius: 10px;" placeholder="พิมพ์ หรือ กดปุ่มไมค์แล้วพูดรายละเอียดการพูดคุย..." required></textarea>
         </div>
 
-        <!-- โซนสิ่งที่จะทำต่อ (Next Action) -->
-        <div class="mb-4">
-          <div class="d-flex flex-wrap justify-content-between align-items-end mb-2 gap-2">
-            <label class="form-label fw-bold text-dark mb-0">สิ่งที่จะทำต่อ (Next Action)</label>
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMicNextAction" onclick="toggleDictation('visitNextAction', 'btnMicNextAction')">
-                <i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์
-              </button>
-            </div>
-          </div>
-          <textarea class="form-control" id="visitNextAction" rows="2" style="border-radius: 10px;" placeholder="เช่น นัดพบครั้งต่อไป, ส่งเอกสารเพิ่มเติม"></textarea>
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchVisitView('visitListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn">💾 บันทึกข้อมูล</button>
         </div>
-
-        <div class="p-4 border rounded-4 mb-4" style="background-color: #f4f6f9;">
-          <label class="form-label fw-bold text-dark fs-5 mb-3">📌 สถานะรายการ (Status)</label>
-          <select class="form-select border-primary fw-bold text-primary fs-5" id="visitStatus" style="min-height: 50px; border-radius: 10px;" required>
-            <option value="Pending">⏳ Pending (บันทึกร่าง)</option>
-            <option value="Submitted">✅ Submitted (ส่งข้อมูลสมบูรณ์)</option>
-          </select>
-        </div>
-
-        <div class="d-flex justify-content-between border-top pt-4 mt-4">
-          <div>
-            <button type="button" class="btn btn-outline-danger fw-bold px-4 rounded-pill d-none py-2" id="btnDeleteVisit" onclick="deleteVisit()">
-              <i class="fa-solid fa-trash me-2"></i>ลบข้อมูล
-            </button>
-          </div>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="closeVisitForm(true)">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="btnSubmitVisit">บันทึกข้อมูล (Save)</button>
-          </div>
-        </div>
-
       </form>
     </div>
   </div>
@@ -210,479 +163,335 @@
 </div>
 
 <script>
-  var globalVisitsList = [];
-  var globalTerritories = []; 
-  var globalDoctors = [];
-  var globalProducts = [];
-  var globalReps = [];
-  var isVisitEditMode = false;
-  var visitDatePicker; 
-  var isVisitDataLoaded = false; 
+  var globalVisits = [];
+  var globalDoctorsList = [];
+  var tomSelectDocInstance = null;
 
-  // ===================== 🌟 ระบบ Voice to Text สำหรับค้นหาชื่อแพทย์ในหน้า List (ตาราง) =====================
-  var searchVisitRecognition;
-  var isSearchVisitRecording = false;
+  // ===================== 🎙️ ระบบค้นหาหมอด้วยเสียง (รองรับ TH / EN) =====================
+  var docSpeechRecognition;
+  var isDocRecording = false;
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    searchVisitRecognition = new SpeechRecognition();
-    searchVisitRecognition.lang = 'th-TH'; 
-    searchVisitRecognition.continuous = false; 
-    searchVisitRecognition.interimResults = false; 
+    docSpeechRecognition = new SpeechRecognition();
+    
+    // ตั้งค่าภาษาหลักเป็น TH (ถอดความคำทับศัพท์ภาษาอังกฤษให้อัตโนมัติ)
+    docSpeechRecognition.lang = 'th-TH'; 
+    docSpeechRecognition.continuous = false;
+    docSpeechRecognition.interimResults = false;
 
-    searchVisitRecognition.onresult = function(event) {
-      let finalTranscript = '';
+    docSpeechRecognition.onresult = function(event) {
+      let spokenText = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+        if (event.results[i].isFinal) spokenText += event.results[i][0].transcript;
       }
-      if (finalTranscript) {
-        document.getElementById('filterVisitDoctor').value = finalTranscript.trim();
-        filterVisits(); 
-        stopSearchVisitDictation(); 
+      spokenText = spokenText.trim();
+      if (spokenText) {
+        searchAndSelectDoctor(spokenText);
       }
+      stopDocDictation();
     };
-    searchVisitRecognition.onerror = function(event) { stopSearchVisitDictation(); };
-    searchVisitRecognition.onend = function() { if(isSearchVisitRecording) stopSearchVisitDictation(); };
-  }
 
-  function toggleSearchVisitDictation() {
-    if (!searchVisitRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    if (isSearchVisitRecording) { 
-      stopSearchVisitDictation(); 
-    } else {
-      isSearchVisitRecording = true;
-      searchVisitRecognition.start();
-      const btn = document.getElementById('btnMicSearchVisit');
-      const icon = document.getElementById('micSearchVisitIcon');
-      btn.classList.remove('bg-white'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
-      icon.classList.remove('text-muted', 'fa-microphone'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
-      document.getElementById('filterVisitDoctor').placeholder = "กำลังฟัง... พูดชื่อแพทย์ได้เลย";
-    }
-  }
-
-  function stopSearchVisitDictation() {
-    isSearchVisitRecording = false;
-    if(searchVisitRecognition) searchVisitRecognition.stop();
-    const btn = document.getElementById('btnMicSearchVisit');
-    const icon = document.getElementById('micSearchVisitIcon');
-    if (btn && icon) {
-      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
-      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
-      document.getElementById('filterVisitDoctor').placeholder = "พิมพ์หรือพูดชื่อแพทย์...";
-    }
-  }
-
-  // ===================== 🌟 ระบบ Voice to Text สำหรับค้นหาคุณหมอในฟอร์ม (TomSelect) =====================
-  var docSelectRecognition;
-  var isDocSelectRecording = false;
-
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    docSelectRecognition = new SpeechRecognition();
-    docSelectRecognition.lang = 'th-TH'; 
-    docSelectRecognition.continuous = false; 
-    docSelectRecognition.interimResults = false; 
-
-    docSelectRecognition.onresult = function(event) {
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
-      }
-      if (finalTranscript) {
-         let ts = document.getElementById('visitDocId').tomselect;
-         if(ts) {
-            ts.focus();
-            ts.setTextboxValue(finalTranscript.trim());
-         }
-         stopDocSelectDictation(); 
-      }
+    docSpeechRecognition.onerror = function(err) {
+      stopDocDictation();
     };
-    docSelectRecognition.onerror = function(event) { stopDocSelectDictation(); };
-    docSelectRecognition.onend = function() { if(isDocSelectRecording) stopDocSelectDictation(); };
+
+    docSpeechRecognition.onend = function() {
+      if (isDocRecording) stopDocDictation();
+    };
   }
 
-  function toggleDocSelectDictation() {
-    if (!docSelectRecognition) return alert("ไม่รองรับระบบสั่งงานด้วยเสียง");
-    if (isDocSelectRecording) { 
-      stopDocSelectDictation(); 
+  function toggleDocDictation() {
+    if (!docSpeechRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+
+    const btn = document.getElementById('btnMicDoc');
+    const icon = document.getElementById('micDocIcon');
+
+    if (isDocRecording) {
+      stopDocDictation();
     } else {
-      isDocSelectRecording = true;
-      docSelectRecognition.start();
-      const btn = document.getElementById('btnMicDocSelect');
-      const icon = document.getElementById('micDocSelectIcon');
-      btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
-      icon.classList.remove('fa-microphone'); icon.classList.add('fa-microphone-lines', 'fa-fade');
+      isDocRecording = true;
+      docSpeechRecognition.start();
       
-      let ts = document.getElementById('visitDocId').tomselect;
-      if(ts) {
-          ts.focus();
-          ts.setTextboxValue("กำลังฟัง...");
+      if (btn && icon) {
+        btn.classList.add('btn-danger', 'mic-active', 'text-white');
+        btn.classList.remove('bg-white');
+        icon.classList.add('fa-microphone-lines', 'fa-fade');
       }
     }
   }
 
-  function stopDocSelectDictation() {
-    isDocSelectRecording = false;
-    if(docSelectRecognition) docSelectRecognition.stop();
-    const btn = document.getElementById('btnMicDocSelect');
-    const icon = document.getElementById('micDocSelectIcon');
+  function stopDocDictation() {
+    isDocRecording = false;
+    if (docSpeechRecognition) docSpeechRecognition.stop();
+    
+    const btn = document.getElementById('btnMicDoc');
+    const icon = document.getElementById('micDocIcon');
+
     if (btn && icon) {
-      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('btn-outline-danger');
-      icon.classList.remove('fa-microphone-lines', 'fa-fade'); icon.classList.add('fa-microphone');
-    }
-    let ts = document.getElementById('visitDocId').tomselect;
-    if(ts && ts.control_input.value === "กำลังฟัง...") {
-        ts.setTextboxValue("");
+      btn.classList.remove('btn-danger', 'mic-active', 'text-white');
+      btn.classList.add('bg-white');
+      icon.classList.remove('fa-microphone-lines', 'fa-fade');
     }
   }
 
-  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์ช่องรายละเอียด) =====================
-  var recognition;
-  var isRecording = false;
-  var currentDictationTarget = null;
-  var currentMicBtn = null;
+  // 🌟 ฟังก์ชันจับคำพูดค้นหาทั้ง Name EN และ Name TH
+  function searchAndSelectDoctor(keyword) {
+    const docSelectEl = document.getElementById('visitDocId');
+    if (!docSelectEl) return;
 
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.lang = 'th-TH'; 
-    recognition.continuous = true; 
-    recognition.interimResults = true; 
+    const searchKey = keyword.toLowerCase();
 
-    recognition.onresult = function(event) {
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+    if (docSelectEl.tomselect) {
+      const ts = docSelectEl.tomselect;
+      ts.focus();
+      ts.setTextboxValue(keyword);
+
+      // วนลูปเช็คกับตัวเลือกทั้งหมดใน Dropdown
+      const options = ts.options;
+      let matchedDocId = null;
+
+      for (let id in options) {
+        const opt = options[id];
+        const nameEn = (opt.nameEn || opt.text || '').toLowerCase();
+        const nameTh = (opt.nameTh || '').toLowerCase();
+        
+        if (nameEn.includes(searchKey) || nameTh.includes(searchKey)) {
+          matchedDocId = id;
+          break;
+        }
       }
-      if (finalTranscript && currentDictationTarget) {
-        const targetBox = document.getElementById(currentDictationTarget);
-        targetBox.value += (targetBox.value ? ' ' : '') + finalTranscript;
+
+      if (matchedDocId) {
+        ts.setValue(matchedDocId);
       }
-    };
-
-    recognition.onerror = function(event) { stopDictation(); };
-    recognition.onend = function() { if(isRecording) stopDictation(); };
-  }
-
-  function toggleDictation(targetId, btnId) {
-    if (!recognition) { alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง"); return; }
-    if (isRecording) {
-      stopDictation();
-      if (currentMicBtn !== btnId) { startDictation(targetId, btnId); }
     } else {
-      startDictation(targetId, btnId);
-    }
-  }
-
-  function startDictation(targetId, btnId) {
-    isRecording = true; currentDictationTarget = targetId; currentMicBtn = btnId;
-    recognition.start();
-    const btn = document.getElementById(btnId);
-    btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-danger', 'mic-active');
-    btn.innerHTML = '<i class="fa-solid fa-microphone-lines fa-fade me-1"></i> กำลังฟัง...';
-  }
-
-  function stopDictation() {
-    isRecording = false; if(recognition) recognition.stop();
-    if (currentMicBtn) {
-      const btn = document.getElementById(currentMicBtn);
-      if (btn) {
-        btn.classList.remove('btn-danger', 'mic-active'); btn.classList.add('btn-outline-danger');
-        btn.innerHTML = '<i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์';
+      // กรณีใช้ <select> ปกติ
+      const matched = globalDoctorsList.find(d => 
+        (d.Doc_Name && d.Doc_Name.toLowerCase().includes(searchKey)) ||
+        (d.Doc_Name_TH && d.Doc_Name_TH.toLowerCase().includes(searchKey))
+      );
+      if (matched) {
+        docSelectEl.value = matched.Doc_ID;
+        docSelectEl.dispatchEvent(new Event('change'));
       }
     }
-    currentDictationTarget = null; currentMicBtn = null;
   }
 
   // ===================== ระบบโหลดข้อมูลหลัก =====================
-  setTimeout(async function() { 
-    // 🌟 โหลดปฏิทิน (Flatpickr) ให้ทำงานชัวร์ๆ
-    if (typeof flatpickr !== 'undefined') {
-      visitDatePicker = flatpickr("#visitDate", { 
-        altInput: true, altFormat: "d M Y", dateFormat: "Y-m-d", defaultDate: "today" 
-      });
-    }
-
-    await loadVisitDropdowns();
-    await loadVisitLogs();
+  setTimeout(async function() {
+    initUserInfo();
+    await loadDropdowns();
+    await loadVisits();
   }, 300);
-  
-  function switchVisitView(viewId) {
-    document.getElementById('visitListView').classList.add('d-none');
-    document.getElementById('visitFormView').classList.add('d-none');
-    document.getElementById(viewId).classList.remove('d-none');
-    window.scrollTo(0, 0); 
-  }
 
-  function closeVisitForm(isCancel = true) {
-    if(isRecording) stopDictation(); 
-    if(isDocSelectRecording) stopDocSelectDictation();
-    if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.clear();
-    if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.clear();
-    document.getElementById('visitLogForm').reset();
-    switchVisitView('visitListView'); 
-  }
-
-  async function loadVisitDropdowns() {
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
+  function initUserInfo() {
     try {
-      const [terRes, docRes, prodRes, typeRes, idxRes] = await Promise.all([
-        supabaseClient.from('Territory').select('Territory_ID, Territory'), 
-        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
-        supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active'),
+      const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
+      const repName = crmUser ? (crmUser.Rep_Name || crmUser.Email) : "Unknown Sales";
+      document.getElementById('dispSalesRepName').innerText = repName;
+    } catch(e) {}
+  }
+
+  function switchVisitView(viewId) {
+    ['visitListView', 'visitFormView'].forEach(v => {
+      const el = document.getElementById(v); if(el) el.classList.add('d-none');
+    });
+    const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
+    window.scrollTo(0, 0);
+  }
+
+  // 🌟 โหลดรายชื่อแพทย์ และ สินค้าเข้า Dropdown
+  async function loadDropdowns() {
+    try {
+      const [docRes, prodRes, typeRes, idxRes] = await Promise.all([
+        supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
 
-      globalTerritories = terRes.data || [];
-      const mappedDocs = (docRes.data || []).map(d => ({ id: d.Doc_ID, name: d.Doc_Name || d.Doc_Name_TH || d.Doc_ID }));
-      const mappedProds = (prodRes.data || []).map(p => ({ id: p.Product_ID, name: p.Product }));
-      globalDoctors = mappedDocs; globalProducts = mappedProds;
-
-      populateVisitSelect('visitDocId', mappedDocs, '-- ค้นหา/เลือกคุณหมอ --');
-      populateVisitSelect('visitProductId', mappedProds, '-- ค้นหา/เลือกสินค้า --');
-
-      const types = typeRes.data || []; const indexes = idxRes.data || [];
-      const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name === 'วัตถุประสงค์');
-      let purposeHtml = '<option value="">-- เลือกวัตถุประสงค์ --</option>';
-      if (purposeType) {
-        const purposes = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
-        purposes.forEach(p => purposeHtml += `<option value="${p.Value}">${p.Value}</option>`);
-      } else {
-        purposeHtml += '<option value="พบเพื่อสร้างความสัมพันธ์">พบเพื่อสร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>';
-      }
-      document.getElementById('visitPurpose').innerHTML = purposeHtml;
-
-      if (crmUser) {
-        document.getElementById('visitRepId').value = crmUser.Rep_ID || "-";
-        document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
-        document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "-";
-        const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-        document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory}` : crmUser.Territory_ID;
-      }
-    } catch (err) { console.error("Error loadVisitDropdowns:", err.message); }
-  }
-
-  async function loadVisitLogs() {
-    isVisitDataLoaded = false; 
-    const tbody = document.getElementById('visitTableBody'); 
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
-
-    try {
-      const repRes = await supabaseClient.from('Rep_Users').select('Rep_ID, Rep_Name');
-      globalReps = repRes.data || [];
-
-      const { data: visits, error } = await supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false }); 
-      if (error) throw error;
-
-      globalVisitsList = visits.map(v => {
-        const rep = globalReps.find(r => r.Rep_ID === v.Rep_ID);
-        const doc = globalDoctors.find(d => d.id === v.Doc_ID);
-        const prod = globalProducts.find(p => p.id === v.Product_ID);
-        const ter = globalTerritories.find(t => t.Territory_ID === v.Territory_ID);
-
-        return {
-          id: v.Visit_ID, date: v.Visit_Date || "-", dateRaw: v.Visit_Date, startTime: v.Start_Time, endTime: v.End_Time, 
-          purpose: v.Purpose, details: v.Details, nextAction: v.Next_Action, status: v.Status, 
-          repId: v.Rep_ID, repName: rep ? rep.Rep_Name : v.Rep_ID, docId: v.Doc_ID, docName: doc ? doc.name : v.Doc_ID,
-          prodId: v.Product_ID, prodName: prod ? prod.name : v.Product_ID, territoryId: v.Territory_ID, territoryName: ter ? ter.Territory : v.Territory_ID 
-        };
+      // 1. หมอ
+      globalDoctorsList = docRes.data || [];
+      const docSelect = document.getElementById('visitDocId');
+      docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
+      
+      globalDoctorsList.forEach(d => {
+        const titleShow = d.Title ? d.Title + ' ' : '';
+        const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
+        const opt = document.createElement('option');
+        opt.value = d.Doc_ID;
+        opt.textContent = `${titleShow}${d.Doc_Name}${nameThShow}`;
+        docSelect.appendChild(opt);
       });
 
-      isVisitDataLoaded = true;
-      setupVisitFilters(); filterVisits(); 
-    } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`; }
-  }
+      // Initialize TomSelect ให้ช่องหมอ
+      if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
+        tomSelectDocInstance = new TomSelect('#visitDocId', {
+          create: false,
+          sortField: { field: "text", direction: "asc" },
+          placeholder: "-- ค้นหา/เลือกคุณหมอ --"
+        });
+      }
 
-  function populateVisitSelect(id, arr, defaultText) {
-    let html = `<option value="">${defaultText}</option>`;
-    if (arr && arr.length > 0) { arr.forEach(item => html += `<option value="${item.id}">${item.name}</option>`); }
-    const el = document.getElementById(id);
-    if(el) {
-      if (el.tomselect) el.tomselect.destroy();
-      el.innerHTML = html;
-      new TomSelect(el, { create: false, sortField: { field: "text", direction: "asc" }, controlInput: '<input placeholder="พิมพ์เพื่อค้นหา...">' });
+      // 2. สินค้า & วัตถุประสงค์
+      const types = typeRes.data || [];
+      const indexes = idxRes.data || [];
+
+      const getOptionsHtml = (typeName) => {
+        const typeObj = types.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
+        let html = '<option value="">-- เลือก --</option>';
+        if (typeObj) {
+          const items = indexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
+          items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
+        }
+        return html;
+      };
+
+      document.getElementById('visitProductId').innerHTML = getOptionsHtml('Product');
+      document.getElementById('visitPurpose').innerHTML = getOptionsHtml('CallPurpose');
+
+    } catch (err) {
+      console.error("Error loading dropdowns:", err.message);
     }
   }
 
-  function renderVisitTable(data) {
-    const tbody = document.getElementById('visitTableBody'); if(!tbody) return; tbody.innerHTML = '';
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    const hasFullAccess = crmUser && ['Admin', 'Product Manager', 'Staff', 'BU Head'].includes(crmUser.Role);
-    const filtered = hasFullAccess ? data : data.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
+  // 🌟 ดึงข้อมูลประวัติการเข้าพบ (Visits)
+  async function loadVisits() {
+    const tbody = document.getElementById('visitTableBody');
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
-    if(!filtered.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-danger"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบรายการบันทึก</td></tr>';
+    try {
+      const { data, error } = await supabaseClient
+        .from('Visits')
+        .select('*')
+        .order('Visit_Date', { ascending: false });
 
-    filtered.forEach(v => {
-      const statusBadge = v.status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
-      tbody.innerHTML += `
-        <tr>
-          <td class="text-center fw-medium">${v.date}</td>
-          <td><div class="fw-bold text-dark"><i class="fa-solid fa-user-doctor text-primary me-2"></i>${v.docName}</div><small class="text-muted"><i class="fa-solid fa-user-tag me-1"></i>${v.repName}</small></td>
-          <td class="fw-medium text-secondary">${v.prodName}</td>
-          <td><small class="text-muted">${v.purpose}</small></td>
-          <td class="text-center"><span class="badge ${statusBadge} px-2 py-1">${v.status}</span></td>
-          <td class="text-center"><button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditVisitModal('${v.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button></td>
-        </tr>`;
-    });
+      if (error) throw error;
+      globalVisits = data || [];
+      filterVisits();
+    } catch(err) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`;
+    }
   }
 
   function filterVisits() {
-    if (!isVisitDataLoaded) return; 
-    const repTerm = document.getElementById('filterVisitRep').value; const terTerm = document.getElementById('filterVisitTerritory').value;
-    const docTerm = document.getElementById('filterVisitDoctor').value.toLowerCase().trim();
-    const prodTerm = document.getElementById('filterVisitProduct').value; const statusTerm = document.getElementById('filterVisitStatus').value;
-
-    const filtered = globalVisitsList.filter(v => {
-      const docSearchStr = ((v.docName || "") + " " + (v.docId || "")).toLowerCase();
-      return (repTerm === "" || v.repName === repTerm) && (terTerm === "" || v.territoryName === terTerm) &&
-             (docTerm === "" || docSearchStr.includes(docTerm)) && (prodTerm === "" || v.prodName === prodTerm) &&
-             (statusTerm === "" || v.status === statusTerm);
+    const searchTerm = document.getElementById('filterVisitSearch').value.toLowerCase().trim();
+    const filtered = globalVisits.filter(v => {
+      const strStr = `${v.Doc_ID || ''} ${v.Product_ID || ''} ${v.Purpose || ''} ${v.Whoupdated || ''}`.toLowerCase();
+      return (searchTerm === "" || strStr.includes(searchTerm));
     });
     renderVisitTable(filtered);
   }
 
-  function setupVisitFilters() {
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    const hasFullAccess = crmUser && ['Admin', 'Product Manager', 'Staff', 'BU Head'].includes(crmUser.Role);
-    const visibleData = hasFullAccess ? globalVisitsList : globalVisitsList.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
-    
-    const fillSelect = (id, data, defaultTxt) => {
-      const sel = document.getElementById(id); if(!sel) return;
-      let html = `<option value="">${defaultTxt}</option>`; data.forEach(d => html += `<option value="${d}">${d}</option>`); sel.innerHTML = html;
-    };
-    
-    fillSelect('filterVisitRep', [...new Set(visibleData.map(v => v.repName).filter(r => r))].sort(), '- All Reps -');
-    fillSelect('filterVisitTerritory', [...new Set(visibleData.map(v => v.territoryName).filter(t => t))].sort(), '- All Territories -');
-    fillSelect('filterVisitProduct', [...new Set(visibleData.map(v => v.prodName).filter(p => p))].sort(), '- All Products -');
-  }
+  function renderVisitTable(data) {
+    const tbody = document.getElementById('visitTableBody');
+    tbody.innerHTML = '';
 
-  function openAddVisitModal() {
-    isVisitEditMode = false;
-    document.getElementById('visitLogForm').reset();
-    document.getElementById('visitViewTitle').innerHTML = '📑 บันทึกการเข้าพบคุณหมอ (ใหม่)';
-    document.getElementById('visitStatus').value = "Pending";
-    document.getElementById('btnDeleteVisit').classList.add('d-none');
-    
-    if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.clear();
-    if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.clear();
-    if (visitDatePicker) visitDatePicker.setDate("today");
-    
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    if(crmUser) {
-      document.getElementById('visitRepId').value = crmUser.Rep_ID || "";
-      document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
-      document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "";
-      const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
-      document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory}` : crmUser.Territory_ID;
+    if (!data || data.length === 0) {
+      return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
     }
 
-    const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
-    fields.forEach(f => { const el = document.getElementById(f); if(el) { el.disabled = false; if(el.tomselect) el.tomselect.enable(); } });
-    
-    document.getElementById('visitDate').disabled = false;
-    const dateInput = document.getElementById('visitDate').nextElementSibling; if(dateInput) dateInput.disabled = false;
-    
-    document.getElementById('btnMicDocSelect').disabled = false;
-    document.getElementById('btnMicDetails').disabled = false;
-    document.getElementById('btnMicNextAction').disabled = false;
+    data.forEach(v => {
+      const badge = v.Status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
+      const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-    const btnSubmit = document.getElementById('btnSubmitVisit'); btnSubmit.style.display = 'inline-block'; btnSubmit.disabled = false;
-    switchVisitView('visitFormView');
-  }
-
-  function openEditVisitModal(id) {
-    const v = globalVisitsList.find(x => x.id === id); if(!v) return;
-    
-    isVisitEditMode = true;
-    document.getElementById('visitId').value = v.id;
-    document.getElementById('visitRepId').value = v.repId;
-    document.getElementById('visitRepNameDisplay').innerText = `${v.repName}`;
-    document.getElementById('visitTerritoryId').value = v.territoryId;
-    document.getElementById('visitTerritoryNameDisplay').innerText = v.territoryName ? `${v.territoryName}` : v.territoryId;
-
-    if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.setValue(v.docId);
-    if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.setValue(v.prodId);
-    if (visitDatePicker && v.dateRaw) visitDatePicker.setDate(v.dateRaw);
-    
-    document.getElementById('visitStartTime').value = v.startTime;
-    document.getElementById('visitEndTime').value = v.endTime;
-    document.getElementById('visitPurpose').value = v.purpose;
-    document.getElementById('visitDetails').value = v.details;
-    document.getElementById('visitNextAction').value = v.nextAction;
-    document.getElementById('visitStatus').value = v.status;
-    
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    
-    const btnDelete = document.getElementById('btnDeleteVisit');
-    if (crmUser && crmUser.Role === 'Admin') btnDelete.classList.remove('d-none'); else btnDelete.classList.add('d-none');
-
-    const isReadOnly = (v.status === 'Submitted' && crmUser && crmUser.Role !== 'Admin');
-    const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
-    fields.forEach(f => {
-      const el = document.getElementById(f);
-      if(el) { el.disabled = isReadOnly; if(el.tomselect) isReadOnly ? el.tomselect.disable() : el.tomselect.enable(); }
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-center fw-bold text-primary">${dateShow}</td>
+          <td class="fw-bold text-dark">${v.Doc_ID || '-'}</td>
+          <td><span class="badge bg-light text-dark border">${v.Product_ID || '-'}</span></td>
+          <td><small>${v.Purpose || '-'}</small></td>
+          <td class="text-center"><span class="badge ${badge} px-2 py-1">${v.Status || 'Submitted'}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditVisitView('${v.Visit_ID}')">
+              <i class="fa-solid fa-pen"></i> แก้ไข
+            </button>
+          </td>
+        </tr>
+      `;
     });
-    
-    document.getElementById('visitDate').disabled = isReadOnly;
-    const dateInput = document.getElementById('visitDate').nextElementSibling; if(dateInput) dateInput.disabled = isReadOnly;
+  }
 
-    document.getElementById('btnMicDocSelect').disabled = isReadOnly;
-    document.getElementById('btnMicDetails').disabled = isReadOnly;
-    document.getElementById('btnMicNextAction').disabled = isReadOnly;
+  function openAddVisitView() {
+    document.getElementById('visitForm').reset();
+    document.getElementById('visitId').value = '';
+    document.getElementById('formVisitTitle').innerText = '📝 เพิ่มการบันทึกเยี่ยมใหม่';
+    document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
 
-    const btnSubmit = document.getElementById('btnSubmitVisit');
-    if (isReadOnly) { document.getElementById('visitViewTitle').innerHTML = '👁️ ดูบันทึกเยี่ยม (อ่านได้อย่างเดียว)'; btnSubmit.style.display = 'none'; } 
-    else { document.getElementById('visitViewTitle').innerHTML = '✏️ แก้ไขบันทึกเยี่ยม'; btnSubmit.style.display = 'inline-block'; btnSubmit.disabled = false; }
-    
+    if (tomSelectDocInstance) tomSelectDocInstance.clear();
+
     switchVisitView('visitFormView');
   }
 
-  async function handleSubmitVisit(e) {
+  function openEditVisitView(visitId) {
+    const v = globalVisits.find(x => x.Visit_ID === visitId);
+    if (!v) return;
+
+    document.getElementById('visitId').value = v.Visit_ID;
+    document.getElementById('formVisitTitle').innerText = '✏️ แก้ไขการบันทึกเยี่ยม';
+    
+    if (tomSelectDocInstance) {
+      tomSelectDocInstance.setValue(v.Doc_ID);
+    } else {
+      document.getElementById('visitDocId').value = v.Doc_ID || '';
+    }
+
+    document.getElementById('visitProductId').value = v.Product_ID || '';
+    document.getElementById('visitDate').value = v.Visit_Date || '';
+    document.getElementById('visitStartTime').value = v.Start_Time || '';
+    document.getElementById('visitEndTime').value = v.End_Time || '';
+    document.getElementById('visitPurpose').value = v.Purpose || '';
+    document.getElementById('visitStatus').value = v.Status || 'Submitted';
+    document.getElementById('visitRemarks').value = v.Remarks || '';
+
+    switchVisitView('visitFormView');
+  }
+
+  // 🌟 บันทึกการเข้าพบ (Insert / Update)
+  async function handleSaveVisit(e) {
     e.preventDefault();
-    if(isRecording) stopDictation();
-    if(isDocSelectRecording) stopDocSelectDictation();
+    const btn = document.getElementById('saveVisitBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
 
-    const btn = document.getElementById('btnSubmitVisit'); btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
+    const visitId = document.getElementById('visitId').value;
     const payload = {
-      Rep_ID: document.getElementById('visitRepId').value,  
-      Territory_ID: document.getElementById('visitTerritoryId').value, 
       Doc_ID: document.getElementById('visitDocId').value,
       Product_ID: document.getElementById('visitProductId').value,
       Visit_Date: document.getElementById('visitDate').value,
       Start_Time: document.getElementById('visitStartTime').value,
       End_Time: document.getElementById('visitEndTime').value,
       Purpose: document.getElementById('visitPurpose').value,
-      Details: document.getElementById('visitDetails').value,
-      Next_Action: document.getElementById('visitNextAction').value,
       Status: document.getElementById('visitStatus').value,
-      Whoupdated: crmUser ? crmUser.Email : "System"
+      Remarks: document.getElementById('visitRemarks').value.trim(),
+      Whoupdated: whoUpdated
     };
 
     try {
-      if (isVisitEditMode) {
-        const id = document.getElementById('visitId').value;
-        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', id); 
-        if (error) throw error; alert("✅ อัปเดตข้อมูลการเยี่ยมสำเร็จ");
+      if (visitId) {
+        // แก้ไขข้อมูล
+        const { error } = await supabaseClient.from('Visits').update(payload).eq('Visit_ID', visitId);
+        if (error) throw error;
+        alert("✅ แก้ไขข้อมูลการเข้าพบเรียบร้อยแล้ว");
       } else {
-        const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
-        if (error) throw error; alert("✅ บันทึกข้อมูลการเยี่ยมใหม่สำเร็จ");
+        // เพิ่มข้อมูลใหม่
+        const { error } = await supabaseClient.from('Visits').insert([payload]);
+        if (error) throw error;
+        alert("✅ บันทึกข้อมูลการเข้าพบเรียบร้อยแล้ว");
       }
-      closeVisitForm(false); loadVisitLogs(); 
-    } catch (err) { alert("❌ บันทึกไม่สำเร็จ: " + err.message); } finally { btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล (Save)"; }
-  }
 
-  async function deleteVisit() {
-    const visitId = document.getElementById('visitId').value; if (!visitId) return;
-    if (confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลการเยี่ยมนี้?\n(การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
-      const btn = document.getElementById('btnDeleteVisit'); btn.disabled = true; btn.innerHTML = "กำลังลบ...";
-      try {
-        const { error } = await supabaseClient.from('Visit_Logs').delete().eq('Visit_ID', visitId); 
-        if (error) throw error; alert("✅ ลบข้อมูลสำเร็จ");
-        closeVisitForm(false); loadVisitLogs();
-      } catch (err) { alert("❌ เกิดข้อผิดพลาดในการลบ: " + err.message); } finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-trash me-2"></i>ลบข้อมูล'; }
+      switchVisitView('visitListView');
+      await loadVisits();
+
+    } catch(err) {
+      alert("❌ เกิดข้อผิดพลาด: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "💾 บันทึกข้อมูล";
     }
   }
 </script>
