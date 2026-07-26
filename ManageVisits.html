@@ -131,27 +131,24 @@
         </div>
 
         <h5 class="fw-bold text-primary mb-3 border-bottom pb-2 mt-4"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
+        
+        <!-- 🌟 ดึงข้อมูลจาก Table: Index แทน -->
         <div class="mb-4">
           <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose)</label>
           <select class="form-select" id="visitPurpose" style="min-height: 42px; border-radius: 10px;" required>
-            <option value="">-- เลือกวัตถุประสงค์ --</option>
-            <option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>
-            <option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>
-            <option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>
-            <option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>
-            <option value="อื่นๆ">อื่นๆ</option>
+            <option value="">-- กำลังโหลดข้อมูล... --</option>
           </select>
         </div>
 
-        <!-- 🌟 โซนรายละเอียดงานที่เพิ่มปุ่ม ไมค์ และ AI -->
+        <!-- 🌟 โซนรายละเอียดงาน (Details) -->
         <div class="mb-4">
           <div class="d-flex flex-wrap justify-content-between align-items-end mb-2 gap-2">
             <label class="form-label fw-bold text-dark mb-0">รายละเอียด/ข้อคิดเห็น (Details)</label>
             <div class="d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMic" onclick="toggleDictation()">
+              <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMicDetails" onclick="toggleDictation('visitDetails', 'btnMicDetails')">
                 <i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์
               </button>
-              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm px-3" onclick="summarizeWithAI()">
+              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm px-3" id="btnAiDetails" onclick="summarizeWithAI('visitDetails', 'btnAiDetails')">
                 <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI ช่วยสรุป
               </button>
             </div>
@@ -159,9 +156,20 @@
           <textarea class="form-control" id="visitDetails" rows="4" style="border-radius: 10px;" placeholder="พิมพ์ หรือ กดปุ่มไมค์แล้วพูดรายละเอียดการพูดคุย..." required></textarea>
         </div>
 
+        <!-- 🌟 โซนสิ่งที่จะทำต่อ (Next Action) เปลี่ยนเป็น Textarea และเพิ่มไมค์ -->
         <div class="mb-4">
-          <label class="form-label fw-bold text-dark">สิ่งที่จะทำต่อ (Next Action)</label>
-          <input type="text" class="form-control" id="visitNextAction" style="min-height: 42px; border-radius: 10px;" placeholder="เช่น นัดพบครั้งต่อไป, ส่งเอกสารเพิ่มเติม">
+          <div class="d-flex flex-wrap justify-content-between align-items-end mb-2 gap-2">
+            <label class="form-label fw-bold text-dark mb-0">สิ่งที่จะทำต่อ (Next Action)</label>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMicNextAction" onclick="toggleDictation('visitNextAction', 'btnMicNextAction')">
+                <i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm px-3" id="btnAiNextAction" onclick="summarizeWithAI('visitNextAction', 'btnAiNextAction')">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI ช่วยสรุป
+              </button>
+            </div>
+          </div>
+          <textarea class="form-control" id="visitNextAction" rows="2" style="border-radius: 10px;" placeholder="เช่น นัดพบครั้งต่อไป, ส่งเอกสารเพิ่มเติม"></textarea>
         </div>
 
         <div class="p-4 border rounded-4 mb-4" style="background-color: #f4f6f9;">
@@ -200,27 +208,27 @@
   var visitDatePicker; 
   var isVisitDataLoaded = false; 
 
-  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์) =====================
+  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์แบบแยกช่อง) =====================
   var recognition;
   var isRecording = false;
+  var currentDictationTarget = null;
+  var currentMicBtn = null;
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
-    recognition.lang = 'th-TH'; // ตั้งค่าเป็นภาษาไทย
-    recognition.continuous = true; // ให้ฟังต่อเนื่อง
-    recognition.interimResults = true; // แสดงผลระหว่างพูด
+    recognition.lang = 'th-TH'; 
+    recognition.continuous = true; 
+    recognition.interimResults = true; 
 
     recognition.onresult = function(event) {
       let finalTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        }
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
       }
-      if (finalTranscript) {
-        const detailsBox = document.getElementById('visitDetails');
-        detailsBox.value += (detailsBox.value ? ' ' : '') + finalTranscript;
+      if (finalTranscript && currentDictationTarget) {
+        const targetBox = document.getElementById(currentDictationTarget);
+        targetBox.value += (targetBox.value ? ' ' : '') + finalTranscript;
       }
     };
 
@@ -230,76 +238,85 @@
     };
     
     recognition.onend = function() {
-      // ถ้าหยุดพูดนานๆ มันจะตัดเอง ให้รีเซ็ตปุ่มกลับ
       if(isRecording) stopDictation();
     };
   }
 
-  function toggleDictation() {
+  function toggleDictation(targetId, btnId) {
     if (!recognition) {
-      alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง (แนะนำให้ใช้ Google Chrome หรือ Safari บน iOS)");
-      return;
+      alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง"); return;
     }
 
-    const btn = document.getElementById('btnMic');
     if (isRecording) {
       stopDictation();
+      // ถ้ากดปุ่มไมค์ใหม่ ในขณะที่ไมค์เก่าทำงานอยู่ ให้เปิดของใหม่ต่อเลย
+      if (currentMicBtn !== btnId) {
+         startDictation(targetId, btnId);
+      }
     } else {
-      isRecording = true;
-      recognition.start();
-      btn.classList.remove('btn-outline-danger');
-      btn.classList.add('btn-danger', 'mic-active');
-      btn.innerHTML = '<i class="fa-solid fa-microphone-lines fa-fade me-1"></i> กำลังฟัง... กดเพื่อหยุด';
+      startDictation(targetId, btnId);
     }
+  }
+
+  function startDictation(targetId, btnId) {
+    isRecording = true;
+    currentDictationTarget = targetId;
+    currentMicBtn = btnId;
+    recognition.start();
+    const btn = document.getElementById(btnId);
+    btn.classList.remove('btn-outline-danger');
+    btn.classList.add('btn-danger', 'mic-active');
+    btn.innerHTML = '<i class="fa-solid fa-microphone-lines fa-fade me-1"></i> กำลังฟัง...';
   }
 
   function stopDictation() {
     isRecording = false;
     if(recognition) recognition.stop();
-    const btn = document.getElementById('btnMic');
-    btn.classList.remove('btn-danger', 'mic-active');
-    btn.classList.add('btn-outline-danger');
-    btn.innerHTML = '<i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์';
+    if (currentMicBtn) {
+      const btn = document.getElementById(currentMicBtn);
+      if (btn) {
+        btn.classList.remove('btn-danger', 'mic-active');
+        btn.classList.add('btn-outline-danger');
+        btn.innerHTML = '<i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์';
+      }
+    }
+    currentDictationTarget = null;
+    currentMicBtn = null;
   }
 
-  // ===================== 🌟 ระบบ AI Summarization (Mockup) =====================
-  function summarizeWithAI() {
-    const detailsBox = document.getElementById('visitDetails');
-    const originalText = detailsBox.value.trim();
+  // ===================== 🌟 ระบบ AI Summarization =====================
+  function summarizeWithAI(targetId, btnId) {
+    const targetBox = document.getElementById(targetId);
+    const originalText = targetBox.value.trim();
     
     if (!originalText) {
-      alert("กรุณาพิมพ์หรือพูดรายละเอียดการเยี่ยมให้มีข้อมูลก่อนครับ AI ถึงจะสรุปให้ได้");
-      return;
+      alert("กรุณาพิมพ์หรือพูดข้อมูลก่อนครับ AI ถึงจะช่วยสรุปให้ได้"); return;
     }
 
-    // แจ้งเตือนกำลังประมวลผล
-    detailsBox.value = "✨ AI กำลังวิเคราะห์และสรุปข้อความของคุณ... กรุณารอสักครู่";
-    detailsBox.disabled = true;
+    targetBox.value = "✨ AI กำลังวิเคราะห์และเรียบเรียงข้อความของคุณ... กรุณารอสักครู่";
+    targetBox.disabled = true;
 
-    // จำลองการดีเลย์ของ API (เปลี่ยนตรงนี้ไปเชื่อมกับ OpenAI หรือ Gemini API ได้เลยในอนาคต)
+    // จำลองประมวลผล (Mockup)
     setTimeout(() => {
-      detailsBox.disabled = false;
-      detailsBox.value = `[สรุปโดย AI]\nประเด็นสำคัญ: \n- ${originalText}\n\n(นี่คือตัวอย่างการจำลอง (Mockup) ในอนาคตสามารถนำ API Key มาเชื่อมต่อเพื่อให้ AI ประมวลผลข้อความจริงได้ครับ)`;
+      targetBox.disabled = false;
+      targetBox.value = `[ปรับปรุงโดย AI]\n- ${originalText}\n\n(นี่คือตัวอย่างการจำลองการทำงานของ AI)`;
       
-      // ลบสีปุ่มกลับเป็นปกติ
-      const aiBtn = document.querySelector('button[onclick="summarizeWithAI()"]');
-      aiBtn.innerHTML = '<i class="fa-solid fa-check text-success"></i> สรุปสำเร็จ';
+      const aiBtn = document.getElementById(btnId);
+      aiBtn.innerHTML = '<i class="fa-solid fa-check text-success"></i> สำเร็จ';
       setTimeout(() => {
         aiBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI ช่วยสรุป';
       }, 3000);
     }, 1500);
   }
 
-  // ===================== ระบบโหลดข้อมูลหลัก (เหมือนเดิม) =====================
+  // ===================== ระบบโหลดข้อมูลหลัก =====================
   setTimeout(async function() { 
     await loadVisitDropdowns();
     await loadVisitLogs();
   }, 300);
 
   if (!visitDatePicker && document.getElementById('visitDate')) {
-    visitDatePicker = flatpickr("#visitDate", {
-      altInput: true, altFormat: "d M Y", dateFormat: "Y-m-d", defaultDate: "today"
-    });
+    visitDatePicker = flatpickr("#visitDate", { altInput: true, altFormat: "d M Y", dateFormat: "Y-m-d", defaultDate: "today" });
   }
   
   function switchVisitView(viewId) {
@@ -310,7 +327,7 @@
   }
 
   function closeVisitForm(isCancel = true) {
-    if(isRecording) stopDictation(); // หยุดไมค์ถ้ากดยกเลิก
+    if(isRecording) stopDictation(); 
     if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.clear();
     if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.clear();
     document.getElementById('visitLogForm').reset();
@@ -321,10 +338,13 @@
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
     try {
-      const [terRes, docRes, prodRes] = await Promise.all([
+      // 🌟 โหลด IndexType และ Index มาเพื่อสร้างตัวเลือก Purpose
+      const [terRes, docRes, prodRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory'), 
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
-        supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active')
+        supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active'),
+        supabaseClient.from('IndexType').select('*'),
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
 
       globalTerritories = terRes.data || [];
@@ -335,6 +355,20 @@
       populateVisitSelect('visitDocId', mappedDocs, '-- ค้นหา/เลือกคุณหมอ --');
       populateVisitSelect('visitProductId', mappedProds, '-- ค้นหา/เลือกสินค้า --');
 
+      // 🌟 สร้าง Dropdown Purpose จากตาราง Index
+      const types = typeRes.data || [];
+      const indexes = idxRes.data || [];
+      const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name === 'วัตถุประสงค์');
+      let purposeHtml = '<option value="">-- เลือกวัตถุประสงค์ --</option>';
+      if (purposeType) {
+        const purposes = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
+        purposes.forEach(p => purposeHtml += `<option value="${p.Value}">${p.Value}</option>`);
+      } else {
+        purposeHtml += '<option value="พบเพื่อสร้างความสัมพันธ์">พบเพื่อสร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>'; // Fallback กรณีหาไม่เจอ
+      }
+      document.getElementById('visitPurpose').innerHTML = purposeHtml;
+
+      // จัดการ Profile User
       if (crmUser) {
         document.getElementById('visitRepId').value = crmUser.Rep_ID || "-";
         document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
@@ -476,9 +510,11 @@
     document.getElementById('visitDate').disabled = false;
     const dateInput = document.getElementById('visitDate').nextElementSibling; if(dateInput) dateInput.disabled = false;
     
-    // คืนค่าปุ่ม Mic เผื่อโดน Disable
-    document.getElementById('btnMic').disabled = false;
-    document.querySelector('button[onclick="summarizeWithAI()"]').disabled = false;
+    // คืนค่าปุ่ม Mic และ AI
+    document.getElementById('btnMicDetails').disabled = false;
+    document.getElementById('btnAiDetails').disabled = false;
+    document.getElementById('btnMicNextAction').disabled = false;
+    document.getElementById('btnAiNextAction').disabled = false;
 
     const btnSubmit = document.getElementById('btnSubmitVisit'); btnSubmit.style.display = 'inline-block'; btnSubmit.disabled = false;
     switchVisitView('visitFormView');
@@ -521,8 +557,10 @@
     const dateInput = document.getElementById('visitDate').nextElementSibling; if(dateInput) dateInput.disabled = isReadOnly;
 
     // ซ่อนการใช้งานปุ่ม Mic และ AI หากถูกล็อกเป็น Submitted
-    document.getElementById('btnMic').disabled = isReadOnly;
-    document.querySelector('button[onclick="summarizeWithAI()"]').disabled = isReadOnly;
+    document.getElementById('btnMicDetails').disabled = isReadOnly;
+    document.getElementById('btnAiDetails').disabled = isReadOnly;
+    document.getElementById('btnMicNextAction').disabled = isReadOnly;
+    document.getElementById('btnAiNextAction').disabled = isReadOnly;
 
     const btnSubmit = document.getElementById('btnSubmitVisit');
     if (isReadOnly) { document.getElementById('visitViewTitle').innerHTML = '👁️ ดูบันทึกเยี่ยม (อ่านได้อย่างเดียว)'; btnSubmit.style.display = 'none'; } 
