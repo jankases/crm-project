@@ -158,7 +158,7 @@
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
 
-            <!-- 3. Next Action และ Status (คืนชีพไอคอนแบบเดิมให้สวยงาม) -->
+            <!-- 3. Next Action และ Status -->
             <div class="col-md-7 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">ขั้นตอนถัดไป (Next Action)</label>
@@ -169,7 +169,6 @@
               <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
             </div>
 
-            <!-- 🌟 ปรับปรุงกล่องสถานะพร้อมไอคอนสวยงาม -->
             <div class="col-md-5 mb-2">
               <label class="form-label fw-bold text-dark mb-1">สถานะรายการ (Status)</label>
               <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -193,6 +192,8 @@
 <script>
   var globalVisits = [];
   var globalDoctorsList = [];
+  var globalProductsList = [];
+  var globalTerritoryList = [];
   var tomSelectDocInstance = null;
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
@@ -338,18 +339,29 @@
 
   // ===================== ระบบโหลดข้อมูลหลัก =====================
   setTimeout(async function() {
-    initUserInfo();
     await loadDropdowns();
+    initUserInfo();
     await loadVisits();
   }, 300);
 
+  // 🌟 แปลงรหัส Territory_ID เป็นชื่อพื้นที่ เช่น L1
   function initUserInfo() {
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
       const repName = crmUser ? (crmUser.Rep_Name || crmUser.Email || crmUser.name) : "Unknown Sales";
-      const terrName = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
+      const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
+      
+      let terrNameShow = rawTerr;
+      if (globalTerritoryList && globalTerritoryList.length > 0) {
+        const found = globalTerritoryList.find(t => 
+          String(t.Territory_ID) === String(rawTerr) || 
+          String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase()
+        );
+        if (found) terrNameShow = found.Territory;
+      }
+
       document.getElementById('dispSalesRepName').innerText = repName;
-      document.getElementById('dispTerritoryName').innerText = terrName;
+      document.getElementById('dispTerritoryName').innerText = terrNameShow;
     } catch(e) {}
   }
 
@@ -381,8 +393,11 @@
         supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
 
-      // 1. คุณหมอ
       globalDoctorsList = docRes.data || [];
+      globalProductsList = prodRes.data || [];
+      globalTerritoryList = territoryRes.data || [];
+
+      // 1. คุณหมอ
       const docSelect = document.getElementById('visitDocId');
       docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
       
@@ -405,8 +420,6 @@
 
       // 2. กรองสินค้า (Products) ตามสิทธิ์
       const prodSelect = document.getElementById('visitProductId');
-      let allProducts = prodRes.data || [];
-      let territoryList = territoryRes.data || [];
       let teamList = teamRes.data || [];
       let productsTeamList = productsTeamRes.data || [];
       let filteredProducts = [];
@@ -420,10 +433,10 @@
           .filter(pt => allowedTeamIds.includes(pt.Team_ID) && pt.Status !== 'Inactive')
           .map(pt => pt.Product_ID);
 
-        filteredProducts = allProducts.filter(p => allowedProdIds.includes(p.Product_ID));
+        filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
       }
       else if (userRole !== 'Admin' && userTerritory) {
-        const myTerritoryObj = territoryList.find(t => 
+        const myTerritoryObj = globalTerritoryList.find(t => 
           String(t.Territory_ID) === String(userTerritory) || 
           String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase()
         );
@@ -434,12 +447,12 @@
             .filter(pt => String(pt.Team_ID) === String(userTeamId) && pt.Status !== 'Inactive')
             .map(pt => pt.Product_ID);
 
-          filteredProducts = allProducts.filter(p => allowedProdIds.includes(p.Product_ID));
+          filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
         }
       }
 
       if (filteredProducts.length === 0 || userRole === 'Admin') {
-        filteredProducts = allProducts;
+        filteredProducts = globalProductsList;
       }
 
       let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
@@ -494,12 +507,20 @@
   function filterVisits() {
     const searchTerm = document.getElementById('filterVisitSearch').value.toLowerCase().trim();
     const filtered = globalVisits.filter(v => {
-      const strStr = `${v.Doc_ID || ''} ${v.Product_ID || ''} ${v.Purpose || ''} ${v.Whoupdated || ''}`.toLowerCase();
+      // แปลง ID เป็นชื่อเพื่อรองรับการค้นหา
+      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
+      const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : v.Doc_ID;
+      
+      const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
+      const prodName = prodObj ? prodObj.Product : v.Product_ID;
+
+      const strStr = `${docName} ${prodName} ${v.Purpose || ''} ${v.Whoupdated || ''}`.toLowerCase();
       return (searchTerm === "" || strStr.includes(searchTerm));
     });
     renderVisitTable(filtered);
   }
 
+  // 🌟 แมปแปลง UUID ในตารางเป็น ชื่อแพทย์ และ ชื่อสินค้า จริง
   function renderVisitTable(data) {
     const tbody = document.getElementById('visitTableBody');
     tbody.innerHTML = '';
@@ -513,11 +534,24 @@
       const statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
+      // 🌟 แปลง Doc_ID เป็น ชื่อหมอ
+      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
+      let docNameShow = v.Doc_ID || '-';
+      if (docObj) {
+        const titleShow = docObj.Title ? docObj.Title + ' ' : '';
+        const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
+        docNameShow = `${titleShow}${docObj.Doc_Name}${nameThShow}`;
+      }
+
+      // 🌟 แปลง Product_ID เป็น ชื่อสินค้า
+      const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
+      const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
+
       tbody.innerHTML += `
         <tr>
           <td class="text-center fw-bold text-primary">${dateShow}</td>
-          <td class="fw-bold text-dark">${v.Doc_ID || '-'}</td>
-          <td><span class="badge bg-light text-dark border">${v.Product_ID || '-'}</span></td>
+          <td class="fw-bold text-dark">${docNameShow}</td>
+          <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
           <td><small>${v.Purpose || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
           <td class="text-center">
@@ -547,7 +581,7 @@
     document.getElementById('visitId').value = '';
     document.getElementById('formVisitTitle').innerText = '📝 เพิ่มการบันทึกเยี่ยมใหม่';
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('visitStatus').value = 'Pending'; // ⏳ ตั้งค่าตั้งต้นเป็น Pending
+    document.getElementById('visitStatus').value = 'Pending';
 
     if (tomSelectDocInstance) tomSelectDocInstance.clear();
 
