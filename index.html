@@ -16,6 +16,44 @@
     #appContainer { display: none; } 
     .navbar { border-bottom: 2px solid #e9ecef; }
     #mainContent { margin-top: 20px; }
+
+    /* 🌟 ตกแต่งเมนูทั่วไปแบบแคปซูล */
+    .nav-menu-item {
+      color: #6c757d; /* สีเทา */
+      font-weight: 500;
+      padding: 8px 18px !important;
+      border-radius: 50px; /* โค้งมนแบบแคปซูล */
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      margin: 0 2px;
+    }
+    
+    /* เอฟเฟกต์ตอนเอาเมาส์ชี้ */
+    .nav-menu-item:hover {
+      background-color: #f8f9fa;
+      color: #0d6efd;
+    }
+
+    /* 🌟 เอฟเฟกต์ตอนถูกเลือก (Active) */
+    .nav-menu-item.active {
+      background-color: #e7f1ff !important; /* พื้นหลังสีฟ้าอ่อน */
+      color: #0d6efd !important; /* ตัวอักษรสีฟ้าเข้ม */
+      font-weight: 700; /* ตัวหนาขึ้น */
+      box-shadow: 0 2px 5px rgba(13, 110, 253, 0.1);
+    }
+    
+    /* ปรับสีไอคอนตอน Active ให้เข้ากัน */
+    .nav-menu-item.active i {
+      color: #0d6efd !important; 
+    }
+    
+    /* ปรับแต่งเมนูของ Admin ไม่ให้ขัดกัน */
+    .admin-menu-special.active {
+       background-color: #ffe6e6 !important; /* สีแดงอ่อนสำหรับเมนู DCR */
+       color: #dc3545 !important;
+    }
+    .admin-menu-special.active i { color: #dc3545 !important; }
   </style>
 </head>
 <body>
@@ -26,7 +64,7 @@
   <!-- ระบบแอปพลิเคชันหลัก -->
   <div id="appContainer">
     
-    <!-- 🌟 แถบเมนูด้านบน (Navbar แบบใหม่) -->
+    <!-- แถบเมนูด้านบน (Navbar) -->
     <nav class="navbar navbar-expand-xl navbar-light bg-white shadow-sm sticky-top">
       <div class="container-fluid px-4">
         
@@ -44,30 +82,34 @@
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-center" style="font-size: 0.95rem;">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center" style="font-size: 0.95rem;">
             
-            <li class="nav-item"><a class="nav-link fw-medium" href="#" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1 text-muted"></i> บันทึกเยี่ยม</a></li>
-            <li class="nav-item"><a class="nav-link fw-medium" href="#" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1 text-muted"></i> แพทย์</a></li>
-            <li class="nav-item"><a class="nav-link fw-medium" href="#" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1 text-muted"></i> โรงพยาบาล</a></li>
+            <!-- 🌟 ใส่คลาส nav-menu-item และ attribute data-page เพื่ออ้างอิงตอนกด -->
+            <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1 text-muted"></i> บันทึกเยี่ยม</a></li>
+            <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1 text-muted"></i> แพทย์</a></li>
+            <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1 text-muted"></i> โรงพยาบาล</a></li>
             
-            <!-- 🌟 เมนู All-in-One: โครงสร้างองค์กร (เฉพาะ Admin) -->
+            <!-- เมนู All-in-One: โครงสร้างองค์กร (เฉพาะ Admin) -->
             <li class="nav-item ms-2 admin-only" style="display: none;">
-              <a class="nav-link fw-bold text-primary bg-light rounded px-3" href="#" onclick="loadComponent('organization')">
-                <i class="fa-solid fa-sitemap me-1"></i> โครงสร้างองค์กร
+              <a class="nav-link nav-menu-item border" href="#" data-page="organization" onclick="loadComponent('organization')">
+                <i class="fa-solid fa-sitemap me-1 text-primary"></i> โครงสร้างองค์กร
               </a>
             </li>
             
-            <!-- 🌟 เมนู Matrix รวม Target (เฉพาะ Admin) -->
+            <!-- เมนู Matrix รวม Target (เฉพาะ Admin) -->
             <li class="nav-item ms-1 admin-only" style="display: none;">
-              <a class="nav-link fw-medium text-dark" href="#" onclick="loadComponent('matrix')">
+              <a class="nav-link nav-menu-item" href="#" data-page="matrix" onclick="loadComponent('matrix')">
                 <i class="fa-solid fa-border-all me-1 text-muted"></i> Rating Matrix
               </a>
             </li>
             
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link fw-medium" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link me-1 text-muted"></i> Assignment</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link fw-medium" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul me-1 text-muted"></i> ตั้งค่าตัวเลือก</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link fw-medium text-danger" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature me-1"></i> อนุมัติข้อมูล (DCR)</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link fw-medium" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1 text-muted"></i> ผู้ใช้งาน</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item" href="#" data-page="assignment" onclick="loadComponent('assignment')"><i class="fa-solid fa-link me-1 text-muted"></i> Assignment</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item" href="#" data-page="indexData" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul me-1 text-muted"></i> ตั้งค่าตัวเลือก</a></li>
+            
+            <!-- เมนู DCR แต่งให้เด่นนิดนึง -->
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item admin-menu-special text-danger" href="#" data-page="dcr" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature me-1"></i> อนุมัติข้อมูล (DCR)</a></li>
+            
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1 text-muted"></i> ผู้ใช้งาน</a></li>
           </ul>
 
           <!-- ข้อมูล User มุมขวาบน -->
@@ -84,7 +126,7 @@
       </div>
     </nav>
 
-    <!-- 🌟 พื้นที่แสดงเนื้อหาของแต่ละหน้า (Dynamic Routing) -->
+    <!-- พื้นที่แสดงเนื้อหาของแต่ละหน้า (Dynamic Routing) -->
     <div id="mainContent" class="container-fluid max-width-md" style="max-width: 1200px; padding-bottom: 50px;">
       <div class="text-center py-5 text-muted"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>กำลังโหลดระบบ...</div>
     </div>
@@ -104,7 +146,7 @@
       checkSession();
     });
 
-    // โหลดหน้า Login มาแปะ (ซ่อน/แสดง จะถูกควบคุมโดย checkSession)
+    // โหลดหน้า Login มาแปะ 
     async function loadLoginComponent() {
       try {
         const response = await fetch('Login.html');
@@ -126,25 +168,34 @@
       }
     }
 
-    // 🌟 ระบบ Routing สลับหน้าเว็บแทนการใช้ Tab
+    // 🌟 ระบบ Routing สลับหน้าเว็บ และเปลี่ยนสีเมนู (Highlight)
     async function loadComponent(page) {
       let url = '';
       
       switch(page) {
-        case 'dashboard': url = 'Dashboard.html'; break; // ต้องสร้างไฟล์ Dashboard.html เผื่อไว้
+        case 'dashboard': url = 'Dashboard.html'; break;
         case 'visit': url = 'ManageVisits.html'; break;
         case 'doctor': url = 'ManageDoctors.html'; break;
         case 'hospital': url = 'ManageHospitals.html'; break;
-        
-        // เมนู Admin ใหม่
         case 'organization': url = 'ManageOrganization.html'; break; 
         case 'matrix': url = 'ManageMatrix.html'; break; 
-        
         case 'assignment': url = 'ManageAssignment.html'; break;
         case 'indexData': url = 'ManageIndex.html'; break;
         case 'dcr': url = 'ManageDCR.html'; break;
         case 'user': url = 'ManageUsers.html'; break;
-        default: url = 'ManageVisits.html'; // Default เริ่มต้นที่หน้าบันทึกเยี่ยม
+        default: 
+          page = 'visit'; // บังคับเปลี่ยน page เป็น visit เผื่อไว้
+          url = 'ManageVisits.html'; 
+      }
+
+      // 🌟 1. ลบ Active ออกจากเมนูทั้งหมดก่อน
+      const menuItems = document.querySelectorAll('.nav-menu-item');
+      menuItems.forEach(item => item.classList.remove('active'));
+
+      // 🌟 2. หาปุ่มเมนูที่ตรงกับ page ที่กำลังโหลด แล้วสั่งให้มีสถานะ Active
+      const targetMenu = document.querySelector(`.nav-menu-item[data-page="${page}"]`);
+      if (targetMenu) {
+        targetMenu.classList.add('active');
       }
 
       try {
@@ -164,6 +215,13 @@
           document.body.appendChild(newScript);
         });
         
+        // ถ้าย่อเมนูบนมือถือ/iPad อยู่ ให้พับเมนูเก็บเมื่อกดเลือกแล้ว
+        const navbarCollapse = document.getElementById('navbarNav');
+        if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+           const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
+           if(bsCollapse) bsCollapse.hide();
+        }
+        
       } catch (error) {
         console.error('Error loading component:', error);
         document.getElementById('mainContent').innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ ไม่สามารถโหลดหน้าจอได้ (${url})<br>โปรดตรวจสอบว่าสร้างไฟล์นี้ไว้แล้วหรือยัง</div>`;
@@ -173,20 +231,18 @@
     // จัดการสิทธิ์การมองเห็น
     function checkSession() {
       const userStr = sessionStorage.getItem('crmUser');
-      const loginScreen = document.getElementById('loginScreen'); // ID นี้ต้องอยู่ใน Login.html
+      const loginScreen = document.getElementById('loginScreen'); 
       const appContainer = document.getElementById('appContainer');
 
       if (userStr) {
         const user = JSON.parse(userStr);
         
-        // ซ่อนหน้า Login แสดงหน้า App
         if (loginScreen) {
           loginScreen.classList.remove('d-flex');
           loginScreen.classList.add('d-none');
         }
         if (appContainer) appContainer.style.display = 'block';
         
-        // อัปเดตข้อมูลผู้ใช้บน Navbar
         const nameDisplay = document.getElementById('displayUserName');
         const roleDisplay = document.getElementById('displayUserRole');
         const dName = user.Rep_Name || user.rep_name || user.name || user.Email || user.email;
@@ -195,7 +251,6 @@
         if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + dName; 
         if(roleDisplay) roleDisplay.innerText = "⭐ " + uRole;
         
-        // จัดการซ่อน/แสดงเมนู Admin
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
           el.style.display = (uRole === 'Admin') ? 'block' : 'none';
@@ -205,7 +260,6 @@
         loadComponent('visit');
 
       } else {
-        // แสดงหน้า Login ซ่อนหน้า App
         if (loginScreen) {
           loginScreen.classList.remove('d-none');
           loginScreen.classList.add('d-flex');
