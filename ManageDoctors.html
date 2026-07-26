@@ -24,7 +24,7 @@
         <p class="text-muted mb-0">ระบบฐานข้อมูลแพทย์และสถานที่ทำงาน (Workplaces)</p>
       </div>
       <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddDoctorView()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่มแพทย์ใหม่
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มแพทย์ใหม่ (ส่ง DCR)
       </button>
     </div>
 
@@ -80,7 +80,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <h4 class="text-primary fw-bold mb-0">🩺 เพิ่มข้อมูลแพทย์ใหม่</h4>
+      <h4 class="text-primary fw-bold mb-0">🩺 ส่งคำขอเพิ่มข้อมูลแพทย์ใหม่ (DCR)</h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm doctor-form-group" style="border-radius: 15px;">
@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <!-- 🌟 โซนสถานที่ทำงานหลายแห่ง (Multiple Workplaces) -->
+        <!-- โซนสถานที่ทำงานหลายแห่ง (Multiple Workplaces) -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace)</h5>
@@ -124,7 +124,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">บันทึกข้อมูล / ส่ง DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">ส่งคำขอ DCR</button>
         </div>
       </form>
     </div>
@@ -136,7 +136,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลแพทย์</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ ส่งคำขอแก้ไขข้อมูลแพทย์ (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -158,7 +158,7 @@
           </div>
         </div>
 
-        <!-- 🌟 โซนสถานที่ทำงานหลายแห่งในโหมดแก้ไข -->
+        <!-- โซนสถานที่ทำงานหลายแห่งในโหมดแก้ไข -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace)</h5>
@@ -183,7 +183,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">บันทึกข้อมูล / ส่ง DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">ส่งคำขอ DCR</button>
         </div>
       </form>
     </div>
@@ -194,7 +194,7 @@
   var globalDoctors = [];
   var globalHospitals = [];
 
-  // ===================== 🌟 ระบบจัดการสถานที่ทำงาน (Multiple Workplaces) =====================
+  // ===================== ระบบจัดการสถานที่ทำงาน (Multiple Workplaces) =====================
   function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
     const container = document.getElementById(containerId);
     const row = document.createElement('div');
@@ -302,7 +302,7 @@
       
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
-      globalHospitals = hospRes.data || []; // เก็บตัวแปร Global ไว้สร้าง Dropdown รพ.
+      globalHospitals = hospRes.data || []; 
 
       const getOptionsHtml = (typeName) => {
         const typeObj = types.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
@@ -325,7 +325,6 @@
       document.getElementById('docType').innerHTML = getOptionsHtml('DoctorType');
       document.getElementById('editDocType').innerHTML = getOptionsHtml('DoctorType');
 
-      // Filter Workplace หน้าแรก
       let hospHtml = '<option value="">- ทุกโรงพยาบาล -</option>';
       globalHospitals.forEach(h => {
         const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
@@ -339,28 +338,59 @@
   function openAddDoctorView() {
     document.getElementById('addDoctorForm').reset();
     document.getElementById('workplaceContainerAdd').innerHTML = '';
-    addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd', '', true); // ค่าเริ่มต้น 1 แถว[cite: 6]
+    addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd', '', true);
     switchDoctorView('doctorAddView');
   }
 
+  // 🌟 ดึงข้อมูลตาราง Doctors และ คำขอ DCR ที่รออนุมัติ
   async function loadDoctors() {
     const tbody = document.getElementById('doctorTableBody');
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     
     try {
-      const { data: doctors, error } = await supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true });
-      if (error) throw error;
+      const { data: doctors, error: docErr } = await supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true });
+      if (docErr) throw docErr;
 
-      globalDoctors = doctors.map(d => {
+      const { data: pendingAddDcrs, error: dcrErr } = await supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending');
+      if (dcrErr) console.error("Error loading pending doctor DCRs:", dcrErr);
+
+      const { data: pendingEditDcrs } = await supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending');
+      const pendingEditIds = (pendingEditDcrs || []).map(d => d.Ref_ID);
+
+      let list = doctors.map(d => {
         const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
         return {
           id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
           specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
-          workplacesJson: d.Workplaces_JSON, // ดึงก้อน JSON มาด้วย
-          privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, status: d.Status
+          workplacesJson: d.Workplaces_JSON, privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, 
+          status: d.Status, 
+          isPendingDcr: false,
+          hasPendingEdit: pendingEditIds.includes(d.Doc_ID)
         };
       });
 
+      // นำคำขอ Add Doctor DCR รออนุมัติมาเสียบด้านบนสุด
+      if (pendingAddDcrs && pendingAddDcrs.length > 0) {
+        pendingAddDcrs.forEach(d => {
+          try {
+            const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+            const h = globalHospitals.find(x => x.Hospital_ID === req.Hospital_ID);
+            list.unshift({
+              id: d.DCR_ID,
+              title: req.Title || '',
+              nameEn: req.Doc_Name || 'ไม่ระบุชื่อ',
+              nameTh: req.Doc_Name_TH || '-',
+              specialty: req.Specialty || '-',
+              hospitalName: h ? (h.Known_As || h.Hospital) : '-',
+              status: 'Pending DCR',
+              isPendingDcr: true,
+              hasPendingEdit: false
+            });
+          } catch(e) {}
+        });
+      }
+
+      globalDoctors = list;
       filterDoctors(); 
     } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; }
   }
@@ -394,21 +424,30 @@
     }
     
     data.forEach(d => {
-      const badge = d.status === 'Active' ? 'bg-success' : 'bg-danger';
+      let badge = 'bg-success';
+      let statusText = d.status || 'Active';
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
+
+      if (d.isPendingDcr) {
+        badge = 'bg-warning text-dark';
+        statusText = '⏳ รออนุมัติ (DCR)';
+        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> รอ Admin ตรวจสอบ</span>`;
+      } else if (d.status === 'Inactive') {
+        badge = 'bg-danger';
+      }
+
+      const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
       const nameEnShow = d.title ? `${d.title} ${d.nameEn || ''}` : (d.nameEn || '-');
-      
+      const docIcon = d.isPendingDcr ? 'fa-user-doctor text-warning' : 'fa-user-doctor text-primary';
+
       tbody.innerHTML += `
         <tr>
-          <td class="fw-bold text-dark"><i class="fa-solid fa-user-doctor text-primary me-2"></i>${nameEnShow}</td>
+          <td class="fw-bold text-dark"><i class="fa-solid ${docIcon} me-2"></i>${nameEnShow}${pendingEditTag}</td>
           <td class="fw-medium text-secondary">${d.nameTh || '-'}</td>
           <td><span class="badge bg-light text-dark border">${d.specialty || '-'}</span></td>
           <td class="text-primary fw-medium"><small><i class="fa-regular fa-hospital me-1"></i>${d.hospitalName || '-'}</small></td>
-          <td class="text-center"><span class="badge ${badge} px-2 py-1">${d.status || 'Active'}</span></td>
-          <td class="text-center">
-            <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')">
-              <i class="fa-solid fa-pen"></i> แก้ไข
-            </button>
-          </td>
+          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
+          <td class="text-center">${actionButton}</td>
         </tr>`;
     });
   }
@@ -419,10 +458,8 @@
       if (error) throw error;
       
       const badgeContainer = document.getElementById('editDcrStatusBadge');
-      if (data && data.length > 0) {
-        badgeContainer.innerHTML = `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>`;
-      } else {
-        badgeContainer.innerHTML = '';
+      if (badgeContainer) {
+        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>` : '';
       }
     } catch (err) { console.error("Error check DCR:", err); }
   }
@@ -443,7 +480,6 @@
     document.getElementById('editDocTos').value = d.tos || 'Yes';
     document.getElementById('editDocStatus').value = d.status || 'Active';
 
-    // 🌟 ดึงข้อมูล Workplaces_JSON มาคลี่ลงในหน้าแก้ไข
     document.getElementById('workplaceContainerEdit').innerHTML = '';
     let parsedWp = [];
     try { if (d.workplacesJson) parsedWp = JSON.parse(d.workplacesJson); } catch(e) {}
@@ -451,7 +487,6 @@
     if (parsedWp.length > 0) {
       parsedWp.forEach(wp => addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', wp.hospitalId, wp.isPrimary));
     } else {
-      // ถ้าไม่มี JSON ให้ดึงจาก Hospital_ID หลักแทน (Backward compatibility)
       addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.hospitalId, true);
     }
 
@@ -459,11 +494,10 @@
     switchDoctorView('doctorEditView');
   }
 
-  // ===================== 🌟 ระบบบันทึก (Direct Save หรือ ส่ง DCR) =====================
+  // 🌟 เพิ่มหมอใหม่: บังคับส่งเข้า DCR 100% สำหรับทุกคน!
   async function handleAddDoctor(e) {
     e.preventDefault(); 
     
-    // ดึงข้อมูลและตรวจสอบ รพ.
     const workplaces = extractWorkplaces('workplaceContainerAdd');
     if (workplaces.length === 0) return alert("❌ กรุณาเพิ่มสถานที่ทำงานอย่างน้อย 1 แห่ง"); 
     if (!workplaces.some(w => w.isPrimary)) return alert("❌ กรุณาเลือก รพ. หลัก (Primary) อย่างน้อย 1 แห่ง"); 
@@ -471,13 +505,13 @@
     const hospIds = workplaces.map(w => w.hospitalId);
     if (hospIds.length !== new Set(hospIds).size) return alert("❌ คุณเลือกโรงพยาบาลซ้ำกัน กรุณาตรวจสอบ"); 
     
-    const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId; // ดึงรหัส รพ. หลัก
+    const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
 
     const btn = document.getElementById('submitDoctorBtn'); 
     btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
 
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? crmUser.Email : "Unknown";
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
     const payload = {
       Title: document.getElementById('docTitle').value, 
@@ -485,8 +519,8 @@
       Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
       Specialty: document.getElementById('docSpecialty').value, 
       Type: document.getElementById('docType').value,   
-      Hospital_ID: primaryHospId, // บันทึก รพ. หลักลงคอลัมน์เดิม
-      Workplaces_JSON: JSON.stringify(workplaces), // บันทึกก้อน JSON ของรพ.ทั้งหมด
+      Hospital_ID: primaryHospId, 
+      Workplaces_JSON: JSON.stringify(workplaces), 
       Email: document.getElementById('docEmail').value.trim(),
       Mobile: document.getElementById('docMobile').value.trim(),
       Privacy_Policy: document.getElementById('docPrivacy').value,
@@ -502,26 +536,24 @@
     });
 
     if (isDuplicate) {
-      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบชื่อแพทย์ "${payload.Doc_Name || payload.Doc_Name_TH}" ซ้ำอยู่ในระบบแล้วครับ`);
-      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; return; 
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบชื่อแพทย์ "${payload.Doc_Name || payload.Doc_Name_TH}" ซ้ำอยู่ในระบบหรืออยู่ระหว่างรออนุมัติ DCR ครับ`);
+      btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; return; 
     }
 
     try {
-      if (crmUser && crmUser.Role === 'Admin') {
-        const { error } = await supabaseClient.from('Doctors').insert([payload]);
-        if (error) throw error;
-        alert("✅ บันทึกแพทย์ใหม่สำเร็จ");
-      } else {
-        const dcrPayload = { Action: 'Add Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
-        const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
-        if (error) throw error;
-        alert("✅ ส่งคำขอเพิ่มแพทย์ใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
-      }
-      switchDoctorView('doctorListView'); await loadDoctors(); 
+      const dcrPayload = { Action: 'Add Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
+      const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
+      if (error) throw error;
+      
+      alert("✅ ส่งคำขอเพิ่มแพทย์ใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      switchDoctorView('doctorListView'); 
+      await loadDoctors(); 
+
     } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } 
-    finally { btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; }
+    finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 
+  // 🌟 บันทึกแก้ไขข้อมูลแพทย์: บังคับส่งเข้า DCR 100% สำหรับทุกคน!
   async function handleUpdateDoctor(e) {
     e.preventDefault(); 
 
@@ -539,7 +571,7 @@
 
     const docId = document.getElementById('editDocId').value;
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? crmUser.Email : "Unknown";
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
     const payload = {
       Title: document.getElementById('editDocTitle').value, 
@@ -558,18 +590,16 @@
     };
 
     try {
-      if (crmUser && crmUser.Role === 'Admin') {
-        const { error } = await supabaseClient.from('Doctors').update(payload).eq('Doc_ID', docId);
-        if (error) throw error;
-        alert("✅ แก้ไขข้อมูลแพทย์สำเร็จ");
-      } else {
-        const dcrPayload = { Ref_ID: docId, Action: 'Edit Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
-        const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
-        if (error) throw error;
-        alert("✅ ส่งคำขอแก้ไขข้อมูลแพทย์ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
-      }
-      switchDoctorView('doctorListView'); await loadDoctors(); 
+      // บังคับส่งคำขอแก้ไขไปยัง DCR ทุกกรณี
+      const dcrPayload = { Ref_ID: docId, Action: 'Edit Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
+      const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
+      if (error) throw error;
+      
+      alert("✅ ส่งคำขอแก้ไขข้อมูลแพทย์ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      switchDoctorView('doctorListView'); 
+      await loadDoctors(); 
+
     } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } 
-    finally { btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; }
+    finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 </script>
