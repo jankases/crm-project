@@ -464,7 +464,7 @@
   }
 
   // ===================== 🌟 ระบบบันทึก (Direct Save หรือ ส่ง DCR) =====================
-  async function handleAddDoctor(e) {
+ async function handleAddDoctor(e) {
     e.preventDefault(); 
     const btn = document.getElementById('submitDoctorBtn'); 
     btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
@@ -493,14 +493,25 @@
       btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; return; 
     }
 
+    // 🌟 1. ดักจับข้อมูลแพทย์ซ้ำ (Duplicate Check)
+    const isDuplicate = globalDoctors.some(d => {
+      const matchEN = payload.Doc_Name && d.nameEn && d.nameEn.toLowerCase().trim() === payload.Doc_Name.toLowerCase().trim();
+      const matchTH = payload.Doc_Name_TH && d.nameTh && d.nameTh.toLowerCase().trim() === payload.Doc_Name_TH.toLowerCase().trim();
+      return matchEN || matchTH;
+    });
+
+    if (isDuplicate) {
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบชื่อแพทย์ "${payload.Doc_Name || payload.Doc_Name_TH}" ซ้ำอยู่ในระบบแล้วครับ`);
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR";
+      return; // หยุดการทำงาน ไม่บันทึกลง Database หรือ DCR
+    }
+
     try {
       if (crmUser && crmUser.Role === 'Admin') {
-        // Admin ถืออภิสิทธิ์ บันทึกตรงเลย
         const { error } = await supabaseClient.from('Doctors').insert([payload]);
         if (error) throw error;
         alert("✅ บันทึกแพทย์ใหม่สำเร็จ (Admin Direct Save)");
       } else {
-        // ไม่ใช่ Admin โยนเข้าตาราง DCR
         const dcrPayload = {
           Action: 'Add Doctor',
           Requested_Data: JSON.stringify(payload),
