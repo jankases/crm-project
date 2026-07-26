@@ -6,7 +6,6 @@
 <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 
 <style>
-  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad/Tablet ได้ดีขึ้น */
   .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
   .hospital-form-group .form-control, .hospital-form-group .form-select {
     min-height: 42px; border-radius: 10px;
@@ -17,7 +16,6 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ตกแต่ง Dropdown ของตัวช่วยกรอกที่อยู่ให้แสดงผลชัดเจนและอยู่หน้าสุด */
   .tt-menu {
     background-color: #fff;
     border: 1px solid #ced4da;
@@ -42,7 +40,7 @@
         <p class="text-muted mb-0">ระบบจัดการฐานข้อมูลสถานที่, ชื่อภาษาไทย และ Sales ID</p>
       </div>
       <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่มโรงพยาบาลใหม่
+        <i class="fa-solid fa-plus me-2"></i>เพิ่มโรงพยาบาลใหม่ (ส่ง DCR)
       </button>
     </div>
 
@@ -94,7 +92,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <h4 class="text-primary fw-bold mb-0">🏥 เพิ่มข้อมูลโรงพยาบาลใหม่</h4>
+      <h4 class="text-primary fw-bold mb-0">🏥 ส่งคำขอเพิ่มข้อมูลโรงพยาบาลใหม่ (DCR)</h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
@@ -129,7 +127,6 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>ข้อมูลที่อยู่</h5>
           <div class="row g-3">
-            <!-- 🌟 ตัวช่วยกรอกที่อยู่อัตโนมัติ -->
             <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> ตัวช่วยกรอกที่อยู่อัตโนมัติ (กรอกแค่ชื่อ)</label>
               <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressAdd" placeholder="เช่น บางปูใหม่, เมือง, หรือ 10280 แล้วเลือกจากรายการที่เด้งขึ้นมา...">
@@ -143,7 +140,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">บันทึกข้อมูล / ส่ง DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">ส่งคำขอ DCR</button>
         </div>
       </form>
     </div>
@@ -199,7 +196,6 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>ข้อมูลที่อยู่</h5>
           <div class="row g-3">
-             <!-- 🌟 ตัวช่วยกรอกที่อยู่อัตโนมัติในหน้าแก้ไข -->
              <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> ตัวช่วยกรอกที่อยู่อัตโนมัติ (กรอกแค่ชื่อ)</label>
               <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressEdit" placeholder="เช่น บางปูใหม่, เมือง, หรือ 10280 แล้วเลือกจากรายการที่เด้งขึ้นมา...">
@@ -274,7 +270,6 @@
   var globalHospitals = [];
   var currentSelectedHospId = ""; 
 
-  // ป้องกัน Error Identifier has already been declared ด้วยการใช้ var
   var isAutoAddressAddInit = false;
   var isAutoAddressEditInit = false;
 
@@ -349,16 +344,45 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
+  // 🌟 ดึงข้อมูลทั้งตาราง Hospitals และ คำขอ DCR ที่รออนุมัติ
   async function loadHospitals() {
     const tbody = document.getElementById('hospitalTableBody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     try {
-      const { data: hospitals, error } = await supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true });
-      if (error) throw error;
-      globalHospitals = hospitals.map(h => ({
+      // ดึงโรงพยาบาลในระบบ
+      const { data: hospitals, error: hospErr } = await supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true });
+      if (hospErr) throw hospErr;
+
+      // ดึงคำขอ DCR ที่รออนุมัติ (Pending)
+      const { data: pendingDcrs, error: dcrErr } = await supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending');
+      if (dcrErr) console.error("Error loading pending DCRs:", dcrErr);
+
+      // แปลงข้อมูลโรงพยาบาลปกติ
+      let list = hospitals.map(h => ({
         id: h.Hospital_ID, name: h.Hospital, knownAs: h.Known_As, province: h.Province,
-        address: h.Address, salesId: h.Sales_ID, status: h.Status
+        address: h.Address, salesId: h.Sales_ID, status: h.Status, isPendingDcr: false
       }));
+
+      // เสียบข้อมูล DCR ที่รออนุมัติเข้าตารางด้วย
+      if (pendingDcrs && pendingDcrs.length > 0) {
+        pendingDcrs.forEach(d => {
+          try {
+            const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+            list.unshift({
+              id: d.DCR_ID,
+              name: req.Hospital || 'ไม่ระบุชื่อ',
+              knownAs: req.Known_As || '-',
+              province: req.Province || '-',
+              address: req.Address || '-',
+              salesId: req.Sales_ID || '-',
+              status: 'Pending DCR',
+              isPendingDcr: true
+            });
+          } catch(e) {}
+        });
+      }
+
+      globalHospitals = list;
       filterHospitals(); 
     } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; }
   }
@@ -376,16 +400,33 @@
   function renderHospitalTable(data) {
     const tbody = document.getElementById('hospitalTableBody'); if(!tbody) return; tbody.innerHTML = '';
     if(!Array.isArray(data) || data.length === 0) return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลที่ค้นหา</td></tr>';
+    
     data.forEach(h => {
-      const badge = h.status === 'Active' ? 'bg-success' : 'bg-danger';
+      let badge = 'bg-success';
+      let statusText = h.status || 'Active';
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
+
+      // 🌟 ถ้าเป็นรายการ DCR ที่รออนุมัติ
+      if (h.isPendingDcr) {
+        badge = 'bg-warning text-dark';
+        statusText = '⏳ รออนุมัติ (DCR)';
+        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> รอ Admin ตรวจสอบ</span>`;
+      } else if (h.status === 'Inactive') {
+        badge = 'bg-danger';
+      }
+
+      const nameCell = h.isPendingDcr ? 
+        `<span class="fw-bold text-dark"><i class="fa-regular fa-hospital me-2 text-warning"></i>${h.name || '-'}</span>` : 
+        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a>`;
+
       tbody.innerHTML += `
         <tr>
-          <td class="fw-bold text-dark"><a href="#" class="text-decoration-none text-primary" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a></td>
+          <td>${nameCell}</td>
           <td class="text-secondary fw-medium">${h.knownAs || '-'}</td>
           <td><span class="badge bg-light text-dark border">${h.province || '-'}</span></td>
           <td class="text-center text-primary"><small>${h.salesId || '-'}</small></td>
-          <td class="text-center"><span class="badge ${badge} px-2 py-1">${h.status || 'Active'}</span></td>
-          <td class="text-center"><button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button></td>
+          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
+          <td class="text-center">${actionButton}</td>
         </tr>`;
     });
   }
@@ -457,7 +498,7 @@
     }
   }
 
-  // 🌟 บันทึกข้อมูลเพิ่มโรงพยาบาลใหม่ (อัปเดตสิทธิ์ Admin, Manager, BU Head)
+  // 🌟 เพิ่มโรงพยาบาลใหม่: ส่งเข้าตาราง DCR 100% สำหรับทุกคน!
   async function handleAddHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('submitHospBtn'); 
@@ -486,32 +527,23 @@
     });
     
     if (isDuplicate) { 
-      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบแล้วครับ`); 
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบหรืออยู่ระหว่างรออนุมัติ DCR ครับ`); 
       btn.disabled = false; 
-      btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
+      btn.innerHTML = "ส่งคำขอ DCR"; 
       return; 
     }
     
     try {
-      const uRole = crmUser ? (crmUser.Role || crmUser.role) : 'User';
-
-      // 🌟 บันทึกตรงเข้าตาราง Hospitals สำหรับ Admin, Manager, BU Head
-      if (uRole === 'Admin' || uRole === 'Manager' || uRole === 'BU Head') { 
-        const { error } = await supabaseClient.from('Hospitals').insert([payload]); 
-        if (error) throw error; 
-        alert("✅ บันทึกโรงพยาบาลใหม่สำเร็จเรียบร้อยครับ"); 
-      } 
-      else { 
-        // สำหรับ Sales Rep / User ทั่วไป ให้ส่งเป็น DCR
-        const { error } = await supabaseClient.from('DCR').insert([{ 
-          Action: 'Add Hospital', 
-          Requested_Data: JSON.stringify(payload), 
-          Status: 'Pending', 
-          Whoupdated: whoUpdated 
-        }]); 
-        if (error) throw error; 
-        alert("✅ ส่งคำขอเพิ่มโรงพยาบาลใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
-      }
+      // บังคับส่งคำขอไปยัง DCR ทุกกรณี
+      const { error } = await supabaseClient.from('DCR').insert([{ 
+        Action: 'Add Hospital', 
+        Requested_Data: JSON.stringify(payload), 
+        Status: 'Pending', 
+        Whoupdated: whoUpdated 
+      }]); 
+      
+      if (error) throw error; 
+      alert("✅ ส่งคำขอเพิ่มโรงพยาบาลใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
       
       switchHospitalView('hospitalListView'); 
       await loadHospitals();
@@ -520,11 +552,11 @@
       alert("❌ เกิดข้อผิดพลาด: " + err.message); 
     } finally { 
       btn.disabled = false; 
-      btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
+      btn.innerHTML = "ส่งคำขอ DCR"; 
     }
   }
 
-  // 🌟 บันทึกการแก้ไขข้อมูลโรงพยาบาล (อัปเดตสิทธิ์ Admin, Manager, BU Head)
+  // 🌟 บันทึกการแก้ไขข้อมูลโรงพยาบาล
   async function handleUpdateHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('updateHospBtn'); 
