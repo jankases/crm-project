@@ -12,13 +12,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+    /* 🌟 ส่วนที่ 2: ปรับพื้นหลังของเนื้อหาหลักให้เป็นสีขาว */
+    body { background-color: #ffffff; font-family: 'Segoe UI', sans-serif; }
     #appContainer { display: none; } 
     
-    /* ปรับสีพื้นหลังแถบเมนู (Navbar) ให้เป็นสีเทาอ่อนๆ */
+    /* 🌟 ส่วนที่ 1: ปรับสีพื้นหลังแถบเมนูให้เป็นสีฟ้าเทาอ่อนๆ (Soft Blue-Gray) ถนอมสายตา */
     .navbar { 
-      background-color: #f8f9fa !important; 
-      border-bottom: 1px solid #e9ecef; 
+      background-color: #f0f4f8 !important; 
+      border-bottom: 1px solid #dce2e8; 
     }
     
     #mainContent { margin-top: 20px; }
@@ -27,14 +28,14 @@
     .nav-menu-item {
       color: #495057; 
       font-weight: 500;
-      padding: 8px 12px !important; /* ลด Padding ซ้ายขวาลงนิดนึงประหยัดพื้นที่ */
+      padding: 8px 12px !important; 
       border-radius: 50px; 
       transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
       margin: 0 2px;
       text-decoration: none;
-      white-space: nowrap; /* 🌟 บังคับไม่ให้ตัวหนังสือตกบรรทัด */
+      white-space: nowrap; 
     }
     
     /* 🎨 Theme สีเฉพาะของแต่ละเมนู */
@@ -80,7 +81,7 @@
   <div id="loginComponent"></div>
 
   <div id="appContainer">
-    <nav class="navbar navbar-expand-xl navbar-light shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-xl navbar-light sticky-top">
       <div class="container-fluid px-3">
         
         <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" href="#" onclick="loadComponent('dashboard')">
@@ -90,24 +91,20 @@
           CRM System
         </a>
         
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0 shadow-sm bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- ปรับ font-size ให้พอดีขึ้น -->
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center" style="font-size: 0.9rem;">
             
-            <!-- โซนเมนู User ทั่วไป -->
             <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1"></i> บันทึกเยี่ยม</a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1"></i> แพทย์</a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1"></i> โรงพยาบาล</a></li>
             
-            <!-- เส้นคั่นแบ่งโซน Admin -->
             <div class="vr mx-2 text-muted d-none d-xl-block admin-only" style="display: none !important; opacity: 0.2;"></div>
 
-            <!-- โซนเมนูเฉพาะ Admin (ย่อชื่อให้สั้นลง) -->
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-org" href="#" data-page="organization" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap me-1"></i> โครงสร้าง</a></li>
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-matrix" href="#" data-page="matrix" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all me-1"></i> Matrix</a></li>
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-assign" href="#" data-page="assignment" onclick="loadComponent('assignment')"><i class="fa-solid fa-link me-1"></i> Assignment</a></li>
@@ -121,7 +118,7 @@
               <div class="fw-bold text-dark" id="displayUserName" style="font-size: 0.85rem;">-</div>
               <div class="text-muted" id="displayUserRole" style="font-size: 0.75rem;">-</div>
             </div>
-            <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white" onclick="logout()">
+            <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white shadow-sm" onclick="logout()">
               <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> ออกจากระบบ
             </button>
           </div>
@@ -188,11 +185,9 @@
           url = 'ManageVisits.html'; 
       }
 
-      // ลบ Active ออกจากเมนูทั้งหมดก่อน
       const menuItems = document.querySelectorAll('.nav-menu-item');
       menuItems.forEach(item => item.classList.remove('active'));
 
-      // สั่งให้มีสถานะ Active เฉพาะเมนูที่กด
       const targetMenu = document.querySelector(`.nav-menu-item[data-page="${page}"]`);
       if (targetMenu) {
         targetMenu.classList.add('active');
@@ -250,7 +245,6 @@
         
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
-          // โชว์เมนู Admin ถ้าสิทธิ์เป็น Admin
           if (uRole === 'Admin') {
             el.style.setProperty('display', el.classList.contains('vr') ? 'block' : 'block', 'important');
           } else {
