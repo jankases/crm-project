@@ -152,7 +152,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลโรงพยาบาล</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -209,7 +209,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">บันทึกข้อมูล / ส่ง DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">ส่งคำขอ DCR</button>
         </div>
       </form>
     </div>
@@ -222,7 +222,7 @@
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
       <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm rounded-pill" onclick="openEditHospitalView(currentSelectedHospId)">
-        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูล
+        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูล (DCR)
       </button>
       <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 ข้อมูลโรงพยาบาล</h4>
       <div id="profileDcrStatusBadge" class="ms-3"></div>
@@ -344,28 +344,29 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
-  // 🌟 ดึงข้อมูลทั้งตาราง Hospitals และ คำขอ DCR ที่รออนุมัติ
+  // 🌟 ดึงข้อมูลตาราง Hospitals และ DCR
   async function loadHospitals() {
     const tbody = document.getElementById('hospitalTableBody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     try {
-      // ดึงโรงพยาบาลในระบบ
       const { data: hospitals, error: hospErr } = await supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true });
       if (hospErr) throw hospErr;
 
-      // ดึงคำขอ DCR ที่รออนุมัติ (Pending)
-      const { data: pendingDcrs, error: dcrErr } = await supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending');
+      const { data: pendingAddDcrs, error: dcrErr } = await supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending');
       if (dcrErr) console.error("Error loading pending DCRs:", dcrErr);
 
-      // แปลงข้อมูลโรงพยาบาลปกติ
+      const { data: pendingEditDcrs } = await supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending');
+      const pendingEditIds = (pendingEditDcrs || []).map(d => d.Ref_ID);
+
       let list = hospitals.map(h => ({
         id: h.Hospital_ID, name: h.Hospital, knownAs: h.Known_As, province: h.Province,
-        address: h.Address, salesId: h.Sales_ID, status: h.Status, isPendingDcr: false
+        address: h.Address, salesId: h.Sales_ID, status: h.Status, 
+        isPendingDcr: false,
+        hasPendingEdit: pendingEditIds.includes(h.Hospital_ID)
       }));
 
-      // เสียบข้อมูล DCR ที่รออนุมัติเข้าตารางด้วย
-      if (pendingDcrs && pendingDcrs.length > 0) {
-        pendingDcrs.forEach(d => {
+      if (pendingAddDcrs && pendingAddDcrs.length > 0) {
+        pendingAddDcrs.forEach(d => {
           try {
             const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
             list.unshift({
@@ -376,7 +377,8 @@
               address: req.Address || '-',
               salesId: req.Sales_ID || '-',
               status: 'Pending DCR',
-              isPendingDcr: true
+              isPendingDcr: true,
+              hasPendingEdit: false
             });
           } catch(e) {}
         });
@@ -406,7 +408,6 @@
       let statusText = h.status || 'Active';
       let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
 
-      // 🌟 ถ้าเป็นรายการ DCR ที่รออนุมัติ
       if (h.isPendingDcr) {
         badge = 'bg-warning text-dark';
         statusText = '⏳ รออนุมัติ (DCR)';
@@ -415,9 +416,11 @@
         badge = 'bg-danger';
       }
 
+      const pendingEditTag = h.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
+
       const nameCell = h.isPendingDcr ? 
         `<span class="fw-bold text-dark"><i class="fa-regular fa-hospital me-2 text-warning"></i>${h.name || '-'}</span>` : 
-        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a>`;
+        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a>${pendingEditTag}`;
 
       tbody.innerHTML += `
         <tr>
@@ -498,7 +501,7 @@
     }
   }
 
-  // 🌟 เพิ่มโรงพยาบาลใหม่: ส่งเข้าตาราง DCR 100% สำหรับทุกคน!
+  // 🌟 เพิ่มโรงพยาบาลใหม่: ส่งเข้า DCR 100%
   async function handleAddHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('submitHospBtn'); 
@@ -534,7 +537,6 @@
     }
     
     try {
-      // บังคับส่งคำขอไปยัง DCR ทุกกรณี
       const { error } = await supabaseClient.from('DCR').insert([{ 
         Action: 'Add Hospital', 
         Requested_Data: JSON.stringify(payload), 
@@ -556,7 +558,7 @@
     }
   }
 
-  // 🌟 บันทึกการแก้ไขข้อมูลโรงพยาบาล
+  // 🌟 บันทึกแก้ไขโรงพยาบาล: บังคับส่งเข้า DCR 100% สำหรับทุกคน!
   async function handleUpdateHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('updateHospBtn'); 
@@ -579,24 +581,17 @@
     };
 
     try {
-      const uRole = crmUser ? (crmUser.Role || crmUser.role) : 'User';
-
-      if (uRole === 'Admin' || uRole === 'Manager' || uRole === 'BU Head') { 
-        const { error } = await supabaseClient.from('Hospitals').update(payload).eq('Hospital_ID', hospId); 
-        if (error) throw error; 
-        alert("✅ แก้ไขข้อมูลโรงพยาบาลสำเร็จเรียบร้อยครับ"); 
-      } 
-      else { 
-        const { error } = await supabaseClient.from('DCR').insert([{ 
-          Ref_ID: hospId, 
-          Action: 'Edit Hospital', 
-          Requested_Data: JSON.stringify(payload), 
-          Status: 'Pending', 
-          Whoupdated: whoUpdated 
-        }]); 
-        if (error) throw error; 
-        alert("✅ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
-      }
+      // บังคับส่งคำขอแก้ไขไปยัง DCR ทุกกรณี
+      const { error } = await supabaseClient.from('DCR').insert([{ 
+        Ref_ID: hospId, 
+        Action: 'Edit Hospital', 
+        Requested_Data: JSON.stringify(payload), 
+        Status: 'Pending', 
+        Whoupdated: whoUpdated 
+      }]); 
+      
+      if (error) throw error; 
+      alert("✅ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
       
       switchHospitalView('hospitalListView'); 
       await loadHospitals();
@@ -605,7 +600,7 @@
       alert("❌ เกิดข้อผิดพลาด: " + err.message); 
     } finally { 
       btn.disabled = false; 
-      btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
+      btn.innerHTML = "ส่งคำขอ DCR"; 
     }
   }
 </script>
