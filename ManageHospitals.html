@@ -1,174 +1,230 @@
+<style>
+  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad/Tablet ได้ดีขึ้น */
+  .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
+  .hospital-form-group .form-control, .hospital-form-group .form-select {
+    min-height: 42px; /* ขยายความสูงปุ่มให้จิ้มง่ายขึ้น */
+    border-radius: 10px;
+  }
+  .hospital-form-group textarea {
+    border-radius: 10px;
+  }
+  .table-hospital th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+  .table-hospital td { vertical-align: middle; }
+</style>
+
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
+  <!-- ================= 1. หน้ารายการโรงพยาบาล (List View) ================= -->
   <div id="hospitalListView">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="text-primary fw-bold mb-0">🏥 จัดการข้อมูลโรงพยาบาล (Hospitals)</h4>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddHospitalView()">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+      <div>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-regular fa-hospital me-2"></i>จัดการข้อมูลโรงพยาบาล (Hospitals)</h3>
+        <p class="text-muted mb-0">ระบบจัดการฐานข้อมูลสถานที่, ชื่อภาษาไทย และ Sales ID</p>
+      </div>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
         <i class="fa-solid fa-plus me-2"></i>เพิ่มโรงพยาบาลใหม่
       </button>
     </div>
 
-    <div class="row mb-4 g-2">
-      <div class="col-md-6">
-        <label class="form-label fw-medium text-muted small mb-1">ค้นหาชื่อ รพ., ชื่อไทย (Known As), หรือ รหัส</label>
-        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+    <!-- ส่วนค้นหา (Filters) -->
+    <div class="row mb-4 hospital-filter-group g-3">
+      <div class="col-sm-12 col-md-7 col-lg-6">
+        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ รพ., ชื่อไทย (Known As) หรือ รหัส</label>
+        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
           <input type="text" class="form-control border-start-0 ps-0" id="filterHospName" placeholder="พิมพ์ชื่อ รพ., ชื่อไทย, หรือ รหัส..." onkeyup="filterHospitals()">
         </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label fw-medium text-muted small mb-1">จังหวัด (Province)</label>
-        <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" style="border-radius: 8px;">
+      <div class="col-sm-12 col-md-5 col-lg-4">
+        <label class="form-label fw-bold text-secondary small mb-1">จังหวัด (Province)</label>
+        <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()">
           <option value="">- ทุกจังหวัด -</option>
         </select>
       </div>
     </div>
 
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
-      <h5 class="mb-3 fw-bold">รายชื่อโรงพยาบาลทั้งหมด</h5>
+    <!-- ตารางข้อมูล -->
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle" style="font-size: 0.9rem;">
-          <thead class="table-dark text-center">
+        <table class="table table-hover table-hospital align-middle" style="font-size: 0.95rem;">
+          <thead class="text-center">
             <tr>
-              <th>Hospital Name</th>
+              <th>ชื่อโรงพยาบาล (Name EN)</th>
               <th>ชื่อภาษาไทย (Known As)</th>
-              <th>Province</th>
+              <th>จังหวัด (Province)</th>
               <th>Sales ID</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>สถานะ (Status)</th>
+              <th>จัดการ (Action)</th>
             </tr>
           </thead>
           <tbody id="hospitalTableBody">
-            <tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <!-- ================= 2. หน้าเพิ่มข้อมูลโรงพยาบาล (Add View) ================= -->
   <div id="hospitalAddView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchHospitalView('hospitalListView')">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
       <h4 class="text-primary fw-bold mb-0">🏥 เพิ่มข้อมูลโรงพยาบาลใหม่</h4>
     </div>
     
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
       <form id="addHospitalForm" onsubmit="handleAddHospital(event)">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">ชื่อโรงพยาบาล (Hospital)</label>
-            <input type="text" class="form-control bg-white" id="hospName" placeholder="เช่น Siriraj Hospital" required>
+        
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>ข้อมูลโรงพยาบาล</h5>
+          <div class="row g-3">
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">ชื่อโรงพยาบาล (Hospital) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="hospName" placeholder="เช่น Siriraj Hospital" required>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
+              <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="เช่น โรงพยาบาลศิริราช">
+            </div>
           </div>
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
-            <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="เช่น โรงพยาบาลศิริราช">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">จังหวัด (Province)</label>
-            <input type="text" class="form-control bg-white" id="hospProvince" placeholder="เช่น Bangkok" required>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">Sales ID</label>
-            <input type="text" class="form-control bg-white" id="hospSalesId" placeholder="เช่น 17000280">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12 mb-3">
-            <label class="fw-medium mb-1">ที่อยู่ (Address)</label>
-            <textarea class="form-control bg-white" id="hospAddress" rows="2" placeholder="กรอกข้อมูลที่อยู่ รพ...." required></textarea>
+          <div class="row g-3 mt-1">
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">จังหวัด (Province) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="hospProvince" placeholder="เช่น Bangkok" required>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">รหัสอ้างอิงเซลส์ (Sales ID)</label>
+              <input type="text" class="form-control bg-white" id="hospSalesId" placeholder="เช่น 17000280">
+            </div>
           </div>
         </div>
-        <div class="text-end mt-3">
-          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-4" id="submitHospBtn">บันทึกข้อมูลโรงพยาบาล</button>
+
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>ข้อมูลที่อยู่</h5>
+          <div class="row g-3">
+            <div class="col-md-12 mb-2">
+              <label class="form-label fw-bold text-dark">ที่อยู่แบบเต็ม (Address) <span class="text-danger">*</span></label>
+              <textarea class="form-control bg-white" id="hospAddress" rows="3" placeholder="กรอกข้อมูลที่อยู่ รพ...." required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">บันทึกข้อมูลโรงพยาบาล</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ================= 3. หน้าแก้ไขข้อมูลโรงพยาบาล (Edit View) ================= -->
   <div id="hospitalEditView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchHospitalView('hospitalListView')">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
       <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลโรงพยาบาล</h4>
     </div>
     
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
       <form id="editHospitalForm" onsubmit="handleUpdateHospital(event)">
         <input type="hidden" id="editHospId">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">ชื่อโรงพยาบาล (Hospital)</label>
-            <input type="text" class="form-control bg-white" id="editHospName" required>
+        
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>ข้อมูลโรงพยาบาล</h5>
+          <div class="row g-3">
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">ชื่อโรงพยาบาล (Hospital) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="editHospName" required>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold text-dark">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
+              <input type="text" class="form-control bg-white" id="editHospKnownAs">
+            </div>
           </div>
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
-            <input type="text" class="form-control bg-white" id="editHospKnownAs">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">จังหวัด (Province)</label>
-            <input type="text" class="form-control bg-white" id="editHospProvince" required>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="fw-medium mb-1">Sales ID</label>
-            <input type="text" class="form-control bg-white" id="editHospSalesId">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12 mb-3">
-            <label class="fw-medium mb-1">ที่อยู่ (Address)</label>
-            <textarea class="form-control bg-white" id="editHospAddress" rows="2" required></textarea>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <label class="fw-medium mb-1">สถานะ</label>
-            <select class="form-select bg-white" id="editHospStatus">
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+          <div class="row g-3 mt-1">
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-dark">จังหวัด (Province) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="editHospProvince" required>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-dark">รหัสอ้างอิงเซลส์ (Sales ID)</label>
+              <input type="text" class="form-control bg-white" id="editHospSalesId">
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-danger">สถานะ (Status)</label>
+              <select class="form-select bg-white border-danger fw-bold" id="editHospStatus">
+                <option value="Active" class="text-success">Active (ใช้งาน)</option>
+                <option value="Inactive" class="text-danger">Inactive (ระงับ)</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="text-end mt-3">
-          <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-4" id="updateHospBtn">บันทึกการเปลี่ยนแปลง</button>
+
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>ข้อมูลที่อยู่</h5>
+          <div class="row g-3">
+            <div class="col-md-12 mb-2">
+              <label class="form-label fw-bold text-dark">ที่อยู่แบบเต็ม (Address) <span class="text-danger">*</span></label>
+              <textarea class="form-control bg-white" id="editHospAddress" rows="3" required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">บันทึกการเปลี่ยนแปลง</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ================= 4. หน้าโปรไฟล์โรงพยาบาล (Profile View) ================= -->
   <div id="hospitalProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-outline-secondary fw-bold me-3" onclick="switchHospitalView('hospitalListView')">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
-      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm" onclick="openEditHospitalView(currentSelectedHospId)">
-        <i class="fa-solid fa-pen-to-square me-1"></i> ✏️ แก้ไขข้อมูลโรงพยาบาล
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm rounded-pill" onclick="openEditHospitalView(currentSelectedHospId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูล
       </button>
       <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 ข้อมูลโรงพยาบาล</h4>
     </div>
     
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="row mb-3">
-        <div class="col-md-6"><label class="text-muted small">ชื่อโรงพยาบาล</label><input type="text" class="form-control bg-light" id="viewHospName" disabled></div>
-        <div class="col-md-6"><label class="text-muted small">ชื่อที่เรียกทั่วไป (Known As)</label><input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled></div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">ชื่อโรงพยาบาล</label>
+          <input type="text" class="form-control bg-light text-dark fw-bold" id="viewHospName" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">ชื่อที่เรียกทั่วไป (Known As)</label>
+          <input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-6"><label class="text-muted small">จังหวัด</label><input type="text" class="form-control bg-light" id="viewHospProvince" disabled></div>
-        <div class="col-md-6"><label class="text-muted small">Sales ID</label><input type="text" class="form-control bg-light" id="viewHospSalesId" disabled></div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">จังหวัด (Province)</label>
+          <input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">Sales ID</label>
+          <input type="text" class="form-control bg-light text-primary fw-medium" id="viewHospSalesId" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-12"><label class="text-muted small">ที่อยู่</label><textarea class="form-control bg-light" id="viewHospAddress" rows="2" disabled></textarea></div>
+        <div class="col-md-12 mb-3">
+          <label class="text-muted small fw-bold">ที่อยู่แบบเต็ม</label>
+          <textarea class="form-control bg-light" id="viewHospAddress" rows="2" disabled style="border-radius: 10px;"></textarea>
+        </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-4"><label class="text-muted small">สถานะ</label><input type="text" class="form-control bg-light" id="viewHospStatus" disabled></div>
+        <div class="col-md-4 mb-3">
+          <label class="text-muted small fw-bold">สถานะ</label>
+          <input type="text" class="form-control bg-light fw-bold" id="viewHospStatus" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
       </div>
     </div>
   </div>
@@ -176,17 +232,17 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let เป็น var
   var globalHospitals = [];
   var currentSelectedHospId = ""; 
 
-  window.addEventListener('load', function() {
-    loadHospitals();
-  });
+  // 🌟 ใช้ setTimeout เพื่อให้โหลดข้อมูลแบบ SPA สมบูรณ์แบบ
+  setTimeout(async function() {
+    await loadHospitals();
+  }, 300);
 
   async function loadHospitals() {
     const tbody = document.getElementById('hospitalTableBody');
-    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>`;
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     
     try {
       const { data: hospitals, error } = await supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true });
@@ -218,6 +274,7 @@
     });
     const target = document.getElementById(viewId);
     if(target) target.classList.remove('d-none');
+    window.scrollTo(0, 0); // เลื่อนจอขึ้นบนสุด
   }
 
   function setupHospitalFilters() {
@@ -261,24 +318,26 @@
     tbody.innerHTML = '';
     
     if(!Array.isArray(data) || data.length === 0) {
-      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">ไม่พบข้อมูลที่ค้นหา</td></tr>';
+      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลที่ค้นหา</td></tr>';
     }
     
     data.forEach(h => {
       const badge = h.status === 'Active' ? 'bg-success' : 'bg-danger';
       tbody.innerHTML += `
         <tr>
-          <td class="fw-medium">
-            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openViewHospitalProfile('${h.id}'); return false;">
-              ${h.name || '-'}
+          <td class="fw-bold text-dark">
+            <a href="#" class="text-decoration-none text-primary" onclick="openViewHospitalProfile('${h.id}'); return false;">
+              <i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}
             </a>
           </td>
-          <td>${h.knownAs || '-'}</td>
-          <td>${h.province || '-'}</td>
-          <td class="text-center">${h.salesId || '-'}</td>
-          <td class="text-center"><span class="badge ${badge}">${h.status || 'Active'}</span></td>
+          <td class="text-secondary fw-medium">${h.knownAs || '-'}</td>
+          <td><span class="badge bg-light text-dark border">${h.province || '-'}</span></td>
+          <td class="text-center text-primary"><small>${h.salesId || '-'}</small></td>
+          <td class="text-center"><span class="badge ${badge} px-2 py-1">${h.status || 'Active'}</span></td>
           <td class="text-center">
-            <button class="btn btn-sm btn-outline-primary" onclick="openEditHospitalView('${h.id}')">แก้ไข</button>
+            <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')">
+              <i class="fa-solid fa-pen"></i> แก้ไข
+            </button>
           </td>
         </tr>`;
     });
@@ -296,6 +355,7 @@
     document.getElementById('viewHospAddress').value = h.address || '-';
     document.getElementById('viewHospSalesId').value = h.salesId || '-';
     document.getElementById('viewHospStatus').value = h.status || '-';
+    document.getElementById('viewHospStatus').className = `form-control bg-light fw-bold ${h.status === 'Active' ? 'text-success' : 'text-danger'}`;
 
     switchHospitalView('hospitalProfileView');
   }
@@ -323,7 +383,7 @@
   async function handleAddHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('submitHospBtn');
-    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
 
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -344,7 +404,7 @@
       
       alert("✅ บันทึกโรงพยาบาลใหม่สำเร็จ");
       switchHospitalView('hospitalListView');
-      loadHospitals();
+      await loadHospitals();
     } catch (err) {
       alert("❌ บันทึกไม่สำเร็จ: " + err.message);
     } finally {
@@ -355,7 +415,7 @@
   async function handleUpdateHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('updateHospBtn');
-    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
 
     const hospId = document.getElementById('editHospId').value;
     let crmUser = null;
@@ -377,7 +437,7 @@
 
       alert("✅ แก้ไขข้อมูลโรงพยาบาลสำเร็จ");
       switchHospitalView('hospitalListView');
-      loadHospitals();
+      await loadHospitals();
     } catch (err) {
       alert("❌ แก้ไขไม่สำเร็จ: " + err.message);
     } finally {
