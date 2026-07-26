@@ -1,66 +1,86 @@
+<style>
+  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad ได้ดีขึ้น */
+  .visit-filter-group .form-control, .visit-filter-group .form-select {
+    min-height: 42px; /* ขยายความสูงปุ่มให้จิ้มง่ายขึ้น */
+    border-radius: 10px;
+  }
+  .table-visit th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+  .table-visit td { vertical-align: middle; }
+  .tom-select .ts-control { border-radius: 10px; min-height: 42px; padding: 10px 15px; }
+  
+  /* ปรับให้ Filter วางตัวสวยงามเมื่อหมุนจอ iPad แนวตั้ง-แนวนอน */
+  @media (max-width: 991px) {
+    .filter-col { margin-bottom: 10px; }
+  }
+</style>
+
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
   <div id="visitListView">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="text-primary fw-bold mb-0">📅 ประวัติการบันทึกเยี่ยม (Visit Logs)</h4>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="openAddVisitModal()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่มบันทึกการเยี่ยม (Add Visit)
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+      <div>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>ประวัติการบันทึกเยี่ยม</h3>
+        <p class="text-muted mb-0">รายการเข้าพบแพทย์และบันทึกกิจกรรม (Visit Logs)</p>
+      </div>
+      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitModal()">
+        <i class="fa-solid fa-plus me-2"></i>สร้างบันทึกใหม่
       </button>
     </div>
 
-    <div class="row mb-4 g-2">
-      <div class="col-md-2">
-        <label class="form-label fw-medium text-muted small mb-1">Sales Rep</label>
-        <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()" style="border-radius: 8px;">
+    <!-- ส่วนค้นหา (Filters) ปรับ Grid ใหม่สำหรับ iPad -->
+    <div class="row mb-4 visit-filter-group">
+      <div class="col-sm-6 col-md-4 col-lg-2 filter-col">
+        <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
+        <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()">
           <option value="">- All Reps -</option>
         </select>
       </div>
-      <div class="col-md-2">
-        <label class="form-label fw-medium text-muted small mb-1">Territory</label>
-        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()" style="border-radius: 8px;">
+      <div class="col-sm-6 col-md-4 col-lg-2 filter-col">
+        <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
+        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()">
           <option value="">- All Territories -</option>
         </select>
       </div>
-      <div class="col-md-3">
-        <label class="form-label fw-medium text-muted small mb-1">Doctor</label>
-        <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 ps-0" id="filterVisitDoctor" placeholder="ค้นหาชื่อแพทย์..." onkeyup="filterVisits()">
+      <div class="col-sm-12 col-md-4 col-lg-3 filter-col">
+        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาแพทย์ (Doctor)</label>
+        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="filterVisitDoctor" placeholder="พิมพ์ชื่อแพทย์..." onkeyup="filterVisits()">
         </div>
       </div>
-      <div class="col-md-3">
-        <label class="form-label fw-medium text-muted small mb-1">Product</label>
-        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()" style="border-radius: 8px;">
+      <div class="col-sm-6 col-md-6 col-lg-3 filter-col">
+        <label class="form-label fw-bold text-secondary small mb-1">สินค้า (Product)</label>
+        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
           <option value="">- All Products -</option>
         </select>
       </div>
-      <div class="col-md-2">
-        <label class="form-label fw-medium text-muted small mb-1">Status</label>
-        <select class="form-select shadow-sm" id="filterVisitStatus" onchange="filterVisits()" style="border-radius: 8px;">
+      <div class="col-sm-6 col-md-6 col-lg-2 filter-col">
+        <label class="form-label fw-bold text-secondary small mb-1">สถานะ (Status)</label>
+        <select class="form-select shadow-sm border-primary" id="filterVisitStatus" onchange="filterVisits()">
           <option value="">- All Status -</option>
-          <option value="Pending">Pending</option>
-          <option value="Submitted">Submitted</option>
+          <option value="Pending">⏳ Pending</option>
+          <option value="Submitted">✅ Submitted</option>
         </select>
       </div>
     </div>
 
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
-      <h5 class="mb-3 fw-bold">รายการบันทึกการเข้าพบทั้งหมด</h5>
+    <!-- ตารางข้อมูล -->
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle" style="font-size: 0.9rem;">
-          <thead class="table-dark text-center">
+        <table class="table table-hover table-visit align-middle" style="font-size: 0.95rem;">
+          <thead class="text-center">
             <tr>
-              <th>ID</th>
-              <th>Date</th>
-              <th>Doctor</th> <th>Product</th>
-              <th>Purpose</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>วันที่ (Date)</th>
+              <th>แพทย์ (Doctor)</th> 
+              <th>สินค้า (Product)</th>
+              <th>วัตถุประสงค์ (Purpose)</th>
+              <th>สถานะ (Status)</th>
+              <th>จัดการ (Action)</th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="7" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
+            <tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -70,62 +90,68 @@
   <!-- ================= 2. หน้าฟอร์มบันทึกเยี่ยม ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-outline-secondary fw-bold me-3" onclick="closeVisitForm(true)">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="closeVisitForm(true)">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
       <h4 class="text-primary fw-bold mb-0" id="visitViewTitle">📑 บันทึกการเข้าพบคุณหมอ</h4>
     </div>
 
-    <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
       <form id="visitLogForm" onsubmit="handleSubmitVisit(event)">
         <input type="hidden" id="visitId">
         
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label fw-medium text-muted">ผู้แทนขาย (Sales Rep)</label>
-            <div class="form-control bg-light text-muted fw-medium" id="visitRepNameDisplay" style="min-height: 38px;">-</div>
+        <!-- โซนข้อมูลพนักงาน (ซ่อนการแก้ไข) -->
+        <div class="row mb-4 bg-light p-3 rounded-3 border">
+          <div class="col-md-6 mb-2 mb-md-0">
+            <label class="form-label fw-bold text-muted small mb-1"><i class="fa-solid fa-user-tag me-1"></i> ผู้แทนขาย (Sales Rep)</label>
+            <div class="fw-bold text-dark fs-6" id="visitRepNameDisplay">-</div>
             <input type="hidden" id="visitRepId">
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-medium text-muted">เขตพื้นที่ (Territory)</label>
-            <div class="form-control bg-light text-muted fw-medium" id="visitTerritoryNameDisplay" style="min-height: 38px;">-</div>
+            <label class="form-label fw-bold text-muted small mb-1"><i class="fa-solid fa-map-location-dot me-1"></i> เขตพื้นที่ (Territory)</label>
+            <div class="fw-bold text-dark fs-6" id="visitTerritoryNameDisplay">-</div>
             <input type="hidden" id="visitTerritoryId">
           </div>
         </div>
 
-        <div class="row mb-3 border-top pt-4 mt-2">
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
+        <div class="row mb-4">
           <div class="col-md-6 mb-3">
-            <label class="form-label fw-medium text-primary">คุณหมอที่เข้าพบ (Doctor)</label>
+            <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor)</label>
             <select class="form-select" id="visitDocId" required>
               <option value="">-- กำลังโหลดข้อมูล... --</option>
             </select>
           </div>
           <div class="col-md-6 mb-3">
-            <label class="form-label fw-medium text-primary">สินค้าที่นำเสนอ (Product)</label>
+            <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product)</label>
             <select class="form-select" id="visitProductId" required>
               <option value="">-- กำลังโหลดข้อมูล... --</option>
             </select>
           </div>
         </div>
 
-        <div class="row mb-3">
+        <div class="row mb-4">
           <div class="col-md-4 mb-3">
-            <label class="form-label fw-medium">วันที่เข้าพบ</label>
-            <input type="text" class="form-control bg-white" id="visitDate" required placeholder="เลือกวันที่">
+            <label class="form-label fw-bold text-dark">วันที่เข้าพบ (Date)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white text-primary"><i class="fa-solid fa-calendar-day"></i></span>
+              <input type="text" class="form-control bg-white" id="visitDate" required placeholder="เลือกวันที่">
+            </div>
           </div>
           <div class="col-md-4 mb-3">
-            <label class="form-label fw-medium">เวลาเริ่ม</label>
-            <input type="time" class="form-control" id="visitStartTime" required>
+            <label class="form-label fw-bold text-dark">เวลาเริ่ม (Start)</label>
+            <input type="time" class="form-control" id="visitStartTime" style="min-height: 42px; border-radius: 10px;" required>
           </div>
           <div class="col-md-4 mb-3">
-            <label class="form-label fw-medium">เวลาสิ้นสุด</label>
-            <input type="time" class="form-control" id="visitEndTime" required>
+            <label class="form-label fw-bold text-dark">เวลาสิ้นสุด (End)</label>
+            <input type="time" class="form-control" id="visitEndTime" style="min-height: 42px; border-radius: 10px;" required>
           </div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label fw-medium">วัตถุประสงค์ (Purpose)</label>
-          <select class="form-select" id="visitPurpose" required>
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2 mt-4"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
+        <div class="mb-4">
+          <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose)</label>
+          <select class="form-select" id="visitPurpose" style="min-height: 42px; border-radius: 10px;" required>
             <option value="">-- เลือกวัตถุประสงค์ --</option>
             <option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>
             <option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>
@@ -135,19 +161,19 @@
           </select>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label fw-medium">รายละเอียด (Details)</label>
-          <textarea class="form-control" id="visitDetails" rows="3" required></textarea>
+        <div class="mb-4">
+          <label class="form-label fw-bold text-dark">รายละเอียด/ข้อคิดเห็น (Details)</label>
+          <textarea class="form-control" id="visitDetails" rows="4" style="border-radius: 10px;" placeholder="พิมพ์รายละเอียดการพูดคุย..." required></textarea>
         </div>
 
         <div class="mb-4">
-          <label class="form-label fw-medium">สิ่งที่จะทำต่อ (Next Action)</label>
-          <input type="text" class="form-control" id="visitNextAction">
+          <label class="form-label fw-bold text-dark">สิ่งที่จะทำต่อ (Next Action)</label>
+          <input type="text" class="form-control" id="visitNextAction" style="min-height: 42px; border-radius: 10px;" placeholder="เช่น นัดพบครั้งต่อไป, ส่งเอกสารเพิ่มเติม">
         </div>
 
-        <div class="p-3 border rounded mb-4" style="background-color: #f8f9fa;">
-          <label class="form-label fw-bold">สถานะรายการ (Status)</label>
-          <select class="form-select border-primary" id="visitStatus" required>
+        <div class="p-4 border rounded-4 mb-4" style="background-color: #f4f6f9;">
+          <label class="form-label fw-bold text-dark fs-5 mb-3">📌 สถานะรายการ (Status)</label>
+          <select class="form-select border-primary fw-bold text-primary fs-5" id="visitStatus" style="min-height: 50px; border-radius: 10px;" required>
             <option value="Pending">⏳ Pending (บันทึกร่าง)</option>
             <option value="Submitted">✅ Submitted (ส่งข้อมูลสมบูรณ์)</option>
           </select>
@@ -155,13 +181,13 @@
 
         <div class="d-flex justify-content-between border-top pt-4 mt-4">
           <div>
-            <button type="button" class="btn btn-danger fw-bold px-4 d-none" id="btnDeleteVisit" onclick="deleteVisit()">
-              <i class="fa-solid fa-trash me-2"></i>ลบข้อมูล (Delete)
+            <button type="button" class="btn btn-outline-danger fw-bold px-4 rounded-pill d-none py-2" id="btnDeleteVisit" onclick="deleteVisit()">
+              <i class="fa-solid fa-trash me-2"></i>ลบข้อมูล
             </button>
           </div>
-          <div>
-            <button type="button" class="btn btn-light border fw-bold px-4 me-2" onclick="closeVisitForm(true)">ยกเลิก (Cancel)</button>
-            <button type="submit" class="btn btn-primary fw-bold px-4" id="btnSubmitVisit">บันทึกข้อมูล (Save)</button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="closeVisitForm(true)">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="btnSubmitVisit">บันทึกข้อมูล (Save)</button>
           </div>
         </div>
 
@@ -172,7 +198,6 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let เป็น var
   var globalVisitsList = [];
   var globalTerritories = []; 
   var globalDoctors = [];
@@ -182,10 +207,16 @@
   var visitDatePicker; 
   var isVisitDataLoaded = false; 
 
+  // 🌟 จุดแก้ไขสำคัญ: เพิ่ม setTimeout เพื่อให้ระบบดึงข้อมูลอัตโนมัติเมื่อเปิดหน้านี้
+  setTimeout(async function() { 
+    await loadVisitDropdowns();
+    await loadVisitLogs();
+  }, 300);
+
   if (!visitDatePicker && document.getElementById('visitDate')) {
     visitDatePicker = flatpickr("#visitDate", {
       altInput: true,
-      altFormat: "d/m/Y",
+      altFormat: "d M Y", // ปรับ format ให้ดูอ่านง่ายขึ้น
       dateFormat: "Y-m-d",
       defaultDate: "today"
     });
@@ -195,6 +226,7 @@
     document.getElementById('visitListView').classList.add('d-none');
     document.getElementById('visitFormView').classList.add('d-none');
     document.getElementById(viewId).classList.remove('d-none');
+    window.scrollTo(0, 0); // เลื่อนจอขึ้นบนสุดเมื่อเปลี่ยนหน้า (ดีสำหรับ iPad)
   }
 
   function closeVisitForm(isCancel = true) {
@@ -212,7 +244,6 @@
       const [terRes, docRes, prodRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory'), 
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
-        // 🌟 แก้ไขตรงนี้: ดึงฟิลด์ 'Product' แทน 'Product_Name'
         supabaseClient.from('Products').select('Product_ID, Product').eq('Status', 'Active')
       ]);
 
@@ -227,7 +258,6 @@
         name: d.Doc_Name || d.Doc_Name_TH || d.Doc_ID 
       }));
       
-      // 🌟 แก้ไขตรงนี้: อ้างอิง p.Product แทน p.Product_Name
       const mappedProds = (prodRes.data || []).map(p => ({ 
         id: p.Product_ID, 
         name: p.Product 
@@ -236,12 +266,12 @@
       globalDoctors = mappedDocs;
       globalProducts = mappedProds;
 
-      populateVisitSelect('visitDocId', mappedDocs, '-- เลือกคุณหมอ --');
-      populateVisitSelect('visitProductId', mappedProds, '-- เลือกสินค้า --');
+      populateVisitSelect('visitDocId', mappedDocs, '-- ค้นหา/เลือกคุณหมอ --');
+      populateVisitSelect('visitProductId', mappedProds, '-- ค้นหา/เลือกสินค้า --');
 
       if (crmUser) {
         document.getElementById('visitRepId').value = crmUser.Rep_ID || "-";
-        document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (${crmUser.Rep_ID || "-"})`;
+        document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
         document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "-";
         
         const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
@@ -255,7 +285,7 @@
   async function loadVisitLogs() {
     isVisitDataLoaded = false; 
     const tbody = document.getElementById('visitTableBody'); 
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
 
     try {
       const repRes = await supabaseClient.from('Rep_Users').select('Rep_ID, Rep_Name');
@@ -301,7 +331,7 @@
       
     } catch (err) {
       console.error("Error loading visits:", err.message);
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">โหลดข้อมูลล้มเหลว: ${err.message}</td></tr>`;
     }
   }
 
@@ -314,7 +344,11 @@
     if(el) {
       if (el.tomselect) el.tomselect.destroy();
       el.innerHTML = html;
-      new TomSelect(el, { create: false, sortField: { field: "text", direction: "asc" } });
+      new TomSelect(el, { 
+        create: false, 
+        sortField: { field: "text", direction: "asc" },
+        controlInput: '<input placeholder="พิมพ์เพื่อค้นหา...">' 
+      });
     }
   }
 
@@ -326,26 +360,29 @@
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     
-    const filtered = (crmUser && (crmUser.Role === 'Admin' || crmUser.Role === 'BU Head')) 
-      ? data 
-      : data.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
+    // สำหรับ Role ที่ดูแลทั้งหมด จะเห็น Data ทั้งหมด
+    const hasFullAccess = crmUser && ['Admin', 'Product Manager', 'Staff', 'BU Head'].includes(crmUser.Role);
+    const filtered = hasFullAccess ? data : data.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
 
-    if(!filtered.length) return tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">ไม่พบรายการบันทึก</td></tr>';
+    if(!filtered.length) return tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-danger"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบรายการบันทึก</td></tr>';
 
     filtered.forEach(v => {
       const statusBadge = v.status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
-      const shortId = v.id ? v.id.substring(0, 6) + "..." : "-";
       
       tbody.innerHTML += `
         <tr>
-          <td class="text-center"><small title="${v.id}">${shortId}</small></td>
-          <td class="text-center">${v.date}</td>
-          <td><div class="fw-medium">${v.docName}</div><small class="text-muted">${v.repName}</small></td>
-          <td>${v.prodName}</td>
-          <td><small>${v.purpose}</small></td>
-          <td class="text-center"><span class="badge ${statusBadge}">${v.status}</span></td>
+          <td class="text-center fw-medium">${v.date}</td>
+          <td>
+            <div class="fw-bold text-dark"><i class="fa-solid fa-user-doctor text-primary me-2"></i>${v.docName}</div>
+            <small class="text-muted"><i class="fa-solid fa-user-tag me-1"></i>${v.repName}</small>
+          </td>
+          <td class="fw-medium text-secondary">${v.prodName}</td>
+          <td><small class="text-muted">${v.purpose}</small></td>
+          <td class="text-center"><span class="badge ${statusBadge} px-2 py-1">${v.status}</span></td>
           <td class="text-center">
-            <button class="btn btn-sm btn-outline-primary" onclick="openEditVisitModal('${v.id}')">แก้ไข</button>
+            <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditVisitModal('${v.id}')">
+              <i class="fa-solid fa-pen"></i> แก้ไข
+            </button>
           </td>
         </tr>`;
     });
@@ -374,7 +411,8 @@
   function setupVisitFilters() {
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    const visibleData = (crmUser && (crmUser.Role === 'Admin' || crmUser.Role === 'BU Head')) ? globalVisitsList : globalVisitsList.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
+    const hasFullAccess = crmUser && ['Admin', 'Product Manager', 'Staff', 'BU Head'].includes(crmUser.Role);
+    const visibleData = hasFullAccess ? globalVisitsList : globalVisitsList.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
     
     const reps = [...new Set(visibleData.map(v => v.repName).filter(r => r))].sort();
     const repSelect = document.getElementById('filterVisitRep');
@@ -417,7 +455,7 @@
     
     if(crmUser) {
       document.getElementById('visitRepId').value = crmUser.Rep_ID || "";
-      document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (${crmUser.Rep_ID || "-"})`;
+      document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
       document.getElementById('visitTerritoryId').value = crmUser.Territory_ID || "";
       const tObj = globalTerritories.find(x => x.Territory_ID === crmUser.Territory_ID);
       document.getElementById('visitTerritoryNameDisplay').innerText = tObj ? `${tObj.Territory}` : crmUser.Territory_ID;
@@ -471,6 +509,7 @@
     if (crmUser && crmUser.Role === 'Admin') btnDelete.classList.remove('d-none'); 
     else btnDelete.classList.add('d-none');
 
+    // ล็อกข้อมูลถ้าเป็น Submitted แล้ว และไม่ใช่ Admin
     const isReadOnly = (v.status === 'Submitted' && crmUser && crmUser.Role !== 'Admin');
     const fields = ['visitDocId', 'visitProductId', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
     fields.forEach(f => {
@@ -500,7 +539,7 @@
   async function handleSubmitVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSubmitVisit');
-    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
 
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -558,7 +597,7 @@
       } catch (err) {
         alert("❌ เกิดข้อผิดพลาดในการลบ: " + err.message);
       } finally {
-        btn.disabled = false; btn.innerHTML = "ลบข้อมูล (Delete)";
+        btn.disabled = false; btn.innerHTML = "ลบข้อมูล";
       }
     }
   }
