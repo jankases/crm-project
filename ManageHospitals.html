@@ -6,6 +6,7 @@
 <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 
 <style>
+  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad/Tablet ได้ดีขึ้น */
   .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
   .hospital-form-group .form-control, .hospital-form-group .form-select {
     min-height: 42px; border-radius: 10px;
@@ -16,7 +17,7 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 Fix: แก้ไขและตกแต่ง Dropdown ของตัวช่วยกรอกที่อยู่ให้แสดงผลชัดเจน */
+  /* 🌟 ตกแต่ง Dropdown ของตัวช่วยกรอกที่อยู่ให้แสดงผลชัดเจนและอยู่หน้าสุด */
   .tt-menu {
     background-color: #fff;
     border: 1px solid #ced4da;
@@ -24,7 +25,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     width: 100%;
     margin-top: 5px;
-    z-index: 9999 !important; /* บังคับให้อยู่หน้าสุด */
+    z-index: 9999 !important; 
   }
   .tt-suggestion { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
   .tt-suggestion:hover { background-color: #e9ecef; color: #0d6efd; }
@@ -220,7 +221,6 @@
 
   <!-- ================= 4. หน้าโปรไฟล์โรงพยาบาล (Profile View) ================= -->
   <div id="hospitalProfileView" class="d-none">
-    <!-- หน้าดูโปรไฟล์ โค้ดส่วนนี้ยังคงเดิมตามเวอร์ชั่นก่อนหน้า -->
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
@@ -231,20 +231,39 @@
       <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 ข้อมูลโรงพยาบาล</h4>
       <div id="profileDcrStatusBadge" class="ms-3"></div>
     </div>
+    
     <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="row mb-3">
-        <div class="col-md-6 mb-3"><label class="text-muted small fw-bold">ชื่อโรงพยาบาล</label><input type="text" class="form-control bg-light text-dark fw-bold" id="viewHospName" disabled style="border-radius: 10px; min-height: 42px;"></div>
-        <div class="col-md-6 mb-3"><label class="text-muted small fw-bold">ชื่อที่เรียกทั่วไป (Known As)</label><input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled style="border-radius: 10px; min-height: 42px;"></div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">ชื่อโรงพยาบาล</label>
+          <input type="text" class="form-control bg-light text-dark fw-bold" id="viewHospName" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">ชื่อที่เรียกทั่วไป (Known As)</label>
+          <input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-6 mb-3"><label class="text-muted small fw-bold">จังหวัด (Province)</label><input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;"></div>
-        <div class="col-md-6 mb-3"><label class="text-muted small fw-bold">Sales ID</label><input type="text" class="form-control bg-light text-primary fw-medium" id="viewHospSalesId" disabled style="border-radius: 10px; min-height: 42px;"></div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">จังหวัด (Province)</label>
+          <input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="text-muted small fw-bold">Sales ID</label>
+          <input type="text" class="form-control bg-light text-primary fw-medium" id="viewHospSalesId" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-12 mb-3"><label class="text-muted small fw-bold">ที่อยู่แบบเต็ม</label><textarea class="form-control bg-light" id="viewHospAddress" rows="2" disabled style="border-radius: 10px;"></textarea></div>
+        <div class="col-md-12 mb-3">
+          <label class="text-muted small fw-bold">ที่อยู่แบบเต็ม</label>
+          <textarea class="form-control bg-light" id="viewHospAddress" rows="2" disabled style="border-radius: 10px;"></textarea>
+        </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-4 mb-3"><label class="text-muted small fw-bold">สถานะ</label><input type="text" class="form-control bg-light fw-bold" id="viewHospStatus" disabled style="border-radius: 10px; min-height: 42px;"></div>
+        <div class="col-md-4 mb-3">
+          <label class="text-muted small fw-bold">สถานะ</label>
+          <input type="text" class="form-control bg-light fw-bold" id="viewHospStatus" disabled style="border-radius: 10px; min-height: 42px;">
+        </div>
       </div>
     </div>
   </div>
@@ -255,9 +274,9 @@
   var globalHospitals = [];
   var currentSelectedHospId = ""; 
 
-  // 🌟 Flag เช็คเพื่อป้องกันการเรียกใช้งาน Library ตัวช่วยกรอกที่อยู่ซ้ำซ้อน
-  let isAutoAddressAddInit = false;
-  let isAutoAddressEditInit = false;
+  // 🌟 ป้องกัน Error Identifier has already been declared ด้วยการใช้ var
+  var isAutoAddressAddInit = false;
+  var isAutoAddressEditInit = false;
 
   // ===================== ระบบ Voice to Text =====================
   var searchRecognition;
@@ -408,7 +427,7 @@
           $('#autoAddressAdd').val('');
         }
       });
-      isAutoAddressAddInit = true; // ล็อคไว้ไม่ให้เรียกซ้ำ
+      isAutoAddressAddInit = true; 
     }
   }
 
@@ -436,7 +455,7 @@
           $('#autoAddressEdit').val('');
         }
       });
-      isAutoAddressEditInit = true; // ล็อคไว้ไม่ให้เรียกซ้ำ
+      isAutoAddressEditInit = true; 
     }
   }
 
@@ -450,12 +469,15 @@
       Province: document.getElementById('hospProvince').value, Address: document.getElementById('hospAddress').value.trim(),
       Sales_ID: document.getElementById('hospSalesId').value.trim(), Status: 'Active', Whoupdated: whoUpdated
     };
+    
     const isDuplicate = globalHospitals.some(h => {
       const matchName = payload.Hospital && h.name && h.name.toLowerCase().trim() === payload.Hospital.toLowerCase().trim();
       const matchKnownAs = payload.Known_As && h.knownAs && h.knownAs.toLowerCase().trim() === payload.Known_As.toLowerCase().trim();
       return matchName || matchKnownAs;
     });
+    
     if (isDuplicate) { alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบแล้วครับ`); btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; return; }
+    
     try {
       if (crmUser && crmUser.Role === 'Admin') { const { error } = await supabaseClient.from('Hospitals').insert([payload]); if (error) throw error; alert("✅ บันทึกโรงพยาบาลใหม่สำเร็จ (Admin Direct Save)"); } 
       else { const { error } = await supabaseClient.from('DCR').insert([{ Action: 'Add Hospital', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated }]); if (error) throw error; alert("✅ ส่งคำขอเพิ่มโรงพยาบาลใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); }
