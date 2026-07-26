@@ -84,15 +84,14 @@
           
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center" style="font-size: 0.95rem;">
             
-            <!-- 🌟 ใส่คลาส nav-menu-item และ attribute data-page เพื่ออ้างอิงตอนกด -->
             <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1 text-muted"></i> บันทึกเยี่ยม</a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1 text-muted"></i> แพทย์</a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1 text-muted"></i> โรงพยาบาล</a></li>
             
-            <!-- เมนู All-in-One: โครงสร้างองค์กร (เฉพาะ Admin) -->
+            <!-- เมนู All-in-One: โครงสร้างองค์กร (เฉพาะ Admin) แก้ไขเอาคลาส border ออกแล้ว -->
             <li class="nav-item ms-2 admin-only" style="display: none;">
-              <a class="nav-link nav-menu-item border" href="#" data-page="organization" onclick="loadComponent('organization')">
-                <i class="fa-solid fa-sitemap me-1 text-primary"></i> โครงสร้างองค์กร
+              <a class="nav-link nav-menu-item" href="#" data-page="organization" onclick="loadComponent('organization')">
+                <i class="fa-solid fa-sitemap me-1 text-muted"></i> โครงสร้างองค์กร
               </a>
             </li>
             
@@ -168,7 +167,7 @@
       }
     }
 
-    // 🌟 ระบบ Routing สลับหน้าเว็บ และเปลี่ยนสีเมนู (Highlight)
+    // ระบบ Routing สลับหน้าเว็บ และเปลี่ยนสีเมนู (Highlight)
     async function loadComponent(page) {
       let url = '';
       
@@ -184,15 +183,15 @@
         case 'dcr': url = 'ManageDCR.html'; break;
         case 'user': url = 'ManageUsers.html'; break;
         default: 
-          page = 'visit'; // บังคับเปลี่ยน page เป็น visit เผื่อไว้
+          page = 'visit'; 
           url = 'ManageVisits.html'; 
       }
 
-      // 🌟 1. ลบ Active ออกจากเมนูทั้งหมดก่อน
+      // 1. ลบ Active ออกจากเมนูทั้งหมดก่อน
       const menuItems = document.querySelectorAll('.nav-menu-item');
       menuItems.forEach(item => item.classList.remove('active'));
 
-      // 🌟 2. หาปุ่มเมนูที่ตรงกับ page ที่กำลังโหลด แล้วสั่งให้มีสถานะ Active
+      // 2. หาปุ่มเมนูที่ตรงกับ page ที่กำลังโหลด แล้วสั่งให้มีสถานะ Active
       const targetMenu = document.querySelector(`.nav-menu-item[data-page="${page}"]`);
       if (targetMenu) {
         targetMenu.classList.add('active');
