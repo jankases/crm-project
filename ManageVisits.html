@@ -9,8 +9,8 @@
   @media (max-width: 991px) { .filter-col { margin-bottom: 10px; } }
   
   /* Effect สำหรับปุ่มไมค์ตอนกำลังฟังเสียง */
-  .mic-active { animation: pulse-red 1.5s infinite; }
-  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+  .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
+  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -41,7 +41,11 @@
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหาแพทย์ (Doctor)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 ps-0" id="filterVisitDoctor" placeholder="พิมพ์ชื่อแพทย์..." onkeyup="filterVisits()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="พิมพ์หรือพูดชื่อแพทย์..." onkeyup="filterVisits()">
+          <!-- 🌟 ปุ่มไมค์สำหรับค้นหาแพทย์ -->
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearchVisit" onclick="toggleSearchVisitDictation()" title="ค้นหาด้วยเสียง">
+            <i class="fa-solid fa-microphone text-muted" id="micSearchVisitIcon"></i>
+          </button>
         </div>
       </div>
       <div class="col-sm-6 col-md-6 col-lg-3 filter-col">
@@ -132,7 +136,7 @@
 
         <h5 class="fw-bold text-primary mb-3 border-bottom pb-2 mt-4"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
         
-        <!-- 🌟 ดึงข้อมูลจาก Table: Index แทน -->
+        <!-- ดึงข้อมูลจาก Table: Index -->
         <div class="mb-4">
           <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose)</label>
           <select class="form-select" id="visitPurpose" style="min-height: 42px; border-radius: 10px;" required>
@@ -140,7 +144,7 @@
           </select>
         </div>
 
-        <!-- 🌟 โซนรายละเอียดงาน (Details) -->
+        <!-- โซนรายละเอียดงาน (Details) -->
         <div class="mb-4">
           <div class="d-flex flex-wrap justify-content-between align-items-end mb-2 gap-2">
             <label class="form-label fw-bold text-dark mb-0">รายละเอียด/ข้อคิดเห็น (Details)</label>
@@ -156,7 +160,7 @@
           <textarea class="form-control" id="visitDetails" rows="4" style="border-radius: 10px;" placeholder="พิมพ์ หรือ กดปุ่มไมค์แล้วพูดรายละเอียดการพูดคุย..." required></textarea>
         </div>
 
-        <!-- 🌟 โซนสิ่งที่จะทำต่อ (Next Action) เปลี่ยนเป็น Textarea และเพิ่มไมค์ -->
+        <!-- โซนสิ่งที่จะทำต่อ (Next Action) -->
         <div class="mb-4">
           <div class="d-flex flex-wrap justify-content-between align-items-end mb-2 gap-2">
             <label class="form-label fw-bold text-dark mb-0">สิ่งที่จะทำต่อ (Next Action)</label>
@@ -208,7 +212,60 @@
   var visitDatePicker; 
   var isVisitDataLoaded = false; 
 
-  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์แบบแยกช่อง) =====================
+  // ===================== 🌟 ระบบ Voice to Text สำหรับค้นหาชื่อแพทย์ =====================
+  var searchVisitRecognition;
+  var isSearchVisitRecording = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    searchVisitRecognition = new SpeechRecognition();
+    searchVisitRecognition.lang = 'th-TH'; 
+    searchVisitRecognition.continuous = false; // พูดประโยคเดียวจบ
+    searchVisitRecognition.interimResults = false; 
+
+    searchVisitRecognition.onresult = function(event) {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+      }
+      if (finalTranscript) {
+        document.getElementById('filterVisitDoctor').value = finalTranscript.trim();
+        filterVisits(); 
+        stopSearchVisitDictation(); 
+      }
+    };
+    searchVisitRecognition.onerror = function(event) { stopSearchVisitDictation(); };
+    searchVisitRecognition.onend = function() { if(isSearchVisitRecording) stopSearchVisitDictation(); };
+  }
+
+  function toggleSearchVisitDictation() {
+    if (!searchVisitRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (isSearchVisitRecording) { 
+      stopSearchVisitDictation(); 
+    } else {
+      isSearchVisitRecording = true;
+      searchVisitRecognition.start();
+      const btn = document.getElementById('btnMicSearchVisit');
+      const icon = document.getElementById('micSearchVisitIcon');
+      btn.classList.remove('bg-white'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
+      icon.classList.remove('text-muted', 'fa-microphone'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
+      document.getElementById('filterVisitDoctor').placeholder = "กำลังฟัง... พูดชื่อแพทย์ได้เลย";
+    }
+  }
+
+  function stopSearchVisitDictation() {
+    isSearchVisitRecording = false;
+    if(searchVisitRecognition) searchVisitRecognition.stop();
+    const btn = document.getElementById('btnMicSearchVisit');
+    const icon = document.getElementById('micSearchVisitIcon');
+    if (btn && icon) {
+      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
+      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
+      document.getElementById('filterVisitDoctor').placeholder = "พิมพ์หรือพูดชื่อแพทย์...";
+    }
+  }
+
+  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์แบบแยกช่อง ฟอร์มบันทึก) =====================
   var recognition;
   var isRecording = false;
   var currentDictationTarget = null;
@@ -284,7 +341,7 @@
     currentMicBtn = null;
   }
 
-  // ===================== 🌟 ระบบ AI Summarization =====================
+  // ===================== 🌟 ระบบ AI Summarization (Mockup) =====================
   function summarizeWithAI(targetId, btnId) {
     const targetBox = document.getElementById(targetId);
     const originalText = targetBox.value.trim();
@@ -338,7 +395,7 @@
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
     try {
-      // 🌟 โหลด IndexType และ Index มาเพื่อสร้างตัวเลือก Purpose
+      // โหลด IndexType และ Index มาเพื่อสร้างตัวเลือก Purpose
       const [terRes, docRes, prodRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory'), 
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
@@ -355,7 +412,7 @@
       populateVisitSelect('visitDocId', mappedDocs, '-- ค้นหา/เลือกคุณหมอ --');
       populateVisitSelect('visitProductId', mappedProds, '-- ค้นหา/เลือกสินค้า --');
 
-      // 🌟 สร้าง Dropdown Purpose จากตาราง Index
+      // สร้าง Dropdown Purpose จากตาราง Index
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
       const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name === 'วัตถุประสงค์');
@@ -364,7 +421,7 @@
         const purposes = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
         purposes.forEach(p => purposeHtml += `<option value="${p.Value}">${p.Value}</option>`);
       } else {
-        purposeHtml += '<option value="พบเพื่อสร้างความสัมพันธ์">พบเพื่อสร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>'; // Fallback กรณีหาไม่เจอ
+        purposeHtml += '<option value="พบเพื่อสร้างความสัมพันธ์">พบเพื่อสร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>';
       }
       document.getElementById('visitPurpose').innerHTML = purposeHtml;
 
