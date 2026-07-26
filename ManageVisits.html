@@ -71,7 +71,7 @@
     </div>
 
     <div class="card p-4 p-md-5 border-0 shadow-sm visit-card">
-      <form id="visitForm" onsubmit="handleSaveVisit(event)">
+      <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
         <!-- ส่วนข้อมูลผู้แทน -->
@@ -89,17 +89,18 @@
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
           
           <div class="row g-3">
-            <!-- 🌟 ค้นหาคุณหมอพร้อมปุ่มไมค์พูดภาษาไทย-อังกฤษ -->
+            <!-- ค้นหาคุณหมอพร้อมปุ่มไมค์พูดภาษาไทย-อังกฤษ -->
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor) <span class="text-danger">*</span></label>
-              <div class="input-group shadow-sm" style="border-radius: 10px; overflow: visible;">
-                <select class="form-select bg-white" id="visitDocId" required style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+              <div class="input-group shadow-sm" style="border-radius: 10px;">
+                <select class="form-select bg-white" id="visitDocId" required>
                   <option value="">-- ค้นหา/เลือกคุณหมอ --</option>
                 </select>
                 <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="กดพูดเพื่อค้นหาชื่อหมอ (ไทย/EN)">
                   <i class="fa-solid fa-microphone" id="micDocIcon"></i>
                 </button>
               </div>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนกดบันทึกครับ</div>
               <small class="text-muted" style="font-size:0.75rem;">💡 กดไอคอนไมค์ แล้วพูดชื่อหมอภาษาไทย หรือ ภาษาอังกฤษได้เลย</small>
             </div>
 
@@ -109,6 +110,7 @@
               <select class="form-select bg-white shadow-sm" id="visitProductId" required>
                 <option value="">-- ค้นหา/เลือกสินค้า --</option>
               </select>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าที่นำเสนอก่อนครับ</div>
             </div>
           </div>
 
@@ -116,6 +118,7 @@
             <div class="col-md-4 mb-2">
               <label class="form-label fw-bold text-dark">วันที่เข้าพบ (Date) <span class="text-danger">*</span></label>
               <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitDate" style="display:none !important;">⚠️ กรุณาระบุวันที่เข้าพบครับ</div>
             </div>
             <div class="col-md-4 mb-2">
               <label class="form-label fw-bold text-dark">เวลาเริ่ม (Start)</label>
@@ -137,6 +140,7 @@
               <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
                 <option value="">-- เลือกวัตถุประสงค์ --</option>
               </select>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์การเข้าพบครับ</div>
             </div>
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สถานะการบันทึก (Status)</label>
@@ -174,8 +178,6 @@
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     docSpeechRecognition = new SpeechRecognition();
-    
-    // ตั้งค่าภาษาหลักเป็น TH (ถอดความคำทับศัพท์ภาษาอังกฤษให้อัตโนมัติ)
     docSpeechRecognition.lang = 'th-TH'; 
     docSpeechRecognition.continuous = false;
     docSpeechRecognition.interimResults = false;
@@ -235,7 +237,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันจับคำพูดค้นหาทั้ง Name EN และ Name TH
   function searchAndSelectDoctor(keyword) {
     const docSelectEl = document.getElementById('visitDocId');
     if (!docSelectEl) return;
@@ -247,7 +248,6 @@
       ts.focus();
       ts.setTextboxValue(keyword);
 
-      // วนลูปเช็คกับตัวเลือกทั้งหมดใน Dropdown
       const options = ts.options;
       let matchedDocId = null;
 
@@ -266,7 +266,6 @@
         ts.setValue(matchedDocId);
       }
     } else {
-      // กรณีใช้ <select> ปกติ
       const matched = globalDoctorsList.find(d => 
         (d.Doc_Name && d.Doc_Name.toLowerCase().includes(searchKey)) ||
         (d.Doc_Name_TH && d.Doc_Name_TH.toLowerCase().includes(searchKey))
@@ -301,17 +300,14 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลดรายชื่อแพทย์ และ สินค้าเข้า Dropdown
   async function loadDropdowns() {
     try {
-      const [docRes, prodRes, typeRes, idxRes] = await Promise.all([
+      const [docRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
 
-      // 1. หมอ
       globalDoctorsList = docRes.data || [];
       const docSelect = document.getElementById('visitDocId');
       docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
@@ -325,7 +321,6 @@
         docSelect.appendChild(opt);
       });
 
-      // Initialize TomSelect ให้ช่องหมอ
       if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
         tomSelectDocInstance = new TomSelect('#visitDocId', {
           create: false,
@@ -334,7 +329,6 @@
         });
       }
 
-      // 2. สินค้า & วัตถุประสงค์
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
 
@@ -356,7 +350,6 @@
     }
   }
 
-  // 🌟 ดึงข้อมูลประวัติการเข้าพบ (Visits)
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
@@ -413,7 +406,19 @@
     });
   }
 
+  function clearValidation() {
+    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('is-invalid');
+    });
+    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.setProperty('display', 'none', 'important');
+    });
+  }
+
   function openAddVisitView() {
+    clearValidation();
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
     document.getElementById('formVisitTitle').innerText = '📝 เพิ่มการบันทึกเยี่ยมใหม่';
@@ -425,6 +430,7 @@
   }
 
   function openEditVisitView(visitId) {
+    clearValidation();
     const v = globalVisits.find(x => x.Visit_ID === visitId);
     if (!v) return;
 
@@ -448,24 +454,73 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 บันทึกการเข้าพบ (Insert / Update)
+  // 🌟 บันทึกการเข้าพบ พร้อมระบบสื่อสาร UI & Pop-up ชัดเจนว่าติดตรงไหน แก้ตรงไหน
   async function handleSaveVisit(e) {
     e.preventDefault();
+
+    const docSelect = document.getElementById('visitDocId');
+    const prodSelect = document.getElementById('visitProductId');
+    const dateInput = document.getElementById('visitDate');
+    const purposeSelect = document.getElementById('visitPurpose');
     const btn = document.getElementById('saveVisitBtn');
+
+    clearValidation();
+
+    // ตรวจสอบความถูกต้องของข้อมูลทีละช่อง
+    let missingFields = [];
+
+    if (!docSelect.value) {
+      docSelect.classList.add('is-invalid');
+      document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important');
+      missingFields.push("• คุณหมอที่เข้าพบ (Doctor)");
+    }
+    if (!prodSelect.value) {
+      prodSelect.classList.add('is-invalid');
+      document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important');
+      missingFields.push("• สินค้าที่นำเสนอ (Product)");
+    }
+    if (!dateInput.value) {
+      dateInput.classList.add('is-invalid');
+      document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important');
+      missingFields.push("• วันที่เข้าพบ (Date)");
+    }
+    if (!purposeSelect.value) {
+      purposeSelect.classList.add('is-invalid');
+      document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important');
+      missingFields.push("• วัตถุประสงค์ (Purpose)");
+    }
+
+    // กรณีมีข้อมูลไม่ครบ ให้โฟกัสไปยังช่องแรกพร้อมเด้งเตือน
+    if (missingFields.length > 0) {
+      alert("⚠️ ไม่สามารถบันทึกได้! กรุณากรอก/เลือกข้อมูลต่อไปนี้ให้ครบถ้วนครับ:\n\n" + missingFields.join("\n"));
+      
+      if (!docSelect.value) {
+        if (docSelect.tomselect) docSelect.tomselect.focus();
+        else docSelect.focus();
+      }
+      else if (!prodSelect.value) prodSelect.focus();
+      else if (!dateInput.value) dateInput.focus();
+      else if (!purposeSelect.value) purposeSelect.focus();
+      
+      return;
+    }
+
+    // กรณีข้อมูลครบถ้วน ดำเนินการส่งเข้า Database
     btn.disabled = true;
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
 
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    let crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
     const visitId = document.getElementById('visitId').value;
     const payload = {
-      Doc_ID: document.getElementById('visitDocId').value,
-      Product_ID: document.getElementById('visitProductId').value,
-      Visit_Date: document.getElementById('visitDate').value,
+      Doc_ID: docSelect.value,
+      Product_ID: prodSelect.value,
+      Visit_Date: dateInput.value,
       Start_Time: document.getElementById('visitStartTime').value,
       End_Time: document.getElementById('visitEndTime').value,
-      Purpose: document.getElementById('visitPurpose').value,
+      Purpose: purposeSelect.value,
       Status: document.getElementById('visitStatus').value,
       Remarks: document.getElementById('visitRemarks').value.trim(),
       Whoupdated: whoUpdated
@@ -473,12 +528,10 @@
 
     try {
       if (visitId) {
-        // แก้ไขข้อมูล
         const { error } = await supabaseClient.from('Visits').update(payload).eq('Visit_ID', visitId);
         if (error) throw error;
         alert("✅ แก้ไขข้อมูลการเข้าพบเรียบร้อยแล้ว");
       } else {
-        // เพิ่มข้อมูลใหม่
         const { error } = await supabaseClient.from('Visits').insert([payload]);
         if (error) throw error;
         alert("✅ บันทึกข้อมูลการเข้าพบเรียบร้อยแล้ว");
@@ -488,7 +541,18 @@
       await loadVisits();
 
     } catch(err) {
-      alert("❌ เกิดข้อผิดพลาด: " + err.message);
+      console.error("Save Visit Error:", err);
+      let errorHelpMsg = "❌ ไม่สามารถบันทึกข้อมูลได้ เนื่องจากปัญหาต่อไปนี้:\n\n";
+
+      if (err.message && (err.message.includes('network') || err.message.includes('fetch'))) {
+        errorHelpMsg += "• สัญญาณอินเทอร์เน็ตขัดข้อง กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
+      } else if (err.message && (err.message.includes('permission') || err.message.includes('RLS') || err.message.includes('401'))) {
+        errorHelpMsg += "• Session ล็อกอินของคุณหมดอายุ หรือไม่มีสิทธิ์บันทึกข้อมูล\n💡 วิธีแก้: กรุณา ออกจากระบบ แล้วล็อกอินใหม่อีกครั้ง";
+      } else {
+        errorHelpMsg += `• ข้อผิดพลาด: ${err.message || 'ไม่ทราบสาเหตุ'}\n\n💡 วิธีแก้: กรุณาแคปภาพหน้าจอนี้แจ้งทีม Admin`;
+      }
+
+      alert(errorHelpMsg);
     } finally {
       btn.disabled = false;
       btn.innerHTML = "💾 บันทึกข้อมูล";
