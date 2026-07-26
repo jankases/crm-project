@@ -28,28 +28,36 @@
 
       <!-- กลุ่มปุ่มจัดการ -->
       <div class="d-flex flex-wrap gap-2">
+        <!-- ปุ่ม 1: Import -->
         <button type="button" class="btn btn-outline-success fw-bold shadow-sm rounded-pill px-3" onclick="triggerImportFile()">
           <i class="fa-solid fa-file-import me-1"></i>Import Excel
         </button>
         <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="d-none" onchange="handleImportExcel(event)">
 
-        <button type="button" class="btn btn-outline-primary fw-bold shadow-sm rounded-pill px-3" onclick="exportAssignmentsToExcel()">
-          <i class="fa-solid fa-file-export me-1"></i>Export Excel
+        <!-- ปุ่ม 2: Export Assignment ตามเงื่อนไข -->
+        <button type="button" class="btn btn-outline-primary fw-bold shadow-sm rounded-pill px-3" onclick="openConditionExportModal()">
+          <i class="fa-solid fa-file-export me-1"></i>Export Assignment
         </button>
 
+        <!-- ปุ่ม 3: Export Master Account (สำหรับ Admin นำไปทำไฟล์ Mapping) -->
+        <button type="button" class="btn btn-outline-info text-dark fw-bold shadow-sm rounded-pill px-3" onclick="exportMasterAccountsForMapping()" title="Export รายชื่อหมอและโรงพยาบาลพร้อมรหัส ID สำหรับทำไฟล์ Import">
+          <i class="fa-solid fa-users-rectangle me-1"></i>Export Master List (ทำ Mapping)
+        </button>
+
+        <!-- ปุ่ม 4: ลบตามเงื่อนไข -->
         <button type="button" class="btn btn-outline-danger fw-bold shadow-sm rounded-pill px-3" onclick="openConditionDeleteModal()">
           <i class="fa-solid fa-filter-circle-xmark me-1"></i>ลบตามเงื่อนไข
         </button>
 
+        <!-- ปุ่ม 5: สร้างใหม่ -->
         <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4" onclick="openAddAssignView()">
           <i class="fa-solid fa-plus me-1"></i>เพิ่ม Assignment ใหม่
         </button>
       </div>
     </div>
 
-    <!-- แถบ Filters ตัวกรอง -->
+    <!-- แถบ Filters ตัวกรองหน้าตาราง -->
     <div class="row mb-4 g-2">
-      <!-- 1. กรองประเภท -->
       <div class="col-md-3">
         <label class="form-label fw-bold text-secondary small mb-1">ประเภท (Type)</label>
         <select class="form-select shadow-sm" id="filterAssignType" onchange="filterAssignments()">
@@ -59,7 +67,6 @@
         </select>
       </div>
 
-      <!-- 2. ค้นหา Account + ไมค์อัดเสียง -->
       <div class="col-md-5">
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหา Account (ชื่อ/รหัส)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -71,7 +78,6 @@
         </div>
       </div>
 
-      <!-- 3. กรอง Territory -->
       <div class="col-md-4">
         <label class="form-label fw-bold text-secondary small mb-1">เขตพื้นที่ (Territory)</label>
         <select class="form-select shadow-sm" id="filterAssignTer" onchange="filterAssignments()">
@@ -116,7 +122,6 @@
         <input type="hidden" id="assignOldTerId">
 
         <div class="row g-3">
-          <!-- ประเภท -->
           <div class="col-md-4 mb-2">
             <label class="form-label fw-bold text-dark">ประเภท (Type) <span class="text-danger">*</span></label>
             <select class="form-select bg-white shadow-sm" id="assignType" required onchange="onAssignTypeChange()">
@@ -126,7 +131,6 @@
             </select>
           </div>
 
-          <!-- เลือก Account (TomSelect) -->
           <div class="col-md-8 mb-2">
             <label class="form-label fw-bold text-dark">Account (แพทย์ / โรงพยาบาล) <span class="text-danger">*</span></label>
             <select class="form-select bg-white shadow-sm" id="assignAccount" required>
@@ -134,7 +138,6 @@
             </select>
           </div>
 
-          <!-- เลือก Territory -->
           <div class="col-md-12 mb-3">
             <label class="form-label fw-bold text-primary">กำหนดให้เขตพื้นที่ (Territory) <span class="text-danger">*</span></label>
             <select class="form-select bg-white shadow-sm border-primary" id="assignTerritory" required>
@@ -151,7 +154,42 @@
     </div>
   </div>
 
-  <!-- ================= Modal ลบแบบเลือกเงื่อนไข ================= -->
+  <!-- ================= Modal 1: Export Assignment แบบเลือกเงื่อนไข ================= -->
+  <div class="modal fade" id="condExportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header bg-primary text-white border-0 py-3">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-export me-2"></i>Export Assignment ตามเงื่อนไข</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="text-muted small mb-3">เลือกเงื่อนไขข้อมูล Assignment ที่ต้องการส่งออกเป็นไฟล์ Excel</p>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">1. ประเภท (Type)</label>
+            <select class="form-select shadow-sm" id="condExportType">
+              <option value="ALL">- ทุกประเภท -</option>
+              <option value="Doctor">เฉพาะ Doctor (แพทย์)</option>
+              <option value="Hospital">เฉพาะ Hospital (โรงพยาบาล)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">2. เขตพื้นที่ (Territory)</label>
+            <select class="form-select shadow-sm" id="condExportTerritory">
+              <option value="ALL">- ทุกพื้นที่ -</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light fw-bold rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-primary fw-bold rounded-pill px-4" onclick="executeConditionExport()">📥 ดาวน์โหลด Excel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal 2: ลบแบบเลือกเงื่อนไข ================= -->
   <div class="modal fade" id="condDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 shadow">
@@ -202,6 +240,8 @@
   var isAssignDataLoaded = false;
   var isAssignEditMode = false;
   var tomSelectAccountInstance = null;
+  
+  var conditionExportModalInstance = null;
   var conditionDeleteModalInstance = null;
 
   function getUserEmail() {
@@ -255,7 +295,7 @@
     }
   }
 
-  // ===================== ระบบโหลดข้อมูลหลักจาก Supabase (ตาราง Assignment) =====================
+  // ===================== ระบบโหลดข้อมูลหลักจาก Supabase =====================
   setTimeout(async function() {
     await loadAssignmentData();
   }, 300);
@@ -273,12 +313,11 @@
     tbody.innerHTML = '<tr><td colspan="5" class="py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
 
     try {
-      // ดึงข้อมูลจากตาราง Assignment
       const [docRes, hospRes, terrRes, assignRes] = await Promise.all([
-        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
+        supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active'),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active'),
         supabaseClient.from('Territory').select('Territory_ID, Territory').eq('Status', 'Active'),
-        supabaseClient.from('Assignment').select('*') // 👈 ดึงจากตาราง Assignment
+        supabaseClient.from('Assignment').select('*')
       ]);
 
       globalAssignDoctors = docRes.data || [];
@@ -335,6 +374,7 @@
     document.getElementById('filterAssignTer').innerHTML = terOpts;
     document.getElementById('assignTerritory').innerHTML = formTerOpts;
     document.getElementById('condDeleteTerritory').innerHTML = condTerOpts;
+    document.getElementById('condExportTerritory').innerHTML = condTerOpts;
   }
 
   function onAssignTypeChange(selectedAccId = '') {
@@ -515,23 +555,33 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // ===================== 📤 2. ระบบ EXPORT ข้อมูล =====================
-  function exportAssignmentsToExcel() {
+  // ===================== 📤 2. ระบบ EXPORT ASSIGNMENT ตามเงื่อนไข (CONDITION EXPORT) =====================
+  function openConditionExportModal() {
+    document.getElementById('condExportType').value = 'ALL';
+    document.getElementById('condExportTerritory').value = 'ALL';
+
+    const modalEl = document.getElementById('condExportModal');
+    conditionExportModalInstance = new bootstrap.Modal(modalEl);
+    conditionExportModalInstance.show();
+  }
+
+  function executeConditionExport() {
     if (!globalAssignList || globalAssignList.length === 0) {
       return alert("ไม่มีข้อมูล Assignment สำหรับส่งออก");
     }
 
-    const typeTerm = document.getElementById('filterAssignType').value;
-    const accTerm = document.getElementById('filterAssignAccount').value.toLowerCase().trim();
-    const terTerm = document.getElementById('filterAssignTer').value;
+    const typeCond = document.getElementById('condExportType').value;
+    const terCond = document.getElementById('condExportTerritory').value;
 
     const filtered = globalAssignList.filter(a => {
-      const matchType = (typeTerm === "") || (a.type === typeTerm);
-      const matchTer = (terTerm === "") || (String(a.territoryId) === String(terTerm));
-      const searchStr = `${a.accountId} ${a.accountName}`.toLowerCase();
-      const matchAcc = (accTerm === "") || searchStr.includes(accTerm);
-      return matchType && matchTer && matchAcc;
+      const matchType = (typeCond === "ALL") || (a.type === typeCond);
+      const matchTer = (terCond === "ALL") || (String(a.territoryId) === String(terCond));
+      return matchType && matchTer;
     });
+
+    if (filtered.length === 0) {
+      return alert("ไม่พบข้อมูล Assignment ตามเงื่อนไขที่ระบุ");
+    }
 
     const exportData = filtered.map(a => ({
       "Type": a.type,
@@ -545,9 +595,62 @@
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Assignments");
     XLSX.writeFile(workbook, `Assignment_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    if (conditionExportModalInstance) conditionExportModalInstance.hide();
   }
 
-  // ===================== 🗑️ 3. ระบบลบแบบระบุเงื่อนไข =====================
+  // ===================== 📤 3. ระบบ EXPORT MASTER ACCOUNTS (สำหรับ ADMIN ทำ MAPPING) =====================
+  function exportMasterAccountsForMapping() {
+    let masterList = [];
+
+    // 1. รวมข้อมูลหมอ + รพ. สังกัด
+    globalAssignDoctors.forEach(d => {
+      const hosp = globalAssignHospitals.find(h => String(h.Hospital_ID) === String(d.Hospital_ID));
+      
+      // หา Territory ล่าสุดที่แมปอยู่
+      const existingAssigns = globalAssignList.filter(a => a.type === 'Doctor' && String(a.accountId) === String(d.Doc_ID));
+      const terrNames = existingAssigns.map(a => a.territoryName).join(', ');
+      const terrIds = existingAssigns.map(a => a.territoryId).join(', ');
+
+      masterList.push({
+        "Type": "Doctor",
+        "Account_ID (Use for Import)": d.Doc_ID,
+        "Account_Name": `${d.Doc_Name} (${d.Doc_Name_TH || ''})`,
+        "Hospital_ID": d.Hospital_ID || '-',
+        "Hospital_Name": hosp ? (hosp.Known_As || hosp.Hospital) : '-',
+        "Current_Territory_ID": terrIds || 'Unassigned',
+        "Current_Territory_Name": terrNames || 'Unassigned'
+      });
+    });
+
+    // 2. รวมข้อมูล รพ.
+    globalAssignHospitals.forEach(h => {
+      const existingAssigns = globalAssignList.filter(a => a.type === 'Hospital' && String(a.accountId) === String(h.Hospital_ID));
+      const terrNames = existingAssigns.map(a => a.territoryName).join(', ');
+      const terrIds = existingAssigns.map(a => a.territoryId).join(', ');
+
+      masterList.push({
+        "Type": "Hospital",
+        "Account_ID (Use for Import)": h.Hospital_ID,
+        "Account_Name": h.Known_As || h.Hospital,
+        "Hospital_ID": h.Hospital_ID,
+        "Hospital_Name": h.Hospital,
+        "Current_Territory_ID": terrIds || 'Unassigned',
+        "Current_Territory_Name": terrNames || 'Unassigned'
+      });
+    });
+
+    if (masterList.length === 0) {
+      return alert("ไม่พบข้อมูล Account Master ในระบบ");
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(masterList);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Master_Accounts_Mapping");
+    XLSX.writeFile(workbook, `Master_Accounts_Mapping_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }
+
+  // ===================== 🗑️ 4. ระบบลบแบบระบุเงื่อนไข =====================
   function openConditionDeleteModal() {
     document.getElementById('condDeleteConfirmInput').value = '';
     document.getElementById('condDeleteType').value = 'ALL';
@@ -581,7 +684,7 @@
         query = query.eq('Territory_ID', terCond);
       }
       if (typeCond === 'ALL' && terCond === 'ALL') {
-        query = query.neq('Territory_ID', '00000000-0000-0000-0000-000000000000'); // ลบทั้งหมด
+        query = query.neq('Territory_ID', '00000000-0000-0000-0000-000000000000');
       }
 
       const { error } = await query;
@@ -627,7 +730,6 @@
     switchAssignView('assignFormView');
   }
 
-  // 🌟 บันทึกลงตาราง Assignment
   async function handleSaveAssign(e) {
     e.preventDefault();
     const btn = document.getElementById('submitAssignBtn');
@@ -669,7 +771,6 @@
     }
   }
 
-  // 🌟 ลบ Assignment จากตาราง Assignment
   async function deleteAssignment(type, accountId, territoryId) {
     if (!confirm(`คุณต้องการลบการแมปพื้นที่สำหรับรายการนี้ใช่หรือไม่?`)) return;
 
