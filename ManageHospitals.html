@@ -274,7 +274,7 @@
   var globalHospitals = [];
   var currentSelectedHospId = ""; 
 
-  // 🌟 ป้องกัน Error Identifier has already been declared ด้วยการใช้ var
+  // ป้องกัน Error Identifier has already been declared ด้วยการใช้ var
   var isAutoAddressAddInit = false;
   var isAutoAddressEditInit = false;
 
@@ -409,7 +409,6 @@
     checkPendingDCR(h.id, 'profileDcrStatusBadge'); switchHospitalView('hospitalProfileView');
   }
 
-  // 🌟 ฟังก์ชันเปิดหน้าเพิ่มข้อมูล และ สั่งให้ตัวช่วยกรอกทำงาน
   function openAddHospitalView() {
     document.getElementById('addHospitalForm').reset();
     switchHospitalView('hospitalAddView');
@@ -431,7 +430,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันเปิดหน้าแก้ไขข้อมูล และ สั่งให้ตัวช่วยกรอกทำงาน
   function openEditHospitalView(id) {
     const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('editHospId').value = h.id; document.getElementById('editHospName').value = h.name || '';
@@ -459,47 +457,123 @@
     }
   }
 
+  // 🌟 บันทึกข้อมูลเพิ่มโรงพยาบาลใหม่ (อัปเดตสิทธิ์ Admin, Manager, BU Head)
   async function handleAddHospital(e) {
     e.preventDefault();
-    const btn = document.getElementById('submitHospBtn'); btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? crmUser.Email : "Unknown";
+    const btn = document.getElementById('submitHospBtn'); 
+    btn.disabled = true; 
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    
+    let crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+    
     const payload = {
-      Hospital: document.getElementById('hospName').value.trim(), Known_As: document.getElementById('hospKnownAs').value.trim(), 
-      Province: document.getElementById('hospProvince').value, Address: document.getElementById('hospAddress').value.trim(),
-      Sales_ID: document.getElementById('hospSalesId').value.trim(), Status: 'Active', Whoupdated: whoUpdated
+      Hospital: document.getElementById('hospName').value.trim(), 
+      Known_As: document.getElementById('hospKnownAs').value.trim(), 
+      Province: document.getElementById('hospProvince').value, 
+      Address: document.getElementById('hospAddress').value.trim(),
+      Sales_ID: document.getElementById('hospSalesId').value.trim(), 
+      Status: 'Active', 
+      Whoupdated: whoUpdated
     };
     
+    // เช็คชื่อซ้ำ
     const isDuplicate = globalHospitals.some(h => {
       const matchName = payload.Hospital && h.name && h.name.toLowerCase().trim() === payload.Hospital.toLowerCase().trim();
       const matchKnownAs = payload.Known_As && h.knownAs && h.knownAs.toLowerCase().trim() === payload.Known_As.toLowerCase().trim();
       return matchName || matchKnownAs;
     });
     
-    if (isDuplicate) { alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบแล้วครับ`); btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; return; }
+    if (isDuplicate) { 
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบแล้วครับ`); 
+      btn.disabled = false; 
+      btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
+      return; 
+    }
     
     try {
-      if (crmUser && crmUser.Role === 'Admin') { const { error } = await supabaseClient.from('Hospitals').insert([payload]); if (error) throw error; alert("✅ บันทึกโรงพยาบาลใหม่สำเร็จ (Admin Direct Save)"); } 
-      else { const { error } = await supabaseClient.from('DCR').insert([{ Action: 'Add Hospital', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated }]); if (error) throw error; alert("✅ ส่งคำขอเพิ่มโรงพยาบาลใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); }
-      switchHospitalView('hospitalListView'); await loadHospitals();
-    } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } finally { btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; }
+      const uRole = crmUser ? (crmUser.Role || crmUser.role) : 'User';
+
+      // 🌟 บันทึกตรงเข้าตาราง Hospitals สำหรับ Admin, Manager, BU Head
+      if (uRole === 'Admin' || uRole === 'Manager' || uRole === 'BU Head') { 
+        const { error } = await supabaseClient.from('Hospitals').insert([payload]); 
+        if (error) throw error; 
+        alert("✅ บันทึกโรงพยาบาลใหม่สำเร็จเรียบร้อยครับ"); 
+      } 
+      else { 
+        // สำหรับ Sales Rep / User ทั่วไป ให้ส่งเป็น DCR
+        const { error } = await supabaseClient.from('DCR').insert([{ 
+          Action: 'Add Hospital', 
+          Requested_Data: JSON.stringify(payload), 
+          Status: 'Pending', 
+          Whoupdated: whoUpdated 
+        }]); 
+        if (error) throw error; 
+        alert("✅ ส่งคำขอเพิ่มโรงพยาบาลใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
+      }
+      
+      switchHospitalView('hospitalListView'); 
+      await loadHospitals();
+
+    } catch (err) { 
+      alert("❌ เกิดข้อผิดพลาด: " + err.message); 
+    } finally { 
+      btn.disabled = false; 
+      btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
+    }
   }
 
+  // 🌟 บันทึกการแก้ไขข้อมูลโรงพยาบาล (อัปเดตสิทธิ์ Admin, Manager, BU Head)
   async function handleUpdateHospital(e) {
     e.preventDefault();
-    const btn = document.getElementById('updateHospBtn'); btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    const btn = document.getElementById('updateHospBtn'); 
+    btn.disabled = true; 
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    
     const hospId = document.getElementById('editHospId').value;
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? crmUser.Email : "Unknown";
+    let crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+    
     const payload = {
-      Hospital: document.getElementById('editHospName').value.trim(), Known_As: document.getElementById('hospKnownAs').value.trim(), 
-      Province: document.getElementById('editHospProvince').value, Address: document.getElementById('editHospAddress').value.trim(),
-      Sales_ID: document.getElementById('editHospSalesId').value.trim(), Status: document.getElementById('editHospStatus').value, Whoupdated: whoUpdated
+      Hospital: document.getElementById('editHospName').value.trim(), 
+      Known_As: document.getElementById('editHospKnownAs').value.trim(), 
+      Province: document.getElementById('editHospProvince').value, 
+      Address: document.getElementById('editHospAddress').value.trim(),
+      Sales_ID: document.getElementById('editHospSalesId').value.trim(), 
+      Status: document.getElementById('editHospStatus').value, 
+      Whoupdated: whoUpdated
     };
+
     try {
-      if (crmUser && crmUser.Role === 'Admin') { const { error } = await supabaseClient.from('Hospitals').update(payload).eq('Hospital_ID', hospId); if (error) throw error; alert("✅ แก้ไขข้อมูลโรงพยาบาลสำเร็จ (Admin Direct Save)"); } 
-      else { const { error } = await supabaseClient.from('DCR').insert([{ Ref_ID: hospId, Action: 'Edit Hospital', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated }]); if (error) throw error; alert("✅ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); }
-      switchHospitalView('hospitalListView'); await loadHospitals();
-    } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } finally { btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; }
+      const uRole = crmUser ? (crmUser.Role || crmUser.role) : 'User';
+
+      if (uRole === 'Admin' || uRole === 'Manager' || uRole === 'BU Head') { 
+        const { error } = await supabaseClient.from('Hospitals').update(payload).eq('Hospital_ID', hospId); 
+        if (error) throw error; 
+        alert("✅ แก้ไขข้อมูลโรงพยาบาลสำเร็จเรียบร้อยครับ"); 
+      } 
+      else { 
+        const { error } = await supabaseClient.from('DCR').insert([{ 
+          Ref_ID: hospId, 
+          Action: 'Edit Hospital', 
+          Requested_Data: JSON.stringify(payload), 
+          Status: 'Pending', 
+          Whoupdated: whoUpdated 
+        }]); 
+        if (error) throw error; 
+        alert("✅ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
+      }
+      
+      switchHospitalView('hospitalListView'); 
+      await loadHospitals();
+
+    } catch (err) { 
+      alert("❌ เกิดข้อผิดพลาด: " + err.message); 
+    } finally { 
+      btn.disabled = false; 
+      btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
+    }
   }
 </script>
