@@ -17,7 +17,6 @@
       <select class="form-select shadow-sm border-danger" id="filterDcrStatus" onchange="filterDCRs()">
         <option value="Pending">⏳ รออนุมัติ (Pending)</option>
         <option value="Approved">✅ อนุมัติแล้ว (Approved)</option>
-        <option value="Rejected">❌ ปฏิเสธ (Rejected)</option>
       </select>
     </div>
     <div class="col-sm-6 col-md-8 col-lg-5">
@@ -56,7 +55,7 @@
 <script>
   var globalDCRs = [];
 
-  // 🌟 โหลดข้อมูลเริ่มต้น
+  // โหลดข้อมูลเริ่มต้น
   setTimeout(() => {
     loadPendingDCRs();
   }, 300);
@@ -66,7 +65,6 @@
     if(tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">กำลังโหลดคำขอ... <i class="fa-solid fa-spinner fa-spin text-danger"></i></td></tr>`;
     
     try {
-      // 🌟 แก้ไขการเรียงลำดับให้ใช้ Whenupdated แทน created_at
       const { data, error } = await supabaseClient
         .from('DCR')
         .select('*')
@@ -87,6 +85,7 @@
 
     const filtered = globalDCRs.filter(d => {
       const matchStatus = (d.Status === statusTerm);
+      // 🌟 ใช้ Ref_ID ในการค้นหา
       const searchStr = `${d.Ref_ID || ''} ${d.Whoupdated || ''}`.toLowerCase();
       const matchSearch = (searchTerm === "" || searchStr.includes(searchTerm));
       
@@ -108,7 +107,6 @@
     data.forEach(d => {
       let detailsHtml = "<span class='text-danger'>ข้อมูลไม่ระบุ/ไม่ถูกต้อง</span>";
       
-      // 🌟 พยายามแกะ JSON จาก Requested_Data
       if (d.Requested_Data) {
         try {
           const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
@@ -139,22 +137,19 @@
         }
       }
 
-      // แยกสี Badge 
       let actionBadge = 'bg-secondary';
       if(d.Action.includes('Doctor')) actionBadge = 'bg-info text-dark';
       else if(d.Action.includes('Hospital')) actionBadge = 'bg-warning text-dark';
 
       let statusBadge = 'bg-warning text-dark';
       if (d.Status === 'Approved') statusBadge = 'bg-success';
-      if (d.Status === 'Rejected') statusBadge = 'bg-danger';
       
-      // ดึง ID แบบสั้นๆ มาโชว์
       const shortDcrId = d.DCR_ID ? d.DCR_ID.substring(0, 8) + '...' : '-';
+      // 🌟 ดึง Ref_ID มาแสดงผล
       const shortRefId = d.Ref_ID ? d.Ref_ID.substring(0, 8) + '...' : (d.Action.includes('Add') ? 'New Data' : '-');
       
       const dateShow = d.Whenupdated ? new Date(d.Whenupdated).toLocaleString('th-TH', {dateStyle: 'short', timeStyle: 'short'}) : '-';
 
-      // ปุ่มจัดการ (ซ่อนถ้าไม่ใช่ Pending)
       let actionButtons = '';
       if (d.Status === 'Pending') {
         actionButtons = `
@@ -187,7 +182,7 @@
     });
   }
 
-  // 🌟 ฟังก์ชันดำเนินการ อนุมัติ / ปฏิเสธ (จำลองการทำงานฝั่ง Front-end)
+  // 🌟 ฟังก์ชัน อนุมัติ / ปฏิเสธ (ลบทิ้งเมื่อ Reject และดึงค่าจาก Ref_ID เมื่อ Approve)
   async function processDCR(dcrId, actionType, decision) {
     const actionTh = decision === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ';
     if (!confirm(`ยืนยันการ "${actionTh}" คำขอนี้หรือไม่?`)) return;
@@ -197,18 +192,28 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
       const approverEmail = crmUser ? crmUser.Email : "Admin";
 
-      // อัปเดตสถานะในตาราง DCR ก่อน
-      const { error: dcrError } = await supabaseClient
-        .from('DCR')
-        .update({ Status: decision, Whoupdated: approverEmail, Whenupdated: new Date().toISOString() })
-        .eq('DCR_ID', dcrId);
-        
-      if (dcrError) throw dcrError;
+      // 1. ถ้ากด "ปฏิเสธ" (Reject) -> ลบแถวออกจากตาราง DCR ทันที
+      if (decision === 'Rejected') {
+        const { error: deleteErr } = await supabaseClient
+          .from('DCR')
+          .delete()
+          .eq('DCR_ID', dcrId);
 
-      // 🌟 ถ้ากด "อนุมัติ" เราต้องเอา Requested_Data ไปเขียนลงตารางจริงด้วย
-      if (decision === 'Approved') {
-         const targetDcr = globalDCRs.find(d => d.DCR_ID === dcrId);
-         if (targetDcr && targetDcr.Requested_Data) {
+        if (deleteErr) throw deleteErr;
+        alert("❌ ปฏิเสธและลบรายการคำขอนี้ออกจากระบบเรียบร้อยแล้ว");
+      } 
+      
+      // 2. ถ้ากด "อนุมัติ" (Approved)
+      else if (decision === 'Approved') {
+        const { error: dcrError } = await supabaseClient
+          .from('DCR')
+          .update({ Status: 'Approved', Whoupdated: approverEmail, Whenupdated: new Date().toISOString() })
+          .eq('DCR_ID', dcrId);
+          
+        if (dcrError) throw dcrError;
+
+        const targetDcr = globalDCRs.find(d => d.DCR_ID === dcrId);
+        if (targetDcr && targetDcr.Requested_Data) {
             const reqData = typeof targetDcr.Requested_Data === 'string' ? JSON.parse(targetDcr.Requested_Data) : targetDcr.Requested_Data;
             let targetTable = '';
             
@@ -216,26 +221,21 @@
             if (actionType.includes('Hospital')) targetTable = 'Hospitals';
             
             if (targetTable) {
-                // ถ้าเป็นคำขอ Add (ไม่มี Ref_ID) ให้ Insert
                 if (actionType.includes('Add')) {
                    const { error: insertErr } = await supabaseClient.from(targetTable).insert([reqData]);
-                   if (insertErr) {
-                     alert("⚠️ อัปเดต DCR เป็น Approved แล้ว แต่การนำข้อมูลเข้าตารางหลักเกิดข้อผิดพลาด: " + insertErr.message);
-                   }
+                   if (insertErr) alert("⚠️ อัปเดต DCR แล้ว แต่เกิดข้อผิดพลาดในการบันทึกเข้าตารางหลัก: " + insertErr.message);
                 } 
-                // ถ้าเป็นคำขอ Edit (มี Ref_ID) ให้ Update
+                // 🌟 ดึง Ref_ID มาใช้อัปเดตตารางหลัก
                 else if (actionType.includes('Edit') && targetDcr.Ref_ID) {
                    const idColumn = targetTable === 'Doctors' ? 'Doc_ID' : 'Hospital_ID';
                    const { error: updateErr } = await supabaseClient.from(targetTable).update(reqData).eq(idColumn, targetDcr.Ref_ID);
-                   if (updateErr) {
-                     alert("⚠️ อัปเดต DCR เป็น Approved แล้ว แต่การอัปเดตข้อมูลตารางหลักเกิดข้อผิดพลาด: " + updateErr.message);
-                   }
+                   if (updateErr) alert("⚠️ อัปเดต DCR แล้ว แต่เกิดข้อผิดพลาดในการบันทึกเข้าตารางหลัก: " + updateErr.message);
                 }
             }
-         }
+        }
+        alert("✅ อนุมัติคำขอและบันทึกข้อมูลเข้าฐานข้อมูลเรียบร้อยแล้ว");
       }
 
-      alert(`✅ ดำเนินการ ${actionTh} เรียบร้อยแล้ว`);
       loadPendingDCRs(); 
 
     } catch (err) {
