@@ -47,10 +47,10 @@
     <!-- ส่วนค้นหา (Filters) -->
     <div class="row mb-4 hospital-filter-group g-3">
       <div class="col-sm-12 col-md-7 col-lg-6">
-        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ รพ., ชื่อไทย (Known As) หรือ รหัส</label>
+        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ รพ. (EN / Known As)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterHospName" placeholder="พิมพ์หรือพูดชื่อ รพ., ชื่อไทย, หรือ รหัส..." onkeyup="filterHospitals()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterHospName" placeholder="พิมพ์ชื่อ รพ. EN หรือ ชื่อไทย (Known As)..." onkeyup="filterHospitals()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="ค้นหาด้วยเสียง">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
@@ -307,7 +307,7 @@
     if (btn && icon) {
       btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
       icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
-      document.getElementById('filterHospName').placeholder = "พิมพ์หรือพูดชื่อ รพ., ชื่อไทย, หรือ รหัส...";
+      document.getElementById('filterHospName').placeholder = "พิมพ์ชื่อ รพ. EN หรือ ชื่อไทย (Known As)...";
     }
   }
 
@@ -344,28 +344,78 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
-  // 🌟 ดึงข้อมูลตาราง Hospitals และ DCR
+  // 🌟 ดึงข้อมูลตาราง Hospitals กรองตามสิทธิ์ Assignment (ข้อ 2)
   async function loadHospitals() {
     const tbody = document.getElementById('hospitalTableBody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    
     try {
-      const { data: hospitals, error: hospErr } = await supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true });
-      if (hospErr) throw hospErr;
+      let crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-      const { data: pendingAddDcrs, error: dcrErr } = await supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending');
-      if (dcrErr) console.error("Error loading pending DCRs:", dcrErr);
+      const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
+      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
+      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      const { data: pendingEditDcrs } = await supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending');
-      const pendingEditIds = (pendingEditDcrs || []).map(d => d.Ref_ID);
+      // 1. ดึงข้อมูล Master Data ทั้งหมด
+      const [hospRes, assignRes, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+        supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true }),
+        supabaseClient.from('Assignment').select('*').eq('Type', 'Hospital'),
+        supabaseClient.from('Territory').select('*'),
+        supabaseClient.from('Team').select('*'),
+        supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending'),
+        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending')
+      ]);
 
-      let list = hospitals.map(h => ({
+      if (hospRes.error) throw hospRes.error;
+
+      let allHospitals = hospRes.data || [];
+      let assignments = assignRes.data || [];
+      let territories = terrRes.data || [];
+      let teams = teamRes.data || [];
+
+      // 2. คำนวณสิทธิ์การมองเห็นโรงพยาบาลตาม Role & Assignment
+      let allowedHospIds = [];
+
+      // 🔴 Sales: เห็นเฉพาะโรงพยาบาลที่มี Assignment ตรงกับ Territory ตัวเอง
+      if (userRole === 'Sales' || userRole === 'Rep') {
+        let myTerritoryId = userTerritory;
+        const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
+        if (terrObj) myTerritoryId = terrObj.Territory_ID;
+
+        allowedHospIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
+      }
+      // 🟠 Manager: เห็นโรงพยาบาลใน Territory ของลูกทีมใน Team เดียวกัน
+      else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+        const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
+        allowedHospIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+      }
+      // 🟢 BU Head: เห็นโรงพยาบาลใน Territory ของทุกทีมใน BU ตัวเอง
+      else if (userRole === 'BU Head' && userBu) {
+        const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
+        const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
+        allowedHospIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+      }
+
+      // 🟡 กรองโรงพยาบาลตามสิทธิ์ (Admin หรือ ไม่พบสิทธิ์เฉพาะ ให้แสดงทั้งหมด)
+      let visibleHospitals = allHospitals;
+      if (userRole !== 'Admin' && allowedHospIds.length > 0) {
+        visibleHospitals = allHospitals.filter(h => allowedHospIds.includes(h.Hospital_ID));
+      }
+
+      const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
+
+      let list = visibleHospitals.map(h => ({
         id: h.Hospital_ID, name: h.Hospital, knownAs: h.Known_As, province: h.Province,
         address: h.Address, salesId: h.Sales_ID, status: h.Status, 
         isPendingDcr: false,
         hasPendingEdit: pendingEditIds.includes(h.Hospital_ID)
       }));
 
-      if (pendingAddDcrs && pendingAddDcrs.length > 0) {
+      // รวมรายการ DCR รพ. ใหม่ที่รออนุมัติ
+      const pendingAddDcrs = pendingAddRes.data || [];
+      if (pendingAddDcrs.length > 0) {
         pendingAddDcrs.forEach(d => {
           try {
             const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
@@ -386,16 +436,28 @@
 
       globalHospitals = list;
       filterHospitals(); 
-    } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; }
+    } catch (err) { 
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; 
+    }
   }
 
+  // 🌟 กรองโรงพยาบาล (ข้อ 1: ค้นหาเฉพาะชื่อ EN และ Known As ไม่เอา ID)
   function filterHospitals() {
-    const nameEl = document.getElementById('filterHospName'); const provEl = document.getElementById('filterHospProvince');
-    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : ""; const provTerm = provEl ? provEl.value : "";
+    const nameEl = document.getElementById('filterHospName'); 
+    const provEl = document.getElementById('filterHospProvince');
+    
+    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : ""; 
+    const provTerm = provEl ? provEl.value : "";
+    
     const filtered = globalHospitals.filter(h => {
-      const strForSearch = `${h.id || ""} ${h.name || ""} ${h.knownAs || ""}`.toLowerCase();
-      return ((nameTerm === "") || strForSearch.includes(nameTerm)) && ((provTerm === "") || (h.province === provTerm));
+      // 🔥 ค้นหาเฉพาะชื่อ รพ. (EN) และ ชื่อภาษาไทย (Known As)
+      const nameSearchStr = `${h.name || ""} ${h.knownAs || ""}`.toLowerCase();
+      const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
+      const matchProv = (provTerm === "") || (h.province === provTerm);
+
+      return matchName && matchProv;
     });
+    
     renderHospitalTable(filtered);
   }
 
@@ -522,7 +584,6 @@
       Whoupdated: whoUpdated
     };
     
-    // เช็คชื่อซ้ำ
     const isDuplicate = globalHospitals.some(h => {
       const matchName = payload.Hospital && h.name && h.name.toLowerCase().trim() === payload.Hospital.toLowerCase().trim();
       const matchKnownAs = payload.Known_As && h.knownAs && h.knownAs.toLowerCase().trim() === payload.Known_As.toLowerCase().trim();
@@ -558,7 +619,7 @@
     }
   }
 
-  // 🌟 บันทึกแก้ไขโรงพยาบาล: บังคับส่งเข้า DCR 100% สำหรับทุกคน!
+  // 🌟 บันทึกแก้ไขโรงพยาบาล: บังคับส่งเข้า DCR 100%
   async function handleUpdateHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('updateHospBtn'); 
@@ -581,7 +642,6 @@
     };
 
     try {
-      // บังคับส่งคำขอแก้ไขไปยัง DCR ทุกกรณี
       const { error } = await supabaseClient.from('DCR').insert([{ 
         Ref_ID: hospId, 
         Action: 'Edit Hospital', 
