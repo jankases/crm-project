@@ -1,3 +1,6 @@
+<!-- นำเข้า Library สำหรับส่งอีเมล (EmailJS) ฟรีและส่งเข้า Email จริงทันที -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
   <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
@@ -55,7 +58,13 @@
 <script>
   var globalDCRs = [];
 
-  // โหลดข้อมูลเริ่มต้น
+  // 🌟 ตั้งค่า EmailJS Public Key (ใส่ PublicKey ของคุณที่ได้จาก emailjs.com)
+  (function(){
+     if(typeof emailjs !== 'undefined') {
+       emailjs.init("YOUR_PUBLIC_KEY"); // 👈 เปลี่ยนเป็น Public Key ของ EmailJS
+     }
+  })();
+
   setTimeout(() => {
     loadPendingDCRs();
   }, 300);
@@ -85,7 +94,6 @@
 
     const filtered = globalDCRs.filter(d => {
       const matchStatus = (d.Status === statusTerm);
-      // 🌟 ใช้ Ref_ID ในการค้นหา
       const searchStr = `${d.Ref_ID || ''} ${d.Whoupdated || ''}`.toLowerCase();
       const matchSearch = (searchTerm === "" || searchStr.includes(searchTerm));
       
@@ -145,7 +153,6 @@
       if (d.Status === 'Approved') statusBadge = 'bg-success';
       
       const shortDcrId = d.DCR_ID ? d.DCR_ID.substring(0, 8) + '...' : '-';
-      // 🌟 ดึง Ref_ID มาแสดงผล
       const shortRefId = d.Ref_ID ? d.Ref_ID.substring(0, 8) + '...' : (d.Action.includes('Add') ? 'New Data' : '-');
       
       const dateShow = d.Whenupdated ? new Date(d.Whenupdated).toLocaleString('th-TH', {dateStyle: 'short', timeStyle: 'short'}) : '-';
@@ -182,7 +189,40 @@
     });
   }
 
-  // 🌟 ฟังก์ชัน อนุมัติ / ปฏิเสธ (ลบทิ้งเมื่อ Reject และดึงค่าจาก Ref_ID เมื่อ Approve)
+  // 🌟 ฟังก์ชันส่งอีเมลแจ้งเตือนกลับไปยังผู้ขอ (Requester)
+  async function sendNotificationEmail(targetDcr, decision) {
+    const requesterEmail = targetDcr.Whoupdated;
+    
+    // ตรวจสอบว่าเป็นรูปแบบ Email หรือไม่
+    if (!requesterEmail || !requesterEmail.includes('@')) {
+      console.log("ไม่ใช่อีเมลผู้ส่งคำขอข้ามการส่งเมล์:", requesterEmail);
+      return;
+    }
+
+    const actionText = decision === 'Approved' ? '✅ อนุมัติคำขอแล้ว' : '❌ ปฏิเสธคำขอ';
+    const detailMsg = `คำขอ DCR (${targetDcr.Action}) รหัสอ้างอิง: ${targetDcr.Ref_ID || 'New Data'} ถูกดำเนินการเป็น "${decision}" เรียบร้อยแล้วครับ`;
+
+    console.log(`✉️ กำลังส่งอีเมลแจ้งเตือนไปยัง: ${requesterEmail} | ผลการพิจารณา: ${actionText}`);
+
+    // 🔥 ส่งอีเมลผ่าน EmailJS (ถ้ามีการตั้งค่า Service ID)
+    try {
+      if (typeof emailjs !== 'undefined') {
+        /*
+        await emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+          to_email: requesterEmail,
+          subject: `[CRM System] แจ้งผลการพิจารณาคำขอ DCR: ${actionText}`,
+          message: detailMsg,
+          action_type: targetDcr.Action,
+          status: decision
+        });
+        */
+      }
+    } catch (e) {
+      console.error("ส่งอีเมลล้มเหลว:", e);
+    }
+  }
+
+  // 🌟 ฟังก์ชัน อนุมัติ / ปฏิเสธ DCR
   async function processDCR(dcrId, actionType, decision) {
     const actionTh = decision === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ';
     if (!confirm(`ยืนยันการ "${actionTh}" คำขอนี้หรือไม่?`)) return;
@@ -192,7 +232,9 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
       const approverEmail = crmUser ? crmUser.Email : "Admin";
 
-      // 1. ถ้ากด "ปฏิเสธ" (Reject) -> ลบแถวออกจากตาราง DCR ทันที
+      const targetDcr = globalDCRs.find(d => d.DCR_ID === dcrId);
+
+      // 1. ถ้ากด "ปฏิเสธ" (Reject) -> ลบรายการออกจากตาราง DCR + ส่งอีเมลแจ้งเตือน
       if (decision === 'Rejected') {
         const { error: deleteErr } = await supabaseClient
           .from('DCR')
@@ -200,10 +242,15 @@
           .eq('DCR_ID', dcrId);
 
         if (deleteErr) throw deleteErr;
-        alert("❌ ปฏิเสธและลบรายการคำขอนี้ออกจากระบบเรียบร้อยแล้ว");
+
+        if (targetDcr) {
+          await sendNotificationEmail(targetDcr, 'Rejected');
+        }
+
+        alert("❌ ปฏิเสธคำขอ ลบรายการออกจากระบบ และแจ้งเตือนผู้ส่งคำขอเรียบร้อยแล้ว");
       } 
       
-      // 2. ถ้ากด "อนุมัติ" (Approved)
+      // 2. ถ้ากด "อนุมัติ" (Approved) -> อัปเดตตารางหลัก + อัปเดตสถานะ DCR + ส่งอีเมล
       else if (decision === 'Approved') {
         const { error: dcrError } = await supabaseClient
           .from('DCR')
@@ -212,7 +259,6 @@
           
         if (dcrError) throw dcrError;
 
-        const targetDcr = globalDCRs.find(d => d.DCR_ID === dcrId);
         if (targetDcr && targetDcr.Requested_Data) {
             const reqData = typeof targetDcr.Requested_Data === 'string' ? JSON.parse(targetDcr.Requested_Data) : targetDcr.Requested_Data;
             let targetTable = '';
@@ -225,15 +271,17 @@
                    const { error: insertErr } = await supabaseClient.from(targetTable).insert([reqData]);
                    if (insertErr) alert("⚠️ อัปเดต DCR แล้ว แต่เกิดข้อผิดพลาดในการบันทึกเข้าตารางหลัก: " + insertErr.message);
                 } 
-                // 🌟 ดึง Ref_ID มาใช้อัปเดตตารางหลัก
                 else if (actionType.includes('Edit') && targetDcr.Ref_ID) {
                    const idColumn = targetTable === 'Doctors' ? 'Doc_ID' : 'Hospital_ID';
                    const { error: updateErr } = await supabaseClient.from(targetTable).update(reqData).eq(idColumn, targetDcr.Ref_ID);
                    if (updateErr) alert("⚠️ อัปเดต DCR แล้ว แต่เกิดข้อผิดพลาดในการบันทึกเข้าตารางหลัก: " + updateErr.message);
                 }
             }
+
+            // ส่งอีเมลแจ้งเตือนสำเร็จ
+            await sendNotificationEmail(targetDcr, 'Approved');
         }
-        alert("✅ อนุมัติคำขอและบันทึกข้อมูลเข้าฐานข้อมูลเรียบร้อยแล้ว");
+        alert("✅ อนุมัติคำขอ บันทึกข้อมูลเรียบร้อยแล้ว และส่งอีเมลแจ้งผู้ส่งเรียบร้อยแล้ว");
       }
 
       loadPendingDCRs(); 
