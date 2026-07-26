@@ -12,14 +12,15 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* 🌟 ส่วนที่ 2: ปรับพื้นหลังของเนื้อหาหลักให้เป็นสีขาว */
-    body { background-color: #ffffff; font-family: 'Segoe UI', sans-serif; }
+    /* 🌟 ส่วนที่ 2: พื้นหลังเนื้อหาหลักสีเทาอ่อน สบายตา (ลดแสงสะท้อน) */
+    body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
     #appContainer { display: none; } 
     
-    /* 🌟 ส่วนที่ 1: ปรับสีพื้นหลังแถบเมนูให้เป็นสีฟ้าเทาอ่อนๆ (Soft Blue-Gray) ถนอมสายตา */
+    /* 🌟 ส่วนที่ 1: แถบเมนูสีขาวสะอาดตา พร้อมเงาให้ดูลอยแยกชั้นชัดเจน */
     .navbar { 
-      background-color: #f0f4f8 !important; 
-      border-bottom: 1px solid #dce2e8; 
+      background-color: #ffffff !important; 
+      border-bottom: 1px solid #e9ecef; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; /* เพิ่มเงาบางๆ */
     }
     
     #mainContent { margin-top: 20px; }
@@ -91,7 +92,7 @@
           CRM System
         </a>
         
-        <button class="navbar-toggler border-0 shadow-sm bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0 shadow-sm bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
