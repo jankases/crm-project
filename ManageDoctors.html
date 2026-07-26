@@ -13,7 +13,6 @@
   .workplace-row { background-color: #ffffff; border-radius: 8px; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; transition: 0.2s;}
   .workplace-row:hover { border-color: #ffc107; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-  /* 🌟 ตกแต่ง Tab ให้เข้ากับ Navbar ด้านบน */
   .doctor-profile-tabs .nav-link {
     color: #495057;
     font-weight: 600;
@@ -47,13 +46,14 @@
       </button>
     </div>
 
+    <!-- 🌟 ส่วนค้นหา (ปรับตามข้อ 1 และ ข้อ 2) -->
     <div class="row mb-4 doctor-filter-group g-3">
       <div class="col-sm-12 col-md-5 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ หรือ รหัสแพทย์</label>
+        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อแพทย์ (EN / TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN, TH หรือ รหัส..." onkeyup="filterDoctors()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN หรือ TH..." onkeyup="filterDoctors()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="พูดเพื่อค้นหาชื่อหมอ">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
         </div>
@@ -104,7 +104,6 @@
     
     <div class="card p-4 p-md-5 border-0 shadow-sm doctor-form-group" style="border-radius: 15px;">
       <form id="addDoctorForm" onsubmit="handleAddDoctor(event)">
-        
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i>ข้อมูลทั่วไป</h5>
           <div class="row g-3">
@@ -206,7 +205,7 @@
     </div>
   </div>
 
-  <!-- ================= 🌟 4. หน้า Profile แพทย์เต็มรูปแบบ (Profile View) ================= -->
+  <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
@@ -216,12 +215,10 @@
         <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูลแพทย์ (DCR)
       </button>
       <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ ข้อมูลแพทย์</h4>
-
       <div id="profileDcrStatusBadge" class="ms-2"></div>
     </div>
     
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
-      <!-- Navigation Tabs -->
       <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
         <li class="nav-item">
           <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> ข้อมูลทั่วไป</button>
@@ -235,7 +232,6 @@
       </ul>
 
       <div class="tab-content">
-        <!-- Tab 1: ข้อมูลทั่วไป -->
         <div class="tab-pane fade show active" id="tab-doc-info">
           <div class="row mb-3 g-3">
             <div class="col-md-4"><label class="text-muted small fw-bold">Specialty (ความเชี่ยวชาญ)</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
@@ -252,7 +248,6 @@
           </div>
         </div>
 
-        <!-- Tab 2: ประวัติการเข้าพบ -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
@@ -279,7 +274,6 @@
           </div>
         </div>
 
-        <!-- Tab 3: Target Call -->
         <div class="tab-pane fade" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>ประเมินศักยภาพและเป้าหมายการเข้าพบ</h6>
@@ -316,14 +310,9 @@
 <script>
   var globalDoctors = [];
   var globalHospitals = [];
-
-  var globalRatingDropdowns = { Adoption: [], Potential: [], Classification: [] };
-  var globalTargetMaster = {};
-  var globalMatrixMaster = {}; 
-  var globalProductList = []; 
   var currentTargetDocId = ""; 
 
-  // ===================== ระบบ Voice to Text =====================
+  // ===================== 🎙️ ระบบ Voice to Text (ข้อ 2) =====================
   var searchRecognition;
   var isSearchRecording = false;
 
@@ -336,7 +325,11 @@
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
       }
-      if (finalTranscript) { document.getElementById('filterDocName').value = finalTranscript.trim(); filterDoctors(); stopSearchDictation(); }
+      if (finalTranscript) { 
+        document.getElementById('filterDocName').value = finalTranscript.trim(); 
+        filterDoctors(); 
+        stopSearchDictation(); 
+      }
     };
     searchRecognition.onerror = function() { stopSearchDictation(); };
     searchRecognition.onend = function() { if(isSearchRecording) stopSearchDictation(); };
@@ -359,7 +352,7 @@
     if (btn && icon) {
       btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
       icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
-      document.getElementById('filterDocName').placeholder = "พิมพ์หรือพูดชื่อ...";
+      document.getElementById('filterDocName').placeholder = "พิมพ์ชื่อ EN หรือ TH...";
     }
   }
 
@@ -420,6 +413,173 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
+  // ===================== 🌟 โหลดหมอตามสิทธิ์ ทีม & Assignment (ข้อ 3) =====================
+  async function loadDoctors() {
+    const tbody = document.getElementById('doctorTableBody');
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    
+    try {
+      let crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+
+      const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
+      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
+      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+
+      // 1. ดึง Master Data หมอ, assignment, territory, team
+      const [docRes, assignRes, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+        supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true }),
+        supabaseClient.from('Assignment').select('*').eq('Type', 'Doctor'),
+        supabaseClient.from('Territory').select('*'),
+        supabaseClient.from('Team').select('*'),
+        supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending'),
+        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending')
+      ]);
+
+      if (docRes.error) throw docRes.error;
+
+      let allDoctors = docRes.data || [];
+      let assignments = assignRes.data || [];
+      let territories = terrRes.data || [];
+      let teams = teamRes.data || [];
+
+      // 2. คำนวณสิทธิ์การมองเห็นหมอตาม Role & Assignment
+      let allowedDocIds = [];
+
+      // 🔴 Sales: เห็นหมอที่มี Assignment ใน Territory ของตัวเอง
+      if (userRole === 'Sales' || userRole === 'Rep') {
+        let myTerritoryId = userTerritory;
+        // หา Territory_ID ถ้า userTerritory เป็นชื่อ
+        const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
+        if (terrObj) myTerritoryId = terrObj.Territory_ID;
+
+        allowedDocIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
+      }
+      // 🟠 Manager: เห็นหมอที่อยู่ใน Territory ของลูกทีมใน Team เดียวกัน
+      else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+        const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
+        allowedDocIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+      }
+      // 🟢 BU Head: เห็นหมอที่อยู่ใน Territory ของทุกทีมใน BU ตัวเอง
+      else if (userRole === 'BU Head' && userBu) {
+        const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
+        const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
+        allowedDocIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+      }
+
+      // 🟡 กรองหมอตามสิทธิ์ (ถ้าระบุสิทธิ์แล้ว ให้กรอง ถ้าไม่พบ/Admin ให้แสดงทั้งหมด)
+      let visibleDoctors = allDoctors;
+      if (userRole !== 'Admin' && allowedDocIds.length > 0) {
+        visibleDoctors = allDoctors.filter(d => allowedDocIds.includes(d.Doc_ID));
+      }
+
+      const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
+
+      let list = visibleDoctors.map(d => {
+        const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
+        return {
+          id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
+          specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
+          workplacesJson: d.Workplaces_JSON, privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, 
+          status: d.Status, 
+          isPendingDcr: false,
+          hasPendingEdit: pendingEditIds.includes(d.Doc_ID)
+        };
+      });
+
+      // รวม DCR หมอใหม่ที่รออนุมัติ
+      const pendingAddDcrs = pendingAddRes.data || [];
+      if (pendingAddDcrs.length > 0) {
+        pendingAddDcrs.forEach(d => {
+          try {
+            const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+            const h = globalHospitals.find(x => x.Hospital_ID === req.Hospital_ID);
+            list.unshift({
+              id: d.DCR_ID,
+              title: req.Title || '',
+              nameEn: req.Doc_Name || 'ไม่ระบุชื่อ',
+              nameTh: req.Doc_Name_TH || '-',
+              specialty: req.Specialty || '-',
+              hospitalName: h ? (h.Known_As || h.Hospital) : '-',
+              status: 'Pending DCR',
+              isPendingDcr: true,
+              hasPendingEdit: false
+            });
+          } catch(e) {}
+        });
+      }
+
+      globalDoctors = list;
+      filterDoctors(); 
+    } catch (err) { 
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; 
+    }
+  }
+
+  // 🌟 ฟังก์ชันกรองข้อมูล (ข้อ 1: ค้นหาเฉพาะชื่อ EN และ TH ไม่เอา ID)
+  function filterDoctors() {
+    const nameEl = document.getElementById('filterDocName');
+    const specEl = document.getElementById('filterDocSpecialty');
+    const hospEl = document.getElementById('filterDocWorkplace');
+    
+    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
+    const specTerm = specEl ? specEl.value : "";
+    const hospTerm = hospEl ? hospEl.value : "";
+
+    const filtered = globalDoctors.filter(d => {
+      // 🔥 ค้นหาเฉพาะชื่อ EN และ ชื่อ TH
+      const nameSearchStr = `${d.nameEn || ''} ${d.nameTh || ''}`.toLowerCase();
+      const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
+      
+      const matchSpec = (specTerm === "") || (d.specialty === specTerm);
+      const matchHosp = (hospTerm === "") || (d.hospitalId === hospTerm);
+      return matchName && matchSpec && matchHosp;
+    });
+
+    renderDoctorTable(filtered); 
+  }
+
+  function renderDoctorTable(data) {
+    const tbody = document.getElementById('doctorTableBody'); 
+    tbody.innerHTML = '';
+    
+    if(!Array.isArray(data) || data.length === 0) {
+      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลแพทย์ที่ค้นหา</td></tr>';
+    }
+    
+    data.forEach(d => {
+      let badge = 'bg-success';
+      let statusText = d.status || 'Active';
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
+
+      if (d.isPendingDcr) {
+        badge = 'bg-warning text-dark';
+        statusText = '⏳ รออนุมัติ (DCR)';
+        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> รอ Admin ตรวจสอบ</span>`;
+      } else if (d.status === 'Inactive') {
+        badge = 'bg-danger';
+      }
+
+      const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
+      const nameEnShow = d.title ? `${d.title} ${d.nameEn || ''}` : (d.nameEn || '-');
+      
+      const nameCellLink = d.isPendingDcr ? 
+        `<span class="fw-bold text-dark"><i class="fa-solid fa-user-doctor me-2 text-warning"></i>${nameEnShow}</span>` : 
+        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewDoctorProfile('${d.id}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${nameEnShow}</a>${pendingEditTag}`;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${nameCellLink}</td>
+          <td class="fw-medium text-secondary">${d.nameTh || '-'}</td>
+          <td><span class="badge bg-light text-dark border">${d.specialty || '-'}</span></td>
+          <td class="text-primary fw-medium"><small><i class="fa-regular fa-hospital me-1"></i>${d.hospitalName || '-'}</small></td>
+          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
+          <td class="text-center">${actionButton}</td>
+        </tr>`;
+    });
+  }
+
   // ===================== ระบบ Workplace =====================
   function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
     const container = document.getElementById(containerId);
@@ -473,119 +633,6 @@
     switchDoctorView('doctorAddView');
   }
 
-  // 🌟 ดึงข้อมูลตาราง Doctors และ คำขอ DCR ที่รออนุมัติ
-  async function loadDoctors() {
-    const tbody = document.getElementById('doctorTableBody');
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
-    
-    try {
-      const { data: doctors, error: docErr } = await supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true });
-      if (docErr) throw docErr;
-
-      const { data: pendingAddDcrs, error: dcrErr } = await supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending');
-      if (dcrErr) console.error("Error loading pending doctor DCRs:", dcrErr);
-
-      const { data: pendingEditDcrs } = await supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending');
-      const pendingEditIds = (pendingEditDcrs || []).map(d => d.Ref_ID);
-
-      let list = doctors.map(d => {
-        const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
-        return {
-          id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
-          specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
-          workplacesJson: d.Workplaces_JSON, privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, 
-          status: d.Status, 
-          isPendingDcr: false,
-          hasPendingEdit: pendingEditIds.includes(d.Doc_ID)
-        };
-      });
-
-      if (pendingAddDcrs && pendingAddDcrs.length > 0) {
-        pendingAddDcrs.forEach(d => {
-          try {
-            const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
-            const h = globalHospitals.find(x => x.Hospital_ID === req.Hospital_ID);
-            list.unshift({
-              id: d.DCR_ID,
-              title: req.Title || '',
-              nameEn: req.Doc_Name || 'ไม่ระบุชื่อ',
-              nameTh: req.Doc_Name_TH || '-',
-              specialty: req.Specialty || '-',
-              hospitalName: h ? (h.Known_As || h.Hospital) : '-',
-              status: 'Pending DCR',
-              isPendingDcr: true,
-              hasPendingEdit: false
-            });
-          } catch(e) {}
-        });
-      }
-
-      globalDoctors = list;
-      filterDoctors(); 
-    } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; }
-  }
-
-  function filterDoctors() {
-    const nameEl = document.getElementById('filterDocName');
-    const specEl = document.getElementById('filterDocSpecialty');
-    const hospEl = document.getElementById('filterDocWorkplace');
-    
-    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
-    const specTerm = specEl ? specEl.value : "";
-    const hospTerm = hospEl ? hospEl.value : "";
-
-    const filtered = globalDoctors.filter(d => {
-      const strForSearch = `${d.id || ''} ${d.nameEn || ''} ${d.nameTh || ''}`.toLowerCase();
-      const matchName = (nameTerm === "") || strForSearch.includes(nameTerm);
-      const matchSpec = (specTerm === "") || (d.specialty === specTerm);
-      const matchHosp = (hospTerm === "") || (d.hospitalId === hospTerm);
-      return matchName && matchSpec && matchHosp;
-    });
-
-    renderDoctorTable(filtered); 
-  }
-
-  function renderDoctorTable(data) {
-    const tbody = document.getElementById('doctorTableBody'); 
-    tbody.innerHTML = '';
-    
-    if(!Array.isArray(data) || data.length === 0) {
-      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลที่ค้นหา</td></tr>';
-    }
-    
-    data.forEach(d => {
-      let badge = 'bg-success';
-      let statusText = d.status || 'Active';
-      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
-
-      if (d.isPendingDcr) {
-        badge = 'bg-warning text-dark';
-        statusText = '⏳ รออนุมัติ (DCR)';
-        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> รอ Admin ตรวจสอบ</span>`;
-      } else if (d.status === 'Inactive') {
-        badge = 'bg-danger';
-      }
-
-      const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
-      const nameEnShow = d.title ? `${d.title} ${d.nameEn || ''}` : (d.nameEn || '-');
-      
-      // 🌟 สร้าง Hyperlink นำไปสู่ Profile View
-      const nameCellLink = d.isPendingDcr ? 
-        `<span class="fw-bold text-dark"><i class="fa-solid fa-user-doctor me-2 text-warning"></i>${nameEnShow}</span>` : 
-        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewDoctorProfile('${d.id}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${nameEnShow}</a>${pendingEditTag}`;
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${nameCellLink}</td>
-          <td class="fw-medium text-secondary">${d.nameTh || '-'}</td>
-          <td><span class="badge bg-light text-dark border">${d.specialty || '-'}</span></td>
-          <td class="text-primary fw-medium"><small><i class="fa-regular fa-hospital me-1"></i>${d.hospitalName || '-'}</small></td>
-          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
-          <td class="text-center">${actionButton}</td>
-        </tr>`;
-    });
-  }
-
   async function checkPendingDCR(docId) {
     try {
       const { data, error } = await supabaseClient.from('DCR').select('Status, Action').eq('Ref_ID', docId).eq('Status', 'Pending');
@@ -628,7 +675,6 @@
     switchDoctorView('doctorEditView');
   }
 
-  // 🌟 เปิดหน้า Profile แพทย์เต็มรูปแบบ
   async function openViewDoctorProfile(id) {
     currentTargetDocId = id; 
     const d = globalDoctors.find(x => x.id === id); 
@@ -641,7 +687,6 @@
     document.getElementById('viewDocEmail').value = d.email || '-';
     document.getElementById('viewDocMobile').value = d.mobile || '-';
 
-    // แสดงสถานที่ทำงาน
     let wpHTML = '';
     let parsedWp = [];
     try { if (d.workplacesJson) parsedWp = JSON.parse(d.workplacesJson); } catch(e) {}
@@ -660,24 +705,21 @@
     }
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
 
-    // โหลดประวัติการเข้าพบ (Visit History) จาก Supabase
     loadDoctorVisitHistory(id);
 
-    // เปิด Tab แรกเสมอ
     const firstTabEl = document.querySelector('#doctorProfileView .nav-link');
     if(firstTabEl) { const tab = new bootstrap.Tab(firstTabEl); tab.show(); }
 
     switchDoctorView('doctorProfileView');
   }
 
-  // 🌟 ดึงประวัติ Visit History ของหมอ
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
       const { data, error } = await supabaseClient
-        .from('Visits')
+        .from('Visit_Logs')
         .select('*')
         .eq('Doc_ID', docId)
         .order('Visit_Date', { ascending: false });
@@ -707,7 +749,6 @@
     }
   }
 
-  // 🌟 เพิ่มหมอใหม่: บังคับส่งเข้า DCR 100%
   async function handleAddDoctor(e) {
     e.preventDefault(); 
     
@@ -766,7 +807,6 @@
     finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 
-  // 🌟 บันทึกแก้ไขข้อมูลแพทย์: บังคับส่งเข้า DCR 100%
   async function handleUpdateDoctor(e) {
     e.preventDefault(); 
 
@@ -815,7 +855,6 @@
     finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 
-  // ===================== ระบบ Target Call & Rating =====================
   function addNewRatingRow() {
     const tbody = document.getElementById('ratingTableBody');
     const noData = tbody.querySelector('.no-data');
