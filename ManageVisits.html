@@ -106,7 +106,7 @@
               <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนครับ</div>
             </div>
 
-            <!-- เลือกสินค้า (ดึงตามความสัมพันธ์ของทีม Products_Team) -->
+            <!-- เลือกสินค้า -->
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product) <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" required>
@@ -133,7 +133,7 @@
           </div>
         </div>
 
-        <!-- รายละเอียดกิจกรรม (จัดระเบียบให้ดูสมดุลและสวยงาม) -->
+        <!-- รายละเอียดกิจกรรม -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
           
@@ -147,7 +147,7 @@
               <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์ครับ</div>
             </div>
 
-            <!-- 2. รายละเอียดเพิ่มเติม (Details) + ปุ่มพูดเพื่อพิมพ์ -->
+            <!-- 2. รายละเอียดเพิ่มเติม (Details) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">รายละเอียดเพิ่มเติม (Details)</label>
@@ -158,8 +158,8 @@
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
 
-            <!-- 3. Next Action และ Status วางคู่กันให้ดูลงตัวเต็มบรรทัดพอดี -->
-            <div class="col-md-8 mb-2">
+            <!-- 3. Next Action และ Status (คืนชีพไอคอนแบบเดิมให้สวยงาม) -->
+            <div class="col-md-7 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">ขั้นตอนถัดไป (Next Action)</label>
                 <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="พูดเพื่อพิมพ์ Next Action">
@@ -169,11 +169,12 @@
               <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
             </div>
 
-            <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark mb-1">สถานะการบันทึก (Status)</label>
+            <!-- 🌟 ปรับปรุงกล่องสถานะพร้อมไอคอนสวยงาม -->
+            <div class="col-md-5 mb-2">
+              <label class="form-label fw-bold text-dark mb-1">สถานะรายการ (Status)</label>
               <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
-                <option value="Submitted" class="text-success">Submitted (ส่งบันทึกแล้ว)</option>
-                <option value="Pending" class="text-warning">Pending (บันทึกร่าง)</option>
+                <option value="Pending" class="text-warning">⏳ Pending (บันทึกร่าง)</option>
+                <option value="Submitted" class="text-success">✅ Submitted (ส่งบันทึกแล้ว)</option>
               </select>
             </div>
           </div>
@@ -194,7 +195,7 @@
   var globalDoctorsList = [];
   var tomSelectDocInstance = null;
 
-  // ===================== 🎙️ ระบบ Voice to Text (พูดพิมพ์ลงช่อง Details / Next Action) =====================
+  // ===================== 🎙️ ระบบ Voice to Text =====================
   var activeDictationRecognition = null;
   var currentDictationTargetId = null;
   var currentDictationBtnId = null;
@@ -267,7 +268,7 @@
     currentDictationBtnId = null;
   }
 
-  // ===================== 🎙️ ระบบค้นหาหมอด้วยเสียง =====================
+  // ===================== 🎙️ ค้นหาหมอด้วยเสียง =====================
   var docSpeechRecognition;
   var isDocRecording = false;
 
@@ -346,7 +347,7 @@
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
       const repName = crmUser ? (crmUser.Rep_Name || crmUser.Email || crmUser.name) : "Unknown Sales";
-      const terrName = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || "-") : "-";
+      const terrName = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
       document.getElementById('dispSalesRepName').innerText = repName;
       document.getElementById('dispTerritoryName').innerText = terrName;
     } catch(e) {}
@@ -360,19 +361,22 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns (ดึงผ่านตาราง Products และ Products_Team ที่ถูกต้อง)
+  // 🌟 โหลด Dropdowns
   async function loadDropdowns() {
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
       
       const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-      const userTeamId = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
+      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      const [docRes, prodRes, productsTeamRes, typeRes, idxRes] = await Promise.all([
+      const [docRes, prodRes, territoryRes, teamRes, productsTeamRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
         supabaseClient.from('Products').select('Product_ID, Product').order('Product', { ascending: true }),
-        supabaseClient.from('Products_Team').select('*'), // 👈 ดึงจากชื่อตาราง Products_Team
+        supabaseClient.from('Territory').select('*'),
+        supabaseClient.from('Team').select('*'),            
+        supabaseClient.from('Products_Team').select('*'),   
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
@@ -399,22 +403,42 @@
         });
       }
 
-      // 2. สินค้า (Products) - กรองผ่านตาราง Products_Team
+      // 2. กรองสินค้า (Products) ตามสิทธิ์
       const prodSelect = document.getElementById('visitProductId');
       let allProducts = prodRes.data || [];
-      let productsTeamMap = productsTeamRes.data || [];
+      let territoryList = territoryRes.data || [];
+      let teamList = teamRes.data || [];
+      let productsTeamList = productsTeamRes.data || [];
       let filteredProducts = [];
 
-      if (userTeamId && userRole !== 'Admin' && userRole !== 'BU Head') {
-        const allowedProdIds = productsTeamMap
-          .filter(pt => String(pt.Team_ID) === String(userTeamId) && pt.Status !== 'Inactive')
+      if (userRole === 'BU Head' && userBu) {
+        const allowedTeamIds = teamList
+          .filter(t => String(t.BU_ID) === String(userBu) || String(t.BU).toLowerCase() === String(userBu).toLowerCase())
+          .map(t => t.Team_ID);
+
+        const allowedProdIds = productsTeamList
+          .filter(pt => allowedTeamIds.includes(pt.Team_ID) && pt.Status !== 'Inactive')
           .map(pt => pt.Product_ID);
 
         filteredProducts = allProducts.filter(p => allowedProdIds.includes(p.Product_ID));
       }
+      else if (userRole !== 'Admin' && userTerritory) {
+        const myTerritoryObj = territoryList.find(t => 
+          String(t.Territory_ID) === String(userTerritory) || 
+          String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase()
+        );
 
-      // ถ้าไม่มีข้อมูลทีม หรือเป็น Admin/BU Head ให้แสดงสินค้าทั้งหมด
-      if (filteredProducts.length === 0) {
+        if (myTerritoryObj && myTerritoryObj.Team_ID) {
+          const userTeamId = myTerritoryObj.Team_ID;
+          const allowedProdIds = productsTeamList
+            .filter(pt => String(pt.Team_ID) === String(userTeamId) && pt.Status !== 'Inactive')
+            .map(pt => pt.Product_ID);
+
+          filteredProducts = allProducts.filter(p => allowedProdIds.includes(p.Product_ID));
+        }
+      }
+
+      if (filteredProducts.length === 0 || userRole === 'Admin') {
         filteredProducts = allProducts;
       }
 
@@ -448,7 +472,7 @@
     }
   }
 
-  // 🌟 ดึงข้อมูลจากตาราง Visit_Logs
+  // 🌟 ดึงข้อมูลตาราง Visit_Logs
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
@@ -485,7 +509,8 @@
     }
 
     data.forEach(v => {
-      const badge = v.Status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
+      const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
+      const statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
       tbody.innerHTML += `
@@ -494,7 +519,7 @@
           <td class="fw-bold text-dark">${v.Doc_ID || '-'}</td>
           <td><span class="badge bg-light text-dark border">${v.Product_ID || '-'}</span></td>
           <td><small>${v.Purpose || '-'}</small></td>
-          <td class="text-center"><span class="badge ${badge} px-2 py-1">${v.Status || 'Submitted'}</span></td>
+          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
           <td class="text-center">
             <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditVisitView('${v.Visit_ID}')">
               <i class="fa-solid fa-pen"></i> แก้ไข
@@ -522,6 +547,7 @@
     document.getElementById('visitId').value = '';
     document.getElementById('formVisitTitle').innerText = '📝 เพิ่มการบันทึกเยี่ยมใหม่';
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('visitStatus').value = 'Pending'; // ⏳ ตั้งค่าตั้งต้นเป็น Pending
 
     if (tomSelectDocInstance) tomSelectDocInstance.clear();
 
@@ -549,7 +575,7 @@
     document.getElementById('visitPurpose').value = v.Purpose || '';
     document.getElementById('visitDetails').value = v.Details || '';
     document.getElementById('visitNextAction').value = v.Next_Action || '';
-    document.getElementById('visitStatus').value = v.Status || 'Submitted';
+    document.getElementById('visitStatus').value = v.Status || 'Pending';
 
     switchVisitView('visitFormView');
   }
