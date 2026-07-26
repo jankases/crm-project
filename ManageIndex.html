@@ -8,7 +8,7 @@
   <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; background-color: #f8f9fa;">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-layer-group me-2"></i>1. หมวดหมู่ตัวเลือก (IndexType)</h5>
-      <button class="btn btn-sm btn-dark fw-bold" onclick="openAddIndexTypeModal()">
+      <button class="btn btn-sm btn-dark fw-bold rounded-pill px-3" onclick="openAddIndexTypeModal()">
         <i class="fa-solid fa-plus me-1"></i>เพิ่มหมวดหมู่
       </button>
     </div>
@@ -17,13 +17,12 @@
       <table class="table table-bordered table-striped align-middle text-center mb-0">
         <thead class="table-dark">
           <tr>
-            <!-- ลบคอลัมน์ UUID ออกตามรูปแล้วครับ -->
             <th>ชื่อหมวดหมู่ (Name)</th>
             <th style="width: 100px;">Action</th>
           </tr>
         </thead>
         <tbody id="indexTypeTableBody">
-          <tr><td colspan="2" class="py-3">กำลังโหลดข้อมูล...</td></tr>
+          <tr><td colspan="2" class="py-3">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
         </tbody>
       </table>
     </div>
@@ -33,15 +32,15 @@
   <div class="card p-4 border-0 shadow-sm" style="border-radius: 12px;">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-list-check me-2"></i>2. รายการตัวเลือก (Index Values)</h5>
-      <button class="btn btn-sm btn-primary fw-bold" onclick="openAddIndexModal()">
+      <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-sm" onclick="openAddIndexModal()">
         <i class="fa-solid fa-plus me-1"></i>เพิ่มตัวเลือก
       </button>
     </div>
 
     <div class="row mb-3">
       <div class="col-md-6">
-        <label class="form-label fw-medium text-muted small mb-1">กรองตามหมวดหมู่ (Filter by Type)</label>
-        <select class="form-select shadow-sm" id="filterIndexType" onchange="filterIndexValues()">
+        <label class="form-label fw-bold text-secondary small mb-1">กรองตามหมวดหมู่ (Filter by Type)</label>
+        <select class="form-select shadow-sm" id="filterIndexType" onchange="filterIndexValues()" style="border-radius: 8px;">
           <option value="">- ทุกหมวดหมู่ -</option>
         </select>
       </div>
@@ -57,7 +56,7 @@
           </tr>
         </thead>
         <tbody id="indexTableBody">
-          <tr><td colspan="3" class="py-3">กำลังโหลดข้อมูล...</td></tr>
+          <tr><td colspan="3" class="py-3">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
         </tbody>
       </table>
     </div>
@@ -68,22 +67,22 @@
   <!-- Modal สำหรับ IndexType -->
   <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-dark text-white">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+        <div class="modal-header bg-dark text-white border-0" style="border-radius: 15px 15px 0 0;">
           <h5 class="modal-title fw-bold" id="indexTypeModalTitle">เพิ่มหมวดหมู่</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <form onsubmit="handleSaveIndexType(event)">
-          <div class="modal-body">
+          <div class="modal-body p-4">
             <input type="hidden" id="modalIndexTypeId">
             <div class="mb-3">
-              <label class="form-label fw-medium">ชื่อหมวดหมู่ (Name)</label>
-              <input type="text" class="form-control" id="modalIndexTypeName" required placeholder="เช่น DoctorType, Specialty">
+              <label class="form-label fw-bold text-dark">ชื่อหมวดหมู่ (Name)</label>
+              <input type="text" class="form-control bg-light" id="modalIndexTypeName" style="border-radius: 8px; min-height: 42px;" required placeholder="เช่น DoctorType, Specialty">
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
-            <button type="submit" class="btn btn-dark" id="btnSaveIndexType">บันทึก</button>
+          <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex gap-2">
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="submit" class="btn btn-dark fw-bold rounded-pill px-4" id="btnSaveIndexType">บันทึก</button>
           </div>
         </form>
       </div>
@@ -93,26 +92,26 @@
   <!-- Modal สำหรับ Index Value -->
   <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+        <div class="modal-header bg-primary text-white border-0" style="border-radius: 15px 15px 0 0;">
           <h5 class="modal-title fw-bold" id="indexModalTitle">เพิ่มตัวเลือก</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <form onsubmit="handleSaveIndex(event)">
-          <div class="modal-body">
+          <div class="modal-body p-4">
             <input type="hidden" id="modalIndexId">
             <div class="mb-3">
-              <label class="form-label fw-medium">หมวดหมู่ (IndexType)</label>
-              <select class="form-select" id="modalIndexSelectType" required></select>
+              <label class="form-label fw-bold text-dark">หมวดหมู่ (IndexType)</label>
+              <select class="form-select bg-light" id="modalIndexSelectType" style="border-radius: 8px; min-height: 42px;" required></select>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-medium">ตัวเลือก (Value)</label>
-              <input type="text" class="form-control" id="modalIndexValue" required placeholder="เช่น KOL, Cardiology">
+              <label class="form-label fw-bold text-dark">ตัวเลือก (Value)</label>
+              <input type="text" class="form-control bg-light" id="modalIndexValue" style="border-radius: 8px; min-height: 42px;" required placeholder="เช่น KOL, Cardiology">
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" id="btnSaveIndex">บันทึก</button>
+          <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex gap-2">
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4" id="btnSaveIndex">บันทึก</button>
           </div>
         </form>
       </div>
@@ -122,13 +121,11 @@
 </div>
 
 <script>
-  // 🌟 เปลียนจาก let เป็น var ทั้งหมด
   var globalIndexTypes = [];
   var globalIndexes = [];
   var indexTypeModalInstance;
   var indexModalInstance;
 
-  // 🌟 เปลียนจาก window.addEventListener เป็น setTimeout
   setTimeout(function() {
     indexTypeModalInstance = new bootstrap.Modal(document.getElementById('indexTypeModal'));
     indexModalInstance = new bootstrap.Modal(document.getElementById('indexModal'));
@@ -165,16 +162,16 @@
     tbody.innerHTML = '';
     
     if(!globalIndexTypes.length) {
-      tbody.innerHTML = '<tr><td colspan="2" class="text-muted py-3">ยังไม่มีหมวดหมู่</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="2" class="text-danger py-4">ยังไม่มีหมวดหมู่</td></tr>';
       return;
     }
 
     globalIndexTypes.forEach(t => {
       tbody.innerHTML += `
         <tr>
-          <td class="fw-medium">${t.Name}</td>
+          <td class="fw-bold text-dark">${t.Name}</td>
           <td>
-            <button class="btn btn-sm btn-outline-dark" onclick="openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')">แก้ไข</button>
+            <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3" onclick="openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')">แก้ไข</button>
           </td>
         </tr>`;
     });
@@ -196,11 +193,19 @@
 
   async function handleSaveIndexType(e) {
     e.preventDefault();
-    const btn = document.getElementById('btnSaveIndexType');
-    btn.disabled = true; btn.innerHTML = "...";
-
+    
     const id = document.getElementById('modalIndexTypeId').value;
     const name = document.getElementById('modalIndexTypeName').value.trim();
+
+    // 🌟 เช็คข้อมูลซ้ำ (Duplicate Check)
+    const isDuplicate = globalIndexTypes.some(t => t.Name.toLowerCase() === name.toLowerCase() && t.IndexType_ID !== id);
+    if (isDuplicate) {
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากหมวดหมู่ชื่อ "${name}" มีอยู่ในระบบแล้วครับ`);
+      return; // หยุดการทำงาน ไม่ส่งข้อมูลไป Database
+    }
+
+    const btn = document.getElementById('btnSaveIndexType');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
 
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -257,7 +262,7 @@
     tbody.innerHTML = '';
     
     if(!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-muted py-3">ยังไม่มีข้อมูล</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" class="text-danger py-4">ไม่พบตัวเลือกในหมวดหมู่นี้</td></tr>';
       return;
     }
 
@@ -267,10 +272,10 @@
 
       tbody.innerHTML += `
         <tr>
-          <td class="text-muted">${typeName}</td>
+          <td class="text-muted fw-medium">${typeName}</td>
           <td class="fw-bold text-primary">${i.Value}</td>
           <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="openEditIndexModal('${i.Index_ID}', '${i.IndexType_ID}', '${i.Value}')">แก้ไข</button>
+            <button class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3" onclick="openEditIndexModal('${i.Index_ID}', '${i.IndexType_ID}', '${i.Value}')">แก้ไข</button>
           </td>
         </tr>`;
     });
@@ -296,12 +301,22 @@
 
   async function handleSaveIndex(e) {
     e.preventDefault();
-    const btn = document.getElementById('btnSaveIndex');
-    btn.disabled = true; btn.innerHTML = "...";
 
     const id = document.getElementById('modalIndexId').value;
     const typeId = document.getElementById('modalIndexSelectType').value;
     const val = document.getElementById('modalIndexValue').value.trim();
+
+    // 🌟 เช็คข้อมูลซ้ำ (Duplicate Check) ภายในหมวดหมู่เดียวกัน
+    const isDuplicate = globalIndexes.some(i => i.IndexType_ID === typeId && i.Value.toLowerCase() === val.toLowerCase() && i.Index_ID !== id);
+    if (isDuplicate) {
+      const typeObj = globalIndexTypes.find(t => t.IndexType_ID === typeId);
+      const typeName = typeObj ? typeObj.Name : "หมวดหมู่นี้";
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากตัวเลือก "${val}" มีซ้ำอยู่ใน ${typeName} แล้วครับ`);
+      return; // หยุดการทำงาน ไม่ส่งข้อมูลไป Database
+    }
+
+    const btn = document.getElementById('btnSaveIndex');
+    btn.disabled = true; btn.innerHTML = "กำลังบันทึก...";
 
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
