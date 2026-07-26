@@ -1,5 +1,5 @@
 <style>
-  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad/Tablet ได้ดีขึ้น */
+  /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
     min-height: 42px; border-radius: 10px;
@@ -12,6 +12,25 @@
   
   .workplace-row { background-color: #ffffff; border-radius: 8px; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; transition: 0.2s;}
   .workplace-row:hover { border-color: #ffc107; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+  /* 🌟 ตกแต่ง Tab ให้เข้ากับ Navbar ด้านบน */
+  .doctor-profile-tabs .nav-link {
+    color: #495057;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 8px 20px;
+    margin-right: 5px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .doctor-profile-tabs .nav-link:hover {
+    background-color: #e9ecef;
+  }
+  .doctor-profile-tabs .nav-link.active {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
+  }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -33,7 +52,7 @@
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ หรือ รหัสแพทย์</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์หรือพูดชื่อ..." onkeyup="filterDoctors()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN, TH หรือ รหัส..." onkeyup="filterDoctors()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
@@ -99,7 +118,6 @@
           </div>
         </div>
 
-        <!-- โซนสถานที่ทำงานหลายแห่ง (Multiple Workplaces) -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace)</h5>
@@ -158,7 +176,6 @@
           </div>
         </div>
 
-        <!-- โซนสถานที่ทำงานหลายแห่งในโหมดแก้ไข -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace)</h5>
@@ -188,57 +205,123 @@
       </form>
     </div>
   </div>
+
+  <!-- ================= 🌟 4. หน้า Profile แพทย์เต็มรูปแบบ (Profile View) ================= -->
+  <div id="doctorProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
+      <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+      </button>
+      <button class="btn btn-warning text-dark fw-bold shadow-sm rounded-pill px-3" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูลแพทย์ (DCR)
+      </button>
+      <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ ข้อมูลแพทย์</h4>
+
+      <div id="profileDcrStatusBadge" class="ms-2"></div>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+      <!-- Navigation Tabs -->
+      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> ข้อมูลทั่วไป</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> ประวัติการเข้าพบ</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> Target Call</button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- Tab 1: ข้อมูลทั่วไป -->
+        <div class="tab-pane fade show active" id="tab-doc-info">
+          <div class="row mb-3 g-3">
+            <div class="col-md-4"><label class="text-muted small fw-bold">Specialty (ความเชี่ยวชาญ)</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold">Type (ประเภท)</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold">Status (สถานะ)</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
+          </div>
+          <div class="row mb-3 g-3">
+            <div class="col-md-6"><label class="text-muted small fw-bold">Email (อีเมล)</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold">Mobile (เบอร์โทรศัพท์)</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
+          </div>
+          <div class="border rounded-4 p-4 bg-light mt-4">
+            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace History)</label>
+            <div id="viewWorkplaceContainer"></div>
+          </div>
+        </div>
+
+        <!-- Tab 2: ประวัติการเข้าพบ -->
+        <div class="tab-pane fade" id="tab-doc-history">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
+            <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToQuickAddCall()">
+              <i class="fa-solid fa-plus me-1"></i> บันทึกเยี่ยม (Add Call)
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle" style="font-size: 0.9rem;">
+              <thead class="table-light text-center">
+                <tr>
+                  <th>วันที่ (Date)</th>
+                  <th>ผู้แทน (Sales Rep)</th>
+                  <th>สินค้า (Product)</th>
+                  <th>วัตถุประสงค์ (Purpose)</th>
+                  <th>สถานะ (Status)</th>
+                </tr>
+              </thead>
+              <tbody id="viewVisitHistoryBody">
+                <tr><td colspan="5" class="text-center py-4 text-muted">กำลังโหลดประวัติ...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Target Call -->
+        <div class="tab-pane fade" id="tab-doc-target">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>ประเมินศักยภาพและเป้าหมายการเข้าพบ</h6>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addNewRatingRow()">
+              <i class="fa-solid fa-plus me-1"></i> เพิ่มสินค้า
+            </button>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" id="ratingTable">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th>Adoption</th>
+                  <th>Potential</th>
+                  <th>Classification</th>
+                  <th>Target (Call)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ratingTableBody">
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">กำลังโหลดข้อมูล...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
   var globalDoctors = [];
   var globalHospitals = [];
 
-  // ===================== ระบบจัดการสถานที่ทำงาน (Multiple Workplaces) =====================
-  function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
-    const container = document.getElementById(containerId);
-    const row = document.createElement('div');
-    row.className = 'row align-items-center workplace-row';
-
-    let optionsHtml = '<option value="">- ค้นหาและเลือกโรงพยาบาล -</option>';
-    globalHospitals.forEach(h => {
-      const selected = h.Hospital_ID === hospId ? 'selected' : '';
-      const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
-      optionsHtml += `<option value="${h.Hospital_ID}" ${selected}>${showName}</option>`;
-    });
-
-    const checked = isPrimary ? 'checked' : '';
-
-    row.innerHTML = `
-      <div class="col-sm-12 col-md-7 mb-2 mb-md-0">
-        <select class="form-select hospital-select bg-white border-warning" required>
-          ${optionsHtml}
-        </select>
-      </div>
-      <div class="col-sm-8 col-md-3">
-        <div class="form-check pt-1 px-3 py-2 bg-light rounded border">
-          <input class="form-check-input primary-radio" type="radio" name="${radioGroupName}" value="true" ${checked} required style="cursor:pointer; transform: scale(1.2); margin-top:0.3rem;">
-          <label class="form-check-label text-dark fw-bold ms-2" style="cursor:pointer;">Primary (รพ.หลัก)</label>
-        </div>
-      </div>
-      <div class="col-sm-4 col-md-2 text-end">
-        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> ลบ</button>
-      </div>
-    `;
-    container.appendChild(row);
-  }
-
-  function extractWorkplaces(containerId) {
-    const container = document.getElementById(containerId);
-    const rows = container.querySelectorAll('.workplace-row');
-    const workplaces = [];
-    rows.forEach(row => {
-      const hospId = row.querySelector('.hospital-select').value;
-      const isPrimary = row.querySelector('.primary-radio').checked;
-      if (hospId) workplaces.push({ hospitalId: hospId, isPrimary: isPrimary });
-    });
-    return workplaces;
-  }
+  var globalRatingDropdowns = { Adoption: [], Potential: [], Classification: [] };
+  var globalTargetMaster = {};
+  var globalMatrixMaster = {}; 
+  var globalProductList = []; 
+  var currentTargetDocId = ""; 
 
   // ===================== ระบบ Voice to Text =====================
   var searchRecognition;
@@ -255,7 +338,7 @@
       }
       if (finalTranscript) { document.getElementById('filterDocName').value = finalTranscript.trim(); filterDoctors(); stopSearchDictation(); }
     };
-    searchRecognition.onerror = function(event) { stopSearchDictation(); };
+    searchRecognition.onerror = function() { stopSearchDictation(); };
     searchRecognition.onend = function() { if(isSearchRecording) stopSearchDictation(); };
   }
 
@@ -287,7 +370,9 @@
   }, 300);
 
   function switchDoctorView(viewId) {
-    ['doctorListView', 'doctorAddView', 'doctorEditView'].forEach(v => { const el = document.getElementById(v); if (el) el.classList.add('d-none'); });
+    ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
+      const el = document.getElementById(v); if (el) el.classList.add('d-none'); 
+    });
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0); 
   }
@@ -335,6 +420,52 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
+  // ===================== ระบบ Workplace =====================
+  function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'row align-items-center workplace-row';
+
+    let optionsHtml = '<option value="">- ค้นหาและเลือกโรงพยาบาล -</option>';
+    globalHospitals.forEach(h => {
+      const selected = h.Hospital_ID === hospId ? 'selected' : '';
+      const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
+      optionsHtml += `<option value="${h.Hospital_ID}" ${selected}>${showName}</option>`;
+    });
+
+    const checked = isPrimary ? 'checked' : '';
+
+    row.innerHTML = `
+      <div class="col-sm-12 col-md-7 mb-2 mb-md-0">
+        <select class="form-select hospital-select bg-white border-warning" required>
+          ${optionsHtml}
+        </select>
+      </div>
+      <div class="col-sm-8 col-md-3">
+        <div class="form-check pt-1 px-3 py-2 bg-light rounded border">
+          <input class="form-check-input primary-radio" type="radio" name="${radioGroupName}" value="true" ${checked} required style="cursor:pointer; transform: scale(1.2); margin-top:0.3rem;">
+          <label class="form-check-label text-dark fw-bold ms-2" style="cursor:pointer;">Primary (รพ.หลัก)</label>
+        </div>
+      </div>
+      <div class="col-sm-4 col-md-2 text-end">
+        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> ลบ</button>
+      </div>
+    `;
+    container.appendChild(row);
+  }
+
+  function extractWorkplaces(containerId) {
+    const container = document.getElementById(containerId);
+    const rows = container.querySelectorAll('.workplace-row');
+    const workplaces = [];
+    rows.forEach(row => {
+      const hospId = row.querySelector('.hospital-select').value;
+      const isPrimary = row.querySelector('.primary-radio').checked;
+      if (hospId) workplaces.push({ hospitalId: hospId, isPrimary: isPrimary });
+    });
+    return workplaces;
+  }
+
   function openAddDoctorView() {
     document.getElementById('addDoctorForm').reset();
     document.getElementById('workplaceContainerAdd').innerHTML = '';
@@ -369,7 +500,6 @@
         };
       });
 
-      // นำคำขอ Add Doctor DCR รออนุมัติมาเสียบด้านบนสุด
       if (pendingAddDcrs && pendingAddDcrs.length > 0) {
         pendingAddDcrs.forEach(d => {
           try {
@@ -438,11 +568,15 @@
 
       const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
       const nameEnShow = d.title ? `${d.title} ${d.nameEn || ''}` : (d.nameEn || '-');
-      const docIcon = d.isPendingDcr ? 'fa-user-doctor text-warning' : 'fa-user-doctor text-primary';
+      
+      // 🌟 สร้าง Hyperlink นำไปสู่ Profile View
+      const nameCellLink = d.isPendingDcr ? 
+        `<span class="fw-bold text-dark"><i class="fa-solid fa-user-doctor me-2 text-warning"></i>${nameEnShow}</span>` : 
+        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewDoctorProfile('${d.id}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${nameEnShow}</a>${pendingEditTag}`;
 
       tbody.innerHTML += `
         <tr>
-          <td class="fw-bold text-dark"><i class="fa-solid ${docIcon} me-2"></i>${nameEnShow}${pendingEditTag}</td>
+          <td>${nameCellLink}</td>
           <td class="fw-medium text-secondary">${d.nameTh || '-'}</td>
           <td><span class="badge bg-light text-dark border">${d.specialty || '-'}</span></td>
           <td class="text-primary fw-medium"><small><i class="fa-regular fa-hospital me-1"></i>${d.hospitalName || '-'}</small></td>
@@ -494,7 +628,86 @@
     switchDoctorView('doctorEditView');
   }
 
-  // 🌟 เพิ่มหมอใหม่: บังคับส่งเข้า DCR 100% สำหรับทุกคน!
+  // 🌟 เปิดหน้า Profile แพทย์เต็มรูปแบบ
+  async function openViewDoctorProfile(id) {
+    currentTargetDocId = id; 
+    const d = globalDoctors.find(x => x.id === id); 
+    if(!d) return;
+
+    document.getElementById('viewDocTitleName').innerText = `👨‍⚕️ ${d.title || ''} ${d.nameEn || ''} ${d.nameTh ? `(${d.nameTh})` : ''}`;
+    document.getElementById('viewDocSpecialty').value = d.specialty || '-';
+    document.getElementById('viewDocType').value = d.type || '-';
+    document.getElementById('viewDocStatus').value = d.status || 'Active';
+    document.getElementById('viewDocEmail').value = d.email || '-';
+    document.getElementById('viewDocMobile').value = d.mobile || '-';
+
+    // แสดงสถานที่ทำงาน
+    let wpHTML = '';
+    let parsedWp = [];
+    try { if (d.workplacesJson) parsedWp = JSON.parse(d.workplacesJson); } catch(e) {}
+    
+    if(parsedWp.length > 0) {
+      parsedWp.forEach(wp => {
+        const isPrimary = wp.isPrimary ? '<span class="badge bg-primary ms-2">Primary</span>' : '';
+        const hospObj = globalHospitals.find(h => h.Hospital_ID === wp.hospitalId);
+        const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "โรงพยาบาล";
+        wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
+      });
+    } else {
+      const hospObj = globalHospitals.find(h => h.Hospital_ID === d.hospitalId);
+      const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "โรงพยาบาลหลัก";
+      wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge bg-primary ms-2">Primary</span></div>`;
+    }
+    document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
+
+    // โหลดประวัติการเข้าพบ (Visit History) จาก Supabase
+    loadDoctorVisitHistory(id);
+
+    // เปิด Tab แรกเสมอ
+    const firstTabEl = document.querySelector('#doctorProfileView .nav-link');
+    if(firstTabEl) { const tab = new bootstrap.Tab(firstTabEl); tab.show(); }
+
+    switchDoctorView('doctorProfileView');
+  }
+
+  // 🌟 ดึงประวัติ Visit History ของหมอ
+  async function loadDoctorVisitHistory(docId) {
+    const tbody = document.getElementById('viewVisitHistoryBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+    
+    try {
+      const { data, error } = await supabaseClient
+        .from('Visits')
+        .select('*')
+        .eq('Doc_ID', docId)
+        .order('Visit_Date', { ascending: false });
+
+      if (error) throw error;
+      
+      tbody.innerHTML = '';
+      if(!data || data.length === 0) {
+        return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีประวัติการเข้าพบ</td></tr>';
+      }
+
+      data.forEach(v => {
+        const badge = v.Status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
+        const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
+        tbody.innerHTML += `
+          <tr>
+            <td class="text-center text-primary fw-bold">${dateStr}</td>
+            <td><small>${v.Whoupdated || '-'}</small></td>
+            <td><small>${v.Product_ID || '-'}</small></td>
+            <td><small>${v.Purpose || '-'}</small></td>
+            <td class="text-center"><span class="badge ${badge}">${v.Status || 'Submitted'}</span></td>
+          </tr>
+        `;
+      });
+    } catch(err) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ ไม่สามารถโหลดประวัติได้: ${err.message}</td></tr>`;
+    }
+  }
+
+  // 🌟 เพิ่มหมอใหม่: บังคับส่งเข้า DCR 100%
   async function handleAddDoctor(e) {
     e.preventDefault(); 
     
@@ -553,7 +766,7 @@
     finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 
-  // 🌟 บันทึกแก้ไขข้อมูลแพทย์: บังคับส่งเข้า DCR 100% สำหรับทุกคน!
+  // 🌟 บันทึกแก้ไขข้อมูลแพทย์: บังคับส่งเข้า DCR 100%
   async function handleUpdateDoctor(e) {
     e.preventDefault(); 
 
@@ -590,7 +803,6 @@
     };
 
     try {
-      // บังคับส่งคำขอแก้ไขไปยัง DCR ทุกกรณี
       const dcrPayload = { Ref_ID: docId, Action: 'Edit Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
       const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
       if (error) throw error;
@@ -601,5 +813,27 @@
 
     } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } 
     finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
+  }
+
+  // ===================== ระบบ Target Call & Rating =====================
+  function addNewRatingRow() {
+    const tbody = document.getElementById('ratingTableBody');
+    const noData = tbody.querySelector('.no-data');
+    if(noData) noData.remove(); 
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="form-control form-control-sm" placeholder="ชื่อสินค้า"></td>
+      <td><select class="form-select form-select-sm"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></td>
+      <td><select class="form-select form-select-sm"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></td>
+      <td><input type="text" class="form-control form-control-sm text-center fw-bold text-primary" value="A" readonly style="background:#e9ecef;"></td>
+      <td><input type="number" class="form-control form-control-sm text-center fw-bold text-success" value="4" readonly style="background:#e9ecef;"></td>
+      <td><button class="btn btn-sm btn-success rounded-pill px-3" onclick="alert('บันทึกสำเร็จ')">💾 บันทึก</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  function goToQuickAddCall() {
+    alert("ระบบกำลังนำคุณไปยังหน้าสร้างบันทึกเยี่ยม...");
   }
 </script>
