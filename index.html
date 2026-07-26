@@ -17,58 +17,75 @@
     .navbar { border-bottom: 2px solid #e9ecef; }
     #mainContent { margin-top: 20px; }
 
-    /* 🌟 ตกแต่งเมนูทั่วไปแบบแคปซูล */
+    /* 🌟 ตกแต่งเมนูทั่วไป */
     .nav-menu-item {
-      color: #6c757d; /* สีเทา */
+      color: #495057; /* สีเทาเข้มให้อ่านง่าย */
       font-weight: 500;
-      padding: 8px 18px !important;
-      border-radius: 50px; /* โค้งมนแบบแคปซูล */
-      transition: all 0.3s ease;
+      padding: 8px 16px !important;
+      border-radius: 50px; 
+      transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
       margin: 0 2px;
+      text-decoration: none;
     }
     
-    /* เอฟเฟกต์ตอนเอาเมาส์ชี้ */
-    .nav-menu-item:hover {
-      background-color: #f8f9fa;
-      color: #0d6efd;
-    }
+    /* 🎨 Theme สีเฉพาะของแต่ละเมนู */
+    
+    /* 1. บันทึกเยี่ยม (สีเขียว) */
+    .menu-visit i { color: #198754; }
+    .menu-visit:hover { background-color: #eaf6ec; color: #146c43; }
+    .menu-visit.active { background-color: #d1e7dd !important; color: #146c43 !important; font-weight: 700; }
 
-    /* 🌟 เอฟเฟกต์ตอนถูกเลือก (Active) */
-    .nav-menu-item.active {
-      background-color: #e7f1ff !important; /* พื้นหลังสีฟ้าอ่อน */
-      color: #0d6efd !important; /* ตัวอักษรสีฟ้าเข้ม */
-      font-weight: 700; /* ตัวหนาขึ้น */
-      box-shadow: 0 2px 5px rgba(13, 110, 253, 0.1);
-    }
-    
-    /* ปรับสีไอคอนตอน Active ให้เข้ากัน */
-    .nav-menu-item.active i {
-      color: #0d6efd !important; 
-    }
-    
-    /* ปรับแต่งเมนูของ Admin ไม่ให้ขัดกัน */
-    .admin-menu-special.active {
-       background-color: #ffe6e6 !important; /* สีแดงอ่อนสำหรับเมนู DCR */
-       color: #dc3545 !important;
-    }
-    .admin-menu-special.active i { color: #dc3545 !important; }
+    /* 2. แพทย์ (สีน้ำเงิน) */
+    .menu-doctor i { color: #0d6efd; }
+    .menu-doctor:hover { background-color: #eff5ff; color: #084298; }
+    .menu-doctor.active { background-color: #cfe2ff !important; color: #084298 !important; font-weight: 700; }
+
+    /* 3. โรงพยาบาล (สีฟ้า/Teal) */
+    .menu-hospital i { color: #0dcaf0; }
+    .menu-hospital:hover { background-color: #eafafc; color: #05a0c0; }
+    .menu-hospital.active { background-color: #cff4fc !important; color: #055160 !important; font-weight: 700; }
+
+    /* 4. โครงสร้างองค์กร (สีม่วง) */
+    .menu-org i { color: #6f42c1; }
+    .menu-org:hover { background-color: #f4effa; color: #502b8e; }
+    .menu-org.active { background-color: #e0cffc !important; color: #502b8e !important; font-weight: 700; }
+
+    /* 5. Rating Matrix (สีส้ม) */
+    .menu-matrix i { color: #fd7e14; }
+    .menu-matrix:hover { background-color: #fff4ec; color: #cc5900; }
+    .menu-matrix.active { background-color: #ffe5d0 !important; color: #cc5900 !important; font-weight: 700; }
+
+    /* 6. Assignment (สีคราม) */
+    .menu-assign i { color: #6610f2; }
+    .menu-assign:hover { background-color: #f2eefd; color: #4309a3; }
+    .menu-assign.active { background-color: #e0d4fc !important; color: #4309a3 !important; font-weight: 700; }
+
+    /* 7. ตั้งค่า (สีเทา) */
+    .menu-setting i { color: #6c757d; }
+    .menu-setting:hover { background-color: #f0f1f2; color: #383d41; }
+    .menu-setting.active { background-color: #e2e3e5 !important; color: #383d41 !important; font-weight: 700; }
+
+    /* 8. DCR (สีแดง) */
+    .menu-dcr i { color: #dc3545; }
+    .menu-dcr:hover { background-color: #fdf3f4; color: #b02a37; }
+    .menu-dcr.active { background-color: #f8d7da !important; color: #842029 !important; font-weight: 700; }
+
+    /* 9. ผู้ใช้งาน (สีชมพู) */
+    .menu-user i { color: #d63384; }
+    .menu-user:hover { background-color: #fdf1f6; color: #a62364; }
+    .menu-user.active { background-color: #f7d6e6 !important; color: #a62364 !important; font-weight: 700; }
   </style>
 </head>
 <body>
 
-  <!-- พื้นที่สำหรับดึงหน้า Login มาแปะ -->
   <div id="loginComponent"></div>
 
-  <!-- ระบบแอปพลิเคชันหลัก -->
   <div id="appContainer">
-    
-    <!-- แถบเมนูด้านบน (Navbar) -->
     <nav class="navbar navbar-expand-xl navbar-light bg-white shadow-sm sticky-top">
       <div class="container-fluid px-4">
         
-        <!-- โลโก้ -->
         <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="#" onclick="loadComponent('dashboard')">
           <div class="bg-primary text-white rounded p-2 me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
             <i class="fa-solid fa-briefcase-medical"></i>
@@ -84,34 +101,23 @@
           
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center" style="font-size: 0.95rem;">
             
-            <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1 text-muted"></i> บันทึกเยี่ยม</a></li>
-            <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1 text-muted"></i> แพทย์</a></li>
-            <li class="nav-item"><a class="nav-link nav-menu-item" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1 text-muted"></i> โรงพยาบาล</a></li>
+            <!-- โซนเมนู User ทั่วไป -->
+            <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1"></i> บันทึกเยี่ยม</a></li>
+            <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1"></i> แพทย์</a></li>
+            <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1"></i> โรงพยาบาล</a></li>
             
-            <!-- เมนู All-in-One: โครงสร้างองค์กร (เฉพาะ Admin) แก้ไขเอาคลาส border ออกแล้ว -->
-            <li class="nav-item ms-2 admin-only" style="display: none;">
-              <a class="nav-link nav-menu-item" href="#" data-page="organization" onclick="loadComponent('organization')">
-                <i class="fa-solid fa-sitemap me-1 text-muted"></i> โครงสร้างองค์กร
-              </a>
-            </li>
-            
-            <!-- เมนู Matrix รวม Target (เฉพาะ Admin) -->
-            <li class="nav-item ms-1 admin-only" style="display: none;">
-              <a class="nav-link nav-menu-item" href="#" data-page="matrix" onclick="loadComponent('matrix')">
-                <i class="fa-solid fa-border-all me-1 text-muted"></i> Rating Matrix
-              </a>
-            </li>
-            
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item" href="#" data-page="assignment" onclick="loadComponent('assignment')"><i class="fa-solid fa-link me-1 text-muted"></i> Assignment</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item" href="#" data-page="indexData" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul me-1 text-muted"></i> ตั้งค่าตัวเลือก</a></li>
-            
-            <!-- เมนู DCR แต่งให้เด่นนิดนึง -->
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item admin-menu-special text-danger" href="#" data-page="dcr" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature me-1"></i> อนุมัติข้อมูล (DCR)</a></li>
-            
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1 text-muted"></i> ผู้ใช้งาน</a></li>
+            <!-- เส้นคั่นแบ่งโซน Admin (โชว์เฉพาะหน้าจอใหญ่และเป็น Admin) -->
+            <div class="vr mx-2 text-muted d-none d-xl-block admin-only" style="display: none !important; opacity: 0.2;"></div>
+
+            <!-- โซนเมนูเฉพาะ Admin -->
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-org" href="#" data-page="organization" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap me-1"></i> โครงสร้างองค์กร</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-matrix" href="#" data-page="matrix" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all me-1"></i> Rating Matrix</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-assign" href="#" data-page="assignment" onclick="loadComponent('assignment')"><i class="fa-solid fa-link me-1"></i> Assignment</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-setting" href="#" data-page="indexData" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul me-1"></i> ตั้งค่าตัวเลือก</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-dcr" href="#" data-page="dcr" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature me-1"></i> อนุมัติ (DCR)</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-user" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1"></i> ผู้ใช้งาน</a></li>
           </ul>
 
-          <!-- ข้อมูล User มุมขวาบน -->
           <div class="d-flex align-items-center border-start ps-3 ms-2">
             <div class="text-end me-3">
               <div class="fw-bold text-dark" id="displayUserName" style="font-size: 0.9rem;">-</div>
@@ -125,7 +131,6 @@
       </div>
     </nav>
 
-    <!-- พื้นที่แสดงเนื้อหาของแต่ละหน้า (Dynamic Routing) -->
     <div id="mainContent" class="container-fluid max-width-md" style="max-width: 1200px; padding-bottom: 50px;">
       <div class="text-center py-5 text-muted"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>กำลังโหลดระบบ...</div>
     </div>
@@ -145,7 +150,6 @@
       checkSession();
     });
 
-    // โหลดหน้า Login มาแปะ 
     async function loadLoginComponent() {
       try {
         const response = await fetch('Login.html');
@@ -167,7 +171,6 @@
       }
     }
 
-    // ระบบ Routing สลับหน้าเว็บ และเปลี่ยนสีเมนู (Highlight)
     async function loadComponent(page) {
       let url = '';
       
@@ -187,11 +190,11 @@
           url = 'ManageVisits.html'; 
       }
 
-      // 1. ลบ Active ออกจากเมนูทั้งหมดก่อน
+      // ลบ Active ออกจากเมนูทั้งหมดก่อน
       const menuItems = document.querySelectorAll('.nav-menu-item');
       menuItems.forEach(item => item.classList.remove('active'));
 
-      // 2. หาปุ่มเมนูที่ตรงกับ page ที่กำลังโหลด แล้วสั่งให้มีสถานะ Active
+      // สั่งให้มีสถานะ Active เฉพาะเมนูที่กด
       const targetMenu = document.querySelector(`.nav-menu-item[data-page="${page}"]`);
       if (targetMenu) {
         targetMenu.classList.add('active');
@@ -205,7 +208,6 @@
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = html;
 
-        // ประมวลผล Script ภายในหน้าที่โหลดมาใหม่
         const scripts = mainContent.querySelectorAll('script');
         scripts.forEach(script => {
           const newScript = document.createElement('script');
@@ -214,7 +216,6 @@
           document.body.appendChild(newScript);
         });
         
-        // ถ้าย่อเมนูบนมือถือ/iPad อยู่ ให้พับเมนูเก็บเมื่อกดเลือกแล้ว
         const navbarCollapse = document.getElementById('navbarNav');
         if (navbarCollapse && navbarCollapse.classList.contains('show')) {
            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
@@ -227,7 +228,6 @@
       }
     }
 
-    // จัดการสิทธิ์การมองเห็น
     function checkSession() {
       const userStr = sessionStorage.getItem('crmUser');
       const loginScreen = document.getElementById('loginScreen'); 
@@ -252,10 +252,14 @@
         
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
-          el.style.display = (uRole === 'Admin') ? 'block' : 'none';
+          // โชว์เมนู Admin ถ้าสิทธิ์เป็น Admin
+          if (uRole === 'Admin') {
+            el.style.setProperty('display', el.classList.contains('vr') ? 'block' : 'block', 'important');
+          } else {
+            el.style.setProperty('display', 'none', 'important');
+          }
         });
 
-        // เมื่อ Login สำเร็จ ให้โหลดหน้าเริ่มต้น
         loadComponent('visit');
 
       } else {
