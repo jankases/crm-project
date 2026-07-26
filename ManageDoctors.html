@@ -1,14 +1,10 @@
 <style>
-  /* ปรับแต่ง UI ให้รองรับการแตะบน iPad/Tablet ได้ดีขึ้น */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
-    min-height: 42px; /* ขยายความสูงปุ่มให้จิ้มง่ายขึ้น */
-    border-radius: 10px;
+    min-height: 42px; border-radius: 10px;
   }
   .table-doctor th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
   .table-doctor td { vertical-align: middle; }
-  
-  /* Effect สำหรับปุ่มไมค์ตอนกำลังฟังเสียง */
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 </style>
@@ -34,7 +30,6 @@
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
           <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์หรือพูดชื่อ EN, TH หรือ รหัส..." onkeyup="filterDoctors()">
-          <!-- 🌟 ปุ่มไมค์สำหรับค้นหา -->
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="ค้นหาด้วยเสียง">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
@@ -57,12 +52,13 @@
               <th>ชื่อแพทย์ (Name EN)</th>
               <th>ชื่อแพทย์ (Name TH)</th>
               <th>ความเชี่ยวชาญ (Specialty)</th>
+              <th>สถานที่ทำงาน (Workplace)</th>
               <th>สถานะ (Status)</th>
               <th>จัดการ (Action)</th>
             </tr>
           </thead>
           <tbody id="doctorTableBody">
-            <tr><td colspan="5" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -98,13 +94,17 @@
             </div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-6 col-md-6">
+            <div class="col-sm-6 col-md-4">
               <label class="form-label fw-bold text-dark">ความเชี่ยวชาญ (Specialty)</label>
               <select class="form-select bg-white" id="docSpecialty"></select>
             </div>
-            <div class="col-sm-6 col-md-6">
+            <div class="col-sm-6 col-md-4">
               <label class="form-label fw-bold text-dark">ประเภท (Type)</label>
               <select class="form-select bg-white" id="docType"></select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <label class="form-label fw-bold text-dark">สถานที่ทำงาน (Workplace)</label>
+              <select class="form-select bg-white" id="docHospital"></select>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">บันทึกข้อมูลแพทย์</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">บันทึกข้อมูล / ส่ง DCR</button>
         </div>
       </form>
     </div>
@@ -154,6 +154,9 @@
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
       <h4 class="text-primary fw-bold mb-0">✏️ แก้ไขข้อมูลแพทย์</h4>
+      
+      <!-- 🌟 ป้ายสถานะ DCR โชว์ตรงนี้ 🌟 -->
+      <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm doctor-form-group" style="border-radius: 15px;">
@@ -177,15 +180,19 @@
             </div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-6 col-md-4">
+            <div class="col-sm-6 col-md-3">
               <label class="form-label fw-bold text-dark">ความเชี่ยวชาญ (Specialty)</label>
               <select class="form-select bg-white" id="editDocSpecialty"></select>
             </div>
-            <div class="col-sm-6 col-md-4">
+            <div class="col-sm-6 col-md-3">
               <label class="form-label fw-bold text-dark">ประเภท (Type)</label>
               <select class="form-select bg-white" id="editDocType"></select>
             </div>
-            <div class="col-sm-12 col-md-4">
+            <div class="col-sm-12 col-md-3">
+              <label class="form-label fw-bold text-dark">สถานที่ทำงาน</label>
+              <select class="form-select bg-white" id="editDocHospital"></select>
+            </div>
+            <div class="col-sm-12 col-md-3">
               <label class="form-label fw-bold text-danger">สถานะ (Status)</label>
               <select class="form-select border-danger bg-white fw-bold" id="editDocStatus">
                 <option value="Active" class="text-success">Active (ใช้งาน)</option>
@@ -227,7 +234,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">บันทึกการเปลี่ยนแปลง</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">บันทึกข้อมูล / ส่ง DCR</button>
         </div>
       </form>
     </div>
@@ -236,6 +243,7 @@
 
 <script>
   var globalDoctors = [];
+  var globalHospitals = [];
 
   // ===================== 🌟 ระบบ Voice to Text สำหรับช่องค้นหา =====================
   var searchRecognition;
@@ -245,53 +253,33 @@
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     searchRecognition = new SpeechRecognition();
     searchRecognition.lang = 'th-TH'; 
-    searchRecognition.continuous = false; // พูดจบ 1 ประโยคให้หยุดหาเลย
-    searchRecognition.interimResults = false; // เอาเฉพาะผลลัพธ์สุดท้าย
+    searchRecognition.continuous = false; 
+    searchRecognition.interimResults = false; 
 
     searchRecognition.onresult = function(event) {
       let finalTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        }
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
       }
       if (finalTranscript) {
-        // ใส่คำที่พูดลงในช่องค้นหา แล้วลบจุดซ่อนเร้นหรือสเปซบาร์บางจุด
-        const searchBox = document.getElementById('filterDocName');
-        searchBox.value = finalTranscript.trim();
-        filterDoctors(); // เรียกฟังก์ชันกรองข้อมูลทันที
-        stopSearchDictation(); // หยุดไมค์
+        document.getElementById('filterDocName').value = finalTranscript.trim();
+        filterDoctors(); 
+        stopSearchDictation(); 
       }
     };
-
-    searchRecognition.onerror = function(event) {
-      console.error("Mic error:", event.error);
-      stopSearchDictation();
-    };
-    
-    searchRecognition.onend = function() {
-      if(isSearchRecording) stopSearchDictation();
-    };
+    searchRecognition.onerror = function(event) { stopSearchDictation(); };
+    searchRecognition.onend = function() { if(isSearchRecording) stopSearchDictation(); };
   }
 
   function toggleSearchDictation() {
-    if (!searchRecognition) {
-      alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-      return;
-    }
-    if (isSearchRecording) {
-      stopSearchDictation();
-    } else {
+    if (!searchRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (isSearchRecording) { stopSearchDictation(); } else {
       isSearchRecording = true;
       searchRecognition.start();
-      
-      // อัปเดต UI ปุ่มไมค์ให้รู้ว่ากำลังฟังอยู่
       const btn = document.getElementById('btnMicSearch');
       const icon = document.getElementById('micSearchIcon');
-      btn.classList.remove('bg-white');
-      btn.classList.add('btn-danger', 'mic-active', 'text-white');
-      icon.classList.remove('text-muted', 'fa-microphone');
-      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
+      btn.classList.remove('bg-white'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
+      icon.classList.remove('text-muted', 'fa-microphone'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
       document.getElementById('filterDocName').placeholder = "กำลังฟัง... พูดชื่อคุณหมอได้เลย";
     }
   }
@@ -299,15 +287,11 @@
   function stopSearchDictation() {
     isSearchRecording = false;
     if(searchRecognition) searchRecognition.stop();
-    
-    // คืนค่า UI ปุ่มไมค์กลับเป็นปกติ
     const btn = document.getElementById('btnMicSearch');
     const icon = document.getElementById('micSearchIcon');
     if (btn && icon) {
-      btn.classList.remove('btn-danger', 'mic-active', 'text-white');
-      btn.classList.add('bg-white');
-      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
-      icon.classList.add('text-muted', 'fa-microphone');
+      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
+      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
       document.getElementById('filterDocName').placeholder = "พิมพ์หรือพูดชื่อ EN, TH หรือ รหัส...";
     }
   }
@@ -320,24 +304,22 @@
 
   function switchDoctorView(viewId) {
     const views = ['doctorListView', 'doctorAddView', 'doctorEditView'];
-    views.forEach(v => {
-      const el = document.getElementById(v);
-      if (el) el.classList.add('d-none');
-    });
-    const target = document.getElementById(viewId);
-    if(target) target.classList.remove('d-none');
+    views.forEach(v => { const el = document.getElementById(v); if (el) el.classList.add('d-none'); });
+    const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0); 
   }
 
   async function loadIndexDropdowns() {
     try {
-      const [typeRes, idxRes] = await Promise.all([
+      const [typeRes, idxRes, hospRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
-        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
+        supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').order('Hospital', { ascending: true })
       ]);
       
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
+      globalHospitals = hospRes.data || [];
 
       const getOptionsHtml = (typeName) => {
         const typeObj = types.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
@@ -353,21 +335,25 @@
       const specialtyOptions = getOptionsHtml('Specialty');
       const docTypeOptions = getOptionsHtml('DoctorType'); 
 
+      let hospHtml = '<option value="">- เลือกสถานที่ทำงาน -</option>';
+      globalHospitals.forEach(h => {
+        const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
+        hospHtml += `<option value="${h.Hospital_ID}">${showName}</option>`;
+      });
+
       document.getElementById('docTitle').innerHTML = titleOptions;
       document.getElementById('docSpecialty').innerHTML = specialtyOptions;
       document.getElementById('docType').innerHTML = docTypeOptions;
+      document.getElementById('docHospital').innerHTML = hospHtml;
 
       document.getElementById('editDocTitle').innerHTML = titleOptions;
       document.getElementById('editDocSpecialty').innerHTML = specialtyOptions;
       document.getElementById('editDocType').innerHTML = docTypeOptions;
+      document.getElementById('editDocHospital').innerHTML = hospHtml;
 
       const filterSpec = document.getElementById('filterDocSpecialty');
-      if (filterSpec) {
-        filterSpec.innerHTML = '<option value="">- ทุกความเชี่ยวชาญ -</option>' + specialtyOptions.replace('<option value="">- เลือก -</option>', '');
-      }
-    } catch (err) {
-      console.error("Error loading index dropdowns:", err.message);
-    }
+      if (filterSpec) { filterSpec.innerHTML = '<option value="">- ทุกความเชี่ยวชาญ -</option>' + specialtyOptions.replace('<option value="">- เลือก -</option>', ''); }
+    } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
   function openAddDoctorView() {
@@ -377,29 +363,28 @@
 
   async function loadDoctors() {
     const tbody = document.getElementById('doctorTableBody');
-    if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     
     try {
       const { data: doctors, error } = await supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true });
       if (error) throw error;
 
-      globalDoctors = doctors.map(d => ({
-        id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
-        specialty: d.Specialty, type: d.Type, privacy: d.Privacy_Policy, tos: d.Terms_of_Service,
-        email: d.Email, mobile: d.Mobile, status: d.Status
-      }));
+      globalDoctors = doctors.map(d => {
+        const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
+        return {
+          id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
+          specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
+          privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, status: d.Status
+        };
+      });
 
       filterDoctors(); 
-    } catch (err) {
-      console.error(err);
-      if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
-    }
+    } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; }
   }
 
   function filterDoctors() {
     const nameEl = document.getElementById('filterDocName');
     const specEl = document.getElementById('filterDocSpecialty');
-    
     const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
     const specTerm = specEl ? specEl.value : "";
 
@@ -408,23 +393,19 @@
       const docNameEn = String(d.nameEn || "").toLowerCase();
       const docNameTh = String(d.nameTh || "").toLowerCase();
       const strForSearch = `${docId} ${docNameEn} ${docNameTh}`; 
-      
       const matchName = (nameTerm === "") || strForSearch.includes(nameTerm);
       const matchSpec = (specTerm === "") || (d.specialty === specTerm);
-      
       return matchName && matchSpec;
     });
-
     renderDoctorTable(filtered); 
   }
 
   function renderDoctorTable(data) {
     const tbody = document.getElementById('doctorTableBody'); 
-    if(!tbody) return;
-    tbody.innerHTML = '';
+    if(!tbody) return; tbody.innerHTML = '';
     
     if(!Array.isArray(data) || data.length === 0) {
-      return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลที่ค้นหา</td></tr>';
+      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลที่ค้นหา</td></tr>';
     }
     
     data.forEach(d => {
@@ -436,6 +417,7 @@
           <td class="fw-bold text-dark"><i class="fa-solid fa-user-doctor text-primary me-2"></i>${nameEnShow}</td>
           <td class="fw-medium text-secondary">${d.nameTh || '-'}</td>
           <td><span class="badge bg-light text-dark border">${d.specialty || '-'}</span></td>
+          <td class="text-secondary"><small>${d.hospitalName || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${d.status || 'Active'}</span></td>
           <td class="text-center">
             <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')">
@@ -444,6 +426,20 @@
           </td>
         </tr>`;
     });
+  }
+
+  async function checkPendingDCR(docId) {
+    try {
+      const { data, error } = await supabaseClient.from('DCR').select('Status, Action').eq('Ref_ID', docId).eq('Status', 'Pending');
+      if (error) throw error;
+      
+      const badgeContainer = document.getElementById('editDcrStatusBadge');
+      if (data && data.length > 0) {
+        badgeContainer.innerHTML = `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>`;
+      } else {
+        badgeContainer.innerHTML = '';
+      }
+    } catch (err) { console.error("Error check DCR:", err); }
   }
 
   function openEditDoctorView(id) {
@@ -456,65 +452,84 @@
     document.getElementById('editDocNameTh').value = d.nameTh || ''; 
     document.getElementById('editDocSpecialty').value = d.specialty || '';
     document.getElementById('editDocType').value = d.type || '';
+    document.getElementById('editDocHospital').value = d.hospitalId || '';
     document.getElementById('editDocEmail').value = d.email || '';
     document.getElementById('editDocMobile').value = d.mobile || '';
     document.getElementById('editDocPrivacy').value = d.privacy || 'Yes';
     document.getElementById('editDocTos').value = d.tos || 'Yes';
     document.getElementById('editDocStatus').value = d.status || 'Active';
 
+    checkPendingDCR(d.id); 
     switchDoctorView('doctorEditView');
   }
 
+  // ===================== 🌟 ระบบบันทึก (Direct Save หรือ ส่ง DCR) =====================
   async function handleAddDoctor(e) {
     e.preventDefault(); 
     const btn = document.getElementById('submitDoctorBtn'); 
-    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
 
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? crmUser.Email : "Unknown";
 
     const payload = {
       Title: document.getElementById('docTitle').value, 
       Doc_Name: document.getElementById('docNameEn').value.trim(),
       Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
       Specialty: document.getElementById('docSpecialty').value, 
-      Type: document.getElementById('docType').value,           
+      Type: document.getElementById('docType').value,   
+      Hospital_ID: document.getElementById('docHospital').value || null,        
       Email: document.getElementById('docEmail').value.trim(),
       Mobile: document.getElementById('docMobile').value.trim(),
       Privacy_Policy: document.getElementById('docPrivacy').value,
       Terms_of_Service: document.getElementById('docTos').value,
       Status: 'Active',
-      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+      Whoupdated: whoUpdated
     };
 
     if (!payload.Doc_Name && !payload.Doc_Name_TH) { 
       alert("❌ กรุณากรอกชื่อแพทย์ อย่างน้อย 1 ภาษา"); 
-      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูลแพทย์";
-      return; 
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; return; 
     }
 
     try {
-      const { error } = await supabaseClient.from('Doctors').insert([payload]);
-      if (error) throw error;
+      if (crmUser && crmUser.Role === 'Admin') {
+        // Admin ถืออภิสิทธิ์ บันทึกตรงเลย
+        const { error } = await supabaseClient.from('Doctors').insert([payload]);
+        if (error) throw error;
+        alert("✅ บันทึกแพทย์ใหม่สำเร็จ (Admin Direct Save)");
+      } else {
+        // ไม่ใช่ Admin โยนเข้าตาราง DCR
+        const dcrPayload = {
+          Action: 'Add Doctor',
+          Requested_Data: JSON.stringify(payload),
+          Status: 'Pending',
+          Whoupdated: whoUpdated
+        };
+        const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
+        if (error) throw error;
+        alert("✅ ส่งคำขอเพิ่มแพทย์ใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      }
       
-      alert("✅ บันทึกแพทย์ใหม่สำเร็จ");
       switchDoctorView('doctorListView'); 
       await loadDoctors(); 
     } catch (err) {
-      alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+      alert("❌ เกิดข้อผิดพลาด: " + err.message);
     } finally {
-      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูลแพทย์"; 
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
     }
   }
 
   async function handleUpdateDoctor(e) {
     e.preventDefault(); 
     const btn = document.getElementById('updateDoctorBtn'); 
-    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
 
     const docId = document.getElementById('editDocId').value;
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? crmUser.Email : "Unknown";
 
     const payload = {
       Title: document.getElementById('editDocTitle').value, 
@@ -522,31 +537,44 @@
       Doc_Name_TH: document.getElementById('editDocNameTh').value.trim(),
       Specialty: document.getElementById('editDocSpecialty').value,
       Type: document.getElementById('editDocType').value,
+      Hospital_ID: document.getElementById('editDocHospital').value || null,
       Email: document.getElementById('editDocEmail').value.trim(),
       Mobile: document.getElementById('editDocMobile').value.trim(),
       Privacy_Policy: document.getElementById('editDocPrivacy').value,
       Terms_of_Service: document.getElementById('editDocTos').value,
       Status: document.getElementById('editDocStatus').value,
-      Whoupdated: crmUser ? crmUser.Email : "Unknown"
+      Whoupdated: whoUpdated
     };
 
     if (!payload.Doc_Name && !payload.Doc_Name_TH) { 
       alert("❌ กรุณากรอกชื่อแพทย์ อย่างน้อย 1 ภาษา"); 
-      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง";
-      return; 
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; return; 
     }
 
     try {
-      const { error } = await supabaseClient.from('Doctors').update(payload).eq('Doc_ID', docId);
-      if (error) throw error;
-
-      alert("✅ แก้ไขข้อมูลแพทย์สำเร็จ");
+      if (crmUser && crmUser.Role === 'Admin') {
+        const { error } = await supabaseClient.from('Doctors').update(payload).eq('Doc_ID', docId);
+        if (error) throw error;
+        alert("✅ แก้ไขข้อมูลแพทย์สำเร็จ (Admin Direct Save)");
+      } else {
+        const dcrPayload = {
+          Ref_ID: docId,
+          Action: 'Edit Doctor',
+          Requested_Data: JSON.stringify(payload),
+          Status: 'Pending',
+          Whoupdated: whoUpdated
+        };
+        const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
+        if (error) throw error;
+        alert("✅ ส่งคำขอแก้ไขข้อมูลแพทย์ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      }
+      
       switchDoctorView('doctorListView'); 
       await loadDoctors(); 
     } catch (err) {
-      alert("❌ แก้ไขไม่สำเร็จ: " + err.message);
+      alert("❌ เกิดข้อผิดพลาด: " + err.message);
     } finally {
-      btn.disabled = false; btn.innerHTML = "บันทึกการเปลี่ยนแปลง"; 
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูล / ส่ง DCR"; 
     }
   }
 </script>
