@@ -398,6 +398,19 @@
       Whoupdated: crmUser ? crmUser.Email : "Unknown"
     };
 
+    // 🌟 2. ดักจับข้อมูลโรงพยาบาลซ้ำ (Duplicate Check)
+    const isDuplicate = globalHospitals.some(h => {
+      const matchName = payload.Hospital && h.name && h.name.toLowerCase().trim() === payload.Hospital.toLowerCase().trim();
+      const matchKnownAs = payload.Known_As && h.knownAs && h.knownAs.toLowerCase().trim() === payload.Known_As.toLowerCase().trim();
+      return matchName || matchKnownAs;
+    });
+
+    if (isDuplicate) {
+      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบแล้วครับ`);
+      btn.disabled = false; btn.innerHTML = "บันทึกข้อมูลโรงพยาบาล";
+      return; // หยุดการทำงาน ไม่บันทึกลง Database
+    }
+
     try {
       const { error } = await supabaseClient.from('Hospitals').insert([payload]);
       if (error) throw error;
