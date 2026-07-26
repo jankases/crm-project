@@ -26,7 +26,7 @@
         <p class="text-muted mb-0">จับคู่กำหนดพื้นที่ความรับผิดชอบ (Territory) ให้กับแพทย์และโรงพยาบาล</p>
       </div>
 
-      <!-- กลุ่มปุ่มจัดการ -->
+      <!-- กลุ่มปุ่มจัดการ (มีปุ่ม Template เพิ่มขึ้นมาแล้ว) -->
       <div class="d-flex flex-wrap gap-2">
         <!-- ปุ่ม 1: Import -->
         <button type="button" class="btn btn-outline-success fw-bold shadow-sm rounded-pill px-3" onclick="triggerImportFile()">
@@ -34,22 +34,27 @@
         </button>
         <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="d-none" onchange="handleImportExcel(event)">
 
-        <!-- ปุ่ม 2: Export Assignment ตามเงื่อนไข -->
+        <!-- ปุ่ม 2: ดาวน์โหลด Template Import (ใหม่ 🌟) -->
+        <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="downloadImportTemplate()" title="ดาวน์โหลดตัวอย่างแม่แบบไฟล์ Excel สำหรับใช้เตรียมข้อมูล Import">
+          <i class="fa-solid fa-file-excel me-1 text-success"></i>Template Import
+        </button>
+
+        <!-- ปุ่ม 3: Export Assignment ตามเงื่อนไข -->
         <button type="button" class="btn btn-outline-primary fw-bold shadow-sm rounded-pill px-3" onclick="openConditionExportModal()">
           <i class="fa-solid fa-file-export me-1"></i>Export Assignment
         </button>
 
-        <!-- ปุ่ม 3: Export Master Account (สำหรับ Admin นำไปทำไฟล์ Mapping) -->
+        <!-- ปุ่ม 4: Export Master Account -->
         <button type="button" class="btn btn-outline-info text-dark fw-bold shadow-sm rounded-pill px-3" onclick="exportMasterAccountsForMapping()" title="Export รายชื่อหมอและโรงพยาบาลพร้อมรหัส ID สำหรับทำไฟล์ Import">
-          <i class="fa-solid fa-users-rectangle me-1"></i>Export Master List (ทำ Mapping)
+          <i class="fa-solid fa-users-rectangle me-1"></i>Export Master List
         </button>
 
-        <!-- ปุ่ม 4: ลบตามเงื่อนไข -->
+        <!-- ปุ่ม 5: ลบตามเงื่อนไข -->
         <button type="button" class="btn btn-outline-danger fw-bold shadow-sm rounded-pill px-3" onclick="openConditionDeleteModal()">
           <i class="fa-solid fa-filter-circle-xmark me-1"></i>ลบตามเงื่อนไข
         </button>
 
-        <!-- ปุ่ม 5: สร้างใหม่ -->
+        <!-- ปุ่ม 6: สร้างใหม่ -->
         <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4" onclick="openAddAssignView()">
           <i class="fa-solid fa-plus me-1"></i>เพิ่ม Assignment ใหม่
         </button>
@@ -453,6 +458,40 @@
     });
   }
 
+  // ===================== 🌟 ดาวน์โหลด TEMPLATE IMPORT ตัวอย่างไฟล์ =====================
+  function downloadImportTemplate() {
+    let sampleData = [];
+
+    // ตัวอย่างแถบ 1: หมอ
+    let sampleDocId = "5a376175-fb87-4aa3-afa1-89e0e5639dd3";
+    let sampleHospId = "4c87c3f7-a8ba-4844-866c-4f3c15e0eefa";
+    let sampleTerrId = "f8ed31bd-d510-487f-9a30-0a1d79c670be";
+
+    if (globalAssignDoctors.length > 0) sampleDocId = globalAssignDoctors[0].Doc_ID;
+    if (globalAssignHospitals.length > 0) sampleHospId = globalAssignHospitals[0].Hospital_ID;
+    if (globalAssignTerritories.length > 0) sampleTerrId = globalAssignTerritories[0].Territory_ID;
+
+    sampleData.push({
+      "Type": "Doctor",
+      "Account_ID": sampleDocId,
+      "Territory_ID": sampleTerrId,
+      "Remarks (คำอธิบาย - ไม่ต้องใส่ก็ได้)": "ตัวอย่างแถวที่ 1: กำหนดหมอลงพื้นที่"
+    });
+
+    sampleData.push({
+      "Type": "Hospital",
+      "Account_ID": sampleHospId,
+      "Territory_ID": sampleTerrId,
+      "Remarks (คำอธิบาย - ไม่ต้องใส่ก็ได้)": "ตัวอย่างแถวที่ 2: กำหนด รพ. ลงพื้นที่"
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template_Import");
+
+    XLSX.writeFile(workbook, `Assignment_Import_Template.xlsx`);
+  }
+
   // ===================== 📥 1. ระบบ IMPORT ข้อมูล =====================
   function triggerImportFile() {
     document.getElementById('excelFileInput').click();
@@ -555,7 +594,7 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // ===================== 📤 2. ระบบ EXPORT ASSIGNMENT ตามเงื่อนไข (CONDITION EXPORT) =====================
+  // ===================== 📤 2. ระบบ EXPORT ASSIGNMENT ตามเงื่อนไข =====================
   function openConditionExportModal() {
     document.getElementById('condExportType').value = 'ALL';
     document.getElementById('condExportTerritory').value = 'ALL';
@@ -599,22 +638,21 @@
     if (conditionExportModalInstance) conditionExportModalInstance.hide();
   }
 
-  // ===================== 📤 3. ระบบ EXPORT MASTER ACCOUNTS (สำหรับ ADMIN ทำ MAPPING) =====================
+  // ===================== 📤 3. ระบบ EXPORT MASTER ACCOUNTS (ทำไฟล์ MAPPING) =====================
   function exportMasterAccountsForMapping() {
     let masterList = [];
 
-    // 1. รวมข้อมูลหมอ + รพ. สังกัด
+    // 1. รายชื่อหมอ + รพ. สังกัด
     globalAssignDoctors.forEach(d => {
       const hosp = globalAssignHospitals.find(h => String(h.Hospital_ID) === String(d.Hospital_ID));
       
-      // หา Territory ล่าสุดที่แมปอยู่
       const existingAssigns = globalAssignList.filter(a => a.type === 'Doctor' && String(a.accountId) === String(d.Doc_ID));
       const terrNames = existingAssigns.map(a => a.territoryName).join(', ');
       const terrIds = existingAssigns.map(a => a.territoryId).join(', ');
 
       masterList.push({
         "Type": "Doctor",
-        "Account_ID (Use for Import)": d.Doc_ID,
+        "Account_ID": d.Doc_ID,
         "Account_Name": `${d.Doc_Name} (${d.Doc_Name_TH || ''})`,
         "Hospital_ID": d.Hospital_ID || '-',
         "Hospital_Name": hosp ? (hosp.Known_As || hosp.Hospital) : '-',
@@ -623,7 +661,7 @@
       });
     });
 
-    // 2. รวมข้อมูล รพ.
+    // 2. รายชื่อ รพ.
     globalAssignHospitals.forEach(h => {
       const existingAssigns = globalAssignList.filter(a => a.type === 'Hospital' && String(a.accountId) === String(h.Hospital_ID));
       const terrNames = existingAssigns.map(a => a.territoryName).join(', ');
@@ -631,7 +669,7 @@
 
       masterList.push({
         "Type": "Hospital",
-        "Account_ID (Use for Import)": h.Hospital_ID,
+        "Account_ID": h.Hospital_ID,
         "Account_Name": h.Known_As || h.Hospital,
         "Hospital_ID": h.Hospital_ID,
         "Hospital_Name": h.Hospital,
