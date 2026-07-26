@@ -1,3 +1,7 @@
+<!-- นำเข้าไลบรารีปฏิทิน (Flatpickr) เพื่อแก้ปัญหาปฏิทินไม่ขึ้น -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <style>
   /* ปรับแต่ง UI ให้รองรับการแตะบน iPad ได้ดีขึ้น */
   .visit-filter-group .form-control, .visit-filter-group .form-select {
@@ -8,6 +12,9 @@
   .tom-select .ts-control { border-radius: 10px; min-height: 42px; padding: 10px 15px; }
   @media (max-width: 991px) { .filter-col { margin-bottom: 10px; } }
   
+  /* บังคับปฏิทินให้อยู่หน้าสุด */
+  .flatpickr-calendar { z-index: 9999 !important; }
+
   /* Effect สำหรับปุ่มไมค์ตอนกำลังฟังเสียง */
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
@@ -42,7 +49,6 @@
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
           <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="พิมพ์หรือพูดชื่อแพทย์..." onkeyup="filterVisits()">
-          <!-- 🌟 ปุ่มไมค์สำหรับค้นหาแพทย์ -->
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearchVisit" onclick="toggleSearchVisitDictation()" title="ค้นหาด้วยเสียง">
             <i class="fa-solid fa-microphone text-muted" id="micSearchVisitIcon"></i>
           </button>
@@ -108,7 +114,15 @@
         <div class="row mb-4">
           <div class="col-md-6 mb-3">
             <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor)</label>
-            <select class="form-select" id="visitDocId" required><option value="">-- กำลังโหลดข้อมูล... --</option></select>
+            <!-- 🌟 เพิ่มกล่อง d-flex และปุ่มไมค์ตรงนี้ -->
+            <div class="d-flex gap-2">
+              <div class="flex-grow-1">
+                <select class="form-select" id="visitDocId" required><option value="">-- กำลังโหลดข้อมูล... --</option></select>
+              </div>
+              <button type="button" class="btn btn-outline-danger shadow-sm px-3" id="btnMicDocSelect" onclick="toggleDocSelectDictation()" title="ค้นหาหมอด้วยเสียง" style="border-radius: 10px;">
+                <i class="fa-solid fa-microphone" id="micDocSelectIcon"></i>
+              </button>
+            </div>
           </div>
           <div class="col-md-6 mb-3">
             <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product)</label>
@@ -136,7 +150,6 @@
 
         <h5 class="fw-bold text-primary mb-3 border-bottom pb-2 mt-4"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
         
-        <!-- ดึงข้อมูลจาก Table: Index -->
         <div class="mb-4">
           <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose)</label>
           <select class="form-select" id="visitPurpose" style="min-height: 42px; border-radius: 10px;" required>
@@ -152,9 +165,6 @@
               <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMicDetails" onclick="toggleDictation('visitDetails', 'btnMicDetails')">
                 <i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์
               </button>
-              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm px-3" id="btnAiDetails" onclick="summarizeWithAI('visitDetails', 'btnAiDetails')">
-                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI ช่วยสรุป
-              </button>
             </div>
           </div>
           <textarea class="form-control" id="visitDetails" rows="4" style="border-radius: 10px;" placeholder="พิมพ์ หรือ กดปุ่มไมค์แล้วพูดรายละเอียดการพูดคุย..." required></textarea>
@@ -167,9 +177,6 @@
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold shadow-sm px-3" id="btnMicNextAction" onclick="toggleDictation('visitNextAction', 'btnMicNextAction')">
                 <i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm px-3" id="btnAiNextAction" onclick="summarizeWithAI('visitNextAction', 'btnAiNextAction')">
-                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI ช่วยสรุป
               </button>
             </div>
           </div>
@@ -212,7 +219,7 @@
   var visitDatePicker; 
   var isVisitDataLoaded = false; 
 
-  // ===================== 🌟 ระบบ Voice to Text สำหรับค้นหาชื่อแพทย์ =====================
+  // ===================== 🌟 ระบบ Voice to Text สำหรับค้นหาชื่อแพทย์ในหน้า List (ตาราง) =====================
   var searchVisitRecognition;
   var isSearchVisitRecording = false;
 
@@ -220,7 +227,7 @@
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     searchVisitRecognition = new SpeechRecognition();
     searchVisitRecognition.lang = 'th-TH'; 
-    searchVisitRecognition.continuous = false; // พูดประโยคเดียวจบ
+    searchVisitRecognition.continuous = false; 
     searchVisitRecognition.interimResults = false; 
 
     searchVisitRecognition.onresult = function(event) {
@@ -265,7 +272,71 @@
     }
   }
 
-  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์แบบแยกช่อง ฟอร์มบันทึก) =====================
+  // ===================== 🌟 ระบบ Voice to Text สำหรับค้นหาคุณหมอในฟอร์ม (TomSelect) =====================
+  var docSelectRecognition;
+  var isDocSelectRecording = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    docSelectRecognition = new SpeechRecognition();
+    docSelectRecognition.lang = 'th-TH'; 
+    docSelectRecognition.continuous = false; 
+    docSelectRecognition.interimResults = false; 
+
+    docSelectRecognition.onresult = function(event) {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+      }
+      if (finalTranscript) {
+         let ts = document.getElementById('visitDocId').tomselect;
+         if(ts) {
+            ts.focus();
+            ts.setTextboxValue(finalTranscript.trim());
+         }
+         stopDocSelectDictation(); 
+      }
+    };
+    docSelectRecognition.onerror = function(event) { stopDocSelectDictation(); };
+    docSelectRecognition.onend = function() { if(isDocSelectRecording) stopDocSelectDictation(); };
+  }
+
+  function toggleDocSelectDictation() {
+    if (!docSelectRecognition) return alert("ไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (isDocSelectRecording) { 
+      stopDocSelectDictation(); 
+    } else {
+      isDocSelectRecording = true;
+      docSelectRecognition.start();
+      const btn = document.getElementById('btnMicDocSelect');
+      const icon = document.getElementById('micDocSelectIcon');
+      btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
+      icon.classList.remove('fa-microphone'); icon.classList.add('fa-microphone-lines', 'fa-fade');
+      
+      let ts = document.getElementById('visitDocId').tomselect;
+      if(ts) {
+          ts.focus();
+          ts.setTextboxValue("กำลังฟัง...");
+      }
+    }
+  }
+
+  function stopDocSelectDictation() {
+    isDocSelectRecording = false;
+    if(docSelectRecognition) docSelectRecognition.stop();
+    const btn = document.getElementById('btnMicDocSelect');
+    const icon = document.getElementById('micDocSelectIcon');
+    if (btn && icon) {
+      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('btn-outline-danger');
+      icon.classList.remove('fa-microphone-lines', 'fa-fade'); icon.classList.add('fa-microphone');
+    }
+    let ts = document.getElementById('visitDocId').tomselect;
+    if(ts && ts.control_input.value === "กำลังฟัง...") {
+        ts.setTextboxValue("");
+    }
+  }
+
+  // ===================== 🌟 ระบบ Voice to Text (พูดเพื่อพิมพ์ช่องรายละเอียด) =====================
   var recognition;
   var isRecording = false;
   var currentDictationTarget = null;
@@ -289,92 +360,52 @@
       }
     };
 
-    recognition.onerror = function(event) {
-      console.error("Mic error:", event.error);
-      stopDictation();
-    };
-    
-    recognition.onend = function() {
-      if(isRecording) stopDictation();
-    };
+    recognition.onerror = function(event) { stopDictation(); };
+    recognition.onend = function() { if(isRecording) stopDictation(); };
   }
 
   function toggleDictation(targetId, btnId) {
-    if (!recognition) {
-      alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง"); return;
-    }
-
+    if (!recognition) { alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง"); return; }
     if (isRecording) {
       stopDictation();
-      // ถ้ากดปุ่มไมค์ใหม่ ในขณะที่ไมค์เก่าทำงานอยู่ ให้เปิดของใหม่ต่อเลย
-      if (currentMicBtn !== btnId) {
-         startDictation(targetId, btnId);
-      }
+      if (currentMicBtn !== btnId) { startDictation(targetId, btnId); }
     } else {
       startDictation(targetId, btnId);
     }
   }
 
   function startDictation(targetId, btnId) {
-    isRecording = true;
-    currentDictationTarget = targetId;
-    currentMicBtn = btnId;
+    isRecording = true; currentDictationTarget = targetId; currentMicBtn = btnId;
     recognition.start();
     const btn = document.getElementById(btnId);
-    btn.classList.remove('btn-outline-danger');
-    btn.classList.add('btn-danger', 'mic-active');
+    btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-danger', 'mic-active');
     btn.innerHTML = '<i class="fa-solid fa-microphone-lines fa-fade me-1"></i> กำลังฟัง...';
   }
 
   function stopDictation() {
-    isRecording = false;
-    if(recognition) recognition.stop();
+    isRecording = false; if(recognition) recognition.stop();
     if (currentMicBtn) {
       const btn = document.getElementById(currentMicBtn);
       if (btn) {
-        btn.classList.remove('btn-danger', 'mic-active');
-        btn.classList.add('btn-outline-danger');
+        btn.classList.remove('btn-danger', 'mic-active'); btn.classList.add('btn-outline-danger');
         btn.innerHTML = '<i class="fa-solid fa-microphone me-1"></i> พูดเพื่อพิมพ์';
       }
     }
-    currentDictationTarget = null;
-    currentMicBtn = null;
-  }
-
-  // ===================== 🌟 ระบบ AI Summarization (Mockup) =====================
-  function summarizeWithAI(targetId, btnId) {
-    const targetBox = document.getElementById(targetId);
-    const originalText = targetBox.value.trim();
-    
-    if (!originalText) {
-      alert("กรุณาพิมพ์หรือพูดข้อมูลก่อนครับ AI ถึงจะช่วยสรุปให้ได้"); return;
-    }
-
-    targetBox.value = "✨ AI กำลังวิเคราะห์และเรียบเรียงข้อความของคุณ... กรุณารอสักครู่";
-    targetBox.disabled = true;
-
-    // จำลองประมวลผล (Mockup)
-    setTimeout(() => {
-      targetBox.disabled = false;
-      targetBox.value = `[ปรับปรุงโดย AI]\n- ${originalText}\n\n(นี่คือตัวอย่างการจำลองการทำงานของ AI)`;
-      
-      const aiBtn = document.getElementById(btnId);
-      aiBtn.innerHTML = '<i class="fa-solid fa-check text-success"></i> สำเร็จ';
-      setTimeout(() => {
-        aiBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI ช่วยสรุป';
-      }, 3000);
-    }, 1500);
+    currentDictationTarget = null; currentMicBtn = null;
   }
 
   // ===================== ระบบโหลดข้อมูลหลัก =====================
   setTimeout(async function() { 
+    // 🌟 โหลดปฏิทิน (Flatpickr) ให้ทำงานชัวร์ๆ
+    if (typeof flatpickr !== 'undefined') {
+      visitDatePicker = flatpickr("#visitDate", { 
+        altInput: true, altFormat: "d M Y", dateFormat: "Y-m-d", defaultDate: "today" 
+      });
+    }
+
     await loadVisitDropdowns();
     await loadVisitLogs();
   }, 300);
-
-  if (!visitDatePicker && document.getElementById('visitDate')) {
-    visitDatePicker = flatpickr("#visitDate", { altInput: true, altFormat: "d M Y", dateFormat: "Y-m-d", defaultDate: "today" });
-  }
   
   function switchVisitView(viewId) {
     document.getElementById('visitListView').classList.add('d-none');
@@ -385,6 +416,7 @@
 
   function closeVisitForm(isCancel = true) {
     if(isRecording) stopDictation(); 
+    if(isDocSelectRecording) stopDocSelectDictation();
     if (document.getElementById('visitDocId').tomselect) document.getElementById('visitDocId').tomselect.clear();
     if (document.getElementById('visitProductId').tomselect) document.getElementById('visitProductId').tomselect.clear();
     document.getElementById('visitLogForm').reset();
@@ -392,10 +424,8 @@
   }
 
   async function loadVisitDropdowns() {
-    let crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e) {}
     try {
-      // โหลด IndexType และ Index มาเพื่อสร้างตัวเลือก Purpose
       const [terRes, docRes, prodRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Territory').select('Territory_ID, Territory'), 
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
@@ -412,9 +442,7 @@
       populateVisitSelect('visitDocId', mappedDocs, '-- ค้นหา/เลือกคุณหมอ --');
       populateVisitSelect('visitProductId', mappedProds, '-- ค้นหา/เลือกสินค้า --');
 
-      // สร้าง Dropdown Purpose จากตาราง Index
-      const types = typeRes.data || [];
-      const indexes = idxRes.data || [];
+      const types = typeRes.data || []; const indexes = idxRes.data || [];
       const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name === 'วัตถุประสงค์');
       let purposeHtml = '<option value="">-- เลือกวัตถุประสงค์ --</option>';
       if (purposeType) {
@@ -425,7 +453,6 @@
       }
       document.getElementById('visitPurpose').innerHTML = purposeHtml;
 
-      // จัดการ Profile User
       if (crmUser) {
         document.getElementById('visitRepId').value = crmUser.Rep_ID || "-";
         document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
@@ -479,9 +506,7 @@
   }
 
   function renderVisitTable(data) {
-    const tbody = document.getElementById('visitTableBody');
-    if(!tbody) return; tbody.innerHTML = '';
-    
+    const tbody = document.getElementById('visitTableBody'); if(!tbody) return; tbody.innerHTML = '';
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     const hasFullAccess = crmUser && ['Admin', 'Product Manager', 'Staff', 'BU Head'].includes(crmUser.Role);
     const filtered = hasFullAccess ? data : data.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
@@ -504,20 +529,15 @@
 
   function filterVisits() {
     if (!isVisitDataLoaded) return; 
-    const repTerm = document.getElementById('filterVisitRep').value;
-    const terTerm = document.getElementById('filterVisitTerritory').value;
+    const repTerm = document.getElementById('filterVisitRep').value; const terTerm = document.getElementById('filterVisitTerritory').value;
     const docTerm = document.getElementById('filterVisitDoctor').value.toLowerCase().trim();
-    const prodTerm = document.getElementById('filterVisitProduct').value;
-    const statusTerm = document.getElementById('filterVisitStatus').value;
+    const prodTerm = document.getElementById('filterVisitProduct').value; const statusTerm = document.getElementById('filterVisitStatus').value;
 
     const filtered = globalVisitsList.filter(v => {
-      const matchRep = (repTerm === "") || (v.repName === repTerm);
-      const matchTer = (terTerm === "") || (v.territoryName === terTerm);
       const docSearchStr = ((v.docName || "") + " " + (v.docId || "")).toLowerCase();
-      const matchDoc = (docTerm === "") || docSearchStr.includes(docTerm);
-      const matchProd = (prodTerm === "") || (v.prodName === prodTerm);
-      const matchStatus = (statusTerm === "") || (v.status === statusTerm);
-      return matchRep && matchTer && matchDoc && matchProd && matchStatus;
+      return (repTerm === "" || v.repName === repTerm) && (terTerm === "" || v.territoryName === terTerm) &&
+             (docTerm === "" || docSearchStr.includes(docTerm)) && (prodTerm === "" || v.prodName === prodTerm) &&
+             (statusTerm === "" || v.status === statusTerm);
     });
     renderVisitTable(filtered);
   }
@@ -527,17 +547,14 @@
     const hasFullAccess = crmUser && ['Admin', 'Product Manager', 'Staff', 'BU Head'].includes(crmUser.Role);
     const visibleData = hasFullAccess ? globalVisitsList : globalVisitsList.filter(v => v.repId === (crmUser ? crmUser.Rep_ID : ""));
     
-    const reps = [...new Set(visibleData.map(v => v.repName).filter(r => r))].sort();
-    const repSelect = document.getElementById('filterVisitRep');
-    if(repSelect) { let repHtml = '<option value="">- All Reps -</option>'; reps.forEach(r => repHtml += `<option value="${r}">${r}</option>`); repSelect.innerHTML = repHtml; }
-
-    const ters = [...new Set(visibleData.map(v => v.territoryName).filter(t => t))].sort();
-    const terSelect = document.getElementById('filterVisitTerritory');
-    if(terSelect) { let terHtml = '<option value="">- All Territories -</option>'; ters.forEach(t => terHtml += `<option value="${t}">${t}</option>`); terSelect.innerHTML = terHtml; }
-
-    const prods = [...new Set(visibleData.map(v => v.prodName).filter(p => p))].sort();
-    const prodSelect = document.getElementById('filterVisitProduct');
-    if(prodSelect) { let prodHtml = '<option value="">- All Products -</option>'; prods.forEach(p => prodHtml += `<option value="${p}">${p}</option>`); prodSelect.innerHTML = prodHtml; }
+    const fillSelect = (id, data, defaultTxt) => {
+      const sel = document.getElementById(id); if(!sel) return;
+      let html = `<option value="">${defaultTxt}</option>`; data.forEach(d => html += `<option value="${d}">${d}</option>`); sel.innerHTML = html;
+    };
+    
+    fillSelect('filterVisitRep', [...new Set(visibleData.map(v => v.repName).filter(r => r))].sort(), '- All Reps -');
+    fillSelect('filterVisitTerritory', [...new Set(visibleData.map(v => v.territoryName).filter(t => t))].sort(), '- All Territories -');
+    fillSelect('filterVisitProduct', [...new Set(visibleData.map(v => v.prodName).filter(p => p))].sort(), '- All Products -');
   }
 
   function openAddVisitModal() {
@@ -552,7 +569,6 @@
     if (visitDatePicker) visitDatePicker.setDate("today");
     
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    
     if(crmUser) {
       document.getElementById('visitRepId').value = crmUser.Rep_ID || "";
       document.getElementById('visitRepNameDisplay').innerText = `${crmUser.Rep_Name || "-"} (ID: ${crmUser.Rep_ID ? crmUser.Rep_ID.substring(0,4) : "-"})`;
@@ -567,11 +583,9 @@
     document.getElementById('visitDate').disabled = false;
     const dateInput = document.getElementById('visitDate').nextElementSibling; if(dateInput) dateInput.disabled = false;
     
-    // คืนค่าปุ่ม Mic และ AI
+    document.getElementById('btnMicDocSelect').disabled = false;
     document.getElementById('btnMicDetails').disabled = false;
-    document.getElementById('btnAiDetails').disabled = false;
     document.getElementById('btnMicNextAction').disabled = false;
-    document.getElementById('btnAiNextAction').disabled = false;
 
     const btnSubmit = document.getElementById('btnSubmitVisit'); btnSubmit.style.display = 'inline-block'; btnSubmit.disabled = false;
     switchVisitView('visitFormView');
@@ -613,11 +627,9 @@
     document.getElementById('visitDate').disabled = isReadOnly;
     const dateInput = document.getElementById('visitDate').nextElementSibling; if(dateInput) dateInput.disabled = isReadOnly;
 
-    // ซ่อนการใช้งานปุ่ม Mic และ AI หากถูกล็อกเป็น Submitted
+    document.getElementById('btnMicDocSelect').disabled = isReadOnly;
     document.getElementById('btnMicDetails').disabled = isReadOnly;
-    document.getElementById('btnAiDetails').disabled = isReadOnly;
     document.getElementById('btnMicNextAction').disabled = isReadOnly;
-    document.getElementById('btnAiNextAction').disabled = isReadOnly;
 
     const btnSubmit = document.getElementById('btnSubmitVisit');
     if (isReadOnly) { document.getElementById('visitViewTitle').innerHTML = '👁️ ดูบันทึกเยี่ยม (อ่านได้อย่างเดียว)'; btnSubmit.style.display = 'none'; } 
@@ -629,6 +641,7 @@
   async function handleSubmitVisit(e) {
     e.preventDefault();
     if(isRecording) stopDictation();
+    if(isDocSelectRecording) stopDocSelectDictation();
 
     const btn = document.getElementById('btnSubmitVisit'); btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
