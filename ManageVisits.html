@@ -92,22 +92,21 @@
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
           
           <div class="row g-3">
-            <!-- ค้นหาคุณหมอพร้อมไมค์ -->
+            <!-- คุณหมอที่เข้าพบ (พร้อมไมค์) -->
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor) <span class="text-danger">*</span></label>
               <div class="input-group shadow-sm" style="border-radius: 10px;">
                 <select class="form-select bg-white" id="visitDocId" required>
                   <option value="">-- ค้นหา/เลือกคุณหมอ --</option>
                 </select>
-                <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="กดพูดเพื่อค้นหาชื่อหมอ (ไทย/EN)">
+                <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="กดพูดเพื่อค้นหาชื่อหมอ">
                   <i class="fa-solid fa-microphone" id="micDocIcon"></i>
                 </button>
               </div>
               <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนครับ</div>
-              <small class="text-muted" style="font-size:0.75rem;">💡 กดไอคอนไมค์ แล้วพูดชื่อหมอภาษาไทย หรือ ภาษาอังกฤษได้เลย</small>
             </div>
 
-            <!-- เลือกสินค้า (ตามทีม Sales) -->
+            <!-- เลือกสินค้า (ดึงตามความสัมพันธ์ของทีม Products_Team) -->
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product) <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" required>
@@ -134,9 +133,10 @@
           </div>
         </div>
 
-        <!-- รายละเอียดกิจกรรม (เรียงลำดับใหม่ตามภาพชี้เป้า) -->
+        <!-- รายละเอียดกิจกรรม (จัดระเบียบให้ดูสมดุลและสวยงาม) -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
+          
           <div class="row g-3">
             <!-- 1. วัตถุประสงค์ (Purpose) -->
             <div class="col-md-12 mb-2">
@@ -147,22 +147,31 @@
               <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์ครับ</div>
             </div>
 
-            <!-- 2. รายละเอียดเพิ่มเติม (Details) -->
+            <!-- 2. รายละเอียดเพิ่มเติม (Details) + ปุ่มพูดเพื่อพิมพ์ -->
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">รายละเอียดเพิ่มเติม (Details)</label>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold text-dark mb-0">รายละเอียดเพิ่มเติม (Details)</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')" title="พูดเพื่อพิมพ์รายละเอียด">
+                  <i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์
+                </button>
+              </div>
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
 
-            <!-- 3. ขั้นตอนถัดไป (Next Action) ย้ายมาอยู่ใต้ Details -->
-            <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">ขั้นตอนถัดไป (Next Action)</label>
+            <!-- 3. Next Action และ Status วางคู่กันให้ดูลงตัวเต็มบรรทัดพอดี -->
+            <div class="col-md-8 mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold text-dark mb-0">ขั้นตอนถัดไป (Next Action)</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="พูดเพื่อพิมพ์ Next Action">
+                  <i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์
+                </button>
+              </div>
               <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
             </div>
 
-            <!-- 4. สถานะการบันทึก (Status) ย้ายมาอยู่ล่างสุด -->
-            <div class="col-md-12 mb-2 pt-2 border-top">
-              <label class="form-label fw-bold text-dark">สถานะการบันทึก (Status)</label>
-              <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" style="max-width: 300px;">
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold text-dark mb-1">สถานะการบันทึก (Status)</label>
+              <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
                 <option value="Submitted" class="text-success">Submitted (ส่งบันทึกแล้ว)</option>
                 <option value="Pending" class="text-warning">Pending (บันทึกร่าง)</option>
               </select>
@@ -184,6 +193,79 @@
   var globalVisits = [];
   var globalDoctorsList = [];
   var tomSelectDocInstance = null;
+
+  // ===================== 🎙️ ระบบ Voice to Text (พูดพิมพ์ลงช่อง Details / Next Action) =====================
+  var activeDictationRecognition = null;
+  var currentDictationTargetId = null;
+  var currentDictationBtnId = null;
+
+  function toggleTextDictation(targetInputId, btnId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    }
+
+    if (activeDictationRecognition && currentDictationTargetId === targetInputId) {
+      stopTextDictation();
+      return;
+    }
+
+    if (activeDictationRecognition) {
+      stopTextDictation();
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    activeDictationRecognition = new SpeechRecognition();
+    activeDictationRecognition.lang = 'th-TH';
+    activeDictationRecognition.continuous = false;
+    activeDictationRecognition.interimResults = false;
+
+    currentDictationTargetId = targetInputId;
+    currentDictationBtnId = btnId;
+
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.classList.add('btn-danger', 'text-white', 'mic-active');
+      btn.classList.remove('btn-outline-danger');
+      btn.innerHTML = `<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>กำลังฟัง...`;
+    }
+
+    activeDictationRecognition.onresult = function(event) {
+      let spokenText = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) spokenText += event.results[i][0].transcript;
+      }
+      spokenText = spokenText.trim();
+      
+      const inputEl = document.getElementById(targetInputId);
+      if (inputEl && spokenText) {
+        const currentVal = inputEl.value.trim();
+        inputEl.value = currentVal ? `${currentVal} ${spokenText}` : spokenText;
+      }
+      stopTextDictation();
+    };
+
+    activeDictationRecognition.onerror = function() { stopTextDictation(); };
+    activeDictationRecognition.onend = function() { stopTextDictation(); };
+
+    activeDictationRecognition.start();
+  }
+
+  function stopTextDictation() {
+    if (activeDictationRecognition) {
+      activeDictationRecognition.stop();
+      activeDictationRecognition = null;
+    }
+    if (currentDictationBtnId) {
+      const btn = document.getElementById(currentDictationBtnId);
+      if (btn) {
+        btn.classList.remove('btn-danger', 'text-white', 'mic-active');
+        btn.classList.add('btn-outline-danger');
+        btn.innerHTML = `<i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์`;
+      }
+    }
+    currentDictationTargetId = null;
+    currentDictationBtnId = null;
+  }
 
   // ===================== 🎙️ ระบบค้นหาหมอด้วยเสียง =====================
   var docSpeechRecognition;
@@ -278,7 +360,7 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns (พร้อมกรอง Product ตาม Team ของ Sales)
+  // 🌟 โหลด Dropdowns (ดึงผ่านตาราง Products และ Products_Team ที่ถูกต้อง)
   async function loadDropdowns() {
     try {
       let crmUser = null; 
@@ -287,10 +369,10 @@
       const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
       const userTeamId = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
 
-      const [docRes, prodRes, teamProdRes, typeRes, idxRes] = await Promise.all([
+      const [docRes, prodRes, productsTeamRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Products').select('Product_ID, Product_Name, Product').order('Product_Name', { ascending: true }),
-        supabaseClient.from('Team_Products').select('*'), // ตารางผูกความสัมพันธ์ Team-Product
+        supabaseClient.from('Products').select('Product_ID, Product').order('Product', { ascending: true }),
+        supabaseClient.from('Products_Team').select('*'), // 👈 ดึงจากชื่อตาราง Products_Team
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
@@ -317,34 +399,32 @@
         });
       }
 
-      // 2. สินค้า (Product) - กรองตามทีมขาย
+      // 2. สินค้า (Products) - กรองผ่านตาราง Products_Team
       const prodSelect = document.getElementById('visitProductId');
       let allProducts = prodRes.data || [];
-      let teamProductsMap = teamProdRes.data || [];
+      let productsTeamMap = productsTeamRes.data || [];
       let filteredProducts = [];
 
-      // ถ้าเป็น Sales ให้กรองตาม Team_ID
       if (userTeamId && userRole !== 'Admin' && userRole !== 'BU Head') {
-        const allowedProdIds = teamProductsMap
-          .filter(tp => String(tp.Team_ID) === String(userTeamId))
-          .map(tp => tp.Product_ID);
+        const allowedProdIds = productsTeamMap
+          .filter(pt => String(pt.Team_ID) === String(userTeamId) && pt.Status !== 'Inactive')
+          .map(pt => pt.Product_ID);
 
         filteredProducts = allProducts.filter(p => allowedProdIds.includes(p.Product_ID));
       }
 
-      // ถ้าหาไม่เจอ หรือเป็น Admin / BU Head ให้โชว์ทั้งหมด
+      // ถ้าไม่มีข้อมูลทีม หรือเป็น Admin/BU Head ให้แสดงสินค้าทั้งหมด
       if (filteredProducts.length === 0) {
         filteredProducts = allProducts;
       }
 
       let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
       filteredProducts.forEach(p => {
-        const pName = p.Product_Name || p.Product || p.Product_ID;
-        prodHtml += `<option value="${p.Product_ID}">${pName}</option>`;
+        prodHtml += `<option value="${p.Product_ID}">${p.Product || p.Product_ID}</option>`;
       });
       prodSelect.innerHTML = prodHtml;
 
-      // 3. วัตถุประสงค์ (Purpose) จากตาราง Index (ดูจากรูปที่ 2 ของคุณ)
+      // 3. วัตถุประสงค์ (Purpose) จากตาราง Index
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
       const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
