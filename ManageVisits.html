@@ -107,11 +107,11 @@
               <small class="text-muted" style="font-size:0.75rem;">💡 กดไอคอนไมค์ แล้วพูดชื่อหมอภาษาไทย หรือ ภาษาอังกฤษได้เลย</small>
             </div>
 
-            <!-- เลือกสินค้า (ดึงจากตาราง Products) -->
+            <!-- เลือกสินค้า (ตามทีม Sales) -->
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product) <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" required>
-                <option value="">-- ค้นหา/เลือกสินค้า --</option>
+                <option value="">-- เลือกสินค้า --</option>
               </select>
               <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าที่นำเสนอก่อนครับ</div>
             </div>
@@ -134,11 +134,12 @@
           </div>
         </div>
 
-        <!-- รายละเอียดกิจกรรม -->
+        <!-- รายละเอียดกิจกรรม (เรียงลำดับใหม่ตามภาพชี้เป้า) -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
           <div class="row g-3">
-            <div class="col-md-4 mb-2">
+            <!-- 1. วัตถุประสงค์ (Purpose) -->
+            <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose) <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
                 <option value="">-- เลือกวัตถุประสงค์ --</option>
@@ -146,23 +147,25 @@
               <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์ครับ</div>
             </div>
 
-            <!-- ช่อง Next Action (ขั้นตอนถัดไป) -->
-            <div class="col-md-4 mb-2">
+            <!-- 2. รายละเอียดเพิ่มเติม (Details) -->
+            <div class="col-md-12 mb-2">
+              <label class="form-label fw-bold text-dark">รายละเอียดเพิ่มเติม (Details)</label>
+              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
+            </div>
+
+            <!-- 3. ขั้นตอนถัดไป (Next Action) ย้ายมาอยู่ใต้ Details -->
+            <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">ขั้นตอนถัดไป (Next Action)</label>
               <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
             </div>
 
-            <div class="col-md-4 mb-2">
+            <!-- 4. สถานะการบันทึก (Status) ย้ายมาอยู่ล่างสุด -->
+            <div class="col-md-12 mb-2 pt-2 border-top">
               <label class="form-label fw-bold text-dark">สถานะการบันทึก (Status)</label>
-              <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
+              <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" style="max-width: 300px;">
                 <option value="Submitted" class="text-success">Submitted (ส่งบันทึกแล้ว)</option>
                 <option value="Pending" class="text-warning">Pending (บันทึกร่าง)</option>
               </select>
-            </div>
-
-            <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">รายละเอียดเพิ่มเติม (Details)</label>
-              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
           </div>
         </div>
@@ -275,12 +278,19 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns จากตาราง Doctors, Products และ Index (Purpose)
+  // 🌟 โหลด Dropdowns (พร้อมกรอง Product ตาม Team ของ Sales)
   async function loadDropdowns() {
     try {
-      const [docRes, prodRes, typeRes, idxRes] = await Promise.all([
+      let crmUser = null; 
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      
+      const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
+      const userTeamId = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
+
+      const [docRes, prodRes, teamProdRes, typeRes, idxRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Products').select('Product_ID, Product_Name').order('Product_Name', { ascending: true }),
+        supabaseClient.from('Products').select('Product_ID, Product_Name, Product').order('Product_Name', { ascending: true }),
+        supabaseClient.from('Team_Products').select('*'), // ตารางผูกความสัมพันธ์ Team-Product
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true })
       ]);
@@ -307,14 +317,34 @@
         });
       }
 
-      // 2. สินค้า (ดึงจากตาราง Products)
+      // 2. สินค้า (Product) - กรองตามทีมขาย
       const prodSelect = document.getElementById('visitProductId');
+      let allProducts = prodRes.data || [];
+      let teamProductsMap = teamProdRes.data || [];
+      let filteredProducts = [];
+
+      // ถ้าเป็น Sales ให้กรองตาม Team_ID
+      if (userTeamId && userRole !== 'Admin' && userRole !== 'BU Head') {
+        const allowedProdIds = teamProductsMap
+          .filter(tp => String(tp.Team_ID) === String(userTeamId))
+          .map(tp => tp.Product_ID);
+
+        filteredProducts = allProducts.filter(p => allowedProdIds.includes(p.Product_ID));
+      }
+
+      // ถ้าหาไม่เจอ หรือเป็น Admin / BU Head ให้โชว์ทั้งหมด
+      if (filteredProducts.length === 0) {
+        filteredProducts = allProducts;
+      }
+
       let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
-      const products = prodRes.data || [];
-      products.forEach(p => prodHtml += `<option value="${p.Product_ID}">${p.Product_Name || p.Product_ID}</option>`);
+      filteredProducts.forEach(p => {
+        const pName = p.Product_Name || p.Product || p.Product_ID;
+        prodHtml += `<option value="${p.Product_ID}">${pName}</option>`;
+      });
       prodSelect.innerHTML = prodHtml;
 
-      // 3. วัตถุประสงค์ (Purpose จากตาราง Index)
+      // 3. วัตถุประสงค์ (Purpose) จากตาราง Index (ดูจากรูปที่ 2 ของคุณ)
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
       const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
@@ -324,10 +354,9 @@
         const purposeItems = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
         purposeItems.forEach(i => purposeHtml += `<option value="${i.Value}">${i.Value}</option>`);
       } else {
-        // Fallback ค่าตั้งต้นถ้าหาชนิด Index ไม่เจอ
         purposeHtml += `
-          <option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>
           <option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>
+          <option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>
           <option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>
           <option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>
           <option value="อื่นๆ">อื่นๆ</option>`;
@@ -339,7 +368,7 @@
     }
   }
 
-  // 🌟 ดึงข้อมูลจากตาราง Visit_Logs ชัดเจน
+  // 🌟 ดึงข้อมูลจากตาราง Visit_Logs
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
@@ -438,9 +467,9 @@
     document.getElementById('visitStartTime').value = v.Start_Time || '';
     document.getElementById('visitEndTime').value = v.End_Time || '';
     document.getElementById('visitPurpose').value = v.Purpose || '';
+    document.getElementById('visitDetails').value = v.Details || '';
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Submitted';
-    document.getElementById('visitDetails').value = v.Details || '';
 
     switchVisitView('visitFormView');
   }
