@@ -27,14 +27,55 @@
       </button>
     </div>
 
-    <!-- ส่วนค้นหา (Filters) -->
-    <div class="row mb-4 g-3">
-      <div class="col-sm-12 col-md-6 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาแพทย์ หรือ สินค้า</label>
+    <!-- 🌟 ส่วนค้นหา (Filters ครบทั้ง 6 ตัว ตามดีไซน์เดิม) -->
+    <div class="row mb-4 g-2">
+      <!-- 1. Sales Rep -->
+      <div class="col-md-2">
+        <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
+        <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()">
+          <option value="">- All Reps -</option>
+        </select>
+      </div>
+      <!-- 2. Territory -->
+      <div class="col-md-2">
+        <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
+        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()">
+          <option value="">- All Territories -</option>
+        </select>
+      </div>
+      <!-- 3. ค้นหาชื่อหมอ / โรงพยาบาล (พร้อมปุ่มไมค์) -->
+      <div class="col-md-3">
+        <label class="form-label fw-bold text-secondary small mb-1">Doctor / Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 ps-0" id="filterVisitSearch" placeholder="พิมพ์ชื่อแพทย์ หรือ สินค้า..." onkeyup="filterVisits()">
+          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="ค้นหาชื่อแพทย์ หรือ รพ...." onkeyup="filterVisits()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearchList" onclick="toggleSearchListDictation()" title="พูดเพื่อค้นหาชื่อหมอ/รพ.">
+            <i class="fa-solid fa-microphone text-muted" id="micSearchListIcon"></i>
+          </button>
         </div>
+      </div>
+      <!-- 4. Hospital Dropdown -->
+      <div class="col-md-2">
+        <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
+        <select class="form-select shadow-sm" id="filterVisitHospital" onchange="filterVisits()">
+          <option value="">- All Hospitals -</option>
+        </select>
+      </div>
+      <!-- 5. Product -->
+      <div class="col-md-2">
+        <label class="form-label fw-bold text-secondary small mb-1">Product</label>
+        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
+          <option value="">- All Products -</option>
+        </select>
+      </div>
+      <!-- 6. Status -->
+      <div class="col-md-1">
+        <label class="form-label fw-bold text-secondary small mb-1">Status</label>
+        <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
+          <option value="">- All -</option>
+          <option value="Pending">Pending</option>
+          <option value="Submitted">Submitted</option>
+        </select>
       </div>
     </div>
 
@@ -46,6 +87,7 @@
             <tr>
               <th class="py-3">วันที่ (Date)</th>
               <th class="py-3">แพทย์ (Doctor)</th>
+              <th class="py-3">โรงพยาบาล (Hospital)</th>
               <th class="py-3">สินค้า (Product)</th>
               <th class="py-3">วัตถุประสงค์ (Purpose)</th>
               <th class="py-3">สถานะ (Status)</th>
@@ -53,7 +95,7 @@
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="7" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -194,9 +236,71 @@
   var globalDoctorsList = [];
   var globalProductsList = [];
   var globalTerritoryList = [];
+  var globalHospitalsList = [];
+  var globalUsersList = [];
   var tomSelectDocInstance = null;
 
-  // ===================== 🎙️ ระบบ Voice to Text =====================
+  // ===================== 🎙️ ระบบพูดเพื่อค้นหาตาราง List View =====================
+  var searchListRecognition;
+  var isSearchListRecording = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    searchListRecognition = new SpeechRecognition();
+    searchListRecognition.lang = 'th-TH';
+    searchListRecognition.continuous = false;
+    searchListRecognition.interimResults = false;
+
+    searchListRecognition.onresult = function(event) {
+      let spokenText = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) spokenText += event.results[i][0].transcript;
+      }
+      spokenText = spokenText.trim();
+      if (spokenText) {
+        document.getElementById('filterVisitDoctor').value = spokenText;
+        filterVisits();
+      }
+      stopSearchListDictation();
+    };
+
+    searchListRecognition.onerror = function() { stopSearchListDictation(); };
+    searchListRecognition.onend = function() { if (isSearchListRecording) stopSearchListDictation(); };
+  }
+
+  function toggleSearchListDictation() {
+    if (!searchListRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    const btn = document.getElementById('btnMicSearchList');
+    const icon = document.getElementById('micSearchListIcon');
+
+    if (isSearchListRecording) {
+      stopSearchListDictation();
+    } else {
+      isSearchListRecording = true;
+      searchListRecognition.start();
+      if (btn && icon) {
+        btn.classList.add('btn-danger', 'mic-active', 'text-white');
+        btn.classList.remove('bg-white');
+        icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
+        icon.classList.remove('text-muted');
+      }
+    }
+  }
+
+  function stopSearchListDictation() {
+    isSearchListRecording = false;
+    if (searchListRecognition) searchListRecognition.stop();
+    const btn = document.getElementById('btnMicSearchList');
+    const icon = document.getElementById('micSearchListIcon');
+    if (btn && icon) {
+      btn.classList.remove('btn-danger', 'mic-active', 'text-white');
+      btn.classList.add('bg-white');
+      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
+      icon.classList.add('text-muted');
+    }
+  }
+
+  // ===================== 🎙️ ระบบ Voice to Text (Details & Next Action) =====================
   var activeDictationRecognition = null;
   var currentDictationTargetId = null;
   var currentDictationBtnId = null;
@@ -269,7 +373,7 @@
     currentDictationBtnId = null;
   }
 
-  // ===================== 🎙️ ค้นหาหมอด้วยเสียง =====================
+  // ===================== 🎙️ ค้นหาหมอด้วยเสียง (ในฟอร์ม) =====================
   var docSpeechRecognition;
   var isDocRecording = false;
 
@@ -344,7 +448,6 @@
     await loadVisits();
   }, 300);
 
-  // 🌟 แปลงรหัส Territory_ID เป็นชื่อพื้นที่ เช่น L1
   function initUserInfo() {
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
@@ -373,7 +476,7 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns
+  // 🌟 โหลด Dropdowns และเตรียมรายการตัวกรองทั้งหมด
   async function loadDropdowns() {
     try {
       let crmUser = null; 
@@ -383,21 +486,25 @@
       const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      const [docRes, prodRes, territoryRes, teamRes, productsTeamRes, typeRes, idxRes] = await Promise.all([
-        supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
+      const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
+        supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
         supabaseClient.from('Products').select('Product_ID, Product').order('Product', { ascending: true }),
         supabaseClient.from('Territory').select('*'),
+        supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').order('Hospital', { ascending: true }),
         supabaseClient.from('Team').select('*'),            
         supabaseClient.from('Products_Team').select('*'),   
         supabaseClient.from('IndexType').select('*'),
-        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
+        supabaseClient.from('Users').select('*')
       ]);
 
       globalDoctorsList = docRes.data || [];
       globalProductsList = prodRes.data || [];
       globalTerritoryList = territoryRes.data || [];
+      globalHospitalsList = hospRes.data || [];
+      globalUsersList = usersRes.data || [];
 
-      // 1. คุณหมอ
+      // 1. คุณหมอ Dropdown ในฟอร์ม
       const docSelect = document.getElementById('visitDocId');
       docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
       
@@ -418,7 +525,7 @@
         });
       }
 
-      // 2. กรองสินค้า (Products) ตามสิทธิ์
+      // 2. กรองสินค้า (Products) ตามสิทธิ์ในฟอร์ม
       const prodSelect = document.getElementById('visitProductId');
       let teamList = teamRes.data || [];
       let productsTeamList = productsTeamRes.data || [];
@@ -480,15 +587,57 @@
       }
       document.getElementById('visitPurpose').innerHTML = purposeHtml;
 
+      // 🌟 เติมตัวเลือกใน Filters ทั้งหมด
+      setupFiltersDropdowns();
+
     } catch (err) {
       console.error("Error loading dropdowns:", err.message);
+    }
+  }
+
+  // 🌟 เติมรายการ Dropdowns บนแถบ Filter
+  function setupFiltersDropdowns() {
+    // 1. Sales Rep Filter
+    const repSelect = document.getElementById('filterVisitRep');
+    if (repSelect) {
+      let html = '<option value="">- All Reps -</option>';
+      const reps = globalUsersList.filter(u => u.Role === 'Sales' || u.Role === 'Rep');
+      reps.forEach(r => html += `<option value="${r.Rep_ID || r.User_ID}">${r.Name || r.Rep_Name || r.Email}</option>`);
+      repSelect.innerHTML = html;
+    }
+
+    // 2. Territory Filter
+    const terSelect = document.getElementById('filterVisitTerritory');
+    if (terSelect) {
+      let html = '<option value="">- All Territories -</option>';
+      globalTerritoryList.forEach(t => html += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
+      terSelect.innerHTML = html;
+    }
+
+    // 3. Hospital Filter
+    const hospSelect = document.getElementById('filterVisitHospital');
+    if (hospSelect) {
+      let html = '<option value="">- All Hospitals -</option>';
+      globalHospitalsList.forEach(h => {
+        const nameShow = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
+        html += `<option value="${h.Hospital_ID}">${nameShow}</option>`;
+      });
+      hospSelect.innerHTML = html;
+    }
+
+    // 4. Product Filter
+    const prodFilterSelect = document.getElementById('filterVisitProduct');
+    if (prodFilterSelect) {
+      let html = '<option value="">- All Products -</option>';
+      globalProductsList.forEach(p => html += `<option value="${p.Product_ID}">${p.Product}</option>`);
+      prodFilterSelect.innerHTML = html;
     }
   }
 
   // 🌟 ดึงข้อมูลตาราง Visit_Logs
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
     try {
       const { data, error } = await supabaseClient
@@ -500,33 +649,59 @@
       globalVisits = data || [];
       filterVisits();
     } catch(err) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`;
     }
   }
 
+  // 🌟 กรองข้อมูลตารางตาม Filters ทั้ง 6 ตัว
   function filterVisits() {
-    const searchTerm = document.getElementById('filterVisitSearch').value.toLowerCase().trim();
-    const filtered = globalVisits.filter(v => {
-      // แปลง ID เป็นชื่อเพื่อรองรับการค้นหา
-      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
-      const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : v.Doc_ID;
-      
-      const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
-      const prodName = prodObj ? prodObj.Product : v.Product_ID;
+    const repTerm = document.getElementById('filterVisitRep') ? document.getElementById('filterVisitRep').value : '';
+    const terTerm = document.getElementById('filterVisitTerritory') ? document.getElementById('filterVisitTerritory').value : '';
+    const searchTerm = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value.toLowerCase().trim() : '';
+    const hospTerm = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value : '';
+    const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
+    const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
-      const strStr = `${docName} ${prodName} ${v.Purpose || ''} ${v.Whoupdated || ''}`.toLowerCase();
-      return (searchTerm === "" || strStr.includes(searchTerm));
+    const filtered = globalVisits.filter(v => {
+      // Rep Match
+      const matchRep = (repTerm === "") || (String(v.Rep_ID) === String(repTerm));
+      // Territory Match
+      const matchTer = (terTerm === "") || (String(v.Territory_ID) === String(terTerm));
+
+      // Doctor & Hospital Data Mapping
+      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
+      const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : String(v.Doc_ID || '');
+      
+      let hospId = docObj ? docObj.Hospital_ID : '';
+      const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(hospId));
+      const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}` : '';
+
+      // Hospital Filter Match
+      const matchHosp = (hospTerm === "") || (String(hospId) === String(hospTerm));
+
+      // Search Term (ค้นชื่อหมอ หรือ ชื่อ รพ.)
+      const docHospSearchStr = `${docName} ${hospName}`.toLowerCase();
+      const matchSearch = (searchTerm === "") || docHospSearchStr.includes(searchTerm);
+
+      // Product Match
+      const matchProd = (prodTerm === "") || (String(v.Product_ID) === String(prodTerm));
+
+      // Status Match
+      const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
+
+      return matchRep && matchTer && matchHosp && matchSearch && matchProd && matchStatus;
     });
+
     renderVisitTable(filtered);
   }
 
-  // 🌟 แมปแปลง UUID ในตารางเป็น ชื่อแพทย์ และ ชื่อสินค้า จริง
+  // 🌟 สร้างตารางข้อมูล พร้อมโชว์ชื่อหมอ และ ชื่อ รพ.หลัก
   function renderVisitTable(data) {
     const tbody = document.getElementById('visitTableBody');
     tbody.innerHTML = '';
 
     if (!data || data.length === 0) {
-      return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
+      return tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
     }
 
     data.forEach(v => {
@@ -534,16 +709,24 @@
       const statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-      // 🌟 แปลง Doc_ID เป็น ชื่อหมอ
+      // แปลง Doc_ID เป็น ชื่อหมอ
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let docNameShow = v.Doc_ID || '-';
+      let hospNameShow = '-';
+
       if (docObj) {
         const titleShow = docObj.Title ? docObj.Title + ' ' : '';
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${titleShow}${docObj.Doc_Name}${nameThShow}`;
+
+        // ดึงชื่อ รพ.หลัก จาก Hospital_ID ของหมอ
+        const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
+        if (hospObj) {
+          hospNameShow = hospObj.Known_As || hospObj.Hospital;
+        }
       }
 
-      // 🌟 แปลง Product_ID เป็น ชื่อสินค้า
+      // แปลง Product_ID เป็น ชื่อสินค้า
       const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
       const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
@@ -551,6 +734,7 @@
         <tr>
           <td class="text-center fw-bold text-primary">${dateShow}</td>
           <td class="fw-bold text-dark">${docNameShow}</td>
+          <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
           <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
           <td><small>${v.Purpose || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
