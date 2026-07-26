@@ -1,3 +1,6 @@
+<!-- CDN สำหรับจัดการไฟล์ Excel (SheetJS) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
   .assign-card { border-radius: 15px; }
   .form-control, .form-select { min-height: 42px; border-radius: 10px; }
@@ -17,14 +20,31 @@
   
   <!-- ================= 1. หน้ารายชื่อ Assignment (List View) ================= -->
   <div id="assignListView">
-    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
         <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-link me-2"></i>จัดการ Assignment (Account vs Territory)</h3>
         <p class="text-muted mb-0">จับคู่กำหนดพื้นที่ความรับผิดชอบ (Territory) ให้กับแพทย์และโรงพยาบาล</p>
       </div>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddAssignView()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่ม Assignment ใหม่
-      </button>
+
+      <!-- กลุ่มปุ่มจัดการ (Import, Export, ลบเงื่อนไข, สร้างใหม่) -->
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-success fw-bold shadow-sm rounded-pill px-3" onclick="triggerImportFile()">
+          <i class="fa-solid fa-file-import me-1"></i>Import Excel
+        </button>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="d-none" onchange="handleImportExcel(event)">
+
+        <button type="button" class="btn btn-outline-primary fw-bold shadow-sm rounded-pill px-3" onclick="exportAssignmentsToExcel()">
+          <i class="fa-solid fa-file-export me-1"></i>Export Excel
+        </button>
+
+        <button type="button" class="btn btn-outline-danger fw-bold shadow-sm rounded-pill px-3" onclick="openConditionDeleteModal()">
+          <i class="fa-solid fa-filter-circle-xmark me-1"></i>ลบตามเงื่อนไข
+        </button>
+
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4" onclick="openAddAssignView()">
+          <i class="fa-solid fa-plus me-1"></i>เพิ่ม Assignment ใหม่
+        </button>
+      </div>
     </div>
 
     <!-- แถบ Filters ตัวกรอง -->
@@ -131,6 +151,47 @@
     </div>
   </div>
 
+  <!-- ================= Modal ลบแบบเลือกเงื่อนไข (Condition Delete Modal) ================= -->
+  <div class="modal fade" id="condDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header bg-danger text-white border-0 py-3">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>ลบ Assignment ตามเงื่อนไข</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="text-muted small mb-3">ระบุเงื่อนไขการลบข้อมูล Assignment การจับคู่นี้จะถูกลบออกจากระบบทันที</p>
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">1. เงื่อนไขประเภท (Type)</label>
+            <select class="form-select shadow-sm" id="condDeleteType">
+              <option value="ALL">- ทุกประเภท -</option>
+              <option value="Doctor">เฉพาะ Doctor (แพทย์)</option>
+              <option value="Hospital">เฉพาะ Hospital (โรงพยาบาล)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-dark">2. เงื่อนไขเขตพื้นที่ (Territory)</label>
+            <select class="form-select shadow-sm" id="condDeleteTerritory">
+              <option value="ALL">- ทุกพื้นที่ -</option>
+            </select>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <label class="form-label text-danger fw-bold small mb-1">ยืนยันการลบ:</label>
+            <p class="small text-muted mb-2">เพื่อความปลอดภัย กรุณาพิมพ์คำว่า <span class="fw-bold text-danger">DELETE</span> ในช่องด้านล่าง</p>
+            <input type="text" class="form-control" id="condDeleteConfirmInput" placeholder="พิมพ์ DELETE ที่นี่">
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light fw-bold rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-danger fw-bold rounded-pill px-4" onclick="executeConditionDelete()">🚨 ยืนยันสั่งลบข้อมูล</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -141,8 +202,9 @@
   var isAssignDataLoaded = false;
   var isAssignEditMode = false;
   var tomSelectAccountInstance = null;
+  var conditionDeleteModalInstance = null;
 
-  // ===================== 🎙️ ระบบค้นหาด้วยเสียงในหน้า List View =====================
+  // ===================== 🎙️ ระบบค้นหาด้วยเสียง =====================
   var assignSearchRecognition = null;
   function toggleAssignVoiceSearch() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -205,7 +267,6 @@
     tbody.innerHTML = '<tr><td colspan="5" class="py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
 
     try {
-      // 1. ดึง Master Data ทั้งหมด
       const [docRes, hospRes, terrRes, assignDocRes, assignHospRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active'),
@@ -218,7 +279,6 @@
       globalAssignHospitals = hospRes.data || [];
       globalAssignTerritories = terrRes.data || [];
 
-      // 2. รวมข้อมูล Assignment Doctor & Hospital เข้าด้วยกัน
       let mergedAssignments = [];
 
       (assignDocRes.data || []).forEach(ad => {
@@ -250,7 +310,6 @@
       globalAssignList = mergedAssignments;
       isAssignDataLoaded = true;
 
-      // เติม Options Dropdown ใน Filters และ Form
       setupTerritoryDropdowns();
       filterAssignments();
 
@@ -263,12 +322,17 @@
   function setupTerritoryDropdowns() {
     let terOpts = '<option value="">- ทุกพื้นที่ -</option>';
     let formTerOpts = '<option value="">- เลือกเขตพื้นที่ -</option>';
+    let condTerOpts = '<option value="ALL">- ทุกพื้นที่ -</option>';
+
     globalAssignTerritories.forEach(t => {
       terOpts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
       formTerOpts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
+      condTerOpts += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
     });
+
     document.getElementById('filterAssignTer').innerHTML = terOpts;
     document.getElementById('assignTerritory').innerHTML = formTerOpts;
+    document.getElementById('condDeleteTerritory').innerHTML = condTerOpts;
   }
 
   function onAssignTypeChange(selectedAccId = '') {
@@ -347,6 +411,215 @@
     });
   }
 
+  // ===================== 📥 1. ระบบ IMPORT ข้อมูลพร้อมระบบเช็ค ERROR และเช็คซ้ำ =====================
+  function triggerImportFile() {
+    document.getElementById('excelFileInput').click();
+  }
+
+  function handleImportExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+        if (rawJson.length === 0) {
+          alert("❌ ไฟล์ Excel ว่างเปล่า ไม่มีข้อมูลให้นำเข้า");
+          return;
+        }
+
+        // 🌟 ตรวจสอบความถูกต้องของข้อมูลทีละแถว (Validation)
+        let errors = [];
+        let validPayloadDoctor = [];
+        let validPayloadHospital = [];
+        let seenSet = new Set(); // เช็คซ้ำในไฟล์ตัวเอง
+
+        rawJson.forEach((row, index) => {
+          const rowNum = index + 2; // +2 เพราะบวก Header Row
+          const type = String(row['Type'] || row['type'] || '').trim();
+          const accountId = String(row['Account_ID'] || row['accountId'] || row['Doc_ID'] || row['Hospital_ID'] || '').trim();
+          const territoryId = String(row['Territory_ID'] || row['territoryId'] || '').trim();
+
+          // 1. เช็คฟิลด์ว่าง
+          if (!type || !accountId || !territoryId) {
+            errors.push(`• บรรทัดที่ ${rowNum}: ข้อมูลไม่ครบถ้วน (ต้องมี Type, Account_ID, Territory_ID)`);
+            return;
+          }
+
+          // 2. เช็ค Type
+          if (type !== 'Doctor' && type !== 'Hospital') {
+            errors.push(`• บรรทัดที่ ${rowNum}: Type ต้องระบุเป็น 'Doctor' หรือ 'Hospital' เท่านั้น (พบ: '${type}')`);
+            return;
+          }
+
+          // 3. เช็ค ID หมอ/รพ. ว่ามีจริงในระบบไหม
+          if (type === 'Doctor') {
+            const existsDoc = globalAssignDoctors.some(d => String(d.Doc_ID) === String(accountId));
+            if (!existsDoc) errors.push(`• บรรทัดที่ ${rowNum}: ไม่พบ Doc_ID '${accountId}' ในระบบแพทย์`);
+          } else if (type === 'Hospital') {
+            const existsHosp = globalAssignHospitals.some(h => String(h.Hospital_ID) === String(accountId));
+            if (!existsHosp) errors.push(`• บรรทัดที่ ${rowNum}: ไม่พบ Hospital_ID '${accountId}' ในระบบโรงพยาบาล`);
+          }
+
+          // 4. เช็ค ID Territory ว่ามีจริงในระบบไหม
+          const existsTerr = globalAssignTerritories.some(t => String(t.Territory_ID) === String(territoryId));
+          if (!existsTerr) errors.push(`• บรรทัดที่ ${rowNum}: ไม่พบ Territory_ID '${territoryId}' ในระบบพื้นที่`);
+
+          // 5. เช็คซ้ำในไฟล์ตัวเอง
+          const uniqueKey = `${type}_${accountId}_${territoryId}`;
+          if (seenSet.has(uniqueKey)) {
+            errors.push(`• บรรทัดที่ ${rowNum}: ข้อมูลซ้ำซ้อนกับบรรทัดก่อนหน้าในไฟล์เดียวกัน`);
+            return;
+          }
+          seenSet.add(uniqueKey);
+
+          // 6. เช็คซ้ำกับ Database ในระบบ
+          const isAlreadyInDB = globalAssignList.some(a => a.type === type && String(a.accountId) === String(accountId) && String(a.territoryId) === String(territoryId));
+          if (isAlreadyInDB) {
+            errors.push(`• บรรทัดที่ ${rowNum}: ข้อมูล Assignment นี้มีอยู่ในระบบอยู่แล้ว (ซ้ำ)`);
+            return;
+          }
+
+          // ถ้าผ่านหมด ให้เก็บเข้า Array
+          if (type === 'Doctor') {
+            validPayloadDoctor.push({ Doc_ID: accountId, Territory_ID: territoryId });
+          } else {
+            validPayloadHospital.push({ Hospital_ID: accountId, Territory_ID: territoryId });
+          }
+        });
+
+        // 🚨 กรณีพบข้อผิดพลาด
+        if (errors.length > 0) {
+          const maxShow = 10;
+          const showErrs = errors.slice(0, maxShow).join("\n");
+          const moreCount = errors.length > maxShow ? `\n...และอีก ${errors.length - maxShow} รายการ` : "";
+          alert(`❌ ไม่สามารถนำเข้าไฟล์ได้เนื่องจากพบข้อผิดพลาด (${errors.length} จุด):\n\n` + showErrs + moreCount + "\n\n💡 กรุณาแก้ไขไฟล์แล้วลองนำเข้าใหม่อีกครั้ง");
+          document.getElementById('excelFileInput').value = '';
+          return;
+        }
+
+        // 🌟 ถ้าข้อมูลถูกต้องทั้งหมด ดำเนินการบันทึกลง Supabase
+        if (confirm(`✅ ตรวจสอบไฟล์เรียบร้อยแล้ว ไม่พบข้อผิดพลาด\nพร้อมนำเข้าข้อมูล Assignment ทั้งหมด ${validPayloadDoctor.length + validPayloadHospital.length} รายการ?`)) {
+          
+          if (validPayloadDoctor.length > 0) {
+            const { error: errDoc } = await supabaseClient.from('Assignment_Doctor').insert(validPayloadDoctor);
+            if (errDoc) throw errDoc;
+          }
+          if (validPayloadHospital.length > 0) {
+            const { error: errHosp } = await supabaseClient.from('Assignment_Hospital').insert(validPayloadHospital);
+            if (errHosp) throw errHosp;
+          }
+
+          alert("🎉 นำเข้าข้อมูล Assignment สำเร็จเรียบร้อยแล้ว!");
+          await loadAssignmentData();
+        }
+
+      } catch (err) {
+        alert("❌ เกิดข้อผิดพลาดขณะนำเข้าไฟล์: " + err.message);
+      } finally {
+        document.getElementById('excelFileInput').value = '';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ===================== 📤 2. ระบบ EXPORT ข้อมูลเป็นไฟล์ EXCEL =====================
+  function exportAssignmentsToExcel() {
+    if (!globalAssignList || globalAssignList.length === 0) {
+      return alert("ไม่มีข้อมูล Assignment สำหรับส่งออก");
+    }
+
+    const typeTerm = document.getElementById('filterAssignType').value;
+    const accTerm = document.getElementById('filterAssignAccount').value.toLowerCase().trim();
+    const terTerm = document.getElementById('filterAssignTer').value;
+
+    const filtered = globalAssignList.filter(a => {
+      const matchType = (typeTerm === "") || (a.type === typeTerm);
+      const matchTer = (terTerm === "") || (String(a.territoryId) === String(terTerm));
+      const searchStr = `${a.accountId} ${a.accountName}`.toLowerCase();
+      const matchAcc = (accTerm === "") || searchStr.includes(accTerm);
+      return matchType && matchTer && matchAcc;
+    });
+
+    const exportData = filtered.map(a => ({
+      "Type": a.type,
+      "Account_ID": a.accountId,
+      "Account_Name": a.accountName,
+      "Territory_ID": a.territoryId,
+      "Territory_Name": a.territoryName
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Assignments");
+    XLSX.writeFile(workbook, `Assignment_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }
+
+  // ===================== 🗑️ 3. ระบบลบแบบระบุเงื่อนไข (CONDITION DELETE) =====================
+  function openConditionDeleteModal() {
+    document.getElementById('condDeleteConfirmInput').value = '';
+    document.getElementById('condDeleteType').value = 'ALL';
+    document.getElementById('condDeleteTerritory').value = 'ALL';
+
+    const modalEl = document.getElementById('condDeleteModal');
+    conditionDeleteModalInstance = new bootstrap.Modal(modalEl);
+    conditionDeleteModalInstance.show();
+  }
+
+  async function executeConditionDelete() {
+    const confirmTxt = document.getElementById('condDeleteConfirmInput').value.trim();
+    if (confirmTxt !== 'DELETE') {
+      return alert("⚠️ กรุณาพิมพ์คำว่า DELETE ให้ถูกต้องเพื่อยืนยันการลบครับ");
+    }
+
+    const typeCond = document.getElementById('condDeleteType').value;
+    const terCond = document.getElementById('condDeleteTerritory').value;
+
+    if (!confirm(`🚨 เตือนขั้นสุดท้าย: คุณแน่ใจหรือไม่ที่จะลบ Assignment ตามเงื่อนไขนี้?\n\n- ประเภท: ${typeCond}\n- พื้นที่: ${terCond}`)) {
+      return;
+    }
+
+    try {
+      // 1. สั่งลบตาราง Assignment_Doctor
+      if (typeCond === 'ALL' || typeCond === 'Doctor') {
+        let queryDoc = supabaseClient.from('Assignment_Doctor').delete();
+        if (terCond !== 'ALL') {
+          queryDoc = queryDoc.eq('Territory_ID', terCond);
+        } else {
+          queryDoc = queryDoc.neq('Territory_ID', '00000000-0000-0000-0000-000000000000'); // ลบทั้งหมด
+        }
+        const { error: err1 } = await queryDoc;
+        if (err1) throw err1;
+      }
+
+      // 2. สั่งลบตาราง Assignment_Hospital
+      if (typeCond === 'ALL' || typeCond === 'Hospital') {
+        let queryHosp = supabaseClient.from('Assignment_Hospital').delete();
+        if (terCond !== 'ALL') {
+          queryHosp = queryHosp.eq('Territory_ID', terCond);
+        } else {
+          queryHosp = queryHosp.neq('Territory_ID', '00000000-0000-0000-0000-000000000000'); // ลบทั้งหมด
+        }
+        const { error: err2 } = await queryHosp;
+        if (err2) throw err2;
+      }
+
+      alert("✅ ดำเนินการลบข้อมูลตามเงื่อนไขเรียบร้อยแล้ว");
+      if (conditionDeleteModalInstance) conditionDeleteModalInstance.hide();
+      await loadAssignmentData();
+
+    } catch (err) {
+      alert("❌ เกิดข้อผิดพลาดในการลบ: " + err.message);
+    }
+  }
+
+  // ===================== CRUD ฟอร์มปกติ =====================
   function openAddAssignView() {
     isAssignEditMode = false;
     document.getElementById('assignFormTitle').innerText = "📝 เพิ่ม Assignment ใหม่";
@@ -369,7 +642,7 @@
     document.getElementById('assignOldTerId').value = a.territoryId;
 
     document.getElementById('assignType').value = a.type;
-    document.getElementById('assignType').disabled = true; // ล็อคไม่ให้เปลี่ยน Type ตอนแก้ไข
+    document.getElementById('assignType').disabled = true;
     onAssignTypeChange(a.accountId);
 
     document.getElementById('assignTerritory').value = a.territoryId;
@@ -377,7 +650,6 @@
     switchAssignView('assignFormView');
   }
 
-  // 🌟 บันทึกข้อมูลลง Supabase
   async function handleSaveAssign(e) {
     e.preventDefault();
     const btn = document.getElementById('submitAssignBtn');
@@ -394,7 +666,6 @@
 
     try {
       if (isAssignEditMode) {
-        // ลบอันเก่าออกก่อนแล้วเขียนอันใหม่ลงไป
         await supabaseClient.from(tableName).delete().eq(accCol, oldAccId).eq('Territory_ID', oldTerId);
       }
 
@@ -416,7 +687,6 @@
     }
   }
 
-  // 🌟 ลบ Assignment จาก Supabase
   async function deleteAssignment(type, accountId, territoryId) {
     if (!confirm(`คุณต้องการลบการแมปพื้นที่สำหรับรายการนี้ใช่หรือไม่?`)) return;
 
