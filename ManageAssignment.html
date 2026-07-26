@@ -26,7 +26,7 @@
         <p class="text-muted mb-0">จับคู่กำหนดพื้นที่ความรับผิดชอบ (Territory) ให้กับแพทย์และโรงพยาบาล</p>
       </div>
 
-      <!-- กลุ่มปุ่มจัดการ (Import, Export, ลบเงื่อนไข, สร้างใหม่) -->
+      <!-- กลุ่มปุ่มจัดการ -->
       <div class="d-flex flex-wrap gap-2">
         <button type="button" class="btn btn-outline-success fw-bold shadow-sm rounded-pill px-3" onclick="triggerImportFile()">
           <i class="fa-solid fa-file-import me-1"></i>Import Excel
@@ -126,7 +126,7 @@
             </select>
           </div>
 
-          <!-- เลือก Account (รองรับ TomSelect ค้นหาได้) -->
+          <!-- เลือก Account (TomSelect) -->
           <div class="col-md-8 mb-2">
             <label class="form-label fw-bold text-dark">Account (แพทย์ / โรงพยาบาล) <span class="text-danger">*</span></label>
             <select class="form-select bg-white shadow-sm" id="assignAccount" required>
@@ -151,7 +151,7 @@
     </div>
   </div>
 
-  <!-- ================= Modal ลบแบบเลือกเงื่อนไข (Condition Delete Modal) ================= -->
+  <!-- ================= Modal ลบแบบเลือกเงื่อนไข ================= -->
   <div class="modal fade" id="condDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 shadow">
@@ -204,6 +204,12 @@
   var tomSelectAccountInstance = null;
   var conditionDeleteModalInstance = null;
 
+  function getUserEmail() {
+    let email = "System";
+    try { const u = JSON.parse(sessionStorage.getItem('crmUser')); if(u && (u.Email || u.email)) email = u.Email || u.email; } catch(e){}
+    return email;
+  }
+
   // ===================== 🎙️ ระบบค้นหาด้วยเสียง =====================
   var assignSearchRecognition = null;
   function toggleAssignVoiceSearch() {
@@ -249,7 +255,7 @@
     }
   }
 
-  // ===================== ระบบโหลดข้อมูลหลักจาก Supabase =====================
+  // ===================== ระบบโหลดข้อมูลหลักจาก Supabase (ตาราง Assignment) =====================
   setTimeout(async function() {
     await loadAssignmentData();
   }, 300);
@@ -267,12 +273,12 @@
     tbody.innerHTML = '<tr><td colspan="5" class="py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
 
     try {
-      const [docRes, hospRes, terrRes, assignDocRes, assignHospRes] = await Promise.all([
+      // ดึงข้อมูลจากตาราง Assignment
+      const [docRes, hospRes, terrRes, assignRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH').eq('Status', 'Active'),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active'),
         supabaseClient.from('Territory').select('Territory_ID, Territory').eq('Status', 'Active'),
-        supabaseClient.from('Assignment_Doctor').select('*'),
-        supabaseClient.from('Assignment_Hospital').select('*')
+        supabaseClient.from('Assignment').select('*') // 👈 ดึงจากตาราง Assignment
       ]);
 
       globalAssignDoctors = docRes.data || [];
@@ -281,29 +287,25 @@
 
       let mergedAssignments = [];
 
-      (assignDocRes.data || []).forEach(ad => {
-        const doc = globalAssignDoctors.find(d => String(d.Doc_ID) === String(ad.Doc_ID));
-        const terr = globalAssignTerritories.find(t => String(t.Territory_ID) === String(ad.Territory_ID));
-        mergedAssignments.push({
-          type: 'Doctor',
-          accountId: ad.Doc_ID,
-          accountName: doc ? `${doc.Doc_Name} (${doc.Doc_Name_TH || ''})` : ad.Doc_ID,
-          territoryId: ad.Territory_ID,
-          territoryName: terr ? terr.Territory : ad.Territory_ID,
-          compositeId: `Doctor_${ad.Doc_ID}_${ad.Territory_ID}`
-        });
-      });
+      (assignRes.data || []).forEach(a => {
+        let accName = a.Account_ID;
+        if (a.Type === 'Doctor') {
+          const doc = globalAssignDoctors.find(d => String(d.Doc_ID) === String(a.Account_ID));
+          if (doc) accName = `${doc.Doc_Name} (${doc.Doc_Name_TH || ''})`;
+        } else if (a.Type === 'Hospital') {
+          const hosp = globalAssignHospitals.find(h => String(h.Hospital_ID) === String(a.Account_ID));
+          if (hosp) accName = hosp.Known_As || hosp.Hospital;
+        }
 
-      (assignHospRes.data || []).forEach(ah => {
-        const hosp = globalAssignHospitals.find(h => String(h.Hospital_ID) === String(ah.Hospital_ID));
-        const terr = globalAssignTerritories.find(t => String(t.Territory_ID) === String(ah.Territory_ID));
+        const terr = globalAssignTerritories.find(t => String(t.Territory_ID) === String(a.Territory_ID));
+
         mergedAssignments.push({
-          type: 'Hospital',
-          accountId: ah.Hospital_ID,
-          accountName: hosp ? (hosp.Known_As || hosp.Hospital) : ah.Hospital_ID,
-          territoryId: ah.Territory_ID,
-          territoryName: terr ? terr.Territory : ah.Territory_ID,
-          compositeId: `Hospital_${ah.Hospital_ID}_${ah.Territory_ID}`
+          type: a.Type || 'Doctor',
+          accountId: a.Account_ID,
+          accountName: accName,
+          territoryId: a.Territory_ID,
+          territoryName: terr ? terr.Territory : a.Territory_ID,
+          compositeId: `${a.Type}_${a.Account_ID}_${a.Territory_ID}`
         });
       });
 
@@ -411,7 +413,7 @@
     });
   }
 
-  // ===================== 📥 1. ระบบ IMPORT ข้อมูลพร้อมระบบเช็ค ERROR และเช็คซ้ำ =====================
+  // ===================== 📥 1. ระบบ IMPORT ข้อมูล =====================
   function triggerImportFile() {
     document.getElementById('excelFileInput').click();
   }
@@ -434,31 +436,26 @@
           return;
         }
 
-        // 🌟 ตรวจสอบความถูกต้องของข้อมูลทีละแถว (Validation)
         let errors = [];
-        let validPayloadDoctor = [];
-        let validPayloadHospital = [];
-        let seenSet = new Set(); // เช็คซ้ำในไฟล์ตัวเอง
+        let validPayload = [];
+        let seenSet = new Set();
 
         rawJson.forEach((row, index) => {
-          const rowNum = index + 2; // +2 เพราะบวก Header Row
+          const rowNum = index + 2;
           const type = String(row['Type'] || row['type'] || '').trim();
           const accountId = String(row['Account_ID'] || row['accountId'] || row['Doc_ID'] || row['Hospital_ID'] || '').trim();
           const territoryId = String(row['Territory_ID'] || row['territoryId'] || '').trim();
 
-          // 1. เช็คฟิลด์ว่าง
           if (!type || !accountId || !territoryId) {
             errors.push(`• บรรทัดที่ ${rowNum}: ข้อมูลไม่ครบถ้วน (ต้องมี Type, Account_ID, Territory_ID)`);
             return;
           }
 
-          // 2. เช็ค Type
           if (type !== 'Doctor' && type !== 'Hospital') {
             errors.push(`• บรรทัดที่ ${rowNum}: Type ต้องระบุเป็น 'Doctor' หรือ 'Hospital' เท่านั้น (พบ: '${type}')`);
             return;
           }
 
-          // 3. เช็ค ID หมอ/รพ. ว่ามีจริงในระบบไหม
           if (type === 'Doctor') {
             const existsDoc = globalAssignDoctors.some(d => String(d.Doc_ID) === String(accountId));
             if (!existsDoc) errors.push(`• บรรทัดที่ ${rowNum}: ไม่พบ Doc_ID '${accountId}' ในระบบแพทย์`);
@@ -467,11 +464,9 @@
             if (!existsHosp) errors.push(`• บรรทัดที่ ${rowNum}: ไม่พบ Hospital_ID '${accountId}' ในระบบโรงพยาบาล`);
           }
 
-          // 4. เช็ค ID Territory ว่ามีจริงในระบบไหม
           const existsTerr = globalAssignTerritories.some(t => String(t.Territory_ID) === String(territoryId));
           if (!existsTerr) errors.push(`• บรรทัดที่ ${rowNum}: ไม่พบ Territory_ID '${territoryId}' ในระบบพื้นที่`);
 
-          // 5. เช็คซ้ำในไฟล์ตัวเอง
           const uniqueKey = `${type}_${accountId}_${territoryId}`;
           if (seenSet.has(uniqueKey)) {
             errors.push(`• บรรทัดที่ ${rowNum}: ข้อมูลซ้ำซ้อนกับบรรทัดก่อนหน้าในไฟล์เดียวกัน`);
@@ -479,22 +474,21 @@
           }
           seenSet.add(uniqueKey);
 
-          // 6. เช็คซ้ำกับ Database ในระบบ
           const isAlreadyInDB = globalAssignList.some(a => a.type === type && String(a.accountId) === String(accountId) && String(a.territoryId) === String(territoryId));
           if (isAlreadyInDB) {
             errors.push(`• บรรทัดที่ ${rowNum}: ข้อมูล Assignment นี้มีอยู่ในระบบอยู่แล้ว (ซ้ำ)`);
             return;
           }
 
-          // ถ้าผ่านหมด ให้เก็บเข้า Array
-          if (type === 'Doctor') {
-            validPayloadDoctor.push({ Doc_ID: accountId, Territory_ID: territoryId });
-          } else {
-            validPayloadHospital.push({ Hospital_ID: accountId, Territory_ID: territoryId });
-          }
+          validPayload.push({
+            Account_ID: accountId,
+            Territory_ID: territoryId,
+            Type: type,
+            Whoupdated: getUserEmail(),
+            Whenupdated: new Date().toISOString()
+          });
         });
 
-        // 🚨 กรณีพบข้อผิดพลาด
         if (errors.length > 0) {
           const maxShow = 10;
           const showErrs = errors.slice(0, maxShow).join("\n");
@@ -504,17 +498,9 @@
           return;
         }
 
-        // 🌟 ถ้าข้อมูลถูกต้องทั้งหมด ดำเนินการบันทึกลง Supabase
-        if (confirm(`✅ ตรวจสอบไฟล์เรียบร้อยแล้ว ไม่พบข้อผิดพลาด\nพร้อมนำเข้าข้อมูล Assignment ทั้งหมด ${validPayloadDoctor.length + validPayloadHospital.length} รายการ?`)) {
-          
-          if (validPayloadDoctor.length > 0) {
-            const { error: errDoc } = await supabaseClient.from('Assignment_Doctor').insert(validPayloadDoctor);
-            if (errDoc) throw errDoc;
-          }
-          if (validPayloadHospital.length > 0) {
-            const { error: errHosp } = await supabaseClient.from('Assignment_Hospital').insert(validPayloadHospital);
-            if (errHosp) throw errHosp;
-          }
+        if (confirm(`✅ ตรวจสอบไฟล์เรียบร้อยแล้ว ไม่พบข้อผิดพลาด\nพร้อมนำเข้าข้อมูล Assignment ทั้งหมด ${validPayload.length} รายการ?`)) {
+          const { error: errInsert } = await supabaseClient.from('Assignment').insert(validPayload);
+          if (errInsert) throw errInsert;
 
           alert("🎉 นำเข้าข้อมูล Assignment สำเร็จเรียบร้อยแล้ว!");
           await loadAssignmentData();
@@ -529,7 +515,7 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // ===================== 📤 2. ระบบ EXPORT ข้อมูลเป็นไฟล์ EXCEL =====================
+  // ===================== 📤 2. ระบบ EXPORT ข้อมูล =====================
   function exportAssignmentsToExcel() {
     if (!globalAssignList || globalAssignList.length === 0) {
       return alert("ไม่มีข้อมูล Assignment สำหรับส่งออก");
@@ -561,7 +547,7 @@
     XLSX.writeFile(workbook, `Assignment_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
-  // ===================== 🗑️ 3. ระบบลบแบบระบุเงื่อนไข (CONDITION DELETE) =====================
+  // ===================== 🗑️ 3. ระบบลบแบบระบุเงื่อนไข =====================
   function openConditionDeleteModal() {
     document.getElementById('condDeleteConfirmInput').value = '';
     document.getElementById('condDeleteType').value = 'ALL';
@@ -586,29 +572,20 @@
     }
 
     try {
-      // 1. สั่งลบตาราง Assignment_Doctor
-      if (typeCond === 'ALL' || typeCond === 'Doctor') {
-        let queryDoc = supabaseClient.from('Assignment_Doctor').delete();
-        if (terCond !== 'ALL') {
-          queryDoc = queryDoc.eq('Territory_ID', terCond);
-        } else {
-          queryDoc = queryDoc.neq('Territory_ID', '00000000-0000-0000-0000-000000000000'); // ลบทั้งหมด
-        }
-        const { error: err1 } = await queryDoc;
-        if (err1) throw err1;
+      let query = supabaseClient.from('Assignment').delete();
+
+      if (typeCond !== 'ALL') {
+        query = query.eq('Type', typeCond);
+      }
+      if (terCond !== 'ALL') {
+        query = query.eq('Territory_ID', terCond);
+      }
+      if (typeCond === 'ALL' && terCond === 'ALL') {
+        query = query.neq('Territory_ID', '00000000-0000-0000-0000-000000000000'); // ลบทั้งหมด
       }
 
-      // 2. สั่งลบตาราง Assignment_Hospital
-      if (typeCond === 'ALL' || typeCond === 'Hospital') {
-        let queryHosp = supabaseClient.from('Assignment_Hospital').delete();
-        if (terCond !== 'ALL') {
-          queryHosp = queryHosp.eq('Territory_ID', terCond);
-        } else {
-          queryHosp = queryHosp.neq('Territory_ID', '00000000-0000-0000-0000-000000000000'); // ลบทั้งหมด
-        }
-        const { error: err2 } = await queryHosp;
-        if (err2) throw err2;
-      }
+      const { error } = await query;
+      if (error) throw error;
 
       alert("✅ ดำเนินการลบข้อมูลตามเงื่อนไขเรียบร้อยแล้ว");
       if (conditionDeleteModalInstance) conditionDeleteModalInstance.hide();
@@ -650,6 +627,7 @@
     switchAssignView('assignFormView');
   }
 
+  // 🌟 บันทึกลงตาราง Assignment
   async function handleSaveAssign(e) {
     e.preventDefault();
     const btn = document.getElementById('submitAssignBtn');
@@ -661,19 +639,23 @@
     const oldAccId = document.getElementById('assignOldAccId').value;
     const oldTerId = document.getElementById('assignOldTerId').value;
 
-    const tableName = (type === 'Doctor') ? 'Assignment_Doctor' : 'Assignment_Hospital';
-    const accCol = (type === 'Doctor') ? 'Doc_ID' : 'Hospital_ID';
-
     try {
       if (isAssignEditMode) {
-        await supabaseClient.from(tableName).delete().eq(accCol, oldAccId).eq('Territory_ID', oldTerId);
+        await supabaseClient.from('Assignment')
+          .delete()
+          .eq('Account_ID', oldAccId)
+          .eq('Territory_ID', oldTerId);
       }
 
-      const payload = {};
-      payload[accCol] = accountId;
-      payload['Territory_ID'] = territoryId;
+      const payload = {
+        Account_ID: accountId,
+        Territory_ID: territoryId,
+        Type: type,
+        Whoupdated: getUserEmail(),
+        Whenupdated: new Date().toISOString()
+      };
 
-      const { error } = await supabaseClient.from(tableName).insert([payload]);
+      const { error } = await supabaseClient.from('Assignment').insert([payload]);
       if (error) throw error;
 
       alert("✅ บันทึก Assignment เรียบร้อยแล้ว");
@@ -687,14 +669,16 @@
     }
   }
 
+  // 🌟 ลบ Assignment จากตาราง Assignment
   async function deleteAssignment(type, accountId, territoryId) {
     if (!confirm(`คุณต้องการลบการแมปพื้นที่สำหรับรายการนี้ใช่หรือไม่?`)) return;
 
-    const tableName = (type === 'Doctor') ? 'Assignment_Doctor' : 'Assignment_Hospital';
-    const accCol = (type === 'Doctor') ? 'Doc_ID' : 'Hospital_ID';
-
     try {
-      const { error } = await supabaseClient.from(tableName).delete().eq(accCol, accountId).eq('Territory_ID', territoryId);
+      const { error } = await supabaseClient.from('Assignment')
+        .delete()
+        .eq('Account_ID', accountId)
+        .eq('Territory_ID', territoryId);
+
       if (error) throw error;
 
       alert("✅ ลบรายการเรียบร้อยแล้ว");
