@@ -7,6 +7,10 @@
   }
   .table-doctor th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
   .table-doctor td { vertical-align: middle; }
+  
+  /* Effect สำหรับปุ่มไมค์ตอนกำลังฟังเสียง */
+  .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
+  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -29,7 +33,11 @@
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ หรือ รหัสแพทย์</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN, TH หรือ รหัส..." onkeyup="filterDoctors()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์หรือพูดชื่อ EN, TH หรือ รหัส..." onkeyup="filterDoctors()">
+          <!-- 🌟 ปุ่มไมค์สำหรับค้นหา -->
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="ค้นหาด้วยเสียง">
+            <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
+          </button>
         </div>
       </div>
       <div class="col-sm-12 col-md-6 col-lg-4">
@@ -78,7 +86,7 @@
           <div class="row g-3">
             <div class="col-sm-4 col-md-3">
               <label class="form-label fw-bold text-dark">คำนำหน้า (Title)</label>
-              <input type="text" class="form-control bg-white" id="docTitle" placeholder="เช่น นพ., พญ., ดร.">
+              <select class="form-select bg-white" id="docTitle"></select>
             </div>
             <div class="col-sm-8 col-md-4">
               <label class="form-label fw-bold text-dark">ชื่อ (Name EN)</label>
@@ -157,7 +165,7 @@
           <div class="row g-3">
             <div class="col-sm-4 col-md-3">
               <label class="form-label fw-bold text-dark">คำนำหน้า (Title)</label>
-              <input type="text" class="form-control bg-white" id="editDocTitle">
+              <select class="form-select bg-white" id="editDocTitle"></select>
             </div>
             <div class="col-sm-8 col-md-4">
               <label class="form-label fw-bold text-dark">ชื่อ (Name EN)</label>
@@ -228,13 +236,85 @@
 
 <script>
   var globalDoctors = [];
-  
-  const SPECIALTIES = ["Cardiology", "Neurology", "Oncology", "Pediatrics", "General", "Dermatology", "Endocrinology", "Gastroenterology", "Orthopedics"];
-  const DOCTOR_TYPES = ["KOL", "Speaker", "Physician", "Fellow"];
 
-  // 🌟 ใช้ setTimeout เหมือนหน้าอื่นๆ เพื่อให้มั่นใจว่าโหลดเข้า SPA แล้วทำงานปกติ
+  // ===================== 🌟 ระบบ Voice to Text สำหรับช่องค้นหา =====================
+  var searchRecognition;
+  var isSearchRecording = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    searchRecognition = new SpeechRecognition();
+    searchRecognition.lang = 'th-TH'; 
+    searchRecognition.continuous = false; // พูดจบ 1 ประโยคให้หยุดหาเลย
+    searchRecognition.interimResults = false; // เอาเฉพาะผลลัพธ์สุดท้าย
+
+    searchRecognition.onresult = function(event) {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        // ใส่คำที่พูดลงในช่องค้นหา แล้วลบจุดซ่อนเร้นหรือสเปซบาร์บางจุด
+        const searchBox = document.getElementById('filterDocName');
+        searchBox.value = finalTranscript.trim();
+        filterDoctors(); // เรียกฟังก์ชันกรองข้อมูลทันที
+        stopSearchDictation(); // หยุดไมค์
+      }
+    };
+
+    searchRecognition.onerror = function(event) {
+      console.error("Mic error:", event.error);
+      stopSearchDictation();
+    };
+    
+    searchRecognition.onend = function() {
+      if(isSearchRecording) stopSearchDictation();
+    };
+  }
+
+  function toggleSearchDictation() {
+    if (!searchRecognition) {
+      alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+      return;
+    }
+    if (isSearchRecording) {
+      stopSearchDictation();
+    } else {
+      isSearchRecording = true;
+      searchRecognition.start();
+      
+      // อัปเดต UI ปุ่มไมค์ให้รู้ว่ากำลังฟังอยู่
+      const btn = document.getElementById('btnMicSearch');
+      const icon = document.getElementById('micSearchIcon');
+      btn.classList.remove('bg-white');
+      btn.classList.add('btn-danger', 'mic-active', 'text-white');
+      icon.classList.remove('text-muted', 'fa-microphone');
+      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
+      document.getElementById('filterDocName').placeholder = "กำลังฟัง... พูดชื่อคุณหมอได้เลย";
+    }
+  }
+
+  function stopSearchDictation() {
+    isSearchRecording = false;
+    if(searchRecognition) searchRecognition.stop();
+    
+    // คืนค่า UI ปุ่มไมค์กลับเป็นปกติ
+    const btn = document.getElementById('btnMicSearch');
+    const icon = document.getElementById('micSearchIcon');
+    if (btn && icon) {
+      btn.classList.remove('btn-danger', 'mic-active', 'text-white');
+      btn.classList.add('bg-white');
+      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
+      icon.classList.add('text-muted', 'fa-microphone');
+      document.getElementById('filterDocName').placeholder = "พิมพ์หรือพูดชื่อ EN, TH หรือ รหัส...";
+    }
+  }
+
+  // ===================== ระบบโหลดข้อมูลหลัก =====================
   setTimeout(async function() {
-    loadDropdowns(); 
+    await loadIndexDropdowns(); 
     await loadDoctors();
   }, 300);
 
@@ -246,22 +326,48 @@
     });
     const target = document.getElementById(viewId);
     if(target) target.classList.remove('d-none');
-    window.scrollTo(0, 0); // เลื่อนจอขึ้นบนสุด (ดีสำหรับ iPad)
+    window.scrollTo(0, 0); 
   }
 
-  function loadDropdowns() {
-    populateSelect('docSpecialty', SPECIALTIES);
-    populateSelect('editDocSpecialty', SPECIALTIES);
-    populateSelect('docType', DOCTOR_TYPES);
-    populateSelect('editDocType', DOCTOR_TYPES);
-  }
+  async function loadIndexDropdowns() {
+    try {
+      const [typeRes, idxRes] = await Promise.all([
+        supabaseClient.from('IndexType').select('*'),
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+      ]);
+      
+      const types = typeRes.data || [];
+      const indexes = idxRes.data || [];
 
-  function populateSelect(id, arr) {
-    const el = document.getElementById(id);
-    if(!el) return;
-    let html = '<option value="">- เลือก -</option>';
-    arr.forEach(item => html += `<option value="${item}">${item}</option>`);
-    el.innerHTML = html;
+      const getOptionsHtml = (typeName) => {
+        const typeObj = types.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
+        let html = '<option value="">- เลือก -</option>';
+        if (typeObj) {
+          const items = indexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
+          items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
+        }
+        return html;
+      };
+
+      const titleOptions = getOptionsHtml('Title');
+      const specialtyOptions = getOptionsHtml('Specialty');
+      const docTypeOptions = getOptionsHtml('DoctorType'); 
+
+      document.getElementById('docTitle').innerHTML = titleOptions;
+      document.getElementById('docSpecialty').innerHTML = specialtyOptions;
+      document.getElementById('docType').innerHTML = docTypeOptions;
+
+      document.getElementById('editDocTitle').innerHTML = titleOptions;
+      document.getElementById('editDocSpecialty').innerHTML = specialtyOptions;
+      document.getElementById('editDocType').innerHTML = docTypeOptions;
+
+      const filterSpec = document.getElementById('filterDocSpecialty');
+      if (filterSpec) {
+        filterSpec.innerHTML = '<option value="">- ทุกความเชี่ยวชาญ -</option>' + specialtyOptions.replace('<option value="">- เลือก -</option>', '');
+      }
+    } catch (err) {
+      console.error("Error loading index dropdowns:", err.message);
+    }
   }
 
   function openAddDoctorView() {
@@ -278,38 +384,15 @@
       if (error) throw error;
 
       globalDoctors = doctors.map(d => ({
-        id: d.Doc_ID,
-        title: d.Title,
-        nameEn: d.Doc_Name,
-        nameTh: d.Doc_Name_TH,
-        specialty: d.Specialty,
-        type: d.Type,
-        privacy: d.Privacy_Policy,
-        tos: d.Terms_of_Service,
-        email: d.Email,
-        mobile: d.Mobile,
-        status: d.Status
+        id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
+        specialty: d.Specialty, type: d.Type, privacy: d.Privacy_Policy, tos: d.Terms_of_Service,
+        email: d.Email, mobile: d.Mobile, status: d.Status
       }));
 
-      setupDoctorFilters(); 
       filterDoctors(); 
     } catch (err) {
       console.error(err);
       if(tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`;
-    }
-  }
-
-  function setupDoctorFilters() {
-    const specSelect = document.getElementById('filterDocSpecialty');
-    const currentSpec = specSelect ? specSelect.value : "";
-
-    const specs = [...new Set(globalDoctors.map(d => d.specialty).filter(s => s))].sort();
-    let specHtml = '<option value="">- ทุกความเชี่ยวชาญ -</option>';
-    specs.forEach(s => specHtml += `<option value="${s}">${s}</option>`);
-    
-    if(specSelect) {
-      specSelect.innerHTML = specHtml;
-      specSelect.value = currentSpec; 
     }
   }
 
@@ -391,7 +474,7 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
     const payload = {
-      Title: document.getElementById('docTitle').value.trim(),
+      Title: document.getElementById('docTitle').value, 
       Doc_Name: document.getElementById('docNameEn').value.trim(),
       Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
       Specialty: document.getElementById('docSpecialty').value, 
@@ -434,7 +517,7 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
     const payload = {
-      Title: document.getElementById('editDocTitle').value.trim(),
+      Title: document.getElementById('editDocTitle').value, 
       Doc_Name: document.getElementById('editDocNameEn').value.trim(),
       Doc_Name_TH: document.getElementById('editDocNameTh').value.trim(),
       Specialty: document.getElementById('editDocSpecialty').value,
