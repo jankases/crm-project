@@ -58,7 +58,7 @@
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-hospital text-muted"></i></span>
+          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
           <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="ค้นหาชื่อ รพ...." onkeyup="filterVisits()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
@@ -384,7 +384,6 @@
       globalDoctorsList = docRes.data || []; globalProductsList = prodRes.data || []; globalTerritoryList = territoryRes.data || [];
       globalHospitalsList = hospRes.data || []; globalUsersList = usersRes.data || []; globalTeamList = teamRes.data || [];
 
-      // 🌟 โหลด Dropdown หมอแบบไม่เอา Title นำหน้า
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
@@ -395,10 +394,11 @@
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
       }
 
-      // 🌟 สินค้า (รองรับ Multi-select โดยใช้ TomSelect plugin)
       const prodSelect = document.getElementById('visitProductId');
+      const productsTeamList = productsTeamRes.data || [];
+      
       if (prodSelect) { 
-        let productsTeamList = productsTeamRes.data || []; let filteredProducts = []; let myTeamIds = [];
+        let filteredProducts = []; let myTeamIds = [];
         if (userRole === 'BU Head' && userBu) { myTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID); } 
         else if (userRole === 'Manager' || userRole === 'Sales Manager') { if (userTeam) myTeamIds.push(userTeam); } 
         else if (userRole !== 'Admin') {
@@ -444,7 +444,7 @@
         purposeSelect.innerHTML = purposeHtml;
       }
 
-      setupFiltersDropdowns(crmUser);
+      setupFiltersDropdowns(crmUser, productsTeamList);
 
       const returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
@@ -457,29 +457,77 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  function setupFiltersDropdowns(crmUser) {
-    const repSelect = document.getElementById('filterVisitRep'); if (!repSelect) return;
-    const userRole = crmUser ? (crmUser.Role || crmUser.role) : ''; const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
-    const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId) : null; const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
+  function setupFiltersDropdowns(crmUser, productsTeamList) {
+    const repSelect = document.getElementById('filterVisitRep'); 
+    const terSelect = document.getElementById('filterVisitTerritory');
+    const prodFilterSelect = document.getElementById('filterVisitProduct');
+    if (!repSelect || !terSelect || !prodFilterSelect) return;
+
+    const userRole = crmUser ? (crmUser.Role || crmUser.role) : ''; 
+    const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
+    const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId) : null; 
+    const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
+    const userRepId = crmUser ? (crmUser.Rep_ID || crmUser.id) : '';
+    const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
 
     let allowedUsers = [];
-    if (userRole === 'Sales' || userRole === 'Rep') allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(crmUser.Rep_ID));
-    else if (userRole === 'Manager' || userRole === 'Sales Manager') allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam));
+    let allowedTeamIds = [];
+
+    if (userRole === 'Sales' || userRole === 'Rep') {
+      allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(userRepId));
+      let repTeamId = userTeam;
+      if (!repTeamId && userTerritory) {
+        const terrObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
+        if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
+      }
+      if (repTeamId) allowedTeamIds.push(String(repTeamId));
+    }
+    else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+      allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam));
+      if (userTeam) allowedTeamIds.push(String(userTeam));
+    }
     else if (userRole === 'BU Head' && userBu) {
-      const buTeams = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID);
-      allowedUsers = globalUsersList.filter(u => buTeams.includes(u.Team_ID));
-    } else allowedUsers = globalUsersList;
+      allowedTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => String(t.Team_ID));
+      allowedUsers = globalUsersList.filter(u => allowedTeamIds.includes(String(u.Team_ID)));
+    }
+    else {
+      allowedUsers = globalUsersList;
+    }
 
-    let html = '<option value="">- All Reps -</option>'; allowedUsers.forEach(r => { html += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; }); repSelect.innerHTML = html;
+    let repHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All Reps -</option>';
+    allowedUsers.forEach(r => { repHtml += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
+    repSelect.innerHTML = repHtml;
 
-    const terSelect = document.getElementById('filterVisitTerritory');
-    if (terSelect) { let tHtml = '<option value="">- All Territories -</option>'; globalTerritoryList.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`); terSelect.innerHTML = tHtml; }
+    let allowedTerritories = [];
+    if (userRole === 'Admin') {
+      allowedTerritories = globalTerritoryList;
+    } else if (userRole === 'Sales' || userRole === 'Rep') {
+      allowedTerritories = globalTerritoryList.filter(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
+    } else if (allowedTeamIds.length > 0) {
+      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
+    }
 
-    const prodFilterSelect = document.getElementById('filterVisitProduct');
-    if (prodFilterSelect) { let pHtml = '<option value="">- All Products -</option>'; globalProductsList.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`); prodFilterSelect.innerHTML = pHtml; }
+    let tHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All Territories -</option>';
+    allowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
+    terSelect.innerHTML = tHtml;
+
+    let allowedProducts = [];
+    if (userRole === 'Admin') {
+      allowedProducts = globalProductsList;
+    } else if (allowedTeamIds.length > 0 && productsTeamList) {
+      const allowedProdIds = productsTeamList
+        .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
+        .map(pt => String(pt.Product_ID));
+      allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+    } else {
+      allowedProducts = globalProductsList;
+    }
+
+    let pHtml = '<option value="">- All Products -</option>';
+    allowedProducts.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+    prodFilterSelect.innerHTML = pHtml;
   }
 
-  // 🌟 ดึงข้อมูลตาราง Visit_Logs และ Visit_Products 
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -504,16 +552,33 @@
   }
 
   function filterVisits() {
-    const repTerm = document.getElementById('filterVisitRep') ? document.getElementById('filterVisitRep').value : '';
-    const terTerm = document.getElementById('filterVisitTerritory') ? document.getElementById('filterVisitTerritory').value : '';
+    const repSelect = document.getElementById('filterVisitRep');
+    const terSelect = document.getElementById('filterVisitTerritory');
+
+    const repTerm = repSelect ? repSelect.value : '';
+    const terTerm = terSelect ? terSelect.value : '';
     const docSearchTerm = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value.toLowerCase().trim() : '';
     const hospSearchTerm = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value.toLowerCase().trim() : '';
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
+    const allowedRepIds = repSelect ? Array.from(repSelect.options).map(o => o.value).filter(v => v !== "") : [];
+    const allowedTerIds = terSelect ? Array.from(terSelect.options).map(o => o.value).filter(v => v !== "") : [];
+
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    let isAdmin = crmUser && (crmUser.Role === 'Admin' || crmUser.role === 'Admin');
+
     const filtered = globalVisits.filter(v => {
-      const matchRep = (repTerm === "") || (String(v.Rep_ID) === String(repTerm));
-      const matchTer = (terTerm === "") || (String(v.Territory_ID) === String(terTerm));
+      let isRepAllowed = false;
+      let isTerAllowed = false;
+
+      if (isAdmin) {
+        isRepAllowed = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
+        isTerAllowed = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
+      } else {
+        isRepAllowed = (repTerm === "") ? allowedRepIds.includes(String(v.Rep_ID)) : (String(v.Rep_ID) === String(repTerm));
+        isTerAllowed = (terTerm === "") ? allowedTerIds.includes(String(v.Territory_ID)) : (String(v.Territory_ID) === String(terTerm));
+      }
 
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : String(v.Doc_ID || '');
@@ -529,7 +594,7 @@
 
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
-      return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
+      return isRepAllowed && isTerAllowed && matchDoc && matchHosp && matchProd && matchStatus;
     });
 
     renderVisitTable(filtered);
@@ -558,7 +623,6 @@
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
-        // 🌟 ถอดคำนำหน้าออก
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
         
@@ -578,7 +642,6 @@
         prodBadges = '<span class="text-muted small">-</span>';
       }
 
-      // 🌟 วันที่กดได้
       tbody.innerHTML += `
         <tr>
           <td class="text-center fw-bold">
@@ -788,7 +851,6 @@
     const dateInput = document.getElementById('visitDate');
     const purposeSelect = document.getElementById('visitPurpose');
 
-    // 🌟 ดึงค่าสินค้าหลายอันให้ชัวร์และไม่ว่างเปล่า
     let selectedProducts = [];
     if (tomSelectProdInstance) {
         let val = tomSelectProdInstance.getValue();
@@ -843,11 +905,9 @@
 
     try {
       if (visitId) {
-        // 1. อัปเดตตารางหลัก
         const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', visitId);
         if (updErr) throw new Error("อัปเดตข้อมูล Visit_Logs: " + updErr.message);
 
-        // 2. เคลียร์สินค้าเดิมทิ้ง แล้วใส่ใหม่
         const { error: delErr } = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', visitId);
         if (delErr) throw new Error("ลบข้อมูล Visit_Products เดิม: " + delErr.message);
 
@@ -858,13 +918,11 @@
         }
 
       } else {
-        // 1. เพิ่มตารางหลัก และขอ ID กลับมา
         const { data: insData, error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]).select();
         if (insErr) throw new Error("เพิ่มข้อมูล Visit_Logs: " + insErr.message);
         
         const newVisitId = insData[0].Visit_ID;
 
-        // 2. เพิ่มสินค้าย่อยลง Visit_Products
         if (selectedProducts.length > 0) {
             const vpPayload = selectedProducts.map(p => ({ Visit_ID: newVisitId, Product_ID: p, Whoupdated: whoUpdated }));
             const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
