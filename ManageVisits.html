@@ -30,21 +30,21 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา -->
+    <!-- 🌟 ส่วนค้นหา (ปรับ Layout + Cascading Dropdown) -->
     <div class="row mb-4 g-2">
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
-        <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()">
+        <select class="form-select shadow-sm" id="filterVisitRep" onchange="handleFilterChange('rep')">
           <option value="">- All Reps -</option>
         </select>
       </div>
-      <div class="col-md-1">
+      <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
-        <select class="form-select shadow-sm px-1" id="filterVisitTerritory" onchange="filterVisits()">
-          <option value="">- All -</option>
+        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
+          <option value="">- All Territories -</option>
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -359,6 +359,11 @@
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      
+      const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
+      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
 
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
@@ -385,7 +390,6 @@
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
       }
 
-      // ให้ setupFiltersDropdowns จัดการเรื่องสิทธิ์ทั้งหมด รวมถึง Dropdown สินค้า
       setupFiltersDropdowns(crmUser, productsTeamRes.data || []);
 
       const purposeSelect = document.getElementById('visitPurpose');
@@ -413,21 +417,19 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์ขั้นสุดยอด (Bulletproof Hierarchical Access)
+  // 🌟 ฟังก์ชันจัดการสิทธิ์ และเก็บตัวแปรตั้งต้นสำหรับ Cascading Filter
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
     const prodFilterSelect = document.getElementById('filterVisitProduct');
-    const formProdSelect = document.getElementById('visitProductId'); // ดรอปดาวน์ตอนบันทึกใหม่
+    const formProdSelect = document.getElementById('visitProductId'); 
     if (!repSelect || !terSelect || !prodFilterSelect) return;
 
-    // ดึงค่าข้อมูลของ User ที่ Log in อยู่
     const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
     const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    // 1. กำหนดสิทธิ์ว่าคนนี้เป็น Global (ดูได้ทั้งหมด) หรือไม่
     const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
 
     let allowedTeamIds = [];
@@ -441,19 +443,15 @@
       allowedRepIds = globalUsersList.map(u => String(u.Rep_ID || u.User_ID));
       allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
     } else {
-      // ค้นหาว่า Scope (เช่น LUNG1) เป็นชื่อทีม หรือ ชื่อพื้นที่
       let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
       let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
       
-      // กางเครือข่ายสิทธิ์
       if (userRole === 'Manager' || userRole === 'Sales Manager') {
           if (matchedTeam) {
               allowedTeamIds.push(String(matchedTeam.Team_ID));
-              // ดึงเขตรับผิดชอบทั้งหมดที่อยู่ในทีมนี้
               const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
               terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
           } else if (rawScope) {
-              // กรณีระบุ ID ทีมตรงๆ แต่ค้นไม่เจอในระบบ ให้ใช้ string เดิมเลย
               allowedTeamIds.push(rawScope);
               const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === rawScope);
               terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
@@ -465,7 +463,7 @@
               const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
               terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
           });
-      } else { // Sales & Reps
+      } else { 
           if (matchedTerr) {
               allowedTerIds.push(String(matchedTerr.Territory_ID));
               if (matchedTerr.Team_ID) allowedTeamIds.push(String(matchedTerr.Team_ID));
@@ -474,11 +472,9 @@
           }
       }
 
-      // ใส่ตัวเองเข้าไปเสมอ
       if (userRepId) allowedRepIds.push(userRepId);
       if (userEmail) allowedEmails.push(userEmail);
 
-      // กวาดชื่อพนักงานทุกคนที่อยู่ในวงสิทธิ์ (สำหรับ Manager/BU)
       if (userRole !== 'Sales' && userRole !== 'Rep') {
           const subUsers = globalUsersList.filter(u => {
               const uTeam = String(u.Team_ID || u.Team);
@@ -494,36 +490,30 @@
       }
     }
 
-    // เซฟสิทธิ์ลง Global Variables เพื่อใช้ในตาราง
+    // เซฟข้อมูลตัวเต็มไว้ใช้ทำ Cascading Filter
     window.myIsGlobalViewer = isGlobalViewer;
+    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID)));
+    window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
     window.myAllowedTeamIds = allowedTeamIds;
     window.myAllowedTerIds = allowedTerIds;
     window.myAllowedRepIds = allowedRepIds;
     window.myAllowedEmails = allowedEmails;
 
-    // สร้าง UI Dropdown Sales Rep
+    // สร้าง UI เริ่มต้น
     const uniqueUsersMap = new Map();
-    globalUsersList.forEach(u => {
+    window.fullAllowedUsers.forEach(u => {
         const id = String(u.Rep_ID || u.User_ID);
-        if (isGlobalViewer || allowedRepIds.includes(id)) {
-            if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
-        }
+        if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
     let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Reps -</option>';
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
-    // สร้าง UI Dropdown Territory
-    let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All -</option>';
-    globalTerritoryList.forEach(t => {
-        if (isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID))) {
-            tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
-        }
-    });
+    let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Territories -</option>';
+    window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // สร้าง UI Dropdown Products
     let allowedProducts = [];
     if (isGlobalViewer) {
         allowedProducts = globalProductsList;
@@ -548,6 +538,84 @@
             tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- เลือกสินค้า (เลือกได้มากกว่า 1 รายการ) --" });
         }
     }
+  }
+
+  // 🌟 ฟังก์ชันจัดการ Cascading Filters (ตัวกรองสัมพันธ์กัน)
+  function handleFilterChange(source) {
+    const repSelect = document.getElementById('filterVisitRep');
+    const terSelect = document.getElementById('filterVisitTerritory');
+    if (!repSelect || !terSelect) return;
+
+    const repVal = repSelect.value;
+    const terVal = terSelect.value;
+
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
+    const hideAllOption = (!window.myIsGlobalViewer && (userRole === 'Sales' || userRole === 'Rep'));
+
+    if (source === 'rep') {
+        let validTers = window.fullAllowedTerritories || [];
+        if (repVal !== "") {
+            const selectedRep = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID) === repVal);
+            if (selectedRep) {
+                const rTeam = String(selectedRep.Team_ID || selectedRep.Team || '');
+                const rTer = String(selectedRep.Territory_ID || selectedRep.Territory || selectedRep.territoryId || '');
+                validTers = (window.fullAllowedTerritories || []).filter(t => {
+                    const tId = String(t.Territory_ID);
+                    const tTeam = String(t.Team_ID);
+                    // ตัวกรองความสัมพันธ์: พื้นที่ต้องตรงกับที่ Rep ดูแล หรือ ทีมของ Rep ตรงกับทีมที่ดูแลพื้นที่นั้น
+                    return tId === rTer || (rTeam && rTeam !== 'undefined' && tTeam === rTeam) || window.myIsGlobalViewer;
+                });
+                if (validTers.length === 0) validTers = window.fullAllowedTerritories;
+            }
+        }
+        
+        const currentTerVal = terSelect.value;
+        let tHtml = hideAllOption ? '' : '<option value="">- All Territories -</option>';
+        validTers.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
+        terSelect.innerHTML = tHtml;
+        
+        // ถ้าค่าเดิมที่เลือกไว้ยังถูกต้องอยู่ ให้เลือกค่าเดิมไว้
+        if (validTers.some(t => String(t.Territory_ID) === currentTerVal)) {
+            terSelect.value = currentTerVal;
+        } else {
+            terSelect.value = "";
+        }
+    }
+
+    if (source === 'territory') {
+        let validReps = window.fullAllowedUsers || [];
+        if (terVal !== "") {
+            const selectedTer = (window.fullAllowedTerritories || []).find(t => String(t.Territory_ID) === terVal);
+            if (selectedTer) {
+                const tTeam = String(selectedTer.Team_ID || '');
+                validReps = (window.fullAllowedUsers || []).filter(u => {
+                    const uTeam = String(u.Team_ID || u.Team || '');
+                    const uTer = String(u.Territory_ID || u.Territory || u.territoryId || '');
+                    // ตัวกรองความสัมพันธ์: Rep ต้องดูแลพื้นที่นี้ตรงๆ หรือ Rep อยู่ในทีมที่ดูแลพื้นที่นี้
+                    return uTer === terVal || (tTeam && tTeam !== 'undefined' && uTeam === tTeam) || window.myIsGlobalViewer;
+                });
+                if (validReps.length === 0) validReps = window.fullAllowedUsers;
+            }
+        }
+        
+        const currentRepVal = repSelect.value;
+        let repHtml = hideAllOption ? '' : '<option value="">- All Reps -</option>';
+        // ทำ Unique Users
+        const uniqueUsersMap = new Map();
+        validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
+        uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
+        
+        repSelect.innerHTML = repHtml;
+        
+        if (validReps.some(r => String(r.Rep_ID || r.User_ID) === currentRepVal)) {
+            repSelect.value = currentRepVal;
+        } else {
+            repSelect.value = "";
+        }
+    }
+
+    filterVisits();
   }
 
   async function loadVisits() {
@@ -584,7 +652,7 @@
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
     const filtered = globalVisits.filter(v => {
-      // 🌟 Security Check: กรองสิทธิ์แบบเข้มงวดที่สุด (หลุด ID ก็หาด้วย Email/Territory)
+      // 🌟 Security Check: กรองสิทธิ์แบบเข้มงวด
       let hasSecurityAccess = false;
 
       if (window.myIsGlobalViewer) {
@@ -601,9 +669,9 @@
         }
       }
 
-      if (!hasSecurityAccess) return false; // ไม่มีสิทธิ์ดูรายการนี้ เด้งออกเลย
+      if (!hasSecurityAccess) return false;
 
-      // 🌟 UI Filtering: ถ้ามีสิทธิ์แล้ว กรองตามหน้าจอที่เลือก
+      // 🌟 UI Filtering
       const matchRep = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
