@@ -261,6 +261,7 @@
     }
   }
 
+  // ===================== 🎙️ ระบบไมค์ =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
@@ -456,6 +457,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
+  // 🌟 ฟังก์ชันจัดการสิทธิ์ในการมองเห็นและตัวเลือก Dropdown
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -463,48 +465,61 @@
     if (!repSelect || !terSelect || !prodFilterSelect) return;
 
     const userRole = crmUser ? (crmUser.Role || crmUser.role) : ''; 
-    const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
-    const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId) : null; 
+    const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
+    const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null; 
     const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
     const userRepId = crmUser ? (crmUser.Rep_ID || crmUser.id) : '';
     const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
 
     let allowedUsers = [];
     let allowedTeamIds = [];
+    let allowedTerritories = [];
 
-    if (userRole === 'Sales' || userRole === 'Rep') {
-      allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(userRepId));
+    // 1. หา Team & Territory ที่มีสิทธิ์เกี่ยวข้อง
+    if (userRole === 'Manager' || userRole === 'Sales Manager') {
+      if (userTeam) allowedTeamIds.push(String(userTeam));
+      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
+    }
+    else if (userRole === 'BU Head' && userBu) {
+      allowedTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => String(t.Team_ID));
+      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
+    }
+    else if (userRole === 'Sales' || userRole === 'Rep') {
       let repTeamId = userTeam;
       if (!repTeamId && userTerritory) {
         const terrObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
         if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
       }
       if (repTeamId) allowedTeamIds.push(String(repTeamId));
-    }
-    else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-      allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam));
-      if (userTeam) allowedTeamIds.push(String(userTeam));
-    }
-    else if (userRole === 'BU Head' && userBu) {
-      allowedTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => String(t.Team_ID));
-      allowedUsers = globalUsersList.filter(u => allowedTeamIds.includes(String(u.Team_ID)));
+      allowedTerritories = globalTerritoryList.filter(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
     }
     else {
-      allowedUsers = globalUsersList;
+      allowedTerritories = globalTerritoryList; // Admin
     }
+
+    const allowedTerIdsForSec = allowedTerritories.map(t => String(t.Territory_ID));
+    const allowedTerNamesForSec = allowedTerritories.map(t => String(t.Territory));
+
+    // 2. กรอง Sales Rep (ดึงคนที่อยู่ใน Team หรือ ดูแลพื้นที่ใน Team นั้น)
+    if (userRole === 'Admin') {
+      allowedUsers = globalUsersList;
+    } else if (userRole === 'Sales' || userRole === 'Rep') {
+      allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(userRepId));
+    } else {
+      allowedUsers = globalUsersList.filter(u => {
+        const uTeam = String(u.Team_ID || u.Team);
+        const uTerr = String(u.Territory_ID || u.Territory || u.territoryId);
+        return allowedTeamIds.includes(uTeam) || allowedTerIdsForSec.includes(uTerr) || allowedTerNamesForSec.includes(uTerr);
+      });
+    }
+
+    // กรอง User ซ้ำ
+    const uniqueUsers = Array.from(new Set(allowedUsers.map(u => u.Rep_ID || u.User_ID)))
+      .map(id => allowedUsers.find(u => (u.Rep_ID || u.User_ID) === id));
 
     let repHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All Reps -</option>';
-    allowedUsers.forEach(r => { repHtml += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
+    uniqueUsers.forEach(r => { repHtml += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
     repSelect.innerHTML = repHtml;
-
-    let allowedTerritories = [];
-    if (userRole === 'Admin') {
-      allowedTerritories = globalTerritoryList;
-    } else if (userRole === 'Sales' || userRole === 'Rep') {
-      allowedTerritories = globalTerritoryList.filter(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
-    } else if (allowedTeamIds.length > 0) {
-      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
-    }
 
     let tHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All -</option>';
     allowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
@@ -561,6 +576,7 @@
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
+    // สิทธิ์การเข้าถึงข้อมูลที่ถูกกรองไว้แล้ว
     const allowedRepIds = repSelect ? Array.from(repSelect.options).map(o => o.value).filter(v => v !== "") : [];
     const allowedTerIds = terSelect ? Array.from(terSelect.options).map(o => o.value).filter(v => v !== "") : [];
 
@@ -568,16 +584,21 @@
     let isAdmin = crmUser && (crmUser.Role === 'Admin' || crmUser.role === 'Admin');
 
     const filtered = globalVisits.filter(v => {
-      let isRepAllowed = false;
-      let isTerAllowed = false;
-
+      // 🌟 Data Security: กรองสิทธิ์ก่อน ว่ามองเห็นข้อมูลบรรทัดนี้ได้ไหม
+      let hasSecurityAccess = false;
       if (isAdmin) {
-        isRepAllowed = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
-        isTerAllowed = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
+        hasSecurityAccess = true;
       } else {
-        isRepAllowed = (repTerm === "") ? allowedRepIds.includes(String(v.Rep_ID)) : (String(v.Rep_ID) === String(repTerm));
-        isTerAllowed = (terTerm === "") ? allowedTerIds.includes(String(v.Territory_ID)) : (String(v.Territory_ID) === String(terTerm));
+        const matchRepSec = allowedRepIds.includes(String(v.Rep_ID));
+        const matchTerSec = allowedTerIds.includes(String(v.Territory_ID));
+        hasSecurityAccess = matchRepSec || matchTerSec; 
       }
+
+      if (!hasSecurityAccess) return false;
+
+      // 🌟 UI Filtering: ถ้ามีสิทธิ์แล้ว ให้กรองตาม Dropdown ที่เลือกอีกที
+      const matchRep = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
+      const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : String(v.Doc_ID || '');
@@ -593,7 +614,7 @@
 
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
-      return isRepAllowed && isTerAllowed && matchDoc && matchHosp && matchProd && matchStatus;
+      return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
     });
 
     renderVisitTable(filtered);
