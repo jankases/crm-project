@@ -261,7 +261,7 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ =====================
+  // ===================== 🎙️ ระบบไมค์ (ย่อโค้ดเพื่อความกระชับ) =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
@@ -457,7 +457,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์ในการมองเห็นและตัวเลือก Dropdown
+  // 🌟 ฟังก์ชันจัดการสิทธิ์การมองเห็นข้อมูล (ปรับแก้ให้ Manager เห็นข้อมูลครบถ้วน)
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -475,7 +475,7 @@
     let allowedTeamIds = [];
     let allowedTerritories = [];
 
-    // 1. หา Team & Territory ที่มีสิทธิ์เกี่ยวข้อง
+    // 1. รวบรวม Team และ Territory ที่เกี่ยวข้องตามสิทธิ์
     if (userRole === 'Manager' || userRole === 'Sales Manager') {
       if (userTeam) allowedTeamIds.push(String(userTeam));
       allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
@@ -500,7 +500,7 @@
     const allowedTerIdsForSec = allowedTerritories.map(t => String(t.Territory_ID));
     const allowedTerNamesForSec = allowedTerritories.map(t => String(t.Territory));
 
-    // 2. กรอง Sales Rep (ดึงคนที่อยู่ใน Team หรือ ดูแลพื้นที่ใน Team นั้น)
+    // 2. รวบรวม Users ให้สอดคล้องกับ Team และ Territory
     if (userRole === 'Admin') {
       allowedUsers = globalUsersList;
     } else if (userRole === 'Sales' || userRole === 'Rep') {
@@ -513,10 +513,11 @@
       });
     }
 
-    // กรอง User ซ้ำ
+    // ตัดรายชื่อ Users ที่ซ้ำกัน
     const uniqueUsers = Array.from(new Set(allowedUsers.map(u => u.Rep_ID || u.User_ID)))
       .map(id => allowedUsers.find(u => (u.Rep_ID || u.User_ID) === id));
 
+    // สร้าง HTML สำหรับ Dropdown
     let repHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All Reps -</option>';
     uniqueUsers.forEach(r => { repHtml += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
     repSelect.innerHTML = repHtml;
@@ -576,7 +577,6 @@
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
-    // สิทธิ์การเข้าถึงข้อมูลที่ถูกกรองไว้แล้ว
     const allowedRepIds = repSelect ? Array.from(repSelect.options).map(o => o.value).filter(v => v !== "") : [];
     const allowedTerIds = terSelect ? Array.from(terSelect.options).map(o => o.value).filter(v => v !== "") : [];
 
@@ -584,7 +584,7 @@
     let isAdmin = crmUser && (crmUser.Role === 'Admin' || crmUser.role === 'Admin');
 
     const filtered = globalVisits.filter(v => {
-      // 🌟 Data Security: กรองสิทธิ์ก่อน ว่ามองเห็นข้อมูลบรรทัดนี้ได้ไหม
+      // 🌟 Data Security: กรองสิทธิ์ก่อน (ให้เงื่อนไขเป็นแบบ OR เพื่อให้ครอบคลุมคนที่ผูกสิทธิ์แค่บางอย่าง)
       let hasSecurityAccess = false;
       if (isAdmin) {
         hasSecurityAccess = true;
@@ -596,7 +596,7 @@
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 UI Filtering: ถ้ามีสิทธิ์แล้ว ให้กรองตาม Dropdown ที่เลือกอีกที
+      // 🌟 UI Filtering: กรองตาม Dropdown ที่ User เลือก (ถ้าไม่เลือกก็คือผ่านหมด)
       const matchRep = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
