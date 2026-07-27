@@ -326,21 +326,11 @@
   var globalTerritories = [];
   var currentTargetDocId = ""; 
 
-  // ===================== ตัวแปรสำหรับการคำนวณ Target Call =====================
-  var globalRatingDropdowns = { 
-      Adoption: ['Advocacy', 'Regular', 'Trial', 'Awareness', 'None'], 
-      Potential: ['High', 'Medium', 'Low'] 
-  };
-  // ตัวอย่าง Master Data สำหรับคำนวณ (ปรับแต่งได้ตามเงื่อนไขธุรกิจของคุณ)
-  var globalMatrixMaster = {
-      "PROD01_Advocacy_High": "A",
-      "PROD01_Regular_Medium": "B"
-  };
-  var globalTargetMaster = {
-      "PROD01_A": 24,
-      "PROD01_B": 12,
-      "PROD01_C": 6
-  };
+  // ===================== ตัวแปรสำหรับการคำนวณ Target Call (ดึงจาก DB) =====================
+  var globalIndexes = [];
+  var globalIndexTypes = [];
+  var globalMatrixData = [];
+  var globalTargetData = [];
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
   var activeSearchRecognition = null;
@@ -434,27 +424,31 @@
 
   async function loadIndexDropdowns() {
     try {
-      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes] = await Promise.all([
+      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').order('Hospital', { ascending: true }),
         supabaseClient.from('Products').select('Product_ID, Product'),
         supabaseClient.from('Users').select('*'),
-        supabaseClient.from('Territory').select('*')
+        supabaseClient.from('Territory').select('*'),
+        supabaseClient.from('Rating_Matrix').select('*'),
+        supabaseClient.from('Target').select('*')
       ]);
       
-      const types = typeRes.data || [];
-      const indexes = idxRes.data || [];
+      globalIndexTypes = typeRes.data || [];
+      globalIndexes = idxRes.data || [];
       globalHospitals = hospRes.data || []; 
       globalProducts = prodRes.data || [];
       globalUsers = userRes.data || [];
       globalTerritories = terrRes.data || [];
+      globalMatrixData = matrixRes.data || [];
+      globalTargetData = targetRes.data || [];
 
       const getOptionsHtml = (typeName) => {
-        const typeObj = types.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
+        const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
         let html = '<option value="">- เลือก -</option>';
         if (typeObj) {
-          const items = indexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
+          const items = globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
           items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
         }
         return html;
@@ -472,6 +466,12 @@
       document.getElementById('editDocType').innerHTML = getOptionsHtml('DoctorType');
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
+  }
+
+  function getIndexValues(typeName) {
+    const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
+    if (!typeObj) return [];
+    return globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID).map(i => i.Value);
   }
 
   // ===================== 🌟 โหลดหมอตามสิทธิ์ ทีม & Assignment =====================
@@ -570,7 +570,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันกรองข้อมูล
   function filterDoctors() {
     const nameEl = document.getElementById('filterDocName');
     const specEl = document.getElementById('filterDocSpecialty');
@@ -633,7 +632,6 @@
     });
   }
 
-  // ===================== ระบบ Workplace =====================
   function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
     const container = document.getElementById(containerId);
     const row = document.createElement('div');
@@ -759,8 +757,6 @@
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
 
     loadDoctorVisitHistory(id);
-
-    // 🔴 1. เรียกใช้งานดึงข้อมูล Target Call ทันทีหลังจากเปิด View 
     await loadDoctorRatings(id);
 
     const firstTabEl = document.querySelector('#doctorProfileView .nav-link');
@@ -769,7 +765,6 @@
     switchDoctorView('doctorProfileView');
   }
 
-  // 🌟 ดึงประวัติการเข้าพบ (ดึงชื่อจริงของผู้แทน Sales Rep จากตาราง Users)
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
@@ -792,7 +787,6 @@
         const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
         
-        // 🌟 1. ดึงชื่อผู้แทนขายจากตาราง Users แบบละเอียดยิ่งขึ้น
         const userObj = globalUsers.find(u => 
           (u.Email && String(u.Email).toLowerCase() === String(v.Whoupdated).toLowerCase()) ||
           (u.Rep_ID && String(u.Rep_ID) === String(v.Rep_ID)) ||
@@ -800,11 +794,9 @@
         );
         const repNameShow = userObj ? (userObj.Rep_Name || userObj.Name || userObj.Email) : (v.Whoupdated || '-');
 
-        // 🌟 2. ดึงชื่อสินค้าจาก Product_ID
         const prodObj = globalProducts.find(p => String(p.Product_ID) === String(v.Product_ID));
         const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
-        // 🌟 3. ดึงชื่อ Territory จาก Territory_ID
         const terrObj = globalTerritories.find(t => String(t.Territory_ID) === String(v.Territory_ID));
         const terrNameShow = terrObj ? terrObj.Territory : (v.Territory_ID || '-');
 
@@ -934,7 +926,7 @@
     alert("ระบบกำลังนำคุณไปยังหน้าสร้างบันทึกเยี่ยม...");
   }
 
-  // ===================== 🔴 2. ฟังก์ชันระบบ Target Call ทั้งหมด =====================
+  // ===================== 🔴 ระบบ Target Call (เชื่อม DB จริง) =====================
 
   async function loadDoctorRatings(docId) {
     const tbody = document.getElementById('ratingTableBody');
@@ -1000,14 +992,16 @@
         });
     }
 
+    // ดึงค่า Adoption จาก Index 
     let adoptOpts = '<option value="">- เลือก -</option>';
-    globalRatingDropdowns.Adoption.forEach(a => {
+    getIndexValues('Adoption').forEach(a => {
         const sel = a === adopt ? 'selected' : '';
         adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
     });
 
+    // ดึงค่า Potential จาก Index 
     let potOpts = '<option value="">- เลือก -</option>';
-    globalRatingDropdowns.Potential.forEach(p => {
+    getIndexValues('Potential').forEach(p => {
         const sel = p === pot ? 'selected' : '';
         potOpts += `<option value="${p}" ${sel}>${p}</option>`;
     });
@@ -1046,15 +1040,22 @@
     
     let calcClass = "";
 
-    if (prodId && adopt && pot) {
-        const matrixKey = `${prodId}_${adopt}_${pot}`;
-        calcClass = globalMatrixMaster[matrixKey] || "C"; // ค่า Default ถ้าหาไม่เจอ
+    // 1. หา Classification จาก Rating_Matrix
+    if (adopt && pot) {
+        const matrixRow = globalMatrixData.find(m => m.Adoption === adopt && m.Potential === pot);
+        if (matrixRow) {
+            calcClass = matrixRow.Classification || "";
+        }
     }
     classInput.value = calcClass;
 
+    // 2. หา Target (Call) จากตาราง Target
     if (prodId && calcClass) {
-        const targetKey = `${prodId}_${calcClass}`;
-        targetInput.value = globalTargetMaster[targetKey] !== undefined ? globalTargetMaster[targetKey] : 0;
+        const targetRow = globalTargetData.find(t => 
+            String(t.Product_ID) === String(prodId) && 
+            t.Classification === calcClass
+        );
+        targetInput.value = targetRow ? (targetRow.Target !== undefined ? targetRow.Target : "") : "";
     } else {
         targetInput.value = "";
     }
