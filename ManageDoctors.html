@@ -428,13 +428,13 @@
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      // 🌟 ใช้ select('*') ทุก Table ป้องกัน Error หาคอลัมน์ไม่เจอ
+      // 🌟 ดึงข้อมูลจาก Rep_Users แทน Users
       const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('*').eq('Status', 'Active').order('Hospital', { ascending: true }),
         supabaseClient.from('Products').select('*'),
-        supabaseClient.from('Users').select('*'),
+        supabaseClient.from('Rep_Users').select('*'), // <--- อัปเดตตารางตรงนี้
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
         supabaseClient.from('Target').select('*'),
@@ -445,7 +445,7 @@
       globalIndexes = idxRes.data || [];
       globalHospitals = hospRes.data || []; 
       globalProducts = prodRes.data || [];
-      globalUsers = userRes.data || [];
+      globalUsers = userRes.data || []; // ตอนนี้เก็บข้อมูลจากตาราง Rep_Users แทนแล้ว
       globalTerritories = terrRes.data || [];
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
@@ -817,7 +817,7 @@
     switchDoctorView('doctorProfileView');
   }
 
-  // 🌟 ดึงประวัติการเข้าพบ (ดึงชื่อผู้แทน และ ชื่อสินค้า มาแสดงแทน ID ทนต่อทุกรูปแบบชื่อคอลัมน์)
+  // 🌟 ฟังก์ชันดึงประวัติการเข้าพบ (ดึงข้อมูลจาก Rep_Users เพื่อเอา Rep_Name)
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
@@ -840,30 +840,33 @@
         const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
         
-        // ตัวแปรดิบที่มาจาก Visit_Logs (เช็คทุกรูปแบบพิมพ์เล็ก/ใหญ่)
-        const rawWho = v.Whoupdated || v.whoupdated || '';
-        const rawRepId = v.Rep_ID || v.rep_id || '';
+        const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.sales_rep || v.Created_By || '';
+        const rawRepId = v.Rep_ID || v.rep_id || v.User_ID || v.user_id || '';
         const rawProdId = v.Product_ID || v.product_id || '';
         const rawTerrId = v.Territory_ID || v.territory_id || '';
 
-        // 🌟 แปลง Sales Rep
+        // 🌟 ดึงข้อมูลจาก globalUsers (ซึ่งตอนนี้คือตาราง Rep_Users)
         const userObj = globalUsers.find(u => {
           const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
-          const uRepId = String(u.Rep_ID || u.rep_id || '').trim();
-          const uUserId = String(u.User_ID || u.user_id || u.id || '').trim();
+          const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
           
           const vWhoStr = String(rawWho).toLowerCase().trim();
           const vRepStr = String(rawRepId).trim();
 
           const matchEmail = (uEmail !== '' && vWhoStr !== '' && uEmail === vWhoStr);
           const matchRepId = (uRepId !== '' && vRepStr !== '' && uRepId === vRepStr);
-          const matchUserId = (uUserId !== '' && vRepStr !== '' && uUserId === vRepStr);
+          const matchRepIdByEmail = (uEmail !== '' && vRepStr !== '' && uEmail === vRepStr.toLowerCase());
           
-          return matchEmail || matchRepId || matchUserId;
+          return matchEmail || matchRepId || matchRepIdByEmail;
         });
-        const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || userObj.name || rawWho) : (rawWho || '-');
 
-        // 🌟 แปลง Product ID เป็น Product Name
+        // 🌟 เปลี่ยนมาดึงค่าจาก Rep_Name เป็นหลัก (ตามรูป Database)
+        const repNameShow = userObj ? (
+          userObj.Rep_Name || userObj.rep_name || 
+          userObj.Name || userObj.name || 
+          rawWho
+        ) : (rawWho || '-');
+
         const prodObj = globalProducts.find(p => {
           const pId = String(p.Product_ID || p.product_id || p.id || '').toLowerCase().trim();
           const vProdStr = String(rawProdId).toLowerCase().trim();
@@ -871,7 +874,6 @@
         });
         const prodNameShow = prodObj ? (prodObj.Product || prodObj.product || prodObj.Product_Name || prodObj.product_name || rawProdId) : (rawProdId || '-');
 
-        // 🌟 แปลง Territory ID เป็น Territory Name
         const terrObj = globalTerritories.find(t => {
           const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
           const vTerrStr = String(rawTerrId).toLowerCase().trim();
