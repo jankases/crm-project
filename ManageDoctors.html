@@ -46,29 +46,38 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (ปรับตามข้อ 1 และ ข้อ 2) -->
+    <!-- 🌟 ส่วนค้นหา (ปรับโรงพยาบาลหลักเป็นช่องพิมพ์ค้นหา + ไมค์) -->
     <div class="row mb-4 doctor-filter-group g-3">
+      <!-- 1. ค้นหาชื่อหมอ (มีไมค์) -->
       <div class="col-sm-12 col-md-5 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อแพทย์ (EN / TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
           <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN หรือ TH..." onkeyup="filterDoctors()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="พูดเพื่อค้นหาชื่อหมอ">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="พูดเพื่อค้นหาชื่อหมอ">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
         </div>
       </div>
+
+      <!-- 2. ความเชี่ยวชาญ -->
       <div class="col-sm-6 col-md-3 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">ความเชี่ยวชาญ</label>
         <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()">
           <option value="">- ทุกความเชี่ยวชาญ -</option>
         </select>
       </div>
+
+      <!-- 3. ค้นหา รพ. หลัก (ปรับเปลี่ยนเป็น Text Input + ไมค์) -->
       <div class="col-sm-6 col-md-4 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">โรงพยาบาลหลัก (Primary)</label>
-        <select class="form-select shadow-sm" id="filterDocWorkplace" onchange="filterDoctors()">
-          <option value="">- ทุกโรงพยาบาล -</option>
-        </select>
+        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-hospital text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocWorkplace" placeholder="พิมพ์ชื่อ รพ. หรือ ชื่อไทย..." onkeyup="filterDoctors()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
+            <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -312,48 +321,80 @@
   var globalHospitals = [];
   var currentTargetDocId = ""; 
 
-  // ===================== 🎙️ ระบบ Voice to Text (ข้อ 2) =====================
-  var searchRecognition;
-  var isSearchRecording = false;
+  // ===================== 🎙️ ระบบ Voice to Text แบบปรับปรุงใหม่ =====================
+  var activeSearchRecognition = null;
+  var currentSearchInputId = null;
+  var currentSearchBtnId = null;
+  var currentSearchIconId = null;
 
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  function toggleSpeechSearch(inputId, btnId, iconId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    }
+
+    if (activeSearchRecognition && currentSearchInputId === inputId) {
+      stopSpeechSearch();
+      return;
+    }
+
+    if (activeSearchRecognition) {
+      stopSpeechSearch();
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    searchRecognition = new SpeechRecognition();
-    searchRecognition.lang = 'th-TH'; searchRecognition.continuous = false; searchRecognition.interimResults = false; 
-    searchRecognition.onresult = function(event) {
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
-      }
-      if (finalTranscript) { 
-        document.getElementById('filterDocName').value = finalTranscript.trim(); 
-        filterDoctors(); 
-        stopSearchDictation(); 
-      }
-    };
-    searchRecognition.onerror = function() { stopSearchDictation(); };
-    searchRecognition.onend = function() { if(isSearchRecording) stopSearchDictation(); };
-  }
+    activeSearchRecognition = new SpeechRecognition();
+    activeSearchRecognition.lang = 'th-TH';
+    activeSearchRecognition.continuous = false;
+    activeSearchRecognition.interimResults = false;
 
-  function toggleSearchDictation() {
-    if (!searchRecognition) return alert("ขออภัย เบราว์เซอร์ไม่รองรับ");
-    if (isSearchRecording) stopSearchDictation(); else {
-      isSearchRecording = true; searchRecognition.start();
-      const btn = document.getElementById('btnMicSearch'), icon = document.getElementById('micSearchIcon');
-      btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white');
-      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.remove('text-muted', 'fa-microphone');
-      document.getElementById('filterDocName').placeholder = "กำลังฟัง...";
-    }
-  }
+    currentSearchInputId = inputId;
+    currentSearchBtnId = btnId;
+    currentSearchIconId = iconId;
 
-  function stopSearchDictation() {
-    isSearchRecording = false; if(searchRecognition) searchRecognition.stop();
-    const btn = document.getElementById('btnMicSearch'), icon = document.getElementById('micSearchIcon');
+    const btn = document.getElementById(btnId);
+    const icon = document.getElementById(iconId);
+
     if (btn && icon) {
-      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
-      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
-      document.getElementById('filterDocName').placeholder = "พิมพ์ชื่อ EN หรือ TH...";
+      btn.classList.add('btn-danger', 'mic-active', 'text-white');
+      btn.classList.remove('bg-white');
+      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
+      icon.classList.remove('text-muted');
     }
+
+    activeSearchRecognition.onresult = function(event) {
+      let spokenText = event.results[0][0].transcript.trim();
+      
+      const inputEl = document.getElementById(inputId);
+      if (inputEl && spokenText) {
+        inputEl.value = spokenText;
+        filterDoctors();
+      }
+      stopSpeechSearch();
+    };
+
+    activeSearchRecognition.onerror = stopSpeechSearch;
+    activeSearchRecognition.onend = stopSpeechSearch;
+    activeSearchRecognition.start();
+  }
+
+  function stopSpeechSearch() {
+    if (activeSearchRecognition) {
+      activeSearchRecognition.stop();
+      activeSearchRecognition = null;
+    }
+    if (currentSearchBtnId && currentSearchIconId) {
+      const btn = document.getElementById(currentSearchBtnId);
+      const icon = document.getElementById(currentSearchIconId);
+      if (btn && icon) {
+        btn.classList.remove('btn-danger', 'mic-active', 'text-white');
+        btn.classList.add('bg-white');
+        icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
+        icon.classList.add('text-muted');
+      }
+    }
+    currentSearchInputId = null;
+    currentSearchBtnId = null;
+    currentSearchIconId = null;
   }
 
   // ===================== ระบบโหลดข้อมูลหลัก =====================
@@ -403,17 +444,10 @@
       document.getElementById('docType').innerHTML = getOptionsHtml('DoctorType');
       document.getElementById('editDocType').innerHTML = getOptionsHtml('DoctorType');
 
-      let hospHtml = '<option value="">- ทุกโรงพยาบาล -</option>';
-      globalHospitals.forEach(h => {
-        const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
-        hospHtml += `<option value="${h.Hospital_ID}">${showName}</option>`;
-      });
-      document.getElementById('filterDocWorkplace').innerHTML = hospHtml;
-
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
-  // ===================== 🌟 โหลดหมอตามสิทธิ์ ทีม & Assignment (ข้อ 3) =====================
+  // ===================== 🌟 โหลดหมอตามสิทธิ์ ทีม & Assignment =====================
   async function loadDoctors() {
     const tbody = document.getElementById('doctorTableBody');
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
@@ -427,7 +461,6 @@
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      // 1. ดึง Master Data หมอ, assignment, territory, team
       const [docRes, assignRes, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
         supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true }),
         supabaseClient.from('Assignment').select('*').eq('Type', 'Doctor'),
@@ -444,31 +477,25 @@
       let territories = terrRes.data || [];
       let teams = teamRes.data || [];
 
-      // 2. คำนวณสิทธิ์การมองเห็นหมอตาม Role & Assignment
       let allowedDocIds = [];
 
-      // 🔴 Sales: เห็นหมอที่มี Assignment ใน Territory ของตัวเอง
       if (userRole === 'Sales' || userRole === 'Rep') {
         let myTerritoryId = userTerritory;
-        // หา Territory_ID ถ้า userTerritory เป็นชื่อ
         const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
         if (terrObj) myTerritoryId = terrObj.Territory_ID;
 
         allowedDocIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
       }
-      // 🟠 Manager: เห็นหมอที่อยู่ใน Territory ของลูกทีมใน Team เดียวกัน
       else if (userRole === 'Manager' || userRole === 'Sales Manager') {
         const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
         allowedDocIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
       }
-      // 🟢 BU Head: เห็นหมอที่อยู่ใน Territory ของทุกทีมใน BU ตัวเอง
       else if (userRole === 'BU Head' && userBu) {
         const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
         const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
         allowedDocIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
       }
 
-      // 🟡 กรองหมอตามสิทธิ์ (ถ้าระบุสิทธิ์แล้ว ให้กรอง ถ้าไม่พบ/Admin ให้แสดงทั้งหมด)
       let visibleDoctors = allDoctors;
       if (userRole !== 'Admin' && allowedDocIds.length > 0) {
         visibleDoctors = allDoctors.filter(d => allowedDocIds.includes(d.Doc_ID));
@@ -488,7 +515,6 @@
         };
       });
 
-      // รวม DCR หมอใหม่ที่รออนุมัติ
       const pendingAddDcrs = pendingAddRes.data || [];
       if (pendingAddDcrs.length > 0) {
         pendingAddDcrs.forEach(d => {
@@ -517,7 +543,7 @@
     }
   }
 
-  // 🌟 ฟังก์ชันกรองข้อมูล (ข้อ 1: ค้นหาเฉพาะชื่อ EN และ TH ไม่เอา ID)
+  // 🌟 ฟังก์ชันกรองข้อมูล (กรองชื่อหมอ และ กรอง รพ.หลัก แบบ Text Input)
   function filterDoctors() {
     const nameEl = document.getElementById('filterDocName');
     const specEl = document.getElementById('filterDocSpecialty');
@@ -525,15 +551,18 @@
     
     const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
     const specTerm = specEl ? specEl.value : "";
-    const hospTerm = hospEl ? hospEl.value : "";
+    const hospTerm = hospEl ? hospEl.value.toLowerCase().trim() : "";
 
     const filtered = globalDoctors.filter(d => {
-      // 🔥 ค้นหาเฉพาะชื่อ EN และ ชื่อ TH
+      // ค้นหาเฉพาะชื่อหมอ EN และ TH
       const nameSearchStr = `${d.nameEn || ''} ${d.nameTh || ''}`.toLowerCase();
       const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
       
       const matchSpec = (specTerm === "") || (d.specialty === specTerm);
-      const matchHosp = (hospTerm === "") || (d.hospitalId === hospTerm);
+      
+      // ค้นหาชื่อ รพ. หลัก
+      const matchHosp = (hospTerm === "") || (d.hospitalName && d.hospitalName.toLowerCase().includes(hospTerm));
+
       return matchName && matchSpec && matchHosp;
     });
 
