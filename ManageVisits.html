@@ -27,7 +27,7 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (Filters) -->
+    <!-- 🌟 ส่วนค้นหา -->
     <div class="row mb-4 g-2">
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
@@ -82,7 +82,6 @@
       </div>
     </div>
 
-    <!-- ตารางประวัติ -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
@@ -108,7 +107,7 @@
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchVisitView('visitListView')">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 บันทึกข้อมูลการเข้าพบ</h4>
@@ -118,7 +117,6 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
-        <!-- ส่วนข้อมูลผู้แทน -->
         <div class="p-3 rounded-4 mb-4 border bg-light">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -132,10 +130,8 @@
           </div>
         </div>
 
-        <!-- โซนเลือกคุณหมอ และ สินค้า -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
-          
           <div class="row g-3">
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor) <span class="text-danger">*</span></label>
@@ -149,7 +145,6 @@
               </div>
               <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนครับ</div>
             </div>
-
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product) <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" required>
@@ -158,7 +153,6 @@
               <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าที่นำเสนอก่อนครับ</div>
             </div>
           </div>
-
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
               <label class="form-label fw-bold text-dark">วันที่เข้าพบ (Date) <span class="text-danger">*</span></label>
@@ -176,10 +170,8 @@
           </div>
         </div>
 
-        <!-- รายละเอียดกิจกรรม -->
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
-          
           <div class="row g-3">
             <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose) <span class="text-danger">*</span></label>
@@ -188,7 +180,6 @@
               </select>
               <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์ครับ</div>
             </div>
-
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">รายละเอียดเพิ่มเติม (Details)</label>
@@ -198,7 +189,6 @@
               </div>
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
-
             <div class="col-md-7 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">ขั้นตอนถัดไป (Next Action)</label>
@@ -208,7 +198,6 @@
               </div>
               <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
             </div>
-
             <div class="col-md-5 mb-2">
               <label class="form-label fw-bold text-dark mb-1">สถานะรายการ (Status)</label>
               <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -220,7 +209,7 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchVisitView('visitListView')">ยกเลิก</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()">ยกเลิก</button>
           <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn">💾 บันทึกข้อมูล</button>
         </div>
       </form>
@@ -239,187 +228,116 @@
   var globalTeamList = [];
   var tomSelectDocInstance = null;
 
-  // 🌟 เปิดให้ไฟล์ ManageDoctors เรียกใช้งานข้ามสคริปต์ได้
-  window.openAddVisitModal = openAddVisitView;
-  window.openEditVisitModal = openEditVisitView;
+  // 🌟 ฟังก์ชันรับข้อมูลจากหน้าอื่น
+  window.openAddVisitModal = function(fromDocId = null) {
+    if (!fromDocId) sessionStorage.removeItem('returnToDocId');
+    openAddVisitView();
+  };
 
-  // ===================== 🎙️ ระบบไมค์อเนกประสงค์สำหรับ Filter =====================
-  var activeSearchRecognition = null;
-  var currentSearchInputId = null;
-  var currentSearchBtnId = null;
-  var currentSearchIconId = null;
+  window.openEditVisitModal = function(visitId, fromDocId = null) {
+    if (!fromDocId) sessionStorage.removeItem('returnToDocId');
+    openEditVisitView(visitId);
+  };
+
+  // 🌟 ฟังก์ชันจัดการปุ่ม "ยกเลิก" (กลับไปหน้าหมอถ้าส่งมาจากหน้าหมอ)
+  function cancelVisitForm() {
+    const returnDocId = sessionStorage.getItem('returnToDocId');
+    if (returnDocId) {
+      sessionStorage.removeItem('returnToDocId');
+      
+      document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
+        const txt = btn.textContent || btn.innerText;
+        if (txt && txt.trim() === 'แพทย์') btn.click();
+      });
+      
+      setTimeout(() => {
+        if (typeof window.openViewDoctorProfile === 'function') {
+          window.openViewDoctorProfile(returnDocId);
+        }
+      }, 500);
+    } else {
+      switchVisitView('visitListView');
+    }
+  }
+
+  // ===================== 🎙️ ระบบไมค์ =====================
+  var activeSearchRecognition = null, currentSearchInputId = null, currentSearchBtnId = null, currentSearchIconId = null;
 
   function toggleSpeechSearch(inputId, btnId, iconId) {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    }
-
-    if (activeSearchRecognition && currentSearchInputId === inputId) {
-      stopSpeechSearch();
-      return;
-    }
-
-    if (activeSearchRecognition) {
-      stopSpeechSearch();
-    }
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (activeSearchRecognition && currentSearchInputId === inputId) return stopSpeechSearch();
+    if (activeSearchRecognition) stopSpeechSearch();
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     activeSearchRecognition = new SpeechRecognition();
-    activeSearchRecognition.lang = 'th-TH';
-    activeSearchRecognition.continuous = false;
-    activeSearchRecognition.interimResults = false;
+    activeSearchRecognition.lang = 'th-TH'; activeSearchRecognition.continuous = false; activeSearchRecognition.interimResults = false;
+    currentSearchInputId = inputId; currentSearchBtnId = btnId; currentSearchIconId = iconId;
 
-    currentSearchInputId = inputId;
-    currentSearchBtnId = btnId;
-    currentSearchIconId = iconId;
-
-    const btn = document.getElementById(btnId);
-    const icon = document.getElementById(iconId);
-
-    if (btn && icon) {
-      btn.classList.add('btn-danger', 'mic-active', 'text-white');
-      btn.classList.remove('bg-white');
-      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
-      icon.classList.remove('text-muted');
-    }
+    const btn = document.getElementById(btnId), icon = document.getElementById(iconId);
+    if (btn && icon) { btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.remove('text-muted'); }
 
     activeSearchRecognition.onresult = function(event) {
       let spokenText = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) spokenText += event.results[i][0].transcript;
-      }
-      spokenText = spokenText.trim();
-      
+      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
       const inputEl = document.getElementById(inputId);
-      if (inputEl && spokenText) {
-        inputEl.value = spokenText;
-        filterVisits();
-      }
+      if (inputEl && spokenText.trim()) { inputEl.value = spokenText.trim(); filterVisits(); }
       stopSpeechSearch();
     };
-
-    activeSearchRecognition.onerror = function() { stopSpeechSearch(); };
-    activeSearchRecognition.onend = function() { stopSpeechSearch(); };
-
-    activeSearchRecognition.start();
+    activeSearchRecognition.onerror = stopSpeechSearch; activeSearchRecognition.onend = stopSpeechSearch; activeSearchRecognition.start();
   }
 
   function stopSpeechSearch() {
-    if (activeSearchRecognition) {
-      activeSearchRecognition.stop();
-      activeSearchRecognition = null;
-    }
+    if (activeSearchRecognition) { activeSearchRecognition.stop(); activeSearchRecognition = null; }
     if (currentSearchBtnId && currentSearchIconId) {
-      const btn = document.getElementById(currentSearchBtnId);
-      const icon = document.getElementById(currentSearchIconId);
-      if (btn && icon) {
-        btn.classList.remove('btn-danger', 'mic-active', 'text-white');
-        btn.classList.add('bg-white');
-        icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
-        icon.classList.add('text-muted');
-      }
+      const btn = document.getElementById(currentSearchBtnId), icon = document.getElementById(currentSearchIconId);
+      if (btn && icon) { btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white'); icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted'); }
     }
-    currentSearchInputId = null;
-    currentSearchBtnId = null;
-    currentSearchIconId = null;
   }
 
-  // ===================== 🎙️ ระบบ Voice to Text (Details & Next Action) =====================
-  var activeDictationRecognition = null;
-  var currentDictationTargetId = null;
-  var currentDictationBtnId = null;
+  var activeDictationRecognition = null, currentDictationTargetId = null, currentDictationBtnId = null;
 
   function toggleTextDictation(targetInputId, btnId) {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    }
-
-    if (activeDictationRecognition && currentDictationTargetId === targetInputId) {
-      stopTextDictation();
-      return;
-    }
-
-    if (activeDictationRecognition) {
-      stopTextDictation();
-    }
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (activeDictationRecognition && currentDictationTargetId === targetInputId) return stopTextDictation();
+    if (activeDictationRecognition) stopTextDictation();
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     activeDictationRecognition = new SpeechRecognition();
-    activeDictationRecognition.lang = 'th-TH';
-    activeDictationRecognition.continuous = false;
-    activeDictationRecognition.interimResults = false;
-
-    currentDictationTargetId = targetInputId;
-    currentDictationBtnId = btnId;
+    activeDictationRecognition.lang = 'th-TH'; activeDictationRecognition.continuous = false; activeDictationRecognition.interimResults = false;
+    currentDictationTargetId = targetInputId; currentDictationBtnId = btnId;
 
     const btn = document.getElementById(btnId);
-    if (btn) {
-      btn.classList.add('btn-danger', 'text-white', 'mic-active');
-      btn.classList.remove('btn-outline-danger');
-      btn.innerHTML = `<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>กำลังฟัง...`;
-    }
+    if (btn) { btn.classList.add('btn-danger', 'text-white', 'mic-active'); btn.classList.remove('btn-outline-danger'); btn.innerHTML = `<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>กำลังฟัง...`; }
 
     activeDictationRecognition.onresult = function(event) {
       let spokenText = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) spokenText += event.results[i][0].transcript;
-      }
-      spokenText = spokenText.trim();
-      
+      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
       const inputEl = document.getElementById(targetInputId);
-      if (inputEl && spokenText) {
-        const currentVal = inputEl.value.trim();
-        inputEl.value = currentVal ? `${currentVal} ${spokenText}` : spokenText;
-      }
+      if (inputEl && spokenText.trim()) { const currentVal = inputEl.value.trim(); inputEl.value = currentVal ? `${currentVal} ${spokenText.trim()}` : spokenText.trim(); }
       stopTextDictation();
     };
-
-    activeDictationRecognition.onerror = function() { stopTextDictation(); };
-    activeDictationRecognition.onend = function() { stopTextDictation(); };
-
-    activeDictationRecognition.start();
+    activeDictationRecognition.onerror = stopTextDictation; activeDictationRecognition.onend = stopTextDictation; activeDictationRecognition.start();
   }
 
   function stopTextDictation() {
-    if (activeDictationRecognition) {
-      activeDictationRecognition.stop();
-      activeDictationRecognition = null;
-    }
+    if (activeDictationRecognition) { activeDictationRecognition.stop(); activeDictationRecognition = null; }
     if (currentDictationBtnId) {
       const btn = document.getElementById(currentDictationBtnId);
-      if (btn) {
-        btn.classList.remove('btn-danger', 'text-white', 'mic-active');
-        btn.classList.add('btn-outline-danger');
-        btn.innerHTML = `<i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์`;
-      }
+      if (btn) { btn.classList.remove('btn-danger', 'text-white', 'mic-active'); btn.classList.add('btn-outline-danger'); btn.innerHTML = `<i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์`; }
     }
-    currentDictationTargetId = null;
-    currentDictationBtnId = null;
   }
 
-  // ===================== 🎙️ ค้นหาหมอด้วยเสียง (ในฟอร์ม) =====================
-  var docSpeechRecognition;
-  var isDocRecording = false;
-
+  var docSpeechRecognition, isDocRecording = false;
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    docSpeechRecognition = new SpeechRecognition();
-    docSpeechRecognition.lang = 'th-TH'; 
-    docSpeechRecognition.continuous = false;
-    docSpeechRecognition.interimResults = false;
-
+    docSpeechRecognition = new SpeechRecognition(); docSpeechRecognition.lang = 'th-TH'; docSpeechRecognition.continuous = false; docSpeechRecognition.interimResults = false;
     docSpeechRecognition.onresult = function(event) {
       let spokenText = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) spokenText += event.results[i][0].transcript;
-      }
-      spokenText = spokenText.trim();
-      if (spokenText) searchAndSelectDoctor(spokenText);
+      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
+      if (spokenText.trim()) searchAndSelectDoctor(spokenText.trim());
       stopDocDictation();
     };
-
-    docSpeechRecognition.onerror = function() { stopDocDictation(); };
-    docSpeechRecognition.onend = function() { if (isDocRecording) stopDocDictation(); };
+    docSpeechRecognition.onerror = stopDocDictation; docSpeechRecognition.onend = function() { if (isDocRecording) stopDocDictation(); };
   }
 
   function toggleDocDictation() {
@@ -427,20 +345,14 @@
     const btn = document.getElementById('btnMicDoc'), icon = document.getElementById('micDocIcon');
     if (isDocRecording) { stopDocDictation(); } else {
       isDocRecording = true; docSpeechRecognition.start();
-      if (btn && icon) {
-        btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white');
-        icon.classList.add('fa-microphone-lines', 'fa-fade');
-      }
+      if (btn && icon) { btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white'); icon.classList.add('fa-microphone-lines', 'fa-fade'); }
     }
   }
 
   function stopDocDictation() {
     isDocRecording = false; if (docSpeechRecognition) docSpeechRecognition.stop();
     const btn = document.getElementById('btnMicDoc'), icon = document.getElementById('micDocIcon');
-    if (btn && icon) {
-      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
-      icon.classList.remove('fa-microphone-lines', 'fa-fade');
-    }
+    if (btn && icon) { btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines', 'fa-fade'); }
   }
 
   function searchAndSelectDoctor(keyword) {
@@ -450,57 +362,38 @@
       const ts = docSelectEl.tomselect; ts.focus(); ts.setTextboxValue(keyword);
       const options = ts.options; let matchedDocId = null;
       for (let id in options) {
-        const opt = options[id];
-        const nameEn = (opt.nameEn || opt.text || '').toLowerCase();
-        const nameTh = (opt.nameTh || '').toLowerCase();
+        const opt = options[id]; const nameEn = (opt.nameEn || opt.text || '').toLowerCase(); const nameTh = (opt.nameTh || '').toLowerCase();
         if (nameEn.includes(searchKey) || nameTh.includes(searchKey)) { matchedDocId = id; break; }
       }
       if (matchedDocId) ts.setValue(matchedDocId);
     } else {
-      const matched = globalDoctorsList.find(d => 
-        (d.Doc_Name && d.Doc_Name.toLowerCase().includes(searchKey)) ||
-        (d.Doc_Name_TH && d.Doc_Name_TH.toLowerCase().includes(searchKey))
-      );
+      const matched = globalDoctorsList.find(d => (d.Doc_Name && d.Doc_Name.toLowerCase().includes(searchKey)) || (d.Doc_Name_TH && d.Doc_Name_TH.toLowerCase().includes(searchKey)));
       if (matched) { docSelectEl.value = matched.Doc_ID; docSelectEl.dispatchEvent(new Event('change')); }
     }
   }
 
-  // ===================== ระบบโหลดข้อมูลหลัก =====================
-  setTimeout(async function() {
-    await loadDropdowns();
-    initUserInfo();
-    await loadVisits();
-  }, 300);
+  setTimeout(async function() { await loadDropdowns(); initUserInfo(); await loadVisits(); }, 300);
 
   function initUserInfo() {
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
       const repName = crmUser ? (crmUser.Rep_Name || crmUser.Email || crmUser.name) : "Unknown Sales";
       const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
-      
       let terrNameShow = rawTerr;
       if (globalTerritoryList && globalTerritoryList.length > 0) {
-        const found = globalTerritoryList.find(t => 
-          String(t.Territory_ID) === String(rawTerr) || 
-          String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase()
-        );
+        const found = globalTerritoryList.find(t => String(t.Territory_ID) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
         if (found) terrNameShow = found.Territory;
       }
-
-      document.getElementById('dispSalesRepName').innerText = repName;
-      document.getElementById('dispTerritoryName').innerText = terrNameShow;
+      document.getElementById('dispSalesRepName').innerText = repName; document.getElementById('dispTerritoryName').innerText = terrNameShow;
     } catch(e) {}
   }
 
   function switchVisitView(viewId) {
-    ['visitListView', 'visitFormView'].forEach(v => {
-      const el = document.getElementById(v); if(el) el.classList.add('d-none');
-    });
+    ['visitListView', 'visitFormView'].forEach(v => { const el = document.getElementById(v); if(el) el.classList.add('d-none'); });
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0);
   }
 
- // 🌟 โหลด Dropdowns และกรองสิทธิ์ Sales Rep และ Product
   async function loadDropdowns() {
     try {
       let crmUser = null; 
@@ -511,7 +404,6 @@
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
 
-      // 🌟 ดึงข้อมูลจากฐานข้อมูลทั้งหมด
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
         supabaseClient.from('Products').select('*').order('Product', { ascending: true }), 
@@ -531,100 +423,64 @@
       globalUsersList = usersRes.data || [];
       globalTeamList = teamRes.data || [];
 
-      // ==========================================
-      // 1. จัดการ Dropdown คุณหมอในฟอร์ม
-      // ==========================================
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
-        
         globalDoctorsList.forEach(d => {
           const titleShow = d.Title ? d.Title + ' ' : '';
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option');
-          opt.value = d.Doc_ID;
-          opt.textContent = `${titleShow}${d.Doc_Name}${nameThShow}`;
-          docSelect.appendChild(opt);
+          opt.value = d.Doc_ID; opt.textContent = `${titleShow}${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
 
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
-          tomSelectDocInstance = new TomSelect('#visitDocId', {
-            create: false,
-            sortField: { field: "text", direction: "asc" },
-            placeholder: "-- ค้นหา/เลือกคุณหมอ --"
-          });
+          tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
         }
       }
 
-      // ==========================================
-      // 2. 🌟 จัดการ Dropdown สินค้า (Product) วิ่งหาจาก Territory -> Team -> Products_Team
-      // ==========================================
       const prodSelect = document.getElementById('visitProductId');
       if (prodSelect) { 
         let productsTeamList = productsTeamRes.data || [];
         let filteredProducts = [];
         let myTeamIds = [];
 
-        // ถ้าเป็น BU Head ให้หา Team ทั้งหมดใน BU
         if (userRole === 'BU Head' && userBu) {
           myTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID);
-        } 
-        // ถ้าเป็น Manager หาจาก Team โดยตรง
-        else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+        } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
           if (userTeam) myTeamIds.push(userTeam);
-        } 
-        // 🌟 ถ้าเป็น Sales ปกติ หา Team จาก Territory_ID ที่ผูกไว้
-        else if (userRole !== 'Admin') {
+        } else if (userRole !== 'Admin') {
           let repTeamId = userTeam;
           if (!repTeamId && userTerritory) {
-            const terrObj = globalTerritoryList.find(t => 
-              String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory)
-            );
+            const terrObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
             if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
           }
           if (repTeamId) myTeamIds.push(String(repTeamId));
         }
 
-        // กรอง Product จาก Team ที่พบ
         if (userRole === 'Admin') {
           filteredProducts = globalProductsList;
         } else if (myTeamIds.length > 0) {
-          const allowedProdIds = productsTeamList
-            .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
-            .map(pt => String(pt.Product_ID));
+          const allowedProdIds = productsTeamList.filter(pt => myTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active').map(pt => String(pt.Product_ID));
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         } else {
-          // เผื่อคนไม่มีทีม
           filteredProducts = globalProductsList; 
         }
 
         let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
-        filteredProducts.forEach(p => {
-          prodHtml += `<option value="${p.Product_ID}">${p.Product || p.Product_ID}</option>`;
-        });
+        filteredProducts.forEach(p => { prodHtml += `<option value="${p.Product_ID}">${p.Product || p.Product_ID}</option>`; });
         prodSelect.innerHTML = prodHtml;
       }
 
-      // ==========================================
-      // 3. จัดการ Dropdown วัตถุประสงค์ (Purpose)
-      // ==========================================
       const purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
-        const types = typeRes.data || [];
-        const indexes = idxRes.data || [];
+        const types = typeRes.data || []; const indexes = idxRes.data || [];
         const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
         let purposeHtml = '<option value="">-- เลือกวัตถุประสงค์ --</option>';
-        
         if (purposeType) {
           const purposeItems = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
           purposeItems.forEach(i => purposeHtml += `<option value="${i.Value}">${i.Value}</option>`);
         } else {
-          purposeHtml += `
-            <option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>
-            <option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>
-            <option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>
-            <option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>
-            <option value="อื่นๆ">อื่นๆ</option>`;
+          purposeHtml += `<option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option><option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option><option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option><option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>`;
         }
         purposeSelect.innerHTML = purposeHtml;
       }
@@ -636,7 +492,6 @@
     }
   }
 
-  // 🌟 1. เติมรายการ Sales Rep กรองตามสิทธิ์ Login
   function setupFiltersDropdowns(crmUser) {
     const repSelect = document.getElementById('filterVisitRep');
     if (!repSelect) return;
@@ -647,33 +502,17 @@
     const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
 
     let allowedUsers = [];
-
-    // 🔴 Sales: เห็นเฉพาะตัวเอง
-    if (userRole === 'Sales' || userRole === 'Rep') {
-      allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(crmUser.Rep_ID));
-    }
-    // 🟠 Manager: เห็นลูกทีมในทีมเดียวกัน
-    else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-      allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam));
-    }
-    // 🟢 BU Head: เห็นลูกทีมภายใต้ BU ตัวเอง
+    if (userRole === 'Sales' || userRole === 'Rep') { allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(crmUser.Rep_ID)); }
+    else if (userRole === 'Manager' || userRole === 'Sales Manager') { allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam)); }
     else if (userRole === 'BU Head' && userBu) {
       const buTeams = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID);
       allowedUsers = globalUsersList.filter(u => buTeams.includes(u.Team_ID));
-    }
-    // 🟡 Admin / อื่นๆ: เห็นทั้งหมด
-    else {
-      allowedUsers = globalUsersList;
-    }
+    } else { allowedUsers = globalUsersList; }
 
     let html = '<option value="">- All Reps -</option>';
-    allowedUsers.forEach(r => {
-      const rName = r.Rep_Name || r.Name || r.Email;
-      html += `<option value="${r.Rep_ID || r.User_ID}">${rName}</option>`;
-    });
+    allowedUsers.forEach(r => { html += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
     repSelect.innerHTML = html;
 
-    // Territory Filter Options
     const terSelect = document.getElementById('filterVisitTerritory');
     if (terSelect) {
       let tHtml = '<option value="">- All Territories -</option>';
@@ -681,7 +520,6 @@
       terSelect.innerHTML = tHtml;
     }
 
-    // Product Filter Options
     const prodFilterSelect = document.getElementById('filterVisitProduct');
     if (prodFilterSelect) {
       let pHtml = '<option value="">- All Products -</option>';
@@ -690,7 +528,6 @@
     }
   }
 
-  // 🌟 ดึงข้อมูลตาราง Visit_Logs
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -698,17 +535,11 @@
     tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
     try {
-      const { data, error } = await supabaseClient
-        .from('Visit_Logs')
-        .select('*')
-        .order('Visit_Date', { ascending: false });
-
+      const { data, error } = await supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false });
       if (error) throw error;
       globalVisits = data || [];
       filterVisits();
-    } catch(err) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`;
-    }
+    } catch(err) { tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`; }
   }
 
   function filterVisits() {
@@ -737,7 +568,6 @@
 
       return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
     });
-
     renderVisitTable(filtered);
   }
 
@@ -746,10 +576,7 @@
     if (!tbody) return; 
 
     tbody.innerHTML = '';
-
-    if (!data || data.length === 0) {
-      return tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
-    }
+    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
 
     data.forEach(v => {
       const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
@@ -757,18 +584,14 @@
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
-      let docNameShow = v.Doc_ID || '-';
-      let hospNameShow = '-';
+      let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
         const titleShow = docObj.Title ? docObj.Title + ' ' : '';
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${titleShow}${docObj.Doc_Name}${nameThShow}`;
-
         const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
-        if (hospObj) {
-          hospNameShow = hospObj.Known_As || hospObj.Hospital;
-        }
+        if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
 
       const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
@@ -793,17 +616,11 @@
   }
 
   function clearValidation() {
-    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.classList.remove('is-invalid');
-    });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.setProperty('display', 'none', 'important');
-    });
+    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
   }
 
-  // 🌟 1. ดักจับค่าชื่อหมอที่ส่งข้ามหน้าจอมา (Fix บัคใส่ชื่อหมอ)
+  // 🌟 ฟังก์ชันจัดการล็อคชื่อหมอลงในฟอร์มเมื่อถูกเรียกจากหน้าอื่น
   function openAddVisitView() {
     clearValidation();
     document.getElementById('visitForm').reset();
@@ -812,26 +629,19 @@
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
 
-    if (tomSelectDocInstance) {
-      tomSelectDocInstance.clear();
-    } else {
-      const docSelect = document.getElementById('visitDocId');
-      if (docSelect) docSelect.value = '';
-    }
+    if (tomSelectDocInstance) tomSelectDocInstance.clear();
+    else { const docSelect = document.getElementById('visitDocId'); if (docSelect) docSelect.value = ''; }
 
-    // 🌟 ดักจับว่าถูกโยน ID หมอมาจากหน้าแพทย์ (ManageDoctors) หรือไม่
     const returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
-      if (tomSelectDocInstance) {
-        tomSelectDocInstance.setValue(returnToDocId);
-      } else {
-        const docSelect = document.getElementById('visitDocId');
-        if (docSelect) {
-          docSelect.value = returnToDocId;
-          docSelect.dispatchEvent(new Event('change'));
+      setTimeout(() => {
+        if (tomSelectDocInstance) {
+          tomSelectDocInstance.setValue(returnToDocId);
+        } else {
+          const docSelect = document.getElementById('visitDocId');
+          if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); }
         }
-      }
-      sessionStorage.removeItem('returnToDocId'); // ลบค่าทิ้งป้องกันการจำค่าเดิม
+      }, 200); // ดีเลย์นิดนึงรอให้ TomSelect อัปเดต UI 
     }
 
     switchVisitView('visitFormView');
@@ -845,11 +655,8 @@
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerText = '✏️ แก้ไขการบันทึกเยี่ยม';
     
-    if (tomSelectDocInstance) {
-      tomSelectDocInstance.setValue(v.Doc_ID);
-    } else {
-      document.getElementById('visitDocId').value = v.Doc_ID || '';
-    }
+    if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
+    else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
     document.getElementById('visitProductId').value = v.Product_ID || '';
     document.getElementById('visitDate').value = v.Visit_Date || '';
@@ -863,7 +670,7 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 บันทึกลงตาราง Visit_Logs
+  // 🌟 บันทึกข้อมูลและพาวิ่งกลับหน้าหมอ
   async function handleSaveVisit(e) {
     e.preventDefault();
 
@@ -876,27 +683,10 @@
     clearValidation();
 
     let missingFields = [];
-
-    if (!docSelect.value) {
-      docSelect.classList.add('is-invalid');
-      document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important');
-      missingFields.push("• คุณหมอที่เข้าพบ (Doctor)");
-    }
-    if (!prodSelect.value) {
-      prodSelect.classList.add('is-invalid');
-      document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important');
-      missingFields.push("• สินค้าที่นำเสนอ (Product)");
-    }
-    if (!dateInput.value) {
-      dateInput.classList.add('is-invalid');
-      document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important');
-      missingFields.push("• วันที่เข้าพบ (Date)");
-    }
-    if (!purposeSelect.value) {
-      purposeSelect.classList.add('is-invalid');
-      document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important');
-      missingFields.push("• วัตถุประสงค์ (Purpose)");
-    }
+    if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• คุณหมอที่เข้าพบ (Doctor)"); }
+    if (!prodSelect.value) { prodSelect.classList.add('is-invalid'); document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• สินค้าที่นำเสนอ (Product)"); }
+    if (!dateInput.value) { dateInput.classList.add('is-invalid'); document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important'); missingFields.push("• วันที่เข้าพบ (Date)"); }
+    if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important'); missingFields.push("• วัตถุประสงค์ (Purpose)"); }
 
     if (missingFields.length > 0) {
       alert("⚠️ ไม่สามารถบันทึกได้! กรุณากรอก/เลือกข้อมูลต่อไปนี้ให้ครบถ้วนครับ:\n\n" + missingFields.join("\n"));
@@ -937,15 +727,33 @@
       if (visitId) {
         const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', visitId);
         if (error) throw error;
-        alert("✅ แก้ไขข้อมูลการเข้าพบเรียบร้อยแล้ว");
       } else {
         const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
         if (error) throw error;
-        alert("✅ บันทึกข้อมูลการเข้าพบเรียบร้อยแล้ว");
       }
 
-      switchVisitView('visitListView');
-      await loadVisits();
+      // 🌟 กระบวนการโยนหน้าจอกลับไปที่โปรไฟล์คุณหมอ
+      const returnDocId = sessionStorage.getItem('returnToDocId');
+      if (returnDocId) {
+        sessionStorage.removeItem('returnToDocId');
+        
+        // คลิกลิงก์เมนูด้านบนที่เขียนว่า "แพทย์" เพื่อสลับแท็บ
+        document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
+          const txt = menuBtn.textContent || menuBtn.innerText;
+          if (txt && txt.trim() === 'แพทย์') menuBtn.click();
+        });
+        
+        // รอให้หน้าหมอเรนเดอร์แป๊ปนึง แล้วเรียกฟังก์ชันเปิดโปรไฟล์ + โหลดข้อมูลใหม่
+        setTimeout(() => {
+          if (typeof window.openViewDoctorProfile === 'function') {
+            window.openViewDoctorProfile(returnDocId);
+          }
+        }, 500);
+      } else {
+        // กรณีบันทึกแบบปกติ ไม่ได้มาจากหน้าหมอ
+        switchVisitView('visitListView');
+        await loadVisits();
+      }
 
     } catch(err) {
       console.error("Save Visit Error:", err);
