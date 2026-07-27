@@ -331,6 +331,7 @@
   var globalIndexTypes = [];
   var globalMatrixData = [];
   var globalTargetData = [];
+  var globalTeamProducts = []; // เก็บสินค้าเฉพาะของ Team ตัวเอง
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
   var activeSearchRecognition = null;
@@ -424,15 +425,22 @@
 
   async function loadIndexDropdowns() {
     try {
-      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes] = await Promise.all([
+      let crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+
+      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
+      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+
+      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').order('Hospital', { ascending: true }),
-        supabaseClient.from('Products').select('Product_ID, Product'),
+        supabaseClient.from('Products').select('Product_ID, Product, Team_ID, BU_ID'),
         supabaseClient.from('Users').select('*'),
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
-        supabaseClient.from('Target').select('*')
+        supabaseClient.from('Target').select('*'),
+        supabaseClient.from('Team_Products').select('*') // ตารางเชื่อมโยงสินค้าตามทีม (ถ้ามี)
       ]);
       
       globalIndexTypes = typeRes.data || [];
@@ -443,6 +451,24 @@
       globalTerritories = terrRes.data || [];
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
+
+      let allProducts = globalProducts;
+      let teamProdLinks = teamProdRes.data || [];
+
+      // กรองสินค้าเฉพาะของ Team ตัวเอง (อ้างอิงตรรกะแบบหน้า Visit)
+      if (crmUser && (crmUser.Role || crmUser.role) !== 'Admin') {
+        let filteredProducts = allProducts.filter(p => {
+          let matchTeam = userTeam && (String(p.Team_ID) === String(userTeam));
+          let matchBu = userBu && (String(p.BU_ID) === String(userBu));
+          let matchLink = teamProdLinks.some(tp => String(tp.Team_ID) === String(userTeam) && String(tp.Product_ID) === String(p.Product_ID));
+          return matchTeam || matchBu || matchLink;
+        });
+        
+        // ถ้าไม่พบเงื่อนไขตารางย่อย ให้ใช้สินค้าทั้งหมดหรือเคลียร์ตามความเหมาะสม
+        globalTeamProducts = filteredProducts.length > 0 ? filteredProducts : allProducts;
+      } else {
+        globalTeamProducts = allProducts;
+      }
 
       const getOptionsHtml = (typeName) => {
         const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
@@ -468,7 +494,7 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
-// 🔴 กำหนดลำดับการเรียง (Sort Order) ให้ตรงกับหน้า Matrix
+  // 🔴 จัดเรียง Adoption และ Potential ให้ถูกต้องตามหน้า Matrix
   function getIndexValues(typeName) {
     const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
     if (!typeObj) return [];
@@ -476,7 +502,6 @@
     let items = globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
 
     if (typeName.toLowerCase() === 'adoption') {
-      // ลำดับ Adoption ตามหน้า Matrix: High -> Medium-High -> Medium -> Medium-Low -> Low -> Non User
       const order = ['High', 'Medium-High', 'Medium', 'Medium-Low', 'Low', 'Non User'];
       items.sort((a, b) => {
         let indexA = order.indexOf(a.Value);
@@ -486,7 +511,6 @@
         return indexA - indexB;
       });
     } else if (typeName.toLowerCase() === 'potential') {
-      // ลำดับ Potential ตามหน้า Matrix: High -> Medium -> Low -> No
       const order = ['High', 'Medium', 'Low', 'No'];
       items.sort((a, b) => {
         let indexA = order.indexOf(a.Value);
@@ -1010,22 +1034,23 @@
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
 
+    // 🔴 โหลดเฉพาะสินค้าของทีมตัวเอง (globalTeamProducts)
     let prodOpts = '<option value="">- เลือกสินค้า -</option>';
-    if (typeof globalProducts !== 'undefined') {
-        globalProducts.forEach(p => {
+    if (typeof globalTeamProducts !== 'undefined') {
+        globalTeamProducts.forEach(p => {
             const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
             prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
         });
     }
 
-    // ดึงค่า Adoption จาก Index 
+    // ดึงค่า Adoption (เรียงลำดับตาม Matrix)
     let adoptOpts = '<option value="">- เลือก -</option>';
     getIndexValues('Adoption').forEach(a => {
         const sel = a === adopt ? 'selected' : '';
         adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
     });
 
-    // ดึงค่า Potential จาก Index 
+    // ดึงค่า Potential (เรียงลำดับ High, Medium, Low, No)
     let potOpts = '<option value="">- เลือก -</option>';
     getIndexValues('Potential').forEach(p => {
         const sel = p === pot ? 'selected' : '';
@@ -1055,6 +1080,7 @@
     tbody.appendChild(tr);
   }
 
+  // 🔴 ปรับปรุงเงื่อนไข: ต้องเลือก Product ก่อนถึงจะคำนวณ Classification และ Target ออกมา
   function triggerCalcTarget(element) {
     const tr = element.closest('tr');
     const prodId = tr.querySelector('.rating-product').value;
@@ -1066,8 +1092,8 @@
     
     let calcClass = "";
 
-    // 1. หา Classification จาก Rating_Matrix
-    if (adopt && pot) {
+    // เงื่อนไข: ต้องเลือก Product พร้อมกับ Adoption และ Potential ครบถ้วน ถึงจะคำนวณ Class
+    if (prodId && adopt && pot) {
         const matrixRow = globalMatrixData.find(m => m.Adoption === adopt && m.Potential === pot);
         if (matrixRow) {
             calcClass = matrixRow.Classification || "";
@@ -1075,7 +1101,7 @@
     }
     classInput.value = calcClass;
 
-    // 2. หา Target (Call) จากตาราง Target
+    // หา Target (Call) ต่อเนื่องจาก Product และ Classification
     if (prodId && calcClass) {
         const targetRow = globalTargetData.find(t => 
             String(t.Product_ID) === String(prodId) && 
