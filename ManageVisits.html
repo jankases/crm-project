@@ -39,27 +39,27 @@
           <option value="">- All Reps -</option>
         </select>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-1">
         <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
-        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()">
-          <option value="">- All Territories -</option>
+        <select class="form-select shadow-sm px-1" id="filterVisitTerritory" onchange="filterVisits()">
+          <option value="">- All -</option>
         </select>
       </div>
       <div class="col-md-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="ค้นหาชื่อแพทย์..." onkeyup="filterVisits()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="ค้นหาแพทย์ (TH/EN)..." onkeyup="filterVisits()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="พูดเพื่อค้นหาชื่อหมอ">
             <i class="fa-solid fa-microphone text-muted" id="micDocSearchIcon"></i>
           </button>
         </div>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="ค้นหาชื่อ รพ...." onkeyup="filterVisits()">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="ค้นหา รพ. (TH/EN)..." onkeyup="filterVisits()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
           </button>
@@ -261,7 +261,6 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ (ย่อโค้ดเพื่อความกระชับ) =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
@@ -507,7 +506,7 @@
       allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
     }
 
-    let tHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All Territories -</option>';
+    let tHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All -</option>';
     allowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
