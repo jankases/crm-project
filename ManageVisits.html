@@ -12,7 +12,6 @@
     70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
-  /* ปรับ TomSelect ให้เหมาะกับการเลือกหลายอัน */
   .ts-control { border-radius: 10px !important; min-height: 42px; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
 </style>
@@ -360,11 +359,6 @@
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-      
-      const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
-      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
-      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
 
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
@@ -391,42 +385,8 @@
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
       }
 
-      const prodSelect = document.getElementById('visitProductId');
-      const productsTeamList = productsTeamRes.data || [];
-      
-      if (prodSelect) { 
-        let filteredProducts = []; let myTeamIds = [];
-        if (userRole === 'BU Head' && userBu) { myTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => String(t.Team_ID)); } 
-        else if (userRole === 'Manager' || userRole === 'Sales Manager') { if (userTeam) myTeamIds.push(String(userTeam)); } 
-        else if (userRole !== 'Admin' && userRole !== 'Staff') {
-          let repTeamId = userTeam;
-          if (!repTeamId && userTerritory) {
-            const terrObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
-            if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
-          }
-          if (repTeamId) myTeamIds.push(String(repTeamId));
-        }
-
-        if (['Admin', 'Staff'].includes(userRole) || String(userTerritory).toUpperCase() === 'ALL') {
-          filteredProducts = globalProductsList;
-        } else if (myTeamIds.length > 0) {
-          const allowedProdIds = productsTeamList.filter(pt => myTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active').map(pt => String(pt.Product_ID));
-          filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
-        } else filteredProducts = globalProductsList; 
-
-        let prodHtml = '';
-        filteredProducts.forEach(p => { prodHtml += `<option value="${p.Product_ID}">${p.Product}</option>`; });
-        prodSelect.innerHTML = prodHtml;
-
-        if (typeof TomSelect !== 'undefined' && !prodSelect.tomselect) {
-            tomSelectProdInstance = new TomSelect('#visitProductId', {
-                plugins: ['remove_button'], 
-                create: false,
-                sortField: { field: "text", direction: "asc" },
-                placeholder: "-- เลือกสินค้า (เลือกได้มากกว่า 1 รายการ) --"
-            });
-        }
-      }
+      // ให้ setupFiltersDropdowns จัดการเรื่องสิทธิ์ทั้งหมด รวมถึง Dropdown สินค้า
+      setupFiltersDropdowns(crmUser, productsTeamRes.data || []);
 
       const purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
@@ -441,8 +401,6 @@
         }
         purposeSelect.innerHTML = purposeHtml;
       }
-
-      setupFiltersDropdowns(crmUser, productsTeamList);
 
       const returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
@@ -460,103 +418,136 @@
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
     const prodFilterSelect = document.getElementById('filterVisitProduct');
+    const formProdSelect = document.getElementById('visitProductId'); // ดรอปดาวน์ตอนบันทึกใหม่
     if (!repSelect || !terSelect || !prodFilterSelect) return;
 
-    const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : ''; 
-    const userTeam = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || '').trim() : '';
-    const userBu = crmUser ? String(crmUser.BU_ID || crmUser.buId || crmUser.BU || '').trim() : ''; 
-    const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
+    // ดึงค่าข้อมูลของ User ที่ Log in อยู่
+    const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
+    const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    const userTerritory = crmUser ? String(crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+    const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    // เช็คสิทธิ์แบบคนเห็นทั้งหมด (Admin, Staff, หรือคนที่ถูกตั้ง Territory เป็น ALL)
-    const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || userTerritory.toUpperCase() === 'ALL';
+    // 1. กำหนดสิทธิ์ว่าคนนี้เป็น Global (ดูได้ทั้งหมด) หรือไม่
+    const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
 
-    let allowedUsers = [];
     let allowedTeamIds = [];
-    let allowedTerritories = [];
+    let allowedTerIds = [];
+    let allowedRepIds = [];
+    let allowedEmails = [];
 
     if (isGlobalViewer) {
-      allowedUsers = globalUsersList;
-      allowedTerritories = globalTerritoryList;
+      allowedTeamIds = globalTeamList.map(t => String(t.Team_ID));
+      allowedTerIds = globalTerritoryList.map(t => String(t.Territory_ID));
+      allowedRepIds = globalUsersList.map(u => String(u.Rep_ID || u.User_ID));
+      allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
     } else {
-      // 1. ดึง Team_ID ตาม Role
+      // ค้นหาว่า Scope (เช่น LUNG1) เป็นชื่อทีม หรือ ชื่อพื้นที่
+      let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+      let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
+      
+      // กางเครือข่ายสิทธิ์
       if (userRole === 'Manager' || userRole === 'Sales Manager') {
-        if (userTeam) allowedTeamIds.push(userTeam);
-      } 
-      else if (userRole === 'BU Head' && userBu) {
-        allowedTeamIds = globalTeamList.filter(t => String(t.BU_ID) === userBu).map(t => String(t.Team_ID));
-      } 
-      else if (userRole === 'Sales' || userRole === 'Rep') {
-        let repTeamId = userTeam;
-        if (!repTeamId && userTerritory) {
-          const terrObj = globalTerritoryList.find(t => String(t.Territory_ID) === userTerritory || String(t.Territory) === userTerritory);
-          if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
-        }
-        if (repTeamId) allowedTeamIds.push(String(repTeamId));
+          if (matchedTeam) {
+              allowedTeamIds.push(String(matchedTeam.Team_ID));
+              // ดึงเขตรับผิดชอบทั้งหมดที่อยู่ในทีมนี้
+              const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
+              terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+          } else if (rawScope) {
+              // กรณีระบุ ID ทีมตรงๆ แต่ค้นไม่เจอในระบบ ให้ใช้ string เดิมเลย
+              allowedTeamIds.push(rawScope);
+              const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === rawScope);
+              terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+          }
+      } else if (userRole === 'BU Head') {
+          const buTeams = globalTeamList.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
+          buTeams.forEach(t => {
+              allowedTeamIds.push(String(t.Team_ID));
+              const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
+              terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+          });
+      } else { // Sales & Reps
+          if (matchedTerr) {
+              allowedTerIds.push(String(matchedTerr.Territory_ID));
+              if (matchedTerr.Team_ID) allowedTeamIds.push(String(matchedTerr.Team_ID));
+          } else if (rawScope) {
+              allowedTerIds.push(rawScope);
+          }
       }
 
-      // 2. ดึง Territory ที่อยู่ภายใต้ Team เหล่านี้ (หรือ Territory ส่วนตัวของ Rep)
-      allowedTerritories = globalTerritoryList.filter(t => {
-        const tId = String(t.Territory_ID);
-        const tName = String(t.Territory);
-        const tTeam = String(t.Team_ID);
-        return allowedTeamIds.includes(tTeam) || tId === userTerritory || tName === userTerritory;
-      });
+      // ใส่ตัวเองเข้าไปเสมอ
+      if (userRepId) allowedRepIds.push(userRepId);
+      if (userEmail) allowedEmails.push(userEmail);
 
-      const allowedTerIdsForSec = allowedTerritories.map(t => String(t.Territory_ID));
-      const allowedTerNamesForSec = allowedTerritories.map(t => String(t.Territory));
-
-      // 3. กวาดพนักงานทั้งหมดที่ผูกกับ Team หรือ Territory เหล่านี้
-      allowedUsers = globalUsersList.filter(u => {
-        const uEmail = String(u.Email).toLowerCase();
-        if (uEmail === userEmail) return true; // เห็นตัวเองเสมอ
-        
-        const uTeam = String(u.Team_ID || u.Team);
-        const uTerr = String(u.Territory_ID || u.Territory || u.territoryId);
-        
-        return allowedTeamIds.includes(uTeam) || allowedTerIdsForSec.includes(uTerr) || allowedTerNamesForSec.includes(uTerr);
-      });
+      // กวาดชื่อพนักงานทุกคนที่อยู่ในวงสิทธิ์ (สำหรับ Manager/BU)
+      if (userRole !== 'Sales' && userRole !== 'Rep') {
+          const subUsers = globalUsersList.filter(u => {
+              const uTeam = String(u.Team_ID || u.Team);
+              const uTerr = String(u.Territory_ID || u.Territory || u.territoryId);
+              return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr);
+          });
+          subUsers.forEach(u => {
+              const rId = String(u.Rep_ID || u.User_ID);
+              const rEm = String(u.Email).toLowerCase();
+              if (rId && rId !== 'undefined') allowedRepIds.push(rId);
+              if (rEm && rEm !== 'undefined') allowedEmails.push(rEm);
+          });
+      }
     }
 
-    // เซฟสิทธิ์ลง Window Global Variables เพื่อให้ filterVisits() เอาไปเช็คแบบเข้มงวด
+    // เซฟสิทธิ์ลง Global Variables เพื่อใช้ในตาราง
     window.myIsGlobalViewer = isGlobalViewer;
     window.myAllowedTeamIds = allowedTeamIds;
-    window.myAllowedTerIds = allowedTerritories.map(t => String(t.Territory_ID));
-    window.myAllowedUsersEmails = allowedUsers.map(u => String(u.Email || '').toLowerCase());
-    window.myAllowedUsersRepIds = allowedUsers.map(u => String(u.Rep_ID || u.User_ID || u.id));
+    window.myAllowedTerIds = allowedTerIds;
+    window.myAllowedRepIds = allowedRepIds;
+    window.myAllowedEmails = allowedEmails;
 
-    // สร้าง HTML คืนค่าให้ Dropdown ค้นหา
-    const uniqueUsers = [];
-    const seenIds = new Set();
-    allowedUsers.forEach(u => {
-       const id = String(u.Rep_ID || u.User_ID || u.Email);
-       if (!seenIds.has(id)) { seenIds.add(id); uniqueUsers.push(u); }
+    // สร้าง UI Dropdown Sales Rep
+    const uniqueUsersMap = new Map();
+    globalUsersList.forEach(u => {
+        const id = String(u.Rep_ID || u.User_ID);
+        if (isGlobalViewer || allowedRepIds.includes(id)) {
+            if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
+        }
     });
 
     let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Reps -</option>';
-    uniqueUsers.forEach(r => { repHtml += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
+    uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
+    // สร้าง UI Dropdown Territory
     let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All -</option>';
-    allowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
+    globalTerritoryList.forEach(t => {
+        if (isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID))) {
+            tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`;
+        }
+    });
     terSelect.innerHTML = tHtml;
 
+    // สร้าง UI Dropdown Products
     let allowedProducts = [];
     if (isGlobalViewer) {
-      allowedProducts = globalProductsList;
+        allowedProducts = globalProductsList;
     } else if (allowedTeamIds.length > 0 && productsTeamList) {
-      const allowedProdIds = productsTeamList
-        .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
-        .map(pt => String(pt.Product_ID));
-      allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+        const allowedProdIds = productsTeamList
+            .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
+            .map(pt => String(pt.Product_ID));
+        allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
     } else {
-      allowedProducts = globalProductsList;
+        allowedProducts = globalProductsList;
     }
-
+    
     let pHtml = '<option value="">- All Products -</option>';
     allowedProducts.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
     prodFilterSelect.innerHTML = pHtml;
+
+    if (formProdSelect) {
+        let fHtml = '';
+        allowedProducts.forEach(p => fHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+        formProdSelect.innerHTML = fHtml;
+        if (typeof TomSelect !== 'undefined' && !formProdSelect.tomselect) {
+            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- เลือกสินค้า (เลือกได้มากกว่า 1 รายการ) --" });
+        }
+    }
   }
 
   async function loadVisits() {
@@ -585,7 +576,6 @@
   function filterVisits() {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
-
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     const docSearchTerm = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value.toLowerCase().trim() : '';
@@ -594,7 +584,7 @@
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
     const filtered = globalVisits.filter(v => {
-      // 🌟 Data Security: กรองสิทธิ์แบบเข้มงวดที่สุด (หลุด ID ก็หาด้วย Email/Territory)
+      // 🌟 Security Check: กรองสิทธิ์แบบเข้มงวดที่สุด (หลุด ID ก็หาด้วย Email/Territory)
       let hasSecurityAccess = false;
 
       if (window.myIsGlobalViewer) {
@@ -602,32 +592,16 @@
       } else {
         const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
         const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-        const vTerrId = String(v.Territory_ID || '');
+        const vTerrId = String(v.Territory_ID || '').trim();
 
-        // 1. หาตัวตนของคนบันทึก Visit นี้จากฐานข้อมูล User
-        let vUserObj = globalUsersList.find(u => {
-            const uEmail = String(u.Email || '').toLowerCase().trim();
-            const uRepId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-            return (uEmail && uEmail === rawWho) || (uRepId && uRepId === rawRepId) || (uEmail && uEmail === rawRepId.toLowerCase());
-        });
-
-        // 2. เช็คว่าคนๆ นี้อยู่ในรายชื่อที่เรามีสิทธิ์ดูไหม
-        if (vUserObj) {
-            const uEmail = String(vUserObj.Email).toLowerCase();
-            const uRepId = String(vUserObj.Rep_ID || vUserObj.User_ID || vUserObj.id);
-            if (window.myAllowedUsersEmails.includes(uEmail) || window.myAllowedUsersRepIds.includes(uRepId)) {
-                hasSecurityAccess = true;
-            }
-        }
-        
-        // 3. ก๊อกสอง (Fallback): ถ้าหา UserObj ไม่เจอ แต่รหัส/ชื่อตรงกับที่เรามีสิทธิ์ หรืออยู่ในเขตพื้นที่รับผิดชอบ
-        if (!hasSecurityAccess) {
-            if (window.myAllowedUsersRepIds.includes(rawRepId) || window.myAllowedUsersEmails.includes(rawWho)) hasSecurityAccess = true;
-            if (window.myAllowedTerIds.includes(vTerrId)) hasSecurityAccess = true;
+        if (window.myAllowedRepIds.includes(rawRepId) || 
+            window.myAllowedTerIds.includes(vTerrId) || 
+            window.myAllowedEmails.includes(rawWho)) {
+            hasSecurityAccess = true;
         }
       }
 
-      if (!hasSecurityAccess) return false; // ไม่มีสิทธิ์ดูบรรทัดนี้ เด้งออกเลย
+      if (!hasSecurityAccess) return false; // ไม่มีสิทธิ์ดูรายการนี้ เด้งออกเลย
 
       // 🌟 UI Filtering: ถ้ามีสิทธิ์แล้ว กรองตามหน้าจอที่เลือก
       const matchRep = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
