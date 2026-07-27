@@ -78,7 +78,6 @@
       </div>
     </div>
 
-    <!-- ตารางประวัติ (เอาคอลัมน์ Action ออกแล้ว) -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
@@ -222,7 +221,7 @@
   var globalHospitalsList = [];
   var globalUsersList = [];
   var globalTeamList = [];
-  var globalPendingUnlockVisits = []; // 🌟 เก็บ ID รายการที่รอปลดล็อค
+  var globalPendingUnlockVisits = []; 
   var tomSelectDocInstance = null;
 
   window.openAddVisitModal = function(fromDocId = null) {
@@ -239,12 +238,10 @@
     const returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
         if (txt && txt.trim() === 'แพทย์') btn.click();
       });
-      
       setTimeout(() => {
         if (typeof window.openViewDoctorProfile === 'function') {
           window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
@@ -255,7 +252,7 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ (ย่อโค้ดเพื่อความกระชับ) =====================
+  // ===================== 🎙️ ระบบไมค์ =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
@@ -382,7 +379,7 @@
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
         globalDoctorsList.forEach(d => {
-          // 🌟 เอา Title ของหมอออกใน Dropdown ให้โชว์แค่ชื่อ
+          // 🌟 เอาคำนำหน้าออกตอนโหลด Dropdown
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
@@ -463,7 +460,6 @@
     if (prodFilterSelect) { let pHtml = '<option value="">- All Products -</option>'; globalProductsList.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`); prodFilterSelect.innerHTML = pHtml; }
   }
 
-  // 🌟 ดึงข้อมูลตาราง Visit_Logs (พร้อมเช็ค DCR สำหรับแสดงสถานะขอแก้ไข)
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -538,7 +534,7 @@
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
-        // 🌟 เอา Title ของหมอออกในตาราง (ตามที่ Request ล่าสุด)
+        // 🌟 แก้ไขจุดนี้: เอาคำนำหน้าออก โชว์แค่ EN (TH)
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
         
@@ -549,7 +545,6 @@
       const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
       const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
-      // 🌟 นำ Action ออก แล้วเปลี่ยนให้คลิกที่ Date ได้เลย
       tbody.innerHTML += `
         <tr>
           <td class="text-center fw-bold">
@@ -572,7 +567,6 @@
     ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
   }
 
-  // 🌟 ฟังก์ชันคุมการ ปิด/เปิด ช่องกรอกฟอร์ม (Lock System)
   function toggleVisitFormEditable(isEditable) {
     const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
     fields.forEach(id => {
@@ -601,7 +595,7 @@
 
     if (tomSelectDocInstance) {
       tomSelectDocInstance.clear();
-      tomSelectDocInstance.enable(); // ปลดล็อค dropdown เผื่อโดนล็อคไว้
+      tomSelectDocInstance.enable(); 
     } else { 
       const docSelect = document.getElementById('visitDocId'); 
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
@@ -612,21 +606,19 @@
       setTimeout(() => {
         if (tomSelectDocInstance) {
           tomSelectDocInstance.setValue(returnToDocId);
-          tomSelectDocInstance.disable(); // ล็อค Dropdown ชื่อหมอไม่ให้เปลี่ยน
+          tomSelectDocInstance.disable(); 
         } else {
           const docSelect = document.getElementById('visitDocId');
           if (docSelect) { 
             docSelect.value = returnToDocId; 
             docSelect.dispatchEvent(new Event('change')); 
-            docSelect.disabled = true; // ล็อค
+            docSelect.disabled = true; 
           }
         }
       }, 200); 
     }
 
-    // เปิดให้แก้ฟิลด์อื่นๆ ได้ทั้งหมด
     toggleVisitFormEditable(true);
-    // แต่ถ้ามาจากหน้าหมอ ต้องบังคับล็อคชื่อหมอเสมอ
     if (returnToDocId) {
       setTimeout(() => {
         if (tomSelectDocInstance) tomSelectDocInstance.disable();
@@ -666,7 +658,6 @@
     const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
     const btn = document.getElementById('saveVisitBtn');
 
-    // 🌟 ระบบดักจับสิทธิ์การแก้ไข (Lock Logic)
     if (isPendingUnlock) {
       toggleVisitFormEditable(false);
       btn.disabled = true;
@@ -686,7 +677,6 @@
       btn.innerHTML = '💾 บันทึกข้อมูล';
       btn.dataset.mode = 'save';
       
-      // ถ้ามาจากหน้าหมอ ล็อค Dropdown ชื่อหมอไม่ให้เปลี่ยน
       if (sessionStorage.getItem('returnToDocId')) {
          if (tomSelectDocInstance) tomSelectDocInstance.disable();
          else document.getElementById('visitDocId').disabled = true;
@@ -696,7 +686,6 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 ฟังก์ชันส่ง DCR ขอปลดล็อค Edit
   async function requestUnlockVisit(visitId) {
     const btn = document.getElementById('saveVisitBtn');
     btn.disabled = true;
@@ -742,13 +731,11 @@
     }
   }
 
-  // 🌟 บันทึกข้อมูลและพาวิ่งกลับหน้าหมอ (ไป Tab ประวัติ)
   async function handleSaveVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('saveVisitBtn');
     const mode = btn.dataset.mode;
 
-    // ถ้ากดปุ่มแล้วอยู่ในโหมดขอแก้ ให้วิ่งไปอีกฟังก์ชันนึง
     if (mode === 'disabled') return;
     if (mode === 'request_unlock') {
       requestUnlockVisit(document.getElementById('visitId').value);
@@ -812,7 +799,6 @@
         if (error) throw error;
       }
 
-      // 🌟 กระบวนการโยนหน้าจอกลับไปที่โปรไฟล์คุณหมอ (Tab ประวัติ)
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
