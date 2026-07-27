@@ -61,7 +61,7 @@
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-hospital text-muted"></i></span>
           <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="ค้นหาชื่อ รพ...." onkeyup="filterVisits()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
@@ -244,6 +244,10 @@
   var globalUsersList = [];
   var globalTeamList = [];
   var tomSelectDocInstance = null;
+
+  // 🌟 เปิดให้ไฟล์ ManageDoctors เรียกใช้งานข้ามสคริปต์ได้
+  window.openAddVisitModal = openAddVisitView;
+  window.openEditVisitModal = openEditVisitView;
 
   // ===================== 🎙️ ระบบไมค์อเนกประสงค์สำหรับ Filter (ข้อ 2 & ข้อ 3) =====================
   var activeSearchRecognition = null;
@@ -516,11 +520,11 @@
       // 🌟 ดึงข้อมูลจากฐานข้อมูลทั้งหมด
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Products').select('*').order('Product', { ascending: true }), // ดึงข้อมูลสินค้า
+        supabaseClient.from('Products').select('*').order('Product', { ascending: true }), 
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').order('Hospital', { ascending: true }),
         supabaseClient.from('Team').select('*'),            
-        supabaseClient.from('Products_Team').select('*'),   // ดึงตารางเชื่อม Product กับ Team
+        supabaseClient.from('Products_Team').select('*'),   
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Rep_Users').select('*')
@@ -566,14 +570,11 @@
         let productsTeamList = productsTeamRes.data || [];
         let filteredProducts = [];
 
-        // ลอจิกกรองสินค้า: เอา Product_ID จากตาราง Products_Team มาเทียบ
         if (userRole === 'BU Head' && userBu) {
-          // หา Team ทั้งหมดใน BU นี้
           const allowedTeamIds = globalTeamList
             .filter(t => String(t.BU_ID) === String(userBu))
             .map(t => t.Team_ID);
 
-          // หาสินค้าที่ผูกกับ Team เหล่านั้น
           const allowedProdIds = productsTeamList
             .filter(pt => allowedTeamIds.includes(pt.Team_ID) && pt.Status !== 'Inactive')
             .map(pt => pt.Product_ID);
@@ -581,7 +582,6 @@
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
         }
         else if (userRole !== 'Admin' && userTeam) {
-          // หาสินค้าที่ผูกกับ Team ของ User คนนี้
           const allowedProdIds = productsTeamList
             .filter(pt => String(pt.Team_ID) === String(userTeam) && pt.Status !== 'Inactive')
             .map(pt => pt.Product_ID);
@@ -589,7 +589,6 @@
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
         }
 
-        // ถ้าไม่มีสินค้าในทีมเลย หรือเป็น Admin ให้แสดงสินค้าทั้งหมด
         if (filteredProducts.length === 0 || userRole === 'Admin') {
           filteredProducts = globalProductsList;
         }
@@ -625,8 +624,22 @@
         purposeSelect.innerHTML = purposeHtml;
       }
 
-      // เซ็ตค่าลง Filters ด้านบนตาราง
       setupFiltersDropdowns(crmUser);
+
+      // 🌟 ดักจับว่าถูกโยนมาจากหน้าแพทย์ (ManageDoctors) หรือไม่
+      const returnToDocId = sessionStorage.getItem('returnToDocId');
+      if (returnToDocId) {
+        if (tomSelectDocInstance) {
+          tomSelectDocInstance.setValue(returnToDocId);
+        } else {
+          if (docSelect) {
+            docSelect.value = returnToDocId;
+            docSelect.dispatchEvent(new Event('change'));
+          }
+        }
+        // ลบค่าทิ้งหลังจากใช้งานเสร็จแล้ว
+        sessionStorage.removeItem('returnToDocId');
+      }
 
     } catch (err) {
       console.error("Error loading dropdowns:", err.message);
