@@ -48,7 +48,6 @@
 
     <!-- ส่วนค้นหา -->
     <div class="row mb-4 doctor-filter-group g-3">
-      <!-- 1. ค้นหาชื่อหมอ (แว่นขยาย + ไมค์) -->
       <div class="col-sm-12 col-md-5 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อแพทย์ (EN / TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -60,7 +59,6 @@
         </div>
       </div>
 
-      <!-- 2. ความเชี่ยวชาญ -->
       <div class="col-sm-6 col-md-3 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">ความเชี่ยวชาญ</label>
         <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()">
@@ -68,7 +66,6 @@
         </select>
       </div>
 
-      <!-- 3. ค้นหา รพ. หลัก -->
       <div class="col-sm-6 col-md-4 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">โรงพยาบาลหลัก (Primary)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -260,11 +257,9 @@
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
-            
             <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToQuickAddCall()">
               <i class="fa-solid fa-plus me-1"></i> บันทึกเยี่ยม (Add Call)
             </button>
-            
           </div>
 
           <div class="table-responsive">
@@ -332,6 +327,9 @@
   var globalMatrixData = [];
   var globalTargetData = [];
   var globalTeamProducts = []; 
+
+  // 🌟 เปิดทางให้ไฟล์อื่น (ManageVisits) เรียกใช้งานโปรไฟล์ได้แบบสากล
+  window.openViewDoctorProfile = openViewDoctorProfile;
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
   var activeSearchRecognition = null;
@@ -439,7 +437,7 @@
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
         supabaseClient.from('Target').select('*'),
-        supabaseClient.from('Products_Team').select('*') // แก้จาก Team_Products เป็น Products_Team เผื่อพิมพ์ผิด
+        supabaseClient.from('Products_Team').select('*')
       ]);
       
       globalIndexTypes = typeRes.data || [];
@@ -895,12 +893,12 @@
     }
   }
 
-  // 🌟 ฟังก์ชันสำหรับการกดลิงก์ข้ามไปหน้า "บันทึกเยี่ยม" (Add Call / Edit Call)
+  // 🌟 ฟังก์ชันส่งข้อมูลข้ามไปยังหน้าบันทึกเยี่ยม และสลับ Tab อัตโนมัติ
   function goToQuickAddCall() {
     sessionStorage.setItem('returnToDocId', currentTargetDocId);
     
-    // 1. จำลองการคลิกเปลี่ยนแท็บเมนูหลักด้านบน (หาปุ่มที่มีคำว่า บันทึกเยี่ยม)
-    const allMenus = document.querySelectorAll('button, a, .nav-link, .menu-item');
+    // ค้นหาและคลิกสลับแท็บเมนูหลัก (เมนู 'บันทึกเยี่ยม')
+    const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
     allMenus.forEach(btn => {
       const txt = btn.textContent || btn.innerText;
       if (txt && txt.trim().includes('บันทึกเยี่ยม') && !txt.includes('Add Call')) {
@@ -908,10 +906,10 @@
       }
     });
 
-    // 2. เรียกฟังก์ชันของหน้า ManageVisits
+    // เรียกฟังก์ชันเปิด Modal หน้าบันทึกเยี่ยม พร้อมแนบ DocID
     setTimeout(() => {
       if (typeof window.openAddVisitModal === 'function') {
-        window.openAddVisitModal();
+        window.openAddVisitModal(currentTargetDocId); 
       } else {
         alert("กรุณาสลับไปที่เมนู 'บันทึกเยี่ยม' ด้วยตัวเองเพื่อสร้างรายการครับ (ระบบได้จดจำชื่อหมอไว้ให้แล้ว)");
       }
@@ -924,7 +922,7 @@
     }
     sessionStorage.setItem('returnToDocId', currentTargetDocId);
 
-    const allMenus = document.querySelectorAll('button, a, .nav-link, .menu-item');
+    const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
     allMenus.forEach(btn => {
       const txt = btn.textContent || btn.innerText;
       if (txt && txt.trim().includes('บันทึกเยี่ยม') && !txt.includes('Add Call')) {
@@ -934,7 +932,7 @@
 
     setTimeout(() => {
       if (typeof window.openEditVisitModal === 'function') {
-        window.openEditVisitModal(visitId);
+        window.openEditVisitModal(visitId, currentTargetDocId);
       } else {
         alert("กรุณาสลับไปที่เมนู 'บันทึกเยี่ยม' ด้วยตัวเองเพื่อแก้ไขรายการนี้ครับ");
       }
