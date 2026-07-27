@@ -30,7 +30,7 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (ปรับ Layout + Cascading Dropdown) -->
+    <!-- 🌟 ส่วนค้นหา -->
     <div class="row mb-4 g-2">
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
@@ -359,11 +359,6 @@
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-      
-      const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
-      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
-      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
 
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
@@ -417,7 +412,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์ และเก็บตัวแปรตั้งต้นสำหรับ Cascading Filter
+  // 🌟 ฟังก์ชันจัดการสิทธิ์แบบครอบคลุม (Bulletproof Security + Cross-Identifier Check)
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -430,18 +425,21 @@
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
+    // เช็คสิทธิ์แบบคนเห็นทั้งหมด (Admin, Staff, หรือคนที่ถูกตั้ง Scope เป็น ALL)
     const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
 
     let allowedTeamIds = [];
     let allowedTerIds = [];
     let allowedRepIds = [];
     let allowedEmails = [];
+    let allowedNames = [];
 
     if (isGlobalViewer) {
       allowedTeamIds = globalTeamList.map(t => String(t.Team_ID));
       allowedTerIds = globalTerritoryList.map(t => String(t.Territory_ID));
       allowedRepIds = globalUsersList.map(u => String(u.Rep_ID || u.User_ID));
       allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
+      allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
     } else {
       let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
       let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -472,9 +470,13 @@
           }
       }
 
+      // ใส่ข้อมูลตัวเองเข้าไปเสมอ (ID, Email, Name) เพื่อให้เห็นผลงานตัวเอง
       if (userRepId) allowedRepIds.push(userRepId);
       if (userEmail) allowedEmails.push(userEmail);
+      const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
+      if (userName) allowedNames.push(userName);
 
+      // กวาดลูกทีมทั้งหมด (รวมทั้งคนที่ไม่ได้ระบุทีม แต่ดูแลพื้นที่เดียวกับที่เราดูแล)
       if (userRole !== 'Sales' && userRole !== 'Rep') {
           const subUsers = globalUsersList.filter(u => {
               const uTeam = String(u.Team_ID || u.Team);
@@ -482,27 +484,30 @@
               return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr);
           });
           subUsers.forEach(u => {
-              const rId = String(u.Rep_ID || u.User_ID);
+              const rId = String(u.Rep_ID || u.User_ID || u.id);
               const rEm = String(u.Email).toLowerCase();
-              if (rId && rId !== 'undefined') allowedRepIds.push(rId);
-              if (rEm && rEm !== 'undefined') allowedEmails.push(rEm);
+              const rNm = String(u.Rep_Name || u.Name).toLowerCase();
+              if (rId && rId !== 'undefined' && rId !== 'null') allowedRepIds.push(rId);
+              if (rEm && rEm !== 'undefined' && rEm !== 'null') allowedEmails.push(rEm);
+              if (rNm && rNm !== 'undefined' && rNm !== 'null') allowedNames.push(rNm);
           });
       }
     }
 
     // เซฟข้อมูลตัวเต็มไว้ใช้ทำ Cascading Filter
     window.myIsGlobalViewer = isGlobalViewer;
-    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID)));
+    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
     window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
     window.myAllowedTeamIds = allowedTeamIds;
     window.myAllowedTerIds = allowedTerIds;
     window.myAllowedRepIds = allowedRepIds;
     window.myAllowedEmails = allowedEmails;
+    window.myAllowedNames = allowedNames;
 
     // สร้าง UI เริ่มต้น
     const uniqueUsersMap = new Map();
     window.fullAllowedUsers.forEach(u => {
-        const id = String(u.Rep_ID || u.User_ID);
+        const id = String(u.Rep_ID || u.User_ID || u.id);
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
@@ -556,14 +561,13 @@
     if (source === 'rep') {
         let validTers = window.fullAllowedTerritories || [];
         if (repVal !== "") {
-            const selectedRep = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID) === repVal);
+            const selectedRep = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID || u.id) === repVal);
             if (selectedRep) {
                 const rTeam = String(selectedRep.Team_ID || selectedRep.Team || '');
                 const rTer = String(selectedRep.Territory_ID || selectedRep.Territory || selectedRep.territoryId || '');
                 validTers = (window.fullAllowedTerritories || []).filter(t => {
                     const tId = String(t.Territory_ID);
                     const tTeam = String(t.Team_ID);
-                    // ตัวกรองความสัมพันธ์: พื้นที่ต้องตรงกับที่ Rep ดูแล หรือ ทีมของ Rep ตรงกับทีมที่ดูแลพื้นที่นั้น
                     return tId === rTer || (rTeam && rTeam !== 'undefined' && tTeam === rTeam) || window.myIsGlobalViewer;
                 });
                 if (validTers.length === 0) validTers = window.fullAllowedTerritories;
@@ -575,7 +579,6 @@
         validTers.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
         terSelect.innerHTML = tHtml;
         
-        // ถ้าค่าเดิมที่เลือกไว้ยังถูกต้องอยู่ ให้เลือกค่าเดิมไว้
         if (validTers.some(t => String(t.Territory_ID) === currentTerVal)) {
             terSelect.value = currentTerVal;
         } else {
@@ -592,7 +595,6 @@
                 validReps = (window.fullAllowedUsers || []).filter(u => {
                     const uTeam = String(u.Team_ID || u.Team || '');
                     const uTer = String(u.Territory_ID || u.Territory || u.territoryId || '');
-                    // ตัวกรองความสัมพันธ์: Rep ต้องดูแลพื้นที่นี้ตรงๆ หรือ Rep อยู่ในทีมที่ดูแลพื้นที่นี้
                     return uTer === terVal || (tTeam && tTeam !== 'undefined' && uTeam === tTeam) || window.myIsGlobalViewer;
                 });
                 if (validReps.length === 0) validReps = window.fullAllowedUsers;
@@ -601,14 +603,13 @@
         
         const currentRepVal = repSelect.value;
         let repHtml = hideAllOption ? '' : '<option value="">- All Reps -</option>';
-        // ทำ Unique Users
         const uniqueUsersMap = new Map();
-        validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
+        validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
         uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
         
         repSelect.innerHTML = repHtml;
         
-        if (validReps.some(r => String(r.Rep_ID || r.User_ID) === currentRepVal)) {
+        if (validReps.some(r => String(r.Rep_ID || r.User_ID || r.id) === currentRepVal)) {
             repSelect.value = currentRepVal;
         } else {
             repSelect.value = "";
@@ -652,7 +653,7 @@
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
     const filtered = globalVisits.filter(v => {
-      // 🌟 Security Check: กรองสิทธิ์แบบเข้มงวด
+      // 🌟 Security Check: กรองสิทธิ์แบบเข้มงวด + ครอบคลุมการหลุด ID 
       let hasSecurityAccess = false;
 
       if (window.myIsGlobalViewer) {
@@ -664,15 +665,30 @@
 
         if (window.myAllowedRepIds.includes(rawRepId) || 
             window.myAllowedTerIds.includes(vTerrId) || 
-            window.myAllowedEmails.includes(rawWho)) {
+            window.myAllowedEmails.includes(rawWho) || 
+            window.myAllowedNames.includes(rawWho)) {
             hasSecurityAccess = true;
         }
       }
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 UI Filtering
-      const matchRep = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
+      // 🌟 UI Filtering: กรองตามหน้าจอที่เลือก (รวมเคสเลือกชื่อแล้วต้องเจอประวัติที่คนนั้นพิมพ์บันทึกไว้)
+      let matchRep = (repTerm === "");
+      if (repTerm !== "") {
+          const selUser = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID || u.id) === repTerm);
+          const selId = repTerm;
+          const selEm = selUser ? String(selUser.Email).toLowerCase() : '';
+          const selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
+          
+          const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+          const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
+
+          if (rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm)) {
+              matchRep = true;
+          }
+      }
+
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
