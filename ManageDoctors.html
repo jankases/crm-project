@@ -257,7 +257,7 @@
           </div>
         </div>
 
-        <!-- 🌟 Tab 2: ประวัติการเข้าพบ (เพิ่มคอลัมน์ เขตพื้นที่ Territory และแปลงชื่อ Product / Sales Rep) -->
+        <!-- Tab 2: ประวัติการเข้าพบ -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
@@ -750,7 +750,7 @@
     switchDoctorView('doctorProfileView');
   }
 
-  // 🌟 ดึงประวัติการเข้าพบ (ดึงชื่อ Product, ชื่อ Sales Rep และชื่อ Territory)
+  // 🌟 ดึงประวัติการเข้าพบ (ดึงชื่อจริงของผู้แทน Sales Rep จากตาราง Users)
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
@@ -773,19 +773,19 @@
         const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
         
-        // 1. ดึงชื่อ Sales Rep จาก Whoupdated / Rep_ID
+        // 🌟 1. ดึงชื่อผู้แทนขายจากตาราง Users แบบละเอียดยิ่งขึ้น
         const userObj = globalUsers.find(u => 
-          String(u.Rep_ID) === String(v.Rep_ID) || 
-          String(u.Email) === String(v.Whoupdated) ||
-          String(u.User_ID) === String(v.Rep_ID)
+          (u.Email && String(u.Email).toLowerCase() === String(v.Whoupdated).toLowerCase()) ||
+          (u.Rep_ID && String(u.Rep_ID) === String(v.Rep_ID)) ||
+          (u.User_ID && String(u.User_ID) === String(v.Rep_ID))
         );
         const repNameShow = userObj ? (userObj.Rep_Name || userObj.Name || userObj.Email) : (v.Whoupdated || '-');
 
-        // 2. ดึงชื่อสินค้าจาก Product_ID
+        // 🌟 2. ดึงชื่อสินค้าจาก Product_ID
         const prodObj = globalProducts.find(p => String(p.Product_ID) === String(v.Product_ID));
         const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
-        // 3. ดึงชื่อ Territory จาก Territory_ID
+        // 🌟 3. ดึงชื่อ Territory จาก Territory_ID
         const terrObj = globalTerritories.find(t => String(t.Territory_ID) === String(v.Territory_ID));
         const terrNameShow = terrObj ? terrObj.Territory : (v.Territory_ID || '-');
 
