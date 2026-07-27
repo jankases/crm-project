@@ -264,6 +264,7 @@
             
           </div>
 
+          <!-- 🌟 เอาคอลัมน์ Action ในตารางออกแล้ว -->
           <div class="table-responsive">
             <table class="table table-hover align-middle" style="font-size: 0.9rem;">
               <thead class="table-light text-center">
@@ -329,6 +330,7 @@
   var globalMatrixData = [];
   var globalTargetData = [];
   var globalTeamProducts = []; 
+  var globalPendingUnlockVisits = []; // 🌟 เก็บ ID รายการที่รออนุมัติปลดล็อค
 
   // 🌟 เปิดให้ภายนอกสั่งเปิดหน้าโปรไฟล์ พร้อมระบุ Tab เป้าหมายได้
   window.openViewDoctorProfile = openViewDoctorProfile;
@@ -831,21 +833,32 @@
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
-      const { data, error } = await supabaseClient
-        .from('Visit_Logs')
-        .select('*')
-        .eq('Doc_ID', docId)
-        .order('Visit_Date', { ascending: false });
+      const [visitRes, dcrRes] = await Promise.all([
+        supabaseClient.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false }),
+        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
+      ]);
 
-      if (error) throw error;
+      if (visitRes.error) throw visitRes.error;
       
       tbody.innerHTML = '';
+      const data = visitRes.data || [];
       if(!data || data.length === 0) {
         return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ยังไม่มีประวัติการเข้าพบ</td></tr>';
       }
 
+      globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
+
       data.forEach(v => {
-        const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
+        const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
+        let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
+        let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+
+        // ถ้ามีการส่ง DCR ขอแก้
+        if (isPendingUnlock) {
+          badge = 'bg-secondary';
+          statusShow = '⏳ ขอแก้ไข (รออนุมัติ)';
+        }
+
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
         
         const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.sales_rep || v.Created_By || '';
@@ -887,14 +900,19 @@
         });
         const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || terrObj.Territory_Name || rawTerrId) : (rawTerrId || '-');
 
+        // 🌟 เปลี่ยนให้ Date กดได้ และเอาคอลัมน์ Action ออก
         tbody.innerHTML += `
-          <tr onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}')" style="cursor: pointer;" title="คลิกเพื่อแก้ไขรายการนี้">
-            <td class="text-center text-primary fw-bold">${dateStr}</td>
+          <tr class="align-middle">
+            <td class="text-center fw-bold">
+              <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}'); return false;" title="คลิกเพื่อแก้ไข/ดูรายการนี้">
+                ${dateStr}
+              </a>
+            </td>
             <td class="fw-bold text-dark">${repNameShow}</td>
             <td class="text-center"><span class="badge bg-light text-primary border">${terrNameShow}</span></td>
             <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
             <td><small>${v.Purpose || '-'}</small></td>
-            <td class="text-center"><span class="badge ${badge} px-2 py-1">${v.Status || 'Submitted'}</span></td>
+            <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
           </tr>
         `;
       });
