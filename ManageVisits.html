@@ -239,10 +239,12 @@
     const returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
+      
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
         if (txt && txt.trim() === 'แพทย์') btn.click();
       });
+      
       setTimeout(() => {
         if (typeof window.openViewDoctorProfile === 'function') {
           window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
@@ -353,7 +355,9 @@
 
   async function loadDropdowns() {
     try {
-      let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      let crmUser = null; 
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      
       const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
       const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
@@ -378,8 +382,9 @@
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
         globalDoctorsList.forEach(d => {
-          const titleShow = d.Title ? d.Title + ' ' : ''; const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
-          const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${titleShow}${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
+          // 🌟 เอา Title ของหมอออกใน Dropdown ให้โชว์แค่ชื่อ
+          const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
+          const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
       }
@@ -425,7 +430,6 @@
 
       setupFiltersDropdowns(crmUser);
 
-      // 🌟 ดักจับข้อมูลที่โยนมาจากหน้าแพทย์ แล้วเอาชื่อหมอใส่ให้แบบ Auto
       const returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
         setTimeout(() => {
@@ -523,7 +527,6 @@
       let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
       let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
 
-      // ถ้ามีการส่ง DCR ขอแก้
       if (isPendingUnlock) {
         badge = 'bg-secondary';
         statusShow = '⏳ ขอแก้ไข (รออนุมัติ)';
@@ -535,9 +538,10 @@
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
-        const titleShow = docObj.Title ? docObj.Title + ' ' : '';
+        // 🌟 เอา Title ของหมอออกในตาราง (ตามที่ Request ล่าสุด)
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
-        docNameShow = `${titleShow}${docObj.Doc_Name}${nameThShow}`;
+        docNameShow = `${docObj.Doc_Name}${nameThShow}`;
+        
         const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
         if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
@@ -595,19 +599,41 @@
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
 
-    if (tomSelectDocInstance) tomSelectDocInstance.clear();
-    else { const docSelect = document.getElementById('visitDocId'); if (docSelect) docSelect.value = ''; }
+    if (tomSelectDocInstance) {
+      tomSelectDocInstance.clear();
+      tomSelectDocInstance.enable(); // ปลดล็อค dropdown เผื่อโดนล็อคไว้
+    } else { 
+      const docSelect = document.getElementById('visitDocId'); 
+      if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
+    }
 
     const returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       setTimeout(() => {
-        if (tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
-        else { const docSelect = document.getElementById('visitDocId'); if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
+        if (tomSelectDocInstance) {
+          tomSelectDocInstance.setValue(returnToDocId);
+          tomSelectDocInstance.disable(); // ล็อค Dropdown ชื่อหมอไม่ให้เปลี่ยน
+        } else {
+          const docSelect = document.getElementById('visitDocId');
+          if (docSelect) { 
+            docSelect.value = returnToDocId; 
+            docSelect.dispatchEvent(new Event('change')); 
+            docSelect.disabled = true; // ล็อค
+          }
+        }
       }, 200); 
     }
 
-    // เปิดให้แก้ทั้งหมด
+    // เปิดให้แก้ฟิลด์อื่นๆ ได้ทั้งหมด
     toggleVisitFormEditable(true);
+    // แต่ถ้ามาจากหน้าหมอ ต้องบังคับล็อคชื่อหมอเสมอ
+    if (returnToDocId) {
+      setTimeout(() => {
+        if (tomSelectDocInstance) tomSelectDocInstance.disable();
+        else document.getElementById('visitDocId').disabled = true;
+      }, 250);
+    }
+
     const btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
     btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
@@ -659,6 +685,12 @@
       btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
       btn.innerHTML = '💾 บันทึกข้อมูล';
       btn.dataset.mode = 'save';
+      
+      // ถ้ามาจากหน้าหมอ ล็อค Dropdown ชื่อหมอไม่ให้เปลี่ยน
+      if (sessionStorage.getItem('returnToDocId')) {
+         if (tomSelectDocInstance) tomSelectDocInstance.disable();
+         else document.getElementById('visitDocId').disabled = true;
+      }
     }
 
     switchVisitView('visitFormView');
