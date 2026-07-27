@@ -468,10 +468,36 @@
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
+// 🔴 กำหนดลำดับการเรียง (Sort Order) ให้ตรงกับหน้า Matrix
   function getIndexValues(typeName) {
     const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
     if (!typeObj) return [];
-    return globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID).map(i => i.Value);
+    
+    let items = globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
+
+    if (typeName.toLowerCase() === 'adoption') {
+      // ลำดับ Adoption ตามหน้า Matrix: High -> Medium-High -> Medium -> Medium-Low -> Low -> Non User
+      const order = ['High', 'Medium-High', 'Medium', 'Medium-Low', 'Low', 'Non User'];
+      items.sort((a, b) => {
+        let indexA = order.indexOf(a.Value);
+        let indexB = order.indexOf(b.Value);
+        if (indexA === -1) indexA = 99;
+        if (indexB === -1) indexB = 99;
+        return indexA - indexB;
+      });
+    } else if (typeName.toLowerCase() === 'potential') {
+      // ลำดับ Potential ตามหน้า Matrix: High -> Medium -> Low -> No
+      const order = ['High', 'Medium', 'Low', 'No'];
+      items.sort((a, b) => {
+        let indexA = order.indexOf(a.Value);
+        let indexB = order.indexOf(b.Value);
+        if (indexA === -1) indexA = 99;
+        if (indexB === -1) indexB = 99;
+        return indexA - indexB;
+      });
+    }
+
+    return items.map(i => i.Value);
   }
 
   // ===================== 🌟 โหลดหมอตามสิทธิ์ ทีม & Assignment =====================
