@@ -14,6 +14,11 @@
   }
   .ts-control { border-radius: 10px !important; min-height: 42px; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
+
+  /* 🌟 เพิ่มคลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
+  .sortable-th i { transition: transform 0.2s; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -30,7 +35,7 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา -->
+    <!-- ส่วนค้นหา -->
     <div class="row mb-4 g-2">
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
@@ -80,18 +85,18 @@
       </div>
     </div>
 
-    <!-- ตารางประวัติ -->
+    <!-- ตารางประวัติ (เพิ่ม sortable-th ที่หัวตาราง) -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
-              <th class="py-3">วันที่ (Date)</th>
-              <th class="py-3">แพทย์ (Doctor)</th>
-              <th class="py-3">โรงพยาบาล (Hospital)</th>
-              <th class="py-3">สินค้า (Products)</th>
-              <th class="py-3">วัตถุประสงค์ (Purpose)</th>
-              <th class="py-3">สถานะ (Status)</th>
+              <th class="py-3 sortable-th" onclick="sortVisits('date')">วันที่ (Date) <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('doctor')">แพทย์ (Doctor) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('hospital')">โรงพยาบาล (Hospital) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('products')">สินค้า (Products) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('purpose')">วัตถุประสงค์ (Purpose) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('status')">สถานะ (Status) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
@@ -229,6 +234,10 @@
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
 
+  // 🌟 ตัวแปรสำหรับเก็บค่าการจัดเรียง (Sorting State)
+  var currentSortCol = 'date';
+  var currentSortAsc = false; // ค่าเริ่มต้น: วันที่ใหม่สุดอยู่บน
+
   window.openAddVisitModal = function(fromDocId = null) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
     openAddVisitView();
@@ -335,7 +344,6 @@
 
   setTimeout(async function() { await loadDropdowns(); initUserInfo(); await loadVisits(); }, 300);
 
-  // 🌟 ฟังก์ชันจัดการชื่อคนและพื้นที่ตอนเปิดหน้าใหม่ (อัปเดตป้องกันรหัส UUID หลุด)
   function initUserInfo() {
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
@@ -348,7 +356,7 @@
         if (found) {
             terrNameShow = found.Territory;
         } else if (String(terrNameShow).length > 20) {
-            terrNameShow = '-'; // ถ้าหาไม่เจอและเป็นรหัสยาว ให้ซ่อนไว้
+            terrNameShow = '-'; 
         }
       }
       
@@ -367,11 +375,6 @@
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-      
-      const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
-      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
-      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
 
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
@@ -425,7 +428,6 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // ฟังก์ชันจัดการสิทธิ์ และเก็บตัวแปรตั้งต้นสำหรับ Cascading Filter
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -553,7 +555,6 @@
     }
   }
 
-  // ฟังก์ชันจัดการ Cascading Filters
   function handleFilterChange(source) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -627,6 +628,30 @@
     filterVisits();
   }
 
+  // 🌟 ฟังก์ชันจัดการการคลิกเรียงลำดับหัวตาราง (Sorting)
+  function sortVisits(col) {
+    if (currentSortCol === col) {
+      currentSortAsc = !currentSortAsc; // สลับ ขึ้น-ลง
+    } else {
+      currentSortCol = col;
+      currentSortAsc = true; // คอลัมน์ใหม่ให้เรียงแบบขึ้น (A-Z) เป็นค่าเริ่มต้น
+    }
+
+    // อัปเดตไอคอนหัวตาราง
+    ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'].forEach(c => {
+      const icon = document.getElementById('icon-sort-' + c);
+      if (icon) {
+        if (c === currentSortCol) {
+          icon.className = currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    filterVisits(); // สั่งกรองและจัดเรียงใหม่ทันที
+  }
+
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -634,7 +659,7 @@
 
     try {
       const [visitRes, vpRes, dcrRes] = await Promise.all([
-        supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false }),
+        supabaseClient.from('Visit_Logs').select('*'),
         supabaseClient.from('Visit_Products').select('*'),
         supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
       ]);
@@ -712,6 +737,52 @@
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
       return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
+    });
+
+    // 🌟 ระบบจัดเรียงข้อมูลก่อนนำไปโชว์ (Sorting Logic)
+    filtered.sort((a, b) => {
+      let valA = '', valB = '';
+
+      if (currentSortCol === 'date') {
+        valA = a.Visit_Date || '';
+        valB = b.Visit_Date || '';
+      } 
+      else if (currentSortCol === 'doctor') {
+        const docA = globalDoctorsList.find(d => String(d.Doc_ID) === String(a.Doc_ID));
+        valA = docA ? `${docA.Doc_Name} ${docA.Doc_Name_TH||''}`.toLowerCase() : '';
+        const docB = globalDoctorsList.find(d => String(d.Doc_ID) === String(b.Doc_ID));
+        valB = docB ? `${docB.Doc_Name} ${docB.Doc_Name_TH||''}`.toLowerCase() : '';
+      } 
+      else if (currentSortCol === 'hospital') {
+        const docA = globalDoctorsList.find(d => String(d.Doc_ID) === String(a.Doc_ID));
+        const hospA = docA ? globalHospitalsList.find(h => String(h.Hospital_ID) === String(docA.Hospital_ID)) : null;
+        valA = hospA ? `${hospA.Hospital} ${hospA.Known_As||''}`.toLowerCase() : '';
+        
+        const docB = globalDoctorsList.find(d => String(d.Doc_ID) === String(b.Doc_ID));
+        const hospB = docB ? globalHospitalsList.find(h => String(h.Hospital_ID) === String(docB.Hospital_ID)) : null;
+        valB = hospB ? `${hospB.Hospital} ${hospB.Known_As||''}`.toLowerCase() : '';
+      } 
+      else if (currentSortCol === 'products') {
+        valA = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(a.Visit_ID)).map(vp => {
+          const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID)); return p ? p.Product : '';
+        }).join(',').toLowerCase();
+        
+        valB = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(b.Visit_ID)).map(vp => {
+          const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID)); return p ? p.Product : '';
+        }).join(',').toLowerCase();
+      } 
+      else if (currentSortCol === 'purpose') {
+        valA = (a.Purpose || '').toLowerCase();
+        valB = (b.Purpose || '').toLowerCase();
+      } 
+      else if (currentSortCol === 'status') {
+        valA = (a.Status || '').toLowerCase();
+        valB = (b.Status || '').toLowerCase();
+      }
+
+      if (valA < valB) return currentSortAsc ? -1 : 1;
+      if (valA > valB) return currentSortAsc ? 1 : -1;
+      return 0;
     });
 
     renderVisitTable(filtered);
@@ -807,7 +878,7 @@
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
 
-    initUserInfo(); // 🌟 รีเซ็ตให้กลับมาเป็นชื่อคนล็อคอิน
+    initUserInfo(); 
 
     if (tomSelectDocInstance) {
       tomSelectDocInstance.clear();
@@ -855,7 +926,6 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 ฟังก์ชันจัดการตอนกดดู/แก้ไขประวัติคนอื่น (ไม่ให้รหัส UUID หลุดออกมา)
   function openEditVisitView(visitId) {
     clearValidation();
     const v = globalVisits.find(x => x.Visit_ID === visitId);
@@ -864,19 +934,17 @@
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerText = '✏️ แก้ไขการบันทึกเยี่ยม';
     
-    // แปลงรหัสคนบันทึก กลับเป็นชื่อ
     let repNameShow = v.Rep_ID || '-';
     if (globalUsersList && globalUsersList.length > 0) {
         const repObj = globalUsersList.find(u => String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID));
         if (repObj) repNameShow = repObj.Rep_Name || repObj.Name || repObj.Email || repNameShow;
     }
     
-    // แปลงรหัสพื้นที่ กลับเป็นชื่อ
     let terNameShow = v.Territory_ID || '-';
     if (globalTerritoryList && globalTerritoryList.length > 0) {
         const terObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(v.Territory_ID));
         if (terObj) terNameShow = terObj.Territory;
-        else if (String(terNameShow).length > 20) terNameShow = '-'; // ป้องกัน UUID หลุด
+        else if (String(terNameShow).length > 20) terNameShow = '-'; 
     }
     
     document.getElementById('dispSalesRepName').innerText = repNameShow;
