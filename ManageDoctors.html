@@ -46,7 +46,7 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (ปรับเปลี่ยนเป็นไอคอนแว่นขยายให้เข้ากันหมด) -->
+    <!-- ส่วนค้นหา -->
     <div class="row mb-4 doctor-filter-group g-3">
       <!-- 1. ค้นหาชื่อหมอ (แว่นขยาย + ไมค์) -->
       <div class="col-sm-12 col-md-5 col-lg-4">
@@ -68,7 +68,7 @@
         </select>
       </div>
 
-      <!-- 3. ค้นหา รพ. หลัก (เปลี่ยนเป็นแว่นขยาย + ไมค์) -->
+      <!-- 3. ค้นหา รพ. หลัก -->
       <div class="col-sm-6 col-md-4 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">โรงพยาบาลหลัก (Primary)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -257,6 +257,7 @@
           </div>
         </div>
 
+        <!-- 🌟 Tab 2: ประวัติการเข้าพบ (เพิ่มคอลัมน์ เขตพื้นที่ Territory และแปลงชื่อ Product / Sales Rep) -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
@@ -271,13 +272,14 @@
                 <tr>
                   <th>วันที่ (Date)</th>
                   <th>ผู้แทน (Sales Rep)</th>
+                  <th>เขตพื้นที่ (Territory)</th>
                   <th>สินค้า (Product)</th>
                   <th>วัตถุประสงค์ (Purpose)</th>
                   <th>สถานะ (Status)</th>
                 </tr>
               </thead>
               <tbody id="viewVisitHistoryBody">
-                <tr><td colspan="5" class="text-center py-4 text-muted">กำลังโหลดประวัติ...</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted">กำลังโหลดประวัติ...</td></tr>
               </tbody>
             </table>
           </div>
@@ -319,6 +321,9 @@
 <script>
   var globalDoctors = [];
   var globalHospitals = [];
+  var globalProducts = [];
+  var globalUsers = [];
+  var globalTerritories = [];
   var currentTargetDocId = ""; 
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
@@ -413,15 +418,21 @@
 
   async function loadIndexDropdowns() {
     try {
-      const [typeRes, idxRes, hospRes] = await Promise.all([
+      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-        supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').order('Hospital', { ascending: true })
+        supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').order('Hospital', { ascending: true }),
+        supabaseClient.from('Products').select('Product_ID, Product'),
+        supabaseClient.from('Users').select('*'),
+        supabaseClient.from('Territory').select('*')
       ]);
       
       const types = typeRes.data || [];
       const indexes = idxRes.data || [];
       globalHospitals = hospRes.data || []; 
+      globalProducts = prodRes.data || [];
+      globalUsers = userRes.data || [];
+      globalTerritories = terrRes.data || [];
 
       const getOptionsHtml = (typeName) => {
         const typeObj = types.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
@@ -588,7 +599,7 @@
       }
 
       const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
-      const nameEnShow = d.title ? `${d.title} ${d.nameEn || ''}` : (d.nameEn || '-');
+      const nameEnShow = d.nameEn || '-';
       
       const nameCellLink = d.isPendingDcr ? 
         `<span class="fw-bold text-dark"><i class="fa-solid fa-user-doctor me-2 text-warning"></i>${nameEnShow}</span>` : 
@@ -739,9 +750,10 @@
     switchDoctorView('doctorProfileView');
   }
 
+  // 🌟 ดึงประวัติการเข้าพบ (ดึงชื่อ Product, ชื่อ Sales Rep และชื่อ Territory)
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
       const { data, error } = await supabaseClient
@@ -754,24 +766,42 @@
       
       tbody.innerHTML = '';
       if(!data || data.length === 0) {
-        return tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีประวัติการเข้าพบ</td></tr>';
+        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ยังไม่มีประวัติการเข้าพบ</td></tr>';
       }
 
       data.forEach(v => {
-        const badge = v.Status === 'Submitted' ? 'bg-success' : 'bg-warning text-dark';
+        const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
+        
+        // 1. ดึงชื่อ Sales Rep จาก Whoupdated / Rep_ID
+        const userObj = globalUsers.find(u => 
+          String(u.Rep_ID) === String(v.Rep_ID) || 
+          String(u.Email) === String(v.Whoupdated) ||
+          String(u.User_ID) === String(v.Rep_ID)
+        );
+        const repNameShow = userObj ? (userObj.Rep_Name || userObj.Name || userObj.Email) : (v.Whoupdated || '-');
+
+        // 2. ดึงชื่อสินค้าจาก Product_ID
+        const prodObj = globalProducts.find(p => String(p.Product_ID) === String(v.Product_ID));
+        const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
+
+        // 3. ดึงชื่อ Territory จาก Territory_ID
+        const terrObj = globalTerritories.find(t => String(t.Territory_ID) === String(v.Territory_ID));
+        const terrNameShow = terrObj ? terrObj.Territory : (v.Territory_ID || '-');
+
         tbody.innerHTML += `
           <tr>
             <td class="text-center text-primary fw-bold">${dateStr}</td>
-            <td><small>${v.Whoupdated || '-'}</small></td>
-            <td><small>${v.Product_ID || '-'}</small></td>
+            <td class="fw-bold text-dark">${repNameShow}</td>
+            <td class="text-center"><span class="badge bg-light text-primary border">${terrNameShow}</span></td>
+            <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
             <td><small>${v.Purpose || '-'}</small></td>
-            <td class="text-center"><span class="badge ${badge}">${v.Status || 'Submitted'}</span></td>
+            <td class="text-center"><span class="badge ${badge} px-2 py-1">${v.Status || 'Submitted'}</span></td>
           </tr>
         `;
       });
     } catch(err) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ ไม่สามารถโหลดประวัติได้: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดประวัติได้: ${err.message}</td></tr>`;
     }
   }
 
