@@ -1,6 +1,7 @@
 <style>
   .visit-card { border-radius: 15px; }
   .form-control, .form-select { min-height: 42px; border-radius: 10px; }
+  .form-control:disabled, .form-select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 1; }
   
   .mic-active { 
     animation: pulse-red 1.5s infinite; 
@@ -35,14 +36,12 @@
           <option value="">- All Reps -</option>
         </select>
       </div>
-
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
         <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()">
           <option value="">- All Territories -</option>
         </select>
       </div>
-
       <div class="col-md-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -53,7 +52,6 @@
           </button>
         </div>
       </div>
-
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -64,14 +62,12 @@
           </button>
         </div>
       </div>
-
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Product</label>
         <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
           <option value="">- All Products -</option>
         </select>
       </div>
-
       <div class="col-md-1">
         <label class="form-label fw-bold text-secondary small mb-1">Status</label>
         <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
@@ -82,6 +78,7 @@
       </div>
     </div>
 
+    <!-- ตารางประวัติ (เอาคอลัมน์ Action ออกแล้ว) -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
@@ -93,11 +90,10 @@
               <th class="py-3">สินค้า (Product)</th>
               <th class="py-3">วัตถุประสงค์ (Purpose)</th>
               <th class="py-3">สถานะ (Status)</th>
-              <th class="py-3">จัดการ (Action)</th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="7" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -210,7 +206,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn">💾 บันทึกข้อมูล</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 บันทึกข้อมูล</button>
         </div>
       </form>
     </div>
@@ -226,9 +222,9 @@
   var globalHospitalsList = [];
   var globalUsersList = [];
   var globalTeamList = [];
+  var globalPendingUnlockVisits = []; // 🌟 เก็บ ID รายการที่รอปลดล็อค
   var tomSelectDocInstance = null;
 
-  // 🌟 ฟังก์ชันรับข้อมูลจากหน้าอื่น
   window.openAddVisitModal = function(fromDocId = null) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
     openAddVisitView();
@@ -239,20 +235,16 @@
     openEditVisitView(visitId);
   };
 
-  // 🌟 ฟังก์ชันจัดการปุ่ม "ยกเลิก" (กลับไปหน้าหมอ พร้อมสลับไป Tab ประวัติการเข้าพบ)
   function cancelVisitForm() {
     const returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
         if (txt && txt.trim() === 'แพทย์') btn.click();
       });
-      
       setTimeout(() => {
         if (typeof window.openViewDoctorProfile === 'function') {
-          // 🌟 สั่งให้เปิดโปรไฟล์หมอ พร้อมระบุเป้าหมายเป็น Tab #tab-doc-history
           window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
         }
       }, 500);
@@ -261,114 +253,78 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ =====================
-  var activeSearchRecognition = null, currentSearchInputId = null, currentSearchBtnId = null, currentSearchIconId = null;
-
+  // ===================== 🎙️ ระบบไมค์ (ย่อโค้ดเพื่อความกระชับ) =====================
+  var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    if (activeSearchRecognition && currentSearchInputId === inputId) return stopSpeechSearch();
-    if (activeSearchRecognition) stopSpeechSearch();
-
+    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
+    if(activeSearchRecognition && currentSearchInputId === inputId) return stopSpeechSearch();
+    if(activeSearchRecognition) stopSpeechSearch();
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    activeSearchRecognition = new SpeechRecognition();
-    activeSearchRecognition.lang = 'th-TH'; activeSearchRecognition.continuous = false; activeSearchRecognition.interimResults = false;
-    currentSearchInputId = inputId; currentSearchBtnId = btnId; currentSearchIconId = iconId;
-
+    activeSearchRecognition = new SpeechRecognition(); activeSearchRecognition.lang='th-TH';
+    currentSearchInputId=inputId; currentSearchBtnId=btnId; currentSearchIconId=iconId;
     const btn = document.getElementById(btnId), icon = document.getElementById(iconId);
-    if (btn && icon) { btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.remove('text-muted'); }
-
+    if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white','fa-microphone-lines','fa-fade');}
     activeSearchRecognition.onresult = function(event) {
-      let spokenText = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
-      const inputEl = document.getElementById(inputId);
-      if (inputEl && spokenText.trim()) { inputEl.value = spokenText.trim(); filterVisits(); }
-      stopSpeechSearch();
+      let spokenText = ''; for(let i=event.resultIndex; i<event.results.length; ++i) { if(event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
+      const inputEl = document.getElementById(inputId); if(inputEl&&spokenText.trim()){inputEl.value=spokenText.trim(); filterVisits();} stopSpeechSearch();
     };
-    activeSearchRecognition.onerror = stopSpeechSearch; activeSearchRecognition.onend = stopSpeechSearch; activeSearchRecognition.start();
+    activeSearchRecognition.onerror=stopSpeechSearch; activeSearchRecognition.onend=stopSpeechSearch; activeSearchRecognition.start();
   }
-
   function stopSpeechSearch() {
-    if (activeSearchRecognition) { activeSearchRecognition.stop(); activeSearchRecognition = null; }
-    if (currentSearchBtnId && currentSearchIconId) {
-      const btn = document.getElementById(currentSearchBtnId), icon = document.getElementById(currentSearchIconId);
-      if (btn && icon) { btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white'); icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted'); }
+    if(activeSearchRecognition){activeSearchRecognition.stop(); activeSearchRecognition=null;}
+    if(currentSearchBtnId&&currentSearchIconId){
+      const btn=document.getElementById(currentSearchBtnId), icon=document.getElementById(currentSearchIconId);
+      if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('text-white','fa-microphone-lines','fa-fade');}
     }
   }
 
-  var activeDictationRecognition = null, currentDictationTargetId = null, currentDictationBtnId = null;
-
+  var activeDictationRecognition=null, currentDictationTargetId=null, currentDictationBtnId=null;
   function toggleTextDictation(targetInputId, btnId) {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    if (activeDictationRecognition && currentDictationTargetId === targetInputId) return stopTextDictation();
-    if (activeDictationRecognition) stopTextDictation();
-
+    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
+    if(activeDictationRecognition && currentDictationTargetId === targetInputId) return stopTextDictation();
+    if(activeDictationRecognition) stopTextDictation();
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    activeDictationRecognition = new SpeechRecognition();
-    activeDictationRecognition.lang = 'th-TH'; activeDictationRecognition.continuous = false; activeDictationRecognition.interimResults = false;
-    currentDictationTargetId = targetInputId; currentDictationBtnId = btnId;
-
-    const btn = document.getElementById(btnId);
-    if (btn) { btn.classList.add('btn-danger', 'text-white', 'mic-active'); btn.classList.remove('btn-outline-danger'); btn.innerHTML = `<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>กำลังฟัง...`; }
-
+    activeDictationRecognition = new SpeechRecognition(); activeDictationRecognition.lang='th-TH';
+    currentDictationTargetId=targetInputId; currentDictationBtnId=btnId;
+    const btn=document.getElementById(btnId); if(btn){btn.classList.add('btn-danger','text-white','mic-active'); btn.classList.remove('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>กำลังฟัง...`;}
     activeDictationRecognition.onresult = function(event) {
-      let spokenText = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
-      const inputEl = document.getElementById(targetInputId);
-      if (inputEl && spokenText.trim()) { const currentVal = inputEl.value.trim(); inputEl.value = currentVal ? `${currentVal} ${spokenText.trim()}` : spokenText.trim(); }
-      stopTextDictation();
+      let spokenText=''; for(let i=event.resultIndex; i<event.results.length; ++i){if(event.results[i].isFinal) spokenText+=event.results[i][0].transcript;}
+      const inputEl = document.getElementById(targetInputId); if(inputEl&&spokenText.trim()){const currentVal=inputEl.value.trim(); inputEl.value=currentVal ? `${currentVal} ${spokenText.trim()}` : spokenText.trim();} stopTextDictation();
     };
-    activeDictationRecognition.onerror = stopTextDictation; activeDictationRecognition.onend = stopTextDictation; activeDictationRecognition.start();
+    activeDictationRecognition.onerror=stopTextDictation; activeDictationRecognition.onend=stopTextDictation; activeDictationRecognition.start();
   }
-
   function stopTextDictation() {
-    if (activeDictationRecognition) { activeDictationRecognition.stop(); activeDictationRecognition = null; }
-    if (currentDictationBtnId) {
-      const btn = document.getElementById(currentDictationBtnId);
-      if (btn) { btn.classList.remove('btn-danger', 'text-white', 'mic-active'); btn.classList.add('btn-outline-danger'); btn.innerHTML = `<i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์`; }
-    }
+    if(activeDictationRecognition){activeDictationRecognition.stop(); activeDictationRecognition=null;}
+    if(currentDictationBtnId){const btn=document.getElementById(currentDictationBtnId); if(btn){btn.classList.remove('btn-danger','text-white','mic-active'); btn.classList.add('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์`;}}
   }
 
-  var docSpeechRecognition, isDocRecording = false;
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    docSpeechRecognition = new SpeechRecognition(); docSpeechRecognition.lang = 'th-TH'; docSpeechRecognition.continuous = false; docSpeechRecognition.interimResults = false;
-    docSpeechRecognition.onresult = function(event) {
-      let spokenText = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
-      if (spokenText.trim()) searchAndSelectDoctor(spokenText.trim());
-      stopDocDictation();
+  var docSpeechRecognition, isDocRecording=false;
+  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+    const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition; docSpeechRecognition=new SpeechRecognition(); docSpeechRecognition.lang='th-TH';
+    docSpeechRecognition.onresult=function(event){
+      let spokenText=''; for(let i=event.resultIndex;i<event.results.length;++i){if(event.results[i].isFinal) spokenText+=event.results[i][0].transcript;}
+      if(spokenText.trim()) searchAndSelectDoctor(spokenText.trim()); stopDocDictation();
     };
-    docSpeechRecognition.onerror = stopDocDictation; docSpeechRecognition.onend = function() { if (isDocRecording) stopDocDictation(); };
+    docSpeechRecognition.onerror=stopDocDictation; docSpeechRecognition.onend=function(){if(isDocRecording) stopDocDictation();};
   }
-
-  function toggleDocDictation() {
-    if (!docSpeechRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    const btn = document.getElementById('btnMicDoc'), icon = document.getElementById('micDocIcon');
-    if (isDocRecording) { stopDocDictation(); } else {
-      isDocRecording = true; docSpeechRecognition.start();
-      if (btn && icon) { btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white'); icon.classList.add('fa-microphone-lines', 'fa-fade'); }
-    }
+  function toggleDocDictation(){
+    if(!docSpeechRecognition) return alert("เบราว์เซอร์ไม่รองรับ"); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
+    if(isDocRecording) stopDocDictation(); else {isDocRecording=true; docSpeechRecognition.start(); if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('fa-microphone-lines','fa-fade');}}
   }
-
-  function stopDocDictation() {
-    isDocRecording = false; if (docSpeechRecognition) docSpeechRecognition.stop();
-    const btn = document.getElementById('btnMicDoc'), icon = document.getElementById('micDocIcon');
-    if (btn && icon) { btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines', 'fa-fade'); }
+  function stopDocDictation(){
+    isDocRecording=false; if(docSpeechRecognition) docSpeechRecognition.stop(); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
+    if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines','fa-fade');}
   }
 
   function searchAndSelectDoctor(keyword) {
     const docSelectEl = document.getElementById('visitDocId'); if (!docSelectEl) return;
     const searchKey = keyword.toLowerCase();
     if (docSelectEl.tomselect) {
-      const ts = docSelectEl.tomselect; ts.focus(); ts.setTextboxValue(keyword);
-      const options = ts.options; let matchedDocId = null;
-      for (let id in options) {
-        const opt = options[id]; const nameEn = (opt.nameEn || opt.text || '').toLowerCase(); const nameTh = (opt.nameTh || '').toLowerCase();
-        if (nameEn.includes(searchKey) || nameTh.includes(searchKey)) { matchedDocId = id; break; }
-      }
+      const ts = docSelectEl.tomselect; ts.focus(); ts.setTextboxValue(keyword); const options = ts.options; let matchedDocId = null;
+      for (let id in options) { const opt=options[id]; if ((opt.nameEn||opt.text||'').toLowerCase().includes(searchKey)||(opt.nameTh||'').toLowerCase().includes(searchKey)){matchedDocId=id; break;}}
       if (matchedDocId) ts.setValue(matchedDocId);
     } else {
-      const matched = globalDoctorsList.find(d => (d.Doc_Name && d.Doc_Name.toLowerCase().includes(searchKey)) || (d.Doc_Name_TH && d.Doc_Name_TH.toLowerCase().includes(searchKey)));
+      const matched = globalDoctorsList.find(d => (d.Doc_Name&&d.Doc_Name.toLowerCase().includes(searchKey))||(d.Doc_Name_TH&&d.Doc_Name_TH.toLowerCase().includes(searchKey)));
       if (matched) { docSelectEl.value = matched.Doc_ID; docSelectEl.dispatchEvent(new Event('change')); }
     }
   }
@@ -397,9 +353,7 @@
 
   async function loadDropdowns() {
     try {
-      let crmUser = null; 
-      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-      
+      let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
       const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
       const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
@@ -417,39 +371,25 @@
         supabaseClient.from('Rep_Users').select('*')
       ]);
 
-      globalDoctorsList = docRes.data || [];
-      globalProductsList = prodRes.data || [];
-      globalTerritoryList = territoryRes.data || [];
-      globalHospitalsList = hospRes.data || [];
-      globalUsersList = usersRes.data || [];
-      globalTeamList = teamRes.data || [];
+      globalDoctorsList = docRes.data || []; globalProductsList = prodRes.data || []; globalTerritoryList = territoryRes.data || [];
+      globalHospitalsList = hospRes.data || []; globalUsersList = usersRes.data || []; globalTeamList = teamRes.data || [];
 
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
         globalDoctorsList.forEach(d => {
-          const titleShow = d.Title ? d.Title + ' ' : '';
-          const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
-          const opt = document.createElement('option');
-          opt.value = d.Doc_ID; opt.textContent = `${titleShow}${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
+          const titleShow = d.Title ? d.Title + ' ' : ''; const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
+          const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${titleShow}${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
-
-        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
-          tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
-        }
+        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
       }
 
       const prodSelect = document.getElementById('visitProductId');
       if (prodSelect) { 
-        let productsTeamList = productsTeamRes.data || [];
-        let filteredProducts = [];
-        let myTeamIds = [];
-
-        if (userRole === 'BU Head' && userBu) {
-          myTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID);
-        } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-          if (userTeam) myTeamIds.push(userTeam);
-        } else if (userRole !== 'Admin') {
+        let productsTeamList = productsTeamRes.data || []; let filteredProducts = []; let myTeamIds = [];
+        if (userRole === 'BU Head' && userBu) { myTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID); } 
+        else if (userRole === 'Manager' || userRole === 'Sales Manager') { if (userTeam) myTeamIds.push(userTeam); } 
+        else if (userRole !== 'Admin') {
           let repTeamId = userTeam;
           if (!repTeamId && userTerritory) {
             const terrObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
@@ -458,14 +398,11 @@
           if (repTeamId) myTeamIds.push(String(repTeamId));
         }
 
-        if (userRole === 'Admin') {
-          filteredProducts = globalProductsList;
-        } else if (myTeamIds.length > 0) {
+        if (userRole === 'Admin') filteredProducts = globalProductsList;
+        else if (myTeamIds.length > 0) {
           const allowedProdIds = productsTeamList.filter(pt => myTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active').map(pt => String(pt.Product_ID));
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
-        } else {
-          filteredProducts = globalProductsList; 
-        }
+        } else filteredProducts = globalProductsList; 
 
         let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
         filteredProducts.forEach(p => { prodHtml += `<option value="${p.Product_ID}">${p.Product || p.Product_ID}</option>`; });
@@ -492,67 +429,56 @@
       const returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
         setTimeout(() => {
-          if (tomSelectDocInstance) {
-            tomSelectDocInstance.setValue(returnToDocId);
-          } else {
-            if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); }
-          }
+          if (tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
+          else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
         }, 200); 
       }
 
-    } catch (err) {
-      console.error("Error loading dropdowns:", err.message);
-    }
+    } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
   function setupFiltersDropdowns(crmUser) {
-    const repSelect = document.getElementById('filterVisitRep');
-    if (!repSelect) return;
-
-    const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-    const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
-    const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId) : null;
-    const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
+    const repSelect = document.getElementById('filterVisitRep'); if (!repSelect) return;
+    const userRole = crmUser ? (crmUser.Role || crmUser.role) : ''; const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId) : null;
+    const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId) : null; const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
 
     let allowedUsers = [];
-    if (userRole === 'Sales' || userRole === 'Rep') { allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(crmUser.Rep_ID)); }
-    else if (userRole === 'Manager' || userRole === 'Sales Manager') { allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam)); }
+    if (userRole === 'Sales' || userRole === 'Rep') allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(crmUser.Rep_ID));
+    else if (userRole === 'Manager' || userRole === 'Sales Manager') allowedUsers = globalUsersList.filter(u => String(u.Team_ID) === String(userTeam));
     else if (userRole === 'BU Head' && userBu) {
       const buTeams = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID);
       allowedUsers = globalUsersList.filter(u => buTeams.includes(u.Team_ID));
-    } else { allowedUsers = globalUsersList; }
+    } else allowedUsers = globalUsersList;
 
-    let html = '<option value="">- All Reps -</option>';
-    allowedUsers.forEach(r => { html += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
-    repSelect.innerHTML = html;
+    let html = '<option value="">- All Reps -</option>'; allowedUsers.forEach(r => { html += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; }); repSelect.innerHTML = html;
 
     const terSelect = document.getElementById('filterVisitTerritory');
-    if (terSelect) {
-      let tHtml = '<option value="">- All Territories -</option>';
-      globalTerritoryList.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
-      terSelect.innerHTML = tHtml;
-    }
+    if (terSelect) { let tHtml = '<option value="">- All Territories -</option>'; globalTerritoryList.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`); terSelect.innerHTML = tHtml; }
 
     const prodFilterSelect = document.getElementById('filterVisitProduct');
-    if (prodFilterSelect) {
-      let pHtml = '<option value="">- All Products -</option>';
-      globalProductsList.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-      prodFilterSelect.innerHTML = pHtml;
-    }
+    if (prodFilterSelect) { let pHtml = '<option value="">- All Products -</option>'; globalProductsList.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`); prodFilterSelect.innerHTML = pHtml; }
   }
 
+  // 🌟 ดึงข้อมูลตาราง Visit_Logs (พร้อมเช็ค DCR สำหรับแสดงสถานะขอแก้ไข)
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
-
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
     try {
-      const { data, error } = await supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false });
-      if (error) throw error;
-      globalVisits = data || [];
+      const [visitRes, dcrRes] = await Promise.all([
+        supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false }),
+        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
+      ]);
+
+      if (visitRes.error) throw visitRes.error;
+      globalVisits = visitRes.data || [];
+      globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
+      
       filterVisits();
-    } catch(err) { tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`; }
+    } catch(err) { 
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`; 
+    }
   }
 
   function filterVisits() {
@@ -581,6 +507,7 @@
 
       return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
     });
+
     renderVisitTable(filtered);
   }
 
@@ -589,11 +516,19 @@
     if (!tbody) return; 
 
     tbody.innerHTML = '';
-    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
+    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
 
     data.forEach(v => {
-      const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
-      const statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+      const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
+      let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
+      let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+
+      // ถ้ามีการส่ง DCR ขอแก้
+      if (isPendingUnlock) {
+        badge = 'bg-secondary';
+        statusShow = '⏳ ขอแก้ไข (รออนุมัติ)';
+      }
+
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
@@ -610,19 +545,19 @@
       const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
       const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
+      // 🌟 นำ Action ออก แล้วเปลี่ยนให้คลิกที่ Date ได้เลย
       tbody.innerHTML += `
         <tr>
-          <td class="text-center fw-bold text-primary">${dateShow}</td>
+          <td class="text-center fw-bold">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;">
+              ${dateShow}
+            </a>
+          </td>
           <td class="fw-bold text-dark">${docNameShow}</td>
           <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
           <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
           <td><small>${v.Purpose || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
-          <td class="text-center">
-            <button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditVisitView('${v.Visit_ID}')">
-              <i class="fa-solid fa-pen"></i> แก้ไข
-            </button>
-          </td>
         </tr>
       `;
     });
@@ -631,6 +566,25 @@
   function clearValidation() {
     ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
     ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
+  }
+
+  // 🌟 ฟังก์ชันคุมการ ปิด/เปิด ช่องกรอกฟอร์ม (Lock System)
+  function toggleVisitFormEditable(isEditable) {
+    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.disabled = !isEditable;
+        if (el.tomselect) {
+          if (isEditable) el.tomselect.enable();
+          else el.tomselect.disable();
+        }
+      }
+    });
+    ['btnMicDoc', 'btnMicDetails', 'btnMicNextAction'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = !isEditable;
+    });
   }
 
   function openAddVisitView() {
@@ -647,14 +601,18 @@
     const returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       setTimeout(() => {
-        if (tomSelectDocInstance) {
-          tomSelectDocInstance.setValue(returnToDocId);
-        } else {
-          const docSelect = document.getElementById('visitDocId');
-          if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); }
-        }
+        if (tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
+        else { const docSelect = document.getElementById('visitDocId'); if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
       }, 200); 
     }
+
+    // เปิดให้แก้ทั้งหมด
+    toggleVisitFormEditable(true);
+    const btn = document.getElementById('saveVisitBtn');
+    btn.dataset.mode = 'save';
+    btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
+    btn.innerHTML = '💾 บันทึกข้อมูล';
+    btn.disabled = false;
 
     switchVisitView('visitFormView');
   }
@@ -679,18 +637,96 @@
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
 
+    const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
+    const btn = document.getElementById('saveVisitBtn');
+
+    // 🌟 ระบบดักจับสิทธิ์การแก้ไข (Lock Logic)
+    if (isPendingUnlock) {
+      toggleVisitFormEditable(false);
+      btn.disabled = true;
+      btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
+      btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>รอ Admin อนุมัติปลดล็อค';
+      btn.dataset.mode = 'disabled';
+    } else if (v.Status === 'Submitted') {
+      toggleVisitFormEditable(false);
+      btn.disabled = false;
+      btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
+      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>ขอแก้ไข (Request Unlock)';
+      btn.dataset.mode = 'request_unlock';
+    } else {
+      toggleVisitFormEditable(true);
+      btn.disabled = false;
+      btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
+      btn.innerHTML = '💾 บันทึกข้อมูล';
+      btn.dataset.mode = 'save';
+    }
+
     switchVisitView('visitFormView');
+  }
+
+  // 🌟 ฟังก์ชันส่ง DCR ขอปลดล็อค Edit
+  async function requestUnlockVisit(visitId) {
+    const btn = document.getElementById('saveVisitBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังส่งคำขอ...`;
+
+    let crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+
+    const payload = {
+      Action: 'Unlock Visit',
+      Ref_ID: visitId,
+      Requested_Data: JSON.stringify({ Status: 'Pending' }),
+      Status: 'Pending',
+      Whoupdated: whoUpdated
+    };
+
+    try {
+      const { error } = await supabaseClient.from('DCR').insert([payload]);
+      if (error) throw error;
+      alert("✅ ส่งคำขอปลดล็อค (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      
+      const returnDocId = sessionStorage.getItem('returnToDocId');
+      if (returnDocId) {
+        sessionStorage.removeItem('returnToDocId');
+        document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
+          const txt = menuBtn.textContent || menuBtn.innerText;
+          if (txt && txt.trim() === 'แพทย์') menuBtn.click();
+        });
+        setTimeout(() => {
+          if (typeof window.openViewDoctorProfile === 'function') {
+            window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
+          }
+        }, 500);
+      } else {
+        switchVisitView('visitListView');
+        await loadVisits();
+      }
+    } catch(err) {
+      alert("❌ เกิดข้อผิดพลาด: " + err.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>ขอแก้ไข (Request Unlock)';
+    }
   }
 
   // 🌟 บันทึกข้อมูลและพาวิ่งกลับหน้าหมอ (ไป Tab ประวัติ)
   async function handleSaveVisit(e) {
     e.preventDefault();
+    const btn = document.getElementById('saveVisitBtn');
+    const mode = btn.dataset.mode;
+
+    // ถ้ากดปุ่มแล้วอยู่ในโหมดขอแก้ ให้วิ่งไปอีกฟังก์ชันนึง
+    if (mode === 'disabled') return;
+    if (mode === 'request_unlock') {
+      requestUnlockVisit(document.getElementById('visitId').value);
+      return;
+    }
 
     const docSelect = document.getElementById('visitDocId');
     const prodSelect = document.getElementById('visitProductId');
     const dateInput = document.getElementById('visitDate');
     const purposeSelect = document.getElementById('visitPurpose');
-    const btn = document.getElementById('saveVisitBtn');
 
     clearValidation();
 
@@ -748,12 +784,10 @@
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        
         document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
           const txt = menuBtn.textContent || menuBtn.innerText;
           if (txt && txt.trim() === 'แพทย์') menuBtn.click();
         });
-        
         setTimeout(() => {
           if (typeof window.openViewDoctorProfile === 'function') {
             window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
