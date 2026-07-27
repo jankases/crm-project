@@ -239,7 +239,7 @@
     openEditVisitView(visitId);
   };
 
-  // 🌟 ฟังก์ชันจัดการปุ่ม "ยกเลิก" (กลับไปหน้าหมอถ้าส่งมาจากหน้าหมอ)
+  // 🌟 ฟังก์ชันจัดการปุ่ม "ยกเลิก" (กลับไปหน้าหมอ พร้อมสลับไป Tab ประวัติการเข้าพบ)
   function cancelVisitForm() {
     const returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
@@ -252,7 +252,8 @@
       
       setTimeout(() => {
         if (typeof window.openViewDoctorProfile === 'function') {
-          window.openViewDoctorProfile(returnDocId);
+          // 🌟 สั่งให้เปิดโปรไฟล์หมอ พร้อมระบุเป้าหมายเป็น Tab #tab-doc-history
+          window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
         }
       }, 500);
     } else {
@@ -487,6 +488,18 @@
 
       setupFiltersDropdowns(crmUser);
 
+      // 🌟 ดักจับข้อมูลที่โยนมาจากหน้าแพทย์ แล้วเอาชื่อหมอใส่ให้แบบ Auto
+      const returnToDocId = sessionStorage.getItem('returnToDocId');
+      if (returnToDocId) {
+        setTimeout(() => {
+          if (tomSelectDocInstance) {
+            tomSelectDocInstance.setValue(returnToDocId);
+          } else {
+            if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); }
+          }
+        }, 200); 
+      }
+
     } catch (err) {
       console.error("Error loading dropdowns:", err.message);
     }
@@ -620,7 +633,6 @@
     ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
   }
 
-  // 🌟 ฟังก์ชันจัดการล็อคชื่อหมอลงในฟอร์มเมื่อถูกเรียกจากหน้าอื่น
   function openAddVisitView() {
     clearValidation();
     document.getElementById('visitForm').reset();
@@ -641,7 +653,7 @@
           const docSelect = document.getElementById('visitDocId');
           if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); }
         }
-      }, 200); // ดีเลย์นิดนึงรอให้ TomSelect อัปเดต UI 
+      }, 200); 
     }
 
     switchVisitView('visitFormView');
@@ -670,7 +682,7 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 บันทึกข้อมูลและพาวิ่งกลับหน้าหมอ
+  // 🌟 บันทึกข้อมูลและพาวิ่งกลับหน้าหมอ (ไป Tab ประวัติ)
   async function handleSaveVisit(e) {
     e.preventDefault();
 
@@ -732,25 +744,22 @@
         if (error) throw error;
       }
 
-      // 🌟 กระบวนการโยนหน้าจอกลับไปที่โปรไฟล์คุณหมอ
+      // 🌟 กระบวนการโยนหน้าจอกลับไปที่โปรไฟล์คุณหมอ (Tab ประวัติ)
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
         
-        // คลิกลิงก์เมนูด้านบนที่เขียนว่า "แพทย์" เพื่อสลับแท็บ
         document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
           const txt = menuBtn.textContent || menuBtn.innerText;
           if (txt && txt.trim() === 'แพทย์') menuBtn.click();
         });
         
-        // รอให้หน้าหมอเรนเดอร์แป๊ปนึง แล้วเรียกฟังก์ชันเปิดโปรไฟล์ + โหลดข้อมูลใหม่
         setTimeout(() => {
           if (typeof window.openViewDoctorProfile === 'function') {
-            window.openViewDoctorProfile(returnDocId);
+            window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
           }
         }, 500);
       } else {
-        // กรณีบันทึกแบบปกติ ไม่ได้มาจากหน้าหมอ
         switchVisitView('visitListView');
         await loadVisits();
       }
