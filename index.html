@@ -82,24 +82,26 @@
   <div id="loginComponent"></div>
 
   <div id="appContainer">
-    <nav class="navbar navbar-expand-xl navbar-light sticky-top">
-      <div class="container-fluid px-3">
+    <!-- 🌟 เอา navbar-expand-xl ออก เพื่อให้ JS เติมให้ตาม Role -->
+    <nav id="mainNavbar" class="navbar navbar-light sticky-top">
+      <div class="container-fluid px-3 px-md-4">
         
         <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" href="#" onclick="loadComponent('dashboard')">
           <div class="bg-primary text-white rounded p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="fa-solid fa-briefcase-medical fs-6"></i>
           </div>
-          CRM System
+          <span class="d-none d-sm-inline">CRM System</span>
         </a>
         
-        <button class="navbar-toggler border-0 shadow-sm bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <!-- ปุ่ม Hamburger -->
+        <button class="navbar-toggler border-0 shadow-sm bg-light px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center" style="font-size: 0.9rem;">
-            
+          <!-- เมนูตรงกลาง -->
+          <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-md-0" style="font-size: 0.95rem;">
             <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1"></i> บันทึกเยี่ยม</a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1"></i> แพทย์</a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1"></i> โรงพยาบาล</a></li>
@@ -114,13 +116,14 @@
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-user" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1"></i> ผู้ใช้</a></li>
           </ul>
 
-          <div class="d-flex align-items-center border-start border-secondary-subtle ps-3 ms-2 mt-3 mt-xl-0">
-            <div class="text-end me-3">
+          <!-- ข้อมูลผู้ใช้ & ปุ่มออกระบบ -->
+          <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 border-start border-secondary-subtle ps-md-3 ms-md-2 mt-3 mt-md-0 border-top border-md-0 pt-3 pt-md-0">
+            <div class="text-center text-md-end me-md-3">
               <div class="fw-bold text-dark" id="displayUserName" style="font-size: 0.85rem;">-</div>
               <div class="text-muted" id="displayUserRole" style="font-size: 0.75rem;">-</div>
             </div>
             <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white shadow-sm" onclick="logout()">
-              <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> ออกจากระบบ
+              <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span class="d-inline d-md-none d-xl-inline">ออกจากระบบ</span>
             </button>
           </div>
         </div>
@@ -244,6 +247,7 @@
         if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + dName; 
         if(roleDisplay) roleDisplay.innerText = "⭐ " + uRole;
         
+        // 🌟 1. จัดการแสดงเมนู Admin
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
           if (uRole === 'Admin') {
@@ -252,6 +256,22 @@
             el.style.setProperty('display', 'none', 'important');
           }
         });
+
+        // 🌟 2. สคริปต์จัดการ Navbar อัจฉริยะ (Dynamic Navbar)
+        const navbar = document.getElementById('mainNavbar');
+        // เคลียร์ class เดิมก่อนเผื่อเข้าใหม่
+        navbar.classList.remove('navbar-expand-md', 'navbar-expand-xl');
+        
+        // กำหนด Role ที่มีเมนูไม่เยอะ (ไม่ต้องซ่อนบน iPad)
+        const fewMenuRoles = ['Sales', 'Rep', 'Manager', 'Sales Manager', 'BU Head', 'BU'];
+        
+        if (fewMenuRoles.includes(uRole)) {
+          // กลุ่มเมนูน้อย ให้โชว์เรียงกัน (navbar-expand-md)
+          navbar.classList.add('navbar-expand-md');
+        } else {
+          // กลุ่มเมนูเยอะ (Admin, ฯลฯ) ให้ซ่อนเป็น Hamburger (navbar-expand-xl)
+          navbar.classList.add('navbar-expand-xl');
+        }
 
         loadComponent('visit');
 
