@@ -12,6 +12,9 @@
     70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
+  /* ปรับ TomSelect ให้เหมาะกับการเลือกหลายอัน */
+  .ts-control { border-radius: 10px !important; min-height: 42px; }
+  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -78,6 +81,7 @@
       </div>
     </div>
 
+    <!-- ตารางประวัติ -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
@@ -86,7 +90,7 @@
               <th class="py-3">วันที่ (Date)</th>
               <th class="py-3">แพทย์ (Doctor)</th>
               <th class="py-3">โรงพยาบาล (Hospital)</th>
-              <th class="py-3">สินค้า (Product)</th>
+              <th class="py-3">สินค้า (Products)</th>
               <th class="py-3">วัตถุประสงค์ (Purpose)</th>
               <th class="py-3">สถานะ (Status)</th>
             </tr>
@@ -140,13 +144,16 @@
               </div>
               <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนครับ</div>
             </div>
+            
+            <!-- 🌟 ปรับให้ใส่ Attribute multiple รองรับหลายสินค้า -->
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Product) <span class="text-danger">*</span></label>
-              <select class="form-select bg-white shadow-sm" id="visitProductId" required>
-                <option value="">-- เลือกสินค้า --</option>
+              <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Products) <span class="text-danger">*</span></label>
+              <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required>
+                <!-- ปล่อยว่างไว้ TomSelect จะจัดการ Placeholder เอง -->
               </select>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าที่นำเสนอก่อนครับ</div>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าอย่างน้อย 1 รายการครับ</div>
             </div>
+
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
@@ -215,14 +222,17 @@
 
 <script>
   var globalVisits = [];
+  var globalVisitProducts = []; // 🌟 เก็บข้อมูลจากตาราง Visit_Products
   var globalDoctorsList = [];
   var globalProductsList = [];
   var globalTerritoryList = [];
   var globalHospitalsList = [];
   var globalUsersList = [];
   var globalTeamList = [];
-  var globalPendingUnlockVisits = []; 
+  var globalPendingUnlockVisits = [];
+  
   var tomSelectDocInstance = null;
+  var tomSelectProdInstance = null; // 🌟 อินสแตนซ์สำหรับสินค้าแบบเลือกหลายอัน
 
   window.openAddVisitModal = function(fromDocId = null) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
@@ -252,7 +262,7 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ =====================
+  // ===================== 🎙️ ระบบไมค์ (ย่อโค้ดเพื่อความกระชับ) =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
@@ -262,7 +272,7 @@
     activeSearchRecognition = new SpeechRecognition(); activeSearchRecognition.lang='th-TH';
     currentSearchInputId=inputId; currentSearchBtnId=btnId; currentSearchIconId=iconId;
     const btn = document.getElementById(btnId), icon = document.getElementById(iconId);
-    if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white','fa-microphone-lines','fa-fade');}
+    if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white','fa-microphone-lines','fa-fade'); icon.classList.remove('text-muted');}
     activeSearchRecognition.onresult = function(event) {
       let spokenText = ''; for(let i=event.resultIndex; i<event.results.length; ++i) { if(event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
       const inputEl = document.getElementById(inputId); if(inputEl&&spokenText.trim()){inputEl.value=spokenText.trim(); filterVisits();} stopSpeechSearch();
@@ -273,7 +283,7 @@
     if(activeSearchRecognition){activeSearchRecognition.stop(); activeSearchRecognition=null;}
     if(currentSearchBtnId&&currentSearchIconId){
       const btn=document.getElementById(currentSearchBtnId), icon=document.getElementById(currentSearchIconId);
-      if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('text-white','fa-microphone-lines','fa-fade');}
+      if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('text-white','fa-microphone-lines','fa-fade'); icon.classList.add('text-muted');}
     }
   }
 
@@ -375,17 +385,18 @@
       globalDoctorsList = docRes.data || []; globalProductsList = prodRes.data || []; globalTerritoryList = territoryRes.data || [];
       globalHospitalsList = hospRes.data || []; globalUsersList = usersRes.data || []; globalTeamList = teamRes.data || [];
 
+      // คุณหมอ
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
         globalDoctorsList.forEach(d => {
-          // 🌟 เอาคำนำหน้าออกตอนโหลด Dropdown
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
       }
 
+      // 🌟 สินค้า (รองรับ Multi-select โดยใช้ TomSelect plugin)
       const prodSelect = document.getElementById('visitProductId');
       if (prodSelect) { 
         let productsTeamList = productsTeamRes.data || []; let filteredProducts = []; let myTeamIds = [];
@@ -406,9 +417,19 @@
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         } else filteredProducts = globalProductsList; 
 
-        let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
-        filteredProducts.forEach(p => { prodHtml += `<option value="${p.Product_ID}">${p.Product || p.Product_ID}</option>`; });
+        // สร้าง HTML Options (สำหรับ Multiple TomSelect ไม่ต้องมี option ว่างตัวแรกสุด)
+        let prodHtml = '';
+        filteredProducts.forEach(p => { prodHtml += `<option value="${p.Product_ID}">${p.Product}</option>`; });
         prodSelect.innerHTML = prodHtml;
+
+        if (typeof TomSelect !== 'undefined' && !prodSelect.tomselect) {
+            tomSelectProdInstance = new TomSelect('#visitProductId', {
+                plugins: ['remove_button'], // ให้กดกากบาทลบได้
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: "-- เลือกสินค้า (เลือกได้มากกว่า 1 รายการ) --"
+            });
+        }
       }
 
       const purposeSelect = document.getElementById('visitPurpose');
@@ -460,19 +481,23 @@
     if (prodFilterSelect) { let pHtml = '<option value="">- All Products -</option>'; globalProductsList.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`); prodFilterSelect.innerHTML = pHtml; }
   }
 
+  // 🌟 ดึงข้อมูลตาราง Visit_Logs และ Visit_Products 
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
     try {
-      const [visitRes, dcrRes] = await Promise.all([
+      // 🌟 เพิ่มการดึง Visit_Products มาด้วย
+      const [visitRes, vpRes, dcrRes] = await Promise.all([
         supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false }),
+        supabaseClient.from('Visit_Products').select('*'),
         supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
       ]);
 
       if (visitRes.error) throw visitRes.error;
       globalVisits = visitRes.data || [];
+      globalVisitProducts = vpRes.data || []; // 🌟 เก็บใส่ตัวแปร
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
       
       filterVisits();
@@ -502,7 +527,10 @@
       const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}` : '';
       const matchHosp = (hospSearchTerm === "") || hospName.toLowerCase().includes(hospSearchTerm);
 
-      const matchProd = (prodTerm === "") || (String(v.Product_ID) === String(prodTerm));
+      // 🌟 ดึงสินค้าที่ผูกกับ Visit นี้มาเช็ค
+      const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
+      const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
+
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
       return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
@@ -534,7 +562,6 @@
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
-        // 🌟 แก้ไขจุดนี้: เอาคำนำหน้าออก โชว์แค่ EN (TH)
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
         
@@ -542,8 +569,18 @@
         if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
 
-      const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
-      const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
+      // 🌟 สร้าง Badge แสดงสินค้าหลายรายการ
+      const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
+      let prodBadges = '';
+      if (visitProds.length > 0) {
+        visitProds.forEach(pid => {
+            const pObj = globalProductsList.find(p => String(p.Product_ID) === pid);
+            const pName = pObj ? pObj.Product : pid;
+            prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
+        });
+      } else {
+        prodBadges = '<span class="text-muted small">-</span>';
+      }
 
       tbody.innerHTML += `
         <tr>
@@ -554,7 +591,7 @@
           </td>
           <td class="fw-bold text-dark">${docNameShow}</td>
           <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
-          <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
+          <td>${prodBadges}</td>
           <td><small>${v.Purpose || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
         </tr>
@@ -599,6 +636,11 @@
     } else { 
       const docSelect = document.getElementById('visitDocId'); 
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
+    }
+
+    // 🌟 เคลียร์ Product ด้วย
+    if (tomSelectProdInstance) {
+      tomSelectProdInstance.clear();
     }
 
     const returnToDocId = sessionStorage.getItem('returnToDocId');
@@ -646,7 +688,12 @@
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
-    document.getElementById('visitProductId').value = v.Product_ID || '';
+    // 🌟 ดึงข้อมูลสินค้าหลายอันมาใส่ฟอร์ม
+    const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
+    if (tomSelectProdInstance) {
+        tomSelectProdInstance.setValue(visitProds);
+    }
+
     document.getElementById('visitDate').value = v.Visit_Date || '';
     document.getElementById('visitStartTime').value = v.Start_Time || '';
     document.getElementById('visitEndTime').value = v.End_Time || '';
@@ -731,6 +778,7 @@
     }
   }
 
+  // 🌟 บันทึกข้อมูลแบบหลายสินค้า (Visit_Products)
   async function handleSaveVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('saveVisitBtn');
@@ -743,24 +791,31 @@
     }
 
     const docSelect = document.getElementById('visitDocId');
-    const prodSelect = document.getElementById('visitProductId');
     const dateInput = document.getElementById('visitDate');
     const purposeSelect = document.getElementById('visitPurpose');
+
+    // 🌟 ดึงค่าสินค้าหลายอัน
+    let selectedProducts = [];
+    if (tomSelectProdInstance) {
+        selectedProducts = tomSelectProdInstance.getValue();
+    } else {
+        const prodSelect = document.getElementById('visitProductId');
+        selectedProducts = Array.from(prodSelect.selectedOptions).map(o => o.value);
+    }
 
     clearValidation();
 
     let missingFields = [];
     if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• คุณหมอที่เข้าพบ (Doctor)"); }
-    if (!prodSelect.value) { prodSelect.classList.add('is-invalid'); document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• สินค้าที่นำเสนอ (Product)"); }
+    if (!selectedProducts || selectedProducts.length === 0) { 
+        const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); 
+        document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• สินค้าที่นำเสนอ (Product)"); 
+    }
     if (!dateInput.value) { dateInput.classList.add('is-invalid'); document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important'); missingFields.push("• วันที่เข้าพบ (Date)"); }
     if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important'); missingFields.push("• วัตถุประสงค์ (Purpose)"); }
 
     if (missingFields.length > 0) {
       alert("⚠️ ไม่สามารถบันทึกได้! กรุณากรอก/เลือกข้อมูลต่อไปนี้ให้ครบถ้วนครับ:\n\n" + missingFields.join("\n"));
-      if (!docSelect.value) { if (docSelect.tomselect) docSelect.tomselect.focus(); else docSelect.focus(); }
-      else if (!prodSelect.value) prodSelect.focus();
-      else if (!dateInput.value) dateInput.focus();
-      else if (!purposeSelect.value) purposeSelect.focus();
       return;
     }
 
@@ -774,11 +829,12 @@
     const territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
 
     const visitId = document.getElementById('visitId').value;
+    
+    // ไม่ส่ง Product_ID ไปยังตาราง Visit_Logs อีกต่อไป
     const payload = {
       Rep_ID: repId,
       Territory_ID: territoryId,
       Doc_ID: docSelect.value,
-      Product_ID: prodSelect.value,
       Visit_Date: dateInput.value,
       Start_Time: document.getElementById('visitStartTime').value || null,
       End_Time: document.getElementById('visitEndTime').value || null,
@@ -792,13 +848,31 @@
 
     try {
       if (visitId) {
-        const { error } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', visitId);
-        if (error) throw error;
+        // 1. อัปเดตตารางหลัก
+        const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', visitId);
+        if (updErr) throw updErr;
+
+        // 2. เคลียร์สินค้าเดิมทิ้ง แล้วใส่ใหม่
+        await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', visitId);
+        if (selectedProducts.length > 0) {
+            const vpPayload = selectedProducts.map(p => ({ Visit_ID: visitId, Product_ID: p, Whoupdated: whoUpdated }));
+            await supabaseClient.from('Visit_Products').insert(vpPayload);
+        }
+
       } else {
-        const { error } = await supabaseClient.from('Visit_Logs').insert([payload]);
-        if (error) throw error;
+        // 1. เพิ่มตารางหลัก และขอ ID กลับมา
+        const { data: insData, error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]).select();
+        if (insErr) throw insErr;
+        const newVisitId = insData[0].Visit_ID;
+
+        // 2. เพิ่มสินค้าย่อยลง Visit_Products
+        if (selectedProducts.length > 0) {
+            const vpPayload = selectedProducts.map(p => ({ Visit_ID: newVisitId, Product_ID: p, Whoupdated: whoUpdated }));
+            await supabaseClient.from('Visit_Products').insert(vpPayload);
+        }
       }
 
+      // 🌟 กระบวนการโยนหน้าจอกลับไปที่โปรไฟล์คุณหมอ (Tab ประวัติ)
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
