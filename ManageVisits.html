@@ -502,7 +502,7 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns และกรองสิทธิ์ Sales Rep (ข้อ 1)
+ // 🌟 โหลด Dropdowns และกรองสิทธิ์ Sales Rep และ Product
   async function loadDropdowns() {
     try {
       let crmUser = null; 
@@ -512,19 +512,18 @@
       const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
-      const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
 
-      // 🌟 แก้ไข: เปลี่ยนจาก Users เป็น Rep_Users ป้องกัน Error 404
+      // 🌟 ดึงข้อมูลจากฐานข้อมูลทั้งหมด
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Products').select('Product_ID, Product').order('Product', { ascending: true }),
+        supabaseClient.from('Products').select('*').order('Product', { ascending: true }), // ดึงข้อมูลสินค้า
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').order('Hospital', { ascending: true }),
         supabaseClient.from('Team').select('*'),            
-        supabaseClient.from('Products_Team').select('*'),   
+        supabaseClient.from('Products_Team').select('*'),   // ดึงตารางเชื่อม Product กับ Team
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-        supabaseClient.from('Rep_Users').select('*') // <--- อัปเดตตรงนี้
+        supabaseClient.from('Rep_Users').select('*')
       ]);
 
       globalDoctorsList = docRes.data || [];
@@ -534,9 +533,11 @@
       globalUsersList = usersRes.data || [];
       globalTeamList = teamRes.data || [];
 
-      // 1. คุณหมอ Dropdown ในฟอร์ม
+      // ==========================================
+      // 1. จัดการ Dropdown คุณหมอในฟอร์ม
+      // ==========================================
       const docSelect = document.getElementById('visitDocId');
-      if (docSelect) { // เพิ่มการเช็คกันเหนียว
+      if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
         
         globalDoctorsList.forEach(d => {
@@ -557,39 +558,38 @@
         }
       }
 
-      // 2. สินค้า (Product Filter)
+      // ==========================================
+      // 2. จัดการ Dropdown สินค้า (Product) + กรองตามทีม
+      // ==========================================
       const prodSelect = document.getElementById('visitProductId');
-      if (prodSelect) { // เพิ่มการเช็คกันเหนียว
+      if (prodSelect) { 
         let productsTeamList = productsTeamRes.data || [];
         let filteredProducts = [];
 
+        // ลอจิกกรองสินค้า: เอา Product_ID จากตาราง Products_Team มาเทียบ
         if (userRole === 'BU Head' && userBu) {
+          // หา Team ทั้งหมดใน BU นี้
           const allowedTeamIds = globalTeamList
-            .filter(t => String(t.BU_ID) === String(userBu) || String(t.BU).toLowerCase() === String(userBu).toLowerCase())
+            .filter(t => String(t.BU_ID) === String(userBu))
             .map(t => t.Team_ID);
 
+          // หาสินค้าที่ผูกกับ Team เหล่านั้น
           const allowedProdIds = productsTeamList
             .filter(pt => allowedTeamIds.includes(pt.Team_ID) && pt.Status !== 'Inactive')
             .map(pt => pt.Product_ID);
 
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
         }
-        else if (userRole !== 'Admin' && userTerritory) {
-          const myTerritoryObj = globalTerritoryList.find(t => 
-            String(t.Territory_ID) === String(userTerritory) || 
-            String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase()
-          );
+        else if (userRole !== 'Admin' && userTeam) {
+          // หาสินค้าที่ผูกกับ Team ของ User คนนี้
+          const allowedProdIds = productsTeamList
+            .filter(pt => String(pt.Team_ID) === String(userTeam) && pt.Status !== 'Inactive')
+            .map(pt => pt.Product_ID);
 
-          if (myTerritoryObj && myTerritoryObj.Team_ID) {
-            const userTeamId = myTerritoryObj.Team_ID;
-            const allowedProdIds = productsTeamList
-              .filter(pt => String(pt.Team_ID) === String(userTeamId) && pt.Status !== 'Inactive')
-              .map(pt => pt.Product_ID);
-
-            filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
-          }
+          filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
         }
 
+        // ถ้าไม่มีสินค้าในทีมเลย หรือเป็น Admin ให้แสดงสินค้าทั้งหมด
         if (filteredProducts.length === 0 || userRole === 'Admin') {
           filteredProducts = globalProductsList;
         }
@@ -601,9 +601,11 @@
         prodSelect.innerHTML = prodHtml;
       }
 
-      // 3. วัตถุประสงค์ (Purpose)
+      // ==========================================
+      // 3. จัดการ Dropdown วัตถุประสงค์ (Purpose)
+      // ==========================================
       const purposeSelect = document.getElementById('visitPurpose');
-      if (purposeSelect) { // เพิ่มการเช็คกันเหนียว
+      if (purposeSelect) { 
         const types = typeRes.data || [];
         const indexes = idxRes.data || [];
         const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
@@ -623,7 +625,7 @@
         purposeSelect.innerHTML = purposeHtml;
       }
 
-      // 🌟 เติมตัวเลือกใน Filters (พร้อมการสแกนสิทธิ์ข้อ 1)
+      // เซ็ตค่าลง Filters ด้านบนตาราง
       setupFiltersDropdowns(crmUser);
 
     } catch (err) {
