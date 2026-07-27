@@ -260,9 +260,12 @@
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
+            
+            <!-- 🌟 ปุ่มบันทึกเยี่ยม ที่ปรับให้ทำงานได้จริง 🌟 -->
             <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToQuickAddCall()">
               <i class="fa-solid fa-plus me-1"></i> บันทึกเยี่ยม (Add Call)
             </button>
+            
           </div>
 
           <div class="table-responsive">
@@ -428,13 +431,12 @@
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      // 🌟 ดึงข้อมูลจาก Rep_Users แทน Users
       const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('*').eq('Status', 'Active').order('Hospital', { ascending: true }),
         supabaseClient.from('Products').select('*'),
-        supabaseClient.from('Rep_Users').select('*'), // <--- อัปเดตตารางตรงนี้
+        supabaseClient.from('Rep_Users').select('*'), 
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
         supabaseClient.from('Target').select('*'),
@@ -445,7 +447,7 @@
       globalIndexes = idxRes.data || [];
       globalHospitals = hospRes.data || []; 
       globalProducts = prodRes.data || [];
-      globalUsers = userRes.data || []; // ตอนนี้เก็บข้อมูลจากตาราง Rep_Users แทนแล้ว
+      globalUsers = userRes.data || []; 
       globalTerritories = terrRes.data || [];
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
@@ -817,7 +819,6 @@
     switchDoctorView('doctorProfileView');
   }
 
-  // 🌟 ฟังก์ชันดึงประวัติการเข้าพบ (ดึงข้อมูลจาก Rep_Users เพื่อเอา Rep_Name)
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
@@ -845,7 +846,6 @@
         const rawProdId = v.Product_ID || v.product_id || '';
         const rawTerrId = v.Territory_ID || v.territory_id || '';
 
-        // 🌟 ดึงข้อมูลจาก globalUsers (ซึ่งตอนนี้คือตาราง Rep_Users)
         const userObj = globalUsers.find(u => {
           const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
           const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
@@ -860,7 +860,6 @@
           return matchEmail || matchRepId || matchRepIdByEmail;
         });
 
-        // 🌟 เปลี่ยนมาดึงค่าจาก Rep_Name เป็นหลัก (ตามรูป Database)
         const repNameShow = userObj ? (
           userObj.Rep_Name || userObj.rep_name || 
           userObj.Name || userObj.name || 
@@ -881,10 +880,11 @@
         });
         const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || terrObj.Territory_Name || rawTerrId) : (rawTerrId || '-');
 
+        // 🌟 ใส่ฟังก์ชัน goToEditCall ในแถวตารางเหมือนเดิม
         tbody.innerHTML += `
-          <tr>
-            <td class="text-center text-primary fw-bold">${dateStr}</td>
-            <td class="fw-bold text-dark">${repNameShow}</td>
+          <tr onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด / แก้ไข">
+            <td class="text-center text-primary fw-medium">${dateStr}</td>
+            <td class="fw-medium text-dark">${repNameShow}</td>
             <td class="text-center"><span class="badge bg-light text-primary border">${terrNameShow}</span></td>
             <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
             <td><small>${v.Purpose || '-'}</small></td>
@@ -1003,8 +1003,65 @@
     finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 
+  // 🌟 ฟังก์ชันที่นำกลับมาจากโค้ดเก่า
   function goToQuickAddCall() {
-    alert("ระบบกำลังนำคุณไปยังหน้าสร้างบันทึกเยี่ยม...");
+    sessionStorage.setItem('returnToDocId', currentTargetDocId);
+
+    setTimeout(() => {
+      // สลับ Tab หลักของระบบไปที่เมนู Visit
+      const visitTabBtn = document.querySelector('button[data-bs-target="#visit"]');
+      if (visitTabBtn) {
+        const tab = new bootstrap.Tab(visitTabBtn);
+        tab.show();
+      }
+
+      // เปิด Modal
+      if (typeof openAddVisitModal === 'function') {
+        openAddVisitModal(); 
+      } else {
+        const addModalEl = document.getElementById('visitModal'); 
+        if (addModalEl) {
+          const addModal = new bootstrap.Modal(addModalEl);
+          addModal.show();
+        }
+      }
+
+      // หน่วงเวลาให้ Modal ขึ้นมาให้เสร็จ แล้วยัดค่าหมอคนนี้ลงไป
+      setTimeout(() => {
+        const visitDocSelect = document.getElementById('visitDocId'); 
+        if (visitDocSelect && currentTargetDocId) {
+          if (visitDocSelect.tomselect) {
+            visitDocSelect.tomselect.setValue(currentTargetDocId);
+          } else {
+            visitDocSelect.value = currentTargetDocId;
+            visitDocSelect.dispatchEvent(new Event('change')); 
+          }
+        }
+      }, 500); 
+
+    }, 400); 
+  }
+
+  // 🌟 ฟังก์ชันที่นำกลับมาจากโค้ดเก่า
+  function goToEditCall(visitId) {
+    if (!visitId || visitId === "undefined") {
+      alert("❌ ไม่พบรหัสอ้างอิงของบันทึกเยี่ยมรายการนี้");
+      return;
+    }
+
+    sessionStorage.setItem('returnToDocId', currentTargetDocId);
+
+    setTimeout(() => {
+      const visitTabBtn = document.querySelector('button[data-bs-target="#visit"]');
+      if (visitTabBtn) {
+        const tab = new bootstrap.Tab(visitTabBtn);
+        tab.show();
+      }
+
+      if (typeof openEditVisitModal === 'function') {
+        openEditVisitModal(visitId);
+      }
+    }, 400); 
   }
 
   // ===================== 🔴 ระบบ Target Call =====================
