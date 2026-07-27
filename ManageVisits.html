@@ -182,6 +182,7 @@
               </select>
               <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์ครับ</div>
             </div>
+            
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">รายละเอียดเพิ่มเติม (Details)</label>
@@ -191,6 +192,18 @@
               </div>
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
+
+            <!-- 🌟 เพิ่มช่องข้อมูลเชิงลึก (Insight) -->
+            <div class="col-md-12 mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold text-dark mb-0">ข้อมูลเชิงลึก (Insight)</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')" title="พูดเพื่อพิมพ์ Insight">
+                  <i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์
+                </button>
+              </div>
+              <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2" placeholder="ระบุข้อมูลเชิงลึก คู่แข่ง หรือทัศนคติที่ได้จากการเข้าพบ..."></textarea>
+            </div>
+
             <div class="col-md-7 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">ขั้นตอนถัดไป (Next Action)</label>
@@ -200,6 +213,7 @@
               </div>
               <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
             </div>
+            
             <div class="col-md-5 mb-2">
               <label class="form-label fw-bold text-dark mb-1">สถานะรายการ (Status)</label>
               <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -628,16 +642,14 @@
     filterVisits();
   }
 
-  // 🌟 ฟังก์ชันจัดการการคลิกเรียงลำดับหัวตาราง (Sorting)
   function sortVisits(col) {
     if (currentSortCol === col) {
-      currentSortAsc = !currentSortAsc; // สลับ ขึ้น-ลง
+      currentSortAsc = !currentSortAsc; 
     } else {
       currentSortCol = col;
-      currentSortAsc = true; // คอลัมน์ใหม่ให้เรียงแบบขึ้น (A-Z) เป็นค่าเริ่มต้น
+      currentSortAsc = true; 
     }
 
-    // อัปเดตไอคอนหัวตาราง
     ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'].forEach(c => {
       const icon = document.getElementById('icon-sort-' + c);
       if (icon) {
@@ -649,7 +661,7 @@
       }
     });
 
-    filterVisits(); // สั่งกรองและจัดเรียงใหม่ทันที
+    filterVisits(); 
   }
 
   async function loadVisits() {
@@ -739,7 +751,6 @@
       return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
     });
 
-    // 🌟 ระบบจัดเรียงข้อมูลก่อนนำไปโชว์ (Sorting Logic)
     filtered.sort((a, b) => {
       let valA = '', valB = '';
 
@@ -853,7 +864,7 @@
   }
 
   function toggleVisitFormEditable(isEditable) {
-    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitNextAction', 'visitStatus'];
+    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     fields.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
@@ -864,7 +875,7 @@
         }
       }
     });
-    ['btnMicDoc', 'btnMicDetails', 'btnMicNextAction'].forEach(id => {
+    ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'].forEach(id => {
       const btn = document.getElementById(id);
       if (btn) btn.disabled = !isEditable;
     });
@@ -877,6 +888,7 @@
     document.getElementById('formVisitTitle').innerText = '📝 เพิ่มการบันทึกเยี่ยมใหม่';
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
+    document.getElementById('visitInsight').value = ''; 
 
     initUserInfo(); 
 
@@ -963,6 +975,7 @@
     document.getElementById('visitEndTime').value = v.End_Time || '';
     document.getElementById('visitPurpose').value = v.Purpose || '';
     document.getElementById('visitDetails').value = v.Details || '';
+    document.getElementById('visitInsight').value = v.Insight || ''; 
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
 
@@ -1105,6 +1118,7 @@
     const existingVisitId = document.getElementById('visitId').value;
     const targetVisitId = existingVisitId || generateUUID();
     
+    // 🌟 รวม Insight เข้าไปใน Payload
     const payload = {
       Visit_ID: targetVisitId,
       Rep_ID: repId,
@@ -1115,6 +1129,7 @@
       End_Time: document.getElementById('visitEndTime').value || null,
       Purpose: purposeSelect.value,
       Details: document.getElementById('visitDetails').value.trim(),
+      Insight: document.getElementById('visitInsight').value.trim(), 
       Next_Action: document.getElementById('visitNextAction').value.trim(),
       Status: document.getElementById('visitStatus').value,
       Whoupdated: whoUpdated,
