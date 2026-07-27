@@ -27,9 +27,8 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (Filters ปรับแต่งตามโจทย์ 1, 2, 3) -->
+    <!-- 🌟 ส่วนค้นหา (Filters) -->
     <div class="row mb-4 g-2">
-      <!-- 1. คนที่ Create Call (กรองตามสิทธิ์ Sales / Manager / BU Head / Admin) -->
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
         <select class="form-select shadow-sm" id="filterVisitRep" onchange="filterVisits()">
@@ -37,7 +36,6 @@
         </select>
       </div>
 
-      <!-- Territory -->
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
         <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="filterVisits()">
@@ -45,7 +43,6 @@
         </select>
       </div>
 
-      <!-- 2. ค้นหา Doctor เฉพาะหมอ (พร้อมไมค์) -->
       <div class="col-md-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -57,7 +54,6 @@
         </div>
       </div>
 
-      <!-- 3. ค้นหา Hospital เฉพาะ รพ. (พร้อมไมค์) -->
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -69,7 +65,6 @@
         </div>
       </div>
 
-      <!-- Product -->
       <div class="col-md-2">
         <label class="form-label fw-bold text-secondary small mb-1">Product</label>
         <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
@@ -77,7 +72,6 @@
         </select>
       </div>
 
-      <!-- Status -->
       <div class="col-md-1">
         <label class="form-label fw-bold text-secondary small mb-1">Status</label>
         <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
@@ -249,7 +243,7 @@
   window.openAddVisitModal = openAddVisitView;
   window.openEditVisitModal = openEditVisitView;
 
-  // ===================== 🎙️ ระบบไมค์อเนกประสงค์สำหรับ Filter (ข้อ 2 & ข้อ 3) =====================
+  // ===================== 🎙️ ระบบไมค์อเนกประสงค์สำหรับ Filter =====================
   var activeSearchRecognition = null;
   var currentSearchInputId = null;
   var currentSearchBtnId = null;
@@ -563,34 +557,45 @@
       }
 
       // ==========================================
-      // 2. จัดการ Dropdown สินค้า (Product) + กรองตามทีม
+      // 2. 🌟 จัดการ Dropdown สินค้า (Product) วิ่งหาจาก Territory -> Team -> Products_Team
       // ==========================================
       const prodSelect = document.getElementById('visitProductId');
       if (prodSelect) { 
         let productsTeamList = productsTeamRes.data || [];
         let filteredProducts = [];
+        let myTeamIds = [];
 
+        // ถ้าเป็น BU Head ให้หา Team ทั้งหมดใน BU
         if (userRole === 'BU Head' && userBu) {
-          const allowedTeamIds = globalTeamList
-            .filter(t => String(t.BU_ID) === String(userBu))
-            .map(t => t.Team_ID);
-
-          const allowedProdIds = productsTeamList
-            .filter(pt => allowedTeamIds.includes(pt.Team_ID) && pt.Status !== 'Inactive')
-            .map(pt => pt.Product_ID);
-
-          filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
+          myTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => t.Team_ID);
+        } 
+        // ถ้าเป็น Manager หาจาก Team โดยตรง
+        else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+          if (userTeam) myTeamIds.push(userTeam);
+        } 
+        // 🌟 ถ้าเป็น Sales ปกติ หา Team จาก Territory_ID ที่ผูกไว้
+        else if (userRole !== 'Admin') {
+          let repTeamId = userTeam;
+          if (!repTeamId && userTerritory) {
+            const terrObj = globalTerritoryList.find(t => 
+              String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory)
+            );
+            if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
+          }
+          if (repTeamId) myTeamIds.push(String(repTeamId));
         }
-        else if (userRole !== 'Admin' && userTeam) {
-          const allowedProdIds = productsTeamList
-            .filter(pt => String(pt.Team_ID) === String(userTeam) && pt.Status !== 'Inactive')
-            .map(pt => pt.Product_ID);
 
-          filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(p.Product_ID));
-        }
-
-        if (filteredProducts.length === 0 || userRole === 'Admin') {
+        // กรอง Product จาก Team ที่พบ
+        if (userRole === 'Admin') {
           filteredProducts = globalProductsList;
+        } else if (myTeamIds.length > 0) {
+          const allowedProdIds = productsTeamList
+            .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
+            .map(pt => String(pt.Product_ID));
+          filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+        } else {
+          // เผื่อคนไม่มีทีม
+          filteredProducts = globalProductsList; 
         }
 
         let prodHtml = '<option value="">-- เลือกสินค้า --</option>';
@@ -626,27 +631,12 @@
 
       setupFiltersDropdowns(crmUser);
 
-      // 🌟 ดักจับว่าถูกโยนมาจากหน้าแพทย์ (ManageDoctors) หรือไม่
-      const returnToDocId = sessionStorage.getItem('returnToDocId');
-      if (returnToDocId) {
-        if (tomSelectDocInstance) {
-          tomSelectDocInstance.setValue(returnToDocId);
-        } else {
-          if (docSelect) {
-            docSelect.value = returnToDocId;
-            docSelect.dispatchEvent(new Event('change'));
-          }
-        }
-        // ลบค่าทิ้งหลังจากใช้งานเสร็จแล้ว
-        sessionStorage.removeItem('returnToDocId');
-      }
-
     } catch (err) {
       console.error("Error loading dropdowns:", err.message);
     }
   }
 
-  // 🌟 1. เติมรายการ Sales Rep กรองตามสิทธิ์ Login (ข้อ 1)
+  // 🌟 1. เติมรายการ Sales Rep กรองตามสิทธิ์ Login
   function setupFiltersDropdowns(crmUser) {
     const repSelect = document.getElementById('filterVisitRep');
     if (!repSelect) return;
@@ -703,7 +693,7 @@
   // 🌟 ดึงข้อมูลตาราง Visit_Logs
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
-    if (!tbody) return; // 🌟 เพิ่มตัวดักจับเพื่อไม่ให้ Error ถ้าอยู่หน้าอื่น
+    if (!tbody) return; 
 
     tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
@@ -721,7 +711,6 @@
     }
   }
 
-  // 🌟 กรองข้อมูลตาราง (อัปเดตตามข้อ 1, 2, 3)
   function filterVisits() {
     const repTerm = document.getElementById('filterVisitRep') ? document.getElementById('filterVisitRep').value : '';
     const terTerm = document.getElementById('filterVisitTerritory') ? document.getElementById('filterVisitTerritory').value : '';
@@ -731,26 +720,19 @@
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
     const filtered = globalVisits.filter(v => {
-      // 1. Rep Match
       const matchRep = (repTerm === "") || (String(v.Rep_ID) === String(repTerm));
-      // Territory Match
       const matchTer = (terTerm === "") || (String(v.Territory_ID) === String(terTerm));
 
-      // 2. Doctor Mapping & Search (ข้อ 2)
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : String(v.Doc_ID || '');
       const matchDoc = (docSearchTerm === "") || docName.toLowerCase().includes(docSearchTerm);
 
-      // 3. Hospital Mapping & Search (ข้อ 3)
       let hospId = docObj ? docObj.Hospital_ID : '';
       const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(hospId));
       const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}` : '';
       const matchHosp = (hospSearchTerm === "") || hospName.toLowerCase().includes(hospSearchTerm);
 
-      // Product Match
       const matchProd = (prodTerm === "") || (String(v.Product_ID) === String(prodTerm));
-
-      // Status Match
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
       return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
@@ -759,10 +741,9 @@
     renderVisitTable(filtered);
   }
 
-  // 🌟 สร้างตารางข้อมูล
   function renderVisitTable(data) {
     const tbody = document.getElementById('visitTableBody');
-    if (!tbody) return; // 🌟 เพิ่มตัวดักจับกัน Error
+    if (!tbody) return; 
 
     tbody.innerHTML = '';
 
@@ -775,7 +756,6 @@
       const statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-      // แปลง Doc_ID เป็น ชื่อหมอ
       const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let docNameShow = v.Doc_ID || '-';
       let hospNameShow = '-';
@@ -785,14 +765,12 @@
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${titleShow}${docObj.Doc_Name}${nameThShow}`;
 
-        // ดึงชื่อ รพ.หลัก
         const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
         if (hospObj) {
           hospNameShow = hospObj.Known_As || hospObj.Hospital;
         }
       }
 
-      // แปลง Product_ID เป็น ชื่อสินค้า
       const prodObj = globalProductsList.find(p => String(p.Product_ID) === String(v.Product_ID));
       const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
@@ -825,6 +803,7 @@
     });
   }
 
+  // 🌟 1. ดักจับค่าชื่อหมอที่ส่งข้ามหน้าจอมา (Fix บัคใส่ชื่อหมอ)
   function openAddVisitView() {
     clearValidation();
     document.getElementById('visitForm').reset();
@@ -833,7 +812,27 @@
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
 
-    if (tomSelectDocInstance) tomSelectDocInstance.clear();
+    if (tomSelectDocInstance) {
+      tomSelectDocInstance.clear();
+    } else {
+      const docSelect = document.getElementById('visitDocId');
+      if (docSelect) docSelect.value = '';
+    }
+
+    // 🌟 ดักจับว่าถูกโยน ID หมอมาจากหน้าแพทย์ (ManageDoctors) หรือไม่
+    const returnToDocId = sessionStorage.getItem('returnToDocId');
+    if (returnToDocId) {
+      if (tomSelectDocInstance) {
+        tomSelectDocInstance.setValue(returnToDocId);
+      } else {
+        const docSelect = document.getElementById('visitDocId');
+        if (docSelect) {
+          docSelect.value = returnToDocId;
+          docSelect.dispatchEvent(new Event('change'));
+        }
+      }
+      sessionStorage.removeItem('returnToDocId'); // ลบค่าทิ้งป้องกันการจำค่าเดิม
+    }
 
     switchVisitView('visitFormView');
   }
