@@ -257,7 +257,7 @@
           </div>
         </div>
 
-        <!-- Tab 2: ประวัติการเข้าพบ -->
+        <!-- Tab 2: ประวัติการเข้าพบ (โชว์ชื่อผู้แทน และชื่อ Product แล้ว) -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
@@ -815,6 +815,7 @@
     switchDoctorView('doctorProfileView');
   }
 
+  // 🌟 ดึงประวัติการเข้าพบ (ดึงชื่อผู้แทน และ ชื่อสินค้า มาแสดงแทน ID)
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
@@ -837,6 +838,7 @@
         const badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
         
+        // 🌟 แปลง Sales Rep (ใช้อีเมลดึงชื่อจาก Users, ถ้าไม่เจอให้อีเมลเดิม)
         const userObj = globalUsers.find(u => 
           (u.Email && String(u.Email).toLowerCase() === String(v.Whoupdated).toLowerCase()) ||
           (u.Rep_ID && String(u.Rep_ID) === String(v.Rep_ID)) ||
@@ -844,9 +846,11 @@
         );
         const repNameShow = userObj ? (userObj.Rep_Name || userObj.Name || userObj.Email) : (v.Whoupdated || '-');
 
+        // 🌟 แปลง Product ID เป็น Product Name
         const prodObj = globalProducts.find(p => String(p.Product_ID) === String(v.Product_ID));
         const prodNameShow = prodObj ? prodObj.Product : (v.Product_ID || '-');
 
+        // 🌟 แปลง Territory ID เป็น Territory Name
         const terrObj = globalTerritories.find(t => String(t.Territory_ID) === String(v.Territory_ID));
         const terrNameShow = terrObj ? terrObj.Territory : (v.Territory_ID || '-');
 
@@ -976,7 +980,7 @@
     alert("ระบบกำลังนำคุณไปยังหน้าสร้างบันทึกเยี่ยม...");
   }
 
-  // ===================== 🔴 ระบบ Target Call (เชื่อม DB จริง) =====================
+  // ===================== 🔴 ระบบ Target Call =====================
 
   async function loadDoctorRatings(docId) {
     const tbody = document.getElementById('ratingTableBody');
@@ -1034,7 +1038,6 @@
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
 
-    // 🔴 โหลดเฉพาะสินค้าของทีมตัวเอง (globalTeamProducts)
     let prodOpts = '<option value="">- เลือกสินค้า -</option>';
     if (typeof globalTeamProducts !== 'undefined') {
         globalTeamProducts.forEach(p => {
@@ -1043,14 +1046,12 @@
         });
     }
 
-    // ดึงค่า Adoption (เรียงลำดับตาม Matrix)
     let adoptOpts = '<option value="">- เลือก -</option>';
     getIndexValues('Adoption').forEach(a => {
         const sel = a === adopt ? 'selected' : '';
         adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
     });
 
-    // ดึงค่า Potential (เรียงลำดับ High, Medium, Low, No)
     let potOpts = '<option value="">- เลือก -</option>';
     getIndexValues('Potential').forEach(p => {
         const sel = p === pot ? 'selected' : '';
@@ -1080,7 +1081,6 @@
     tbody.appendChild(tr);
   }
 
-  // 🔴 ปรับปรุงเงื่อนไข: ต้องเลือก Product ก่อนถึงจะคำนวณ Classification และ Target ออกมา
   function triggerCalcTarget(element) {
     const tr = element.closest('tr');
     const prodId = tr.querySelector('.rating-product').value;
@@ -1092,7 +1092,6 @@
     
     let calcClass = "";
 
-    // เงื่อนไข: ต้องเลือก Product พร้อมกับ Adoption และ Potential ครบถ้วน ถึงจะคำนวณ Class
     if (prodId && adopt && pot) {
         const matrixRow = globalMatrixData.find(m => m.Adoption === adopt && m.Potential === pot);
         if (matrixRow) {
@@ -1101,7 +1100,6 @@
     }
     classInput.value = calcClass;
 
-    // หา Target (Call) ต่อเนื่องจาก Product และ Classification
     if (prodId && calcClass) {
         const targetRow = globalTargetData.find(t => 
             String(t.Product_ID) === String(prodId) && 
