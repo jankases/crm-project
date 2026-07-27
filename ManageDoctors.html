@@ -297,16 +297,16 @@
             <table class="table table-bordered text-center align-middle" id="ratingTable">
               <thead class="table-light">
                 <tr>
-                  <th>Product</th>
-                  <th>Adoption</th>
-                  <th>Potential</th>
-                  <th>Classification</th>
-                  <th>Target (Call)</th>
-                  <th>Action</th>
+                  <th style="width: 25%;">Product</th>
+                  <th style="width: 15%;">Adoption</th>
+                  <th style="width: 15%;">Potential</th>
+                  <th style="width: 15%;">Classification</th>
+                  <th style="width: 15%;">Target (Call)</th>
+                  <th style="width: 15%;">Action</th>
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
-                <tr class="no-data"><td colspan="6" class="text-muted py-4">กำลังโหลดข้อมูล...</td></tr>
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
               </tbody>
             </table>
           </div>
@@ -325,6 +325,22 @@
   var globalUsers = [];
   var globalTerritories = [];
   var currentTargetDocId = ""; 
+
+  // ===================== ตัวแปรสำหรับการคำนวณ Target Call =====================
+  var globalRatingDropdowns = { 
+      Adoption: ['Advocacy', 'Regular', 'Trial', 'Awareness', 'None'], 
+      Potential: ['High', 'Medium', 'Low'] 
+  };
+  // ตัวอย่าง Master Data สำหรับคำนวณ (ปรับแต่งได้ตามเงื่อนไขธุรกิจของคุณ)
+  var globalMatrixMaster = {
+      "PROD01_Advocacy_High": "A",
+      "PROD01_Regular_Medium": "B"
+  };
+  var globalTargetMaster = {
+      "PROD01_A": 24,
+      "PROD01_B": 12,
+      "PROD01_C": 6
+  };
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
   var activeSearchRecognition = null;
@@ -744,6 +760,9 @@
 
     loadDoctorVisitHistory(id);
 
+    // 🔴 1. เรียกใช้งานดึงข้อมูล Target Call ทันทีหลังจากเปิด View 
+    await loadDoctorRatings(id);
+
     const firstTabEl = document.querySelector('#doctorProfileView .nav-link');
     if(firstTabEl) { const tab = new bootstrap.Tab(firstTabEl); tab.show(); }
 
@@ -911,24 +930,199 @@
     finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
   }
 
+  function goToQuickAddCall() {
+    alert("ระบบกำลังนำคุณไปยังหน้าสร้างบันทึกเยี่ยม...");
+  }
+
+  // ===================== 🔴 2. ฟังก์ชันระบบ Target Call ทั้งหมด =====================
+
+  async function loadDoctorRatings(docId) {
+    const tbody = document.getElementById('ratingTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+    
+    try {
+        const { data, error } = await supabaseClient
+            .from('Rating')
+            .select('*')
+            .eq('Doc_ID', docId);
+
+        if (error) throw error;
+        renderRatingTable(data); 
+    } catch(err) {
+        console.error("Error fetching ratings:", err);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`;
+    }
+  }
+
+  function renderRatingTable(ratings) {
+    const tbody = document.getElementById('ratingTableBody');
+    tbody.innerHTML = '';
+    
+    if(!Array.isArray(ratings) || ratings.length === 0) {
+        tbody.innerHTML = '<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">ยังไม่มีข้อมูลการประเมิน กรุณากด "เพิ่มสินค้า"</td></tr>';
+        return;
+    }
+
+    try {
+        ratings.forEach(row => {
+            addRatingRowHTML(
+                row.Product_ID || '', 
+                row.Adoption || '', 
+                row.Potential || '', 
+                row.Classification || '', 
+                row.Target || ''
+            );
+        });
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Render Error: ${e.message}</td></tr>`;
+    }
+  }
+
   function addNewRatingRow() {
     const tbody = document.getElementById('ratingTableBody');
     const noData = tbody.querySelector('.no-data');
     if(noData) noData.remove(); 
 
+    addRatingRowHTML('', '', '', '', '');
+  }
+
+  function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
+    const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
+
+    let prodOpts = '<option value="">- เลือกสินค้า -</option>';
+    if (typeof globalProducts !== 'undefined') {
+        globalProducts.forEach(p => {
+            const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
+            prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
+        });
+    }
+
+    let adoptOpts = '<option value="">- เลือก -</option>';
+    globalRatingDropdowns.Adoption.forEach(a => {
+        const sel = a === adopt ? 'selected' : '';
+        adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
+    });
+
+    let potOpts = '<option value="">- เลือก -</option>';
+    globalRatingDropdowns.Potential.forEach(p => {
+        const sel = p === pot ? 'selected' : '';
+        potOpts += `<option value="${p}" ${sel}>${p}</option>`;
+    });
+
     tr.innerHTML = `
-      <td><input type="text" class="form-control form-control-sm" placeholder="ชื่อสินค้า"></td>
-      <td><select class="form-select form-select-sm"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></td>
-      <td><select class="form-select form-select-sm"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></td>
-      <td><input type="text" class="form-control form-control-sm text-center fw-bold text-primary" value="A" readonly style="background:#e9ecef;"></td>
-      <td><input type="number" class="form-control form-control-sm text-center fw-bold text-success" value="4" readonly style="background:#e9ecef;"></td>
-      <td><button class="btn btn-sm btn-success rounded-pill px-3" onclick="alert('บันทึกสำเร็จ')">💾 บันทึก</button></td>
+        <td>
+            <select class="form-select form-select-sm rating-product border-primary shadow-none" onchange="triggerCalcTarget(this)">
+                ${prodOpts}
+            </select>
+        </td>
+        <td><select class="form-select form-select-sm rating-adopt shadow-none" onchange="triggerCalcTarget(this)">${adoptOpts}</select></td>
+        <td><select class="form-select form-select-sm rating-pot shadow-none" onchange="triggerCalcTarget(this)">${potOpts}</select></td>
+        <td>
+            <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#f8f9fa;">
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none" value="${tgt}" readonly style="background-color:#f8f9fa;">
+        </td>
+        <td class="text-center">
+            <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="saveTargetCallRow(this)">
+                <i class="fa-solid fa-floppy-disk"></i> บันทึก
+            </button>
+        </td>
     `;
     tbody.appendChild(tr);
   }
 
-  function goToQuickAddCall() {
-    alert("ระบบกำลังนำคุณไปยังหน้าสร้างบันทึกเยี่ยม...");
+  function triggerCalcTarget(element) {
+    const tr = element.closest('tr');
+    const prodId = tr.querySelector('.rating-product').value;
+    const adopt = tr.querySelector('.rating-adopt').value;
+    const pot = tr.querySelector('.rating-pot').value;
+    
+    const classInput = tr.querySelector('.rating-class');
+    const targetInput = tr.querySelector('.rating-target');
+    
+    let calcClass = "";
+
+    if (prodId && adopt && pot) {
+        const matrixKey = `${prodId}_${adopt}_${pot}`;
+        calcClass = globalMatrixMaster[matrixKey] || "C"; // ค่า Default ถ้าหาไม่เจอ
+    }
+    classInput.value = calcClass;
+
+    if (prodId && calcClass) {
+        const targetKey = `${prodId}_${calcClass}`;
+        targetInput.value = globalTargetMaster[targetKey] !== undefined ? globalTargetMaster[targetKey] : 0;
+    } else {
+        targetInput.value = "";
+    }
+  }
+
+  async function saveTargetCallRow(btn) {
+    const tr = btn.closest('tr');
+    
+    const selectedProductId = tr.querySelector('.rating-product').value;
+    const adoptVal = tr.querySelector('.rating-adopt').value;
+    const potVal = tr.querySelector('.rating-pot').value;
+    const classificationValue = tr.querySelector('.rating-class').value;
+    const targetValue = tr.querySelector('.rating-target').value;
+
+    if(!selectedProductId || !adoptVal || !potVal) {
+        alert("❌ กรุณาเลือก สินค้า, Adoption และ Potential ให้ครบถ้วน");
+        return;
+    }
+
+    const allProductSelects = document.querySelectorAll('#ratingTableBody .rating-product');
+    let duplicateCount = 0;
+    allProductSelects.forEach(select => {
+        if (select.value === selectedProductId) duplicateCount++;
+    });
+
+    if (duplicateCount > 1) {
+        alert("❌ ไม่สามารถบันทึกได้: สินค้านี้มีอยู่แล้วในรายการ");
+        return; 
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "System_User") : "System_User";
+
+    const payload = {
+        Doc_ID: currentTargetDocId,
+        Product_ID: selectedProductId,
+        Adoption: adoptVal,
+        Potential: potVal,
+        Classification: classificationValue,
+        Target: targetValue ? parseInt(targetValue) : 0,
+        Whoupdated: whoUpdated, 
+        Whenupdated: new Date().toISOString()
+    };
+
+    try {
+        const { error } = await supabaseClient
+            .from('Rating')
+            .upsert(payload, { onConflict: 'Doc_ID, Product_ID' });
+
+        if (error) throw error;
+
+        btn.classList.replace('btn-success', 'btn-outline-success');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> สำเร็จ';
+        
+        setTimeout(() => {
+            btn.classList.replace('btn-outline-success', 'btn-success');
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+            btn.disabled = false;
+        }, 2000);
+
+    } catch(err) {
+        console.error("Save error:", err);
+        alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+    }
   }
 </script>
