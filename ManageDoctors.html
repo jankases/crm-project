@@ -46,9 +46,9 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (ปรับโรงพยาบาลหลักเป็นช่องพิมพ์ค้นหา + ไมค์) -->
+    <!-- 🌟 ส่วนค้นหา (ปรับเปลี่ยนเป็นไอคอนแว่นขยายให้เข้ากันหมด) -->
     <div class="row mb-4 doctor-filter-group g-3">
-      <!-- 1. ค้นหาชื่อหมอ (มีไมค์) -->
+      <!-- 1. ค้นหาชื่อหมอ (แว่นขยาย + ไมค์) -->
       <div class="col-sm-12 col-md-5 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อแพทย์ (EN / TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -68,11 +68,11 @@
         </select>
       </div>
 
-      <!-- 3. ค้นหา รพ. หลัก (ปรับเปลี่ยนเป็น Text Input + ไมค์) -->
+      <!-- 3. ค้นหา รพ. หลัก (เปลี่ยนเป็นแว่นขยาย + ไมค์) -->
       <div class="col-sm-6 col-md-4 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">โรงพยาบาลหลัก (Primary)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-hospital text-muted"></i></span>
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
           <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocWorkplace" placeholder="พิมพ์ชื่อ รพ. หรือ ชื่อไทย..." onkeyup="filterDoctors()">
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
@@ -321,7 +321,7 @@
   var globalHospitals = [];
   var currentTargetDocId = ""; 
 
-  // ===================== 🎙️ ระบบ Voice to Text แบบปรับปรุงใหม่ =====================
+  // ===================== 🎙️ ระบบ Voice to Text =====================
   var activeSearchRecognition = null;
   var currentSearchInputId = null;
   var currentSearchBtnId = null;
@@ -543,7 +543,7 @@
     }
   }
 
-  // 🌟 ฟังก์ชันกรองข้อมูล (กรองชื่อหมอ และ กรอง รพ.หลัก แบบ Text Input)
+  // 🌟 ฟังก์ชันกรองข้อมูล
   function filterDoctors() {
     const nameEl = document.getElementById('filterDocName');
     const specEl = document.getElementById('filterDocSpecialty');
@@ -554,13 +554,10 @@
     const hospTerm = hospEl ? hospEl.value.toLowerCase().trim() : "";
 
     const filtered = globalDoctors.filter(d => {
-      // ค้นหาเฉพาะชื่อหมอ EN และ TH
       const nameSearchStr = `${d.nameEn || ''} ${d.nameTh || ''}`.toLowerCase();
       const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
       
       const matchSpec = (specTerm === "") || (d.specialty === specTerm);
-      
-      // ค้นหาชื่อ รพ. หลัก
       const matchHosp = (hospTerm === "") || (d.hospitalName && d.hospitalName.toLowerCase().includes(hospTerm));
 
       return matchName && matchSpec && matchHosp;
