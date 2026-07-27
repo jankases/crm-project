@@ -12,7 +12,6 @@
     70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
-  /* ปรับ TomSelect ให้เหมาะกับการเลือกหลายอัน */
   .ts-control { border-radius: 10px !important; min-height: 42px; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
 </style>
@@ -147,12 +146,9 @@
             
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Products) <span class="text-danger">*</span></label>
-              <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required>
-                <!-- TomSelect จะเข้ามาคุมตรงนี้ -->
-              </select>
+              <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
               <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าอย่างน้อย 1 รายการครับ</div>
             </div>
-
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
@@ -261,7 +257,7 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ (ย่อโค้ดเพื่อความกระชับ) =====================
+  // ===================== 🎙️ ระบบไมค์ =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
@@ -457,7 +453,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์การมองเห็นข้อมูล (ปรับแก้ให้ Manager เห็นข้อมูลครบถ้วน)
+  // 🌟 ฟังก์ชันจัดการสิทธิ์แบบผสมผสาน (Hierarchical Check)
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -468,22 +464,20 @@
     const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
     const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null; 
     const userEmail = crmUser ? (crmUser.Email || crmUser.email) : '';
-    const userRepId = crmUser ? (crmUser.Rep_ID || crmUser.id) : '';
+    const userRepId = crmUser ? (crmUser.Rep_ID || crmUser.id || crmUser.User_ID) : '';
     const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
 
     let allowedUsers = [];
     let allowedTeamIds = [];
     let allowedTerritories = [];
 
-    // 1. รวบรวม Team และ Territory ที่เกี่ยวข้องตามสิทธิ์
+    // 1. ดึง Team_ID ตามลำดับสิทธิ์
     if (userRole === 'Manager' || userRole === 'Sales Manager') {
       if (userTeam) allowedTeamIds.push(String(userTeam));
-      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
-    }
+    } 
     else if (userRole === 'BU Head' && userBu) {
       allowedTeamIds = globalTeamList.filter(t => String(t.BU_ID) === String(userBu)).map(t => String(t.Team_ID));
-      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
-    }
+    } 
     else if (userRole === 'Sales' || userRole === 'Rep') {
       let repTeamId = userTeam;
       if (!repTeamId && userTerritory) {
@@ -491,33 +485,47 @@
         if (terrObj && terrObj.Team_ID) repTeamId = terrObj.Team_ID;
       }
       if (repTeamId) allowedTeamIds.push(String(repTeamId));
+    }
+
+    // 2. กาง Team ออกมาหาว่าดูแล Territories อะไรบ้าง
+    if (userRole === 'Admin') {
+      allowedTerritories = globalTerritoryList;
+    } else if (userRole === 'Sales' || userRole === 'Rep') {
       allowedTerritories = globalTerritoryList.filter(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory) === String(userTerritory));
+    } else if (allowedTeamIds.length > 0) {
+      allowedTerritories = globalTerritoryList.filter(t => allowedTeamIds.includes(String(t.Team_ID)));
     }
-    else {
-      allowedTerritories = globalTerritoryList; // Admin
-    }
-
     const allowedTerIdsForSec = allowedTerritories.map(t => String(t.Territory_ID));
-    const allowedTerNamesForSec = allowedTerritories.map(t => String(t.Territory));
 
-    // 2. รวบรวม Users ให้สอดคล้องกับ Team และ Territory
+    // 3. กวาดพนักงานที่อยู่ใน Team หรือ ดูแล Territories เหล่านั้น
     if (userRole === 'Admin') {
       allowedUsers = globalUsersList;
     } else if (userRole === 'Sales' || userRole === 'Rep') {
-      allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(userRepId));
+      allowedUsers = globalUsersList.filter(u => String(u.Email) === String(userEmail) || String(u.Rep_ID) === String(userRepId) || String(u.User_ID) === String(userRepId));
     } else {
       allowedUsers = globalUsersList.filter(u => {
         const uTeam = String(u.Team_ID || u.Team);
         const uTerr = String(u.Territory_ID || u.Territory || u.territoryId);
-        return allowedTeamIds.includes(uTeam) || allowedTerIdsForSec.includes(uTerr) || allowedTerNamesForSec.includes(uTerr);
+        return allowedTeamIds.includes(uTeam) || allowedTerIdsForSec.includes(uTerr); // 👈 กุญแจสำคัญ!
       });
     }
 
-    // ตัดรายชื่อ Users ที่ซ้ำกัน
-    const uniqueUsers = Array.from(new Set(allowedUsers.map(u => u.Rep_ID || u.User_ID)))
-      .map(id => allowedUsers.find(u => (u.Rep_ID || u.User_ID) === id));
+    // ตัดรายชื่อพนักงานที่ซ้ำกันออก
+    const uniqueUsers = [];
+    const seenIds = new Set();
+    allowedUsers.forEach(u => {
+       const id = String(u.Rep_ID || u.User_ID);
+       if (!seenIds.has(id)) {
+          seenIds.add(id);
+          uniqueUsers.push(u);
+       }
+    });
 
-    // สร้าง HTML สำหรับ Dropdown
+    // บันทึกใส่ตัวแปร Global ไว้ให้ตารางดึงไปเช็คความปลอดภัย (Data Restriction)
+    window.myAllowedRepIds = Array.from(seenIds);
+    window.myAllowedTerIds = allowedTerIdsForSec;
+
+    // สร้าง HTML คืนค่าให้ Dropdown ค้นหา
     let repHtml = (userRole === 'Sales' || userRole === 'Rep') ? '' : '<option value="">- All Reps -</option>';
     uniqueUsers.forEach(r => { repHtml += `<option value="${r.Rep_ID || r.User_ID}">${r.Rep_Name || r.Name || r.Email}</option>`; });
     repSelect.innerHTML = repHtml;
@@ -526,6 +534,7 @@
     allowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
+    // สร้าง HTML กรอง Products ให้ตรงกับทีม
     let allowedProducts = [];
     if (userRole === 'Admin') {
       allowedProducts = globalProductsList;
@@ -577,14 +586,15 @@
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
-    const allowedRepIds = repSelect ? Array.from(repSelect.options).map(o => o.value).filter(v => v !== "") : [];
-    const allowedTerIds = terSelect ? Array.from(terSelect.options).map(o => o.value).filter(v => v !== "") : [];
-
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     let isAdmin = crmUser && (crmUser.Role === 'Admin' || crmUser.role === 'Admin');
 
+    // ใช้ข้อมูลสิทธิ์ที่ตรวจสอบมาแล้วตอนโหลด Dropdown
+    const allowedRepIds = window.myAllowedRepIds || [];
+    const allowedTerIds = window.myAllowedTerIds || [];
+
     const filtered = globalVisits.filter(v => {
-      // 🌟 Data Security: กรองสิทธิ์ก่อน (ให้เงื่อนไขเป็นแบบ OR เพื่อให้ครอบคลุมคนที่ผูกสิทธิ์แค่บางอย่าง)
+      // 🌟 Security Check: กรองว่าประวัตินี้อยู่ในสายตาของ Manager หรือไม่
       let hasSecurityAccess = false;
       if (isAdmin) {
         hasSecurityAccess = true;
@@ -596,7 +606,7 @@
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 UI Filtering: กรองตาม Dropdown ที่ User เลือก (ถ้าไม่เลือกก็คือผ่านหมด)
+      // 🌟 UI Filter: ค้นหาตาม Dropdown ด้านบน
       const matchRep = (repTerm === "") ? true : (String(v.Rep_ID) === String(repTerm));
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
@@ -856,6 +866,17 @@
     }
   }
 
+  // 🌟 ฟังก์ชันช่วยสร้างรหัส UUID ป้องกันปัญหารอดึง ID กลับมาไม่ทัน
+  function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+  }
+
   async function handleSaveVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('saveVisitBtn');
@@ -906,9 +927,11 @@
     const repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
     const territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
 
-    const visitId = document.getElementById('visitId').value;
+    const existingVisitId = document.getElementById('visitId').value;
+    const targetVisitId = existingVisitId || generateUUID();
     
     const payload = {
+      Visit_ID: targetVisitId,
       Rep_ID: repId,
       Territory_ID: territoryId,
       Doc_ID: docSelect.value,
@@ -924,30 +947,22 @@
     };
 
     try {
-      if (visitId) {
-        const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', visitId);
-        if (updErr) throw new Error("อัปเดตข้อมูล Visit_Logs: " + updErr.message);
+      if (existingVisitId) {
+        const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
+        if (updErr) throw new Error("อัปเดตข้อมูล Visit_Logs ขัดข้อง: " + updErr.message);
 
-        const { error: delErr } = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', visitId);
-        if (delErr) throw new Error("ลบข้อมูล Visit_Products เดิม: " + delErr.message);
-
-        if (selectedProducts.length > 0) {
-            const vpPayload = selectedProducts.map(p => ({ Visit_ID: visitId, Product_ID: p, Whoupdated: whoUpdated }));
-            const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
-            if (vpErr) throw new Error("เพิ่มข้อมูล Visit_Products ใหม่: " + vpErr.message);
-        }
+        const { error: delErr } = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
+        if (delErr) throw new Error("ลบข้อมูล Visit_Products เดิมขัดข้อง: " + delErr.message);
 
       } else {
-        const { data: insData, error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]).select();
-        if (insErr) throw new Error("เพิ่มข้อมูล Visit_Logs: " + insErr.message);
-        
-        const newVisitId = insData[0].Visit_ID;
+        const { error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]);
+        if (insErr) throw new Error("บันทึกข้อมูล Visit_Logs ขัดข้อง: " + insErr.message);
+      }
 
-        if (selectedProducts.length > 0) {
-            const vpPayload = selectedProducts.map(p => ({ Visit_ID: newVisitId, Product_ID: p, Whoupdated: whoUpdated }));
-            const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
-            if (vpErr) throw new Error("เพิ่มข้อมูล Visit_Products ใหม่: " + vpErr.message);
-        }
+      if (selectedProducts.length > 0) {
+          const vpPayload = selectedProducts.map(p => ({ Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }));
+          const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
+          if (vpErr) throw new Error("บันทึกข้อมูล Visit_Products ขัดข้อง: " + vpErr.message);
       }
 
       const returnDocId = sessionStorage.getItem('returnToDocId');
@@ -969,7 +984,7 @@
 
     } catch(err) {
       console.error("Save Visit Error:", err);
-      alert("❌ ไม่สามารถบันทึกข้อมูลได้: " + err.message);
+      alert("❌ ไม่สามารถบันทึกข้อมูลได้\n\nสาเหตุ: " + err.message);
     } finally {
       btn.disabled = false;
       btn.innerHTML = "💾 บันทึกข้อมูล";
