@@ -833,8 +833,10 @@
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
-      const [visitRes, dcrRes] = await Promise.all([
+      // 🌟 ดึง Visit_Products มาด้วย
+      const [visitRes, vpRes, dcrRes] = await Promise.all([
         supabaseClient.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false }),
+        supabaseClient.from('Visit_Products').select('*'),
         supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
       ]);
 
@@ -842,6 +844,8 @@
       
       tbody.innerHTML = '';
       const data = visitRes.data || [];
+      const globalVP = vpRes.data || [];
+
       if(!data || data.length === 0) {
         return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ยังไม่มีประวัติการเข้าพบ</td></tr>';
       }
@@ -853,7 +857,6 @@
         let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
         let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
 
-        // ถ้ามีการส่ง DCR ขอแก้
         if (isPendingUnlock) {
           badge = 'bg-secondary';
           statusShow = '⏳ ขอแก้ไข (รออนุมัติ)';
@@ -863,35 +866,33 @@
         
         const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.sales_rep || v.Created_By || '';
         const rawRepId = v.Rep_ID || v.rep_id || v.User_ID || v.user_id || '';
-        const rawProdId = v.Product_ID || v.product_id || '';
         const rawTerrId = v.Territory_ID || v.territory_id || '';
 
         const userObj = globalUsers.find(u => {
           const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
           const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
-          
           const vWhoStr = String(rawWho).toLowerCase().trim();
           const vRepStr = String(rawRepId).trim();
 
-          const matchEmail = (uEmail !== '' && vWhoStr !== '' && uEmail === vWhoStr);
-          const matchRepId = (uRepId !== '' && vRepStr !== '' && uRepId === vRepStr);
-          const matchRepIdByEmail = (uEmail !== '' && vRepStr !== '' && uEmail === vRepStr.toLowerCase());
-          
-          return matchEmail || matchRepId || matchRepIdByEmail;
+          return (uEmail !== '' && vWhoStr !== '' && uEmail === vWhoStr) || 
+                 (uRepId !== '' && vRepStr !== '' && uRepId === vRepStr) || 
+                 (uEmail !== '' && vRepStr !== '' && uEmail === vRepStr.toLowerCase());
         });
 
-        const repNameShow = userObj ? (
-          userObj.Rep_Name || userObj.rep_name || 
-          userObj.Name || userObj.name || 
-          rawWho
-        ) : (rawWho || '-');
+        const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || userObj.name || rawWho) : (rawWho || '-');
 
-        const prodObj = globalProducts.find(p => {
-          const pId = String(p.Product_ID || p.product_id || p.id || '').toLowerCase().trim();
-          const vProdStr = String(rawProdId).toLowerCase().trim();
-          return pId !== '' && vProdStr !== '' && pId === vProdStr;
-        });
-        const prodNameShow = prodObj ? (prodObj.Product || prodObj.product || prodObj.Product_Name || prodObj.product_name || rawProdId) : (rawProdId || '-');
+        // 🌟 ดึงชื่อสินค้าหลายตัวมาต่อกันเป็น Badge
+        const visitProds = globalVP.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
+        let prodBadges = '';
+        if (visitProds.length > 0) {
+            visitProds.forEach(pid => {
+                const pObj = globalProducts.find(p => String(p.Product_ID) === pid);
+                const pName = pObj ? pObj.Product : pid;
+                prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
+            });
+        } else {
+            prodBadges = '<span class="text-muted small">-</span>';
+        }
 
         const terrObj = globalTerritories.find(t => {
           const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
@@ -900,7 +901,6 @@
         });
         const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || terrObj.Territory_Name || rawTerrId) : (rawTerrId || '-');
 
-        // 🌟 เปลี่ยนให้ Date กดได้ และเอาคอลัมน์ Action ออก
         tbody.innerHTML += `
           <tr class="align-middle">
             <td class="text-center fw-bold">
@@ -910,7 +910,7 @@
             </td>
             <td class="fw-bold text-dark">${repNameShow}</td>
             <td class="text-center"><span class="badge bg-light text-primary border">${terrNameShow}</span></td>
-            <td><span class="badge bg-light text-dark border">${prodNameShow}</span></td>
+            <td>${prodBadges}</td>
             <td><small>${v.Purpose || '-'}</small></td>
             <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
           </tr>
