@@ -145,11 +145,10 @@
               <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนครับ</div>
             </div>
             
-            <!-- 🌟 ปรับให้ใส่ Attribute multiple รองรับหลายสินค้า -->
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Products) <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required>
-                <!-- ปล่อยว่างไว้ TomSelect จะจัดการ Placeholder เอง -->
+                <!-- TomSelect จะเข้ามาคุมตรงนี้ -->
               </select>
               <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าอย่างน้อย 1 รายการครับ</div>
             </div>
@@ -222,7 +221,7 @@
 
 <script>
   var globalVisits = [];
-  var globalVisitProducts = []; // 🌟 เก็บข้อมูลจากตาราง Visit_Products
+  var globalVisitProducts = []; 
   var globalDoctorsList = [];
   var globalProductsList = [];
   var globalTerritoryList = [];
@@ -232,7 +231,7 @@
   var globalPendingUnlockVisits = [];
   
   var tomSelectDocInstance = null;
-  var tomSelectProdInstance = null; // 🌟 อินสแตนซ์สำหรับสินค้าแบบเลือกหลายอัน
+  var tomSelectProdInstance = null; 
 
   window.openAddVisitModal = function(fromDocId = null) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
@@ -385,7 +384,7 @@
       globalDoctorsList = docRes.data || []; globalProductsList = prodRes.data || []; globalTerritoryList = territoryRes.data || [];
       globalHospitalsList = hospRes.data || []; globalUsersList = usersRes.data || []; globalTeamList = teamRes.data || [];
 
-      // คุณหมอ
+      // 🌟 โหลด Dropdown หมอแบบไม่เอา Title นำหน้า
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
@@ -417,14 +416,13 @@
           filteredProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         } else filteredProducts = globalProductsList; 
 
-        // สร้าง HTML Options (สำหรับ Multiple TomSelect ไม่ต้องมี option ว่างตัวแรกสุด)
         let prodHtml = '';
         filteredProducts.forEach(p => { prodHtml += `<option value="${p.Product_ID}">${p.Product}</option>`; });
         prodSelect.innerHTML = prodHtml;
 
         if (typeof TomSelect !== 'undefined' && !prodSelect.tomselect) {
             tomSelectProdInstance = new TomSelect('#visitProductId', {
-                plugins: ['remove_button'], // ให้กดกากบาทลบได้
+                plugins: ['remove_button'], 
                 create: false,
                 sortField: { field: "text", direction: "asc" },
                 placeholder: "-- เลือกสินค้า (เลือกได้มากกว่า 1 รายการ) --"
@@ -488,7 +486,6 @@
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
     try {
-      // 🌟 เพิ่มการดึง Visit_Products มาด้วย
       const [visitRes, vpRes, dcrRes] = await Promise.all([
         supabaseClient.from('Visit_Logs').select('*').order('Visit_Date', { ascending: false }),
         supabaseClient.from('Visit_Products').select('*'),
@@ -497,7 +494,7 @@
 
       if (visitRes.error) throw visitRes.error;
       globalVisits = visitRes.data || [];
-      globalVisitProducts = vpRes.data || []; // 🌟 เก็บใส่ตัวแปร
+      globalVisitProducts = vpRes.data || []; 
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
       
       filterVisits();
@@ -527,7 +524,6 @@
       const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}` : '';
       const matchHosp = (hospSearchTerm === "") || hospName.toLowerCase().includes(hospSearchTerm);
 
-      // 🌟 ดึงสินค้าที่ผูกกับ Visit นี้มาเช็ค
       const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
 
@@ -562,6 +558,7 @@
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
+        // 🌟 ถอดคำนำหน้าออก
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
         
@@ -569,7 +566,6 @@
         if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
 
-      // 🌟 สร้าง Badge แสดงสินค้าหลายรายการ
       const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       let prodBadges = '';
       if (visitProds.length > 0) {
@@ -582,10 +578,11 @@
         prodBadges = '<span class="text-muted small">-</span>';
       }
 
+      // 🌟 วันที่กดได้
       tbody.innerHTML += `
         <tr>
           <td class="text-center fw-bold">
-            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;" title="คลิกเพื่อดูรายละเอียด">
               ${dateShow}
             </a>
           </td>
@@ -638,7 +635,6 @@
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
     }
 
-    // 🌟 เคลียร์ Product ด้วย
     if (tomSelectProdInstance) {
       tomSelectProdInstance.clear();
     }
@@ -688,7 +684,6 @@
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
-    // 🌟 ดึงข้อมูลสินค้าหลายอันมาใส่ฟอร์ม
     const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
     if (tomSelectProdInstance) {
         tomSelectProdInstance.setValue(visitProds);
@@ -778,7 +773,6 @@
     }
   }
 
-  // 🌟 บันทึกข้อมูลแบบหลายสินค้า (Visit_Products)
   async function handleSaveVisit(e) {
     e.preventDefault();
     const btn = document.getElementById('saveVisitBtn');
@@ -794,20 +788,22 @@
     const dateInput = document.getElementById('visitDate');
     const purposeSelect = document.getElementById('visitPurpose');
 
-    // 🌟 ดึงค่าสินค้าหลายอัน
+    // 🌟 ดึงค่าสินค้าหลายอันให้ชัวร์และไม่ว่างเปล่า
     let selectedProducts = [];
     if (tomSelectProdInstance) {
-        selectedProducts = tomSelectProdInstance.getValue();
+        let val = tomSelectProdInstance.getValue();
+        selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     } else {
         const prodSelect = document.getElementById('visitProductId');
         selectedProducts = Array.from(prodSelect.selectedOptions).map(o => o.value);
     }
+    selectedProducts = selectedProducts.filter(p => p.trim() !== "");
 
     clearValidation();
 
     let missingFields = [];
     if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• คุณหมอที่เข้าพบ (Doctor)"); }
-    if (!selectedProducts || selectedProducts.length === 0) { 
+    if (selectedProducts.length === 0) { 
         const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); 
         document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• สินค้าที่นำเสนอ (Product)"); 
     }
@@ -830,7 +826,6 @@
 
     const visitId = document.getElementById('visitId').value;
     
-    // ไม่ส่ง Product_ID ไปยังตาราง Visit_Logs อีกต่อไป
     const payload = {
       Rep_ID: repId,
       Territory_ID: territoryId,
@@ -850,29 +845,33 @@
       if (visitId) {
         // 1. อัปเดตตารางหลัก
         const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', visitId);
-        if (updErr) throw updErr;
+        if (updErr) throw new Error("อัปเดตข้อมูล Visit_Logs: " + updErr.message);
 
         // 2. เคลียร์สินค้าเดิมทิ้ง แล้วใส่ใหม่
-        await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', visitId);
+        const { error: delErr } = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', visitId);
+        if (delErr) throw new Error("ลบข้อมูล Visit_Products เดิม: " + delErr.message);
+
         if (selectedProducts.length > 0) {
             const vpPayload = selectedProducts.map(p => ({ Visit_ID: visitId, Product_ID: p, Whoupdated: whoUpdated }));
-            await supabaseClient.from('Visit_Products').insert(vpPayload);
+            const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
+            if (vpErr) throw new Error("เพิ่มข้อมูล Visit_Products ใหม่: " + vpErr.message);
         }
 
       } else {
         // 1. เพิ่มตารางหลัก และขอ ID กลับมา
         const { data: insData, error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]).select();
-        if (insErr) throw insErr;
+        if (insErr) throw new Error("เพิ่มข้อมูล Visit_Logs: " + insErr.message);
+        
         const newVisitId = insData[0].Visit_ID;
 
         // 2. เพิ่มสินค้าย่อยลง Visit_Products
         if (selectedProducts.length > 0) {
             const vpPayload = selectedProducts.map(p => ({ Visit_ID: newVisitId, Product_ID: p, Whoupdated: whoUpdated }));
-            await supabaseClient.from('Visit_Products').insert(vpPayload);
+            const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
+            if (vpErr) throw new Error("เพิ่มข้อมูล Visit_Products ใหม่: " + vpErr.message);
         }
       }
 
-      // 🌟 กระบวนการโยนหน้าจอกลับไปที่โปรไฟล์คุณหมอ (Tab ประวัติ)
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
