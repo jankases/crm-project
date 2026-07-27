@@ -335,17 +335,25 @@
 
   setTimeout(async function() { await loadDropdowns(); initUserInfo(); await loadVisits(); }, 300);
 
+  // 🌟 ฟังก์ชันจัดการชื่อคนและพื้นที่ตอนเปิดหน้าใหม่ (อัปเดตป้องกันรหัส UUID หลุด)
   function initUserInfo() {
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      const repName = crmUser ? (crmUser.Rep_Name || crmUser.Email || crmUser.name) : "Unknown Sales";
+      const repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown Sales";
       const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
+      
       let terrNameShow = rawTerr;
       if (globalTerritoryList && globalTerritoryList.length > 0) {
         const found = globalTerritoryList.find(t => String(t.Territory_ID) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
-        if (found) terrNameShow = found.Territory;
+        if (found) {
+            terrNameShow = found.Territory;
+        } else if (String(terrNameShow).length > 20) {
+            terrNameShow = '-'; // ถ้าหาไม่เจอและเป็นรหัสยาว ให้ซ่อนไว้
+        }
       }
-      document.getElementById('dispSalesRepName').innerText = repName; document.getElementById('dispTerritoryName').innerText = terrNameShow;
+      
+      document.getElementById('dispSalesRepName').innerText = repName; 
+      document.getElementById('dispTerritoryName').innerText = terrNameShow;
     } catch(e) {}
   }
 
@@ -359,6 +367,11 @@
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      
+      const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
+      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
 
       const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
         supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
@@ -412,7 +425,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์แบบครอบคลุม (Bulletproof Security + Cross-Identifier Check)
+  // ฟังก์ชันจัดการสิทธิ์ และเก็บตัวแปรตั้งต้นสำหรับ Cascading Filter
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -425,7 +438,6 @@
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    // เช็คสิทธิ์แบบคนเห็นทั้งหมด (Admin, Staff, หรือคนที่ถูกตั้ง Scope เป็น ALL)
     const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
 
     let allowedTeamIds = [];
@@ -470,13 +482,11 @@
           }
       }
 
-      // ใส่ข้อมูลตัวเองเข้าไปเสมอ (ID, Email, Name) เพื่อให้เห็นผลงานตัวเอง
       if (userRepId) allowedRepIds.push(userRepId);
       if (userEmail) allowedEmails.push(userEmail);
       const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
       if (userName) allowedNames.push(userName);
 
-      // กวาดลูกทีมทั้งหมด (รวมทั้งคนที่ไม่ได้ระบุทีม แต่ดูแลพื้นที่เดียวกับที่เราดูแล)
       if (userRole !== 'Sales' && userRole !== 'Rep') {
           const subUsers = globalUsersList.filter(u => {
               const uTeam = String(u.Team_ID || u.Team);
@@ -494,7 +504,6 @@
       }
     }
 
-    // เซฟข้อมูลตัวเต็มไว้ใช้ทำ Cascading Filter
     window.myIsGlobalViewer = isGlobalViewer;
     window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
     window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
@@ -504,7 +513,6 @@
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
-    // สร้าง UI เริ่มต้น
     const uniqueUsersMap = new Map();
     window.fullAllowedUsers.forEach(u => {
         const id = String(u.Rep_ID || u.User_ID || u.id);
@@ -545,7 +553,7 @@
     }
   }
 
-  // 🌟 ฟังก์ชันจัดการ Cascading Filters (ตัวกรองสัมพันธ์กัน)
+  // ฟังก์ชันจัดการ Cascading Filters
   function handleFilterChange(source) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -653,7 +661,6 @@
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
 
     const filtered = globalVisits.filter(v => {
-      // 🌟 Security Check: กรองสิทธิ์แบบเข้มงวด + ครอบคลุมการหลุด ID 
       let hasSecurityAccess = false;
 
       if (window.myIsGlobalViewer) {
@@ -673,7 +680,6 @@
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 UI Filtering: กรองตามหน้าจอที่เลือก (รวมเคสเลือกชื่อแล้วต้องเจอประวัติที่คนนั้นพิมพ์บันทึกไว้)
       let matchRep = (repTerm === "");
       if (repTerm !== "") {
           const selUser = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID || u.id) === repTerm);
@@ -801,6 +807,8 @@
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
 
+    initUserInfo(); // 🌟 รีเซ็ตให้กลับมาเป็นชื่อคนล็อคอิน
+
     if (tomSelectDocInstance) {
       tomSelectDocInstance.clear();
       tomSelectDocInstance.enable(); 
@@ -847,6 +855,7 @@
     switchVisitView('visitFormView');
   }
 
+  // 🌟 ฟังก์ชันจัดการตอนกดดู/แก้ไขประวัติคนอื่น (ไม่ให้รหัส UUID หลุดออกมา)
   function openEditVisitView(visitId) {
     clearValidation();
     const v = globalVisits.find(x => x.Visit_ID === visitId);
@@ -855,6 +864,24 @@
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerText = '✏️ แก้ไขการบันทึกเยี่ยม';
     
+    // แปลงรหัสคนบันทึก กลับเป็นชื่อ
+    let repNameShow = v.Rep_ID || '-';
+    if (globalUsersList && globalUsersList.length > 0) {
+        const repObj = globalUsersList.find(u => String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID));
+        if (repObj) repNameShow = repObj.Rep_Name || repObj.Name || repObj.Email || repNameShow;
+    }
+    
+    // แปลงรหัสพื้นที่ กลับเป็นชื่อ
+    let terNameShow = v.Territory_ID || '-';
+    if (globalTerritoryList && globalTerritoryList.length > 0) {
+        const terObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(v.Territory_ID));
+        if (terObj) terNameShow = terObj.Territory;
+        else if (String(terNameShow).length > 20) terNameShow = '-'; // ป้องกัน UUID หลุด
+    }
+    
+    document.getElementById('dispSalesRepName').innerText = repNameShow;
+    document.getElementById('dispTerritoryName').innerText = terNameShow;
+
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
