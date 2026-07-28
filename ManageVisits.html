@@ -19,6 +19,11 @@
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
+
+  /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
+  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+  .custom-pagination .page-link:hover { background-color: #e9ecef; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -30,9 +35,16 @@
         <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>Visit Logs</h3>
         <p class="text-muted mb-0">Doctor visits and daily activity logs</p>
       </div>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
-        <i class="fa-solid fa-plus me-2"></i>Add New Visit
-      </button>
+      
+      <!-- 🌟 เพิ่มปุ่ม Refresh ข้อมูล -->
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
+          <i class="fa-solid fa-plus me-2"></i>Add New Visit
+        </button>
+      </div>
     </div>
 
     <!-- 🌟 ส่วนค้นหาหลัก (Focus: Doctor, Hospital, Date Range, Status) -->
@@ -137,6 +149,26 @@
           </tbody>
         </table>
       </div>
+
+      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
+      <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+          <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
+          <select class="form-select form-select-sm shadow-sm" id="visitRowsPerPage" onchange="changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="text-muted small ms-3" id="visitPageInfo">Showing 1 to 10 of 50 entries</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination">
+            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
+          </ul>
+        </nav>
+      </div>
+
     </div>
   </div>
 
@@ -268,7 +300,49 @@
 </div>
 
 <script>
+  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
+  async function fetchAllRecords(tableName, queryModifier = null) {
+      let allData = [];
+      let start = 0;
+      const step = 1000;
+      while (true) {
+          let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
+          if (queryModifier) query = queryModifier(query);
+          
+          const { data, error } = await query;
+          if (error) throw error;
+          
+          allData = allData.concat(data);
+          if (data.length < step) break;
+          start += step;
+      }
+      return allData;
+  }
+
+  // 🌟 ระบบ Caching สำหรับหน้า Visit 
+  window.VisitManagerCache = window.VisitManagerCache || {
+      isLoaded: false,
+      dropdownsLoaded: false,
+      visits: [],
+      visitProducts: [],
+      doctors: [],
+      products: [],
+      territories: [],
+      hospitals: [],
+      users: [],
+      teams: [],
+      teamProdLinks: [],
+      indexTypes: [],
+      indexes: [],
+      pendingUnlocks: [],
+      filters: { 
+          doc: '', hosp: '', startDate: '', endDate: '', status: '', 
+          rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false 
+      }
+  };
+
   var globalVisits = [];
+  var globalFilteredVisits = [];
   var globalVisitProducts = []; 
   var globalDoctorsList = [];
   var globalProductsList = [];
@@ -284,6 +358,9 @@
   var currentSortCol = 'date';
   var currentSortAsc = false; 
 
+  var currentPage = 1;
+  var rowsPerPage = 20;
+
   window.openAddVisitModal = function(fromDocId = null) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
     openAddVisitView();
@@ -294,13 +371,10 @@
     openEditVisitView(visitId);
   };
 
-  // ===================== 🌟 ฟังก์ชันจัดการการกลับหน้า Doctor Profile อย่างสมบูรณ์ =====================
   function returnToDoctorProfile(docId) {
-    // 1. ส่งคำสั่งย้ายหน้า Component กลับไปหน้าหมอ (ผ่านฟังก์ชันของ index.html ถ้ามี)
     if (typeof window.loadComponent === 'function') {
       window.loadComponent('doctor');
     } else {
-      // 1.1 ถ้าหาฟังก์ชันไม่เจอ ให้ใช้วิธีจำลองคลิกเมนูแทน
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
         if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) {
@@ -309,16 +383,13 @@
       });
     }
 
-    // 2. ใช้ Smart Polling เพื่อรอให้หน้า Doctor โหลดรายชื่อเสร็จก่อน ค่อยสั่งกางหน้า Profile
     let attempts = 0;
     const checkReady = setInterval(() => {
       attempts++;
-      // รอให้ฟังก์ชันเปิด Profile พร้อม และ ตัวแปร globalDoctors ดึงเสร็จแล้ว
       if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
         clearInterval(checkReady);
-        window.openViewDoctorProfile(docId, '#tab-doc-history'); // บังคับกาง Tab Visit History เลย
+        window.openViewDoctorProfile(docId, '#tab-doc-history'); 
       } else if (attempts > 50) { 
-        // ถ้ารอเกิน 5 วินาที ให้ยอมแพ้เพื่อไม่ให้เว็บค้าง
         clearInterval(checkReady);
       }
     }, 100);
@@ -328,7 +399,7 @@
     const returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      returnToDoctorProfile(returnDocId); // 🌟 เรียกใช้ฟังก์ชันที่แก้ให้ใหม่
+      returnToDoctorProfile(returnDocId); 
     } else {
       switchVisitView('visitListView');
     }
@@ -410,6 +481,15 @@
     }
   }
 
+  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
+  async function forceReloadVisits() {
+      const btn = document.getElementById('btnRefreshVisits');
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+      await loadDropdowns(true);
+      await loadVisits(true);
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
+  }
+
   setTimeout(async function() { await loadDropdowns(); initUserInfo(); await loadVisits(); }, 300);
 
   function initUserInfo() {
@@ -439,25 +519,45 @@
     window.scrollTo(0, 0);
   }
 
-  async function loadDropdowns() {
+  // 🌟 โหลด Dropdowns (ใช้ Cache & Bypassing Limit)
+  async function loadDropdowns(forceReload = false) {
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
-      const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
-        supabaseClient.from('Doctors').select('Doc_ID, Title, Doc_Name, Doc_Name_TH, Hospital_ID').eq('Status', 'Active').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Products').select('*').order('Product', { ascending: true }), 
-        supabaseClient.from('Territory').select('*'),
-        supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').order('Hospital', { ascending: true }),
-        supabaseClient.from('Team').select('*'),            
-        supabaseClient.from('Products_Team').select('*'),   
-        supabaseClient.from('IndexType').select('*'),
-        supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-        supabaseClient.from('Rep_Users').select('*')
-      ]);
+      window.VisitManagerCache = window.VisitManagerCache || {};
 
-      globalDoctorsList = docRes.data || []; globalProductsList = prodRes.data || []; globalTerritoryList = territoryRes.data || [];
-      globalHospitalsList = hospRes.data || []; globalUsersList = usersRes.data || []; globalTeamList = teamRes.data || [];
+      if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
+          const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
+            fetchAllRecords('Doctors', q => q.eq('Status', 'Active').order('Doc_Name', { ascending: true })),
+            fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
+            supabaseClient.from('Territory').select('*'),
+            fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
+            supabaseClient.from('Team').select('*'),            
+            fetchAllRecords('Products_Team'),   
+            supabaseClient.from('IndexType').select('*'),
+            supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
+            fetchAllRecords('Rep_Users')
+          ]);
+
+          window.VisitManagerCache.doctors = docRes || [];
+          window.VisitManagerCache.products = prodRes || [];
+          window.VisitManagerCache.territories = territoryRes.data || [];
+          window.VisitManagerCache.hospitals = hospRes || [];
+          window.VisitManagerCache.teams = teamRes.data || [];
+          window.VisitManagerCache.teamProdLinks = productsTeamRes || [];
+          window.VisitManagerCache.indexTypes = typeRes.data || [];
+          window.VisitManagerCache.indexes = idxRes.data || [];
+          window.VisitManagerCache.users = usersRes || [];
+          window.VisitManagerCache.dropdownsLoaded = true;
+      }
+
+      globalDoctorsList = window.VisitManagerCache.doctors; 
+      globalProductsList = window.VisitManagerCache.products; 
+      globalTerritoryList = window.VisitManagerCache.territories;
+      globalHospitalsList = window.VisitManagerCache.hospitals; 
+      globalUsersList = window.VisitManagerCache.users; 
+      globalTeamList = window.VisitManagerCache.teams;
 
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
@@ -466,14 +566,21 @@
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
-        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Search/Select Doctor --" });
+        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
+            tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Search/Select Doctor --" });
+        } else if (tomSelectDocInstance) {
+            tomSelectDocInstance.clear();
+            tomSelectDocInstance.clearOptions();
+            tomSelectDocInstance.sync();
+        }
       }
 
-      setupFiltersDropdowns(crmUser, productsTeamRes.data || []);
+      setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
       const purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
-        const types = typeRes.data || []; const indexes = idxRes.data || [];
+        const types = window.VisitManagerCache.indexTypes; 
+        const indexes = window.VisitManagerCache.indexes;
         const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
         let purposeHtml = '<option value="">-- Select Purpose --</option>';
         if (purposeType) {
@@ -619,6 +726,10 @@
         formProdSelect.innerHTML = fHtml;
         if (typeof TomSelect !== 'undefined' && !formProdSelect.tomselect) {
             tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --" });
+        } else if (tomSelectProdInstance) {
+            tomSelectProdInstance.clear();
+            tomSelectProdInstance.clearOptions();
+            tomSelectProdInstance.sync();
         }
     }
   }
@@ -715,33 +826,64 @@
       }
     });
 
-    filterVisits(); 
+    filterVisits(false); 
   }
 
-  async function loadVisits() {
+  // 🌟 โหลด Visits (ใช้ Cache & Bypassing Limit)
+  async function loadVisits(forceReload = false) {
     const tbody = document.getElementById('visitTableBody');
-    if (!tbody) return; 
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    window.VisitManagerCache = window.VisitManagerCache || {};
 
-    try {
-      const [visitRes, vpRes, dcrRes] = await Promise.all([
-        supabaseClient.from('Visit_Logs').select('*'),
-        supabaseClient.from('Visit_Products').select('*'),
-        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
-      ]);
+    if (forceReload || !window.VisitManagerCache.isLoaded) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
-      if (visitRes.error) throw visitRes.error;
-      globalVisits = visitRes.data || [];
-      globalVisitProducts = vpRes.data || []; 
-      globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
-      
-      filterVisits();
-    } catch(err) { 
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ${err.message}</td></tr>`; 
+        try {
+          const [visitRes, vpRes, dcrRes] = await Promise.all([
+            fetchAllRecords('Visit_Logs'),
+            fetchAllRecords('Visit_Products'),
+            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
+          ]);
+
+          window.VisitManagerCache.visits = visitRes || [];
+          window.VisitManagerCache.visitProducts = vpRes || []; 
+          window.VisitManagerCache.pendingUnlocks = (dcrRes.data || []).map(d => d.Ref_ID);
+          window.VisitManagerCache.isLoaded = true;
+
+        } catch(err) { 
+          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ${err.message}</td></tr>`; 
+          return;
+        }
     }
+
+    globalVisits = window.VisitManagerCache.visits;
+    globalVisitProducts = window.VisitManagerCache.visitProducts;
+    globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
+
+    // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
+    if (window.VisitManagerCache.filters) {
+        const f = window.VisitManagerCache.filters;
+        
+        if (document.getElementById('filterVisitDoctor')) document.getElementById('filterVisitDoctor').value = f.doc || '';
+        if (document.getElementById('filterVisitHospital')) document.getElementById('filterVisitHospital').value = f.hosp || '';
+        if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
+        if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
+        if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
+        if (document.getElementById('filterVisitRep')) document.getElementById('filterVisitRep').value = f.rep || '';
+        if (document.getElementById('filterVisitTerritory')) document.getElementById('filterVisitTerritory').value = f.territory || '';
+        if (document.getElementById('filterVisitProduct')) document.getElementById('filterVisitProduct').value = f.prod || '';
+        if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
+
+        currentPage = f.page || 1;
+        rowsPerPage = f.rows || 20;
+        currentSortCol = f.sortCol || 'date';
+        currentSortAsc = f.sortAsc !== undefined ? f.sortAsc : false;
+    }
+
+    filterVisits(false);
   }
 
-  function filterVisits() {
+  // 🌟 บันทึกสถานะ Filter ลงใน Cache
+  function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
@@ -750,9 +892,16 @@
     const hospSearchTerm = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value.toLowerCase().trim() : '';
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
-    
     const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     const endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+
+    if (resetPage) currentPage = 1;
+
+    window.VisitManagerCache.filters = {
+        doc: docSearchTerm, hosp: hospSearchTerm, startDate: startDateTerm, endDate: endDateTerm,
+        status: statusTerm, rep: repTerm, territory: terTerm, prod: prodTerm,
+        page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
+    };
 
     const filtered = globalVisits.filter(v => {
       let hasSecurityAccess = false;
@@ -829,8 +978,7 @@
       let valA = '', valB = '';
 
       if (currentSortCol === 'date') {
-        valA = a.Visit_Date || '';
-        valB = b.Visit_Date || '';
+        valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
       } 
       else if (currentSortCol === 'doctor') {
         const docA = globalDoctorsList.find(d => String(d.Doc_ID) === String(a.Doc_ID));
@@ -842,7 +990,6 @@
         const docA = globalDoctorsList.find(d => String(d.Doc_ID) === String(a.Doc_ID));
         const hospA = docA ? globalHospitalsList.find(h => String(h.Hospital_ID) === String(docA.Hospital_ID)) : null;
         valA = hospA ? `${hospA.Hospital} ${hospA.Known_As||''}`.toLowerCase() : '';
-        
         const docB = globalDoctorsList.find(d => String(d.Doc_ID) === String(b.Doc_ID));
         const hospB = docB ? globalHospitalsList.find(h => String(h.Hospital_ID) === String(docB.Hospital_ID)) : null;
         valB = hospB ? `${hospB.Hospital} ${hospB.Known_As||''}`.toLowerCase() : '';
@@ -851,18 +998,15 @@
         valA = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(a.Visit_ID)).map(vp => {
           const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID)); return p ? p.Product : '';
         }).join(',').toLowerCase();
-        
         valB = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(b.Visit_ID)).map(vp => {
           const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID)); return p ? p.Product : '';
         }).join(',').toLowerCase();
       } 
       else if (currentSortCol === 'purpose') {
-        valA = (a.Purpose || '').toLowerCase();
-        valB = (b.Purpose || '').toLowerCase();
+        valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase();
       } 
       else if (currentSortCol === 'status') {
-        valA = (a.Status || '').toLowerCase();
-        valB = (b.Status || '').toLowerCase();
+        valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase();
       }
 
       if (valA < valB) return currentSortAsc ? -1 : 1;
@@ -870,17 +1014,59 @@
       return 0;
     });
 
-    renderVisitTable(filtered);
+    globalFilteredVisits = filtered;
+    renderVisitTable();
   }
 
-  function renderVisitTable(data) {
+  // 🌟 ฟังก์ชันจัดการการเปลี่ยนจำนวนแถวต่อหน้า
+  function changeRowsPerPage() {
+    const selectEl = document.getElementById('visitRowsPerPage');
+    rowsPerPage = parseInt(selectEl.value);
+    currentPage = 1;
+    window.VisitManagerCache.filters.rows = rowsPerPage;
+    window.VisitManagerCache.filters.page = 1;
+    renderVisitTable();
+  }
+
+  // 🌟 ฟังก์ชันจัดการการคลิกเปลี่ยนหน้า
+  function goToPage(page) {
+    const totalPages = Math.ceil(globalFilteredVisits.length / rowsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    window.VisitManagerCache.filters.page = page;
+    renderVisitTable();
+  }
+
+  function renderVisitTable() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
 
     tbody.innerHTML = '';
-    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>No visit records found for the selected period.</td></tr>`;
+    const data = globalFilteredVisits;
 
-    data.forEach(v => {
+    if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById('visitPaginationContainer').classList.add('d-none');
+        return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>No visit records found for the selected period.</td></tr>`;
+    }
+
+    document.getElementById('visitPaginationContainer').classList.remove('d-none');
+
+    // คำนวณขอบเขต Pagination
+    const totalItems = data.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+    
+    // อัปเดตข้อความบอกจำนวน
+    document.getElementById('visitPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
+
+    // ตัดอาร์เรย์มาแสดงผล
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    paginatedData.forEach(v => {
       const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
       let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
       let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
@@ -930,6 +1116,43 @@
         </tr>
       `;
     });
+
+    renderPaginationControls(totalPages);
+  }
+
+  // 🌟 ฟังก์ชันวาดปุ่ม Pagination
+  function renderPaginationControls(totalPages) {
+    const ul = document.getElementById('visitPagination');
+    let html = '';
+
+    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage - 1}); return false;">&laquo; Prev</a>
+            </li>`;
+
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>`;
+        if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<li class="page-item ${currentPage === i ? 'active' : ''}">
+                  <a class="page-link shadow-sm" href="#" onclick="goToPage(${i}); return false;">${i}</a>
+                </li>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(${totalPages}); return false;">${totalPages}</a></li>`;
+    }
+
+    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage + 1}); return false;">Next &raquo;</a>
+            </li>`;
+
+    ul.innerHTML = html;
   }
 
   function clearValidation() {
@@ -1112,7 +1335,7 @@
         returnToDoctorProfile(returnDocId); 
       } else {
         switchVisitView('visitListView');
-        await loadVisits();
+        await loadVisits(true); 
       }
     } catch(err) {
       alert("❌ Error: " + err.message);
@@ -1226,7 +1449,7 @@
         returnToDoctorProfile(returnDocId); 
       } else {
         switchVisitView('visitListView');
-        await loadVisits();
+        await loadVisits(true); 
       }
 
     } catch(err) {
