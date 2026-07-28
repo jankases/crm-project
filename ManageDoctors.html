@@ -473,7 +473,7 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์การแสดงผลสินค้าใน Dropdown (คัดลอก Logic มาจากหน้า Visit)
+  // 🌟 ฟังก์ชันจัดการสิทธิ์การแสดงผลสินค้าใน Dropdown (แก้ให้ครอบคลุม Products_Team และ Team_ID)
   async function loadIndexDropdowns() {
     try {
       let crmUser = null;
@@ -506,7 +506,7 @@
       globalTargetData = targetRes.data || [];
       const globalTeamList = teamRes.data || [];
 
-      // 🌟 ดึงค่า System Settings สำหรับล็อค Target Call
+      // ดึงค่า System Settings สำหรับล็อค Target Call
       const sysSettings = sysSetRes.data || [];
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
 
@@ -530,7 +530,7 @@
           globalRatingIsLocked = true; 
       }
 
-      // 🌟 ตรรกะใหม่: กรอง Product ตามสิทธิ์ (ถอดแบบหน้า Visit)
+      // กรอง Product ตามสิทธิ์
       const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
       let allowedTeamIds = [];
 
@@ -562,14 +562,25 @@
 
       if (isGlobalViewer) {
           globalTeamProducts = globalProducts;
-      } else if (allowedTeamIds.length > 0) {
-          const allowedProdIds = teamProdLinks
-              .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
-              .map(pt => String(pt.Product_ID));
-          
-          globalTeamProducts = globalProducts.filter(p => allowedProdIds.includes(String(p.Product_ID)));
       } else {
-          globalTeamProducts = globalProducts; 
+          // 🌟 ปรับปรุงการตรวจสอบสิทธิ์สินค้า ให้เช็คทั้ง Products_Team และ Team_ID ใน Products โดยตรง
+          let filteredProducts = globalProducts.filter(p => {
+              let pTeam = String(p.Team_ID || p.team_id || '');
+              let pId = String(p.Product_ID || p.product_id || p.id || '');
+              
+              let matchLink = teamProdLinks.some(tp => {
+                  let tpTeam = String(tp.Team_ID || tp.team_id || '');
+                  let tpProd = String(tp.Product_ID || tp.product_id || '');
+                  let tpStatus = String(tp.Status || 'Active').toLowerCase();
+                  return allowedTeamIds.includes(tpTeam) && tpProd === pId && tpStatus === 'active';
+              });
+              
+              let matchTeam = allowedTeamIds.includes(pTeam);
+              
+              return matchLink || matchTeam;
+          });
+          
+          globalTeamProducts = filteredProducts.length > 0 ? filteredProducts : globalProducts;
       }
 
       const getOptionsHtml = (typeName) => {
@@ -1390,7 +1401,7 @@
     addRatingRowHTML('', '', '', '', '');
   }
 
-  // 🌟 อัปเดตฟังก์ชันเพื่อรองรับการตรวจสิทธิ์และสถานะการล็อค
+  // 🌟 อัปเดตฟังก์ชัน ให้แก้ไขได้เสมอถ้าระบบเปิด (ลบเงื่อนไข && isMyProduct ออก)
   function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
@@ -1398,7 +1409,8 @@
     const isAdmin = (globalCurrentUserRole === 'Admin');
     const isMyProduct = !prodId || globalTeamProducts.some(p => String(p.Product_ID) === String(prodId));
     
-    const canEdit = isAdmin || (!globalRatingIsLocked && isMyProduct);
+    // 🌟 แก้ไข: ถ้าเปิดระบบอยู่ สามารถแก้ไขได้ทุกรายการ
+    const canEdit = isAdmin || !globalRatingIsLocked;
     const disabledAttr = canEdit ? '' : 'disabled';
 
     let prodOpts = '<option value="">- Select -</option>';
