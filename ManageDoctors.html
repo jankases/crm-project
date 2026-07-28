@@ -473,16 +473,16 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์การแสดงผลสินค้าใน Dropdown (แก้ให้จำกัดสิทธิ์ชัดเจนขึ้น)
+  // 🌟 ฟังก์ชันจัดการสิทธิ์การแสดงผลสินค้าใน Dropdown (คัดลอก Logic มาจากหน้า Visit)
   async function loadIndexDropdowns() {
     try {
       let crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-      const userTeam = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || '').trim() : '';
+      const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes] = await Promise.all([
+      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes, teamRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('*').eq('Status', 'Active').order('Hospital', { ascending: true }),
@@ -492,7 +492,8 @@
         supabaseClient.from('Rating_Matrix').select('*'),
         supabaseClient.from('Target').select('*'),
         supabaseClient.from('Products_Team').select('*'),
-        supabaseClient.from('System_Settings').select('*')
+        supabaseClient.from('System_Settings').select('*'),
+        supabaseClient.from('Team').select('*')
       ]);
       
       globalIndexTypes = typeRes.data || [];
@@ -503,7 +504,9 @@
       globalTerritories = terrRes.data || [];
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
+      const globalTeamList = teamRes.data || [];
 
+      // 🌟 ดึงค่า System Settings สำหรับล็อค Target Call
       const sysSettings = sysSetRes.data || [];
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
 
@@ -527,23 +530,46 @@
           globalRatingIsLocked = true; 
       }
 
-      // 🌟 ตรรกะใหม่: ดึงสินค้าเฉพาะที่ผูกกับ Team ของ User อย่างเคร่งครัด
-      let allProducts = globalProducts;
-      let teamProdLinks = teamProdRes.data || [];
-      const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole);
+      // 🌟 ตรรกะใหม่: กรอง Product ตามสิทธิ์ (ถอดแบบหน้า Visit)
+      const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
+      let allowedTeamIds = [];
 
       if (isGlobalViewer) {
-          globalTeamProducts = allProducts;
+          allowedTeamIds = globalTeamList.map(t => String(t.Team_ID));
       } else {
-          if (userTeam) {
-              const allowedProdIds = teamProdLinks
-                  .filter(pt => String(pt.Team_ID) === userTeam && pt.Status === 'Active')
-                  .map(pt => String(pt.Product_ID));
-              
-              globalTeamProducts = allProducts.filter(p => allowedProdIds.includes(String(p.Product_ID)));
-          } else {
-              globalTeamProducts = [];
+          let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+          let matchedTerr = globalTerritories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
+
+          if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
+              if (matchedTeam) {
+                  allowedTeamIds.push(String(matchedTeam.Team_ID));
+              } else if (rawScope) {
+                  allowedTeamIds.push(rawScope);
+              }
+          } else if (globalCurrentUserRole === 'BU Head') {
+              const buTeams = globalTeamList.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
+              buTeams.forEach(t => allowedTeamIds.push(String(t.Team_ID)));
+          } else { 
+              if (matchedTerr && matchedTerr.Team_ID) {
+                  allowedTeamIds.push(String(matchedTerr.Team_ID));
+              } else if (rawScope) {
+                  allowedTeamIds.push(rawScope);
+              }
           }
+      }
+
+      let teamProdLinks = teamProdRes.data || [];
+
+      if (isGlobalViewer) {
+          globalTeamProducts = globalProducts;
+      } else if (allowedTeamIds.length > 0) {
+          const allowedProdIds = teamProdLinks
+              .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
+              .map(pt => String(pt.Product_ID));
+          
+          globalTeamProducts = globalProducts.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+      } else {
+          globalTeamProducts = globalProducts; 
       }
 
       const getOptionsHtml = (typeName) => {
@@ -1364,6 +1390,7 @@
     addRatingRowHTML('', '', '', '', '');
   }
 
+  // 🌟 อัปเดตฟังก์ชันเพื่อรองรับการตรวจสิทธิ์และสถานะการล็อค
   function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
