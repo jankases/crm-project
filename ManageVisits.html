@@ -15,7 +15,7 @@
   .ts-control { border-radius: 10px !important; min-height: 42px; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
 
-  /* 🌟 เพิ่มคลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
+  /* 🌟 คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
@@ -35,21 +35,49 @@
       </button>
     </div>
 
-    <!-- ส่วนค้นหา -->
-    <div class="row mb-4 g-2">
-      <div class="col-md-2">
-        <label class="form-label fw-bold text-secondary small mb-1">Sales Rep</label>
+    <!-- 🌟 ส่วนค้นหา (ปรับ Layout แบบใหม่ มีตัวกรองวันที่ และเปลี่ยน Sales Rep เป็น User) -->
+    <div class="row mb-4 g-3">
+      <div class="col-sm-6 col-md-4 col-lg-2">
+        <label class="form-label fw-bold text-secondary small mb-1">User</label>
         <select class="form-select shadow-sm" id="filterVisitRep" onchange="handleFilterChange('rep')">
-          <option value="">- All Reps -</option>
+          <option value="">- All Users -</option>
         </select>
       </div>
-      <div class="col-md-2">
+      
+      <div class="col-sm-6 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
         <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
           <option value="">- All Territories -</option>
         </select>
       </div>
-      <div class="col-md-2">
+
+      <!-- 🌟 เพิ่มตัวกรองระยะเวลา -->
+      <div class="col-sm-12 col-md-4 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">ระยะเวลา (Date Range)</label>
+        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+          <input type="date" class="form-control text-secondary px-2" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันเริ่มต้น">
+          <span class="input-group-text bg-light border-start-0 border-end-0 px-2 text-muted">-</span>
+          <input type="date" class="form-control text-secondary px-2" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันสิ้นสุด">
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-4 col-lg-2">
+        <label class="form-label fw-bold text-secondary small mb-1">Product</label>
+        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
+          <option value="">- All Products -</option>
+        </select>
+      </div>
+      
+      <div class="col-sm-6 col-md-2 col-lg-1">
+        <label class="form-label fw-bold text-secondary small mb-1">Status</label>
+        <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
+          <option value="">- All -</option>
+          <option value="Pending">Pending</option>
+          <option value="Submitted">Submitted</option>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -59,7 +87,8 @@
           </button>
         </div>
       </div>
-      <div class="col-md-3">
+      
+      <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -69,23 +98,9 @@
           </button>
         </div>
       </div>
-      <div class="col-md-2">
-        <label class="form-label fw-bold text-secondary small mb-1">Product</label>
-        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
-          <option value="">- All Products -</option>
-        </select>
-      </div>
-      <div class="col-md-1">
-        <label class="form-label fw-bold text-secondary small mb-1">Status</label>
-        <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
-          <option value="">- All -</option>
-          <option value="Pending">Pending</option>
-          <option value="Submitted">Submitted</option>
-        </select>
-      </div>
     </div>
 
-    <!-- ตารางประวัติ (เพิ่ม sortable-th ที่หัวตาราง) -->
+    <!-- ตารางประวัติ (มี sortable-th ที่หัวตาราง) -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
@@ -123,7 +138,7 @@
         <div class="p-3 rounded-4 mb-4 border bg-light">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
-              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i>ผู้แทนขาย (Sales Rep)</span>
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i>ผู้แทนขาย (User)</span>
               <span class="fw-bold text-dark fs-6" id="dispSalesRepName">-</span>
             </div>
             <div class="col-md-6">
@@ -193,7 +208,7 @@
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
 
-            <!-- 🌟 เพิ่มช่องข้อมูลเชิงลึก (Insight) -->
+            <!-- 🌟 ช่องข้อมูลเชิงลึก (Insight) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">ข้อมูลเชิงลึก (Insight)</label>
@@ -361,7 +376,7 @@
   function initUserInfo() {
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      const repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown Sales";
+      const repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown User";
       const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
       
       let terrNameShow = rawTerr;
@@ -535,7 +550,7 @@
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
-    let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Reps -</option>';
+    let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Users -</option>';
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
@@ -625,7 +640,7 @@
         }
         
         const currentRepVal = repSelect.value;
-        let repHtml = hideAllOption ? '' : '<option value="">- All Reps -</option>';
+        let repHtml = hideAllOption ? '' : '<option value="">- All Users -</option>';
         const uniqueUsersMap = new Map();
         validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
         uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
@@ -696,6 +711,10 @@
     const hospSearchTerm = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value.toLowerCase().trim() : '';
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
+    
+    // 🌟 ดึงค่าตัวกรองวันที่
+    const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
+    const endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
     const filtered = globalVisits.filter(v => {
       let hasSecurityAccess = false;
@@ -716,6 +735,24 @@
       }
 
       if (!hasSecurityAccess) return false;
+
+      // 🌟 ตรวจสอบเงื่อนไขวันที่ (Date Range Filter)
+      let matchDate = true;
+      if (startDateTerm || endDateTerm) {
+          const vDate = new Date(v.Visit_Date);
+          vDate.setHours(0, 0, 0, 0); // รีเซ็ตเวลาเพื่อเทียบเฉพาะวัน
+          
+          if (startDateTerm) {
+              const sDate = new Date(startDateTerm);
+              sDate.setHours(0, 0, 0, 0);
+              if (vDate < sDate) matchDate = false;
+          }
+          if (endDateTerm) {
+              const eDate = new Date(endDateTerm);
+              eDate.setHours(23, 59, 59, 999);
+              if (vDate > eDate) matchDate = false;
+          }
+      }
 
       let matchRep = (repTerm === "");
       if (repTerm !== "") {
@@ -748,7 +785,7 @@
 
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
-      return matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
+      return matchDate && matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
     });
 
     filtered.sort((a, b) => {
@@ -804,7 +841,7 @@
     if (!tbody) return; 
 
     tbody.innerHTML = '';
-    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยม</td></tr>`;
+    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยมในช่วงเวลาที่เลือก</td></tr>`;
 
     data.forEach(v => {
       const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
@@ -1118,7 +1155,6 @@
     const existingVisitId = document.getElementById('visitId').value;
     const targetVisitId = existingVisitId || generateUUID();
     
-    // 🌟 รวม Insight เข้าไปใน Payload
     const payload = {
       Visit_ID: targetVisitId,
       Rep_ID: repId,
