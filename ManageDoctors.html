@@ -92,7 +92,7 @@
 
     </div>
 
-    <!-- ตารางแสดงผล (sortable-th) -->
+    <!-- ตารางแสดงผล -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
@@ -253,6 +253,7 @@
       </ul>
 
       <div class="tab-content">
+        <!-- Tab: General Info -->
         <div class="tab-pane fade show active" id="tab-doc-info">
           <div class="row mb-3 g-3">
             <div class="col-md-4"><label class="text-muted small fw-bold">Specialty</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
@@ -269,7 +270,7 @@
           </div>
         </div>
 
-        <!-- แถบประวัติการเข้าพบ (เพิ่มส่วน Filter และ Sort) -->
+        <!-- Tab: Visit History -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>Visit History</h6>
@@ -278,7 +279,6 @@
             </button>
           </div>
 
-          <!-- ตัวกรองย่อยสำหรับประวัติของหมอคนนี้ -->
           <div class="row g-2 mb-3 bg-light p-2 rounded-3 border">
             <div class="col-md-5">
               <label class="form-label text-secondary small fw-bold mb-1">Date Range</label>
@@ -318,12 +318,18 @@
           </div>
         </div>
 
+        <!-- 🌟 Tab: Target Call -->
         <div class="tab-pane fade" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>Rating and Targeting</h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addNewRatingRow()">
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" id="btnAddRatingProduct" onclick="addNewRatingRow()">
               <i class="fa-solid fa-plus me-1"></i> Add Product
             </button>
+          </div>
+          
+          <!-- 🌟 แถบแจ้งเตือนเมื่อระบบ Target Call ปิดใช้งาน -->
+          <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning" style="display: none; border-radius: 10px;">
+            <i class="fa-solid fa-lock me-2"></i><strong>Locked:</strong> The Target Call evaluation period is currently closed.
           </div>
           
           <div class="table-responsive">
@@ -365,7 +371,6 @@
   var globalTargetData = [];
   var globalTeamProducts = []; 
   
-  // ตัวแปรสำหรับ Visit History ภายในหน้า Profile
   var globalPendingUnlockVisits = []; 
   var globalCurrentDoctorVisits = [];
   var globalCurrentDoctorVisitProducts = [];
@@ -374,6 +379,10 @@
 
   var currentDocSortCol = 'nameEn';
   var currentDocSortAsc = true; 
+
+  // 🌟 ตัวแปรเก็บสิทธิ์และสถานะการล็อค
+  var globalRatingIsLocked = false;
+  var globalCurrentUserRole = '';
 
   window.openViewDoctorProfile = openViewDoctorProfile;
 
@@ -471,10 +480,12 @@
       let crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
+      globalCurrentUserRole = crmUser ? (crmUser.Role || crmUser.role) : '';
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes] = await Promise.all([
+      // 🌟 ดึงตาราง System_Settings มาร่วมด้วย
+      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('*').eq('Status', 'Active').order('Hospital', { ascending: true }),
@@ -483,7 +494,8 @@
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
         supabaseClient.from('Target').select('*'),
-        supabaseClient.from('Products_Team').select('*')
+        supabaseClient.from('Products_Team').select('*'),
+        supabaseClient.from('System_Settings').select('*')
       ]);
       
       globalIndexTypes = typeRes.data || [];
@@ -495,10 +507,35 @@
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
 
+      // 🌟 คำนวณสถานะระบบล็อค จาก System_Settings
+      const sysSettings = sysSetRes.data || [];
+      const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
+
+      if (ratingSetting) {
+          let startStr = ratingSetting.Start;
+          let endStr = ratingSetting.End;
+          
+          if (!startStr && !endStr) {
+              globalRatingIsLocked = false; 
+          } else {
+              // ใช้วิธีเปรียบเทียบ string "YYYY-MM-DD" ของ Local Time เพื่อแก้ปัญหา Timezone
+              const offset = new Date().getTimezoneOffset() * 60000;
+              const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
+              
+              let isWithinRange = true;
+              if (startStr && localISOTime < startStr) isWithinRange = false;
+              if (endStr && localISOTime > endStr) isWithinRange = false;
+              
+              globalRatingIsLocked = !isWithinRange;
+          }
+      } else {
+          globalRatingIsLocked = true; // ถ้ายงไม่มีการตั้งค่าเลย ล็อคไว้ก่อน
+      }
+
       let allProducts = globalProducts;
       let teamProdLinks = teamProdRes.data || [];
 
-      if (crmUser && (crmUser.Role || crmUser.role) !== 'Admin') {
+      if (crmUser && globalCurrentUserRole !== 'Admin') {
         let filteredProducts = allProducts.filter(p => {
           let pTeam = p.Team_ID || p.team_id || '';
           let pBu = p.BU_ID || p.bu_id || '';
@@ -906,12 +943,23 @@
     }
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
 
-    // 🌟 เติมข้อมูลลง Dropdown ของ Filter สินค้าในหน้า Profile โดยใช้สิทธิ์ (globalTeamProducts)
     let phtml = '<option value="">- All Products -</option>';
     if (typeof globalTeamProducts !== 'undefined') {
         globalTeamProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
     }
     document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
+
+    // 🌟 ควบคุมการแสดงผล UI ส่วน Target Call ตามสิทธิ์การล็อค
+    const addProdBtn = document.getElementById('btnAddRatingProduct');
+    const lockBanner = document.getElementById('ratingLockBanner');
+    
+    if (globalRatingIsLocked && globalCurrentUserRole !== 'Admin') {
+        if (addProdBtn) addProdBtn.style.display = 'none';
+        if (lockBanner) lockBanner.style.display = 'block';
+    } else {
+        if (addProdBtn) addProdBtn.style.display = 'inline-block';
+        if (lockBanner) lockBanner.style.display = 'none';
+    }
 
     loadDoctorVisitHistory(id);
     await loadDoctorRatings(id);
@@ -928,7 +976,6 @@
     switchDoctorView('doctorProfileView');
   }
 
-  // 🌟 เคลียร์ Filter ของหน้าประวัติหมอ
   function clearProfileVisitFilters() {
     document.getElementById('filterProfileVisitStart').value = '';
     document.getElementById('filterProfileVisitEnd').value = '';
@@ -936,13 +983,12 @@
     filterAndRenderDoctorVisits();
   }
 
-  // 🌟 จัดเรียงข้อมูลในหน้าประวัติหมอ
   function sortDoctorVisits(col) {
     if (currentPVisitSortCol === col) {
       currentPVisitSortAsc = !currentPVisitSortAsc;
     } else {
       currentPVisitSortCol = col;
-      currentPVisitSortAsc = (col === 'date') ? false : true; // ถ้าเป็นวันที่ให้เริ่มที่ ใหม่ไปเก่า (false)
+      currentPVisitSortAsc = (col === 'date') ? false : true; 
     }
     
     ['date', 'user', 'territory', 'products', 'purpose', 'status'].forEach(c => {
@@ -972,7 +1018,6 @@
 
       if (visitRes.error) throw visitRes.error;
       
-      // 🌟 เก็บข้อมูลดิบไว้ในตัวแปรสำหรับ Filter และ Sort
       globalCurrentDoctorVisits = visitRes.data || [];
       globalCurrentDoctorVisitProducts = vpRes.data || [];
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
@@ -984,7 +1029,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันจัดการ Filter และ Sort ก่อนแสดงผลลงตาราง
   function filterAndRenderDoctorVisits() {
     const tbody = document.getElementById('viewVisitHistoryBody');
     if (!tbody) return;
@@ -1331,9 +1375,17 @@
     addRatingRowHTML('', '', '', '', '');
   }
 
+  // 🌟 อัปเดตฟังก์ชันเพื่อรองรับการตรวจสิทธิ์และสถานะการล็อค
   function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
+
+    const isAdmin = (globalCurrentUserRole === 'Admin');
+    const isMyProduct = !prodId || globalTeamProducts.some(p => String(p.Product_ID) === String(prodId));
+    
+    // 🌟 เปิดให้แก้ได้ก็ต่อเมื่อ "เป็น Admin" หรือ ("ไม่ถูกล็อค" และ "เป็นสินค้าของตัวเอง")
+    const canEdit = isAdmin || (!globalRatingIsLocked && isMyProduct);
+    const disabledAttr = canEdit ? '' : 'disabled';
 
     let prodOpts = '<option value="">- Select -</option>';
     if (typeof globalTeamProducts !== 'undefined') {
@@ -1341,6 +1393,14 @@
             const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
             prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
         });
+    }
+    
+    // ถ้าไม่ใช่สินค้าตัวเอง ระบบจะบังคับโชว์ชื่อสินค้าตัวเดิมให้เห็นเฉยๆ 
+    if (prodId && !isMyProduct) {
+        const existingProd = globalProducts.find(p => String(p.Product_ID) === String(prodId));
+        if (existingProd) {
+             prodOpts += `<option value="${existingProd.Product_ID}" selected>${existingProd.Product}</option>`; 
+        }
     }
 
     let adoptOpts = '<option value="">- Select -</option>';
@@ -1355,24 +1415,30 @@
         potOpts += `<option value="${p}" ${sel}>${p}</option>`;
     });
 
+    let actionHtml = '';
+    if (canEdit) {
+        actionHtml = `<button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk"></i> Save</button>`;
+    } else {
+        // 🌟 เปลี่ยนปุ่ม Save เป็นป้าย Locked
+        actionHtml = `<span class="badge bg-secondary rounded-pill px-3 py-2"><i class="fa-solid fa-lock me-1"></i> Locked</span>`;
+    }
+
     tr.innerHTML = `
         <td>
-            <select class="form-select form-select-sm rating-product border-primary shadow-none" onchange="triggerCalcTarget(this)">
+            <select class="form-select form-select-sm rating-product border-primary shadow-none" onchange="triggerCalcTarget(this)" ${disabledAttr}>
                 ${prodOpts}
             </select>
         </td>
-        <td><select class="form-select form-select-sm rating-adopt shadow-none" onchange="triggerCalcTarget(this)">${adoptOpts}</select></td>
-        <td><select class="form-select form-select-sm rating-pot shadow-none" onchange="triggerCalcTarget(this)">${potOpts}</select></td>
+        <td><select class="form-select form-select-sm rating-adopt shadow-none" onchange="triggerCalcTarget(this)" ${disabledAttr}>${adoptOpts}</select></td>
+        <td><select class="form-select form-select-sm rating-pot shadow-none" onchange="triggerCalcTarget(this)" ${disabledAttr}>${potOpts}</select></td>
         <td>
-            <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#f8f9fa;">
+            <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#e9ecef;">
         </td>
         <td>
-            <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none" value="${tgt}" readonly style="background-color:#f8f9fa;">
+            <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none" value="${tgt}" readonly style="background-color:#e9ecef;">
         </td>
         <td class="text-center">
-            <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="saveTargetCallRow(this)">
-                <i class="fa-solid fa-floppy-disk"></i> Save
-            </button>
+            ${actionHtml}
         </td>
     `;
     tbody.appendChild(tr);
