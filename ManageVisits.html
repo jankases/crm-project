@@ -15,7 +15,7 @@
   .ts-control { border-radius: 10px !important; min-height: 42px; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
 
-  /* 🌟 คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
+  /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
@@ -35,45 +35,13 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหา (ปรับ Layout แบบใหม่ มีตัวกรองวันที่ และเปลี่ยน Sales Rep เป็น User) -->
-    <div class="row mb-4 g-3">
-      <div class="col-sm-6 col-md-4 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1">User</label>
-        <select class="form-select shadow-sm" id="filterVisitRep" onchange="handleFilterChange('rep')">
-          <option value="">- All Users -</option>
-        </select>
-      </div>
+    <!-- 🌟 ส่วนค้นหาหลัก (Focus: Territory, Doctor, Hospital, Date Range) -->
+    <div class="row mb-3 g-2 align-items-end">
       
-      <div class="col-sm-6 col-md-4 col-lg-2">
+      <div class="col-sm-6 col-md-2 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
         <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
           <option value="">- All Territories -</option>
-        </select>
-      </div>
-
-      <!-- 🌟 เพิ่มตัวกรองระยะเวลา -->
-      <div class="col-sm-12 col-md-4 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">ระยะเวลา (Date Range)</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <input type="date" class="form-control text-secondary px-2" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันเริ่มต้น">
-          <span class="input-group-text bg-light border-start-0 border-end-0 px-2 text-muted">-</span>
-          <input type="date" class="form-control text-secondary px-2" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันสิ้นสุด">
-        </div>
-      </div>
-
-      <div class="col-sm-6 col-md-4 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1">Product</label>
-        <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
-          <option value="">- All Products -</option>
-        </select>
-      </div>
-      
-      <div class="col-sm-6 col-md-2 col-lg-1">
-        <label class="form-label fw-bold text-secondary small mb-1">Status</label>
-        <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
-          <option value="">- All -</option>
-          <option value="Pending">Pending</option>
-          <option value="Submitted">Submitted</option>
         </select>
       </div>
 
@@ -88,7 +56,7 @@
         </div>
       </div>
       
-      <div class="col-sm-6 col-md-3 col-lg-3">
+      <div class="col-sm-12 col-md-4 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -98,7 +66,57 @@
           </button>
         </div>
       </div>
+
+      <!-- ตัวกรองระยะเวลา -->
+      <div class="col-sm-12 col-md-3 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">ระยะเวลา (Date Range)</label>
+        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+          <input type="date" class="form-control text-secondary px-2" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันเริ่มต้น">
+          <span class="input-group-text bg-light border-start-0 border-end-0 px-2 text-muted">-</span>
+          <input type="date" class="form-control text-secondary px-2" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันสิ้นสุด">
+        </div>
+      </div>
+
+      <!-- ปุ่ม Toggle กางตัวกรองเพิ่มเติม -->
+      <div class="col-sm-12 col-md-12 col-lg-1">
+        <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="ตัวกรองเพิ่มเติม">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+      </div>
     </div>
+
+    <!-- 🌟 ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
+    <div class="collapse mb-4" id="advancedFilters">
+      <div class="card card-body bg-light border-0 shadow-sm" style="border-radius: 15px;">
+        <div class="row g-3">
+          
+          <div class="col-sm-12 col-md-4">
+            <label class="form-label fw-bold text-secondary small mb-1">User</label>
+            <select class="form-select shadow-sm" id="filterVisitRep" onchange="handleFilterChange('rep')">
+              <option value="">- All Users -</option>
+            </select>
+          </div>
+
+          <div class="col-sm-6 col-md-4">
+            <label class="form-label fw-bold text-secondary small mb-1">Product</label>
+            <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
+              <option value="">- All Products -</option>
+            </select>
+          </div>
+          
+          <div class="col-sm-6 col-md-4">
+            <label class="form-label fw-bold text-secondary small mb-1">Status</label>
+            <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
+              <option value="">- All -</option>
+              <option value="Pending">Pending</option>
+              <option value="Submitted">Submitted</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <!-- ============================================== -->
 
     <!-- ตารางประวัติ (มี sortable-th ที่หัวตาราง) -->
     <div class="card p-4 border-0 shadow-sm visit-card">
@@ -208,7 +226,7 @@
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
             </div>
 
-            <!-- 🌟 ช่องข้อมูลเชิงลึก (Insight) -->
+            <!-- ช่องข้อมูลเชิงลึก (Insight) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">ข้อมูลเชิงลึก (Insight)</label>
@@ -263,9 +281,8 @@
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
 
-  // 🌟 ตัวแปรสำหรับเก็บค่าการจัดเรียง (Sorting State)
   var currentSortCol = 'date';
-  var currentSortAsc = false; // ค่าเริ่มต้น: วันที่ใหม่สุดอยู่บน
+  var currentSortAsc = false; 
 
   window.openAddVisitModal = function(fromDocId = null) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
@@ -712,7 +729,6 @@
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
     
-    // 🌟 ดึงค่าตัวกรองวันที่
     const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     const endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -736,11 +752,10 @@
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 ตรวจสอบเงื่อนไขวันที่ (Date Range Filter)
       let matchDate = true;
       if (startDateTerm || endDateTerm) {
           const vDate = new Date(v.Visit_Date);
-          vDate.setHours(0, 0, 0, 0); // รีเซ็ตเวลาเพื่อเทียบเฉพาะวัน
+          vDate.setHours(0, 0, 0, 0); 
           
           if (startDateTerm) {
               const sDate = new Date(startDateTerm);
