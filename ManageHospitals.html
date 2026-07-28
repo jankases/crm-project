@@ -6,6 +6,7 @@
 <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 
 <style>
+  /* ปรับแต่ง UI ให้ตรงกับหน้า Doctor */
   .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
   .hospital-form-group .form-control, .hospital-form-group .form-select {
     min-height: 42px; border-radius: 10px;
@@ -13,18 +14,22 @@
   .hospital-form-group textarea { border-radius: 10px; }
   .table-hospital th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
   .table-hospital td { vertical-align: middle; }
+  
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  .tt-menu {
-    background-color: #fff;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    width: 100%;
-    margin-top: 5px;
-    z-index: 9999 !important; 
-  }
+  /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ (Sort) */
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
+  .sortable-th i { transition: transform 0.2s; }
+
+  /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
+  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+  .custom-pagination .page-link:hover { background-color: #e9ecef; }
+
+  /* สไตล์สำหรับ Auto Address */
+  .tt-menu { background-color: #fff; border: 1px solid #ced4da; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; margin-top: 5px; z-index: 9999 !important; }
   .tt-suggestion { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
   .tt-suggestion:hover { background-color: #e9ecef; color: #0d6efd; }
   .tt-suggestion:last-child { border-bottom: none; }
@@ -36,53 +41,80 @@
   <div id="hospitalListView">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-regular fa-hospital me-2"></i>จัดการข้อมูลโรงพยาบาล (Hospitals)</h3>
-        <p class="text-muted mb-0">ระบบจัดการฐานข้อมูลสถานที่, ชื่อภาษาไทย และ Sales ID</p>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-regular fa-hospital me-2"></i>Hospitals Management</h3>
+        <p class="text-muted mb-0">Database of Hospitals and Workplaces</p>
       </div>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่มโรงพยาบาลใหม่ (ส่ง DCR)
-      </button>
+      
+      <!-- 🌟 เพิ่มปุ่ม Refresh แบบหน้า Doctor -->
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadHospitals()" id="btnRefreshHospitals" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
+          <i class="fa-solid fa-plus me-2"></i>Add New Hospital
+        </button>
+      </div>
     </div>
 
     <!-- ส่วนค้นหา (Filters) -->
-    <div class="row mb-4 hospital-filter-group g-3">
+    <div class="row mb-4 hospital-filter-group g-3 align-items-end">
       <div class="col-sm-12 col-md-7 col-lg-6">
-        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อ รพ. (EN / Known As)</label>
+        <label class="form-label fw-bold text-secondary small mb-1">Search Hospital (EN / Known As)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterHospName" placeholder="พิมพ์ชื่อ รพ. EN หรือ ชื่อไทย (Known As)..." onkeyup="filterHospitals()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="ค้นหาด้วยเสียง">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterHospName" placeholder="Search by EN Name or Known As..." onkeyup="filterHospitals()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
         </div>
       </div>
       <div class="col-sm-12 col-md-5 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">จังหวัด (Province)</label>
+        <label class="form-label fw-bold text-secondary small mb-1">Province</label>
         <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()">
-          <option value="">- ทุกจังหวัด -</option>
+          <option value="">- All Provinces -</option>
         </select>
       </div>
     </div>
 
-    <!-- ตารางข้อมูล -->
+    <!-- ตารางข้อมูล (รองรับ Sort) -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-hospital align-middle" style="font-size: 0.95rem;">
           <thead class="text-center">
             <tr>
-              <th>ชื่อโรงพยาบาล (Name EN)</th>
-              <th>ชื่อภาษาไทย (Known As)</th>
-              <th>จังหวัด (Province)</th>
-              <th>Sales ID</th>
-              <th>สถานะ (Status)</th>
-              <th>จัดการ (Action)</th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')">Hospital Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-hosp-nameEn"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('knownAs')">Known As (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-knownAs"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('province')">Province <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-province"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('salesId')">Sales ID <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-salesId"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-status"></i></th>
+              <th class="py-3">Action</th>
             </tr>
           </thead>
           <tbody id="hospitalTableBody">
-            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
+
+      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) แบบหน้า Doctor -->
+      <div id="hospitalPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+          <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
+          <select class="form-select form-select-sm shadow-sm" id="hospitalRowsPerPage" onchange="changeHospRowsPerPage()" style="width: 80px; border-radius: 8px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="text-muted small ms-3" id="hospitalPageInfo">Showing 1 to 10 of 50 entries</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm custom-pagination mb-0" id="hospitalPagination">
+            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
+          </ul>
+        </nav>
+      </div>
+
     </div>
   </div>
 
@@ -90,57 +122,57 @@
   <div id="hospitalAddView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-primary fw-bold mb-0">🏥 ส่งคำขอเพิ่มข้อมูลโรงพยาบาลใหม่ (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">🏥 Add New Hospital (DCR)</h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
       <form id="addHospitalForm" onsubmit="handleAddHospital(event)">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>ข้อมูลโรงพยาบาล</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">ชื่อโรงพยาบาล (Hospital) <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-white" id="hospName" placeholder="เช่น Siriraj Hospital" required>
+              <label class="form-label fw-bold text-dark">Hospital Name (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="hospName" placeholder="e.g. Siriraj Hospital" required>
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
-              <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="เช่น โรงพยาบาลศิริราช">
+              <label class="form-label fw-bold text-dark">Known As (TH)</label>
+              <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="e.g. โรงพยาบาลศิริราช">
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">จังหวัด (Province) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Province <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="hospProvince" required>
-                <option value="">- เลือกจังหวัด -</option>
+                <option value="">- Select Province -</option>
               </select>
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">รหัสอ้างอิงเซลส์ (Sales ID)</label>
-              <input type="text" class="form-control bg-white" id="hospSalesId" placeholder="เช่น 17000280">
+              <label class="form-label fw-bold text-dark">Sales ID</label>
+              <input type="text" class="form-control bg-white" id="hospSalesId" placeholder="e.g. 17000280">
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>ข้อมูลที่อยู่</h5>
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> ตัวช่วยกรอกที่อยู่อัตโนมัติ (กรอกแค่ชื่อ)</label>
-              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressAdd" placeholder="เช่น บางปูใหม่, เมือง, หรือ 10280 แล้วเลือกจากรายการที่เด้งขึ้นมา...">
+              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
+              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressAdd" placeholder="Type sub-district, district, province or zipcode...">
             </div>
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">ที่อยู่แบบเต็ม (Address) <span class="text-danger">*</span></label>
-              <textarea class="form-control bg-white" id="hospAddress" rows="3" placeholder="กรอกข้อมูลที่อยู่ รพ. (เช่น 2 ถ.วังหลัง แขวงศิริราช เขตบางกอกน้อย กรุงเทพมหานคร 10700)" required></textarea>
+              <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
+              <textarea class="form-control bg-white" id="hospAddress" rows="3" placeholder="Enter full address..." required></textarea>
             </div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">ส่งคำขอ DCR</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -150,9 +182,9 @@
   <div id="hospitalEditView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-primary fw-bold mb-0">✏️ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ Edit Hospital (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -161,55 +193,55 @@
         <input type="hidden" id="editHospId">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>ข้อมูลโรงพยาบาล</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">ชื่อโรงพยาบาล (Hospital) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Hospital Name (EN) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-white" id="editHospName" required>
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">ชื่อที่เรียกทั่วไป / ชื่อภาษาไทย (Known As)</label>
+              <label class="form-label fw-bold text-dark">Known As (TH)</label>
               <input type="text" class="form-control bg-white" id="editHospKnownAs">
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">จังหวัด (Province) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Province <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="editHospProvince" required>
-                <option value="">- เลือกจังหวัด -</option>
+                <option value="">- Select Province -</option>
               </select>
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">รหัสอ้างอิงเซลส์ (Sales ID)</label>
+              <label class="form-label fw-bold text-dark">Sales ID</label>
               <input type="text" class="form-control bg-white" id="editHospSalesId">
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-danger">สถานะ (Status)</label>
+              <label class="form-label fw-bold text-danger">Status</label>
               <select class="form-select bg-white border-danger fw-bold" id="editHospStatus">
-                <option value="Active" class="text-success">Active (ใช้งาน)</option>
-                <option value="Inactive" class="text-danger">Inactive (ระงับ)</option>
+                <option value="Active" class="text-success">Active</option>
+                <option value="Inactive" class="text-danger">Inactive</option>
               </select>
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>ข้อมูลที่อยู่</h5>
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
           <div class="row g-3">
              <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> ตัวช่วยกรอกที่อยู่อัตโนมัติ (กรอกแค่ชื่อ)</label>
-              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressEdit" placeholder="เช่น บางปูใหม่, เมือง, หรือ 10280 แล้วเลือกจากรายการที่เด้งขึ้นมา...">
+              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
+              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressEdit" placeholder="Type sub-district, district, province or zipcode...">
             </div>
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">ที่อยู่แบบเต็ม (Address) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
               <textarea class="form-control bg-white" id="editHospAddress" rows="3" required></textarea>
             </div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">ส่งคำขอ DCR</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -219,29 +251,29 @@
   <div id="hospitalProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm rounded-pill" onclick="openEditHospitalView(currentSelectedHospId)">
-        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูล (DCR)
+      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm rounded-pill px-3" onclick="openEditHospitalView(currentSelectedHospId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Hospital (DCR)
       </button>
-      <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 ข้อมูลโรงพยาบาล</h4>
+      <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 Hospital Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-3"></div>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="row mb-3">
         <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">ชื่อโรงพยาบาล</label>
+          <label class="text-muted small fw-bold">Hospital Name (EN)</label>
           <input type="text" class="form-control bg-light text-dark fw-bold" id="viewHospName" disabled style="border-radius: 10px; min-height: 42px;">
         </div>
         <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">ชื่อที่เรียกทั่วไป (Known As)</label>
+          <label class="text-muted small fw-bold">Known As (TH)</label>
           <input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled style="border-radius: 10px; min-height: 42px;">
         </div>
       </div>
       <div class="row mb-3">
         <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">จังหวัด (Province)</label>
+          <label class="text-muted small fw-bold">Province</label>
           <input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;">
         </div>
         <div class="col-md-6 mb-3">
@@ -251,13 +283,13 @@
       </div>
       <div class="row mb-3">
         <div class="col-md-12 mb-3">
-          <label class="text-muted small fw-bold">ที่อยู่แบบเต็ม</label>
+          <label class="text-muted small fw-bold">Full Address</label>
           <textarea class="form-control bg-light" id="viewHospAddress" rows="2" disabled style="border-radius: 10px;"></textarea>
         </div>
       </div>
       <div class="row mb-3">
         <div class="col-md-4 mb-3">
-          <label class="text-muted small fw-bold">สถานะ</label>
+          <label class="text-muted small fw-bold">Status</label>
           <input type="text" class="form-control bg-light fw-bold" id="viewHospStatus" disabled style="border-radius: 10px; min-height: 42px;">
         </div>
       </div>
@@ -267,11 +299,48 @@
 </div>
 
 <script>
+  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการ
+  async function fetchAllRecords(tableName, queryModifier = null) {
+      let allData = [];
+      let start = 0;
+      const step = 1000;
+      while (true) {
+          let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
+          if (queryModifier) query = queryModifier(query);
+          
+          const { data, error } = await query;
+          if (error) throw error;
+          
+          allData = allData.concat(data);
+          if (data.length < step) break;
+          start += step;
+      }
+      return allData;
+  }
+
+  // 🌟 ระบบ Caching สำหรับหน้า Hospitals
+  window.HospManagerCache = window.HospManagerCache || {
+      isLoaded: false,
+      indexLoaded: false,
+      hospitals: [],
+      indexTypes: [],
+      indexes: [],
+      filters: { name: '', prov: '', page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true }
+  };
+
   var globalHospitals = [];
+  var globalFilteredHospitals = [];
+  var globalIndexTypes = [];
+  var globalIndexes = [];
   var currentSelectedHospId = ""; 
 
   var isAutoAddressAddInit = false;
   var isAutoAddressEditInit = false;
+
+  var currentHospSortCol = 'nameEn';
+  var currentHospSortAsc = true; 
+  var currentHospPage = 1;
+  var hospRowsPerPage = 20;
 
   // ===================== ระบบ Voice to Text =====================
   var searchRecognition;
@@ -280,7 +349,8 @@
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     searchRecognition = new SpeechRecognition();
-    searchRecognition.lang = 'th-TH'; searchRecognition.continuous = false; searchRecognition.interimResults = false; 
+    searchRecognition.lang = 'en-US'; // รองรับทั้ง EN และ TH ขึ้นอยู่กับการพูด
+    searchRecognition.continuous = false; searchRecognition.interimResults = false; 
     searchRecognition.onresult = function(event) {
       let finalTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript; }
@@ -291,13 +361,13 @@
   }
 
   function toggleSearchDictation() {
-    if (!searchRecognition) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (!searchRecognition) return alert("Your browser doesn't support voice recognition.");
     if (isSearchRecording) { stopSearchDictation(); } else {
       isSearchRecording = true; searchRecognition.start();
       const btn = document.getElementById('btnMicSearch'); const icon = document.getElementById('micSearchIcon');
       btn.classList.remove('bg-white'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
       icon.classList.remove('text-muted', 'fa-microphone'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
-      document.getElementById('filterHospName').placeholder = "กำลังฟัง... พูดชื่อโรงพยาบาลได้เลย";
+      document.getElementById('filterHospName').placeholder = "Listening...";
     }
   }
 
@@ -307,11 +377,19 @@
     if (btn && icon) {
       btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
       icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
-      document.getElementById('filterHospName').placeholder = "พิมพ์ชื่อ รพ. EN หรือ ชื่อไทย (Known As)...";
+      document.getElementById('filterHospName').placeholder = "Search by EN Name or Known As...";
     }
   }
 
-  // ===================== ระบบโหลดข้อมูลหลัก =====================
+  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
+  async function forceReloadHospitals() {
+      const btn = document.getElementById('btnRefreshHospitals');
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+      await loadIndexDropdowns(true);
+      await loadHospitals(true);
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
+  }
+
   setTimeout(async function() {
     await loadIndexDropdowns(); 
     await loadHospitals();
@@ -324,161 +402,278 @@
     window.scrollTo(0, 0); 
   }
 
-  async function loadIndexDropdowns() {
+  async function loadIndexDropdowns(forceReload = false) {
     try {
-      const [typeRes, idxRes] = await Promise.all([
-        supabaseClient.from('IndexType').select('*'),
-        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
-      ]);
-      const types = typeRes.data || []; const indexes = idxRes.data || [];
-      const provType = types.find(t => t.Name.toLowerCase() === 'province');
-      let provHtml = '<option value="">- เลือกจังหวัด -</option>';
+      window.HospManagerCache = window.HospManagerCache || {};
+      
+      if (forceReload || !window.HospManagerCache.indexLoaded) {
+          const [typeRes, idxRes] = await Promise.all([
+            supabaseClient.from('IndexType').select('*'),
+            supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+          ]);
+          window.HospManagerCache.indexTypes = typeRes.data || [];
+          window.HospManagerCache.indexes = idxRes.data || [];
+          window.HospManagerCache.indexLoaded = true;
+      }
+
+      globalIndexTypes = window.HospManagerCache.indexTypes;
+      globalIndexes = window.HospManagerCache.indexes;
+
+      const provType = globalIndexTypes.find(t => t.Name.toLowerCase() === 'province');
+      let provHtml = '<option value="">- Select Province -</option>';
       if (provType) {
-        const provItems = indexes.filter(i => i.IndexType_ID === provType.IndexType_ID);
+        const provItems = globalIndexes.filter(i => i.IndexType_ID === provType.IndexType_ID);
         provItems.forEach(i => provHtml += `<option value="${i.Value}">${i.Value}</option>`);
       }
+      
       document.getElementById('hospProvince').innerHTML = provHtml;
       document.getElementById('editHospProvince').innerHTML = provHtml;
+      
       const filterProv = document.getElementById('filterHospProvince');
-      if (filterProv) filterProv.innerHTML = '<option value="">- ทุกจังหวัด -</option>' + provHtml.replace('<option value="">- เลือกจังหวัด -</option>', '');
+      if (filterProv) {
+          filterProv.innerHTML = '<option value="">- All Provinces -</option>' + provHtml.replace('<option value="">- Select Province -</option>', '');
+      }
+
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
-  // 🌟 ดึงข้อมูลตาราง Hospitals กรองตามสิทธิ์ Assignment (ข้อ 2)
-  async function loadHospitals() {
+  // 🌟 โหลดข้อมูล Hospitals (ใช้ Cache & Bypassing Limit)
+  async function loadHospitals(forceReload = false) {
     const tbody = document.getElementById('hospitalTableBody');
-    if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
-    
-    try {
-      let crmUser = null;
-      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    window.HospManagerCache = window.HospManagerCache || {};
 
-      const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
-      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+    if (forceReload || !window.HospManagerCache.isLoaded) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+        
+        try {
+          let crmUser = null;
+          try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-      // 1. ดึงข้อมูล Master Data ทั้งหมด
-      const [hospRes, assignRes, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
-        supabaseClient.from('Hospitals').select('*').order('Hospital', { ascending: true }),
-        supabaseClient.from('Assignment').select('*').eq('Type', 'Hospital'),
-        supabaseClient.from('Territory').select('*'),
-        supabaseClient.from('Team').select('*'),
-        supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending'),
-        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending')
-      ]);
+          const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
+          const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+          const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
+          const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      if (hospRes.error) throw hospRes.error;
+          const [allHospitals, assignments, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+            fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
+            fetchAllRecords('Assignment', q => q.eq('Type', 'Hospital')),
+            supabaseClient.from('Territory').select('*'),
+            supabaseClient.from('Team').select('*'),
+            supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending'),
+            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending')
+          ]);
 
-      let allHospitals = hospRes.data || [];
-      let assignments = assignRes.data || [];
-      let territories = terrRes.data || [];
-      let teams = teamRes.data || [];
+          let territories = terrRes.data || [];
+          let teams = teamRes.data || [];
 
-      // 2. คำนวณสิทธิ์การมองเห็นโรงพยาบาลตาม Role & Assignment
-      let allowedHospIds = [];
+          let allowedHospIds = [];
 
-      // 🔴 Sales: เห็นเฉพาะโรงพยาบาลที่มี Assignment ตรงกับ Territory ตัวเอง
-      if (userRole === 'Sales' || userRole === 'Rep') {
-        let myTerritoryId = userTerritory;
-        const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
-        if (terrObj) myTerritoryId = terrObj.Territory_ID;
+          if (userRole === 'Sales' || userRole === 'Rep') {
+            let myTerritoryId = userTerritory;
+            const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
+            if (terrObj) myTerritoryId = terrObj.Territory_ID;
+            allowedHospIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
+          }
+          else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+            const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
+            allowedHospIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+          }
+          else if (userRole === 'BU Head' && userBu) {
+            const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
+            const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
+            allowedHospIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+          }
 
-        allowedHospIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
-      }
-      // 🟠 Manager: เห็นโรงพยาบาลใน Territory ของลูกทีมใน Team เดียวกัน
-      else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-        const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
-        allowedHospIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
-      }
-      // 🟢 BU Head: เห็นโรงพยาบาลใน Territory ของทุกทีมใน BU ตัวเอง
-      else if (userRole === 'BU Head' && userBu) {
-        const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
-        const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
-        allowedHospIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
-      }
+          let visibleHospitals = allHospitals;
+          if (userRole !== 'Admin' && allowedHospIds.length > 0) {
+            visibleHospitals = allHospitals.filter(h => allowedHospIds.includes(h.Hospital_ID));
+          }
 
-      // 🟡 กรองโรงพยาบาลตามสิทธิ์ (Admin หรือ ไม่พบสิทธิ์เฉพาะ ให้แสดงทั้งหมด)
-      let visibleHospitals = allHospitals;
-      if (userRole !== 'Admin' && allowedHospIds.length > 0) {
-        visibleHospitals = allHospitals.filter(h => allowedHospIds.includes(h.Hospital_ID));
-      }
+          const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
 
-      const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
+          let list = visibleHospitals.map(h => ({
+            id: h.Hospital_ID, name: h.Hospital, knownAs: h.Known_As, province: h.Province,
+            address: h.Address, salesId: h.Sales_ID, status: h.Status, 
+            isPendingDcr: false,
+            hasPendingEdit: pendingEditIds.includes(h.Hospital_ID)
+          }));
 
-      let list = visibleHospitals.map(h => ({
-        id: h.Hospital_ID, name: h.Hospital, knownAs: h.Known_As, province: h.Province,
-        address: h.Address, salesId: h.Sales_ID, status: h.Status, 
-        isPendingDcr: false,
-        hasPendingEdit: pendingEditIds.includes(h.Hospital_ID)
-      }));
-
-      // รวมรายการ DCR รพ. ใหม่ที่รออนุมัติ
-      const pendingAddDcrs = pendingAddRes.data || [];
-      if (pendingAddDcrs.length > 0) {
-        pendingAddDcrs.forEach(d => {
-          try {
-            const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
-            list.unshift({
-              id: d.DCR_ID,
-              name: req.Hospital || 'ไม่ระบุชื่อ',
-              knownAs: req.Known_As || '-',
-              province: req.Province || '-',
-              address: req.Address || '-',
-              salesId: req.Sales_ID || '-',
-              status: 'Pending DCR',
-              isPendingDcr: true,
-              hasPendingEdit: false
+          const pendingAddDcrs = pendingAddRes.data || [];
+          if (pendingAddDcrs.length > 0) {
+            pendingAddDcrs.forEach(d => {
+              try {
+                const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+                list.unshift({
+                  id: d.DCR_ID,
+                  name: req.Hospital || 'Unknown',
+                  knownAs: req.Known_As || '-',
+                  province: req.Province || '-',
+                  address: req.Address || '-',
+                  salesId: req.Sales_ID || '-',
+                  status: 'Pending DCR',
+                  isPendingDcr: true,
+                  hasPendingEdit: false
+                });
+              } catch(e) {}
             });
-          } catch(e) {}
-        });
-      }
+          }
 
-      globalHospitals = list;
-      filterHospitals(); 
-    } catch (err) { 
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; 
+          window.HospManagerCache.hospitals = list;
+          window.HospManagerCache.isLoaded = true;
+
+        } catch (err) { 
+          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
+          return;
+        }
     }
+
+    globalHospitals = window.HospManagerCache.hospitals;
+
+    // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
+    if (window.HospManagerCache.filters) {
+        const f = window.HospManagerCache.filters;
+        if (document.getElementById('filterHospName')) document.getElementById('filterHospName').value = f.name || '';
+        if (document.getElementById('filterHospProvince')) document.getElementById('filterHospProvince').value = f.prov || '';
+        if (document.getElementById('hospitalRowsPerPage')) document.getElementById('hospitalRowsPerPage').value = f.rows || 20;
+
+        currentHospPage = f.page || 1;
+        hospRowsPerPage = f.rows || 20;
+        currentHospSortCol = f.sortCol || 'nameEn';
+        currentHospSortAsc = f.sortAsc !== undefined ? f.sortAsc : true;
+    }
+
+    filterHospitals(false); 
   }
 
-  // 🌟 กรองโรงพยาบาล (ข้อ 1: ค้นหาเฉพาะชื่อ EN และ Known As ไม่เอา ID)
-  function filterHospitals() {
+  function sortHospitals(col) {
+    if (currentHospSortCol === col) {
+      currentHospSortAsc = !currentHospSortAsc; 
+    } else {
+      currentHospSortCol = col;
+      currentHospSortAsc = true; 
+    }
+
+    ['nameEn', 'knownAs', 'province', 'salesId', 'status'].forEach(c => {
+      const icon = document.getElementById('icon-sort-hosp-' + c);
+      if (icon) {
+        if (c === currentHospSortCol) {
+          icon.className = currentHospSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    filterHospitals(false); 
+  }
+
+  function filterHospitals(resetPage = true) {
     const nameEl = document.getElementById('filterHospName'); 
     const provEl = document.getElementById('filterHospProvince');
     
     const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : ""; 
     const provTerm = provEl ? provEl.value : "";
+
+    if (resetPage) currentHospPage = 1;
+
+    window.HospManagerCache.filters = {
+        name: nameTerm,
+        prov: provTerm,
+        page: currentHospPage,
+        rows: hospRowsPerPage,
+        sortCol: currentHospSortCol,
+        sortAsc: currentHospSortAsc
+    };
     
     const filtered = globalHospitals.filter(h => {
-      // 🔥 ค้นหาเฉพาะชื่อ รพ. (EN) และ ชื่อภาษาไทย (Known As)
       const nameSearchStr = `${h.name || ""} ${h.knownAs || ""}`.toLowerCase();
       const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
       const matchProv = (provTerm === "") || (h.province === provTerm);
 
       return matchName && matchProv;
     });
-    
-    renderHospitalTable(filtered);
+
+    filtered.sort((a, b) => {
+      let valA = '', valB = '';
+
+      if (currentHospSortCol === 'nameEn') {
+        valA = (a.name || '').toLowerCase(); valB = (b.name || '').toLowerCase();
+      } else if (currentHospSortCol === 'knownAs') {
+        valA = (a.knownAs || '').toLowerCase(); valB = (b.knownAs || '').toLowerCase();
+      } else if (currentHospSortCol === 'province') {
+        valA = (a.province || '').toLowerCase(); valB = (b.province || '').toLowerCase();
+      } else if (currentHospSortCol === 'salesId') {
+        valA = (a.salesId || '').toLowerCase(); valB = (b.salesId || '').toLowerCase();
+      } else if (currentHospSortCol === 'status') {
+        valA = (a.status || '').toLowerCase(); valB = (b.status || '').toLowerCase();
+      }
+
+      if (valA < valB) return currentHospSortAsc ? -1 : 1;
+      if (valA > valB) return currentHospSortAsc ? 1 : -1;
+      return 0;
+    });
+
+    globalFilteredHospitals = filtered;
+    renderHospitalTable();
   }
 
-  function renderHospitalTable(data) {
-    const tbody = document.getElementById('hospitalTableBody'); if(!tbody) return; tbody.innerHTML = '';
-    if(!Array.isArray(data) || data.length === 0) return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลที่ค้นหา</td></tr>';
+  function changeHospRowsPerPage() {
+    const selectEl = document.getElementById('hospitalRowsPerPage');
+    hospRowsPerPage = parseInt(selectEl.value);
+    currentHospPage = 1;
+    window.HospManagerCache.filters.rows = hospRowsPerPage;
+    window.HospManagerCache.filters.page = 1;
+    renderHospitalTable();
+  }
+
+  function goToHospPage(page) {
+    const totalPages = Math.ceil(globalFilteredHospitals.length / hospRowsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentHospPage = page;
+    window.HospManagerCache.filters.page = page;
+    renderHospitalTable();
+  }
+
+  function renderHospitalTable() {
+    const tbody = document.getElementById('hospitalTableBody'); 
+    if(!tbody) return; 
     
-    data.forEach(h => {
+    tbody.innerHTML = '';
+    const data = globalFilteredHospitals;
+
+    if(!Array.isArray(data) || data.length === 0) {
+      document.getElementById('hospitalPaginationContainer').classList.add('d-none');
+      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No matching records found.</td></tr>';
+    }
+    
+    document.getElementById('hospitalPaginationContainer').classList.remove('d-none');
+
+    const totalItems = data.length;
+    const totalPages = Math.ceil(totalItems / hospRowsPerPage);
+    if (currentHospPage > totalPages) currentHospPage = totalPages;
+    if (currentHospPage < 1) currentHospPage = 1;
+
+    const startIndex = (currentHospPage - 1) * hospRowsPerPage;
+    const endIndex = Math.min(startIndex + hospRowsPerPage, totalItems);
+    
+    document.getElementById('hospitalPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
+
+    const paginatedData = data.slice(startIndex, endIndex);
+    
+    paginatedData.forEach(h => {
       let badge = 'bg-success';
       let statusText = h.status || 'Active';
-      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
 
       if (h.isPendingDcr) {
         badge = 'bg-warning text-dark';
-        statusText = '⏳ รออนุมัติ (DCR)';
-        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> รอ Admin ตรวจสอบ</span>`;
+        statusText = '⏳ Pending (DCR)';
+        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> Waiting for Admin</span>`;
       } else if (h.status === 'Inactive') {
         badge = 'bg-danger';
       }
 
-      const pendingEditTag = h.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
+      const pendingEditTag = h.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ Pending Edit</span>` : '';
 
       const nameCell = h.isPendingDcr ? 
         `<span class="fw-bold text-dark"><i class="fa-regular fa-hospital me-2 text-warning"></i>${h.name || '-'}</span>` : 
@@ -494,6 +689,42 @@
           <td class="text-center">${actionButton}</td>
         </tr>`;
     });
+
+    renderHospPaginationControls(totalPages);
+  }
+
+  function renderHospPaginationControls(totalPages) {
+    const ul = document.getElementById('hospitalPagination');
+    let html = '';
+
+    html += `<li class="page-item ${currentHospPage === 1 ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToHospPage(${currentHospPage - 1}); return false;">&laquo; Prev</a>
+            </li>`;
+
+    let startPage = Math.max(1, currentHospPage - 2);
+    let endPage = Math.min(totalPages, currentHospPage + 2);
+
+    if (startPage > 1) {
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToHospPage(1); return false;">1</a></li>`;
+        if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<li class="page-item ${currentHospPage === i ? 'active' : ''}">
+                  <a class="page-link shadow-sm" href="#" onclick="goToHospPage(${i}); return false;">${i}</a>
+                </li>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToHospPage(${totalPages}); return false;">${totalPages}</a></li>`;
+    }
+
+    html += `<li class="page-item ${currentHospPage === totalPages ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToHospPage(${currentHospPage + 1}); return false;">Next &raquo;</a>
+            </li>`;
+
+    ul.innerHTML = html;
   }
 
   async function checkPendingDCR(hospId, badgeElementId) {
@@ -501,7 +732,7 @@
       const { data, error } = await supabaseClient.from('DCR').select('Status, Action').eq('Ref_ID', hospId).eq('Status', 'Pending');
       if (error) throw error;
       const badgeContainer = document.getElementById(badgeElementId);
-      if (badgeContainer) badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>` : '';
+      if (badgeContainer) badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${data[0].Action})</span>` : '';
     } catch (err) {}
   }
 
@@ -563,12 +794,11 @@
     }
   }
 
-  // 🌟 เพิ่มโรงพยาบาลใหม่: ส่งเข้า DCR 100%
   async function handleAddHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('submitHospBtn'); 
     btn.disabled = true; 
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...`;
     
     let crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -591,9 +821,9 @@
     });
     
     if (isDuplicate) { 
-      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบโรงพยาบาล "${payload.Hospital}" ซ้ำอยู่ในระบบหรืออยู่ระหว่างรออนุมัติ DCR ครับ`); 
+      alert(`❌ Cannot save! Hospital "${payload.Hospital}" already exists or is pending approval.`); 
       btn.disabled = false; 
-      btn.innerHTML = "ส่งคำขอ DCR"; 
+      btn.innerHTML = "Submit DCR"; 
       return; 
     }
     
@@ -606,25 +836,24 @@
       }]); 
       
       if (error) throw error; 
-      alert("✅ ส่งคำขอเพิ่มโรงพยาบาลใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
+      alert("✅ DCR submitted successfully. Waiting for Admin approval."); 
       
       switchHospitalView('hospitalListView'); 
-      await loadHospitals();
+      await loadHospitals(true);
 
     } catch (err) { 
-      alert("❌ เกิดข้อผิดพลาด: " + err.message); 
+      alert("❌ Error: " + err.message); 
     } finally { 
       btn.disabled = false; 
-      btn.innerHTML = "ส่งคำขอ DCR"; 
+      btn.innerHTML = "Submit DCR"; 
     }
   }
 
-  // 🌟 บันทึกแก้ไขโรงพยาบาล: บังคับส่งเข้า DCR 100%
   async function handleUpdateHospital(e) {
     e.preventDefault();
     const btn = document.getElementById('updateHospBtn'); 
     btn.disabled = true; 
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...`;
     
     const hospId = document.getElementById('editHospId').value;
     let crmUser = null; 
@@ -651,16 +880,16 @@
       }]); 
       
       if (error) throw error; 
-      alert("✅ ส่งคำขอแก้ไขข้อมูลโรงพยาบาล (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ"); 
+      alert("✅ DCR submitted successfully. Waiting for Admin approval."); 
       
       switchHospitalView('hospitalListView'); 
-      await loadHospitals();
+      await loadHospitals(true);
 
     } catch (err) { 
-      alert("❌ เกิดข้อผิดพลาด: " + err.message); 
+      alert("❌ Error: " + err.message); 
     } finally { 
       btn.disabled = false; 
-      btn.innerHTML = "ส่งคำขอ DCR"; 
+      btn.innerHTML = "Submit DCR"; 
     }
   }
 </script>
