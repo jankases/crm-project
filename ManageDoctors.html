@@ -51,9 +51,16 @@
         <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-user-doctor me-2"></i>Doctors Management</h3>
         <p class="text-muted mb-0">Database of Doctors and Workplaces</p>
       </div>
-      <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddDoctorView()">
-        <i class="fa-solid fa-plus me-2"></i>Add New Doctor
-      </button>
+      
+      <!-- 🌟 เพิ่มปุ่ม Refresh ข้อมูล -->
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4" onclick="openAddDoctorView()">
+          <i class="fa-solid fa-plus me-2"></i>Add New Doctor
+        </button>
+      </div>
     </div>
 
     <!-- ส่วนค้นหาทั้งหมด -->
@@ -401,6 +408,25 @@
       return allData;
   }
 
+  // 🌟 ระบบ Caching สำหรับหน้า Doctors เพื่อป้องกันการโหลดใหม่ตอนสลับเมนู
+  window.DocManagerCache = window.DocManagerCache || {
+      isLoaded: false,
+      indexLoaded: false,
+      doctors: [],
+      indexTypes: [],
+      indexes: [],
+      hospitals: [],
+      products: [],
+      users: [],
+      territories: [],
+      matrixData: [],
+      targetData: [],
+      teamProdLinks: [],
+      sysSettings: [],
+      teamList: [],
+      filters: { name: '', spec: '', type: '', hosp: '', page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true }
+  };
+
   var globalDoctors = [];
   var globalFilteredDoctors = []; 
   var globalHospitals = [];
@@ -508,6 +534,15 @@
     currentSearchIconId = null;
   }
 
+  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
+  async function forceReloadDoctors() {
+      const btn = document.getElementById('btnRefreshDoctors');
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+      await loadIndexDropdowns(true);
+      await loadDoctors(true);
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
+  }
+
   setTimeout(async function() {
     await loadIndexDropdowns(); 
     await loadDoctors();
@@ -521,7 +556,8 @@
     window.scrollTo(0, 0); 
   }
 
-  async function loadIndexDropdowns() {
+  // 🌟 โหลด Dropdowns (ใช้ Cache)
+  async function loadIndexDropdowns(forceReload = false) {
     try {
       let crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -529,48 +565,61 @@
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
       const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-      // 🌟 ใช้ fetchAllRecords กับตารางหลักเพื่อป้องกันปัญหา 1000 limit
-      const [typeRes, idxRes, allHospitals, allProductsList, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes, teamRes] = await Promise.all([
-        supabaseClient.from('IndexType').select('*'),
-        supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-        fetchAllRecords('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
-        fetchAllRecords('Products', q => q.order('Product', { ascending: true })),
-        fetchAllRecords('Rep_Users'), 
-        supabaseClient.from('Territory').select('*'),
-        supabaseClient.from('Rating_Matrix').select('*'),
-        supabaseClient.from('Target').select('*'),
-        fetchAllRecords('Products_Team'),
-        supabaseClient.from('System_Settings').select('*'),
-        supabaseClient.from('Team').select('*')
-      ]);
-      
-      globalIndexTypes = typeRes.data || [];
-      globalIndexes = idxRes.data || [];
-      globalHospitals = allHospitals || []; 
-      globalProducts = allProductsList || [];
-      globalUsers = userRes || []; 
-      globalTerritories = terrRes.data || [];
-      globalMatrixData = matrixRes.data || [];
-      globalTargetData = targetRes.data || [];
-      const globalTeamList = teamRes.data || [];
+      window.DocManagerCache = window.DocManagerCache || {};
 
-      const sysSettings = sysSetRes.data || [];
+      if (forceReload || !window.DocManagerCache.indexLoaded) {
+          const [typeRes, idxRes, allHospitals, allProductsList, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes, teamRes] = await Promise.all([
+            supabaseClient.from('IndexType').select('*'),
+            supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
+            fetchAllRecords('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
+            fetchAllRecords('Products', q => q.order('Product', { ascending: true })),
+            fetchAllRecords('Rep_Users'), 
+            supabaseClient.from('Territory').select('*'),
+            supabaseClient.from('Rating_Matrix').select('*'),
+            supabaseClient.from('Target').select('*'),
+            fetchAllRecords('Products_Team'),
+            supabaseClient.from('System_Settings').select('*'),
+            supabaseClient.from('Team').select('*')
+          ]);
+          
+          window.DocManagerCache.indexTypes = typeRes.data || [];
+          window.DocManagerCache.indexes = idxRes.data || [];
+          window.DocManagerCache.hospitals = allHospitals || []; 
+          window.DocManagerCache.products = allProductsList || [];
+          window.DocManagerCache.users = userRes || []; 
+          window.DocManagerCache.territories = terrRes.data || [];
+          window.DocManagerCache.matrixData = matrixRes.data || [];
+          window.DocManagerCache.targetData = targetRes.data || [];
+          window.DocManagerCache.teamProdLinks = teamProdRes || [];
+          window.DocManagerCache.sysSettings = sysSetRes.data || [];
+          window.DocManagerCache.teamList = teamRes.data || [];
+          window.DocManagerCache.indexLoaded = true;
+      }
+
+      globalIndexTypes = window.DocManagerCache.indexTypes;
+      globalIndexes = window.DocManagerCache.indexes;
+      globalHospitals = window.DocManagerCache.hospitals; 
+      globalProducts = window.DocManagerCache.products;
+      globalUsers = window.DocManagerCache.users; 
+      globalTerritories = window.DocManagerCache.territories;
+      globalMatrixData = window.DocManagerCache.matrixData;
+      globalTargetData = window.DocManagerCache.targetData;
+      const sysSettings = window.DocManagerCache.sysSettings;
+      const globalTeamList = window.DocManagerCache.teamList;
+      const teamProdLinks = window.DocManagerCache.teamProdLinks;
+
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
-
       if (ratingSetting) {
           let startStr = ratingSetting.Start;
           let endStr = ratingSetting.End;
-          
           if (!startStr && !endStr) {
               globalRatingIsLocked = false; 
           } else {
               const offset = new Date().getTimezoneOffset() * 60000;
               const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
-              
               let isWithinRange = true;
               if (startStr && localISOTime < startStr) isWithinRange = false;
               if (endStr && localISOTime > endStr) isWithinRange = false;
-              
               globalRatingIsLocked = !isWithinRange;
           }
       } else {
@@ -587,24 +636,16 @@
           let matchedTerr = globalTerritories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
 
           if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
-              if (matchedTeam) {
-                  allowedTeamIds.push(String(matchedTeam.Team_ID));
-              } else if (rawScope) {
-                  allowedTeamIds.push(rawScope);
-              }
+              if (matchedTeam) { allowedTeamIds.push(String(matchedTeam.Team_ID)); } 
+              else if (rawScope) { allowedTeamIds.push(rawScope); }
           } else if (globalCurrentUserRole === 'BU Head') {
               const buTeams = globalTeamList.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
               buTeams.forEach(t => allowedTeamIds.push(String(t.Team_ID)));
           } else { 
-              if (matchedTerr && matchedTerr.Team_ID) {
-                  allowedTeamIds.push(String(matchedTerr.Team_ID));
-              } else if (rawScope) {
-                  allowedTeamIds.push(rawScope);
-              }
+              if (matchedTerr && matchedTerr.Team_ID) { allowedTeamIds.push(String(matchedTerr.Team_ID)); } 
+              else if (rawScope) { allowedTeamIds.push(rawScope); }
           }
       }
-
-      let teamProdLinks = teamProdRes || [];
 
       if (isGlobalViewer) {
           globalTeamProducts = globalProducts;
@@ -612,19 +653,15 @@
           let filteredProducts = globalProducts.filter(p => {
               let pTeam = String(p.Team_ID || p.team_id || '');
               let pId = String(p.Product_ID || p.product_id || p.id || '');
-              
               let matchLink = teamProdLinks.some(tp => {
                   let tpTeam = String(tp.Team_ID || tp.team_id || '');
                   let tpProd = String(tp.Product_ID || tp.product_id || '');
                   let tpStatus = String(tp.Status || 'Active').toLowerCase();
                   return allowedTeamIds.includes(tpTeam) && tpProd === pId && tpStatus === 'active';
               });
-              
               let matchTeam = allowedTeamIds.includes(pTeam);
-              
               return matchLink || matchTeam;
           });
-          
           globalTeamProducts = filteredProducts.length > 0 ? filteredProducts : globalProducts;
       }
 
@@ -683,97 +720,117 @@
     return items.map(i => i.Value);
   }
 
-  async function loadDoctors() {
+  // 🌟 โหลดรายชื่อหมอ (ใช้ Cache)
+  async function loadDoctors(forceReload = false) {
     const tbody = document.getElementById('doctorTableBody');
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
-    
-    try {
-      let crmUser = null;
-      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    window.DocManagerCache = window.DocManagerCache || {};
 
-      const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-      const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
-      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+    if (forceReload || !window.DocManagerCache.isLoaded) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+        try {
+          let crmUser = null;
+          try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-      // 🌟 ใช้ fetchAllRecords สำหรับตารางหลักที่อาจมีเกิน 1000 รายการ
-      const [allDoctors, assignments, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
-        fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
-        fetchAllRecords('Assignment', q => q.eq('Type', 'Doctor')),
-        supabaseClient.from('Territory').select('*'),
-        supabaseClient.from('Team').select('*'),
-        supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending'),
-        supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending')
-      ]);
+          const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
+          const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
+          const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
+          const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      let territories = terrRes.data || [];
-      let teams = teamRes.data || [];
+          const [allDoctors, assignments, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+            fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
+            fetchAllRecords('Assignment', q => q.eq('Type', 'Doctor')),
+            supabaseClient.from('Territory').select('*'),
+            supabaseClient.from('Team').select('*'),
+            supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending'),
+            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending')
+          ]);
 
-      let allowedDocIds = [];
+          let territories = terrRes.data || [];
+          let teams = teamRes.data || [];
+          let allowedDocIds = [];
 
-      if (userRole === 'Sales' || userRole === 'Rep') {
-        let myTerritoryId = userTerritory;
-        const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
-        if (terrObj) myTerritoryId = terrObj.Territory_ID;
+          if (userRole === 'Sales' || userRole === 'Rep') {
+            let myTerritoryId = userTerritory;
+            const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
+            if (terrObj) myTerritoryId = terrObj.Territory_ID;
+            allowedDocIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
+          }
+          else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+            const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
+            allowedDocIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+          }
+          else if (userRole === 'BU Head' && userBu) {
+            const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
+            const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
+            allowedDocIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+          }
 
-        allowedDocIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
-      }
-      else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-        const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
-        allowedDocIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
-      }
-      else if (userRole === 'BU Head' && userBu) {
-        const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
-        const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
-        allowedDocIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
-      }
+          let visibleDoctors = allDoctors;
+          if (userRole !== 'Admin' && allowedDocIds.length > 0) {
+            visibleDoctors = allDoctors.filter(d => allowedDocIds.includes(d.Doc_ID));
+          }
 
-      let visibleDoctors = allDoctors;
-      if (userRole !== 'Admin' && allowedDocIds.length > 0) {
-        visibleDoctors = allDoctors.filter(d => allowedDocIds.includes(d.Doc_ID));
-      }
+          const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
 
-      const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
+          let list = visibleDoctors.map(d => {
+            const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
+            return {
+              id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
+              specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
+              workplacesJson: d.Workplaces_JSON, privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, 
+              status: d.Status, 
+              isPendingDcr: false,
+              hasPendingEdit: pendingEditIds.includes(d.Doc_ID)
+            };
+          });
 
-      let list = visibleDoctors.map(d => {
-        const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
-        return {
-          id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
-          specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
-          workplacesJson: d.Workplaces_JSON, privacy: d.Privacy_Policy, tos: d.Terms_of_Service, email: d.Email, mobile: d.Mobile, 
-          status: d.Status, 
-          isPendingDcr: false,
-          hasPendingEdit: pendingEditIds.includes(d.Doc_ID)
-        };
-      });
-
-      const pendingAddDcrs = pendingAddRes.data || [];
-      if (pendingAddDcrs.length > 0) {
-        pendingAddDcrs.forEach(d => {
-          try {
-            const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
-            const h = globalHospitals.find(x => x.Hospital_ID === req.Hospital_ID);
-            list.unshift({
-              id: d.DCR_ID,
-              title: req.Title || '',
-              nameEn: req.Doc_Name || 'ไม่ระบุชื่อ',
-              nameTh: req.Doc_Name_TH || '-',
-              specialty: req.Specialty || '-',
-              type: req.Type || '-', 
-              hospitalName: h ? (h.Known_As || h.Hospital) : '-',
-              status: 'Pending DCR',
-              isPendingDcr: true,
-              hasPendingEdit: false
+          const pendingAddDcrs = pendingAddRes.data || [];
+          if (pendingAddDcrs.length > 0) {
+            pendingAddDcrs.forEach(d => {
+              try {
+                const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+                const h = globalHospitals.find(x => x.Hospital_ID === req.Hospital_ID);
+                list.unshift({
+                  id: d.DCR_ID, title: req.Title || '', nameEn: req.Doc_Name || 'ไม่ระบุชื่อ', nameTh: req.Doc_Name_TH || '-',
+                  specialty: req.Specialty || '-', type: req.Type || '-', hospitalName: h ? (h.Known_As || h.Hospital) : '-',
+                  status: 'Pending DCR', isPendingDcr: true, hasPendingEdit: false
+                });
+              } catch(e) {}
             });
-          } catch(e) {}
-        });
-      }
+          }
 
-      globalDoctors = list;
-      filterDoctors(); 
-    } catch (err) { 
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
+          window.DocManagerCache.doctors = list;
+          window.DocManagerCache.isLoaded = true;
+        } catch (err) { 
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
+          return;
+        }
     }
+
+    globalDoctors = window.DocManagerCache.doctors;
+    
+    // 🌟 ดึงค่า Filter เดิมกลับมาแสดงในหน้าจอ UI
+    if (window.DocManagerCache.filters) {
+        const f = window.DocManagerCache.filters;
+        const nameEl = document.getElementById('filterDocName');
+        const specEl = document.getElementById('filterDocSpecialty');
+        const typeEl = document.getElementById('filterDocType'); 
+        const hospEl = document.getElementById('filterDocWorkplace');
+        const rowsEl = document.getElementById('doctorRowsPerPage');
+
+        if (nameEl) nameEl.value = f.name || '';
+        if (specEl) specEl.value = f.spec || '';
+        if (typeEl) typeEl.value = f.type || '';
+        if (hospEl) hospEl.value = f.hosp || '';
+        if (rowsEl) rowsEl.value = f.rows || 20;
+
+        currentPage = f.page || 1;
+        rowsPerPage = f.rows || 20;
+        currentDocSortCol = f.sortCol || 'nameEn';
+        currentDocSortAsc = f.sortAsc !== undefined ? f.sortAsc : true;
+    }
+
+    filterDoctors(false); // กรองข้อมูลโดยไม่ต้องรีเซ็ตหน้า
   }
 
   function sortDoctors(col) {
@@ -795,10 +852,11 @@
       }
     });
 
-    filterDoctors(); 
+    filterDoctors(false); 
   }
 
-  function filterDoctors() {
+  // 🌟 บันทึกสถานะ Filter ลงใน Cache
+  function filterDoctors(resetPage = true) {
     const nameEl = document.getElementById('filterDocName');
     const specEl = document.getElementById('filterDocSpecialty');
     const typeEl = document.getElementById('filterDocType'); 
@@ -808,6 +866,19 @@
     const specTerm = specEl ? specEl.value : "";
     const typeTerm = typeEl ? typeEl.value : "";
     const hospTerm = hospEl ? hospEl.value.toLowerCase().trim() : "";
+
+    if (resetPage) currentPage = 1; 
+
+    window.DocManagerCache.filters = {
+        name: nameTerm,
+        spec: specTerm,
+        type: typeTerm,
+        hosp: hospTerm,
+        page: currentPage,
+        rows: rowsPerPage,
+        sortCol: currentDocSortCol,
+        sortAsc: currentDocSortAsc
+    };
 
     const filtered = globalDoctors.filter(d => {
       const nameSearchStr = `${d.nameEn || ''} ${d.nameTh || ''}`.toLowerCase();
@@ -824,20 +895,15 @@
       let valA = '', valB = '';
 
       if (currentDocSortCol === 'nameEn') {
-        valA = (a.nameEn || '').toLowerCase();
-        valB = (b.nameEn || '').toLowerCase();
+        valA = (a.nameEn || '').toLowerCase(); valB = (b.nameEn || '').toLowerCase();
       } else if (currentDocSortCol === 'nameTh') {
-        valA = (a.nameTh || '').toLowerCase();
-        valB = (b.nameTh || '').toLowerCase();
+        valA = (a.nameTh || '').toLowerCase(); valB = (b.nameTh || '').toLowerCase();
       } else if (currentDocSortCol === 'specialty') {
-        valA = (a.specialty || '').toLowerCase();
-        valB = (b.specialty || '').toLowerCase();
+        valA = (a.specialty || '').toLowerCase(); valB = (b.specialty || '').toLowerCase();
       } else if (currentDocSortCol === 'hospital') {
-        valA = (a.hospitalName || '').toLowerCase();
-        valB = (b.hospitalName || '').toLowerCase();
+        valA = (a.hospitalName || '').toLowerCase(); valB = (b.hospitalName || '').toLowerCase();
       } else if (currentDocSortCol === 'status') {
-        valA = (a.status || '').toLowerCase();
-        valB = (b.status || '').toLowerCase();
+        valA = (a.status || '').toLowerCase(); valB = (b.status || '').toLowerCase();
       }
 
       if (valA < valB) return currentDocSortAsc ? -1 : 1;
@@ -846,7 +912,6 @@
     });
 
     globalFilteredDoctors = filtered;
-    currentPage = 1; 
     renderDoctorTable(); 
   }
 
@@ -854,6 +919,8 @@
     const selectEl = document.getElementById('doctorRowsPerPage');
     rowsPerPage = parseInt(selectEl.value);
     currentPage = 1;
+    window.DocManagerCache.filters.rows = rowsPerPage;
+    window.DocManagerCache.filters.page = 1;
     renderDoctorTable();
   }
 
@@ -861,6 +928,7 @@
     const totalPages = Math.ceil(globalFilteredDoctors.length / rowsPerPage);
     if (page < 1 || page > totalPages) return;
     currentPage = page;
+    window.DocManagerCache.filters.page = page;
     renderDoctorTable();
   }
 
@@ -1404,7 +1472,7 @@
       
       alert("✅ DCR submitted successfully. Waiting for Admin approval.");
       switchDoctorView('doctorListView'); 
-      await loadDoctors(); 
+      await loadDoctors(true); 
 
     } catch (err) { alert("❌ Error: " + err.message); } 
     finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
@@ -1452,7 +1520,7 @@
       
       alert("✅ DCR submitted successfully. Waiting for Admin approval.");
       switchDoctorView('doctorListView'); 
-      await loadDoctors(); 
+      await loadDoctors(true); 
 
     } catch (err) { alert("❌ Error: " + err.message); } 
     finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
@@ -1517,7 +1585,6 @@
     const tr = document.createElement('tr');
 
     const isAdmin = (globalCurrentUserRole === 'Admin');
-    
     const canEdit = isAdmin || !globalRatingIsLocked;
     const disabledAttr = canEdit ? '' : 'disabled';
 
