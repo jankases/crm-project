@@ -318,7 +318,7 @@
           </div>
         </div>
 
-        <!-- 🌟 Tab: Target Call -->
+        <!-- Tab: Target Call -->
         <div class="tab-pane fade" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>Rating and Targeting</h6>
@@ -327,7 +327,6 @@
             </button>
           </div>
           
-          <!-- 🌟 แถบแจ้งเตือนเมื่อระบบ Target Call ปิดใช้งาน -->
           <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning" style="display: none; border-radius: 10px;">
             <i class="fa-solid fa-lock me-2"></i><strong>Locked:</strong> The Target Call evaluation period is currently closed.
           </div>
@@ -380,7 +379,6 @@
   var currentDocSortCol = 'nameEn';
   var currentDocSortAsc = true; 
 
-  // 🌟 ตัวแปรเก็บสิทธิ์และสถานะการล็อค
   var globalRatingIsLocked = false;
   var globalCurrentUserRole = '';
 
@@ -475,21 +473,20 @@
     window.scrollTo(0, 0); 
   }
 
+  // 🌟 ฟังก์ชันจัดการสิทธิ์การแสดงผลสินค้าใน Dropdown (แก้ให้จำกัดสิทธิ์ชัดเจนขึ้น)
   async function loadIndexDropdowns() {
     try {
       let crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-      globalCurrentUserRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-      const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
-      const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+      globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+      const userTeam = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || '').trim() : '';
 
-      // 🌟 ดึงตาราง System_Settings มาร่วมด้วย
       const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
         supabaseClient.from('Hospitals').select('*').eq('Status', 'Active').order('Hospital', { ascending: true }),
-        supabaseClient.from('Products').select('*'),
+        supabaseClient.from('Products').select('*').order('Product', { ascending: true }),
         supabaseClient.from('Rep_Users').select('*'), 
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
@@ -507,7 +504,6 @@
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
 
-      // 🌟 คำนวณสถานะระบบล็อค จาก System_Settings
       const sysSettings = sysSetRes.data || [];
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
 
@@ -518,7 +514,6 @@
           if (!startStr && !endStr) {
               globalRatingIsLocked = false; 
           } else {
-              // ใช้วิธีเปรียบเทียบ string "YYYY-MM-DD" ของ Local Time เพื่อแก้ปัญหา Timezone
               const offset = new Date().getTimezoneOffset() * 60000;
               const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
               
@@ -529,36 +524,31 @@
               globalRatingIsLocked = !isWithinRange;
           }
       } else {
-          globalRatingIsLocked = true; // ถ้ายงไม่มีการตั้งค่าเลย ล็อคไว้ก่อน
+          globalRatingIsLocked = true; 
       }
 
+      // 🌟 ตรรกะใหม่: ดึงสินค้าเฉพาะที่ผูกกับ Team ของ User อย่างเคร่งครัด
       let allProducts = globalProducts;
       let teamProdLinks = teamProdRes.data || [];
+      const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole);
 
-      if (crmUser && globalCurrentUserRole !== 'Admin') {
-        let filteredProducts = allProducts.filter(p => {
-          let pTeam = p.Team_ID || p.team_id || '';
-          let pBu = p.BU_ID || p.bu_id || '';
-          let pId = p.Product_ID || p.product_id || p.id || '';
-
-          let matchTeam = userTeam && (String(pTeam) === String(userTeam));
-          let matchBu = userBu && (String(pBu) === String(userBu));
-          let matchLink = teamProdLinks.some(tp => {
-             let tpTeam = tp.Team_ID || tp.team_id || '';
-             let tpProd = tp.Product_ID || tp.product_id || '';
-             return String(tpTeam) === String(userTeam) && String(tpProd) === String(pId);
-          });
-          return matchTeam || matchBu || matchLink;
-        });
-        
-        globalTeamProducts = filteredProducts.length > 0 ? filteredProducts : allProducts;
+      if (isGlobalViewer) {
+          globalTeamProducts = allProducts;
       } else {
-        globalTeamProducts = allProducts;
+          if (userTeam) {
+              const allowedProdIds = teamProdLinks
+                  .filter(pt => String(pt.Team_ID) === userTeam && pt.Status === 'Active')
+                  .map(pt => String(pt.Product_ID));
+              
+              globalTeamProducts = allProducts.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+          } else {
+              globalTeamProducts = [];
+          }
       }
 
       const getOptionsHtml = (typeName) => {
         const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
-        let html = '<option value="">- เลือก -</option>';
+        let html = '<option value="">- Select -</option>';
         if (typeObj) {
           const items = globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
           items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
@@ -572,12 +562,12 @@
       const specHtml = getOptionsHtml('Specialty');
       document.getElementById('docSpecialty').innerHTML = specHtml;
       document.getElementById('editDocSpecialty').innerHTML = specHtml;
-      document.getElementById('filterDocSpecialty').innerHTML = '<option value="">- All Specialties -</option>' + specHtml.replace('<option value="">- เลือก -</option>', '');
+      document.getElementById('filterDocSpecialty').innerHTML = '<option value="">- All Specialties -</option>' + specHtml.replace('<option value="">- Select -</option>', '');
       
       const typeHtml = getOptionsHtml('DoctorType');
       document.getElementById('docType').innerHTML = typeHtml;
       document.getElementById('editDocType').innerHTML = typeHtml;
-      document.getElementById('filterDocType').innerHTML = '<option value="">- All Types -</option>' + typeHtml.replace('<option value="">- เลือก -</option>', '');
+      document.getElementById('filterDocType').innerHTML = '<option value="">- All Types -</option>' + typeHtml.replace('<option value="">- Select -</option>', '');
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
@@ -949,7 +939,6 @@
     }
     document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
 
-    // 🌟 ควบคุมการแสดงผล UI ส่วน Target Call ตามสิทธิ์การล็อค
     const addProdBtn = document.getElementById('btnAddRatingProduct');
     const lockBanner = document.getElementById('ratingLockBanner');
     
@@ -1375,7 +1364,6 @@
     addRatingRowHTML('', '', '', '', '');
   }
 
-  // 🌟 อัปเดตฟังก์ชันเพื่อรองรับการตรวจสิทธิ์และสถานะการล็อค
   function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
@@ -1383,7 +1371,6 @@
     const isAdmin = (globalCurrentUserRole === 'Admin');
     const isMyProduct = !prodId || globalTeamProducts.some(p => String(p.Product_ID) === String(prodId));
     
-    // 🌟 เปิดให้แก้ได้ก็ต่อเมื่อ "เป็น Admin" หรือ ("ไม่ถูกล็อค" และ "เป็นสินค้าของตัวเอง")
     const canEdit = isAdmin || (!globalRatingIsLocked && isMyProduct);
     const disabledAttr = canEdit ? '' : 'disabled';
 
@@ -1395,7 +1382,6 @@
         });
     }
     
-    // ถ้าไม่ใช่สินค้าตัวเอง ระบบจะบังคับโชว์ชื่อสินค้าตัวเดิมให้เห็นเฉยๆ 
     if (prodId && !isMyProduct) {
         const existingProd = globalProducts.find(p => String(p.Product_ID) === String(prodId));
         if (existingProd) {
@@ -1419,7 +1405,6 @@
     if (canEdit) {
         actionHtml = `<button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk"></i> Save</button>`;
     } else {
-        // 🌟 เปลี่ยนปุ่ม Save เป็นป้าย Locked
         actionHtml = `<span class="badge bg-secondary rounded-pill px-3 py-2"><i class="fa-solid fa-lock me-1"></i> Locked</span>`;
     }
 
