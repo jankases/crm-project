@@ -35,16 +35,9 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาหลัก (Focus: Territory, Doctor, Hospital, Date Range) -->
+    <!-- 🌟 ส่วนค้นหาหลัก (Focus: Doctor, Hospital, Date Range, Status) -->
     <div class="row mb-3 g-2 align-items-end">
       
-      <div class="col-sm-6 col-md-2 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
-        <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
-          <option value="">- All Territories -</option>
-        </select>
-      </div>
-
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -56,7 +49,7 @@
         </div>
       </div>
       
-      <div class="col-sm-12 col-md-4 col-lg-3">
+      <div class="col-sm-12 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -77,15 +70,24 @@
         </div>
       </div>
 
+      <div class="col-sm-6 col-md-2 col-lg-2">
+        <label class="form-label fw-bold text-secondary small mb-1">Status</label>
+        <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
+          <option value="">- All -</option>
+          <option value="Pending">Pending</option>
+          <option value="Submitted">Submitted</option>
+        </select>
+      </div>
+
       <!-- ปุ่ม Toggle กางตัวกรองเพิ่มเติม -->
-      <div class="col-sm-12 col-md-12 col-lg-1">
+      <div class="col-sm-6 col-md-1 col-lg-1">
         <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="ตัวกรองเพิ่มเติม">
           <i class="fa-solid fa-sliders"></i>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
+    <!-- 🌟 ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) ย้าย User, Territory, Product มาที่นี่ -->
     <div class="collapse mb-4" id="advancedFilters">
       <div class="card card-body bg-light border-0 shadow-sm" style="border-radius: 15px;">
         <div class="row g-3">
@@ -98,18 +100,16 @@
           </div>
 
           <div class="col-sm-6 col-md-4">
+            <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
+            <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
+              <option value="">- All Territories -</option>
+            </select>
+          </div>
+
+          <div class="col-sm-6 col-md-4">
             <label class="form-label fw-bold text-secondary small mb-1">Product</label>
             <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
               <option value="">- All Products -</option>
-            </select>
-          </div>
-          
-          <div class="col-sm-6 col-md-4">
-            <label class="form-label fw-bold text-secondary small mb-1">Status</label>
-            <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
-              <option value="">- All -</option>
-              <option value="Pending">Pending</option>
-              <option value="Submitted">Submitted</option>
             </select>
           </div>
 
