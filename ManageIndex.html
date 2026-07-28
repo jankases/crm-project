@@ -15,12 +15,15 @@
     <h4 class="text-primary fw-bold mb-0"><i class="fa-solid fa-list-ul me-2"></i>System Settings</h4>
   </div>
 
-  <!-- ================= ส่วนที่ 1: เปิด/ปิดระบบ Target Call ================= -->
+  <!-- ================= 🌟 ส่วนที่เพิ่มใหม่: เปิด/ปิดระบบ Target Call ================= -->
   <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; border-left: 5px solid #fd7e14 !important;">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-      <div class="mb-3 mb-md-0 pe-md-3">
-        <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-power-off me-2 text-warning"></i>Target Call Rating System</h5>
-        <p class="text-muted small mb-0">Enable or disable the Target Call Rating feature for Sales. (Date ranges take precedence if set)</p>
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+      <div class="mb-3 mb-lg-0 pe-lg-3">
+        <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-bullseye me-2 text-warning"></i>Target Call (Rating) Access Control</h5>
+        <p class="text-muted small mb-0">Control whether Sales Reps can edit the "Target Call" tab in Doctor Profiles.<br>
+          <span class="text-secondary">- Set <b>Start/End Dates</b> for automatic access during a specific period.</span><br>
+          <span class="text-secondary">- Or use the <b>Toggle Switch</b> for manual control.</span>
+        </p>
       </div>
       
       <div class="d-flex align-items-center gap-3 bg-light p-3 rounded-4 border flex-wrap flex-md-nowrap">
@@ -38,7 +41,7 @@
         </div>
 
         <!-- 🌟 ปุ่มเปิด/ปิด แบบ Manual (ปรับความกว้างแล้ว) -->
-        <div class="text-center" style="min-width: 160px;">
+        <div class="text-center" style="min-width: 180px;">
           <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
           <label class="switch">
             <input type="checkbox" id="ratingToggleSwitch" onchange="toggleRatingSystem()">
@@ -207,7 +210,7 @@
         checkCurrentRatingStatus(ratingConfig.Start, ratingConfig.End);
       } else {
         switchEl.checked = false;
-        document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger">Disabled (Locked)</span>';
+        document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
       }
 
     } catch (err) {
@@ -221,7 +224,7 @@
     
     if (!startStr && !endStr) {
         switchEl.checked = true; 
-        labelEl.innerHTML = '<span class="text-success">Enabled (Manual)</span>';
+        labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (Manual)</span>';
         return;
     }
 
@@ -244,10 +247,10 @@
 
     if (isWithinRange) {
         switchEl.checked = true;
-        labelEl.innerHTML = '<span class="text-success">Enabled (In Period)</span>';
+        labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (In Period)</span>';
     } else {
         switchEl.checked = false;
-        labelEl.innerHTML = '<span class="text-danger">Disabled (Out of Period)</span>';
+        labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Out of Period)</span>';
     }
   }
 
@@ -258,11 +261,11 @@
     const endEl = document.getElementById('ratingEndDate');
     
     if (switchEl.checked) {
-        labelEl.innerHTML = '<span class="text-success">Enabled</span>';
+        labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (Manual)</span>';
         startEl.value = '';
         endEl.value = '';
     } else {
-        labelEl.innerHTML = '<span class="text-danger">Disabled</span>';
+        labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Manual)</span>';
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         startEl.value = yesterday.toISOString().split('T')[0];
@@ -277,11 +280,16 @@
 
     const startVal = document.getElementById('ratingStartDate').value;
     const endVal = document.getElementById('ratingEndDate').value;
+    
+    let crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
     const payload = {
         Type: 'Rating',
         Start: startVal || null,
-        End: endVal || null
+        End: endVal || null,
+        Whoupdated: crmUser ? crmUser.Email : "Unknown",
+        Whenupdated: new Date().toISOString()
     };
 
     try {
