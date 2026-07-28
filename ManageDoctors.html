@@ -38,44 +38,54 @@
   <div id="doctorListView">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-user-doctor me-2"></i>จัดการข้อมูลแพทย์ (Doctors)</h3>
-        <p class="text-muted mb-0">ระบบฐานข้อมูลแพทย์และสถานที่ทำงาน (Workplaces)</p>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-user-doctor me-2"></i>Doctors Management</h3>
+        <p class="text-muted mb-0">Database of Doctors and Workplaces</p>
       </div>
       <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddDoctorView()">
-        <i class="fa-solid fa-plus me-2"></i>เพิ่มแพทย์ใหม่ (ส่ง DCR)
+        <i class="fa-solid fa-plus me-2"></i>Add New Doctor
       </button>
     </div>
 
-    <!-- ส่วนค้นหา -->
-    <div class="row mb-4 doctor-filter-group g-3">
-      <div class="col-sm-12 col-md-5 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">ค้นหาชื่อแพทย์ (EN / TH)</label>
+    <!-- 🌟 ส่วนค้นหาทั้งหมด (โชว์เต็มทั้งหมด ไม่ซ่อน) -->
+    <div class="row mb-4 doctor-filter-group g-3 align-items-end">
+      
+      <div class="col-sm-6 col-md-6 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="พิมพ์ชื่อ EN หรือ TH..." onkeyup="filterDoctors()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="พูดเพื่อค้นหาชื่อหมอ">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="Search Doctor..." onkeyup="filterDoctors()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
         </div>
       </div>
 
-      <div class="col-sm-6 col-md-3 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">ความเชี่ยวชาญ</label>
-        <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()">
-          <option value="">- ทุกความเชี่ยวชาญ -</option>
-        </select>
-      </div>
-
-      <div class="col-sm-6 col-md-4 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">โรงพยาบาลหลัก (Primary)</label>
+      <div class="col-sm-6 col-md-6 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">Primary Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocWorkplace" placeholder="พิมพ์ชื่อ รพ. หรือ ชื่อไทย..." onkeyup="filterDoctors()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocWorkplace" placeholder="Search Hospital..." onkeyup="filterDoctors()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
           </button>
         </div>
       </div>
+
+      <div class="col-sm-6 col-md-6 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">Specialty</label>
+        <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()">
+          <option value="">- All Specialties -</option>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-6 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">Doctor Type</label>
+        <select class="form-select shadow-sm" id="filterDocType" onchange="filterDoctors()">
+          <option value="">- All Types -</option>
+          <!-- จะถูกใส่ค่าจาก Database ผ่านฟังก์ชัน loadIndexDropdowns -->
+        </select>
+      </div>
+
     </div>
 
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
@@ -83,16 +93,16 @@
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
           <thead class="text-center">
             <tr>
-              <th>ชื่อแพทย์ (Name EN)</th>
-              <th>ชื่อแพทย์ (Name TH)</th>
-              <th>ความเชี่ยวชาญ</th>
-              <th>รพ. หลัก (Primary)</th>
-              <th>สถานะ</th>
-              <th>จัดการ</th>
+              <th>Doctor Name (EN)</th>
+              <th>Doctor Name (TH)</th>
+              <th>Specialty</th>
+              <th>Primary Hospital</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="doctorTableBody">
-            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -103,51 +113,51 @@
   <div id="doctorAddView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-primary fw-bold mb-0">🩺 ส่งคำขอเพิ่มข้อมูลแพทย์ใหม่ (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">🩺 Add New Doctor (DCR)</h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm doctor-form-group" style="border-radius: 15px;">
       <form id="addDoctorForm" onsubmit="handleAddDoctor(event)">
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i>ข้อมูลทั่วไป</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i>General Information</h5>
           <div class="row g-3">
-            <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">คำนำหน้า (Title)</label><select class="form-select bg-white" id="docTitle"></select></div>
-            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">ชื่อ (Name EN)</label><input type="text" class="form-control bg-white" id="docNameEn" placeholder="เช่น Somchai"></div>
-            <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">ชื่อ (Name TH)</label><input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี"></div>
+            <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">Title</label><select class="form-select bg-white" id="docTitle"></select></div>
+            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN)</label><input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai"></div>
+            <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">Name (TH)</label><input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี"></div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">ความเชี่ยวชาญ (Specialty)</label><select class="form-select bg-white" id="docSpecialty"></select></div>
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">ประเภท (Type)</label><select class="form-select bg-white" id="docType"></select></div>
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Specialty</label><select class="form-select bg-white" id="docSpecialty"></select></div>
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Type</label><select class="form-select bg-white" id="docType"></select></div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace)</h5>
+            <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
             <button type="button" class="btn btn-sm btn-outline-warning fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
-              <i class="fa-solid fa-plus me-1"></i> เพิ่ม รพ.
+              <i class="fa-solid fa-plus me-1"></i> Add Hospital
             </button>
           </div>
           <div id="workplaceContainerAdd"></div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i>การติดต่อ และการยินยอม</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i>Contact & Consent</h5>
           <div class="row g-3">
             <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Privacy Policy</label><select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Terms of Service</label><select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> อีเมล</label><input type="email" class="form-control bg-white" id="docEmail"></div>
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> โทรศัพท์</label><input type="text" class="form-control bg-white" id="docMobile"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> Email</label><input type="email" class="form-control bg-white" id="docEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> Mobile</label><input type="text" class="form-control bg-white" id="docMobile"></div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">ส่งคำขอ DCR</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -157,9 +167,9 @@
   <div id="doctorEditView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-primary fw-bold mb-0">✏️ ส่งคำขอแก้ไขข้อมูลแพทย์ (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ Edit Doctor (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -168,44 +178,44 @@
         <input type="hidden" id="editDocId">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">ข้อมูลทั่วไป (Information)</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">General Information</h5>
           <div class="row g-3">
-            <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">คำนำหน้า (Title)</label><select class="form-select bg-white" id="editDocTitle"></select></div>
-            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">ชื่อ (Name EN)</label><input type="text" class="form-control bg-white" id="editDocNameEn"></div>
-            <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">ชื่อ (Name TH)</label><input type="text" class="form-control bg-white" id="editDocNameTh"></div>
+            <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">Title</label><select class="form-select bg-white" id="editDocTitle"></select></div>
+            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN)</label><input type="text" class="form-control bg-white" id="editDocNameEn"></div>
+            <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">Name (TH)</label><input type="text" class="form-control bg-white" id="editDocNameTh"></div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-6 col-md-4"><label class="form-label fw-bold text-dark">ความเชี่ยวชาญ (Specialty)</label><select class="form-select bg-white" id="editDocSpecialty"></select></div>
-            <div class="col-sm-6 col-md-4"><label class="form-label fw-bold text-dark">ประเภท (Type)</label><select class="form-select bg-white" id="editDocType"></select></div>
-            <div class="col-sm-12 col-md-4"><label class="form-label fw-bold text-danger">สถานะ (Status)</label><select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select></div>
+            <div class="col-sm-6 col-md-4"><label class="form-label fw-bold text-dark">Specialty</label><select class="form-select bg-white" id="editDocSpecialty"></select></div>
+            <div class="col-sm-6 col-md-4"><label class="form-label fw-bold text-dark">Type</label><select class="form-select bg-white" id="editDocType"></select></div>
+            <div class="col-sm-12 col-md-4"><label class="form-label fw-bold text-danger">Status</label><select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select></div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace)</h5>
+            <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
             <button type="button" class="btn btn-sm btn-outline-warning fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
-              <i class="fa-solid fa-plus me-1"></i> เพิ่ม รพ.
+              <i class="fa-solid fa-plus me-1"></i> Add Hospital
             </button>
           </div>
           <div id="workplaceContainerEdit"></div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">การติดต่อ และการยินยอม</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">Contact & Consent</h5>
           <div class="row g-3">
             <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Privacy Policy</label><select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
             <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Terms of Service</label><select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> อีเมล</label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> โทรศัพท์</label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> Email</label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> Mobile</label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">ส่งคำขอ DCR</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -215,22 +225,22 @@
   <div id="doctorProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
       <button class="btn btn-warning text-dark fw-bold shadow-sm rounded-pill px-3" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
-        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไขข้อมูลแพทย์ (DCR)
+        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Doctor (DCR)
       </button>
-      <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ ข้อมูลแพทย์</h4>
+      <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-2"></div>
     </div>
     
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
         <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> ข้อมูลทั่วไป</button>
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> General Info</button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> ประวัติการเข้าพบ</button>
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> Visit History</button>
         </li>
         <li class="nav-item">
           <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> Target Call</button>
@@ -240,45 +250,44 @@
       <div class="tab-content">
         <div class="tab-pane fade show active" id="tab-doc-info">
           <div class="row mb-3 g-3">
-            <div class="col-md-4"><label class="text-muted small fw-bold">Specialty (ความเชี่ยวชาญ)</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold">Type (ประเภท)</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold">Status (สถานะ)</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold">Specialty</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold">Type</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold">Status</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
           </div>
           <div class="row mb-3 g-3">
-            <div class="col-md-6"><label class="text-muted small fw-bold">Email (อีเมล)</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
-            <div class="col-md-6"><label class="text-muted small fw-bold">Mobile (เบอร์โทรศัพท์)</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold">Email</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold">Mobile</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
           </div>
           <div class="border rounded-4 p-4 bg-light mt-4">
-            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i>สถานที่ทำงาน (Workplace History)</label>
+            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i>Workplace History</label>
             <div id="viewWorkplaceContainer"></div>
           </div>
         </div>
 
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเข้าพบ (Visit History)</h6>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>Visit History</h6>
             
             <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToQuickAddCall()">
-              <i class="fa-solid fa-plus me-1"></i> บันทึกเยี่ยม (Add Call)
+              <i class="fa-solid fa-plus me-1"></i> Add Call
             </button>
             
           </div>
 
-          <!-- 🌟 เอาคอลัมน์ Action ในตารางออกแล้ว -->
           <div class="table-responsive">
             <table class="table table-hover align-middle" style="font-size: 0.9rem;">
               <thead class="table-light text-center">
                 <tr>
-                  <th>วันที่ (Date)</th>
-                  <th>ผู้แทน (Sales Rep)</th>
-                  <th>เขตพื้นที่ (Territory)</th>
-                  <th>สินค้า (Product)</th>
-                  <th>วัตถุประสงค์ (Purpose)</th>
-                  <th>สถานะ (Status)</th>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>Territory</th>
+                  <th>Products</th>
+                  <th>Purpose</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody id="viewVisitHistoryBody">
-                <tr><td colspan="6" class="text-center py-4 text-muted">กำลังโหลดประวัติ...</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
               </tbody>
             </table>
           </div>
@@ -286,9 +295,9 @@
 
         <div class="tab-pane fade" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>ประเมินศักยภาพและเป้าหมายการเข้าพบ</h6>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>Rating and Targeting</h6>
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addNewRatingRow()">
-              <i class="fa-solid fa-plus me-1"></i> เพิ่มสินค้า
+              <i class="fa-solid fa-plus me-1"></i> Add Product
             </button>
           </div>
           
@@ -305,7 +314,7 @@
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
-                <tr class="no-data"><td colspan="6" class="text-muted py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
               </tbody>
             </table>
           </div>
@@ -330,9 +339,8 @@
   var globalMatrixData = [];
   var globalTargetData = [];
   var globalTeamProducts = []; 
-  var globalPendingUnlockVisits = []; // 🌟 เก็บ ID รายการที่รออนุมัติปลดล็อค
+  var globalPendingUnlockVisits = []; 
 
-  // 🌟 เปิดให้ภายนอกสั่งเปิดหน้าโปรไฟล์ พร้อมระบุ Tab เป้าหมายได้
   window.openViewDoctorProfile = openViewDoctorProfile;
 
   // ===================== 🎙️ ระบบ Voice to Text =====================
@@ -493,10 +501,12 @@
       const specHtml = getOptionsHtml('Specialty');
       document.getElementById('docSpecialty').innerHTML = specHtml;
       document.getElementById('editDocSpecialty').innerHTML = specHtml;
-      document.getElementById('filterDocSpecialty').innerHTML = '<option value="">- ทุกความเชี่ยวชาญ -</option>' + specHtml.replace('<option value="">- เลือก -</option>', '');
+      document.getElementById('filterDocSpecialty').innerHTML = '<option value="">- All Specialties -</option>' + specHtml.replace('<option value="">- เลือก -</option>', '');
       
-      document.getElementById('docType').innerHTML = getOptionsHtml('DoctorType');
-      document.getElementById('editDocType').innerHTML = getOptionsHtml('DoctorType');
+      const typeHtml = getOptionsHtml('DoctorType');
+      document.getElementById('docType').innerHTML = typeHtml;
+      document.getElementById('editDocType').innerHTML = typeHtml;
+      document.getElementById('filterDocType').innerHTML = '<option value="">- All Types -</option>' + typeHtml.replace('<option value="">- เลือก -</option>', '');
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
@@ -532,7 +542,7 @@
 
   async function loadDoctors() {
     const tbody = document.getElementById('doctorTableBody');
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     
     try {
       let crmUser = null;
@@ -609,6 +619,7 @@
               nameEn: req.Doc_Name || 'ไม่ระบุชื่อ',
               nameTh: req.Doc_Name_TH || '-',
               specialty: req.Specialty || '-',
+              type: req.Type || '-', 
               hospitalName: h ? (h.Known_As || h.Hospital) : '-',
               status: 'Pending DCR',
               isPendingDcr: true,
@@ -628,10 +639,12 @@
   function filterDoctors() {
     const nameEl = document.getElementById('filterDocName');
     const specEl = document.getElementById('filterDocSpecialty');
+    const typeEl = document.getElementById('filterDocType'); 
     const hospEl = document.getElementById('filterDocWorkplace');
     
     const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
     const specTerm = specEl ? specEl.value : "";
+    const typeTerm = typeEl ? typeEl.value : "";
     const hospTerm = hospEl ? hospEl.value.toLowerCase().trim() : "";
 
     const filtered = globalDoctors.filter(d => {
@@ -639,9 +652,10 @@
       const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
       
       const matchSpec = (specTerm === "") || (d.specialty === specTerm);
+      const matchType = (typeTerm === "") || (d.type === typeTerm);
       const matchHosp = (hospTerm === "") || (d.hospitalName && d.hospitalName.toLowerCase().includes(hospTerm));
 
-      return matchName && matchSpec && matchHosp;
+      return matchName && matchSpec && matchType && matchHosp;
     });
 
     renderDoctorTable(filtered); 
@@ -652,23 +666,23 @@
     tbody.innerHTML = '';
     
     if(!Array.isArray(data) || data.length === 0) {
-      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>ไม่พบข้อมูลแพทย์ที่ค้นหา</td></tr>';
+      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No matching records found.</td></tr>';
     }
     
     data.forEach(d => {
       let badge = 'bg-success';
       let statusText = d.status || 'Active';
-      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>`;
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
 
       if (d.isPendingDcr) {
         badge = 'bg-warning text-dark';
-        statusText = '⏳ รออนุมัติ (DCR)';
-        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> รอ Admin ตรวจสอบ</span>`;
+        statusText = '⏳ Pending (DCR)';
+        actionButton = `<span class="text-muted small"><i class="fa-solid fa-clock"></i> Waiting for Admin</span>`;
       } else if (d.status === 'Inactive') {
         badge = 'bg-danger';
       }
 
-      const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ รออนุมัติแก้ไข</span>` : '';
+      const pendingEditTag = d.hasPendingEdit ? `<span class="badge bg-warning text-dark ms-2" style="font-size:0.75rem;">⏳ Pending Edit</span>` : '';
       const nameEnShow = d.nameEn || '-';
       
       const nameCellLink = d.isPendingDcr ? 
@@ -830,7 +844,7 @@
 
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">กำลังโหลดประวัติ... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
       // 🌟 ดึง Visit_Products มาด้วย
@@ -847,7 +861,7 @@
       const globalVP = vpRes.data || [];
 
       if(!data || data.length === 0) {
-        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ยังไม่มีประวัติการเข้าพบ</td></tr>';
+        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No visit history found.</td></tr>';
       }
 
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
@@ -859,7 +873,7 @@
 
         if (isPendingUnlock) {
           badge = 'bg-secondary';
-          statusShow = '⏳ ขอแก้ไข (รออนุมัติ)';
+          statusShow = '⏳ Pending Unlock';
         }
 
         const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
@@ -904,7 +918,7 @@
         tbody.innerHTML += `
           <tr class="align-middle">
             <td class="text-center fw-bold">
-              <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}'); return false;" title="คลิกเพื่อแก้ไข/ดูรายการนี้">
+              <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}'); return false;" title="Edit/View">
                 ${dateStr}
               </a>
             </td>
@@ -917,7 +931,7 @@
         `;
       });
     } catch(err) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดประวัติได้: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load failed: ${err.message}</td></tr>`;
     }
   }
 
@@ -936,14 +950,14 @@
       if (typeof window.openAddVisitModal === 'function') {
         window.openAddVisitModal(currentTargetDocId); 
       } else {
-        alert("กรุณาสลับไปที่เมนู 'บันทึกเยี่ยม' ด้วยตัวเองเพื่อสร้างรายการครับ (ระบบได้จดจำชื่อหมอไว้ให้แล้ว)");
+        alert("Please switch to 'Visit Logs' menu manually.");
       }
     }, 600);
   }
 
   function goToEditCall(visitId) {
     if (!visitId || visitId === "undefined") {
-      return alert("❌ ไม่พบรหัสอ้างอิงของบันทึกเยี่ยมรายการนี้");
+      return alert("❌ Visit ID not found.");
     }
     sessionStorage.setItem('returnToDocId', currentTargetDocId);
 
@@ -959,7 +973,7 @@
       if (typeof window.openEditVisitModal === 'function') {
         window.openEditVisitModal(visitId, currentTargetDocId);
       } else {
-        alert("กรุณาสลับไปที่เมนู 'บันทึกเยี่ยม' ด้วยตัวเองเพื่อแก้ไขรายการนี้ครับ");
+        alert("Please switch to 'Visit Logs' menu manually.");
       }
     }, 600);
   }
@@ -968,16 +982,16 @@
     e.preventDefault(); 
     
     const workplaces = extractWorkplaces('workplaceContainerAdd');
-    if (workplaces.length === 0) return alert("❌ กรุณาเพิ่มสถานที่ทำงานอย่างน้อย 1 แห่ง"); 
-    if (!workplaces.some(w => w.isPrimary)) return alert("❌ กรุณาเลือก รพ. หลัก (Primary) อย่างน้อย 1 แห่ง"); 
+    if (workplaces.length === 0) return alert("❌ Please add at least 1 workplace."); 
+    if (!workplaces.some(w => w.isPrimary)) return alert("❌ Please select a Primary hospital."); 
     
     const hospIds = workplaces.map(w => w.hospitalId);
-    if (hospIds.length !== new Set(hospIds).size) return alert("❌ คุณเลือกโรงพยาบาลซ้ำกัน กรุณาตรวจสอบ"); 
+    if (hospIds.length !== new Set(hospIds).size) return alert("❌ Duplicate hospitals found. Please review."); 
     
     const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
 
     const btn = document.getElementById('submitDoctorBtn'); 
-    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...`;
 
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
@@ -1005,8 +1019,8 @@
     });
 
     if (isDuplicate) {
-      alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากพบชื่อแพทย์ "${payload.Doc_Name || payload.Doc_Name_TH}" ซ้ำอยู่ในระบบหรืออยู่ระหว่างรออนุมัติ DCR ครับ`);
-      btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; return; 
+      alert(`❌ Cannot save! Doctor "${payload.Doc_Name || payload.Doc_Name_TH}" already exists or is pending approval.`);
+      btn.disabled = false; btn.innerHTML = "Submit DCR"; return; 
     }
 
     try {
@@ -1014,28 +1028,28 @@
       const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
       if (error) throw error;
       
-      alert("✅ ส่งคำขอเพิ่มแพทย์ใหม่ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      alert("✅ DCR submitted successfully. Waiting for Admin approval.");
       switchDoctorView('doctorListView'); 
       await loadDoctors(); 
 
-    } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } 
-    finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
+    } catch (err) { alert("❌ Error: " + err.message); } 
+    finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
   }
 
   async function handleUpdateDoctor(e) {
     e.preventDefault(); 
 
     const workplaces = extractWorkplaces('workplaceContainerEdit');
-    if (workplaces.length === 0) return alert("❌ กรุณาเพิ่มสถานที่ทำงานอย่างน้อย 1 แห่ง"); 
-    if (!workplaces.some(w => w.isPrimary)) return alert("❌ กรุณาเลือก รพ. หลัก (Primary) อย่างน้อย 1 แห่ง"); 
+    if (workplaces.length === 0) return alert("❌ Please add at least 1 workplace."); 
+    if (!workplaces.some(w => w.isPrimary)) return alert("❌ Please select a Primary hospital."); 
     
     const hospIds = workplaces.map(w => w.hospitalId);
-    if (hospIds.length !== new Set(hospIds).size) return alert("❌ คุณเลือกโรงพยาบาลซ้ำกัน กรุณาตรวจสอบ"); 
+    if (hospIds.length !== new Set(hospIds).size) return alert("❌ Duplicate hospitals found. Please review."); 
     
     const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
 
     const btn = document.getElementById('updateDoctorBtn'); 
-    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังดำเนินการ...`;
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...`;
 
     const docId = document.getElementById('editDocId').value;
     let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -1062,12 +1076,12 @@
       const { error } = await supabaseClient.from('DCR').insert([dcrPayload]);
       if (error) throw error;
       
-      alert("✅ ส่งคำขอแก้ไขข้อมูลแพทย์ (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      alert("✅ DCR submitted successfully. Waiting for Admin approval.");
       switchDoctorView('doctorListView'); 
       await loadDoctors(); 
 
-    } catch (err) { alert("❌ เกิดข้อผิดพลาด: " + err.message); } 
-    finally { btn.disabled = false; btn.innerHTML = "ส่งคำขอ DCR"; }
+    } catch (err) { alert("❌ Error: " + err.message); } 
+    finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
   }
 
   // ===================== 🔴 ระบบ Target Call =====================
@@ -1076,7 +1090,7 @@
     const tbody = document.getElementById('ratingTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
         const { data, error } = await supabaseClient
@@ -1088,7 +1102,7 @@
         renderRatingTable(data); 
     } catch(err) {
         console.error("Error fetching ratings:", err);
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Error: ${err.message}</td></tr>`;
     }
   }
 
@@ -1097,7 +1111,7 @@
     tbody.innerHTML = '';
     
     if(!Array.isArray(ratings) || ratings.length === 0) {
-        tbody.innerHTML = '<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">ยังไม่มีข้อมูลการประเมิน กรุณากด "เพิ่มสินค้า"</td></tr>';
+        tbody.innerHTML = '<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">No data. Click "Add Product"</td></tr>';
         return;
     }
 
@@ -1128,7 +1142,7 @@
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
 
-    let prodOpts = '<option value="">- เลือกสินค้า -</option>';
+    let prodOpts = '<option value="">- Select -</option>';
     if (typeof globalTeamProducts !== 'undefined') {
         globalTeamProducts.forEach(p => {
             const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
@@ -1136,13 +1150,13 @@
         });
     }
 
-    let adoptOpts = '<option value="">- เลือก -</option>';
+    let adoptOpts = '<option value="">- Select -</option>';
     getIndexValues('Adoption').forEach(a => {
         const sel = a === adopt ? 'selected' : '';
         adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
     });
 
-    let potOpts = '<option value="">- เลือก -</option>';
+    let potOpts = '<option value="">- Select -</option>';
     getIndexValues('Potential').forEach(p => {
         const sel = p === pot ? 'selected' : '';
         potOpts += `<option value="${p}" ${sel}>${p}</option>`;
@@ -1164,7 +1178,7 @@
         </td>
         <td class="text-center">
             <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="saveTargetCallRow(this)">
-                <i class="fa-solid fa-floppy-disk"></i> บันทึก
+                <i class="fa-solid fa-floppy-disk"></i> Save
             </button>
         </td>
     `;
@@ -1211,7 +1225,7 @@
     const targetValue = tr.querySelector('.rating-target').value;
 
     if(!selectedProductId || !adoptVal || !potVal) {
-        alert("❌ กรุณาเลือก สินค้า, Adoption และ Potential ให้ครบถ้วน");
+        alert("❌ Missing fields: Product, Adoption or Potential.");
         return;
     }
 
@@ -1222,7 +1236,7 @@
     });
 
     if (duplicateCount > 1) {
-        alert("❌ ไม่สามารถบันทึกได้: สินค้านี้มีอยู่แล้วในรายการ");
+        alert("❌ Cannot save: This product already exists.");
         return; 
     }
     
@@ -1251,19 +1265,19 @@
         if (error) throw error;
 
         btn.classList.replace('btn-success', 'btn-outline-success');
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> สำเร็จ';
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
         
         setTimeout(() => {
             btn.classList.replace('btn-outline-success', 'btn-success');
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
             btn.disabled = false;
         }, 2000);
 
     } catch(err) {
         console.error("Save error:", err);
-        alert("❌ บันทึกไม่สำเร็จ: " + err.message);
+        alert("❌ Save failed: " + err.message);
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึก';
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
     }
   }
 </script>
