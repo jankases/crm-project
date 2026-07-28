@@ -92,7 +92,7 @@
 
     </div>
 
-    <!-- ตารางแสดงผล (sortable-th) -->
+    <!-- ตารางแสดงผล -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
@@ -269,26 +269,46 @@
           </div>
         </div>
 
+        <!-- 🌟 แถบประวัติการเข้าพบ (เพิ่มส่วน Filter และ Sort) -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>Visit History</h6>
-            
             <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToQuickAddCall()">
               <i class="fa-solid fa-plus me-1"></i> Add Call
             </button>
-            
+          </div>
+
+          <!-- ตัวกรองย่อยสำหรับประวัติของหมอคนนี้ -->
+          <div class="row g-2 mb-3 bg-light p-2 rounded-3 border">
+            <div class="col-md-5">
+              <label class="form-label text-secondary small fw-bold mb-1">Date Range</label>
+              <div class="input-group input-group-sm shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                <input type="date" class="form-control" id="filterProfileVisitStart" onchange="filterAndRenderDoctorVisits()" style="border-radius: 8px 0 0 8px;">
+                <span class="input-group-text bg-white border-start-0 border-end-0 text-muted">-</span>
+                <input type="date" class="form-control" id="filterProfileVisitEnd" onchange="filterAndRenderDoctorVisits()" style="border-radius: 0 8px 8px 0;">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-secondary small fw-bold mb-1">Product</label>
+              <select class="form-select form-select-sm shadow-sm" id="filterProfileVisitProduct" onchange="filterAndRenderDoctorVisits()" style="border-radius: 8px;">
+                <option value="">- All Products -</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                 <button class="btn btn-sm btn-outline-secondary w-100 fw-bold shadow-sm" onclick="clearProfileVisitFilters()" style="border-radius: 8px;">Clear Filters</button>
+            </div>
           </div>
 
           <div class="table-responsive">
             <table class="table table-hover align-middle" style="font-size: 0.9rem;">
               <thead class="table-light text-center">
                 <tr>
-                  <th>Date</th>
-                  <th>User</th>
-                  <th>Territory</th>
-                  <th>Products</th>
-                  <th>Purpose</th>
-                  <th>Status</th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('date')">Date <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('user')">User <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('territory')">Territory <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('products')">Products <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('purpose')">Purpose <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
                 </tr>
               </thead>
               <tbody id="viewVisitHistoryBody">
@@ -344,9 +364,14 @@
   var globalMatrixData = [];
   var globalTargetData = [];
   var globalTeamProducts = []; 
+  
+  // ตัวแปรสำหรับ Visit History ภายในหน้า Profile
   var globalPendingUnlockVisits = []; 
+  var globalCurrentDoctorVisits = [];
+  var globalCurrentDoctorVisitProducts = [];
+  var currentPVisitSortCol = 'date';
+  var currentPVisitSortAsc = false;
 
-  // 🌟 ตัวแปรเก็บสถานะการจัดเรียง
   var currentDocSortCol = 'nameEn';
   var currentDocSortAsc = true; 
 
@@ -645,7 +670,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันจัดการการคลิกเรียงลำดับหัวตาราง (Sorting)
   function sortDoctors(col) {
     if (currentDocSortCol === col) {
       currentDocSortAsc = !currentDocSortAsc; 
@@ -690,7 +714,6 @@
       return matchName && matchSpec && matchType && matchHosp;
     });
 
-    // 🌟 ระบบจัดเรียงข้อมูลก่อนนำไปโชว์ (Sorting Logic)
     filtered.sort((a, b) => {
       let valA = '', valB = '';
 
@@ -764,7 +787,7 @@
     const row = document.createElement('div');
     row.className = 'row align-items-center workplace-row';
 
-    let optionsHtml = '<option value="">- ค้นหาและเลือกโรงพยาบาล -</option>';
+    let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
     globalHospitals.forEach(h => {
       const selected = h.Hospital_ID === hospId ? 'selected' : '';
       const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
@@ -786,7 +809,7 @@
         </div>
       </div>
       <div class="col-sm-4 col-md-2 text-end">
-        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> ลบ</button>
+        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> Remove</button>
       </div>
     `;
     container.appendChild(row);
@@ -818,7 +841,7 @@
       
       const badgeContainer = document.getElementById('editDcrStatusBadge');
       if (badgeContainer) {
-        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>` : '';
+        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${data[0].Action})</span>` : '';
       }
     } catch (err) { console.error("Error check DCR:", err); }
   }
@@ -883,6 +906,11 @@
     }
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
 
+    // 🌟 เติมข้อมูลลง Dropdown ของ Filter สินค้าในหน้า Profile
+    let phtml = '<option value="">- All Products -</option>';
+    globalProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+    document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
+
     loadDoctorVisitHistory(id);
     await loadDoctorRatings(id);
 
@@ -898,6 +926,37 @@
     switchDoctorView('doctorProfileView');
   }
 
+  // 🌟 เคลียร์ Filter ของหน้าประวัติหมอ
+  function clearProfileVisitFilters() {
+    document.getElementById('filterProfileVisitStart').value = '';
+    document.getElementById('filterProfileVisitEnd').value = '';
+    document.getElementById('filterProfileVisitProduct').value = '';
+    filterAndRenderDoctorVisits();
+  }
+
+  // 🌟 จัดเรียงข้อมูลในหน้าประวัติหมอ
+  function sortDoctorVisits(col) {
+    if (currentPVisitSortCol === col) {
+      currentPVisitSortAsc = !currentPVisitSortAsc;
+    } else {
+      currentPVisitSortCol = col;
+      currentPVisitSortAsc = (col === 'date') ? false : true; // ถ้าเป็นวันที่ให้เริ่มที่ ใหม่ไปเก่า (false)
+    }
+    
+    ['date', 'user', 'territory', 'products', 'purpose', 'status'].forEach(c => {
+      const icon = document.getElementById('icon-sort-pvisit-' + c);
+      if (icon) {
+        if (c === currentPVisitSortCol) {
+          icon.className = currentPVisitSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+    
+    filterAndRenderDoctorVisits();
+  }
+
   async function loadDoctorVisitHistory(docId) {
     const tbody = document.getElementById('viewVisitHistoryBody');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
@@ -911,85 +970,154 @@
 
       if (visitRes.error) throw visitRes.error;
       
-      tbody.innerHTML = '';
-      const data = visitRes.data || [];
-      const globalVP = vpRes.data || [];
-
-      if(!data || data.length === 0) {
-        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No visit history found.</td></tr>';
-      }
-
+      // 🌟 เก็บข้อมูลดิบไว้ในตัวแปรสำหรับ Filter และ Sort
+      globalCurrentDoctorVisits = visitRes.data || [];
+      globalCurrentDoctorVisitProducts = vpRes.data || [];
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
 
-      data.forEach(v => {
-        const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
-        let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
-        let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+      filterAndRenderDoctorVisits();
 
-        if (isPendingUnlock) {
-          badge = 'bg-secondary';
-          statusShow = '⏳ Pending Unlock';
-        }
-
-        const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
-        
-        const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.sales_rep || v.Created_By || '';
-        const rawRepId = v.Rep_ID || v.rep_id || v.User_ID || v.user_id || '';
-        const rawTerrId = v.Territory_ID || v.territory_id || '';
-
-        const userObj = globalUsers.find(u => {
-          const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
-          const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
-          const vWhoStr = String(rawWho).toLowerCase().trim();
-          const vRepStr = String(rawRepId).trim();
-
-          return (uEmail !== '' && vWhoStr !== '' && uEmail === vWhoStr) || 
-                 (uRepId !== '' && vRepStr !== '' && uRepId === vRepStr) || 
-                 (uEmail !== '' && vRepStr !== '' && uEmail === vRepStr.toLowerCase());
-        });
-
-        const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || userObj.name || rawWho) : (rawWho || '-');
-
-        const visitProds = globalVP.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
-        let prodBadges = '';
-        if (visitProds.length > 0) {
-            visitProds.forEach(pid => {
-                const pObj = globalProducts.find(p => String(p.Product_ID) === pid);
-                const pName = pObj ? pObj.Product : pid;
-                prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
-            });
-        } else {
-            prodBadges = '<span class="text-muted small">-</span>';
-        }
-
-        const terrObj = globalTerritories.find(t => {
-          const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
-          const vTerrStr = String(rawTerrId).toLowerCase().trim();
-          return tId !== '' && vTerrStr !== '' && tId === vTerrStr;
-        });
-        const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || terrObj.Territory_Name || rawTerrId) : (rawTerrId || '-');
-
-        tbody.innerHTML += `
-          <tr class="align-middle">
-            <td class="text-center fw-bold">
-              <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}'); return false;" title="Edit/View">
-                ${dateStr}
-              </a>
-            </td>
-            <td class="fw-bold text-dark">${repNameShow}</td>
-            <td class="text-center"><span class="badge bg-light text-primary border">${terrNameShow}</span></td>
-            <td>${prodBadges}</td>
-            <td><small>${v.Purpose || '-'}</small></td>
-            <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
-          </tr>
-        `;
-      });
     } catch(err) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load failed: ${err.message}</td></tr>`;
     }
   }
 
-  // 🌟 อัปเดต: การเชื่อมโยงไปหน้า Visit โดยใช้ setInterval (Smart Polling)
+  // 🌟 ฟังก์ชันจัดการ Filter และ Sort ก่อนแสดงผลลงตาราง
+  function filterAndRenderDoctorVisits() {
+    const tbody = document.getElementById('viewVisitHistoryBody');
+    if (!tbody) return;
+
+    const startDateTerm = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
+    const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
+    const prodTerm = document.getElementById('filterProfileVisitProduct') ? document.getElementById('filterProfileVisitProduct').value : '';
+
+    let filtered = globalCurrentDoctorVisits.filter(v => {
+      let matchDate = true;
+      if (startDateTerm || endDateTerm) {
+          const vDate = new Date(v.Visit_Date);
+          vDate.setHours(0, 0, 0, 0); 
+          
+          if (startDateTerm) {
+              const sDate = new Date(startDateTerm);
+              sDate.setHours(0, 0, 0, 0);
+              if (vDate < sDate) matchDate = false;
+          }
+          if (endDateTerm) {
+              const eDate = new Date(endDateTerm);
+              eDate.setHours(23, 59, 59, 999);
+              if (vDate > eDate) matchDate = false;
+          }
+      }
+
+      const visitProds = globalCurrentDoctorVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
+      const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
+
+      return matchDate && matchProd;
+    });
+
+    const mappedData = filtered.map(v => {
+      const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
+      let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
+      let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+
+      if (isPendingUnlock) {
+        badge = 'bg-secondary';
+        statusShow = '⏳ Pending Unlock';
+      }
+
+      const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.sales_rep || v.Created_By || '';
+      const rawRepId = v.Rep_ID || v.rep_id || v.User_ID || v.user_id || '';
+      const rawTerrId = v.Territory_ID || v.territory_id || '';
+
+      const userObj = globalUsers.find(u => {
+        const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
+        const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
+        const vWhoStr = String(rawWho).toLowerCase().trim();
+        const vRepStr = String(rawRepId).trim();
+        return (uEmail !== '' && vWhoStr !== '' && uEmail === vWhoStr) || 
+               (uRepId !== '' && vRepStr !== '' && uRepId === vRepStr) || 
+               (uEmail !== '' && vRepStr !== '' && uEmail === vRepStr.toLowerCase());
+      });
+      const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || userObj.name || rawWho) : (rawWho || '-');
+
+      const visitProds = globalCurrentDoctorVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
+      let prodNames = [];
+      let prodBadges = '';
+      if (visitProds.length > 0) {
+          visitProds.forEach(pid => {
+              const pObj = globalProducts.find(p => String(p.Product_ID) === pid);
+              const pName = pObj ? pObj.Product : pid;
+              prodNames.push(pName);
+              prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
+          });
+      } else {
+          prodBadges = '<span class="text-muted small">-</span>';
+      }
+
+      const terrObj = globalTerritories.find(t => {
+        const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
+        const vTerrStr = String(rawTerrId).toLowerCase().trim();
+        return tId !== '' && vTerrStr !== '' && tId === vTerrStr;
+      });
+      const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || terrObj.Territory_Name || rawTerrId) : (rawTerrId || '-');
+
+      return {
+         ...v,
+         mappedUser: repNameShow,
+         mappedTerritory: terrNameShow,
+         mappedProductsTxt: prodNames.join(', '),
+         mappedProductsHtml: prodBadges,
+         mappedStatusShow: statusShow,
+         mappedBadge: badge
+      };
+    });
+
+    mappedData.sort((a, b) => {
+      let valA = '', valB = '';
+      if (currentPVisitSortCol === 'date') {
+        valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
+      } else if (currentPVisitSortCol === 'user') {
+        valA = a.mappedUser.toLowerCase(); valB = b.mappedUser.toLowerCase();
+      } else if (currentPVisitSortCol === 'territory') {
+        valA = a.mappedTerritory.toLowerCase(); valB = b.mappedTerritory.toLowerCase();
+      } else if (currentPVisitSortCol === 'products') {
+        valA = a.mappedProductsTxt.toLowerCase(); valB = b.mappedProductsTxt.toLowerCase();
+      } else if (currentPVisitSortCol === 'purpose') {
+        valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase();
+      } else if (currentPVisitSortCol === 'status') {
+        valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase();
+      }
+
+      if (valA < valB) return currentPVisitSortAsc ? -1 : 1;
+      if (valA > valB) return currentPVisitSortAsc ? 1 : -1;
+      return 0;
+    });
+
+    tbody.innerHTML = '';
+    if(mappedData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No visit history found.</td></tr>';
+      return;
+    }
+
+    mappedData.forEach(v => {
+      const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
+      tbody.innerHTML += `
+        <tr class="align-middle">
+          <td class="text-center fw-bold">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="goToEditCall('${v.Visit_ID || v.visit_id || v.id || ''}'); return false;" title="Edit/View">
+              ${dateStr}
+            </a>
+          </td>
+          <td class="fw-bold text-dark">${v.mappedUser}</td>
+          <td class="text-center"><span class="badge bg-light text-primary border">${v.mappedTerritory}</span></td>
+          <td>${v.mappedProductsHtml}</td>
+          <td><small>${v.Purpose || '-'}</small></td>
+          <td class="text-center"><span class="badge ${v.mappedBadge} px-2 py-1">${v.mappedStatusShow}</span></td>
+        </tr>
+      `;
+    });
+  }
+
   function goToQuickAddCall() {
     sessionStorage.setItem('returnToDocId', currentTargetDocId);
     
@@ -1014,7 +1142,6 @@
     }, 100);
   }
 
-  // 🌟 อัปเดต: ให้ชัวร์ว่าข้อมูลโหลดพร้อมก่อนเปิดหน้าแก้ไข Visit
   function goToEditCall(visitId) {
     if (!visitId || visitId === "undefined") {
       return alert("❌ Visit ID not found.");
@@ -1032,11 +1159,10 @@
     let attempts = 0;
     const checkReady = setInterval(() => {
       attempts++;
-      // เช็คว่าฟังก์ชันพร้อม และ ฐานข้อมูลดึงเสร็จเรียบร้อยแล้ว
       if (typeof window.openEditVisitModal === 'function' && window.globalVisits && window.globalVisits.length > 0) {
         clearInterval(checkReady);
         window.openEditVisitModal(visitId, currentTargetDocId);
-      } else if (attempts > 50) { // รอได้นานสุด 5 วินาที
+      } else if (attempts > 50) { 
         clearInterval(checkReady);
         alert("Data is taking too long to load. Please click the edit button manually on the Visit Logs page.");
       }
