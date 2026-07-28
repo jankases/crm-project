@@ -1,7 +1,57 @@
+<style>
+  /* Toggle Switch Switch (UI แบบ iOS) */
+  .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
+  .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; }
+  input:checked + .slider { background-color: #198754; }
+  input:focus + .slider { box-shadow: 0 0 1px #198754; }
+  input:checked + .slider:before { -webkit-transform: translateX(26px); -ms-transform: translateX(26px); transform: translateX(26px); }
+</style>
+
 <div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
   
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="text-primary fw-bold mb-0"><i class="fa-solid fa-list-ul me-2"></i>ตั้งค่าตัวเลือกในระบบ (Index Management)</h4>
+    <h4 class="text-primary fw-bold mb-0"><i class="fa-solid fa-list-ul me-2"></i>ตั้งค่าระบบ (System Settings)</h4>
+  </div>
+
+  <!-- ================= 🌟 ส่วนที่เพิ่มใหม่: เปิด/ปิดระบบ Target Call ================= -->
+  <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; border-left: 5px solid #fd7e14 !important;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+      <div>
+        <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-power-off me-2 text-warning"></i>ระบบประเมินศักยภาพแพทย์ (Target Call Rating)</h5>
+        <p class="text-muted small mb-3 mb-md-0">เปิดหรือปิดการให้ Sales ประเมินศักยภาพและกำหนดเป้าหมาย (หากตั้งวันที่ ระบบจะอิงตามวันที่ก่อน)</p>
+      </div>
+      
+      <div class="d-flex align-items-center gap-4 bg-light p-3 rounded-4 border">
+        
+        <!-- ตัวเลือกตั้งวันที่เปิด/ปิด -->
+        <div class="d-flex align-items-center gap-2 border-end pe-4">
+          <div>
+            <label class="form-label text-secondary small fw-bold mb-0">Start Date</label>
+            <input type="date" class="form-control form-control-sm border-0 shadow-sm" id="ratingStartDate">
+          </div>
+          <div>
+            <label class="form-label text-secondary small fw-bold mb-0">End Date</label>
+            <input type="date" class="form-control form-control-sm border-0 shadow-sm" id="ratingEndDate">
+          </div>
+        </div>
+
+        <!-- ปุ่มเปิด/ปิด แบบ Manual -->
+        <div class="text-center">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block" id="ratingStatusLabel">สถานะ: รอโหลด...</label>
+          <label class="switch">
+            <input type="checkbox" id="ratingToggleSwitch" onchange="toggleRatingSystem()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <button class="btn btn-sm btn-dark fw-bold rounded-pill px-3 shadow-sm h-100" id="btnSaveSysSettings" onclick="saveSystemSettings()">
+          <i class="fa-solid fa-save me-1"></i> บันทึก
+        </button>
+
+      </div>
+    </div>
   </div>
 
   <!-- ================= ส่วนบน: จัดการ IndexType (หมวดหมู่) ================= -->
@@ -125,14 +175,167 @@
   var globalIndexes = [];
   var indexTypeModalInstance;
   var indexModalInstance;
+  
+  // ตัวแปรเก็บ System Settings เพื่อเช็คสถานะการอัปเดต
+  var globalSystemSettings = [];
 
   setTimeout(function() {
     indexTypeModalInstance = new bootstrap.Modal(document.getElementById('indexTypeModal'));
     indexModalInstance = new bootstrap.Modal(document.getElementById('indexModal'));
+    loadSystemSettings(); // 🌟 โหลด Setting ก่อน
     loadAllIndexData();
   }, 300);
 
-  // 🌟 โหลดข้อมูลทั้งหมด (ดึงพร้อมกัน 2 ตาราง)
+  // ================= 🌟 ส่วนจัดการ System_Settings =================
+
+  async function loadSystemSettings() {
+    try {
+      const { data, error } = await supabaseClient.from('System_Settings').select('*');
+      if (error) throw error;
+      
+      globalSystemSettings = data || [];
+      
+      // ดึงการตั้งค่าของ 'Rating' (เป้าหมาย Target Call)
+      const ratingConfig = globalSystemSettings.find(s => s.Type === 'Rating');
+      
+      const switchEl = document.getElementById('ratingToggleSwitch');
+      const startEl = document.getElementById('ratingStartDate');
+      const endEl = document.getElementById('ratingEndDate');
+      
+      if (ratingConfig) {
+        startEl.value = ratingConfig.Start || '';
+        endEl.value = ratingConfig.End || '';
+        
+        // ฟังก์ชันประเมินสถานะ ว่าเปิดหรือปิดอยู่
+        checkCurrentRatingStatus(ratingConfig.Start, ratingConfig.End);
+      } else {
+        // ถ้าไม่มีข้อมูลในฐาน ให้สร้างจำลอง และกำหนดเป็นปิด (false)
+        switchEl.checked = false;
+        document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger">ปิดระบบ (Locked)</span>';
+      }
+
+    } catch (err) {
+      console.error("Load Settings Error:", err);
+    }
+  }
+
+  function checkCurrentRatingStatus(startStr, endStr) {
+    const switchEl = document.getElementById('ratingToggleSwitch');
+    const labelEl = document.getElementById('ratingStatusLabel');
+    
+    // ถ้าไม่มีการระบุวันที่ ถือว่าอิงตามการกด Switch (Manual) เป็นหลัก
+    if (!startStr && !endStr) {
+        // สมมติว่าถ้าไม่มีให้ปิดไว้ก่อน (หรือถ้าต้องการเซฟ state 'เปิด/ปิด' แบบไม่ใช้วันที่ ต้องมีฟิลด์เก็บเพิ่ม เช่น Status. แต่ตอนนี้เราใช้ Start/End)
+        // เพื่อให้ง่าย ถ้ามีข้อมูลแถว Rating แต่ไม่มีวันที่ จะถือว่า "เปิดแบบเปิดตลอด"
+        switchEl.checked = true; 
+        labelEl.innerHTML = '<span class="text-success">เปิด (Manual)</span>';
+        return;
+    }
+
+    // กรณีระบุวันที่
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    let isWithinRange = true;
+    
+    if (startStr) {
+        const sDate = new Date(startStr);
+        sDate.setHours(0,0,0,0);
+        if (today < sDate) isWithinRange = false;
+    }
+    
+    if (endStr) {
+        const eDate = new Date(endStr);
+        eDate.setHours(23,59,59,999);
+        if (today > eDate) isWithinRange = false;
+    }
+
+    if (isWithinRange) {
+        switchEl.checked = true;
+        labelEl.innerHTML = '<span class="text-success">เปิด (In Period)</span>';
+    } else {
+        switchEl.checked = false;
+        labelEl.innerHTML = '<span class="text-danger">ปิด (Out of Period)</span>';
+    }
+  }
+
+  // กดสวิตช์ด้วยมือ
+  function toggleRatingSystem() {
+    const switchEl = document.getElementById('ratingToggleSwitch');
+    const labelEl = document.getElementById('ratingStatusLabel');
+    const startEl = document.getElementById('ratingStartDate');
+    const endEl = document.getElementById('ratingEndDate');
+    
+    if (switchEl.checked) {
+        labelEl.innerHTML = '<span class="text-success">เปิดระบบ</span>';
+        // ถ้าเปิดด้วยมือ ให้เคลียร์วันที่ทิ้ง จะได้เปิดยาวๆ
+        startEl.value = '';
+        endEl.value = '';
+    } else {
+        labelEl.innerHTML = '<span class="text-danger">ปิดระบบ</span>';
+        // ถ้าปิดด้วยมือ ให้ตั้งวันที่เป็นเมื่อวาน เพื่อให้มันปิด
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        startEl.value = yesterday.toISOString().split('T')[0];
+        endEl.value = yesterday.toISOString().split('T')[0];
+    }
+  }
+
+  // กดบันทึก System Setting
+  async function saveSystemSettings() {
+    const btn = document.getElementById('btnSaveSysSettings');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    const startVal = document.getElementById('ratingStartDate').value;
+    const endVal = document.getElementById('ratingEndDate').value;
+
+    const payload = {
+        Type: 'Rating',
+        Start: startVal || null,
+        End: endVal || null
+    };
+
+    try {
+        const ratingConfig = globalSystemSettings.find(s => s.Type === 'Rating');
+        
+        if (ratingConfig) {
+            // อัปเดตของเดิม
+            const { error } = await supabaseClient
+                .from('System_Settings')
+                .update(payload)
+                .eq('Type', 'Rating');
+            if (error) throw error;
+        } else {
+            // สร้างขึ้นมาใหม่ถ้ายังไม่เคยมี
+            const { error } = await supabaseClient
+                .from('System_Settings')
+                .insert([payload]);
+            if (error) throw error;
+        }
+
+        btn.classList.replace('btn-dark', 'btn-success');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> บันทึกแล้ว';
+        
+        // รีเฟรชข้อมูลป้ายสถานะ
+        checkCurrentRatingStatus(startVal, endVal);
+
+        setTimeout(() => {
+            btn.classList.replace('btn-success', 'btn-dark');
+            btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> บันทึก';
+            btn.disabled = false;
+        }, 2000);
+
+    } catch (err) {
+        console.error(err);
+        alert("❌ บันทึกการตั้งค่าไม่สำเร็จ: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> บันทึก';
+    }
+  }
+
+  // ================= ส่วนโหลด Index =================
+
   async function loadAllIndexData() {
     try {
       const [typeRes, idxRes] = await Promise.all([
@@ -155,7 +358,7 @@
     }
   }
 
-  // ================= ส่วนจัดการ IndexType (บน) =================
+  // ================= ส่วนจัดการ IndexType =================
 
   function renderIndexTypeTable() {
     const tbody = document.getElementById('indexTypeTableBody');
@@ -197,11 +400,10 @@
     const id = document.getElementById('modalIndexTypeId').value;
     const name = document.getElementById('modalIndexTypeName').value.trim();
 
-    // 🌟 เช็คข้อมูลซ้ำ (Duplicate Check)
     const isDuplicate = globalIndexTypes.some(t => t.Name.toLowerCase() === name.toLowerCase() && t.IndexType_ID !== id);
     if (isDuplicate) {
       alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากหมวดหมู่ชื่อ "${name}" มีอยู่ในระบบแล้วครับ`);
-      return; // หยุดการทำงาน ไม่ส่งข้อมูลไป Database
+      return; 
     }
 
     const btn = document.getElementById('btnSaveIndexType');
@@ -233,7 +435,7 @@
     }
   }
 
-  // ================= ส่วนจัดการ Index Value (ล่าง) =================
+  // ================= ส่วนจัดการ Index Value =================
 
   function populateIndexTypeDropdowns() {
     let opts = '<option value="">- เลือกหมวดหมู่ -</option>';
@@ -306,13 +508,12 @@
     const typeId = document.getElementById('modalIndexSelectType').value;
     const val = document.getElementById('modalIndexValue').value.trim();
 
-    // 🌟 เช็คข้อมูลซ้ำ (Duplicate Check) ภายในหมวดหมู่เดียวกัน
     const isDuplicate = globalIndexes.some(i => i.IndexType_ID === typeId && i.Value.toLowerCase() === val.toLowerCase() && i.Index_ID !== id);
     if (isDuplicate) {
       const typeObj = globalIndexTypes.find(t => t.IndexType_ID === typeId);
       const typeName = typeObj ? typeObj.Name : "หมวดหมู่นี้";
       alert(`❌ ไม่สามารถบันทึกได้! เนื่องจากตัวเลือก "${val}" มีซ้ำอยู่ใน ${typeName} แล้วครับ`);
-      return; // หยุดการทำงาน ไม่ส่งข้อมูลไป Database
+      return; 
     }
 
     const btn = document.getElementById('btnSaveIndex');
