@@ -27,11 +27,11 @@
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>ประวัติการบันทึกเยี่ยม (Visit Logs)</h3>
-        <p class="text-muted mb-0">รายการเข้าพบแพทย์และบันทึกกิจกรรมประจำวัน</p>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>Visit Logs</h3>
+        <p class="text-muted mb-0">Doctor visits and daily activity logs</p>
       </div>
       <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
-        <i class="fa-solid fa-plus me-2"></i>สร้างบันทึกใหม่
+        <i class="fa-solid fa-plus me-2"></i>Add New Visit
       </button>
     </div>
 
@@ -42,8 +42,8 @@
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="ค้นหาแพทย์ (TH/EN)..." onkeyup="filterVisits()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="พูดเพื่อค้นหาชื่อหมอ">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="Search Doctor..." onkeyup="filterVisits()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micDocSearchIcon"></i>
           </button>
         </div>
@@ -53,8 +53,8 @@
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="ค้นหา รพ. (TH/EN)..." onkeyup="filterVisits()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="พูดเพื่อค้นหาชื่อ รพ.">
+          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="Search Hospital..." onkeyup="filterVisits()">
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
           </button>
         </div>
@@ -62,11 +62,11 @@
 
       <!-- ตัวกรองระยะเวลา -->
       <div class="col-sm-12 col-md-3 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">ระยะเวลา (Date Range)</label>
+        <label class="form-label fw-bold text-secondary small mb-1">Date Range</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <input type="date" class="form-control text-secondary px-2" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันเริ่มต้น">
+          <input type="date" class="form-control text-secondary px-2" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="Start Date">
           <span class="input-group-text bg-light border-start-0 border-end-0 px-2 text-muted">-</span>
-          <input type="date" class="form-control text-secondary px-2" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="วันสิ้นสุด">
+          <input type="date" class="form-control text-secondary px-2" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="End Date">
         </div>
       </div>
 
@@ -81,13 +81,13 @@
 
       <!-- ปุ่ม Toggle กางตัวกรองเพิ่มเติม -->
       <div class="col-sm-6 col-md-1 col-lg-1">
-        <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="ตัวกรองเพิ่มเติม">
+        <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="Advanced Filters">
           <i class="fa-solid fa-sliders"></i>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) ย้าย User, Territory, Product มาที่นี่ -->
+    <!-- 🌟 ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
     <div class="collapse mb-4" id="advancedFilters">
       <div class="card card-body bg-light border-0 shadow-sm" style="border-radius: 15px;">
         <div class="row g-3">
@@ -124,16 +124,16 @@
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
-              <th class="py-3 sortable-th" onclick="sortVisits('date')">วันที่ (Date) <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('doctor')">แพทย์ (Doctor) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('hospital')">โรงพยาบาล (Hospital) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('products')">สินค้า (Products) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('purpose')">วัตถุประสงค์ (Purpose) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('status')">สถานะ (Status) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('date')">Date <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('doctor')">Doctor <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('hospital')">Hospital <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('products')">Products <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('purpose')">Purpose <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -144,9 +144,9 @@
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="cancelVisitForm()">
-        <i class="fa-solid fa-arrow-left me-1"></i> ย้อนกลับ
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 บันทึกข้อมูลการเข้าพบ</h4>
+      <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
     </div>
 
     <div class="card p-4 p-md-5 border-0 shadow-sm visit-card">
@@ -156,110 +156,110 @@
         <div class="p-3 rounded-4 mb-4 border bg-light">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
-              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i>ผู้แทนขาย (User)</span>
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i>User</span>
               <span class="fw-bold text-dark fs-6" id="dispSalesRepName">-</span>
             </div>
             <div class="col-md-6">
-              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i>เขตพื้นที่ (Territory)</span>
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i>Territory</span>
               <span class="fw-bold text-dark fs-6" id="dispTerritoryName">-</span>
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>ข้อมูลการเข้าพบ</h5>
+          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>Visit Information</h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">คุณหมอที่เข้าพบ (Doctor) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Doctor <span class="text-danger">*</span></label>
               <div class="input-group shadow-sm" style="border-radius: 10px;">
                 <select class="form-select bg-white" id="visitDocId" required>
-                  <option value="">-- ค้นหา/เลือกคุณหมอ --</option>
+                  <option value="">-- Search/Select Doctor --</option>
                 </select>
-                <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="กดพูดเพื่อค้นหาชื่อหมอ">
+                <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
                   <i class="fa-solid fa-microphone" id="micDocIcon"></i>
                 </button>
               </div>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ กรุณาเลือกคุณหมอที่เข้าพบก่อนครับ</div>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ Please select a doctor.</div>
             </div>
             
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">สินค้าที่นำเสนอ (Products) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Products <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ กรุณาเลือกสินค้าอย่างน้อย 1 รายการครับ</div>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ Please select at least one product.</div>
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">วันที่เข้าพบ (Date) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Date <span class="text-danger">*</span></label>
               <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitDate" style="display:none !important;">⚠️ กรุณาระบุวันที่เข้าพบครับ</div>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitDate" style="display:none !important;">⚠️ Please specify the visit date.</div>
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">เวลาเริ่ม (Start)</label>
+              <label class="form-label fw-bold text-dark">Start Time</label>
               <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">เวลาสิ้นสุด (End)</label>
+              <label class="form-label fw-bold text-dark">End Time</label>
               <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>รายละเอียดงาน</h5>
+          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>Activity Details</h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">วัตถุประสงค์ (Purpose) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Purpose <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
-                <option value="">-- เลือกวัตถุประสงค์ --</option>
+                <option value="">-- Select Purpose --</option>
               </select>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ กรุณาเลือกวัตถุประสงค์ครับ</div>
+              <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ Please select a purpose.</div>
             </div>
             
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0">รายละเอียดเพิ่มเติม (Details)</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')" title="พูดเพื่อพิมพ์รายละเอียด">
-                  <i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์
+                <label class="form-label fw-bold text-dark mb-0">Details</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')" title="Dictate">
+                  <i class="fa-solid fa-microphone me-1"></i>Dictate
                 </button>
               </div>
-              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="ระบุสิ่งที่ได้พูดคุย ข้อสรุป หรือรายละเอียดเพิ่มเติม..."></textarea>
+              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="Enter discussion summary or additional details..."></textarea>
             </div>
 
-            <!-- ช่องข้อมูลเชิงลึก (Insight) -->
+            <!-- 🌟 ช่องข้อมูลเชิงลึก (Insight) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0">ข้อมูลเชิงลึก (Insight)</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')" title="พูดเพื่อพิมพ์ Insight">
-                  <i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์
+                <label class="form-label fw-bold text-dark mb-0">Insight</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')" title="Dictate">
+                  <i class="fa-solid fa-microphone me-1"></i>Dictate
                 </button>
               </div>
-              <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2" placeholder="ระบุข้อมูลเชิงลึก คู่แข่ง หรือทัศนคติที่ได้จากการเข้าพบ..."></textarea>
+              <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2" placeholder="Enter insights, competitor info, or attitudes..."></textarea>
             </div>
 
             <div class="col-md-7 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0">ขั้นตอนถัดไป (Next Action)</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="พูดเพื่อพิมพ์ Next Action">
-                  <i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์
+                <label class="form-label fw-bold text-dark mb-0">Next Action</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="Dictate">
+                  <i class="fa-solid fa-microphone me-1"></i>Dictate
                 </button>
               </div>
-              <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="ระบุสิ่งที่ต้องทำต่อ...">
+              <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="Specify next steps...">
             </div>
             
             <div class="col-md-5 mb-2">
-              <label class="form-label fw-bold text-dark mb-1">สถานะรายการ (Status)</label>
+              <label class="form-label fw-bold text-dark mb-1">Status</label>
               <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
-                <option value="Pending" class="text-warning">⏳ Pending (บันทึกร่าง)</option>
-                <option value="Submitted" class="text-success">✅ Submitted (ส่งบันทึกแล้ว)</option>
+                <option value="Pending" class="text-warning">⏳ Pending (Draft)</option>
+                <option value="Submitted" class="text-success">✅ Submitted</option>
               </select>
             </div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 บันทึกข้อมูล</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 Save</button>
         </div>
       </form>
     </div>
@@ -300,7 +300,7 @@
       sessionStorage.removeItem('returnToDocId');
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
-        if (txt && txt.trim() === 'แพทย์') btn.click();
+        if (txt && txt.trim() === 'แพทย์' || txt.trim() === 'Doctors') btn.click();
       });
       setTimeout(() => {
         if (typeof window.openViewDoctorProfile === 'function') {
@@ -315,7 +315,7 @@
   // ===================== 🎙️ ระบบไมค์ =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
   function toggleSpeechSearch(inputId, btnId, iconId) {
-    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
+    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("Your browser doesn't support voice recognition.");
     if(activeSearchRecognition && currentSearchInputId === inputId) return stopSpeechSearch();
     if(activeSearchRecognition) stopSpeechSearch();
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -339,13 +339,13 @@
 
   var activeDictationRecognition=null, currentDictationTargetId=null, currentDictationBtnId=null;
   function toggleTextDictation(targetInputId, btnId) {
-    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("เบราว์เซอร์ไม่รองรับ");
+    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("Your browser doesn't support voice recognition.");
     if(activeDictationRecognition && currentDictationTargetId === targetInputId) return stopTextDictation();
     if(activeDictationRecognition) stopTextDictation();
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     activeDictationRecognition = new SpeechRecognition(); activeDictationRecognition.lang='th-TH';
     currentDictationTargetId=targetInputId; currentDictationBtnId=btnId;
-    const btn=document.getElementById(btnId); if(btn){btn.classList.add('btn-danger','text-white','mic-active'); btn.classList.remove('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>กำลังฟัง...`;}
+    const btn=document.getElementById(btnId); if(btn){btn.classList.add('btn-danger','text-white','mic-active'); btn.classList.remove('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>Listening...`;}
     activeDictationRecognition.onresult = function(event) {
       let spokenText=''; for(let i=event.resultIndex; i<event.results.length; ++i){if(event.results[i].isFinal) spokenText+=event.results[i][0].transcript;}
       const inputEl = document.getElementById(targetInputId); if(inputEl&&spokenText.trim()){const currentVal=inputEl.value.trim(); inputEl.value=currentVal ? `${currentVal} ${spokenText.trim()}` : spokenText.trim();} stopTextDictation();
@@ -354,7 +354,7 @@
   }
   function stopTextDictation() {
     if(activeDictationRecognition){activeDictationRecognition.stop(); activeDictationRecognition=null;}
-    if(currentDictationBtnId){const btn=document.getElementById(currentDictationBtnId); if(btn){btn.classList.remove('btn-danger','text-white','mic-active'); btn.classList.add('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone me-1"></i>พูดเพื่อพิมพ์`;}}
+    if(currentDictationBtnId){const btn=document.getElementById(currentDictationBtnId); if(btn){btn.classList.remove('btn-danger','text-white','mic-active'); btn.classList.add('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone me-1"></i>Dictate`;}}
   }
 
   var docSpeechRecognition, isDocRecording=false;
@@ -367,7 +367,7 @@
     docSpeechRecognition.onerror=stopDocDictation; docSpeechRecognition.onend=function(){if(isDocRecording) stopDocDictation();};
   }
   function toggleDocDictation(){
-    if(!docSpeechRecognition) return alert("เบราว์เซอร์ไม่รองรับ"); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
+    if(!docSpeechRecognition) return alert("Your browser doesn't support voice recognition."); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
     if(isDocRecording) stopDocDictation(); else {isDocRecording=true; docSpeechRecognition.start(); if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('fa-microphone-lines','fa-fade');}}
   }
   function stopDocDictation(){
@@ -439,12 +439,12 @@
 
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        docSelect.innerHTML = '<option value="">-- ค้นหา/เลือกคุณหมอ --</option>';
+        docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
         globalDoctorsList.forEach(d => {
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
-        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- ค้นหา/เลือกคุณหมอ --" });
+        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Search/Select Doctor --" });
       }
 
       setupFiltersDropdowns(crmUser, productsTeamRes.data || []);
@@ -453,12 +453,12 @@
       if (purposeSelect) { 
         const types = typeRes.data || []; const indexes = idxRes.data || [];
         const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
-        let purposeHtml = '<option value="">-- เลือกวัตถุประสงค์ --</option>';
+        let purposeHtml = '<option value="">-- Select Purpose --</option>';
         if (purposeType) {
           const purposeItems = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
           purposeItems.forEach(i => purposeHtml += `<option value="${i.Value}">${i.Value}</option>`);
         } else {
-          purposeHtml += `<option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option><option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option><option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option><option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>`;
+          purposeHtml += `<option value="Follow-up">Follow-up</option><option value="Product Presentation">Product Presentation</option><option value="Deliver Documents/Research">Deliver Documents/Research</option><option value="Relationship Building">Relationship Building</option><option value="Other">Other</option>`;
         }
         purposeSelect.innerHTML = purposeHtml;
       }
@@ -596,7 +596,7 @@
         allowedProducts.forEach(p => fHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
         formProdSelect.innerHTML = fHtml;
         if (typeof TomSelect !== 'undefined' && !formProdSelect.tomselect) {
-            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- เลือกสินค้า (เลือกได้มากกว่า 1 รายการ) --" });
+            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --" });
         }
     }
   }
@@ -699,7 +699,7 @@
   async function loadVisits() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
 
     try {
       const [visitRes, vpRes, dcrRes] = await Promise.all([
@@ -715,7 +715,7 @@
       
       filterVisits();
     } catch(err) { 
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถโหลดข้อมูลได้: ${err.message}</td></tr>`; 
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ${err.message}</td></tr>`; 
     }
   }
 
@@ -856,7 +856,7 @@
     if (!tbody) return; 
 
     tbody.innerHTML = '';
-    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>ไม่พบรายการบันทึกเยี่ยมในช่วงเวลาที่เลือก</td></tr>`;
+    if (!data || data.length === 0) return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>No visit records found for the selected period.</td></tr>`;
 
     data.forEach(v => {
       const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
@@ -865,7 +865,7 @@
 
       if (isPendingUnlock) {
         badge = 'bg-secondary';
-        statusShow = '⏳ ขอแก้ไข (รออนุมัติ)';
+        statusShow = '⏳ Pending Unlock';
       }
 
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
@@ -896,7 +896,7 @@
       tbody.innerHTML += `
         <tr>
           <td class="text-center fw-bold">
-            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;" title="คลิกเพื่อดูรายละเอียด">
+            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;" title="Click to view details">
               ${dateShow}
             </a>
           </td>
@@ -937,7 +937,7 @@
     clearValidation();
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
-    document.getElementById('formVisitTitle').innerText = '📝 เพิ่มการบันทึกเยี่ยมใหม่';
+    document.getElementById('formVisitTitle').innerText = '📝 Add New Visit';
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
@@ -984,7 +984,7 @@
     const btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
     btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-    btn.innerHTML = '💾 บันทึกข้อมูล';
+    btn.innerHTML = '💾 Save';
     btn.disabled = false;
 
     switchVisitView('visitFormView');
@@ -996,7 +996,7 @@
     if (!v) return;
 
     document.getElementById('visitId').value = v.Visit_ID;
-    document.getElementById('formVisitTitle').innerText = '✏️ แก้ไขการบันทึกเยี่ยม';
+    document.getElementById('formVisitTitle').innerText = '✏️ Edit Visit';
     
     let repNameShow = v.Rep_ID || '-';
     if (globalUsersList && globalUsersList.length > 0) {
@@ -1038,19 +1038,19 @@
       toggleVisitFormEditable(false);
       btn.disabled = true;
       btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>รอ Admin อนุมัติปลดล็อค';
+      btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock';
       btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
       toggleVisitFormEditable(false);
       btn.disabled = false;
       btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>ขอแก้ไข (Request Unlock)';
+      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
       btn.dataset.mode = 'request_unlock';
     } else {
       toggleVisitFormEditable(true);
       btn.disabled = false;
       btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '💾 บันทึกข้อมูล';
+      btn.innerHTML = '💾 Save';
       btn.dataset.mode = 'save';
       
       if (sessionStorage.getItem('returnToDocId')) {
@@ -1065,7 +1065,7 @@
   async function requestUnlockVisit(visitId) {
     const btn = document.getElementById('saveVisitBtn');
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังส่งคำขอ...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...`;
 
     let crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -1082,14 +1082,14 @@
     try {
       const { error } = await supabaseClient.from('DCR').insert([payload]);
       if (error) throw error;
-      alert("✅ ส่งคำขอปลดล็อค (DCR) เรียบร้อยแล้ว กรุณารอ Admin อนุมัติ");
+      alert("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.");
       
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
         document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
           const txt = menuBtn.textContent || menuBtn.innerText;
-          if (txt && txt.trim() === 'แพทย์') menuBtn.click();
+          if (txt && txt.trim() === 'แพทย์' || txt.trim() === 'Doctors') menuBtn.click();
         });
         setTimeout(() => {
           if (typeof window.openViewDoctorProfile === 'function') {
@@ -1101,9 +1101,9 @@
         await loadVisits();
       }
     } catch(err) {
-      alert("❌ เกิดข้อผิดพลาด: " + err.message);
+      alert("❌ Error: " + err.message);
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>ขอแก้ไข (Request Unlock)';
+      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
     }
   }
 
@@ -1145,21 +1145,21 @@
     clearValidation();
 
     let missingFields = [];
-    if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• คุณหมอที่เข้าพบ (Doctor)"); }
+    if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• Doctor"); }
     if (selectedProducts.length === 0) { 
         const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); 
-        document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• สินค้าที่นำเสนอ (Product)"); 
+        document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• Products"); 
     }
-    if (!dateInput.value) { dateInput.classList.add('is-invalid'); document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important'); missingFields.push("• วันที่เข้าพบ (Date)"); }
-    if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important'); missingFields.push("• วัตถุประสงค์ (Purpose)"); }
+    if (!dateInput.value) { dateInput.classList.add('is-invalid'); document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important'); missingFields.push("• Date"); }
+    if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important'); missingFields.push("• Purpose"); }
 
     if (missingFields.length > 0) {
-      alert("⚠️ ไม่สามารถบันทึกได้! กรุณากรอก/เลือกข้อมูลต่อไปนี้ให้ครบถ้วนครับ:\n\n" + missingFields.join("\n"));
+      alert("⚠️ Cannot save! Please complete the following required fields:\n\n" + missingFields.join("\n"));
       return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>กำลังบันทึก...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...`;
 
     let crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -1190,20 +1190,20 @@
     try {
       if (existingVisitId) {
         const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
-        if (updErr) throw new Error("อัปเดตข้อมูล Visit_Logs ขัดข้อง: " + updErr.message);
+        if (updErr) throw new Error("Update Visit_Logs error: " + updErr.message);
 
         const { error: delErr } = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
-        if (delErr) throw new Error("ลบข้อมูล Visit_Products เดิมขัดข้อง: " + delErr.message);
+        if (delErr) throw new Error("Delete old Visit_Products error: " + delErr.message);
 
       } else {
         const { error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]);
-        if (insErr) throw new Error("บันทึกข้อมูล Visit_Logs ขัดข้อง: " + insErr.message);
+        if (insErr) throw new Error("Insert Visit_Logs error: " + insErr.message);
       }
 
       if (selectedProducts.length > 0) {
           const vpPayload = selectedProducts.map(p => ({ Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }));
           const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
-          if (vpErr) throw new Error("บันทึกข้อมูล Visit_Products ขัดข้อง: " + vpErr.message);
+          if (vpErr) throw new Error("Insert Visit_Products error: " + vpErr.message);
       }
 
       const returnDocId = sessionStorage.getItem('returnToDocId');
@@ -1211,7 +1211,7 @@
         sessionStorage.removeItem('returnToDocId');
         document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
           const txt = menuBtn.textContent || menuBtn.innerText;
-          if (txt && txt.trim() === 'แพทย์') menuBtn.click();
+          if (txt && txt.trim() === 'แพทย์' || txt.trim() === 'Doctors') menuBtn.click();
         });
         setTimeout(() => {
           if (typeof window.openViewDoctorProfile === 'function') {
@@ -1225,10 +1225,10 @@
 
     } catch(err) {
       console.error("Save Visit Error:", err);
-      alert("❌ ไม่สามารถบันทึกข้อมูลได้\n\nสาเหตุ: " + err.message);
+      alert("❌ Failed to save data.\n\nReason: " + err.message);
     } finally {
       btn.disabled = false;
-      btn.innerHTML = "💾 บันทึกข้อมูล";
+      btn.innerHTML = "💾 Save";
     }
   }
 </script>
