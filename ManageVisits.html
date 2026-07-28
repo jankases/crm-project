@@ -226,7 +226,7 @@
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="Enter discussion summary or additional details..."></textarea>
             </div>
 
-            <!-- 🌟 ช่องข้อมูลเชิงลึก (Insight) -->
+            <!-- ช่องข้อมูลเชิงลึก (Insight) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">Insight</label>
@@ -294,19 +294,41 @@
     openEditVisitView(visitId);
   };
 
+  // ===================== 🌟 ฟังก์ชันจัดการการกลับหน้า Doctor Profile อย่างสมบูรณ์ =====================
+  function returnToDoctorProfile(docId) {
+    // 1. ส่งคำสั่งย้ายหน้า Component กลับไปหน้าหมอ (ผ่านฟังก์ชันของ index.html ถ้ามี)
+    if (typeof window.loadComponent === 'function') {
+      window.loadComponent('doctor');
+    } else {
+      // 1.1 ถ้าหาฟังก์ชันไม่เจอ ให้ใช้วิธีจำลองคลิกเมนูแทน
+      document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
+        const txt = btn.textContent || btn.innerText;
+        if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) {
+          btn.click();
+        }
+      });
+    }
+
+    // 2. ใช้ Smart Polling เพื่อรอให้หน้า Doctor โหลดรายชื่อเสร็จก่อน ค่อยสั่งกางหน้า Profile
+    let attempts = 0;
+    const checkReady = setInterval(() => {
+      attempts++;
+      // รอให้ฟังก์ชันเปิด Profile พร้อม และ ตัวแปร globalDoctors ดึงเสร็จแล้ว
+      if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
+        clearInterval(checkReady);
+        window.openViewDoctorProfile(docId, '#tab-doc-history'); // บังคับกาง Tab Visit History เลย
+      } else if (attempts > 50) { 
+        // ถ้ารอเกิน 5 วินาที ให้ยอมแพ้เพื่อไม่ให้เว็บค้าง
+        clearInterval(checkReady);
+      }
+    }, 100);
+  }
+
   function cancelVisitForm() {
     const returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
-        const txt = btn.textContent || btn.innerText;
-        if (txt && txt.trim() === 'แพทย์' || txt.trim() === 'Doctors') btn.click();
-      });
-      setTimeout(() => {
-        if (typeof window.openViewDoctorProfile === 'function') {
-          window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
-        }
-      }, 500);
+      returnToDoctorProfile(returnDocId); // 🌟 เรียกใช้ฟังก์ชันที่แก้ให้ใหม่
     } else {
       switchVisitView('visitListView');
     }
@@ -1087,15 +1109,7 @@
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
-          const txt = menuBtn.textContent || menuBtn.innerText;
-          if (txt && txt.trim() === 'แพทย์' || txt.trim() === 'Doctors') menuBtn.click();
-        });
-        setTimeout(() => {
-          if (typeof window.openViewDoctorProfile === 'function') {
-            window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
-          }
-        }, 500);
+        returnToDoctorProfile(returnDocId); 
       } else {
         switchVisitView('visitListView');
         await loadVisits();
@@ -1209,15 +1223,7 @@
       const returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(menuBtn => {
-          const txt = menuBtn.textContent || menuBtn.innerText;
-          if (txt && txt.trim() === 'แพทย์' || txt.trim() === 'Doctors') menuBtn.click();
-        });
-        setTimeout(() => {
-          if (typeof window.openViewDoctorProfile === 'function') {
-            window.openViewDoctorProfile(returnDocId, '#tab-doc-history');
-          }
-        }, 500);
+        returnToDoctorProfile(returnDocId); 
       } else {
         switchVisitView('visitListView');
         await loadVisits();
