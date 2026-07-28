@@ -35,6 +35,11 @@
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
+
+  /* 🌟 ตกแต่งปุ่มแบ่งหน้า (Pagination) ให้สวยงามและกดง่ายบน iPad */
+  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+  .custom-pagination .page-link:hover { background-color: #e9ecef; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -111,6 +116,26 @@
           </tbody>
         </table>
       </div>
+
+      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
+      <div id="doctorPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+          <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
+          <select class="form-select form-select-sm shadow-sm" id="doctorRowsPerPage" onchange="changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="text-muted small ms-3" id="doctorPageInfo">Showing 1 to 10 of 50 entries</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination">
+            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
+          </ul>
+        </nav>
+      </div>
+
     </div>
   </div>
 
@@ -228,6 +253,7 @@
 
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none">
+    <!-- (ส่วนโค้ด Profile ยังคงเดิมทั้งหมด) -->
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> Back
@@ -358,6 +384,7 @@
 
 <script>
   var globalDoctors = [];
+  var globalFilteredDoctors = []; // 🌟 เก็บข้อมูลรายชื่อหมอที่ถูก Filter แล้วสำหรับ Pagination
   var globalHospitals = [];
   var globalProducts = [];
   var globalUsers = [];
@@ -381,6 +408,10 @@
 
   var globalRatingIsLocked = false;
   var globalCurrentUserRole = '';
+
+  // 🌟 ตัวแปรสำหรับ Pagination
+  var currentPage = 1;
+  var rowsPerPage = 20;
 
   window.openViewDoctorProfile = openViewDoctorProfile;
 
@@ -473,7 +504,6 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันจัดการสิทธิ์การแสดงผลสินค้าใน Dropdown (แก้ให้ครอบคลุม Products_Team และ Team_ID)
   async function loadIndexDropdowns() {
     try {
       let crmUser = null;
@@ -506,7 +536,6 @@
       globalTargetData = targetRes.data || [];
       const globalTeamList = teamRes.data || [];
 
-      // ดึงค่า System Settings สำหรับล็อค Target Call
       const sysSettings = sysSetRes.data || [];
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
 
@@ -530,7 +559,6 @@
           globalRatingIsLocked = true; 
       }
 
-      // กรอง Product ตามสิทธิ์
       const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
       let allowedTeamIds = [];
 
@@ -563,7 +591,6 @@
       if (isGlobalViewer) {
           globalTeamProducts = globalProducts;
       } else {
-          // 🌟 ปรับปรุงการตรวจสอบสิทธิ์สินค้า ให้เช็คทั้ง Products_Team และ Team_ID ใน Products โดยตรง
           let filteredProducts = globalProducts.filter(p => {
               let pTeam = String(p.Team_ID || p.team_id || '');
               let pId = String(p.Product_ID || p.product_id || p.id || '');
@@ -803,18 +830,57 @@
       return 0;
     });
 
-    renderDoctorTable(filtered); 
+    globalFilteredDoctors = filtered;
+    currentPage = 1; // 🌟 รีเซ็ตกลับไปหน้าแรกเสมอเมื่อค้นหาใหม่
+    renderDoctorTable(); 
   }
 
-  function renderDoctorTable(data) {
+  // 🌟 ฟังก์ชันจัดการการเปลี่ยนจำนวนแถวต่อหน้า
+  function changeRowsPerPage() {
+    const selectEl = document.getElementById('doctorRowsPerPage');
+    rowsPerPage = parseInt(selectEl.value);
+    currentPage = 1;
+    renderDoctorTable();
+  }
+
+  // 🌟 ฟังก์ชันจัดการการคลิกเปลี่ยนหน้า
+  function goToPage(page) {
+    const totalPages = Math.ceil(globalFilteredDoctors.length / rowsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderDoctorTable();
+  }
+
+  // 🌟 ฟังก์ชันหลักสำหรับ Render ตารางรายชื่อหมอแบบมี Pagination
+  function renderDoctorTable() {
     const tbody = document.getElementById('doctorTableBody'); 
     tbody.innerHTML = '';
     
+    const data = globalFilteredDoctors;
+
     if(!Array.isArray(data) || data.length === 0) {
+      document.getElementById('doctorPaginationContainer').classList.add('d-none');
       return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No matching records found.</td></tr>';
     }
     
-    data.forEach(d => {
+    document.getElementById('doctorPaginationContainer').classList.remove('d-none');
+
+    // คำนวณขอบเขต Pagination
+    const totalItems = data.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+    
+    // อัปเดตข้อความบอกจำนวน
+    document.getElementById('doctorPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
+
+    // ตัดอาร์เรย์มาแสดงผล
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    paginatedData.forEach(d => {
       let badge = 'bg-success';
       let statusText = d.status || 'Active';
       let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditDoctorView('${d.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
@@ -844,6 +910,46 @@
           <td class="text-center">${actionButton}</td>
         </tr>`;
     });
+
+    renderPaginationControls(totalPages);
+  }
+
+  // 🌟 ฟังก์ชันวาดปุ่ม Pagination
+  function renderPaginationControls(totalPages) {
+    const ul = document.getElementById('doctorPagination');
+    let html = '';
+
+    // ปุ่ม Previous
+    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage - 1}); return false;">&laquo; Prev</a>
+            </li>`;
+
+    // คัดกรองให้แสดงไม่เกิน 5 ปุ่ม (เช่น 1 2 3 ... 10)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>`;
+        if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<li class="page-item ${currentPage === i ? 'active' : ''}">
+                  <a class="page-link shadow-sm" href="#" onclick="goToPage(${i}); return false;">${i}</a>
+                </li>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(${totalPages}); return false;">${totalPages}</a></li>`;
+    }
+
+    // ปุ่ม Next
+    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage + 1}); return false;">Next &raquo;</a>
+            </li>`;
+
+    ul.innerHTML = html;
   }
 
   function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
@@ -1401,15 +1507,13 @@
     addRatingRowHTML('', '', '', '', '');
   }
 
-  // 🌟 อัปเดตฟังก์ชัน ให้แก้ไขได้เสมอถ้าระบบเปิด (ลบเงื่อนไข && isMyProduct ออก)
   function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
 
     const isAdmin = (globalCurrentUserRole === 'Admin');
-    const isMyProduct = !prodId || globalTeamProducts.some(p => String(p.Product_ID) === String(prodId));
     
-    // 🌟 แก้ไข: ถ้าเปิดระบบอยู่ สามารถแก้ไขได้ทุกรายการ
+    // 🌟 เปิดให้แก้ได้ตราบใดที่ Admin ตั้งระบบเป็นเปิด 
     const canEdit = isAdmin || !globalRatingIsLocked;
     const disabledAttr = canEdit ? '' : 'disabled';
 
@@ -1421,6 +1525,8 @@
         });
     }
     
+    // 🌟 ดึงข้อมูลมาโชว์ ถึงแม้จะไม่ใช่สินค้าเราก็ตาม
+    let isMyProduct = globalTeamProducts.some(p => String(p.Product_ID) === String(prodId));
     if (prodId && !isMyProduct) {
         const existingProd = globalProducts.find(p => String(p.Product_ID) === String(prodId));
         if (existingProd) {
