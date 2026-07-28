@@ -30,6 +30,11 @@
     color: #ffffff !important;
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
   }
+
+  /* 🌟 คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
+  .sortable-th i { transition: transform 0.2s; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -46,7 +51,7 @@
       </button>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาทั้งหมด (โชว์เต็มทั้งหมด ไม่ซ่อน) -->
+    <!-- ส่วนค้นหาทั้งหมด -->
     <div class="row mb-4 doctor-filter-group g-3 align-items-end">
       
       <div class="col-sm-6 col-md-6 col-lg-3">
@@ -82,23 +87,23 @@
         <label class="form-label fw-bold text-secondary small mb-1">Doctor Type</label>
         <select class="form-select shadow-sm" id="filterDocType" onchange="filterDoctors()">
           <option value="">- All Types -</option>
-          <!-- จะถูกใส่ค่าจาก Database ผ่านฟังก์ชัน loadIndexDropdowns -->
         </select>
       </div>
 
     </div>
 
+    <!-- 🌟 ตารางแสดงผล (เพิ่มคลาส sortable-th และไอคอนที่หัวตาราง) -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
           <thead class="text-center">
             <tr>
-              <th>Doctor Name (EN)</th>
-              <th>Doctor Name (TH)</th>
-              <th>Specialty</th>
-              <th>Primary Hospital</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('nameEn')">Doctor Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-nameEn"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('nameTh')">Doctor Name (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-nameTh"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('specialty')">Specialty <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-specialty"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('hospital')">Primary Hospital <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-hospital"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-status"></i></th>
+              <th class="py-3">Action</th>
             </tr>
           </thead>
           <tbody id="doctorTableBody">
@@ -340,6 +345,10 @@
   var globalTargetData = [];
   var globalTeamProducts = []; 
   var globalPendingUnlockVisits = []; 
+
+  // 🌟 ตัวแปรเก็บสถานะการจัดเรียง
+  var currentDocSortCol = 'nameEn';
+  var currentDocSortAsc = true; 
 
   window.openViewDoctorProfile = openViewDoctorProfile;
 
@@ -632,8 +641,31 @@
       globalDoctors = list;
       filterDoctors(); 
     } catch (err) { 
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ โหลดข้อมูลไม่สำเร็จ: ${err.message}</td></tr>`; 
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
     }
+  }
+
+  // 🌟 ฟังก์ชันจัดการการคลิกเรียงลำดับหัวตาราง (Sorting)
+  function sortDoctors(col) {
+    if (currentDocSortCol === col) {
+      currentDocSortAsc = !currentDocSortAsc; 
+    } else {
+      currentDocSortCol = col;
+      currentDocSortAsc = true; 
+    }
+
+    ['nameEn', 'nameTh', 'specialty', 'hospital', 'status'].forEach(c => {
+      const icon = document.getElementById('icon-sort-doc-' + c);
+      if (icon) {
+        if (c === currentDocSortCol) {
+          icon.className = currentDocSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    filterDoctors(); 
   }
 
   function filterDoctors() {
@@ -656,6 +688,32 @@
       const matchHosp = (hospTerm === "") || (d.hospitalName && d.hospitalName.toLowerCase().includes(hospTerm));
 
       return matchName && matchSpec && matchType && matchHosp;
+    });
+
+    // 🌟 ระบบจัดเรียงข้อมูลก่อนนำไปโชว์ (Sorting Logic)
+    filtered.sort((a, b) => {
+      let valA = '', valB = '';
+
+      if (currentDocSortCol === 'nameEn') {
+        valA = (a.nameEn || '').toLowerCase();
+        valB = (b.nameEn || '').toLowerCase();
+      } else if (currentDocSortCol === 'nameTh') {
+        valA = (a.nameTh || '').toLowerCase();
+        valB = (b.nameTh || '').toLowerCase();
+      } else if (currentDocSortCol === 'specialty') {
+        valA = (a.specialty || '').toLowerCase();
+        valB = (b.specialty || '').toLowerCase();
+      } else if (currentDocSortCol === 'hospital') {
+        valA = (a.hospitalName || '').toLowerCase();
+        valB = (b.hospitalName || '').toLowerCase();
+      } else if (currentDocSortCol === 'status') {
+        valA = (a.status || '').toLowerCase();
+        valB = (b.status || '').toLowerCase();
+      }
+
+      if (valA < valB) return currentDocSortAsc ? -1 : 1;
+      if (valA > valB) return currentDocSortAsc ? 1 : -1;
+      return 0;
     });
 
     renderDoctorTable(filtered); 
@@ -706,7 +764,7 @@
     const row = document.createElement('div');
     row.className = 'row align-items-center workplace-row';
 
-    let optionsHtml = '<option value="">- ค้นหาและเลือกโรงพยาบาล -</option>';
+    let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
     globalHospitals.forEach(h => {
       const selected = h.Hospital_ID === hospId ? 'selected' : '';
       const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
@@ -724,11 +782,11 @@
       <div class="col-sm-8 col-md-3">
         <div class="form-check pt-1 px-3 py-2 bg-light rounded border">
           <input class="form-check-input primary-radio" type="radio" name="${radioGroupName}" value="true" ${checked} required style="cursor:pointer; transform: scale(1.2); margin-top:0.3rem;">
-          <label class="form-check-label text-dark fw-bold ms-2" style="cursor:pointer;">Primary (รพ.หลัก)</label>
+          <label class="form-check-label text-dark fw-bold ms-2" style="cursor:pointer;">Primary</label>
         </div>
       </div>
       <div class="col-sm-4 col-md-2 text-end">
-        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> ลบ</button>
+        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> Remove</button>
       </div>
     `;
     container.appendChild(row);
@@ -760,7 +818,7 @@
       
       const badgeContainer = document.getElementById('editDcrStatusBadge');
       if (badgeContainer) {
-        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>` : '';
+        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${data[0].Action})</span>` : '';
       }
     } catch (err) { console.error("Error check DCR:", err); }
   }
@@ -795,7 +853,6 @@
     switchDoctorView('doctorEditView');
   }
 
-  // 🌟 เพิ่มการรับพารามิเตอร์ targetTab เพื่อให้รู้ว่าควรเปิดที่แท็บไหน
   async function openViewDoctorProfile(id, targetTab = '#tab-doc-info') {
     currentTargetDocId = id; 
     const d = globalDoctors.find(x => x.id === id); 
@@ -816,12 +873,12 @@
       parsedWp.forEach(wp => {
         const isPrimary = wp.isPrimary ? '<span class="badge bg-primary ms-2">Primary</span>' : '';
         const hospObj = globalHospitals.find(h => h.Hospital_ID === wp.hospitalId);
-        const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "โรงพยาบาล";
+        const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Hospital";
         wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
       });
     } else {
       const hospObj = globalHospitals.find(h => h.Hospital_ID === d.hospitalId);
-      const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "โรงพยาบาลหลัก";
+      const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Primary Hospital";
       wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge bg-primary ms-2">Primary</span></div>`;
     }
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
@@ -829,7 +886,6 @@
     loadDoctorVisitHistory(id);
     await loadDoctorRatings(id);
 
-    // 🌟 เลือกว่าจะโชว์แท็บไหน (ค่าปกติคือ ข้อมูลทั่วไป แต่ถ้าถูกส่งกลับมาจะเปิดประวัติแทน)
     const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTab}"]`);
     if(tabEl) { 
       const tab = new bootstrap.Tab(tabEl); 
@@ -847,7 +903,6 @@
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
-      // 🌟 ดึง Visit_Products มาด้วย
       const [visitRes, vpRes, dcrRes] = await Promise.all([
         supabaseClient.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false }),
         supabaseClient.from('Visit_Products').select('*'),
@@ -895,7 +950,6 @@
 
         const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || userObj.name || rawWho) : (rawWho || '-');
 
-        // 🌟 ดึงชื่อสินค้าหลายตัวมาต่อกันเป็น Badge
         const visitProds = globalVP.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
         let prodBadges = '';
         if (visitProds.length > 0) {
