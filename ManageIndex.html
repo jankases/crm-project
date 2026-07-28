@@ -17,10 +17,10 @@
 
   <!-- ================= 🌟 ส่วนที่แก้ไข Layout ใหม่: เปิด/ปิดระบบ Target Call ================= -->
   <div class="card p-4 border-0 shadow-sm mb-4" style="border-radius: 12px; border-left: 5px solid #fd7e14 !important;">
-    <div class="row align-items-center g-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
       
       <!-- ฝั่งซ้าย: คำอธิบาย -->
-      <div class="col-xl-5 col-lg-12">
+      <div class="flex-grow-1">
         <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-bullseye me-2 text-warning"></i>Target Call (Rating) Access</h5>
         <p class="text-muted small mb-0" style="line-height: 1.6;">
           Control whether Sales Reps can edit the "Target Call" tab in Doctor Profiles.<br>
@@ -30,38 +30,39 @@
       </div>
       
       <!-- ฝั่งขวา: ส่วนควบคุม -->
-      <div class="col-xl-7 col-lg-12">
-        <div class="d-flex align-items-center gap-3 bg-light p-3 rounded-4 border flex-wrap flex-md-nowrap justify-content-md-between justify-content-xl-end">
-          
-          <!-- ตัวเลือกตั้งวันที่เปิด/ปิด -->
-          <div class="d-flex align-items-center gap-2 border-end pe-3 flex-shrink-0">
-            <div>
-              <label class="form-label text-secondary small fw-bold mb-1">Start Date</label>
-              <input type="date" class="form-control text-secondary shadow-sm" id="ratingStartDate" style="border-radius: 8px; font-size: 0.9rem;">
-            </div>
-            <div>
-              <label class="form-label text-secondary small fw-bold mb-1">End Date</label>
-              <input type="date" class="form-control text-secondary shadow-sm" id="ratingEndDate" style="border-radius: 8px; font-size: 0.9rem;">
-            </div>
+      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-end justify-content-center justify-content-md-end gap-3 flex-shrink-0">
+        
+        <!-- ตัวเลือกตั้งวันที่เปิด/ปิด -->
+        <div class="d-flex gap-2">
+          <div>
+            <label class="form-label text-secondary small fw-bold mb-1">Start Date</label>
+            <input type="date" class="form-control form-control-sm text-secondary shadow-sm px-2" id="ratingStartDate" style="border-radius: 8px; height: 38px;">
           </div>
-
-          <!-- ปุ่มเปิด/ปิด แบบ Manual -->
-          <div class="text-center px-2 flex-shrink-0" style="min-width: 140px;">
-            <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
-            <label class="switch mb-0">
-              <input type="checkbox" id="ratingToggleSwitch" onchange="toggleRatingSystem()">
-              <span class="slider"></span>
-            </label>
+          <div>
+            <label class="form-label text-secondary small fw-bold mb-1">End Date</label>
+            <input type="date" class="form-control form-control-sm text-secondary shadow-sm px-2" id="ratingEndDate" style="border-radius: 8px; height: 38px;">
           </div>
-
-          <!-- ปุ่ม Save -->
-          <div class="flex-shrink-0 w-100 w-md-auto text-end mt-2 mt-md-0 pl-md-2">
-            <button class="btn btn-dark fw-bold rounded-pill px-4 py-2 shadow-sm text-nowrap w-100" id="btnSaveSysSettings" onclick="saveSystemSettings()">
-              <i class="fa-solid fa-save me-1"></i> Save
-            </button>
-          </div>
-
         </div>
+
+        <!-- เส้นกั้น (แสดงเฉพาะจอกว้าง) -->
+        <div class="vr d-none d-md-block mx-1" style="height: 40px; align-self: center;"></div>
+
+        <!-- ปุ่มเปิด/ปิด แบบ Manual -->
+        <div class="text-center" style="min-width: 140px;">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
+          <label class="switch mb-0">
+            <input type="checkbox" id="ratingToggleSwitch" onchange="toggleRatingSystem()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- ปุ่ม Save -->
+        <div>
+          <button class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm text-nowrap" id="btnSaveSysSettings" onclick="saveSystemSettings()" style="height: 38px;">
+            <i class="fa-solid fa-save me-1"></i> Save
+          </button>
+        </div>
+
       </div>
 
     </div>
