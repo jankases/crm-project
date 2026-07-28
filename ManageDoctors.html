@@ -92,7 +92,7 @@
 
     </div>
 
-    <!-- ตารางแสดงผล -->
+    <!-- ตารางแสดงผล (sortable-th) -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
@@ -269,7 +269,7 @@
           </div>
         </div>
 
-        <!-- 🌟 แถบประวัติการเข้าพบ (เพิ่มส่วน Filter และ Sort) -->
+        <!-- แถบประวัติการเข้าพบ (เพิ่มส่วน Filter และ Sort) -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>Visit History</h6>
@@ -906,9 +906,11 @@
     }
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
 
-    // 🌟 เติมข้อมูลลง Dropdown ของ Filter สินค้าในหน้า Profile
+    // 🌟 เติมข้อมูลลง Dropdown ของ Filter สินค้าในหน้า Profile โดยใช้สิทธิ์ (globalTeamProducts)
     let phtml = '<option value="">- All Products -</option>';
-    globalProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+    if (typeof globalTeamProducts !== 'undefined') {
+        globalTeamProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+    }
     document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
 
     loadDoctorVisitHistory(id);
