@@ -31,7 +31,7 @@
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
   }
 
-  /* 🌟 คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
+  /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
@@ -92,7 +92,7 @@
 
     </div>
 
-    <!-- 🌟 ตารางแสดงผล (เพิ่มคลาส sortable-th และไอคอนที่หัวตาราง) -->
+    <!-- ตารางแสดงผล (sortable-th) -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
@@ -764,7 +764,7 @@
     const row = document.createElement('div');
     row.className = 'row align-items-center workplace-row';
 
-    let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
+    let optionsHtml = '<option value="">- ค้นหาและเลือกโรงพยาบาล -</option>';
     globalHospitals.forEach(h => {
       const selected = h.Hospital_ID === hospId ? 'selected' : '';
       const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
@@ -786,7 +786,7 @@
         </div>
       </div>
       <div class="col-sm-4 col-md-2 text-end">
-        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> Remove</button>
+        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> ลบ</button>
       </div>
     `;
     container.appendChild(row);
@@ -818,7 +818,7 @@
       
       const badgeContainer = document.getElementById('editDcrStatusBadge');
       if (badgeContainer) {
-        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${data[0].Action})</span>` : '';
+        badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="fa-solid fa-hourglass-half me-1"></i>รออนุมัติ (${data[0].Action})</span>` : '';
       }
     } catch (err) { console.error("Error check DCR:", err); }
   }
@@ -989,26 +989,32 @@
     }
   }
 
+  // 🌟 อัปเดต: การเชื่อมโยงไปหน้า Visit โดยใช้ setInterval (Smart Polling)
   function goToQuickAddCall() {
     sessionStorage.setItem('returnToDocId', currentTargetDocId);
     
     const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
     allMenus.forEach(btn => {
       const txt = btn.textContent || btn.innerText;
-      if (txt && txt.trim().includes('บันทึกเยี่ยม') && !txt.includes('Add Call')) {
+      if (txt && (txt.trim().includes('บันทึกเยี่ยม') || txt.trim().includes('Visit Logs')) && !txt.includes('Add Call')) {
         btn.click();
       }
     });
 
-    setTimeout(() => {
+    let attempts = 0;
+    const checkReady = setInterval(() => {
+      attempts++;
       if (typeof window.openAddVisitModal === 'function') {
+        clearInterval(checkReady);
         window.openAddVisitModal(currentTargetDocId); 
-      } else {
+      } else if (attempts > 30) {
+        clearInterval(checkReady);
         alert("Please switch to 'Visit Logs' menu manually.");
       }
-    }, 600);
+    }, 100);
   }
 
+  // 🌟 อัปเดต: ให้ชัวร์ว่าข้อมูลโหลดพร้อมก่อนเปิดหน้าแก้ไข Visit
   function goToEditCall(visitId) {
     if (!visitId || visitId === "undefined") {
       return alert("❌ Visit ID not found.");
@@ -1018,18 +1024,23 @@
     const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
     allMenus.forEach(btn => {
       const txt = btn.textContent || btn.innerText;
-      if (txt && txt.trim().includes('บันทึกเยี่ยม') && !txt.includes('Add Call')) {
+      if (txt && (txt.trim().includes('บันทึกเยี่ยม') || txt.trim().includes('Visit Logs')) && !txt.includes('Add Call')) {
         btn.click();
       }
     });
 
-    setTimeout(() => {
-      if (typeof window.openEditVisitModal === 'function') {
+    let attempts = 0;
+    const checkReady = setInterval(() => {
+      attempts++;
+      // เช็คว่าฟังก์ชันพร้อม และ ฐานข้อมูลดึงเสร็จเรียบร้อยแล้ว
+      if (typeof window.openEditVisitModal === 'function' && window.globalVisits && window.globalVisits.length > 0) {
+        clearInterval(checkReady);
         window.openEditVisitModal(visitId, currentTargetDocId);
-      } else {
-        alert("Please switch to 'Visit Logs' menu manually.");
+      } else if (attempts > 50) { // รอได้นานสุด 5 วินาที
+        clearInterval(checkReady);
+        alert("Data is taking too long to load. Please click the edit button manually on the Visit Logs page.");
       }
-    }, 600);
+    }, 100);
   }
 
   async function handleAddDoctor(e) {
