@@ -36,7 +36,7 @@
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
 
-  /* 🌟 ตกแต่งปุ่มแบ่งหน้า (Pagination) ให้สวยงามและกดง่ายบน iPad */
+  /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
@@ -117,7 +117,7 @@
         </table>
       </div>
 
-      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
+      <!-- ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
       <div id="doctorPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
@@ -253,7 +253,6 @@
 
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none">
-    <!-- (ส่วนโค้ด Profile ยังคงเดิมทั้งหมด) -->
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> Back
@@ -383,8 +382,27 @@
 </div>
 
 <script>
+  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
+  async function fetchAllRecords(tableName, queryModifier = null) {
+      let allData = [];
+      let start = 0;
+      const step = 1000;
+      while (true) {
+          let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
+          if (queryModifier) query = queryModifier(query);
+          
+          const { data, error } = await query;
+          if (error) throw error;
+          
+          allData = allData.concat(data);
+          if (data.length < step) break;
+          start += step;
+      }
+      return allData;
+  }
+
   var globalDoctors = [];
-  var globalFilteredDoctors = []; // 🌟 เก็บข้อมูลรายชื่อหมอที่ถูก Filter แล้วสำหรับ Pagination
+  var globalFilteredDoctors = []; 
   var globalHospitals = [];
   var globalProducts = [];
   var globalUsers = [];
@@ -409,7 +427,6 @@
   var globalRatingIsLocked = false;
   var globalCurrentUserRole = '';
 
-  // 🌟 ตัวแปรสำหรับ Pagination
   var currentPage = 1;
   var rowsPerPage = 20;
 
@@ -512,25 +529,26 @@
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
       const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-      const [typeRes, idxRes, hospRes, prodRes, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes, teamRes] = await Promise.all([
+      // 🌟 ใช้ fetchAllRecords กับตารางหลักเพื่อป้องกันปัญหา 1000 limit
+      const [typeRes, idxRes, allHospitals, allProductsList, userRes, terrRes, matrixRes, targetRes, teamProdRes, sysSetRes, teamRes] = await Promise.all([
         supabaseClient.from('IndexType').select('*'),
         supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-        supabaseClient.from('Hospitals').select('*').eq('Status', 'Active').order('Hospital', { ascending: true }),
-        supabaseClient.from('Products').select('*').order('Product', { ascending: true }),
-        supabaseClient.from('Rep_Users').select('*'), 
+        fetchAllRecords('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
+        fetchAllRecords('Products', q => q.order('Product', { ascending: true })),
+        fetchAllRecords('Rep_Users'), 
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Rating_Matrix').select('*'),
         supabaseClient.from('Target').select('*'),
-        supabaseClient.from('Products_Team').select('*'),
+        fetchAllRecords('Products_Team'),
         supabaseClient.from('System_Settings').select('*'),
         supabaseClient.from('Team').select('*')
       ]);
       
       globalIndexTypes = typeRes.data || [];
       globalIndexes = idxRes.data || [];
-      globalHospitals = hospRes.data || []; 
-      globalProducts = prodRes.data || [];
-      globalUsers = userRes.data || []; 
+      globalHospitals = allHospitals || []; 
+      globalProducts = allProductsList || [];
+      globalUsers = userRes || []; 
       globalTerritories = terrRes.data || [];
       globalMatrixData = matrixRes.data || [];
       globalTargetData = targetRes.data || [];
@@ -586,7 +604,7 @@
           }
       }
 
-      let teamProdLinks = teamProdRes.data || [];
+      let teamProdLinks = teamProdRes || [];
 
       if (isGlobalViewer) {
           globalTeamProducts = globalProducts;
@@ -667,7 +685,7 @@
 
   async function loadDoctors() {
     const tbody = document.getElementById('doctorTableBody');
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
     
     try {
       let crmUser = null;
@@ -678,19 +696,16 @@
       const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
       const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
 
-      const [docRes, assignRes, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
-        supabaseClient.from('Doctors').select('*').order('Doc_Name', { ascending: true }),
-        supabaseClient.from('Assignment').select('*').eq('Type', 'Doctor'),
+      // 🌟 ใช้ fetchAllRecords สำหรับตารางหลักที่อาจมีเกิน 1000 รายการ
+      const [allDoctors, assignments, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+        fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
+        fetchAllRecords('Assignment', q => q.eq('Type', 'Doctor')),
         supabaseClient.from('Territory').select('*'),
         supabaseClient.from('Team').select('*'),
         supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending'),
         supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending')
       ]);
 
-      if (docRes.error) throw docRes.error;
-
-      let allDoctors = docRes.data || [];
-      let assignments = assignRes.data || [];
       let territories = terrRes.data || [];
       let teams = teamRes.data || [];
 
@@ -831,11 +846,10 @@
     });
 
     globalFilteredDoctors = filtered;
-    currentPage = 1; // 🌟 รีเซ็ตกลับไปหน้าแรกเสมอเมื่อค้นหาใหม่
+    currentPage = 1; 
     renderDoctorTable(); 
   }
 
-  // 🌟 ฟังก์ชันจัดการการเปลี่ยนจำนวนแถวต่อหน้า
   function changeRowsPerPage() {
     const selectEl = document.getElementById('doctorRowsPerPage');
     rowsPerPage = parseInt(selectEl.value);
@@ -843,7 +857,6 @@
     renderDoctorTable();
   }
 
-  // 🌟 ฟังก์ชันจัดการการคลิกเปลี่ยนหน้า
   function goToPage(page) {
     const totalPages = Math.ceil(globalFilteredDoctors.length / rowsPerPage);
     if (page < 1 || page > totalPages) return;
@@ -851,7 +864,6 @@
     renderDoctorTable();
   }
 
-  // 🌟 ฟังก์ชันหลักสำหรับ Render ตารางรายชื่อหมอแบบมี Pagination
   function renderDoctorTable() {
     const tbody = document.getElementById('doctorTableBody'); 
     tbody.innerHTML = '';
@@ -865,7 +877,6 @@
     
     document.getElementById('doctorPaginationContainer').classList.remove('d-none');
 
-    // คำนวณขอบเขต Pagination
     const totalItems = data.length;
     const totalPages = Math.ceil(totalItems / rowsPerPage);
     if (currentPage > totalPages) currentPage = totalPages;
@@ -874,10 +885,8 @@
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
     
-    // อัปเดตข้อความบอกจำนวน
     document.getElementById('doctorPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
 
-    // ตัดอาร์เรย์มาแสดงผล
     const paginatedData = data.slice(startIndex, endIndex);
 
     paginatedData.forEach(d => {
@@ -914,17 +923,14 @@
     renderPaginationControls(totalPages);
   }
 
-  // 🌟 ฟังก์ชันวาดปุ่ม Pagination
   function renderPaginationControls(totalPages) {
     const ul = document.getElementById('doctorPagination');
     let html = '';
 
-    // ปุ่ม Previous
     html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
               <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage - 1}); return false;">&laquo; Prev</a>
             </li>`;
 
-    // คัดกรองให้แสดงไม่เกิน 5 ปุ่ม (เช่น 1 2 3 ... 10)
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
 
@@ -944,7 +950,6 @@
         html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(${totalPages}); return false;">${totalPages}</a></li>`;
     }
 
-    // ปุ่ม Next
     html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
               <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage + 1}); return false;">Next &raquo;</a>
             </li>`;
@@ -1513,7 +1518,6 @@
 
     const isAdmin = (globalCurrentUserRole === 'Admin');
     
-    // 🌟 เปิดให้แก้ได้ตราบใดที่ Admin ตั้งระบบเป็นเปิด 
     const canEdit = isAdmin || !globalRatingIsLocked;
     const disabledAttr = canEdit ? '' : 'disabled';
 
@@ -1525,7 +1529,6 @@
         });
     }
     
-    // 🌟 ดึงข้อมูลมาโชว์ ถึงแม้จะไม่ใช่สินค้าเราก็ตาม
     let isMyProduct = globalTeamProducts.some(p => String(p.Product_ID) === String(prodId));
     if (prodId && !isMyProduct) {
         const existingProd = globalProducts.find(p => String(p.Product_ID) === String(prodId));
