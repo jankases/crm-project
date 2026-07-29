@@ -566,11 +566,10 @@
           const globalTerritoryListLocal = territoryRes.data || [];
           const globalTeamListLocal = teamRes.data || [];
 
-          window.VisitManagerCache.allDoctors = allDoctors;
-          window.VisitManagerCache.allHospitals = allHospitals;
-
           let allowedTerIds = [];
-          const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
+          
+          // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope แทนการเช็ค Role (เพื่อความยืดหยุ่นในอนาคต) แต่อาจจะเผื่อ Admin ไว้เป็นสิทธิ์สูงสุด
+          const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || globalCurrentUserRole === 'Admin';
 
           if (isGlobalViewer) {
               window.VisitManagerCache.assignedDoctors = allDoctors;
@@ -601,14 +600,12 @@
                   }
               }
 
-              // 🌟 รองรับกรณีที่ชื่อ Field ใน DB อาจเป็น Territory หรือ Territory_ID
               const myAssignments = allAssignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
 
               window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID)));
 
-              // 🌟 เพิ่ม Logic ให้เห็นโรงพยาบาลอัตโนมัติ หากหมอที่เราดูแลสังกัดอยู่ (Implicit Assignment)
               const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(d => String(d.Hospital_ID));
               const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
 
@@ -743,7 +740,8 @@
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
+    // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
+    const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || userRole === 'Admin';
 
     let allowedTeamIds = [];
     let allowedTerIds = [];
