@@ -52,7 +52,7 @@
         <p class="text-muted mb-0">Database of Hospitals and Workplaces</p>
       </div>
       
-      <!-- 🌟 เพิ่มปุ่ม Refresh แบบหน้า Doctor -->
+      <!-- เพิ่มปุ่ม Refresh แบบหน้า Doctor -->
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadHospitals()" id="btnRefreshHospitals" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
@@ -63,10 +63,10 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาทั้งหมด (ปรับเป็น Multi-Select TomSelect ทั้งหมด) -->
+    <!-- ส่วนค้นหาทั้งหมด (ปรับเป็น Multi-Select TomSelect ทั้งหมด) -->
     <div class="row mb-4 hospital-filter-group g-3 align-items-end">
       
-      <div class="col-sm-12 col-md-6 col-lg-5">
+      <div class="col-sm-12 col-md-6 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <select class="form-select bg-white" id="filterHospName" onchange="filterHospitals()" multiple></select>
@@ -76,13 +76,19 @@
         </div>
       </div>
 
-      <div class="col-sm-6 col-md-3 col-lg-4">
+      <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Province</label>
         <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" multiple></select>
       </div>
 
-      <!-- 🌟 ปุ่มล้างตัวกรอง (Clear Filters) -->
-      <div class="col-sm-6 col-md-3 col-lg-3 d-flex justify-content-end">
+      <!-- 🌟 เพิ่ม Dropdown Filter สำหรับ Zone -->
+      <div class="col-sm-6 col-md-3 col-lg-3">
+        <label class="form-label fw-bold text-secondary small mb-1">Zone</label>
+        <select class="form-select shadow-sm" id="filterHospZone" onchange="filterHospitals()" multiple></select>
+      </div>
+
+      <!-- ปุ่มล้างตัวกรอง (Clear Filters) -->
+      <div class="col-sm-12 col-md-12 col-lg-2 d-flex justify-content-end">
         <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary" type="button" onclick="clearHospitalFilters()" style="min-height: 42px; border-radius: 10px;">
           <i class="fa-solid fa-eraser me-1"></i> Clear Filters
         </button>
@@ -99,18 +105,19 @@
               <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')">Hospital Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-hosp-nameEn"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('knownAs')">Known As (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-knownAs"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('province')">Province <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-province"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('zone')">Zone <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-zone"></i></th> <!-- 🌟 เพิ่มคอลัมน์ Zone -->
               <th class="py-3 sortable-th" onclick="sortHospitals('salesId')">Sales ID <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-salesId"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-status"></i></th>
               <th class="py-3">Action</th>
             </tr>
           </thead>
           <tbody id="hospitalTableBody">
-            <tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
+      <!-- ส่วนควบคุมการแบ่งหน้า (Pagination Controls) แบบหน้า Doctor -->
       <div id="hospitalPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
@@ -124,6 +131,7 @@
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination pagination-sm custom-pagination mb-0" id="hospitalPagination">
+            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
           </ul>
         </nav>
       </div>
@@ -157,7 +165,7 @@
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Province <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Province , Zone <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="hospProvince" required>
                 <option value="">- Select Province -</option>
               </select>
@@ -219,7 +227,7 @@
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">Province <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Province , Zone <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="editHospProvince" required>
                 <option value="">- Select Province -</option>
               </select>
@@ -286,7 +294,7 @@
       </div>
       <div class="row mb-3">
         <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">Province</label>
+          <label class="text-muted small fw-bold">Province , Zone</label>
           <input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;">
         </div>
         <div class="col-md-6 mb-3">
@@ -338,7 +346,7 @@
       hospitals: [],
       indexTypes: [],
       indexes: [],
-      filters: { name: [], prov: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } // 🌟 เปลี่ยนเป็น Array สำหรับ Multi-Select
+      filters: { name: [], prov: [], zone: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
   var globalHospitals = [];
@@ -355,6 +363,16 @@
   var currentHospPage = 1;
   var hospRowsPerPage = 20;
 
+  // 🌟 ฟังก์ชันแยก Province และ Zone ออกจากกัน (สมมติ format คือ "จังหวัด , โซน" หรือ "จังหวัด,โซน")
+  function extractProvinceAndZone(fullString) {
+      if (!fullString) return { province: '-', zone: '-' };
+      const parts = fullString.split(',');
+      if (parts.length > 1) {
+          return { province: parts[0].trim(), zone: parts[1].trim() };
+      }
+      return { province: fullString.trim(), zone: '-' };
+  }
+
   // 🌟 ฟังก์ชันล้างตัวกรองทั้งหมด (Clear Filters)
   function clearHospitalFilters() {
       const clearTs = (id) => {
@@ -368,6 +386,7 @@
       
       clearTs('filterHospName');
       clearTs('filterHospProvince');
+      clearTs('filterHospZone'); // เคลียร์ Zone ด้วย
       
       filterHospitals();
   }
@@ -519,6 +538,7 @@
       });
   }
 
+  // 🌟 โหลด Index Dropdowns และจัดกลุ่ม Province / Zone
   async function loadIndexDropdowns(forceReload = false) {
     try {
       window.HospManagerCache = window.HospManagerCache || {};
@@ -538,27 +558,49 @@
 
       const provType = globalIndexTypes.find(t => t.Name.toLowerCase() === 'province');
       
-      // 🌟 สร้าง HTML Option สำหรับ TomSelect (ไม่ต้องมี option ว่าง เพราะ TomSelect ใส่ Placeholder เอง)
-      let filterProvHtml = ''; 
-      let formProvHtml = '<option value="">- Select Province -</option>';
+      let formProvHtml = '<option value="">- Select Province , Zone -</option>';
+      
+      // ตัวแปรสำหรับเก็บตัวเลือกแบบแยกกัน
+      let uniqueProvinces = new Set();
+      let uniqueZones = new Set();
 
       if (provType) {
         const provItems = globalIndexes.filter(i => i.IndexType_ID === provType.IndexType_ID);
         provItems.forEach(i => {
-            filterProvHtml += `<option value="${i.Value}">${i.Value}</option>`;
+            // สำหรับฟอร์ม Add/Edit เอาแบบเต็มๆ
             formProvHtml += `<option value="${i.Value}">${i.Value}</option>`;
+            
+            // แยก Province และ Zone สำหรับ Filter
+            const extracted = extractProvinceAndZone(i.Value);
+            if(extracted.province !== '-') uniqueProvinces.add(extracted.province);
+            if(extracted.zone !== '-') uniqueZones.add(extracted.zone);
         });
       }
       
-      // อัปเดต Dropdown ในฟอร์มแบบเดิม
+      // อัปเดต Dropdown ในฟอร์มแบบเดิม (แสดงแบบเต็ม "Province , Zone")
       document.getElementById('hospProvince').innerHTML = formProvHtml;
       document.getElementById('editHospProvince').innerHTML = formProvHtml;
       
-      // 🌟 อัปเดต Dropdown ค้นหาให้ใช้ TomSelect
+      // 🌟 สร้าง Dropdown ค้นหาแยก Province
       const filterProv = document.getElementById('filterHospProvince');
       if (filterProv) {
+          let filterProvHtml = '';
+          Array.from(uniqueProvinces).sort().forEach(p => {
+              filterProvHtml += `<option value="${p}">${p}</option>`;
+          });
           filterProv.innerHTML = filterProvHtml;
           initMultiTomSelect('filterHospProvince', '- All Provinces -');
+      }
+
+      // 🌟 สร้าง Dropdown ค้นหาแยก Zone
+      const filterZone = document.getElementById('filterHospZone');
+      if (filterZone) {
+          let filterZoneHtml = '';
+          Array.from(uniqueZones).sort().forEach(z => {
+              filterZoneHtml += `<option value="${z}">${z}</option>`;
+          });
+          filterZone.innerHTML = filterZoneHtml;
+          initMultiTomSelect('filterHospZone', '- All Zones -');
       }
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
@@ -570,7 +612,7 @@
     window.HospManagerCache = window.HospManagerCache || {};
 
     if (forceReload || !window.HospManagerCache.isLoaded) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
         
         try {
           let crmUser = null;
@@ -618,23 +660,37 @@
 
           const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
 
-          let list = visibleHospitals.map(h => ({
-            id: h.Hospital_ID, name: h.Hospital, knownAs: h.Known_As, province: h.Province,
-            address: h.Address, salesId: h.Sales_ID, status: h.Status, 
-            isPendingDcr: false,
-            hasPendingEdit: pendingEditIds.includes(h.Hospital_ID)
-          }));
+          // 🌟 สกัด Province และ Zone ลงใน object เลยเพื่อง่ายต่อการค้นหา
+          let list = visibleHospitals.map(h => {
+             const extracted = extractProvinceAndZone(h.Province);
+             return {
+                id: h.Hospital_ID, 
+                name: h.Hospital, 
+                knownAs: h.Known_As, 
+                provinceFull: h.Province, // ชื่อเต็ม
+                provinceOnly: extracted.province, // แยกเฉพาะจังหวัด
+                zoneOnly: extracted.zone, // แยกเฉพาะโซน
+                address: h.Address, 
+                salesId: h.Sales_ID, 
+                status: h.Status, 
+                isPendingDcr: false,
+                hasPendingEdit: pendingEditIds.includes(h.Hospital_ID)
+             };
+          });
 
           const pendingAddDcrs = pendingAddRes.data || [];
           if (pendingAddDcrs.length > 0) {
             pendingAddDcrs.forEach(d => {
               try {
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
+                const extracted = extractProvinceAndZone(req.Province);
                 list.unshift({
                   id: d.DCR_ID,
                   name: req.Hospital || 'Unknown',
                   knownAs: req.Known_As || '-',
-                  province: req.Province || '-',
+                  provinceFull: req.Province || '-',
+                  provinceOnly: extracted.province || '-',
+                  zoneOnly: extracted.zone || '-',
                   address: req.Address || '-',
                   salesId: req.Sales_ID || '-',
                   status: 'Pending DCR',
@@ -649,7 +705,7 @@
           window.HospManagerCache.isLoaded = true;
 
         } catch (err) { 
-          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
+          if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
           return;
         }
     }
@@ -675,10 +731,12 @@
         const f = window.HospManagerCache.filters;
         const nameEl = document.getElementById('filterHospName');
         const provEl = document.getElementById('filterHospProvince');
+        const zoneEl = document.getElementById('filterHospZone');
         const rowsEl = document.getElementById('hospitalRowsPerPage');
 
         if (nameEl && nameEl.tomselect && f.name && f.name.length > 0) nameEl.tomselect.setValue(f.name);
         if (provEl && provEl.tomselect && f.prov && f.prov.length > 0) provEl.tomselect.setValue(f.prov);
+        if (zoneEl && zoneEl.tomselect && f.zone && f.zone.length > 0) zoneEl.tomselect.setValue(f.zone);
         if (rowsEl) rowsEl.value = f.rows || 20;
 
         currentHospPage = f.page || 1;
@@ -698,7 +756,7 @@
       currentHospSortAsc = true; 
     }
 
-    ['nameEn', 'knownAs', 'province', 'salesId', 'status'].forEach(c => {
+    ['nameEn', 'knownAs', 'province', 'zone', 'salesId', 'status'].forEach(c => {
       const icon = document.getElementById('icon-sort-hosp-' + c);
       if (icon) {
         if (c === currentHospSortCol) {
@@ -725,12 +783,14 @@
 
     const nameTermIds = getTsVals('filterHospName');
     const provTerms = getTsVals('filterHospProvince');
+    const zoneTerms = getTsVals('filterHospZone');
 
     if (resetPage) currentHospPage = 1;
 
     window.HospManagerCache.filters = {
         name: nameTermIds,
         prov: provTerms,
+        zone: zoneTerms,
         page: currentHospPage,
         rows: hospRowsPerPage,
         sortCol: currentHospSortCol,
@@ -739,9 +799,10 @@
     
     const filtered = globalHospitals.filter(h => {
       const matchName = (nameTermIds.length === 0) || nameTermIds.includes(String(h.id));
-      const matchProv = (provTerms.length === 0) || provTerms.includes(String(h.province));
+      const matchProv = (provTerms.length === 0) || provTerms.includes(String(h.provinceOnly));
+      const matchZone = (zoneTerms.length === 0) || zoneTerms.includes(String(h.zoneOnly));
 
-      return matchName && matchProv;
+      return matchName && matchProv && matchZone;
     });
 
     filtered.sort((a, b) => {
@@ -752,7 +813,9 @@
       } else if (currentHospSortCol === 'knownAs') {
         valA = (a.knownAs || '').toLowerCase(); valB = (b.knownAs || '').toLowerCase();
       } else if (currentHospSortCol === 'province') {
-        valA = (a.province || '').toLowerCase(); valB = (b.province || '').toLowerCase();
+        valA = (a.provinceOnly || '').toLowerCase(); valB = (b.provinceOnly || '').toLowerCase();
+      } else if (currentHospSortCol === 'zone') {
+        valA = (a.zoneOnly || '').toLowerCase(); valB = (b.zoneOnly || '').toLowerCase();
       } else if (currentHospSortCol === 'salesId') {
         valA = (a.salesId || '').toLowerCase(); valB = (b.salesId || '').toLowerCase();
       } else if (currentHospSortCol === 'status') {
@@ -794,7 +857,7 @@
 
     if(!Array.isArray(data) || data.length === 0) {
       document.getElementById('hospitalPaginationContainer').classList.add('d-none');
-      return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No matching records found.</td></tr>';
+      return tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No matching records found.</td></tr>';
     }
     
     document.getElementById('hospitalPaginationContainer').classList.remove('d-none');
@@ -830,11 +893,13 @@
         `<span class="fw-bold text-dark"><i class="fa-regular fa-hospital me-2 text-warning"></i>${h.name || '-'}</span>` : 
         `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a>${pendingEditTag}`;
 
+      // 🌟 เพิ่มคอลัมน์ Zone เข้าไปใน Table
       tbody.innerHTML += `
         <tr>
           <td>${nameCell}</td>
           <td class="text-secondary fw-medium">${h.knownAs || '-'}</td>
-          <td><span class="badge bg-light text-dark border">${h.province || '-'}</span></td>
+          <td><span class="badge bg-light text-dark border">${h.provinceOnly || '-'}</span></td>
+          <td class="text-muted"><small>${h.zoneOnly || '-'}</small></td>
           <td class="text-center text-primary"><small>${h.salesId || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
           <td class="text-center">${actionButton}</td>
@@ -891,7 +956,7 @@
     currentSelectedHospId = id; const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('viewHospTitleName').innerText = `🏥 ${h.name}`;
     document.getElementById('viewHospName').value = h.name || '-'; document.getElementById('viewHospKnownAs').value = h.knownAs || '-'; 
-    document.getElementById('viewHospProvince').value = h.province || '-'; document.getElementById('viewHospAddress').value = h.address || '-';
+    document.getElementById('viewHospProvince').value = h.provinceFull || '-'; document.getElementById('viewHospAddress').value = h.address || '-';
     document.getElementById('viewHospSalesId').value = h.salesId || '-'; document.getElementById('viewHospStatus').value = h.status || '-';
     document.getElementById('viewHospStatus').className = `form-control bg-light fw-bold ${h.status === 'Active' ? 'text-success' : 'text-danger'}`;
     checkPendingDCR(h.id, 'profileDcrStatusBadge'); switchHospitalView('hospitalProfileView');
@@ -921,7 +986,7 @@
   function openEditHospitalView(id) {
     const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('editHospId').value = h.id; document.getElementById('editHospName').value = h.name || '';
-    document.getElementById('editHospKnownAs').value = h.knownAs || ''; document.getElementById('editHospProvince').value = h.province || '';
+    document.getElementById('editHospKnownAs').value = h.knownAs || ''; document.getElementById('editHospProvince').value = h.provinceFull || '';
     document.getElementById('editHospAddress').value = h.address || ''; document.getElementById('editHospSalesId').value = h.salesId || '';
     document.getElementById('editHospStatus').value = h.status || 'Active';
     checkPendingDCR(h.id, 'editDcrStatusBadge');
