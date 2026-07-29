@@ -218,7 +218,14 @@
         startEl.value = ratingConfig.Start || '';
         endEl.value = ratingConfig.End || '';
         
-        checkCurrentRatingStatus(ratingConfig.Start, ratingConfig.End);
+        // ถ้าค่า Status = false แสดงว่าถูกปิดสวิตช์ ล็อกไว้
+        if (ratingConfig.Status === false) {
+            switchEl.checked = false;
+            document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
+        } else {
+            // ถ้า Status = true ให้ไปเช็ควันที่ว่าอยู่ในช่วงหรือไม่
+            checkCurrentRatingStatus(ratingConfig.Start, ratingConfig.End);
+        }
       } else {
         switchEl.checked = false;
         document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
@@ -229,10 +236,12 @@
     }
   }
 
+  // ฟังก์ชันนี้จะทำงานเมื่อ Status = true เพื่อเช็คว่าช่วงวันที่อนุญาตให้เปิดไหม
   function checkCurrentRatingStatus(startStr, endStr) {
     const switchEl = document.getElementById('ratingToggleSwitch');
     const labelEl = document.getElementById('ratingStatusLabel');
     
+    // ถ้าไม่ได้ใส่วันที่ทั้งคู่ แสดงว่าเปิดให้ตลอดกาล
     if (!startStr && !endStr) {
         switchEl.checked = true; 
         labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (Manual)</span>';
@@ -260,11 +269,12 @@
         switchEl.checked = true;
         labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (In Period)</span>';
     } else {
-        switchEl.checked = false;
+        switchEl.checked = true; // สวิตช์ยังเปิด แต่สถานะเป็น Out of Period
         labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Out of Period)</span>';
     }
   }
 
+  // ฟังก์ชันสลับสถานะจากการกดปุ่ม
   function toggleRatingSystem() {
     const switchEl = document.getElementById('ratingToggleSwitch');
     const labelEl = document.getElementById('ratingStatusLabel');
@@ -272,18 +282,16 @@
     const endEl = document.getElementById('ratingEndDate');
     
     if (switchEl.checked) {
+        // เปิดสวิตช์ 
         labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (Manual)</span>';
-        startEl.value = '';
-        endEl.value = '';
+        checkCurrentRatingStatus(startEl.value, endEl.value); // เช็ควันที่อีกรอบเผื่อตั้งวันที่ไว้
     } else {
-        labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Manual)</span>';
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        startEl.value = yesterday.toISOString().split('T')[0];
-        endEl.value = yesterday.toISOString().split('T')[0];
+        // ปิดสวิตช์
+        labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
     }
   }
 
+  // ฟังก์ชันบันทึกการตั้งค่า
   async function saveSystemSettings() {
     const btn = document.getElementById('btnSaveSysSettings');
     btn.disabled = true;
@@ -291,6 +299,7 @@
 
     const startVal = document.getElementById('ratingStartDate').value;
     const endVal = document.getElementById('ratingEndDate').value;
+    const isStatusActive = document.getElementById('ratingToggleSwitch').checked; // ค่าของ Status ใหม่
     
     let crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -299,6 +308,7 @@
         Type: 'Rating',
         Start: startVal || null,
         End: endVal || null,
+        Status: isStatusActive, // 🌟 เพิ่มการส่งค่า Status ขึ้นไป
         Whoupdated: crmUser ? crmUser.Email : "Unknown",
         Whenupdated: new Date().toISOString()
     };
@@ -322,7 +332,11 @@
         btn.classList.replace('btn-dark', 'btn-success');
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
         
-        checkCurrentRatingStatus(startVal, endVal);
+        if (!isStatusActive) {
+            document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
+        } else {
+            checkCurrentRatingStatus(startVal, endVal);
+        }
 
         setTimeout(() => {
             btn.classList.replace('btn-success', 'btn-dark');
