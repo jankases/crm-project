@@ -53,8 +53,9 @@
     <!-- 🌟 ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
+      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown ค้นหาได้ -->
       <div class="col-sm-6 col-md-3 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
+        <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()">
             <option value="">- All Doctors -</option>
@@ -65,8 +66,9 @@
         </div>
       </div>
       
+      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown ค้นหาได้ -->
       <div class="col-sm-12 col-md-3 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
+        <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()">
             <option value="">- All Hospitals -</option>
@@ -203,7 +205,7 @@
           <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>Visit Information</h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Doctor <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Doctor Name (EN/TH) <span class="text-danger">*</span></label>
               <div class="input-group shadow-sm" style="border-radius: 10px;">
                 <select class="form-select bg-white" id="visitDocId" required>
                   <option value="">-- Search/Select Doctor --</option>
@@ -301,7 +303,7 @@
 </div>
 
 <script>
-  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการ
+  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -641,7 +643,7 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ โดยเพิ่ม allowEmptyOption และ maxOptions: null
+      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ (มี searchField เพื่อให้พิมพ์ได้ 2 ภาษา และ maxOptions: null ไม่ให้ชื่อหาย)
       const filterDocSelect = document.getElementById('filterVisitDoctor');
       if (filterDocSelect) {
           filterDocSelect.innerHTML = '<option value="">- All Doctors -</option>';
@@ -652,18 +654,16 @@
               opt.textContent = `${d.Doc_Name}${nameThShow}`; 
               filterDocSelect.appendChild(opt);
           });
-          if (typeof TomSelect !== 'undefined' && !filterDocSelect.tomselect) {
+          if (typeof TomSelect !== 'undefined') {
+              if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
               new TomSelect('#filterVisitDoctor', { 
                   create: false, 
+                  searchField: ["text"],
                   sortField: { field: "text", direction: "asc" }, 
-                  placeholder: "- All Doctors -",
+                  placeholder: "Search Doctor (EN/TH)...",
                   allowEmptyOption: true,
-                  maxOptions: null // ป้องกันปัญหาพิมพ์ค้นหาแล้วชื่อซ่อนหาย
+                  maxOptions: null 
               });
-          } else if (filterDocSelect.tomselect) {
-              filterDocSelect.tomselect.clear();
-              filterDocSelect.tomselect.clearOptions();
-              filterDocSelect.tomselect.sync();
           }
       }
 
@@ -678,22 +678,20 @@
               opt.textContent = `${h.Hospital}${knownAsShow}`; 
               filterHospSelect.appendChild(opt);
           });
-          if (typeof TomSelect !== 'undefined' && !filterHospSelect.tomselect) {
+          if (typeof TomSelect !== 'undefined') {
+              if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
               new TomSelect('#filterVisitHospital', { 
                   create: false, 
+                  searchField: ["text"],
                   sortField: { field: "text", direction: "asc" }, 
-                  placeholder: "- All Hospitals -",
+                  placeholder: "Search Hospital (EN/TH)...",
                   allowEmptyOption: true,
                   maxOptions: null
               });
-          } else if (filterHospSelect.tomselect) {
-              filterHospSelect.tomselect.clear();
-              filterHospSelect.tomselect.clearOptions();
-              filterHospSelect.tomselect.sync();
           }
       }
 
-      // สร้าง Dropdown ใน Form Add/Edit
+      // สร้าง Dropdown ใน Form Add/Edit Visit
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
@@ -701,18 +699,16 @@
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
-        if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
+        if (typeof TomSelect !== 'undefined') {
+            if (docSelect.tomselect) docSelect.tomselect.destroy();
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
+                searchField: ["text"],
                 sortField: { field: "text", direction: "asc" }, 
-                placeholder: "-- Search/Select Doctor --",
+                placeholder: "Search Doctor (EN/TH)...",
                 allowEmptyOption: true,
                 maxOptions: null
             });
-        } else if (tomSelectDocInstance) {
-            tomSelectDocInstance.clear();
-            tomSelectDocInstance.clearOptions();
-            tomSelectDocInstance.sync();
         }
       }
 
@@ -865,12 +861,9 @@
         let fHtml = '';
         allowedProducts.forEach(p => fHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
         formProdSelect.innerHTML = fHtml;
-        if (typeof TomSelect !== 'undefined' && !formProdSelect.tomselect) {
+        if (typeof TomSelect !== 'undefined') {
+            if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
             tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --" });
-        } else if (tomSelectProdInstance) {
-            tomSelectProdInstance.clear();
-            tomSelectProdInstance.clearOptions();
-            tomSelectProdInstance.sync();
         }
     }
   }
@@ -1026,14 +1019,13 @@
     filterVisits(false);
   }
 
-  // 🌟 บันทึกสถานะ Filter ลงใน Cache
+  // 🌟 บันทึกสถานะ Filter (ตอนนี้เก็บเป็นค่า ID แทนคำค้นหาแล้ว)
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     
-    // รับค่า Value (ID) แทนตัวหนังสือ
     const filterDocId = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value : '';
     const filterHospId = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value : '';
     
@@ -1104,10 +1096,8 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
-      // ค้นหาด้วย ID ทำให้แม่นยำ 100%
       const matchDoc = (filterDocId === "") || (String(v.Doc_ID) === String(filterDocId));
 
-      // 🌟 ใช้ globalAllDoctors ในการเทียบหา Hospital เพื่อให้ข้อมูลครบถ้วนแม้ไม่ได้อยู่ในสิทธิ์ Dropdown
       const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let hospId = docObj ? docObj.Hospital_ID : '';
       const matchHosp = (filterHospId === "") || (String(hospId) === String(filterHospId));
@@ -1219,7 +1209,6 @@
 
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-      // 🌟 ใช้ globalAllDoctors ในการจับคู่ชื่อ เพื่อป้องกันปัญหาหมอหลุดขอบเขตสิทธิ์ในตารางแสดงผล
       const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
