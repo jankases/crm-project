@@ -544,6 +544,17 @@
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
       const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
+      // 🌟 ให้สิทธิ์ Global Viewer ทันทีถ้า Scope ว่าง (คือ ALL) หรือเป็น Role ส่วนกลางที่ระบุ
+      window.myIsGlobalViewer = false;
+      if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) {
+          window.myIsGlobalViewer = true;
+      }
+      const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+      if (globalRoles.includes(globalCurrentUserRole.toUpperCase())) {
+          window.myIsGlobalViewer = true;
+      }
+      const isGlobalViewer = window.myIsGlobalViewer;
+
       window.VisitManagerCache = window.VisitManagerCache || {};
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
@@ -567,9 +578,6 @@
           const globalTeamListLocal = teamRes.data || [];
 
           let allowedTerIds = [];
-          
-          // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope แทนการเช็ค Role (เพื่อความยืดหยุ่นในอนาคต) แต่อาจจะเผื่อ Admin ไว้เป็นสิทธิ์สูงสุด
-          const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || globalCurrentUserRole === 'Admin';
 
           if (isGlobalViewer) {
               window.VisitManagerCache.assignedDoctors = allDoctors;
@@ -740,8 +748,12 @@
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
-    const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || userRole === 'Admin';
+    // 🌟 ดึง Global Viewer Logic เดียวกันกับด้านบน
+    let isGlobalViewer = false;
+    if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+    const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+    if (globalRoles.includes(userRole.toUpperCase())) isGlobalViewer = true;
+    window.myIsGlobalViewer = isGlobalViewer; 
 
     let allowedTeamIds = [];
     let allowedTerIds = [];
@@ -807,9 +819,6 @@
       }
     }
 
-    window.myIsGlobalViewer = isGlobalViewer;
-    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
-    window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
     window.myAllowedTeamIds = allowedTeamIds;
     window.myAllowedTerIds = allowedTerIds;
     window.myAllowedRepIds = allowedRepIds;
@@ -817,6 +826,7 @@
     window.myAllowedNames = allowedNames;
 
     const uniqueUsersMap = new Map();
+    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
     window.fullAllowedUsers.forEach(u => {
         const id = String(u.Rep_ID || u.User_ID || u.id);
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
@@ -826,6 +836,7 @@
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
+    window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
     let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Territories -</option>';
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
