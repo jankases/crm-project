@@ -53,7 +53,6 @@
     <!-- 🌟 ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
-      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown -->
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -66,7 +65,6 @@
         </div>
       </div>
       
-      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown -->
       <div class="col-sm-12 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -328,10 +326,12 @@
       dropdownsLoaded: false,
       visits: [],
       visitProducts: [],
-      doctors: [],
+      allDoctors: [],
+      assignedDoctors: [],
+      allHospitals: [],
+      assignedHospitals: [],
       products: [],
       territories: [],
-      hospitals: [],
       users: [],
       teams: [],
       teamProdLinks: [],
@@ -347,13 +347,16 @@
   var globalVisits = [];
   var globalFilteredVisits = [];
   var globalVisitProducts = []; 
-  var globalDoctorsList = [];
+  var globalAllDoctors = [];
+  var globalAssignedDoctors = [];
+  var globalAllHospitals = [];
+  var globalAssignedHospitals = [];
   var globalProductsList = [];
   var globalTerritoryList = [];
-  var globalHospitalsList = [];
   var globalUsersList = [];
   var globalTeamList = [];
   var globalPendingUnlockVisits = [];
+  var globalCurrentUserRole = '';
   
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
@@ -408,7 +411,7 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์แบบใหม่ (ค้นหาเข้า TomSelect โดยตรง) =====================
+  // ===================== 🎙️ ระบบไมค์เข้า TomSelect โดยตรง =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
 
   function searchAndSelectTomSelect(selectId, keyword) {
@@ -545,16 +548,19 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns 
+  // 🌟 โหลด Dropdowns (จำกัดสิทธิ์ Assignment ของหมอและ รพ.)
   async function loadDropdowns(forceReload = false) {
     try {
       let crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
+      globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+      const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+
       window.VisitManagerCache = window.VisitManagerCache || {};
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-          const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes] = await Promise.all([
+          const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
             fetchAllRecords('Doctors', q => q.eq('Status', 'Active').order('Doc_Name', { ascending: true })),
             fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
             supabaseClient.from('Territory').select('*'),
@@ -563,14 +569,62 @@
             fetchAllRecords('Products_Team'),   
             supabaseClient.from('IndexType').select('*'),
             supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-            fetchAllRecords('Rep_Users')
+            fetchAllRecords('Rep_Users'),
+            fetchAllRecords('Assignment')
           ]);
 
-          window.VisitManagerCache.doctors = docRes || [];
+          const allDoctors = docRes || [];
+          const allHospitals = hospRes || [];
+          const allAssignments = assignRes || [];
+          const globalTerritoryListLocal = territoryRes.data || [];
+          const globalTeamListLocal = teamRes.data || [];
+
+          window.VisitManagerCache.allDoctors = allDoctors;
+          window.VisitManagerCache.allHospitals = allHospitals;
+
+          let allowedTerIds = [];
+          const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
+
+          if (isGlobalViewer) {
+              window.VisitManagerCache.assignedDoctors = allDoctors;
+              window.VisitManagerCache.assignedHospitals = allHospitals;
+          } else {
+              let matchedTeam = globalTeamListLocal.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+              let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
+
+              if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
+                  if (matchedTeam) {
+                      const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                  } else if (rawScope) {
+                      const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                  }
+              } else if (globalCurrentUserRole === 'BU Head') {
+                  const buTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
+                  buTeams.forEach(t => {
+                      const terrs = globalTerritoryListLocal.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
+                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+                  });
+              } else {
+                  if (matchedTerr) {
+                      allowedTerIds.push(String(matchedTerr.Territory_ID));
+                  } else if (rawScope) {
+                      allowedTerIds.push(rawScope);
+                  }
+              }
+
+              const myAssignments = allAssignments.filter(a => allowedTerIds.includes(String(a.Territory_ID)));
+              const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
+              const allowedHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
+
+              window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID)));
+              window.VisitManagerCache.assignedHospitals = allHospitals.filter(h => allowedHospIds.includes(String(h.Hospital_ID)));
+          }
+
           window.VisitManagerCache.products = prodRes || [];
-          window.VisitManagerCache.territories = territoryRes.data || [];
-          window.VisitManagerCache.hospitals = hospRes || [];
-          window.VisitManagerCache.teams = teamRes.data || [];
+          window.VisitManagerCache.territories = globalTerritoryListLocal;
+          window.VisitManagerCache.teams = globalTeamListLocal;
           window.VisitManagerCache.teamProdLinks = productsTeamRes || [];
           window.VisitManagerCache.indexTypes = typeRes.data || [];
           window.VisitManagerCache.indexes = idxRes.data || [];
@@ -578,18 +632,20 @@
           window.VisitManagerCache.dropdownsLoaded = true;
       }
 
-      globalDoctorsList = window.VisitManagerCache.doctors; 
+      globalAllDoctors = window.VisitManagerCache.allDoctors; 
+      globalAssignedDoctors = window.VisitManagerCache.assignedDoctors;
+      globalAllHospitals = window.VisitManagerCache.allHospitals; 
+      globalAssignedHospitals = window.VisitManagerCache.assignedHospitals;
       globalProductsList = window.VisitManagerCache.products; 
       globalTerritoryList = window.VisitManagerCache.territories;
-      globalHospitalsList = window.VisitManagerCache.hospitals; 
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ
+      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ โดยเพิ่ม allowEmptyOption และ maxOptions: null
       const filterDocSelect = document.getElementById('filterVisitDoctor');
       if (filterDocSelect) {
           filterDocSelect.innerHTML = '<option value="">- All Doctors -</option>';
-          globalDoctorsList.forEach(d => {
+          globalAssignedDoctors.forEach(d => {
               const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
               const opt = document.createElement('option'); 
               opt.value = d.Doc_ID; 
@@ -597,7 +653,13 @@
               filterDocSelect.appendChild(opt);
           });
           if (typeof TomSelect !== 'undefined' && !filterDocSelect.tomselect) {
-              new TomSelect('#filterVisitDoctor', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "Search Doctor..." });
+              new TomSelect('#filterVisitDoctor', { 
+                  create: false, 
+                  sortField: { field: "text", direction: "asc" }, 
+                  placeholder: "- All Doctors -",
+                  allowEmptyOption: true,
+                  maxOptions: null // ป้องกันปัญหาพิมพ์ค้นหาแล้วชื่อซ่อนหาย
+              });
           } else if (filterDocSelect.tomselect) {
               filterDocSelect.tomselect.clear();
               filterDocSelect.tomselect.clearOptions();
@@ -609,7 +671,7 @@
       const filterHospSelect = document.getElementById('filterVisitHospital');
       if (filterHospSelect) {
           filterHospSelect.innerHTML = '<option value="">- All Hospitals -</option>';
-          globalHospitalsList.forEach(h => {
+          globalAssignedHospitals.forEach(h => {
               const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
               const opt = document.createElement('option'); 
               opt.value = h.Hospital_ID; 
@@ -617,7 +679,13 @@
               filterHospSelect.appendChild(opt);
           });
           if (typeof TomSelect !== 'undefined' && !filterHospSelect.tomselect) {
-              new TomSelect('#filterVisitHospital', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "Search Hospital..." });
+              new TomSelect('#filterVisitHospital', { 
+                  create: false, 
+                  sortField: { field: "text", direction: "asc" }, 
+                  placeholder: "- All Hospitals -",
+                  allowEmptyOption: true,
+                  maxOptions: null
+              });
           } else if (filterHospSelect.tomselect) {
               filterHospSelect.tomselect.clear();
               filterHospSelect.tomselect.clearOptions();
@@ -629,12 +697,18 @@
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
-        globalDoctorsList.forEach(d => {
+        globalAssignedDoctors.forEach(d => {
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
           const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
         if (typeof TomSelect !== 'undefined' && !docSelect.tomselect) {
-            tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Search/Select Doctor --" });
+            tomSelectDocInstance = new TomSelect('#visitDocId', { 
+                create: false, 
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: "-- Search/Select Doctor --",
+                allowEmptyOption: true,
+                maxOptions: null
+            });
         } else if (tomSelectDocInstance) {
             tomSelectDocInstance.clear();
             tomSelectDocInstance.clearOptions();
@@ -952,14 +1026,14 @@
     filterVisits(false);
   }
 
-  // 🌟 บันทึกสถานะ Filter (ตอนนี้เก็บเป็นค่า ID แทนคำค้นหาแล้ว)
+  // 🌟 บันทึกสถานะ Filter ลงใน Cache
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     
-    // 🌟 เปลี่ยนมารับค่า Value (ID) แทนตัวหนังสือ
+    // รับค่า Value (ID) แทนตัวหนังสือ
     const filterDocId = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value : '';
     const filterHospId = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value : '';
     
@@ -1030,10 +1104,11 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
-      // 🌟 ค้นหาด้วย ID ทำให้แม่นยำ 100%
+      // ค้นหาด้วย ID ทำให้แม่นยำ 100%
       const matchDoc = (filterDocId === "") || (String(v.Doc_ID) === String(filterDocId));
 
-      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
+      // 🌟 ใช้ globalAllDoctors ในการเทียบหา Hospital เพื่อให้ข้อมูลครบถ้วนแม้ไม่ได้อยู่ในสิทธิ์ Dropdown
+      const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let hospId = docObj ? docObj.Hospital_ID : '';
       const matchHosp = (filterHospId === "") || (String(hospId) === String(filterHospId));
 
@@ -1052,17 +1127,17 @@
         valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
       } 
       else if (currentSortCol === 'doctor') {
-        const docA = globalDoctorsList.find(d => String(d.Doc_ID) === String(a.Doc_ID));
+        const docA = globalAllDoctors.find(d => String(d.Doc_ID) === String(a.Doc_ID));
         valA = docA ? `${docA.Doc_Name} ${docA.Doc_Name_TH||''}`.toLowerCase() : '';
-        const docB = globalDoctorsList.find(d => String(d.Doc_ID) === String(b.Doc_ID));
+        const docB = globalAllDoctors.find(d => String(d.Doc_ID) === String(b.Doc_ID));
         valB = docB ? `${docB.Doc_Name} ${docB.Doc_Name_TH||''}`.toLowerCase() : '';
       } 
       else if (currentSortCol === 'hospital') {
-        const docA = globalDoctorsList.find(d => String(d.Doc_ID) === String(a.Doc_ID));
-        const hospA = docA ? globalHospitalsList.find(h => String(h.Hospital_ID) === String(docA.Hospital_ID)) : null;
+        const docA = globalAllDoctors.find(d => String(d.Doc_ID) === String(a.Doc_ID));
+        const hospA = docA ? globalAllHospitals.find(h => String(h.Hospital_ID) === String(docA.Hospital_ID)) : null;
         valA = hospA ? `${hospA.Hospital} ${hospA.Known_As||''}`.toLowerCase() : '';
-        const docB = globalDoctorsList.find(d => String(d.Doc_ID) === String(b.Doc_ID));
-        const hospB = docB ? globalHospitalsList.find(h => String(h.Hospital_ID) === String(docB.Hospital_ID)) : null;
+        const docB = globalAllDoctors.find(d => String(d.Doc_ID) === String(b.Doc_ID));
+        const hospB = docB ? globalAllHospitals.find(h => String(h.Hospital_ID) === String(docB.Hospital_ID)) : null;
         valB = hospB ? `${hospB.Hospital} ${hospB.Known_As||''}`.toLowerCase() : '';
       } 
       else if (currentSortCol === 'products') {
@@ -1144,14 +1219,15 @@
 
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
+      // 🌟 ใช้ globalAllDoctors ในการจับคู่ชื่อ เพื่อป้องกันปัญหาหมอหลุดขอบเขตสิทธิ์ในตารางแสดงผล
+      const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
 
       if (docObj) {
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
         
-        const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
+        const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
         if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
 
