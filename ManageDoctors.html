@@ -10,13 +10,11 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงามและไม่โดนบัง */
+  /* 🌟 ปรับแต่ง TomSelect ให้สวยงามและไม่โดนบัง */
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
-  
-  /* 🌟 บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
   
@@ -62,7 +60,6 @@
         <p class="text-muted mb-0">Database of Doctors and Workplaces</p>
       </div>
       
-      <!-- 🌟 เพิ่มปุ่ม Refresh ข้อมูล -->
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
@@ -73,7 +70,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาทั้งหมด (ปรับเป็น Dropdown TomSelect) -->
+    <!-- ส่วนค้นหาทั้งหมด -->
     <div class="row mb-4 doctor-filter-group g-3 align-items-end">
       
       <div class="col-sm-6 col-md-6 col-lg-3">
@@ -150,7 +147,6 @@
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination">
-            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
           </ul>
         </nav>
       </div>
@@ -172,13 +168,28 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i>General Information</h5>
           <div class="row g-3">
-            <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">Title</label><select class="form-select bg-white" id="docTitle"></select></div>
-            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN)</label><input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai" required></div>
-            <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">Name (TH)</label><input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี"></div>
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label fw-bold text-dark">Title</label>
+              <select class="form-select bg-white" id="docTitle"></select>
+            </div>
+            <div class="col-sm-8 col-md-4">
+              <label class="form-label fw-bold text-dark">Name (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai" required>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <label class="form-label fw-bold text-dark">Name (TH)</label>
+              <input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี">
+            </div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Specialty</label><select class="form-select bg-white" id="docSpecialty"></select></div>
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Type</label><select class="form-select bg-white" id="docType"></select></div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark">Specialty</label>
+              <select class="form-select bg-white" id="docSpecialty"></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark">Type</label>
+              <select class="form-select bg-white" id="docType"></select>
+            </div>
           </div>
         </div>
 
@@ -195,8 +206,14 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i>Contact & Consent</h5>
           <div class="row g-3">
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Privacy Policy</label><select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Terms of Service</label><select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark">Privacy Policy</label>
+              <select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark">Terms of Service</label>
+              <select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> Email</label><input type="email" class="form-control bg-white" id="docEmail"></div>
@@ -229,14 +246,32 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">General Information</h5>
           <div class="row g-3">
-            <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">Title</label><select class="form-select bg-white" id="editDocTitle"></select></div>
-            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN) <span class="text-danger">*</span></label><input type="text" class="form-control bg-white" id="editDocNameEn" required></div>
-            <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">Name (TH)</label><input type="text" class="form-control bg-white" id="editDocNameTh"></div>
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label fw-bold text-dark">Title</label>
+              <select class="form-select bg-white" id="editDocTitle"></select>
+            </div>
+            <div class="col-sm-8 col-md-4">
+              <label class="form-label fw-bold text-dark">Name (EN) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="editDocNameEn" required>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <label class="form-label fw-bold text-dark">Name (TH)</label>
+              <input type="text" class="form-control bg-white" id="editDocNameTh">
+            </div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-6 col-md-4"><label class="form-label fw-bold text-dark">Specialty</label><select class="form-select bg-white" id="editDocSpecialty"></select></div>
-            <div class="col-sm-6 col-md-4"><label class="form-label fw-bold text-dark">Type</label><select class="form-select bg-white" id="editDocType"></select></div>
-            <div class="col-sm-12 col-md-4"><label class="form-label fw-bold text-danger">Status</label><select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select></div>
+            <div class="col-sm-6 col-md-4">
+              <label class="form-label fw-bold text-dark">Specialty</label>
+              <select class="form-select bg-white" id="editDocSpecialty"></select>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <label class="form-label fw-bold text-dark">Type</label>
+              <select class="form-select bg-white" id="editDocType"></select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <label class="form-label fw-bold text-danger">Status</label>
+              <select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select>
+            </div>
           </div>
         </div>
 
@@ -253,8 +288,14 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">Contact & Consent</h5>
           <div class="row g-3">
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Privacy Policy</label><select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Terms of Service</label><select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark">Privacy Policy</label>
+              <select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark">Terms of Service</label>
+              <select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> Email</label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
@@ -420,7 +461,7 @@
       return allData;
   }
 
-  // 🌟 ระบบ Caching สำหรับหน้า Doctors เพื่อป้องกันการโหลดใหม่ตอนสลับเมนู
+  // 🌟 ระบบ Caching
   window.DocManagerCache = window.DocManagerCache || {
       isLoaded: false,
       indexLoaded: false,
@@ -593,6 +634,23 @@
     window.scrollTo(0, 0); 
   }
 
+  // 🌟 ฟังก์ชันช่วยเหลือสร้างและอัปเดต TomSelect
+  function updateTomSelect(id, html, placeholder) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(el.tomselect) el.tomselect.destroy();
+      el.innerHTML = html;
+      new TomSelect(`#${id}`, { 
+          create: false, 
+          searchField: ["text"],
+          sortField: { field: "text", direction: "asc" }, 
+          placeholder: placeholder, 
+          allowEmptyOption: true, 
+          maxOptions: null,
+          dropdownParent: 'body' 
+      });
+  }
+
   // 🌟 โหลด Dropdowns (ใช้ Cache)
   async function loadIndexDropdowns(forceReload = false) {
     try {
@@ -702,9 +760,9 @@
           globalTeamProducts = filteredProducts.length > 0 ? filteredProducts : globalProducts;
       }
 
-      const getOptionsHtml = (typeName) => {
+      const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
-        let html = '<option value="">- Select -</option>';
+        let html = `<option value="">${defaultText}</option>`;
         if (typeObj) {
           const items = globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
           items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
@@ -712,18 +770,20 @@
         return html;
       };
 
-      document.getElementById('docTitle').innerHTML = getOptionsHtml('Title');
-      document.getElementById('editDocTitle').innerHTML = getOptionsHtml('Title');
+      // 🌟 ใช้ updateTomSelect เพื่อเปลี่ยนช่องเป็น TomSelect แบบค้นหาได้
+      const titleHtml = getOptionsHtml('Title', '- Select Title -');
+      updateTomSelect('docTitle', titleHtml, '- Select Title -');
+      updateTomSelect('editDocTitle', titleHtml, '- Select Title -');
       
-      const specHtml = getOptionsHtml('Specialty');
-      document.getElementById('docSpecialty').innerHTML = specHtml;
-      document.getElementById('editDocSpecialty').innerHTML = specHtml;
-      document.getElementById('filterDocSpecialty').innerHTML = '<option value="">- All Specialties -</option>' + specHtml.replace('<option value="">- Select -</option>', '');
+      const specHtml = getOptionsHtml('Specialty', '- Select Specialty -');
+      updateTomSelect('docSpecialty', specHtml, '- Select Specialty -');
+      updateTomSelect('editDocSpecialty', specHtml, '- Select Specialty -');
+      updateTomSelect('filterDocSpecialty', getOptionsHtml('Specialty', '- All Specialties -'), '- All Specialties -');
       
-      const typeHtml = getOptionsHtml('DoctorType');
-      document.getElementById('docType').innerHTML = typeHtml;
-      document.getElementById('editDocType').innerHTML = typeHtml;
-      document.getElementById('filterDocType').innerHTML = '<option value="">- All Types -</option>' + typeHtml.replace('<option value="">- Select -</option>', '');
+      const typeHtml = getOptionsHtml('DoctorType', '- Select Type -');
+      updateTomSelect('docType', typeHtml, '- Select Type -');
+      updateTomSelect('editDocType', typeHtml, '- Select Type -');
+      updateTomSelect('filterDocType', getOptionsHtml('DoctorType', '- All Types -'), '- All Types -');
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
@@ -763,7 +823,7 @@
     window.DocManagerCache = window.DocManagerCache || {};
 
     if (forceReload || !window.DocManagerCache.isLoaded) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
         try {
           let crmUser = null;
           try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -839,7 +899,7 @@
           window.DocManagerCache.doctors = list;
           window.DocManagerCache.isLoaded = true;
         } catch (err) { 
-          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
           return;
         }
     }
@@ -876,7 +936,6 @@
     if (filterHospSelect) {
         filterHospSelect.innerHTML = '<option value="">- All Hospitals -</option>';
         
-        // หา Hospital_ID ทั้งหมดจากหมอที่ตัวเองมีสิทธิ์เห็น
         const allowedHospIdsFromDocs = [...new Set(globalDoctors.map(d => String(d.hospitalId)))];
         const allowedHospitals = globalHospitals.filter(h => allowedHospIdsFromDocs.includes(String(h.Hospital_ID)));
 
@@ -911,8 +970,8 @@
 
         if (filterDocSelect && filterDocSelect.tomselect && f.name) filterDocSelect.tomselect.setValue(f.name);
         if (filterHospSelect && filterHospSelect.tomselect && f.hosp) filterHospSelect.tomselect.setValue(f.hosp);
-        if (specEl) specEl.value = f.spec || '';
-        if (typeEl) typeEl.value = f.type || '';
+        if (specEl && specEl.tomselect && f.spec) specEl.tomselect.setValue(f.spec); else if (specEl) specEl.value = f.spec || '';
+        if (typeEl && typeEl.tomselect && f.type) typeEl.tomselect.setValue(f.type); else if (typeEl) typeEl.value = f.type || '';
         if (rowsEl) rowsEl.value = f.rows || 20;
 
         currentPage = f.page || 1;
@@ -953,7 +1012,7 @@
     const typeEl = document.getElementById('filterDocType'); 
     const hospEl = document.getElementById('filterDocWorkplace');
     
-    // เปลี่ยนมารับค่า Value (ID) แทนตัวหนังสือ
+    // รับค่า Value (ID) แทนตัวหนังสือ
     const nameTermId = nameEl ? nameEl.value : "";
     const specTerm = specEl ? specEl.value : "";
     const typeTerm = typeEl ? typeEl.value : "";
@@ -1117,10 +1176,28 @@
     ul.innerHTML = html;
   }
 
+  // 🌟 ฟังก์ชันเคลียร์ TomSelect ของ Workplace
+  function clearWorkplaceContainer(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const selects = container.querySelectorAll('.hospital-select');
+      selects.forEach(s => { if (s.tomselect) s.tomselect.destroy(); });
+      container.innerHTML = '';
+  }
+
+  // 🌟 ฟังก์ชันลบแถว Workplace และลบ TomSelect
+  function removeWorkplaceRow(btn) {
+      const row = btn.closest('.workplace-row');
+      const sel = row.querySelector('.hospital-select');
+      if (sel && sel.tomselect) sel.tomselect.destroy();
+      row.remove();
+  }
+
   function addWorkplaceRow(containerId, radioGroupName, hospId = '', isPrimary = false) {
     const container = document.getElementById(containerId);
     const row = document.createElement('div');
-    row.className = 'row align-items-center workplace-row';
+    row.className = 'row align-items-center workplace-row mb-2';
+    const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
     let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
     globalHospitals.forEach(h => {
@@ -1133,7 +1210,7 @@
 
     row.innerHTML = `
       <div class="col-sm-12 col-md-7 mb-2 mb-md-0">
-        <select class="form-select hospital-select bg-white border-warning" required>
+        <select class="form-select hospital-select bg-white border-warning" id="${selectId}" required>
           ${optionsHtml}
         </select>
       </div>
@@ -1144,10 +1221,21 @@
         </div>
       </div>
       <div class="col-sm-4 col-md-2 text-end">
-        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="this.closest('.workplace-row').remove()"><i class="fa-solid fa-trash me-1"></i> Remove</button>
+        <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="removeWorkplaceRow(this)"><i class="fa-solid fa-trash me-1"></i> Remove</button>
       </div>
     `;
     container.appendChild(row);
+
+    // 🌟 เปิดใช้งาน TomSelect สำหรับ Hospital ใหม่ที่ถูกเพิ่ม
+    new TomSelect(`#${selectId}`, {
+        create: false, 
+        searchField: ["text"], 
+        sortField: { field: "text", direction: "asc" },
+        placeholder: "- Search and Select Hospital -", 
+        allowEmptyOption: true, 
+        maxOptions: null,
+        dropdownParent: 'body'
+    });
   }
 
   function extractWorkplaces(containerId) {
@@ -1164,7 +1252,14 @@
 
   function openAddDoctorView() {
     document.getElementById('addDoctorForm').reset();
-    document.getElementById('workplaceContainerAdd').innerHTML = '';
+    
+    // 🌟 เคลียร์ค่า TomSelect ในฟอร์มเพิ่มข้อมูล
+    const clearTs = (id) => { const el = document.getElementById(id); if (el && el.tomselect) el.tomselect.clear(); };
+    clearTs('docTitle');
+    clearTs('docSpecialty');
+    clearTs('docType');
+
+    clearWorkplaceContainer('workplaceContainerAdd');
     addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd', '', true);
     switchDoctorView('doctorAddView');
   }
@@ -1186,18 +1281,22 @@
     if(!d) return;
     
     document.getElementById('editDocId').value = d.id; 
-    document.getElementById('editDocTitle').value = d.title || ''; 
+    
+    // 🌟 ดึงข้อมูลเข้า TomSelect ในฟอร์มแก้ไข
+    const setTsVal = (elId, val) => { const el = document.getElementById(elId); if(el && el.tomselect) el.tomselect.setValue(val); else if (el) el.value = val; };
+    setTsVal('editDocTitle', d.title || '');
+    setTsVal('editDocSpecialty', d.specialty || '');
+    setTsVal('editDocType', d.type || '');
+    
     document.getElementById('editDocNameEn').value = d.nameEn || ''; 
     document.getElementById('editDocNameTh').value = d.nameTh || ''; 
-    document.getElementById('editDocSpecialty').value = d.specialty || '';
-    document.getElementById('editDocType').value = d.type || '';
     document.getElementById('editDocEmail').value = d.email || '';
     document.getElementById('editDocMobile').value = d.mobile || '';
     document.getElementById('editDocPrivacy').value = d.privacy || 'Yes';
     document.getElementById('editDocTos').value = d.tos || 'Yes';
     document.getElementById('editDocStatus').value = d.status || 'Active';
 
-    document.getElementById('workplaceContainerEdit').innerHTML = '';
+    clearWorkplaceContainer('workplaceContainerEdit');
     let parsedWp = [];
     try { if (d.workplacesJson) parsedWp = JSON.parse(d.workplacesJson); } catch(e) {}
     
@@ -1620,10 +1719,19 @@
 
   // ===================== 🔴 ระบบ Target Call =====================
 
+  function clearRatingTable() {
+    const tbody = document.getElementById('ratingTableBody');
+    if (!tbody) return;
+    const selects = tbody.querySelectorAll('select');
+    selects.forEach(s => { if(s.tomselect) s.tomselect.destroy(); });
+    tbody.innerHTML = '';
+  }
+
   async function loadDoctorRatings(docId) {
     const tbody = document.getElementById('ratingTableBody');
     if (!tbody) return;
 
+    clearRatingTable();
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
     
     try {
@@ -1636,13 +1744,14 @@
         renderRatingTable(data); 
     } catch(err) {
         console.error("Error fetching ratings:", err);
+        clearRatingTable();
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Error: ${err.message}</td></tr>`;
     }
   }
 
   function renderRatingTable(ratings) {
+    clearRatingTable();
     const tbody = document.getElementById('ratingTableBody');
-    tbody.innerHTML = '';
     
     if(!Array.isArray(ratings) || ratings.length === 0) {
         tbody.innerHTML = '<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">No data. Click "Add Product"</td></tr>';
@@ -1660,6 +1769,7 @@
             );
         });
     } catch (e) {
+        clearRatingTable();
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Render Error: ${e.message}</td></tr>`;
     }
   }
@@ -1667,14 +1777,21 @@
   function addNewRatingRow() {
     const tbody = document.getElementById('ratingTableBody');
     const noData = tbody.querySelector('.no-data');
-    if(noData) noData.remove(); 
-
+    if(noData) {
+        const selects = noData.querySelectorAll('select');
+        selects.forEach(s => { if(s.tomselect) s.tomselect.destroy(); });
+        noData.remove();
+    }
     addRatingRowHTML('', '', '', '', '');
   }
 
+  // 🌟 เพิ่ม TomSelect เข้ามาใช้ใน Target Call ด้วย เพื่อให้พิมพ์ค้นหาชื่อยาได้
   function addRatingRowHTML(prodId, adopt, pot, cls, tgt) {
     const tbody = document.getElementById('ratingTableBody');
     const tr = document.createElement('tr');
+    const selectId = 'tgt_prod_' + Math.random().toString(36).substr(2, 9);
+    const adoptId = 'tgt_adopt_' + Math.random().toString(36).substr(2, 9);
+    const potId = 'tgt_pot_' + Math.random().toString(36).substr(2, 9);
 
     const isAdmin = (globalCurrentUserRole === 'Admin');
     const canEdit = isAdmin || !globalRatingIsLocked;
@@ -1717,12 +1834,12 @@
 
     tr.innerHTML = `
         <td>
-            <select class="form-select form-select-sm rating-product border-primary shadow-none" onchange="triggerCalcTarget(this)" ${disabledAttr}>
+            <select class="form-select form-select-sm rating-product border-primary shadow-none" id="${selectId}" ${disabledAttr}>
                 ${prodOpts}
             </select>
         </td>
-        <td><select class="form-select form-select-sm rating-adopt shadow-none" onchange="triggerCalcTarget(this)" ${disabledAttr}>${adoptOpts}</select></td>
-        <td><select class="form-select form-select-sm rating-pot shadow-none" onchange="triggerCalcTarget(this)" ${disabledAttr}>${potOpts}</select></td>
+        <td><select class="form-select form-select-sm rating-adopt shadow-none" id="${adoptId}" ${disabledAttr}>${adoptOpts}</select></td>
+        <td><select class="form-select form-select-sm rating-pot shadow-none" id="${potId}" ${disabledAttr}>${potOpts}</select></td>
         <td>
             <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#e9ecef;">
         </td>
@@ -1734,6 +1851,16 @@
         </td>
     `;
     tbody.appendChild(tr);
+
+    if (!disabledAttr) {
+        const tsProd = new TomSelect(`#${selectId}`, { create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, placeholder: "- Select Product -", allowEmptyOption: true, dropdownParent: 'body' });
+        const tsAdopt = new TomSelect(`#${adoptId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+        const tsPot = new TomSelect(`#${potId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+        
+        tsProd.on('change', function() { triggerCalcTarget(document.getElementById(selectId)); });
+        tsAdopt.on('change', function() { triggerCalcTarget(document.getElementById(adoptId)); });
+        tsPot.on('change', function() { triggerCalcTarget(document.getElementById(potId)); });
+    }
   }
 
   function triggerCalcTarget(element) {
