@@ -521,12 +521,12 @@
           const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
           const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-          const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
+          // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
+          const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || userRole === 'Admin';
 
-          // 🌟 โหลด Data ทั้งหมด
           const [allHospitals, assignments, terrRes, teamRes, allDocs, pendingAddRes, pendingEditRes] = await Promise.all([
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
-            fetchAllRecords('Assignment'), 
+            fetchAllRecords('Assignment'),
             supabaseClient.from('Territory').select('*'),
             supabaseClient.from('Team').select('*'),
             fetchAllRecords('Doctors', q => q.eq('Status', 'Active')),
@@ -536,8 +536,8 @@
 
           let territories = terrRes.data || [];
           let teams = teamRes.data || [];
-          let allowedTerIds = [];
 
+          let allowedTerIds = [];
           if (!isGlobalViewer) {
               let matchedTeam = teams.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
               let matchedTerr = territories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -566,13 +566,10 @@
           }
 
           let visibleHospitals = allHospitals;
-
           if (!isGlobalViewer) {
-              // 🌟 แก้ไข Bug 1 & 2: กรองข้อมูล Assignment ครอบคลุมถึง Territory/Territory_ID 
               const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
               
-              // 🌟 แก้ไข Bug 3: ให้มองเห็นโรงพยาบาลที่ผูกกับรายชื่อหมอในความดูแล (Implicit Assignment)
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               const implicitHospIds = allDocs.filter(d => allowedDocIds.includes(String(d.Doc_ID))).map(d => String(d.Hospital_ID));
 
@@ -619,6 +616,7 @@
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
                 
                 let provName = '-'; let zoneName = '-';
+                // เช็คจาก Province_ID ใน payload DCR
                 let provObj = globalProvinces.find(p => p.Province_ID === req.Province_ID);
                 if (provObj) { provName = provObj.Province; zoneName = provObj.Zone; } 
 
@@ -948,6 +946,7 @@
     const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('editHospId').value = h.id; document.getElementById('editHospName').value = h.name || '';
     document.getElementById('editHospKnownAs').value = h.knownAs || ''; 
+    // 🌟 เลือก Province_ID ในฟอร์ม Edit ให้ถูกต้อง
     document.getElementById('editHospProvince').value = h.provinceId || '';
     document.getElementById('editHospAddress').value = h.address || ''; document.getElementById('editHospSalesId').value = h.salesId || '';
     document.getElementById('editHospStatus').value = h.status || 'Active';
@@ -982,6 +981,7 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
     
+    // 🌟 Payload เปลี่ยนไปใช้ Province_ID แทน Province
     const payload = {
       Hospital: document.getElementById('hospName').value.trim(), 
       Known_As: document.getElementById('hospKnownAs').value.trim(), 
@@ -1038,6 +1038,7 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
     
+    // 🌟 Payload เปลี่ยนไปใช้ Province_ID แทน Province
     const payload = {
       Hospital: document.getElementById('editHospName').value.trim(), 
       Known_As: document.getElementById('editHospKnownAs').value.trim(), 
