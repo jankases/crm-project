@@ -521,8 +521,16 @@
           const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
           const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-          // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
-          const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || userRole === 'Admin';
+          // 🌟 สแกนหาสิทธิ์ Global Viewer
+          let isGlobalViewer = false;
+          if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+          const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+          if (globalRoles.includes(userRole.toUpperCase())) isGlobalViewer = true;
+          if (crmUser) {
+              Object.values(crmUser).forEach(val => {
+                  if (typeof val === 'string' && val.trim().toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+              });
+          }
 
           const [allHospitals, assignments, terrRes, teamRes, allDocs, pendingAddRes, pendingEditRes] = await Promise.all([
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
@@ -536,8 +544,8 @@
 
           let territories = terrRes.data || [];
           let teams = teamRes.data || [];
-
           let allowedTerIds = [];
+
           if (!isGlobalViewer) {
               let matchedTeam = teams.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
               let matchedTerr = territories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -566,6 +574,7 @@
           }
 
           let visibleHospitals = allHospitals;
+
           if (!isGlobalViewer) {
               const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
@@ -616,7 +625,6 @@
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
                 
                 let provName = '-'; let zoneName = '-';
-                // เช็คจาก Province_ID ใน payload DCR
                 let provObj = globalProvinces.find(p => p.Province_ID === req.Province_ID);
                 if (provObj) { provName = provObj.Province; zoneName = provObj.Zone; } 
 
