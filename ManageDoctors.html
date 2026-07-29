@@ -472,7 +472,7 @@
       teamProdLinks: [],
       sysSettings: [],
       teamList: [],
-      allowedHospIds: [], // 🌟 เพิ่มการจำสิทธิ์ รพ.
+      allowedHospIds: [], 
       filters: { name: [], spec: [], type: [], hosp: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
@@ -739,22 +739,32 @@
       const globalTeamList = window.DocManagerCache.teamList;
       const teamProdLinks = window.DocManagerCache.teamProdLinks;
 
+      // 🌟 ระบบเช็คสิทธิ์ Target Call (รวม Boolean Status)
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
       if (ratingSetting) {
-          let startStr = ratingSetting.Start;
-          let endStr = ratingSetting.End;
-          if (!startStr && !endStr) {
-              globalRatingIsLocked = false; 
+          // เช็คสวิตช์หลัก (Status) ก่อน
+          if (ratingSetting.Status === false) {
+              globalRatingIsLocked = true; // ล็อกทันทีถ้าสวิตช์ปิด
           } else {
-              const offset = new Date().getTimezoneOffset() * 60000;
-              const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
-              let isWithinRange = true;
-              if (startStr && localISOTime < startStr) isWithinRange = false;
-              if (endStr && localISOTime > endStr) isWithinRange = false;
-              globalRatingIsLocked = !isWithinRange;
+              // ถ้าสวิตช์เปิดอยู่ ให้มาเช็คช่วงวันที่
+              let startStr = ratingSetting.Start;
+              let endStr = ratingSetting.End;
+              
+              if (!startStr && !endStr) {
+                  globalRatingIsLocked = false; // เปิดตลอดถ้าไม่ได้กำหนดวันที่
+              } else {
+                  const offset = new Date().getTimezoneOffset() * 60000;
+                  const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
+                  
+                  let isWithinRange = true;
+                  if (startStr && localISOTime < startStr) isWithinRange = false;
+                  if (endStr && localISOTime > endStr) isWithinRange = false;
+                  
+                  globalRatingIsLocked = !isWithinRange;
+              }
           }
       } else {
-          globalRatingIsLocked = true; 
+          globalRatingIsLocked = true; // ล็อกถ้ายไม่พบตั้งค่า
       }
 
       const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
@@ -851,7 +861,6 @@
     return items.map(i => i.Value);
   }
 
-  // 🌟 โหลดรายชื่อหมอ (พร้อมระบบเช็คสิทธิ์แบบเดียวกับ Visit 100%)
   async function loadDoctors(forceReload = false) {
     const tbody = document.getElementById('doctorTableBody');
     window.DocManagerCache = window.DocManagerCache || {};
@@ -979,7 +988,6 @@
     if (filterHospSelect) {
         filterHospSelect.innerHTML = '';
         
-        // 🌟 แก้ไข: ไม่ดึงรายชื่อ รพ. จากตัวหมอแล้ว ให้ดึงจาก Assignment ล้วนๆ เหมือนหน้า Visit
         let validHospIds = new Set();
         if (isGlobalViewer) {
             globalHospitals.forEach(h => validHospIds.add(String(h.Hospital_ID)));
@@ -1044,7 +1052,6 @@
     filterDoctors(false); 
   }
 
-  // 🌟 บันทึกสถานะ Filter ลงใน Cache (ดึงค่าจาก TomSelect เป็น Array)
   function filterDoctors(resetPage = true) {
     const getTsVals = (id) => {
         const el = document.getElementById(id);
@@ -1078,7 +1085,6 @@
       const matchSpec = (specTerms.length === 0) || specTerms.includes(String(d.specialty));
       const matchType = (typeTerms.length === 0) || typeTerms.includes(String(d.type));
       
-      // 🌟 ค้นหาโรงพยาบาลทั้งตัวหลักและตัวรอง
       const matchHosp = (hospTermIds.length === 0) || hospTermIds.some(hId => {
           if (String(d.hospitalId) === String(hId)) return true;
           try {
