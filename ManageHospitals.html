@@ -28,11 +28,18 @@
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
 
-  /* สไตล์สำหรับ Auto Address */
+  /* สไตล์สำหรับ Auto Address และ TomSelect */
   .tt-menu { background-color: #fff; border: 1px solid #ced4da; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; margin-top: 5px; z-index: 9999 !important; }
   .tt-suggestion { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
   .tt-suggestion:hover { background-color: #e9ecef; color: #0d6efd; }
   .tt-suggestion:last-child { border-bottom: none; }
+
+  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
+  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
+  .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
+  .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+  .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
+  .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -56,24 +63,31 @@
       </div>
     </div>
 
-    <!-- ส่วนค้นหา (Filters) -->
+    <!-- 🌟 ส่วนค้นหาทั้งหมด (ปรับเป็น Multi-Select TomSelect ทั้งหมด) -->
     <div class="row mb-4 hospital-filter-group g-3 align-items-end">
-      <div class="col-sm-12 col-md-7 col-lg-6">
-        <label class="form-label fw-bold text-secondary small mb-1">Search Hospital (EN / Known As)</label>
+      
+      <div class="col-sm-12 col-md-6 col-lg-5">
+        <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterHospName" placeholder="Search by EN Name or Known As..." onkeyup="filterHospitals()">
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSearchDictation()" title="Voice Search">
+          <select class="form-select bg-white" id="filterHospName" onchange="filterHospitals()" multiple></select>
+          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterHospName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
         </div>
       </div>
-      <div class="col-sm-12 col-md-5 col-lg-4">
+
+      <div class="col-sm-6 col-md-3 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1">Province</label>
-        <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()">
-          <option value="">- All Provinces -</option>
-        </select>
+        <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" multiple></select>
       </div>
+
+      <!-- 🌟 ปุ่มล้างตัวกรอง (Clear Filters) -->
+      <div class="col-sm-6 col-md-3 col-lg-3 d-flex justify-content-end">
+        <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary" type="button" onclick="clearHospitalFilters()" style="min-height: 42px; border-radius: 10px;">
+          <i class="fa-solid fa-eraser me-1"></i> Clear Filters
+        </button>
+      </div>
+
     </div>
 
     <!-- ตารางข้อมูล (รองรับ Sort) -->
@@ -96,7 +110,7 @@
         </table>
       </div>
 
-      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) แบบหน้า Doctor -->
+      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
       <div id="hospitalPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
@@ -110,7 +124,6 @@
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination pagination-sm custom-pagination mb-0" id="hospitalPagination">
-            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
           </ul>
         </nav>
       </div>
@@ -325,7 +338,7 @@
       hospitals: [],
       indexTypes: [],
       indexes: [],
-      filters: { name: '', prov: '', page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true }
+      filters: { name: [], prov: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } // 🌟 เปลี่ยนเป็น Array สำหรับ Multi-Select
   };
 
   var globalHospitals = [];
@@ -342,43 +355,131 @@
   var currentHospPage = 1;
   var hospRowsPerPage = 20;
 
-  // ===================== ระบบ Voice to Text =====================
-  var searchRecognition;
-  var isSearchRecording = false;
-
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    searchRecognition = new SpeechRecognition();
-    searchRecognition.lang = 'en-US'; // รองรับทั้ง EN และ TH ขึ้นอยู่กับการพูด
-    searchRecognition.continuous = false; searchRecognition.interimResults = false; 
-    searchRecognition.onresult = function(event) {
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript; }
-      if (finalTranscript) { document.getElementById('filterHospName').value = finalTranscript.trim(); filterHospitals(); stopSearchDictation(); }
-    };
-    searchRecognition.onerror = function() { stopSearchDictation(); };
-    searchRecognition.onend = function() { if(isSearchRecording) stopSearchDictation(); };
+  // 🌟 ฟังก์ชันล้างตัวกรองทั้งหมด (Clear Filters)
+  function clearHospitalFilters() {
+      const clearTs = (id) => {
+          const el = document.getElementById(id);
+          if (el && el.tomselect) {
+              el.tomselect.clear();
+          } else if (el) {
+              el.value = '';
+          }
+      };
+      
+      clearTs('filterHospName');
+      clearTs('filterHospProvince');
+      
+      filterHospitals();
   }
 
-  function toggleSearchDictation() {
-    if (!searchRecognition) return alert("Your browser doesn't support voice recognition.");
-    if (isSearchRecording) { stopSearchDictation(); } else {
-      isSearchRecording = true; searchRecognition.start();
-      const btn = document.getElementById('btnMicSearch'); const icon = document.getElementById('micSearchIcon');
-      btn.classList.remove('bg-white'); btn.classList.add('btn-danger', 'mic-active', 'text-white');
-      icon.classList.remove('text-muted', 'fa-microphone'); icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
-      document.getElementById('filterHospName').placeholder = "Listening...";
+  // ===================== 🎙️ ระบบ Voice to Text (เข้า TomSelect โดยตรง) =====================
+  var searchRecognition;
+  var isSearchRecording = false;
+  var currentSearchInputId = null;
+  var currentSearchBtnId = null;
+  var currentSearchIconId = null;
+
+  function searchAndSelectTomSelect(selectId, keyword) {
+      const selectEl = document.getElementById(selectId);
+      if (!selectEl) return;
+      const searchKey = keyword.toLowerCase();
+      if (selectEl.tomselect) {
+          const ts = selectEl.tomselect; 
+          ts.focus(); 
+          ts.setTextboxValue(keyword); 
+          const options = ts.options; 
+          let matchedId = null;
+          for (let id in options) { 
+              const text = (options[id].text || '').toLowerCase();
+              if (text.includes(searchKey)) { matchedId = id; break; }
+          }
+          if (matchedId) {
+              if (selectEl.hasAttribute('multiple')) {
+                  ts.addItem(matchedId); 
+              } else {
+                  ts.setValue(matchedId);
+              }
+              ts.setTextboxValue(''); 
+              ts.blur();
+          }
+      } else {
+           selectEl.value = keyword; 
+           selectEl.dispatchEvent(new Event('change'));
+      }
+  }
+
+  function toggleSpeechSearch(inputId, btnId, iconId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
     }
+
+    if (searchRecognition && currentSearchInputId === inputId) {
+      stopSearchDictation();
+      return;
+    }
+
+    if (searchRecognition) {
+      stopSearchDictation();
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    searchRecognition = new SpeechRecognition();
+    searchRecognition.lang = 'th-TH';
+    searchRecognition.continuous = false;
+    searchRecognition.interimResults = false;
+
+    currentSearchInputId = inputId;
+    currentSearchBtnId = btnId;
+    currentSearchIconId = iconId;
+
+    const btn = document.getElementById(btnId);
+    const icon = document.getElementById(iconId);
+
+    if (btn && icon) {
+      btn.classList.add('btn-danger', 'mic-active', 'text-white');
+      btn.classList.remove('bg-white');
+      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
+      icon.classList.remove('text-muted');
+    }
+
+    searchRecognition.onresult = function(event) {
+      let spokenText = event.results[0][0].transcript.trim();
+      
+      const inputEl = document.getElementById(inputId);
+      if (inputEl && spokenText) {
+          if (inputEl.tagName === 'SELECT') {
+              searchAndSelectTomSelect(inputId, spokenText);
+          } else {
+              inputEl.value = spokenText;
+          }
+          filterHospitals();
+      }
+      stopSearchDictation();
+    };
+
+    searchRecognition.onerror = stopSearchDictation;
+    searchRecognition.onend = stopSearchDictation;
+    searchRecognition.start();
   }
 
   function stopSearchDictation() {
-    isSearchRecording = false; if(searchRecognition) searchRecognition.stop();
-    const btn = document.getElementById('btnMicSearch'); const icon = document.getElementById('micSearchIcon');
-    if (btn && icon) {
-      btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
-      icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted', 'fa-microphone');
-      document.getElementById('filterHospName').placeholder = "Search by EN Name or Known As...";
+    if (searchRecognition) {
+      searchRecognition.stop();
+      searchRecognition = null;
     }
+    if (currentSearchBtnId && currentSearchIconId) {
+      const btn = document.getElementById(currentSearchBtnId);
+      const icon = document.getElementById(currentSearchIconId);
+      if (btn && icon) {
+        btn.classList.remove('btn-danger', 'mic-active', 'text-white');
+        btn.classList.add('bg-white');
+        icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
+        icon.classList.add('text-muted');
+      }
+    }
+    currentSearchInputId = null;
+    currentSearchBtnId = null;
+    currentSearchIconId = null;
   }
 
   // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
@@ -402,6 +503,22 @@
     window.scrollTo(0, 0); 
   }
 
+  function initMultiTomSelect(id, placeholder) {
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(el.tomselect) el.tomselect.destroy();
+      new TomSelect(`#${id}`, { 
+          plugins: ['remove_button'],
+          create: false, 
+          searchField: ["text"],
+          sortField: { field: "text", direction: "asc" }, 
+          placeholder: placeholder, 
+          allowEmptyOption: true, 
+          maxOptions: null,
+          dropdownParent: 'body' 
+      });
+  }
+
   async function loadIndexDropdowns(forceReload = false) {
     try {
       window.HospManagerCache = window.HospManagerCache || {};
@@ -420,24 +537,34 @@
       globalIndexes = window.HospManagerCache.indexes;
 
       const provType = globalIndexTypes.find(t => t.Name.toLowerCase() === 'province');
-      let provHtml = '<option value="">- Select Province -</option>';
+      
+      // 🌟 สร้าง HTML Option สำหรับ TomSelect (ไม่ต้องมี option ว่าง เพราะ TomSelect ใส่ Placeholder เอง)
+      let filterProvHtml = ''; 
+      let formProvHtml = '<option value="">- Select Province -</option>';
+
       if (provType) {
         const provItems = globalIndexes.filter(i => i.IndexType_ID === provType.IndexType_ID);
-        provItems.forEach(i => provHtml += `<option value="${i.Value}">${i.Value}</option>`);
+        provItems.forEach(i => {
+            filterProvHtml += `<option value="${i.Value}">${i.Value}</option>`;
+            formProvHtml += `<option value="${i.Value}">${i.Value}</option>`;
+        });
       }
       
-      document.getElementById('hospProvince').innerHTML = provHtml;
-      document.getElementById('editHospProvince').innerHTML = provHtml;
+      // อัปเดต Dropdown ในฟอร์มแบบเดิม
+      document.getElementById('hospProvince').innerHTML = formProvHtml;
+      document.getElementById('editHospProvince').innerHTML = formProvHtml;
       
+      // 🌟 อัปเดต Dropdown ค้นหาให้ใช้ TomSelect
       const filterProv = document.getElementById('filterHospProvince');
       if (filterProv) {
-          filterProv.innerHTML = '<option value="">- All Provinces -</option>' + provHtml.replace('<option value="">- Select Province -</option>', '');
+          filterProv.innerHTML = filterProvHtml;
+          initMultiTomSelect('filterHospProvince', '- All Provinces -');
       }
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
-  // 🌟 โหลดข้อมูล Hospitals (ใช้ Cache & Bypassing Limit)
+  // 🌟 โหลดข้อมูล Hospitals (ผูกกับสิทธิ์ Assignment)
   async function loadHospitals(forceReload = false) {
     const tbody = document.getElementById('hospitalTableBody');
     window.HospManagerCache = window.HospManagerCache || {};
@@ -529,12 +656,30 @@
 
     globalHospitals = window.HospManagerCache.hospitals;
 
+    // 🌟 สร้าง Dropdown ของช่อง Filter Hospital Name ด้วย TomSelect (โชว์เฉพาะโรงพยาบาลที่มีสิทธิ์)
+    const filterHospNameSelect = document.getElementById('filterHospName');
+    if (filterHospNameSelect) {
+        filterHospNameSelect.innerHTML = '';
+        globalHospitals.forEach(h => {
+            const knownAsShow = h.knownAs ? ` (${h.knownAs})` : '';
+            const opt = document.createElement('option'); 
+            opt.value = h.id; 
+            opt.textContent = `${h.name}${knownAsShow}`; 
+            filterHospNameSelect.appendChild(opt);
+        });
+        initMultiTomSelect('filterHospName', '- All Hospitals -');
+    }
+
     // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
     if (window.HospManagerCache.filters) {
         const f = window.HospManagerCache.filters;
-        if (document.getElementById('filterHospName')) document.getElementById('filterHospName').value = f.name || '';
-        if (document.getElementById('filterHospProvince')) document.getElementById('filterHospProvince').value = f.prov || '';
-        if (document.getElementById('hospitalRowsPerPage')) document.getElementById('hospitalRowsPerPage').value = f.rows || 20;
+        const nameEl = document.getElementById('filterHospName');
+        const provEl = document.getElementById('filterHospProvince');
+        const rowsEl = document.getElementById('hospitalRowsPerPage');
+
+        if (nameEl && nameEl.tomselect && f.name && f.name.length > 0) nameEl.tomselect.setValue(f.name);
+        if (provEl && provEl.tomselect && f.prov && f.prov.length > 0) provEl.tomselect.setValue(f.prov);
+        if (rowsEl) rowsEl.value = f.rows || 20;
 
         currentHospPage = f.page || 1;
         hospRowsPerPage = f.rows || 20;
@@ -567,18 +712,25 @@
     filterHospitals(false); 
   }
 
+  // 🌟 บันทึกสถานะ Filter (ดึงค่าแบบ Array จาก TomSelect)
   function filterHospitals(resetPage = true) {
-    const nameEl = document.getElementById('filterHospName'); 
-    const provEl = document.getElementById('filterHospProvince');
-    
-    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : ""; 
-    const provTerm = provEl ? provEl.value : "";
+    const getTsVals = (id) => {
+        const el = document.getElementById(id);
+        if (el && el.tomselect) {
+            let val = el.tomselect.getValue();
+            return Array.isArray(val) ? val : (val ? [val] : []);
+        }
+        return [];
+    };
+
+    const nameTermIds = getTsVals('filterHospName');
+    const provTerms = getTsVals('filterHospProvince');
 
     if (resetPage) currentHospPage = 1;
 
     window.HospManagerCache.filters = {
-        name: nameTerm,
-        prov: provTerm,
+        name: nameTermIds,
+        prov: provTerms,
         page: currentHospPage,
         rows: hospRowsPerPage,
         sortCol: currentHospSortCol,
@@ -586,9 +738,8 @@
     };
     
     const filtered = globalHospitals.filter(h => {
-      const nameSearchStr = `${h.name || ""} ${h.knownAs || ""}`.toLowerCase();
-      const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
-      const matchProv = (provTerm === "") || (h.province === provTerm);
+      const matchName = (nameTermIds.length === 0) || nameTermIds.includes(String(h.id));
+      const matchProv = (provTerms.length === 0) || provTerms.includes(String(h.province));
 
       return matchName && matchProv;
     });
