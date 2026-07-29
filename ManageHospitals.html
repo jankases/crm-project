@@ -52,7 +52,6 @@
         <p class="text-muted mb-0">Database of Hospitals and Workplaces</p>
       </div>
       
-      <!-- เพิ่มปุ่ม Refresh แบบหน้า Doctor -->
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadHospitals()" id="btnRefreshHospitals" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
@@ -63,7 +62,7 @@
       </div>
     </div>
 
-    <!-- ส่วนค้นหาทั้งหมด (ปรับเป็น Multi-Select TomSelect ทั้งหมด) -->
+    <!-- ส่วนค้นหาทั้งหมด (Multi-Select TomSelect) -->
     <div class="row mb-4 hospital-filter-group g-3 align-items-end">
       
       <div class="col-sm-12 col-md-6 col-lg-4">
@@ -81,13 +80,11 @@
         <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" multiple></select>
       </div>
 
-      <!-- 🌟 เพิ่ม Dropdown Filter สำหรับ Zone -->
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Zone</label>
         <select class="form-select shadow-sm" id="filterHospZone" onchange="filterHospitals()" multiple></select>
       </div>
 
-      <!-- ปุ่มล้างตัวกรอง (Clear Filters) -->
       <div class="col-sm-12 col-md-12 col-lg-2 d-flex justify-content-end">
         <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary" type="button" onclick="clearHospitalFilters()" style="min-height: 42px; border-radius: 10px;">
           <i class="fa-solid fa-eraser me-1"></i> Clear Filters
@@ -96,7 +93,7 @@
 
     </div>
 
-    <!-- ตารางข้อมูล (รองรับ Sort) -->
+    <!-- ตารางข้อมูล -->
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-hospital align-middle" style="font-size: 0.95rem;">
@@ -105,7 +102,7 @@
               <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')">Hospital Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-hosp-nameEn"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('knownAs')">Known As (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-knownAs"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('province')">Province <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-province"></i></th>
-              <th class="py-3 sortable-th" onclick="sortHospitals('zone')">Zone <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-zone"></i></th> <!-- 🌟 เพิ่มคอลัมน์ Zone -->
+              <th class="py-3 sortable-th" onclick="sortHospitals('zone')">Zone <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-zone"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('salesId')">Sales ID <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-salesId"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-status"></i></th>
               <th class="py-3">Action</th>
@@ -117,7 +114,7 @@
         </table>
       </div>
 
-      <!-- ส่วนควบคุมการแบ่งหน้า (Pagination Controls) แบบหน้า Doctor -->
+      <!-- ส่วนควบคุมการแบ่งหน้า (Pagination) -->
       <div id="hospitalPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
@@ -131,7 +128,6 @@
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination pagination-sm custom-pagination mb-0" id="hospitalPagination">
-            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
           </ul>
         </nav>
       </div>
@@ -165,7 +161,7 @@
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Province , Zone <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Province (Zone) <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="hospProvince" required>
                 <option value="">- Select Province -</option>
               </select>
@@ -227,7 +223,7 @@
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">Province , Zone <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark">Province (Zone) <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="editHospProvince" required>
                 <option value="">- Select Province -</option>
               </select>
@@ -294,7 +290,7 @@
       </div>
       <div class="row mb-3">
         <div class="col-md-6 mb-3">
-          <label class="text-muted small fw-bold">Province , Zone</label>
+          <label class="text-muted small fw-bold">Province (Zone)</label>
           <input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;">
         </div>
         <div class="col-md-6 mb-3">
@@ -320,7 +316,6 @@
 </div>
 
 <script>
-  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการ
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -339,20 +334,17 @@
       return allData;
   }
 
-  // 🌟 ระบบ Caching สำหรับหน้า Hospitals
   window.HospManagerCache = window.HospManagerCache || {
       isLoaded: false,
       indexLoaded: false,
       hospitals: [],
-      indexTypes: [],
-      indexes: [],
+      provinces: [],
       filters: { name: [], prov: [], zone: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
   var globalHospitals = [];
   var globalFilteredHospitals = [];
-  var globalIndexTypes = [];
-  var globalIndexes = [];
+  var globalProvinces = [];
   var currentSelectedHospId = ""; 
 
   var isAutoAddressAddInit = false;
@@ -363,35 +355,19 @@
   var currentHospPage = 1;
   var hospRowsPerPage = 20;
 
-  // 🌟 ฟังก์ชันแยก Province และ Zone ออกจากกัน (สมมติ format คือ "จังหวัด , โซน" หรือ "จังหวัด,โซน")
-  function extractProvinceAndZone(fullString) {
-      if (!fullString) return { province: '-', zone: '-' };
-      const parts = fullString.split(',');
-      if (parts.length > 1) {
-          return { province: parts[0].trim(), zone: parts[1].trim() };
-      }
-      return { province: fullString.trim(), zone: '-' };
-  }
-
-  // 🌟 ฟังก์ชันล้างตัวกรองทั้งหมด (Clear Filters)
   function clearHospitalFilters() {
       const clearTs = (id) => {
           const el = document.getElementById(id);
-          if (el && el.tomselect) {
-              el.tomselect.clear();
-          } else if (el) {
-              el.value = '';
-          }
+          if (el && el.tomselect) el.tomselect.clear();
+          else if (el) el.value = '';
       };
       
       clearTs('filterHospName');
       clearTs('filterHospProvince');
-      clearTs('filterHospZone'); // เคลียร์ Zone ด้วย
-      
+      clearTs('filterHospZone'); 
       filterHospitals();
   }
 
-  // ===================== 🎙️ ระบบ Voice to Text (เข้า TomSelect โดยตรง) =====================
   var searchRecognition;
   var isSearchRecording = false;
   var currentSearchInputId = null;
@@ -413,11 +389,8 @@
               if (text.includes(searchKey)) { matchedId = id; break; }
           }
           if (matchedId) {
-              if (selectEl.hasAttribute('multiple')) {
-                  ts.addItem(matchedId); 
-              } else {
-                  ts.setValue(matchedId);
-              }
+              if (selectEl.hasAttribute('multiple')) ts.addItem(matchedId); 
+              else ts.setValue(matchedId);
               ts.setTextboxValue(''); 
               ts.blur();
           }
@@ -428,18 +401,9 @@
   }
 
   function toggleSpeechSearch(inputId, btnId, iconId) {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
-    }
-
-    if (searchRecognition && currentSearchInputId === inputId) {
-      stopSearchDictation();
-      return;
-    }
-
-    if (searchRecognition) {
-      stopSearchDictation();
-    }
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    if (searchRecognition && currentSearchInputId === inputId) return stopSearchDictation();
+    if (searchRecognition) stopSearchDictation();
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     searchRecognition = new SpeechRecognition();
@@ -447,61 +411,40 @@
     searchRecognition.continuous = false;
     searchRecognition.interimResults = false;
 
-    currentSearchInputId = inputId;
-    currentSearchBtnId = btnId;
-    currentSearchIconId = iconId;
+    currentSearchInputId = inputId; currentSearchBtnId = btnId; currentSearchIconId = iconId;
 
-    const btn = document.getElementById(btnId);
-    const icon = document.getElementById(iconId);
-
+    const btn = document.getElementById(btnId); const icon = document.getElementById(iconId);
     if (btn && icon) {
-      btn.classList.add('btn-danger', 'mic-active', 'text-white');
-      btn.classList.remove('bg-white');
-      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade');
-      icon.classList.remove('text-muted');
+      btn.classList.add('btn-danger', 'mic-active', 'text-white'); btn.classList.remove('bg-white');
+      icon.classList.add('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.remove('text-muted');
     }
 
     searchRecognition.onresult = function(event) {
       let spokenText = event.results[0][0].transcript.trim();
-      
       const inputEl = document.getElementById(inputId);
       if (inputEl && spokenText) {
-          if (inputEl.tagName === 'SELECT') {
-              searchAndSelectTomSelect(inputId, spokenText);
-          } else {
-              inputEl.value = spokenText;
-          }
+          if (inputEl.tagName === 'SELECT') searchAndSelectTomSelect(inputId, spokenText);
+          else inputEl.value = spokenText;
           filterHospitals();
       }
       stopSearchDictation();
     };
 
-    searchRecognition.onerror = stopSearchDictation;
-    searchRecognition.onend = stopSearchDictation;
-    searchRecognition.start();
+    searchRecognition.onerror = stopSearchDictation; searchRecognition.onend = stopSearchDictation; searchRecognition.start();
   }
 
   function stopSearchDictation() {
-    if (searchRecognition) {
-      searchRecognition.stop();
-      searchRecognition = null;
-    }
+    if (searchRecognition) { searchRecognition.stop(); searchRecognition = null; }
     if (currentSearchBtnId && currentSearchIconId) {
-      const btn = document.getElementById(currentSearchBtnId);
-      const icon = document.getElementById(currentSearchIconId);
+      const btn = document.getElementById(currentSearchBtnId); const icon = document.getElementById(currentSearchIconId);
       if (btn && icon) {
-        btn.classList.remove('btn-danger', 'mic-active', 'text-white');
-        btn.classList.add('bg-white');
-        icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade');
-        icon.classList.add('text-muted');
+        btn.classList.remove('btn-danger', 'mic-active', 'text-white'); btn.classList.add('bg-white');
+        icon.classList.remove('text-white', 'fa-microphone-lines', 'fa-fade'); icon.classList.add('text-muted');
       }
     }
-    currentSearchInputId = null;
-    currentSearchBtnId = null;
-    currentSearchIconId = null;
+    currentSearchInputId = null; currentSearchBtnId = null; currentSearchIconId = null;
   }
 
-  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
   async function forceReloadHospitals() {
       const btn = document.getElementById('btnRefreshHospitals');
       if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
@@ -538,44 +481,32 @@
       });
   }
 
-  // 🌟 โหลด Index Dropdowns และจัดกลุ่ม Province / Zone
+  // 🌟 โหลดข้อมูลจากตาราง Province 
   async function loadIndexDropdowns(forceReload = false) {
     try {
       window.HospManagerCache = window.HospManagerCache || {};
       
       if (forceReload || !window.HospManagerCache.indexLoaded) {
-          const [typeRes, idxRes] = await Promise.all([
-            supabaseClient.from('IndexType').select('*'),
-            supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+          const [provRes] = await Promise.all([
+            fetchAllRecords('Province', q => q.order('Province', { ascending: true }))
           ]);
-          window.HospManagerCache.indexTypes = typeRes.data || [];
-          window.HospManagerCache.indexes = idxRes.data || [];
+          window.HospManagerCache.provinces = provRes || [];
           window.HospManagerCache.indexLoaded = true;
       }
 
-      globalIndexTypes = window.HospManagerCache.indexTypes;
-      globalIndexes = window.HospManagerCache.indexes;
-
-      const provType = globalIndexTypes.find(t => t.Name.toLowerCase() === 'province');
+      globalProvinces = window.HospManagerCache.provinces;
       
-      let formProvHtml = '<option value="">- Select Province , Zone -</option>';
-
-      if (provType) {
-        const provItems = globalIndexes.filter(i => i.IndexType_ID === provType.IndexType_ID);
-        provItems.forEach(i => {
-            // สำหรับฟอร์ม Add/Edit เอาแบบเต็มๆ
-            formProvHtml += `<option value="${i.Value}">${i.Value}</option>`;
-        });
-      }
+      let formProvHtml = '<option value="">- Select Province -</option>';
+      globalProvinces.forEach(p => {
+          formProvHtml += `<option value="${p.Province_ID}">${p.Province} (${p.Zone})</option>`;
+      });
       
-      // อัปเดต Dropdown ในฟอร์มแบบเดิม (แสดงแบบเต็ม "Province , Zone")
       document.getElementById('hospProvince').innerHTML = formProvHtml;
       document.getElementById('editHospProvince').innerHTML = formProvHtml;
 
-    } catch (err) { console.error("Error loading index dropdowns:", err.message); }
+    } catch (err) { console.error("Error loading Province dropdowns:", err.message); }
   }
 
-  // 🌟 โหลดข้อมูล Hospitals (ผูกกับสิทธิ์ Assignment)
   async function loadHospitals(forceReload = false) {
     const tbody = document.getElementById('hospitalTableBody');
     window.HospManagerCache = window.HospManagerCache || {};
@@ -629,16 +560,27 @@
 
           const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
 
-          // 🌟 สกัด Province และ Zone ลงใน object เลยเพื่อง่ายต่อการค้นหา
+          // 🌟 Map ข้อมูลโดยอ้างอิงจาก Province_ID
           let list = visibleHospitals.map(h => {
-             const extracted = extractProvinceAndZone(h.Province);
+             let provName = '-';
+             let zoneName = '-';
+             let provIdForEdit = h.Province_ID; 
+
+             if (h.Province_ID) {
+                 let provObj = globalProvinces.find(p => p.Province_ID === h.Province_ID);
+                 if (provObj) {
+                     provName = provObj.Province;
+                     zoneName = provObj.Zone;
+                 }
+             }
+
              return {
                 id: h.Hospital_ID, 
                 name: h.Hospital, 
                 knownAs: h.Known_As, 
-                provinceFull: h.Province, // ชื่อเต็ม
-                provinceOnly: extracted.province, // แยกเฉพาะจังหวัด
-                zoneOnly: extracted.zone, // แยกเฉพาะโซน
+                provinceId: provIdForEdit, 
+                provinceOnly: provName, 
+                zoneOnly: zoneName, 
                 address: h.Address, 
                 salesId: h.Sales_ID, 
                 status: h.Status, 
@@ -652,14 +594,19 @@
             pendingAddDcrs.forEach(d => {
               try {
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
-                const extracted = extractProvinceAndZone(req.Province);
+                
+                let provName = '-'; let zoneName = '-';
+                // เช็คจาก Province_ID ใน payload DCR
+                let provObj = globalProvinces.find(p => p.Province_ID === req.Province_ID);
+                if (provObj) { provName = provObj.Province; zoneName = provObj.Zone; } 
+
                 list.unshift({
                   id: d.DCR_ID,
                   name: req.Hospital || 'Unknown',
                   knownAs: req.Known_As || '-',
-                  provinceFull: req.Province || '-',
-                  provinceOnly: extracted.province || '-',
-                  zoneOnly: extracted.zone || '-',
+                  provinceId: req.Province_ID || '',
+                  provinceOnly: provName,
+                  zoneOnly: zoneName,
                   address: req.Address || '-',
                   salesId: req.Sales_ID || '-',
                   status: 'Pending DCR',
@@ -681,7 +628,6 @@
 
     globalHospitals = window.HospManagerCache.hospitals;
 
-    // 🌟 สร้าง Dropdown ของช่อง Filter Hospital Name ด้วย TomSelect (โชว์เฉพาะโรงพยาบาลที่มีสิทธิ์)
     const filterHospNameSelect = document.getElementById('filterHospName');
     if (filterHospNameSelect) {
         filterHospNameSelect.innerHTML = '';
@@ -695,7 +641,6 @@
         initMultiTomSelect('filterHospName', '- All Hospitals -');
     }
 
-    // 🌟 ดึงเฉพาะ Province จากรายชื่อโรงพยาบาลที่ Assignment
     const filterProvSelect = document.getElementById('filterHospProvince');
     if (filterProvSelect) {
         filterProvSelect.innerHTML = '';
@@ -709,7 +654,6 @@
         initMultiTomSelect('filterHospProvince', '- All Provinces -');
     }
 
-    // 🌟 ดึงเฉพาะ Zone จากรายชื่อโรงพยาบาลที่ Assignment
     const filterZoneSelect = document.getElementById('filterHospZone');
     if (filterZoneSelect) {
         filterZoneSelect.innerHTML = '';
@@ -723,7 +667,6 @@
         initMultiTomSelect('filterHospZone', '- All Zones -');
     }
 
-    // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
     if (window.HospManagerCache.filters) {
         const f = window.HospManagerCache.filters;
         const nameEl = document.getElementById('filterHospName');
@@ -767,7 +710,6 @@
     filterHospitals(false); 
   }
 
-  // 🌟 บันทึกสถานะ Filter (ดึงค่าแบบ Array จาก TomSelect)
   function filterHospitals(resetPage = true) {
     const getTsVals = (id) => {
         const el = document.getElementById(id);
@@ -890,7 +832,6 @@
         `<span class="fw-bold text-dark"><i class="fa-regular fa-hospital me-2 text-warning"></i>${h.name || '-'}</span>` : 
         `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a>${pendingEditTag}`;
 
-      // 🌟 เพิ่มคอลัมน์ Zone เข้าไปใน Table
       tbody.innerHTML += `
         <tr>
           <td>${nameCell}</td>
@@ -953,7 +894,8 @@
     currentSelectedHospId = id; const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('viewHospTitleName').innerText = `🏥 ${h.name}`;
     document.getElementById('viewHospName').value = h.name || '-'; document.getElementById('viewHospKnownAs').value = h.knownAs || '-'; 
-    document.getElementById('viewHospProvince').value = h.provinceFull || '-'; document.getElementById('viewHospAddress').value = h.address || '-';
+    document.getElementById('viewHospProvince').value = `${h.provinceOnly} (${h.zoneOnly})`; 
+    document.getElementById('viewHospAddress').value = h.address || '-';
     document.getElementById('viewHospSalesId').value = h.salesId || '-'; document.getElementById('viewHospStatus').value = h.status || '-';
     document.getElementById('viewHospStatus').className = `form-control bg-light fw-bold ${h.status === 'Active' ? 'text-success' : 'text-danger'}`;
     checkPendingDCR(h.id, 'profileDcrStatusBadge'); switchHospitalView('hospitalProfileView');
@@ -983,7 +925,9 @@
   function openEditHospitalView(id) {
     const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('editHospId').value = h.id; document.getElementById('editHospName').value = h.name || '';
-    document.getElementById('editHospKnownAs').value = h.knownAs || ''; document.getElementById('editHospProvince').value = h.provinceFull || '';
+    document.getElementById('editHospKnownAs').value = h.knownAs || ''; 
+    // 🌟 เลือก Province_ID ในฟอร์ม Edit ให้ถูกต้อง
+    document.getElementById('editHospProvince').value = h.provinceId || '';
     document.getElementById('editHospAddress').value = h.address || ''; document.getElementById('editHospSalesId').value = h.salesId || '';
     document.getElementById('editHospStatus').value = h.status || 'Active';
     checkPendingDCR(h.id, 'editDcrStatusBadge');
@@ -1017,10 +961,11 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
     
+    // 🌟 Payload เปลี่ยนไปใช้ Province_ID แทน Province
     const payload = {
       Hospital: document.getElementById('hospName').value.trim(), 
       Known_As: document.getElementById('hospKnownAs').value.trim(), 
-      Province: document.getElementById('hospProvince').value, 
+      Province_ID: document.getElementById('hospProvince').value, 
       Address: document.getElementById('hospAddress').value.trim(),
       Sales_ID: document.getElementById('hospSalesId').value.trim(), 
       Status: 'Active', 
@@ -1073,10 +1018,11 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
     
+    // 🌟 Payload เปลี่ยนไปใช้ Province_ID แทน Province
     const payload = {
       Hospital: document.getElementById('editHospName').value.trim(), 
       Known_As: document.getElementById('editHospKnownAs').value.trim(), 
-      Province: document.getElementById('editHospProvince').value, 
+      Province_ID: document.getElementById('editHospProvince').value, 
       Address: document.getElementById('editHospAddress').value.trim(),
       Sales_ID: document.getElementById('editHospSalesId').value.trim(), 
       Status: document.getElementById('editHospStatus').value, 
