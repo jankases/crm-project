@@ -767,7 +767,8 @@
           globalRatingIsLocked = true; // ล็อกถ้ายไม่พบตั้งค่า
       }
 
-      const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(globalCurrentUserRole) || rawScope.toUpperCase() === 'ALL';
+      // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
+      const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || globalCurrentUserRole === 'Admin';
       let allowedTeamIds = [];
 
       if (isGlobalViewer) {
@@ -879,7 +880,8 @@
           const territories = window.DocManagerCache.territories || [];
           const teams = window.DocManagerCache.teamList || [];
           
-          const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
+          // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
+          const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || userRole === 'Admin';
 
           let allowedTerIds = [];
           if (!isGlobalViewer) {
@@ -912,7 +914,8 @@
           let allowedDocIds = [];
           let allowedHospIds = [];
           if (!isGlobalViewer) {
-              const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID)));
+              // 🌟 รองรับกรณีที่ชื่อ Field ใน DB อาจเป็น Territory หรือ Territory_ID
+              const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               allowedHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
           }
