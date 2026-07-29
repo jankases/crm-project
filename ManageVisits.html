@@ -14,10 +14,10 @@
   }
   
   /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงาม */
-  .ts-control { border-radius: 10px !important; min-height: 42px; }
-  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
-  .input-group .ts-wrapper { flex-grow: 1; }
-  .input-group .ts-wrapper .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
+  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
+  .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
+  .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
 
   /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
@@ -53,7 +53,7 @@
     <!-- 🌟 ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
-      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown ค้นหาได้ -->
+      <!-- 🌟 เปลี่ยนเป็น Dropdown ค้นหาได้ (TomSelect) -->
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -66,7 +66,7 @@
         </div>
       </div>
       
-      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown ค้นหาได้ -->
+      <!-- 🌟 เปลี่ยนเป็น Dropdown ค้นหาได้ (TomSelect) -->
       <div class="col-sm-12 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -643,7 +643,7 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ (มี searchField เพื่อให้พิมพ์ได้ 2 ภาษา และ maxOptions: null ไม่ให้ชื่อหาย)
+      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ (ตั้งค่า maxOptions: null ไม่ให้ชื่อหาย)
       const filterDocSelect = document.getElementById('filterVisitDoctor');
       if (filterDocSelect) {
           filterDocSelect.innerHTML = '<option value="">- All Doctors -</option>';
@@ -662,12 +662,12 @@
                   sortField: { field: "text", direction: "asc" }, 
                   placeholder: "Search Doctor (EN/TH)...",
                   allowEmptyOption: true,
-                  maxOptions: null 
+                  maxOptions: null // 🔥 สำคัญมาก: ป้องกันไม่ให้รายชื่อถูกตัดทิ้ง
               });
           }
       }
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล
+      // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล (ตั้งค่า maxOptions: null)
       const filterHospSelect = document.getElementById('filterVisitHospital');
       if (filterHospSelect) {
           filterHospSelect.innerHTML = '<option value="">- All Hospitals -</option>';
@@ -686,7 +686,7 @@
                   sortField: { field: "text", direction: "asc" }, 
                   placeholder: "Search Hospital (EN/TH)...",
                   allowEmptyOption: true,
-                  maxOptions: null
+                  maxOptions: null // 🔥 สำคัญมาก
               });
           }
       }
@@ -1019,13 +1019,14 @@
     filterVisits(false);
   }
 
-  // 🌟 บันทึกสถานะ Filter (ตอนนี้เก็บเป็นค่า ID แทนคำค้นหาแล้ว)
+  // 🌟 บันทึกสถานะ Filter ลงใน Cache
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     
+    // รับค่า Value (ID) แทนตัวหนังสือ
     const filterDocId = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value : '';
     const filterHospId = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value : '';
     
@@ -1096,8 +1097,10 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
+      // ค้นหาด้วย ID ทำให้แม่นยำ 100%
       const matchDoc = (filterDocId === "") || (String(v.Doc_ID) === String(filterDocId));
 
+      // ใช้ globalAllDoctors ในการเทียบหา Hospital เพื่อให้ข้อมูลครบถ้วน
       const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let hospId = docObj ? docObj.Hospital_ID : '';
       const matchHosp = (filterHospId === "") || (String(hospId) === String(filterHospId));
