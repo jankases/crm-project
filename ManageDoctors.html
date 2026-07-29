@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาทั้งหมด (ปรับเป็น Multi-Select TomSelect ทั้งหมด) -->
+    <!-- 🌟 ส่วนค้นหาทั้งหมด พร้อมปุ่ม Clear Filters -->
     <div class="row mb-4 doctor-filter-group g-3 align-items-end">
       
       <div class="col-sm-6 col-md-6 col-lg-3">
@@ -95,14 +95,21 @@
         </div>
       </div>
 
-      <div class="col-sm-6 col-md-6 col-lg-3">
+      <div class="col-sm-6 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1">Specialty</label>
         <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()" multiple></select>
       </div>
 
-      <div class="col-sm-6 col-md-6 col-lg-3">
+      <div class="col-sm-6 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor Type</label>
         <select class="form-select shadow-sm" id="filterDocType" onchange="filterDoctors()" multiple></select>
+      </div>
+
+      <!-- 🌟 ปุ่มล้างตัวกรอง (Clear Filters) -->
+      <div class="col-sm-12 col-md-4 col-lg-2 d-flex justify-content-end">
+        <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary" type="button" onclick="clearDoctorFilters()" style="min-height: 42px; border-radius: 10px;">
+          <i class="fa-solid fa-eraser me-1"></i> Clear Filters
+        </button>
       </div>
 
     </div>
@@ -449,7 +456,7 @@
       return allData;
   }
 
-  // 🌟 ระบบ Caching
+  // 🌟 ระบบ Caching สำหรับหน้า Doctors
   window.DocManagerCache = window.DocManagerCache || {
       isLoaded: false,
       indexLoaded: false,
@@ -465,7 +472,7 @@
       teamProdLinks: [],
       sysSettings: [],
       teamList: [],
-      allowedHospIds: [], // เพิ่มการจำสิทธิ์ รพ.
+      allowedHospIds: [],
       filters: { name: [], spec: [], type: [], hosp: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
@@ -499,6 +506,25 @@
   var rowsPerPage = 20;
 
   window.openViewDoctorProfile = openViewDoctorProfile;
+
+  // 🌟 ฟังก์ชันล้างตัวกรองทั้งหมด (Clear Filters)
+  function clearDoctorFilters() {
+      const clearTs = (id) => {
+          const el = document.getElementById(id);
+          if (el && el.tomselect) {
+              el.tomselect.clear();
+          } else if (el) {
+              el.value = '';
+          }
+      };
+      
+      clearTs('filterDocName');
+      clearTs('filterDocWorkplace');
+      clearTs('filterDocSpecialty');
+      clearTs('filterDocType');
+      
+      filterDoctors();
+  }
 
   // ===================== 🎙️ ระบบ Voice to Text (เข้า TomSelect โดยตรง) =====================
   var activeSearchRecognition = null;
@@ -609,6 +635,7 @@
     currentSearchIconId = null;
   }
 
+  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
   async function forceReloadDoctors() {
       const btn = document.getElementById('btnRefreshDoctors');
       if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
@@ -953,7 +980,6 @@
     if (filterHospSelect) {
         filterHospSelect.innerHTML = '';
         
-        // 🌟 รวบรวม Hospital_ID ที่มีสิทธิ์เห็น ทั้งจาก Assignment ตรงๆ และจากการผูกในตัวหมอ
         let validHospIds = new Set();
         if (isGlobalViewer) {
             globalHospitals.forEach(h => validHospIds.add(String(h.Hospital_ID)));
@@ -1059,7 +1085,6 @@
       const matchSpec = (specTerms.length === 0) || specTerms.includes(String(d.specialty));
       const matchType = (typeTerms.length === 0) || typeTerms.includes(String(d.type));
       
-      // 🌟 ค้นหาโรงพยาบาลทั้งตัวหลักและตัวรอง
       const matchHosp = (hospTermIds.length === 0) || hospTermIds.some(hId => {
           if (String(d.hospitalId) === String(hId)) return true;
           try {
