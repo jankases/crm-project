@@ -13,13 +13,13 @@
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
   
-  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงามและไม่โดนบัง */
+  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงาม */
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
   
-  /* 🌟 บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
+  /* บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
 
@@ -54,14 +54,14 @@
       </div>
     </div>
 
-    <!-- ส่วนค้นหาหลัก -->
+    <!-- 🌟 ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
+      <!-- 🌟 ใส่ multiple เพื่อให้เลือกได้หลายคน -->
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()">
-            <option value="">- All Doctors -</option>
+          <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple>
           </select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micDocSearchIcon"></i>
@@ -69,11 +69,11 @@
         </div>
       </div>
       
+      <!-- 🌟 ใส่ multiple เพื่อให้เลือกได้หลายโรงพยาบาล -->
       <div class="col-sm-12 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()">
-            <option value="">- All Hospitals -</option>
+          <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple>
           </select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
@@ -263,6 +263,7 @@
               <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="Enter discussion summary or additional details..."></textarea>
             </div>
 
+            <!-- ช่องข้อมูลเชิงลึก (Insight) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="form-label fw-bold text-dark mb-0">Insight</label>
@@ -304,6 +305,7 @@
 </div>
 
 <script>
+  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -311,8 +313,10 @@
       while (true) {
           let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
           if (queryModifier) query = queryModifier(query);
+          
           const { data, error } = await query;
           if (error) throw error;
+          
           allData = allData.concat(data);
           if (data.length < step) break;
           start += step;
@@ -320,22 +324,50 @@
       return allData;
   }
 
+  // 🌟 ระบบ Caching
   window.VisitManagerCache = window.VisitManagerCache || {
-      isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
-      allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], teamProdLinks: [],
-      indexTypes: [], indexes: [], pendingUnlocks: [],
-      filters: { doc: '', hosp: '', startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
+      isLoaded: false,
+      dropdownsLoaded: false,
+      visits: [],
+      visitProducts: [],
+      allDoctors: [],
+      assignedDoctors: [],
+      allHospitals: [],
+      assignedHospitals: [],
+      products: [],
+      territories: [],
+      users: [],
+      teams: [],
+      teamProdLinks: [],
+      indexTypes: [],
+      indexes: [],
+      pendingUnlocks: [],
+      filters: { 
+          doc: [], hosp: [], startDate: '', endDate: '', status: '', 
+          rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false 
+      }
   };
 
-  var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
-  var globalAllHospitals = [], globalAssignedHospitals = [], globalProductsList = [], globalTerritoryList = [];
-  var globalUsersList = [], globalTeamList = [], globalPendingUnlockVisits = [], globalCurrentUserRole = '';
+  var globalVisits = [];
+  var globalFilteredVisits = [];
+  var globalVisitProducts = []; 
+  var globalAllDoctors = [];
+  var globalAssignedDoctors = [];
+  var globalAllHospitals = [];
+  var globalAssignedHospitals = [];
+  var globalProductsList = [];
+  var globalTerritoryList = [];
+  var globalUsersList = [];
+  var globalTeamList = [];
+  var globalPendingUnlockVisits = [];
+  var globalCurrentUserRole = '';
   
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
 
   var currentSortCol = 'date';
   var currentSortAsc = false; 
+
   var currentPage = 1;
   var rowsPerPage = 20;
 
@@ -355,16 +387,21 @@
     } else {
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
-        if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) btn.click();
+        if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) {
+          btn.click();
+        }
       });
     }
+
     let attempts = 0;
     const checkReady = setInterval(() => {
       attempts++;
       if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
         clearInterval(checkReady);
         window.openViewDoctorProfile(docId, '#tab-doc-history'); 
-      } else if (attempts > 50) clearInterval(checkReady);
+      } else if (attempts > 50) { 
+        clearInterval(checkReady);
+      }
     }, 100);
   }
 
@@ -373,7 +410,9 @@
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
       returnToDoctorProfile(returnDocId); 
-    } else switchVisitView('visitListView');
+    } else {
+      switchVisitView('visitListView');
+    }
   }
 
   // ===================== 🎙️ ระบบไมค์เข้า TomSelect โดยตรง =====================
@@ -393,7 +432,15 @@
               const text = (options[id].text || '').toLowerCase();
               if (text.includes(searchKey)) { matchedId = id; break; }
           }
-          if (matchedId) ts.setValue(matchedId);
+          if (matchedId) {
+              if (selectEl.hasAttribute('multiple')) {
+                  ts.addItem(matchedId); // ถ้าเป็น multiple ให้ add เพิ่ม
+              } else {
+                  ts.setValue(matchedId);
+              }
+              ts.setTextboxValue(''); 
+              ts.blur();
+          }
       } else {
            selectEl.value = keyword; 
            selectEl.dispatchEvent(new Event('change'));
@@ -418,8 +465,11 @@
       
       const inputEl = document.getElementById(inputId); 
       if(inputEl && spokenText.trim()){
-         if(inputEl.tagName === 'SELECT') searchAndSelectTomSelect(inputId, spokenText.trim());
-         else inputEl.value = spokenText.trim(); 
+         if(inputEl.tagName === 'SELECT') {
+             searchAndSelectTomSelect(inputId, spokenText.trim());
+         } else {
+             inputEl.value = spokenText.trim(); 
+         }
          filterVisits();
       } 
       stopSpeechSearch();
@@ -472,6 +522,7 @@
     if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines','fa-fade');}
   }
 
+  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
   async function forceReloadVisits() {
       const btn = document.getElementById('btnRefreshVisits');
       if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
@@ -491,8 +542,11 @@
       let terrNameShow = rawTerr;
       if (globalTerritoryList && globalTerritoryList.length > 0) {
         const found = globalTerritoryList.find(t => String(t.Territory_ID) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
-        if (found) terrNameShow = found.Territory;
-        else if (String(terrNameShow).length > 20) terrNameShow = '-'; 
+        if (found) {
+            terrNameShow = found.Territory;
+        } else if (String(terrNameShow).length > 20) {
+            terrNameShow = '-'; 
+        }
       }
       
       document.getElementById('dispSalesRepName').innerText = repName; 
@@ -506,7 +560,7 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns 
+  // 🌟 โหลด Dropdowns (จำกัดสิทธิ์ Assignment ของหมอและ รพ.)
   async function loadDropdowns(forceReload = false) {
     try {
       let crmUser = null; 
@@ -599,10 +653,10 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ 
+      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ (มี plugins: ['remove_button'] เพื่อให้เลือกได้หลายคน)
       const filterDocSelect = document.getElementById('filterVisitDoctor');
       if (filterDocSelect) {
-          filterDocSelect.innerHTML = '<option value="">- All Doctors -</option>';
+          filterDocSelect.innerHTML = '';
           globalAssignedDoctors.forEach(d => {
               const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
               const opt = document.createElement('option'); 
@@ -613,21 +667,21 @@
           if (typeof TomSelect !== 'undefined') {
               if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
               new TomSelect('#filterVisitDoctor', { 
+                  plugins: ['remove_button'], // 🌟 ลบได้ทีละอัน
                   create: false, 
                   searchField: ["text"],
                   sortField: { field: "text", direction: "asc" }, 
                   placeholder: "- All Doctors -",
-                  allowEmptyOption: true,
-                  maxOptions: null, // 🌟 ล็อคไม่ให้รายชื่อหายเวลาพิมพ์เกิน 50
-                  dropdownParent: 'body' // 🌟 ลอยทับกรอบ Input Group เสมอ
+                  maxOptions: null,
+                  dropdownParent: 'body'
               });
           }
       }
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล
+      // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล (เลือกได้หลายอัน)
       const filterHospSelect = document.getElementById('filterVisitHospital');
       if (filterHospSelect) {
-          filterHospSelect.innerHTML = '<option value="">- All Hospitals -</option>';
+          filterHospSelect.innerHTML = '';
           globalAssignedHospitals.forEach(h => {
               const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
               const opt = document.createElement('option'); 
@@ -638,18 +692,18 @@
           if (typeof TomSelect !== 'undefined') {
               if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
               new TomSelect('#filterVisitHospital', { 
+                  plugins: ['remove_button'],
                   create: false, 
                   searchField: ["text"],
                   sortField: { field: "text", direction: "asc" }, 
                   placeholder: "- All Hospitals -",
-                  allowEmptyOption: true,
                   maxOptions: null,
-                  dropdownParent: 'body' // 🌟 ลอยทับกรอบ Input Group เสมอ
+                  dropdownParent: 'body'
               });
           }
       }
 
-      // สร้าง Dropdown ใน Form Add/Edit Visit
+      // สร้าง Dropdown ใน Form Add/Edit Visit (อันนี้เลือกหมอคนเดียว)
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
@@ -663,7 +717,7 @@
                 create: false, 
                 searchField: ["text"],
                 sortField: { field: "text", direction: "asc" }, 
-                placeholder: "-- Search/Select Doctor --",
+                placeholder: "Search Doctor (EN/TH)...",
                 allowEmptyOption: true,
                 maxOptions: null,
                 dropdownParent: 'body'
@@ -822,7 +876,7 @@
         formProdSelect.innerHTML = fHtml;
         if (typeof TomSelect !== 'undefined') {
             if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
-            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --" });
+            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --", dropdownParent: 'body' });
         }
     }
   }
@@ -951,14 +1005,15 @@
     globalVisitProducts = window.VisitManagerCache.visitProducts;
     globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
 
+    // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
     if (window.VisitManagerCache.filters) {
         const f = window.VisitManagerCache.filters;
         
         const docFilterEl = document.getElementById('filterVisitDoctor');
-        if (docFilterEl && docFilterEl.tomselect && f.doc) docFilterEl.tomselect.setValue(f.doc);
+        if (docFilterEl && docFilterEl.tomselect && f.doc && f.doc.length > 0) docFilterEl.tomselect.setValue(f.doc);
         
         const hospFilterEl = document.getElementById('filterVisitHospital');
-        if (hospFilterEl && hospFilterEl.tomselect && f.hosp) hospFilterEl.tomselect.setValue(f.hosp);
+        if (hospFilterEl && hospFilterEl.tomselect && f.hosp && f.hosp.length > 0) hospFilterEl.tomselect.setValue(f.hosp);
         
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
@@ -977,14 +1032,28 @@
     filterVisits(false);
   }
 
+  // 🌟 บันทึกสถานะ Filter (ดึงค่า Array จาก Multi-Select)
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     
-    const filterDocId = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value : '';
-    const filterHospId = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value : '';
+    // 🌟 ดึงค่าแบบ Array จาก TomSelect สำหรับ Doctor
+    let filterDocIds = [];
+    const docFilterEl = document.getElementById('filterVisitDoctor');
+    if (docFilterEl && docFilterEl.tomselect) {
+        let val = docFilterEl.tomselect.getValue();
+        filterDocIds = Array.isArray(val) ? val : (val ? [val] : []);
+    }
+
+    // 🌟 ดึงค่าแบบ Array จาก TomSelect สำหรับ Hospital
+    let filterHospIds = [];
+    const hospFilterEl = document.getElementById('filterVisitHospital');
+    if (hospFilterEl && hospFilterEl.tomselect) {
+        let val = hospFilterEl.tomselect.getValue();
+        filterHospIds = Array.isArray(val) ? val : (val ? [val] : []);
+    }
     
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
@@ -994,7 +1063,7 @@
     if (resetPage) currentPage = 1;
 
     window.VisitManagerCache.filters = {
-        doc: filterDocId, hosp: filterHospId, startDate: startDateTerm, endDate: endDateTerm,
+        doc: filterDocIds, hosp: filterHospIds, startDate: startDateTerm, endDate: endDateTerm,
         status: statusTerm, rep: repTerm, territory: terTerm, prod: prodTerm,
         page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
     };
@@ -1053,11 +1122,12 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
-      const matchDoc = (filterDocId === "") || (String(v.Doc_ID) === String(filterDocId));
+      // 🌟 ค้นหาด้วย ID ที่อยู่ใน Array ถ้า Array ว่างแปลว่าไม่ได้เลือก (แสดงทั้งหมด)
+      const matchDoc = (filterDocIds.length === 0) || filterDocIds.includes(String(v.Doc_ID));
 
       const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let hospId = docObj ? docObj.Hospital_ID : '';
-      const matchHosp = (filterHospId === "") || (String(hospId) === String(filterHospId));
+      const matchHosp = (filterHospIds.length === 0) || filterHospIds.includes(String(hospId));
 
       const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
