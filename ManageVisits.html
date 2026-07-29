@@ -57,53 +57,58 @@
     <!-- 🌟 ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
-      <!-- 🌟 ใส่ multiple เพื่อให้เลือกได้หลายคน -->
-      <div class="col-sm-6 col-md-3 col-lg-3">
+      <!-- Doctor Filter (TomSelect Multiple) -->
+      <div class="col-sm-6 col-md-6 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple>
-          </select>
+          <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micDocSearchIcon"></i>
           </button>
         </div>
       </div>
       
-      <!-- 🌟 ใส่ multiple เพื่อให้เลือกได้หลายโรงพยาบาล -->
-      <div class="col-sm-12 col-md-3 col-lg-3">
+      <!-- Hospital Filter (TomSelect Multiple) -->
+      <div class="col-sm-6 col-md-6 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple>
-          </select>
+          <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
           </button>
         </div>
       </div>
 
-      <div class="col-sm-12 col-md-3 col-lg-3">
+      <!-- Date Range -->
+      <div class="col-sm-12 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1">Date Range</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <input type="date" class="form-control text-secondary px-2" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="Start Date">
-          <span class="input-group-text bg-light border-start-0 border-end-0 px-2 text-muted">-</span>
-          <input type="date" class="form-control text-secondary px-2" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="End Date">
+          <input type="date" class="form-control text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="Start Date">
+          <span class="input-group-text bg-light border-start-0 border-end-0 px-1 text-muted">-</span>
+          <input type="date" class="form-control text-secondary px-1" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="End Date">
         </div>
       </div>
 
-      <div class="col-sm-6 col-md-2 col-lg-2">
+      <!-- Status -->
+      <div class="col-sm-6 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1">Status</label>
-        <select class="form-select shadow-sm px-1" id="filterVisitStatus" onchange="filterVisits()">
+        <select class="form-select shadow-sm px-2" id="filterVisitStatus" onchange="filterVisits()">
           <option value="">- All -</option>
           <option value="Pending">Pending</option>
           <option value="Submitted">Submitted</option>
         </select>
       </div>
 
-      <div class="col-sm-6 col-md-1 col-lg-1">
-        <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="Advanced Filters">
+      <!-- 🌟 ปุ่ม Toggle Advanced และ Clear Filters -->
+      <div class="col-sm-6 col-md-4 col-lg-2 d-flex gap-2">
+        <button class="btn btn-light border fw-bold w-50 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="Advanced Filters">
           <i class="fa-solid fa-sliders"></i>
         </button>
+        <button class="btn btn-light border fw-bold w-50 shadow-sm text-secondary px-1" type="button" onclick="clearVisitFilters()" style="min-height: 42px; border-radius: 10px;" title="Clear All Filters">
+          <i class="fa-solid fa-eraser"></i> Clear
+        </button>
       </div>
+
     </div>
 
     <!-- ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
@@ -305,7 +310,6 @@
 </div>
 
 <script>
-  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -313,10 +317,8 @@
       while (true) {
           let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
           if (queryModifier) query = queryModifier(query);
-          
           const { data, error } = await query;
           if (error) throw error;
-          
           allData = allData.concat(data);
           if (data.length < step) break;
           start += step;
@@ -324,50 +326,22 @@
       return allData;
   }
 
-  // 🌟 ระบบ Caching
   window.VisitManagerCache = window.VisitManagerCache || {
-      isLoaded: false,
-      dropdownsLoaded: false,
-      visits: [],
-      visitProducts: [],
-      allDoctors: [],
-      assignedDoctors: [],
-      allHospitals: [],
-      assignedHospitals: [],
-      products: [],
-      territories: [],
-      users: [],
-      teams: [],
-      teamProdLinks: [],
-      indexTypes: [],
-      indexes: [],
-      pendingUnlocks: [],
-      filters: { 
-          doc: [], hosp: [], startDate: '', endDate: '', status: '', 
-          rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false 
-      }
+      isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
+      allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], teamProdLinks: [],
+      indexTypes: [], indexes: [], pendingUnlocks: [],
+      filters: { doc: [], hosp: [], startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
   };
 
-  var globalVisits = [];
-  var globalFilteredVisits = [];
-  var globalVisitProducts = []; 
-  var globalAllDoctors = [];
-  var globalAssignedDoctors = [];
-  var globalAllHospitals = [];
-  var globalAssignedHospitals = [];
-  var globalProductsList = [];
-  var globalTerritoryList = [];
-  var globalUsersList = [];
-  var globalTeamList = [];
-  var globalPendingUnlockVisits = [];
-  var globalCurrentUserRole = '';
+  var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
+  var globalAllHospitals = [], globalAssignedHospitals = [], globalProductsList = [], globalTerritoryList = [];
+  var globalUsersList = [], globalTeamList = [], globalPendingUnlockVisits = [], globalCurrentUserRole = '';
   
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
 
   var currentSortCol = 'date';
   var currentSortAsc = false; 
-
   var currentPage = 1;
   var rowsPerPage = 20;
 
@@ -381,27 +355,42 @@
     openEditVisitView(visitId);
   };
 
+  // 🌟 ฟังก์ชันล้างตัวกรองทั้งหมด (Clear Filters)
+  function clearVisitFilters() {
+      const clearTs = (id) => {
+          const el = document.getElementById(id);
+          if (el && el.tomselect) el.tomselect.clear();
+          else if (el) el.value = '';
+      };
+      
+      clearTs('filterVisitDoctor');
+      clearTs('filterVisitHospital');
+      clearTs('filterStartDate');
+      clearTs('filterEndDate');
+      clearTs('filterVisitStatus');
+      clearTs('filterVisitRep');
+      clearTs('filterVisitTerritory');
+      clearTs('filterVisitProduct');
+      
+      filterVisits();
+  }
+
   function returnToDoctorProfile(docId) {
     if (typeof window.loadComponent === 'function') {
       window.loadComponent('doctor');
     } else {
       document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
         const txt = btn.textContent || btn.innerText;
-        if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) {
-          btn.click();
-        }
+        if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) btn.click();
       });
     }
-
     let attempts = 0;
     const checkReady = setInterval(() => {
       attempts++;
       if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
         clearInterval(checkReady);
         window.openViewDoctorProfile(docId, '#tab-doc-history'); 
-      } else if (attempts > 50) { 
-        clearInterval(checkReady);
-      }
+      } else if (attempts > 50) clearInterval(checkReady);
     }, 100);
   }
 
@@ -410,12 +399,9 @@
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
       returnToDoctorProfile(returnDocId); 
-    } else {
-      switchVisitView('visitListView');
-    }
+    } else switchVisitView('visitListView');
   }
 
-  // ===================== 🎙️ ระบบไมค์เข้า TomSelect โดยตรง =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
 
   function searchAndSelectTomSelect(selectId, keyword) {
@@ -433,11 +419,8 @@
               if (text.includes(searchKey)) { matchedId = id; break; }
           }
           if (matchedId) {
-              if (selectEl.hasAttribute('multiple')) {
-                  ts.addItem(matchedId); // ถ้าเป็น multiple ให้ add เพิ่ม
-              } else {
-                  ts.setValue(matchedId);
-              }
+              if (selectEl.hasAttribute('multiple')) ts.addItem(matchedId); 
+              else ts.setValue(matchedId);
               ts.setTextboxValue(''); 
               ts.blur();
           }
@@ -465,11 +448,8 @@
       
       const inputEl = document.getElementById(inputId); 
       if(inputEl && spokenText.trim()){
-         if(inputEl.tagName === 'SELECT') {
-             searchAndSelectTomSelect(inputId, spokenText.trim());
-         } else {
-             inputEl.value = spokenText.trim(); 
-         }
+         if(inputEl.tagName === 'SELECT') searchAndSelectTomSelect(inputId, spokenText.trim());
+         else inputEl.value = spokenText.trim(); 
          filterVisits();
       } 
       stopSpeechSearch();
@@ -522,7 +502,6 @@
     if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines','fa-fade');}
   }
 
-  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
   async function forceReloadVisits() {
       const btn = document.getElementById('btnRefreshVisits');
       if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
@@ -542,11 +521,8 @@
       let terrNameShow = rawTerr;
       if (globalTerritoryList && globalTerritoryList.length > 0) {
         const found = globalTerritoryList.find(t => String(t.Territory_ID) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
-        if (found) {
-            terrNameShow = found.Territory;
-        } else if (String(terrNameShow).length > 20) {
-            terrNameShow = '-'; 
-        }
+        if (found) terrNameShow = found.Territory;
+        else if (String(terrNameShow).length > 20) terrNameShow = '-'; 
       }
       
       document.getElementById('dispSalesRepName').innerText = repName; 
@@ -560,7 +536,6 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns (จำกัดสิทธิ์ Assignment ของหมอและ รพ.)
   async function loadDropdowns(forceReload = false) {
     try {
       let crmUser = null; 
@@ -653,7 +628,6 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ (มี plugins: ['remove_button'] เพื่อให้เลือกได้หลายคน)
       const filterDocSelect = document.getElementById('filterVisitDoctor');
       if (filterDocSelect) {
           filterDocSelect.innerHTML = '';
@@ -667,7 +641,7 @@
           if (typeof TomSelect !== 'undefined') {
               if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
               new TomSelect('#filterVisitDoctor', { 
-                  plugins: ['remove_button'], // 🌟 ลบได้ทีละอัน
+                  plugins: ['remove_button'],
                   create: false, 
                   searchField: ["text"],
                   sortField: { field: "text", direction: "asc" }, 
@@ -678,7 +652,6 @@
           }
       }
 
-      // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล (เลือกได้หลายอัน)
       const filterHospSelect = document.getElementById('filterVisitHospital');
       if (filterHospSelect) {
           filterHospSelect.innerHTML = '';
@@ -703,7 +676,6 @@
           }
       }
 
-      // สร้าง Dropdown ใน Form Add/Edit Visit (อันนี้เลือกหมอคนเดียว)
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
@@ -1005,7 +977,6 @@
     globalVisitProducts = window.VisitManagerCache.visitProducts;
     globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
 
-    // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
     if (window.VisitManagerCache.filters) {
         const f = window.VisitManagerCache.filters;
         
@@ -1032,14 +1003,12 @@
     filterVisits(false);
   }
 
-  // 🌟 บันทึกสถานะ Filter (ดึงค่า Array จาก Multi-Select)
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     
-    // 🌟 ดึงค่าแบบ Array จาก TomSelect สำหรับ Doctor
     let filterDocIds = [];
     const docFilterEl = document.getElementById('filterVisitDoctor');
     if (docFilterEl && docFilterEl.tomselect) {
@@ -1047,7 +1016,6 @@
         filterDocIds = Array.isArray(val) ? val : (val ? [val] : []);
     }
 
-    // 🌟 ดึงค่าแบบ Array จาก TomSelect สำหรับ Hospital
     let filterHospIds = [];
     const hospFilterEl = document.getElementById('filterVisitHospital');
     if (hospFilterEl && hospFilterEl.tomselect) {
@@ -1122,7 +1090,6 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
-      // 🌟 ค้นหาด้วย ID ที่อยู่ใน Array ถ้า Array ว่างแปลว่าไม่ได้เลือก (แสดงทั้งหมด)
       const matchDoc = (filterDocIds.length === 0) || filterDocIds.includes(String(v.Doc_ID));
 
       const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
@@ -1312,11 +1279,6 @@
     ul.innerHTML = html;
   }
 
-  function clearValidation() {
-    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
-  }
-
   function toggleVisitFormEditable(isEditable) {
     const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     fields.forEach(id => {
@@ -1336,7 +1298,9 @@
   }
 
   function openAddVisitView() {
-    clearValidation();
+    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
+
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
     document.getElementById('formVisitTitle').innerText = '📝 Add New Visit';
@@ -1393,7 +1357,9 @@
   }
 
   function openEditVisitView(visitId) {
-    clearValidation();
+    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
+
     const v = globalVisits.find(x => x.Visit_ID === visitId);
     if (!v) return;
 
@@ -1536,7 +1502,8 @@
     }
     selectedProducts = selectedProducts.filter(p => p.trim() !== "");
 
-    clearValidation();
+    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
 
     let missingFields = [];
     if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• Doctor"); }
