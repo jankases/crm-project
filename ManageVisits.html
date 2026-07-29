@@ -12,8 +12,12 @@
     70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
+  
+  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงาม */
   .ts-control { border-radius: 10px !important; min-height: 42px; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 2px; }
+  .input-group .ts-wrapper { flex-grow: 1; }
+  .input-group .ts-wrapper .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
 
   /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
@@ -36,7 +40,6 @@
         <p class="text-muted mb-0">Doctor visits and daily activity logs</p>
       </div>
       
-      <!-- 🌟 เพิ่มปุ่ม Refresh ข้อมูล -->
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
@@ -47,32 +50,35 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาหลัก (Focus: Doctor, Hospital, Date Range, Status) -->
+    <!-- 🌟 ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
+      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown -->
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitDoctor" placeholder="Search Doctor..." onkeyup="filterVisits()">
+          <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()">
+            <option value="">- All Doctors -</option>
+          </select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micDocSearchIcon"></i>
           </button>
         </div>
       </div>
       
+      <!-- 🌟 เปลี่ยนจาก Input เป็น Select Dropdown -->
       <div class="col-sm-12 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Hospital</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0 py-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterVisitHospital" placeholder="Search Hospital..." onkeyup="filterVisits()">
+          <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()">
+            <option value="">- All Hospitals -</option>
+          </select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
           </button>
         </div>
       </div>
 
-      <!-- ตัวกรองระยะเวลา -->
       <div class="col-sm-12 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Date Range</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -91,7 +97,6 @@
         </select>
       </div>
 
-      <!-- ปุ่ม Toggle กางตัวกรองเพิ่มเติม -->
       <div class="col-sm-6 col-md-1 col-lg-1">
         <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="Advanced Filters">
           <i class="fa-solid fa-sliders"></i>
@@ -99,7 +104,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
+    <!-- ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
     <div class="collapse mb-4" id="advancedFilters">
       <div class="card card-body bg-light border-0 shadow-sm" style="border-radius: 15px;">
         <div class="row g-3">
@@ -128,9 +133,8 @@
         </div>
       </div>
     </div>
-    <!-- ============================================== -->
 
-    <!-- ตารางประวัติ (มี sortable-th ที่หัวตาราง) -->
+    <!-- ตารางประวัติ -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
@@ -150,7 +154,7 @@
         </table>
       </div>
 
-      <!-- 🌟 ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
+      <!-- ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
       <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
@@ -164,7 +168,6 @@
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination">
-            <!-- ปุ่มเปลี่ยนหน้าจะถูกสร้างโดย Javascript -->
           </ul>
         </nav>
       </div>
@@ -300,7 +303,7 @@
 </div>
 
 <script>
-  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
+  // 🌟 ฟังก์ชันช่วยเหลือสำหรับดึงข้อมูลทะลุขีดจำกัด 1000 รายการ
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -319,7 +322,7 @@
       return allData;
   }
 
-  // 🌟 ระบบ Caching สำหรับหน้า Visit 
+  // 🌟 ระบบ Caching
   window.VisitManagerCache = window.VisitManagerCache || {
       isLoaded: false,
       dropdownsLoaded: false,
@@ -405,20 +408,56 @@
     }
   }
 
-  // ===================== 🎙️ ระบบไมค์ =====================
+  // ===================== 🎙️ ระบบไมค์แบบใหม่ (ค้นหาเข้า TomSelect โดยตรง) =====================
   var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
+
+  function searchAndSelectTomSelect(selectId, keyword) {
+      const selectEl = document.getElementById(selectId);
+      if (!selectEl) return;
+      const searchKey = keyword.toLowerCase();
+      if (selectEl.tomselect) {
+          const ts = selectEl.tomselect; 
+          ts.focus(); 
+          ts.setTextboxValue(keyword); 
+          const options = ts.options; 
+          let matchedId = null;
+          for (let id in options) { 
+              const text = (options[id].text || '').toLowerCase();
+              if (text.includes(searchKey)) { matchedId = id; break; }
+          }
+          if (matchedId) ts.setValue(matchedId);
+      } else {
+           selectEl.value = keyword; 
+           selectEl.dispatchEvent(new Event('change'));
+      }
+  }
+
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("Your browser doesn't support voice recognition.");
     if(activeSearchRecognition && currentSearchInputId === inputId) return stopSpeechSearch();
     if(activeSearchRecognition) stopSpeechSearch();
+    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     activeSearchRecognition = new SpeechRecognition(); activeSearchRecognition.lang='th-TH';
     currentSearchInputId=inputId; currentSearchBtnId=btnId; currentSearchIconId=iconId;
+    
     const btn = document.getElementById(btnId), icon = document.getElementById(iconId);
     if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white','fa-microphone-lines','fa-fade'); icon.classList.remove('text-muted');}
+    
     activeSearchRecognition.onresult = function(event) {
-      let spokenText = ''; for(let i=event.resultIndex; i<event.results.length; ++i) { if(event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
-      const inputEl = document.getElementById(inputId); if(inputEl&&spokenText.trim()){inputEl.value=spokenText.trim(); filterVisits();} stopSpeechSearch();
+      let spokenText = ''; 
+      for(let i=event.resultIndex; i<event.results.length; ++i) { if(event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
+      
+      const inputEl = document.getElementById(inputId); 
+      if(inputEl && spokenText.trim()){
+         if(inputEl.tagName === 'SELECT') {
+             searchAndSelectTomSelect(inputId, spokenText.trim());
+         } else {
+             inputEl.value = spokenText.trim(); 
+         }
+         filterVisits();
+      } 
+      stopSpeechSearch();
     };
     activeSearchRecognition.onerror=stopSpeechSearch; activeSearchRecognition.onend=stopSpeechSearch; activeSearchRecognition.start();
   }
@@ -455,7 +494,7 @@
     const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition; docSpeechRecognition=new SpeechRecognition(); docSpeechRecognition.lang='th-TH';
     docSpeechRecognition.onresult=function(event){
       let spokenText=''; for(let i=event.resultIndex;i<event.results.length;++i){if(event.results[i].isFinal) spokenText+=event.results[i][0].transcript;}
-      if(spokenText.trim()) searchAndSelectDoctor(spokenText.trim()); stopDocDictation();
+      if(spokenText.trim()) searchAndSelectTomSelect('visitDocId', spokenText.trim()); stopDocDictation();
     };
     docSpeechRecognition.onerror=stopDocDictation; docSpeechRecognition.onend=function(){if(isDocRecording) stopDocDictation();};
   }
@@ -466,19 +505,6 @@
   function stopDocDictation(){
     isDocRecording=false; if(docSpeechRecognition) docSpeechRecognition.stop(); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
     if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines','fa-fade');}
-  }
-
-  function searchAndSelectDoctor(keyword) {
-    const docSelectEl = document.getElementById('visitDocId'); if (!docSelectEl) return;
-    const searchKey = keyword.toLowerCase();
-    if (docSelectEl.tomselect) {
-      const ts = docSelectEl.tomselect; ts.focus(); ts.setTextboxValue(keyword); const options = ts.options; let matchedDocId = null;
-      for (let id in options) { const opt=options[id]; if ((opt.nameEn||opt.text||'').toLowerCase().includes(searchKey)||(opt.nameTh||'').toLowerCase().includes(searchKey)){matchedDocId=id; break;}}
-      if (matchedDocId) ts.setValue(matchedDocId);
-    } else {
-      const matched = globalDoctorsList.find(d => (d.Doc_Name&&d.Doc_Name.toLowerCase().includes(searchKey))||(d.Doc_Name_TH&&d.Doc_Name_TH.toLowerCase().includes(searchKey)));
-      if (matched) { docSelectEl.value = matched.Doc_ID; docSelectEl.dispatchEvent(new Event('change')); }
-    }
   }
 
   // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
@@ -519,7 +545,7 @@
     window.scrollTo(0, 0);
   }
 
-  // 🌟 โหลด Dropdowns (ใช้ Cache & Bypassing Limit)
+  // 🌟 โหลด Dropdowns 
   async function loadDropdowns(forceReload = false) {
     try {
       let crmUser = null; 
@@ -559,6 +585,47 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
+      // 🌟 สร้าง Dropdown ของช่อง Filter หมอ
+      const filterDocSelect = document.getElementById('filterVisitDoctor');
+      if (filterDocSelect) {
+          filterDocSelect.innerHTML = '<option value="">- All Doctors -</option>';
+          globalDoctorsList.forEach(d => {
+              const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
+              const opt = document.createElement('option'); 
+              opt.value = d.Doc_ID; 
+              opt.textContent = `${d.Doc_Name}${nameThShow}`; 
+              filterDocSelect.appendChild(opt);
+          });
+          if (typeof TomSelect !== 'undefined' && !filterDocSelect.tomselect) {
+              new TomSelect('#filterVisitDoctor', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "Search Doctor..." });
+          } else if (filterDocSelect.tomselect) {
+              filterDocSelect.tomselect.clear();
+              filterDocSelect.tomselect.clearOptions();
+              filterDocSelect.tomselect.sync();
+          }
+      }
+
+      // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล
+      const filterHospSelect = document.getElementById('filterVisitHospital');
+      if (filterHospSelect) {
+          filterHospSelect.innerHTML = '<option value="">- All Hospitals -</option>';
+          globalHospitalsList.forEach(h => {
+              const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
+              const opt = document.createElement('option'); 
+              opt.value = h.Hospital_ID; 
+              opt.textContent = `${h.Hospital}${knownAsShow}`; 
+              filterHospSelect.appendChild(opt);
+          });
+          if (typeof TomSelect !== 'undefined' && !filterHospSelect.tomselect) {
+              new TomSelect('#filterVisitHospital', { create: false, sortField: { field: "text", direction: "asc" }, placeholder: "Search Hospital..." });
+          } else if (filterHospSelect.tomselect) {
+              filterHospSelect.tomselect.clear();
+              filterHospSelect.tomselect.clearOptions();
+              filterHospSelect.tomselect.sync();
+          }
+      }
+
+      // สร้าง Dropdown ใน Form Add/Edit
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
@@ -829,7 +896,6 @@
     filterVisits(false); 
   }
 
-  // 🌟 โหลด Visits (ใช้ Cache & Bypassing Limit)
   async function loadVisits(forceReload = false) {
     const tbody = document.getElementById('visitTableBody');
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -863,8 +929,12 @@
     if (window.VisitManagerCache.filters) {
         const f = window.VisitManagerCache.filters;
         
-        if (document.getElementById('filterVisitDoctor')) document.getElementById('filterVisitDoctor').value = f.doc || '';
-        if (document.getElementById('filterVisitHospital')) document.getElementById('filterVisitHospital').value = f.hosp || '';
+        const docFilterEl = document.getElementById('filterVisitDoctor');
+        if (docFilterEl && docFilterEl.tomselect && f.doc) docFilterEl.tomselect.setValue(f.doc);
+        
+        const hospFilterEl = document.getElementById('filterVisitHospital');
+        if (hospFilterEl && hospFilterEl.tomselect && f.hosp) hospFilterEl.tomselect.setValue(f.hosp);
+        
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
         if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
@@ -882,14 +952,17 @@
     filterVisits(false);
   }
 
-  // 🌟 บันทึกสถานะ Filter ลงใน Cache
+  // 🌟 บันทึกสถานะ Filter (ตอนนี้เก็บเป็นค่า ID แทนคำค้นหาแล้ว)
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
-    const docSearchTerm = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value.toLowerCase().trim() : '';
-    const hospSearchTerm = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value.toLowerCase().trim() : '';
+    
+    // 🌟 เปลี่ยนมารับค่า Value (ID) แทนตัวหนังสือ
+    const filterDocId = document.getElementById('filterVisitDoctor') ? document.getElementById('filterVisitDoctor').value : '';
+    const filterHospId = document.getElementById('filterVisitHospital') ? document.getElementById('filterVisitHospital').value : '';
+    
     const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
     const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
@@ -898,7 +971,7 @@
     if (resetPage) currentPage = 1;
 
     window.VisitManagerCache.filters = {
-        doc: docSearchTerm, hosp: hospSearchTerm, startDate: startDateTerm, endDate: endDateTerm,
+        doc: filterDocId, hosp: filterHospId, startDate: startDateTerm, endDate: endDateTerm,
         status: statusTerm, rep: repTerm, territory: terTerm, prod: prodTerm,
         page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
     };
@@ -957,14 +1030,12 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
 
-      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
-      const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}` : String(v.Doc_ID || '');
-      const matchDoc = (docSearchTerm === "") || docName.toLowerCase().includes(docSearchTerm);
+      // 🌟 ค้นหาด้วย ID ทำให้แม่นยำ 100%
+      const matchDoc = (filterDocId === "") || (String(v.Doc_ID) === String(filterDocId));
 
+      const docObj = globalDoctorsList.find(d => String(d.Doc_ID) === String(v.Doc_ID));
       let hospId = docObj ? docObj.Hospital_ID : '';
-      const hospObj = globalHospitalsList.find(h => String(h.Hospital_ID) === String(hospId));
-      const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}` : '';
-      const matchHosp = (hospSearchTerm === "") || hospName.toLowerCase().includes(hospSearchTerm);
+      const matchHosp = (filterHospId === "") || (String(hospId) === String(filterHospId));
 
       const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
@@ -1018,7 +1089,6 @@
     renderVisitTable();
   }
 
-  // 🌟 ฟังก์ชันจัดการการเปลี่ยนจำนวนแถวต่อหน้า
   function changeRowsPerPage() {
     const selectEl = document.getElementById('visitRowsPerPage');
     rowsPerPage = parseInt(selectEl.value);
@@ -1028,7 +1098,6 @@
     renderVisitTable();
   }
 
-  // 🌟 ฟังก์ชันจัดการการคลิกเปลี่ยนหน้า
   function goToPage(page) {
     const totalPages = Math.ceil(globalFilteredVisits.length / rowsPerPage);
     if (page < 1 || page > totalPages) return;
@@ -1051,7 +1120,6 @@
 
     document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
-    // คำนวณขอบเขต Pagination
     const totalItems = data.length;
     const totalPages = Math.ceil(totalItems / rowsPerPage);
     if (currentPage > totalPages) currentPage = totalPages;
@@ -1060,10 +1128,8 @@
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
     
-    // อัปเดตข้อความบอกจำนวน
     document.getElementById('visitPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
 
-    // ตัดอาร์เรย์มาแสดงผล
     const paginatedData = data.slice(startIndex, endIndex);
 
     paginatedData.forEach(v => {
@@ -1120,7 +1186,6 @@
     renderPaginationControls(totalPages);
   }
 
-  // 🌟 ฟังก์ชันวาดปุ่ม Pagination
   function renderPaginationControls(totalPages) {
     const ul = document.getElementById('visitPagination');
     let html = '';
