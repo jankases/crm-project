@@ -518,44 +518,67 @@
           let crmUser = null;
           try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-          const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-          const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-          const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
-          const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+          const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+          const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-          const [allHospitals, assignments, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+          const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
+
+          // 🌟 โหลด Data ทั้งหมด
+          const [allHospitals, assignments, terrRes, teamRes, allDocs, pendingAddRes, pendingEditRes] = await Promise.all([
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
-            fetchAllRecords('Assignment', q => q.eq('Type', 'Hospital')),
+            fetchAllRecords('Assignment'), 
             supabaseClient.from('Territory').select('*'),
             supabaseClient.from('Team').select('*'),
+            fetchAllRecords('Doctors', q => q.eq('Status', 'Active')),
             supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending')
           ]);
 
           let territories = terrRes.data || [];
           let teams = teamRes.data || [];
+          let allowedTerIds = [];
 
-          let allowedHospIds = [];
+          if (!isGlobalViewer) {
+              let matchedTeam = teams.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+              let matchedTerr = territories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
 
-          if (userRole === 'Sales' || userRole === 'Rep') {
-            let myTerritoryId = userTerritory;
-            const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
-            if (terrObj) myTerritoryId = terrObj.Territory_ID;
-            allowedHospIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
-          }
-          else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-            const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
-            allowedHospIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
-          }
-          else if (userRole === 'BU Head' && userBu) {
-            const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
-            const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
-            allowedHospIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+              if (userRole === 'Manager' || userRole === 'Sales Manager') {
+                  if (matchedTeam) {
+                      const terrs = territories.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                  } else if (rawScope) {
+                      const terrs = territories.filter(t => String(t.Team_ID) === rawScope);
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                  }
+              } else if (userRole === 'BU Head') {
+                  const buTeams = teams.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
+                  buTeams.forEach(t => {
+                      const terrs = territories.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
+                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+                  });
+              } else {
+                  if (matchedTerr) {
+                      allowedTerIds.push(String(matchedTerr.Territory_ID));
+                  } else if (rawScope) {
+                      allowedTerIds.push(rawScope);
+                  }
+              }
           }
 
           let visibleHospitals = allHospitals;
-          if (userRole !== 'Admin' && allowedHospIds.length > 0) {
-            visibleHospitals = allHospitals.filter(h => allowedHospIds.includes(h.Hospital_ID));
+
+          if (!isGlobalViewer) {
+              // 🌟 แก้ไข Bug 1 & 2: กรองข้อมูล Assignment ครอบคลุมถึง Territory/Territory_ID 
+              const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
+              const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
+              
+              // 🌟 แก้ไข Bug 3: ให้มองเห็นโรงพยาบาลที่ผูกกับรายชื่อหมอในความดูแล (Implicit Assignment)
+              const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
+              const implicitHospIds = allDocs.filter(d => allowedDocIds.includes(String(d.Doc_ID))).map(d => String(d.Hospital_ID));
+
+              const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
+
+              visibleHospitals = allHospitals.filter(h => allAllowedHospIds.includes(String(h.Hospital_ID)));
           }
 
           const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
@@ -596,7 +619,6 @@
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
                 
                 let provName = '-'; let zoneName = '-';
-                // เช็คจาก Province_ID ใน payload DCR
                 let provObj = globalProvinces.find(p => p.Province_ID === req.Province_ID);
                 if (provObj) { provName = provObj.Province; zoneName = provObj.Zone; } 
 
@@ -926,7 +948,6 @@
     const h = globalHospitals.find(x => x.id === id); if(!h) return;
     document.getElementById('editHospId').value = h.id; document.getElementById('editHospName').value = h.name || '';
     document.getElementById('editHospKnownAs').value = h.knownAs || ''; 
-    // 🌟 เลือก Province_ID ในฟอร์ม Edit ให้ถูกต้อง
     document.getElementById('editHospProvince').value = h.provinceId || '';
     document.getElementById('editHospAddress').value = h.address || ''; document.getElementById('editHospSalesId').value = h.salesId || '';
     document.getElementById('editHospStatus').value = h.status || 'Active';
@@ -961,7 +982,6 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
     
-    // 🌟 Payload เปลี่ยนไปใช้ Province_ID แทน Province
     const payload = {
       Hospital: document.getElementById('hospName').value.trim(), 
       Known_As: document.getElementById('hospKnownAs').value.trim(), 
@@ -1018,7 +1038,6 @@
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
     
-    // 🌟 Payload เปลี่ยนไปใช้ Province_ID แทน Province
     const payload = {
       Hospital: document.getElementById('editHospName').value.trim(), 
       Known_As: document.getElementById('editHospKnownAs').value.trim(), 
