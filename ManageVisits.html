@@ -355,7 +355,6 @@
     openEditVisitView(visitId);
   };
 
-  // 🌟 ฟังก์ชันล้างตัวกรองทั้งหมด (Clear Filters)
   function clearVisitFilters() {
       const clearTs = (id) => {
           const el = document.getElementById(id);
@@ -516,11 +515,11 @@
     try {
       const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
       const repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown User";
-      const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || "-") : "-";
+      const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || "-") : "-";
       
       let terrNameShow = rawTerr;
       if (globalTerritoryList && globalTerritoryList.length > 0) {
-        const found = globalTerritoryList.find(t => String(t.Territory_ID) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
+        const found = globalTerritoryList.find(t => String(t.Territory_ID || t.territory_id || t.id) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
         if (found) terrNameShow = found.Territory;
         else if (String(terrNameShow).length > 20) terrNameShow = '-'; 
       }
@@ -542,9 +541,10 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-      const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+      
+      // 🌟 ดึงค่า Scope ป้องกันชื่อ Field ดิ้น (Snake Case, Camel Case)
+      const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-      // 🌟 ให้สิทธิ์ Global Viewer ทันทีถ้า Scope ว่าง (คือ ALL) หรือเป็น Role ส่วนกลางที่ระบุ
       window.myIsGlobalViewer = false;
       if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) {
           window.myIsGlobalViewer = true;
@@ -559,7 +559,8 @@
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
           const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
-            fetchAllRecords('Doctors', q => q.eq('Status', 'Active').order('Doc_Name', { ascending: true })),
+            // 🌟 ปลดล็อกการดึงข้อมูลหมอทั้งหมดมาเก็บไว้ใน Cache เพื่อให้สามารถแปลชื่อหมอจากประวัติในอดีต หรือหมอที่ถูกระงับสิทธิ์ได้
+            fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
             fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
             supabaseClient.from('Territory').select('*'),
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
@@ -612,14 +613,15 @@
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
 
-              window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID)));
+              window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)));
 
-              const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(d => String(d.Hospital_ID));
+              const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(d => String(d.Hospital_ID || d.hospital_id));
               const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
 
-              window.VisitManagerCache.assignedHospitals = allHospitals.filter(h => allAllowedHospIds.includes(String(h.Hospital_ID)));
+              window.VisitManagerCache.assignedHospitals = allHospitals.filter(h => allAllowedHospIds.includes(String(h.Hospital_ID || h.id)));
           }
 
+          window.VisitManagerCache.allDoctors = allDoctors; // 🌟 รับประกันว่ามีหมอทุกคนเพื่อใช้แปลชื่อในตาราง
           window.VisitManagerCache.products = prodRes || [];
           window.VisitManagerCache.territories = globalTerritoryListLocal;
           window.VisitManagerCache.teams = globalTeamListLocal;
@@ -645,7 +647,7 @@
           globalAssignedDoctors.forEach(d => {
               const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
               const opt = document.createElement('option'); 
-              opt.value = d.Doc_ID; 
+              opt.value = d.Doc_ID || d.doc_id || d.id; 
               opt.textContent = `${d.Doc_Name}${nameThShow}`; 
               filterDocSelect.appendChild(opt);
           });
@@ -669,7 +671,7 @@
           globalAssignedHospitals.forEach(h => {
               const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
               const opt = document.createElement('option'); 
-              opt.value = h.Hospital_ID; 
+              opt.value = h.Hospital_ID || h.id; 
               opt.textContent = `${h.Hospital}${knownAsShow}`; 
               filterHospSelect.appendChild(opt);
           });
@@ -690,9 +692,12 @@
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
-        globalAssignedDoctors.forEach(d => {
+        
+        // 🌟 กรองหมอให้โชว์ใน Dropdown "สร้าง Visit ใหม่" เฉพาะหมอที่ยัง Active เท่านั้น
+        const activeAssignedDocs = globalAssignedDoctors.filter(d => String(d.Status || 'Active').toLowerCase() === 'active');
+        activeAssignedDocs.forEach(d => {
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
-          const opt = document.createElement('option'); opt.value = d.Doc_ID; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
+          const opt = document.createElement('option'); opt.value = d.Doc_ID || d.doc_id || d.id; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
         });
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
@@ -744,15 +749,22 @@
     if (!repSelect || !terSelect || !prodFilterSelect) return;
 
     const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
-    const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+    const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    // 🌟 ดึง Global Viewer Logic เดียวกันกับด้านบน
     let isGlobalViewer = false;
     if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
     const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
     if (globalRoles.includes(userRole.toUpperCase())) isGlobalViewer = true;
+    
+    if (crmUser) {
+        Object.values(crmUser).forEach(val => {
+            if (typeof val === 'string' && val.trim().toUpperCase().startsWith('ALL')) {
+                isGlobalViewer = true;
+            }
+        });
+    }
     window.myIsGlobalViewer = isGlobalViewer; 
 
     let allowedTeamIds = [];
@@ -1059,7 +1071,7 @@
       } else {
         const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
         const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-        const vTerrId = String(v.Territory_ID || '').trim();
+        const vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
 
         if (window.myAllowedRepIds.includes(rawRepId) || 
             window.myAllowedTerIds.includes(vTerrId) || 
@@ -1071,9 +1083,9 @@
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 บังคับสิทธิ์ขั้นเด็ดขาด: ต้องเป็นหมอที่อยู่ใน Assignment ของตัวเองเท่านั้น (ยกเว้นเป็น Admin/Global Viewer)
+      // 🌟 บังคับสิทธิ์ให้มองเห็นหมอตาม Assignment (รองรับชื่อ Field แบบ Snake Case)
       if (!window.myIsGlobalViewer) {
-          const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID) === String(v.Doc_ID));
+          const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase());
           if (!isDocAssigned) return false; 
       }
 
@@ -1109,13 +1121,14 @@
           }
       }
 
-      const matchTer = (terTerm === "") ? true : (String(v.Territory_ID) === String(terTerm));
+      const matchTer = (terTerm === "") ? true : (String(v.Territory_ID || v.territory_id) === String(terTerm));
 
-      const matchDoc = (filterDocIds.length === 0) || filterDocIds.includes(String(v.Doc_ID));
+      // 🌟 อัปเดตการเทียบ ID ของหมอและโรงพยาบาลให้ยืดหยุ่น ป้องกันหาหมอไม่เจอ
+      const matchDoc = (filterDocIds.length === 0) || filterDocIds.includes(String(v.Doc_ID || v.doc_id || v.id));
 
-      const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
-      let hospId = docObj ? docObj.Hospital_ID : '';
-      const matchHosp = (filterHospIds.length === 0) || filterHospIds.includes(String(hospId));
+      const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
+      let hospId = docObj ? String(docObj.Hospital_ID || docObj.hospital_id || '') : '';
+      const matchHosp = (filterHospIds.length === 0) || filterHospIds.includes(hospId);
 
       const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
@@ -1132,17 +1145,18 @@
         valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
       } 
       else if (currentSortCol === 'doctor') {
-        const docA = globalAllDoctors.find(d => String(d.Doc_ID) === String(a.Doc_ID));
+        const docA = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase());
         valA = docA ? `${docA.Doc_Name} ${docA.Doc_Name_TH||''}`.toLowerCase() : '';
-        const docB = globalAllDoctors.find(d => String(d.Doc_ID) === String(b.Doc_ID));
+        const docB = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase());
         valB = docB ? `${docB.Doc_Name} ${docB.Doc_Name_TH||''}`.toLowerCase() : '';
       } 
       else if (currentSortCol === 'hospital') {
-        const docA = globalAllDoctors.find(d => String(d.Doc_ID) === String(a.Doc_ID));
-        const hospA = docA ? globalAllHospitals.find(h => String(h.Hospital_ID) === String(docA.Hospital_ID)) : null;
+        const docA = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase());
+        const hospA = docA ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docA.Hospital_ID || docA.hospital_id || '').trim().toLowerCase()) : null;
         valA = hospA ? `${hospA.Hospital} ${hospA.Known_As||''}`.toLowerCase() : '';
-        const docB = globalAllDoctors.find(d => String(d.Doc_ID) === String(b.Doc_ID));
-        const hospB = docB ? globalAllHospitals.find(h => String(h.Hospital_ID) === String(docB.Hospital_ID)) : null;
+        
+        const docB = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase());
+        const hospB = docB ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docB.Hospital_ID || docB.hospital_id || '').trim().toLowerCase()) : null;
         valB = hospB ? `${hospB.Hospital} ${hospB.Known_As||''}`.toLowerCase() : '';
       } 
       else if (currentSortCol === 'products') {
@@ -1224,14 +1238,15 @@
 
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-      const docObj = globalAllDoctors.find(d => String(d.Doc_ID) === String(v.Doc_ID));
-      let docNameShow = v.Doc_ID || '-', hospNameShow = '-';
+      // 🌟 ใช้การจับคู่แบบทนทาน (Robust ID Matching) ป้องกัน Doc_ID ดิ้น
+      const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
+      let docNameShow = v.Doc_ID || v.doc_id || v.id || '-', hospNameShow = '-';
 
       if (docObj) {
         const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
         
-        const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID) === String(docObj.Hospital_ID));
+        const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docObj.Hospital_ID || docObj.hospital_id || '').trim().toLowerCase());
         if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
 
