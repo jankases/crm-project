@@ -742,33 +742,37 @@
       // 🌟 ระบบเช็คสิทธิ์ Target Call (รวม Boolean Status)
       const ratingSetting = sysSettings.find(s => s.Type === 'Rating');
       if (ratingSetting) {
-          // เช็คสวิตช์หลัก (Status) ก่อน
           if (ratingSetting.Status === false) {
-              globalRatingIsLocked = true; // ล็อกทันทีถ้าสวิตช์ปิด
+              globalRatingIsLocked = true; 
           } else {
-              // ถ้าสวิตช์เปิดอยู่ ให้มาเช็คช่วงวันที่
               let startStr = ratingSetting.Start;
               let endStr = ratingSetting.End;
-              
               if (!startStr && !endStr) {
-                  globalRatingIsLocked = false; // เปิดตลอดถ้าไม่ได้กำหนดวันที่
+                  globalRatingIsLocked = false; 
               } else {
                   const offset = new Date().getTimezoneOffset() * 60000;
                   const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
-                  
                   let isWithinRange = true;
                   if (startStr && localISOTime < startStr) isWithinRange = false;
                   if (endStr && localISOTime > endStr) isWithinRange = false;
-                  
                   globalRatingIsLocked = !isWithinRange;
               }
           }
       } else {
-          globalRatingIsLocked = true; // ล็อกถ้ายไม่พบตั้งค่า
+          globalRatingIsLocked = true; 
       }
 
-      // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
-      const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || globalCurrentUserRole === 'Admin';
+      // 🌟 สแกนหาสิทธิ์ Global Viewer
+      let isGlobalViewer = false;
+      if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+      const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+      if (globalRoles.includes(globalCurrentUserRole.toUpperCase())) isGlobalViewer = true;
+      if (crmUser) {
+          Object.values(crmUser).forEach(val => {
+              if (typeof val === 'string' && val.trim().toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+          });
+      }
+
       let allowedTeamIds = [];
 
       if (isGlobalViewer) {
@@ -880,8 +884,16 @@
           const territories = window.DocManagerCache.territories || [];
           const teams = window.DocManagerCache.teamList || [];
           
-          // 🌟 ให้สิทธิ์ Global Viewer โดยเช็คจากคำว่า "ALL" ใน Scope เป็นหลัก
-          const isGlobalViewer = rawScope.toUpperCase().startsWith('ALL') || userRole === 'Admin';
+          // 🌟 สแกนหาสิทธิ์ Global Viewer
+          let isGlobalViewer = false;
+          if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+          const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+          if (globalRoles.includes(userRole.toUpperCase())) isGlobalViewer = true;
+          if (crmUser) {
+              Object.values(crmUser).forEach(val => {
+                  if (typeof val === 'string' && val.trim().toUpperCase().startsWith('ALL')) isGlobalViewer = true;
+              });
+          }
 
           let allowedTerIds = [];
           if (!isGlobalViewer) {
@@ -914,7 +926,6 @@
           let allowedDocIds = [];
           let allowedHospIds = [];
           if (!isGlobalViewer) {
-              // 🌟 รองรับกรณีที่ชื่อ Field ใน DB อาจเป็น Territory หรือ Territory_ID
               const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               allowedHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
@@ -928,7 +939,7 @@
           const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
 
           let list = visibleDoctors.map(d => {
-            const h = globalHospitals.find(x => x.Hospital_ID === d.Hospital_ID);
+            const h = window.DocManagerCache.hospitals.find(x => x.Hospital_ID === d.Hospital_ID);
             return {
               id: d.Doc_ID, title: d.Title, nameEn: d.Doc_Name, nameTh: d.Doc_Name_TH,
               specialty: d.Specialty, type: d.Type, hospitalId: d.Hospital_ID, hospitalName: h ? (h.Known_As || h.Hospital) : null,
@@ -944,7 +955,7 @@
             pendingAddDcrs.forEach(d => {
               try {
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
-                const h = globalHospitals.find(x => x.Hospital_ID === req.Hospital_ID);
+                const h = window.DocManagerCache.hospitals.find(x => x.Hospital_ID === req.Hospital_ID);
                 list.unshift({
                   id: d.DCR_ID, title: req.Title || '', nameEn: req.Doc_Name || 'ไม่ระบุชื่อ', nameTh: req.Doc_Name_TH || '-',
                   specialty: req.Specialty || '-', type: req.Type || '-', hospitalName: h ? (h.Known_As || h.Hospital) : '-',
@@ -987,12 +998,12 @@
         
         let validHospIds = new Set();
         if (isGlobalViewer) {
-            globalHospitals.forEach(h => validHospIds.add(String(h.Hospital_ID)));
+            window.DocManagerCache.hospitals.forEach(h => validHospIds.add(String(h.Hospital_ID)));
         } else {
             allowedHospIds.forEach(id => validHospIds.add(id));
         }
         
-        const filterHospitalsList = globalHospitals.filter(h => validHospIds.has(String(h.Hospital_ID)));
+        const filterHospitalsList = window.DocManagerCache.hospitals.filter(h => validHospIds.has(String(h.Hospital_ID)));
 
         filterHospitalsList.forEach(h => {
             const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
@@ -1004,7 +1015,6 @@
         initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
     }
 
-    // 🌟 ดึงเฉพาะ Specialty จากรายชื่อหมอที่ Assignment
     const filterSpecSelect = document.getElementById('filterDocSpecialty');
     if (filterSpecSelect) {
         filterSpecSelect.innerHTML = '';
@@ -1018,7 +1028,6 @@
         initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
     }
 
-    // 🌟 ดึงเฉพาะ Doctor Type จากรายชื่อหมอที่ Assignment
     const filterTypeSelect = document.getElementById('filterDocType');
     if (filterTypeSelect) {
         filterTypeSelect.innerHTML = '';
@@ -1278,7 +1287,7 @@
     const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
     let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
-    globalHospitals.forEach(h => {
+    window.DocManagerCache.hospitals.forEach(h => {
       const selected = h.Hospital_ID === hospId ? 'selected' : '';
       const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
       optionsHtml += `<option value="${h.Hospital_ID}" ${selected}>${showName}</option>`;
@@ -1404,12 +1413,12 @@
     if(parsedWp.length > 0) {
       parsedWp.forEach(wp => {
         const isPrimary = wp.isPrimary ? '<span class="badge bg-primary ms-2">Primary</span>' : '';
-        const hospObj = globalHospitals.find(h => h.Hospital_ID === wp.hospitalId);
+        const hospObj = window.DocManagerCache.hospitals.find(h => h.Hospital_ID === wp.hospitalId);
         const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Hospital";
         wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
       });
     } else {
-      const hospObj = globalHospitals.find(h => h.Hospital_ID === d.hospitalId);
+      const hospObj = window.DocManagerCache.hospitals.find(h => h.Hospital_ID === d.hospitalId);
       const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Primary Hospital";
       wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge bg-primary ms-2">Primary</span></div>`;
     }
