@@ -559,49 +559,18 @@
       const provType = globalIndexTypes.find(t => t.Name.toLowerCase() === 'province');
       
       let formProvHtml = '<option value="">- Select Province , Zone -</option>';
-      
-      // ตัวแปรสำหรับเก็บตัวเลือกแบบแยกกัน
-      let uniqueProvinces = new Set();
-      let uniqueZones = new Set();
 
       if (provType) {
         const provItems = globalIndexes.filter(i => i.IndexType_ID === provType.IndexType_ID);
         provItems.forEach(i => {
             // สำหรับฟอร์ม Add/Edit เอาแบบเต็มๆ
             formProvHtml += `<option value="${i.Value}">${i.Value}</option>`;
-            
-            // แยก Province และ Zone สำหรับ Filter
-            const extracted = extractProvinceAndZone(i.Value);
-            if(extracted.province !== '-') uniqueProvinces.add(extracted.province);
-            if(extracted.zone !== '-') uniqueZones.add(extracted.zone);
         });
       }
       
       // อัปเดต Dropdown ในฟอร์มแบบเดิม (แสดงแบบเต็ม "Province , Zone")
       document.getElementById('hospProvince').innerHTML = formProvHtml;
       document.getElementById('editHospProvince').innerHTML = formProvHtml;
-      
-      // 🌟 สร้าง Dropdown ค้นหาแยก Province
-      const filterProv = document.getElementById('filterHospProvince');
-      if (filterProv) {
-          let filterProvHtml = '';
-          Array.from(uniqueProvinces).sort().forEach(p => {
-              filterProvHtml += `<option value="${p}">${p}</option>`;
-          });
-          filterProv.innerHTML = filterProvHtml;
-          initMultiTomSelect('filterHospProvince', '- All Provinces -');
-      }
-
-      // 🌟 สร้าง Dropdown ค้นหาแยก Zone
-      const filterZone = document.getElementById('filterHospZone');
-      if (filterZone) {
-          let filterZoneHtml = '';
-          Array.from(uniqueZones).sort().forEach(z => {
-              filterZoneHtml += `<option value="${z}">${z}</option>`;
-          });
-          filterZone.innerHTML = filterZoneHtml;
-          initMultiTomSelect('filterHospZone', '- All Zones -');
-      }
 
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
@@ -724,6 +693,34 @@
             filterHospNameSelect.appendChild(opt);
         });
         initMultiTomSelect('filterHospName', '- All Hospitals -');
+    }
+
+    // 🌟 ดึงเฉพาะ Province จากรายชื่อโรงพยาบาลที่ Assignment
+    const filterProvSelect = document.getElementById('filterHospProvince');
+    if (filterProvSelect) {
+        filterProvSelect.innerHTML = '';
+        const uniqueProvinces = [...new Set(globalHospitals.map(h => h.provinceOnly).filter(v => v && v !== '-'))].sort();
+        uniqueProvinces.forEach(prov => {
+            const opt = document.createElement('option');
+            opt.value = prov;
+            opt.textContent = prov;
+            filterProvSelect.appendChild(opt);
+        });
+        initMultiTomSelect('filterHospProvince', '- All Provinces -');
+    }
+
+    // 🌟 ดึงเฉพาะ Zone จากรายชื่อโรงพยาบาลที่ Assignment
+    const filterZoneSelect = document.getElementById('filterHospZone');
+    if (filterZoneSelect) {
+        filterZoneSelect.innerHTML = '';
+        const uniqueZones = [...new Set(globalHospitals.map(h => h.zoneOnly).filter(v => v && v !== '-'))].sort();
+        uniqueZones.forEach(zone => {
+            const opt = document.createElement('option');
+            opt.value = zone;
+            opt.textContent = zone;
+            filterZoneSelect.appendChild(opt);
+        });
+        initMultiTomSelect('filterHospZone', '- All Zones -');
     }
 
     // 🌟 ดึงค่า Filter เดิมกลับมาแสดง
