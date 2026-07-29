@@ -601,12 +601,18 @@
                   }
               }
 
-              const myAssignments = allAssignments.filter(a => allowedTerIds.includes(String(a.Territory_ID)));
+              // 🌟 รองรับกรณีที่ชื่อ Field ใน DB อาจเป็น Territory หรือ Territory_ID
+              const myAssignments = allAssignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
-              const allowedHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
+              const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
 
               window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID)));
-              window.VisitManagerCache.assignedHospitals = allHospitals.filter(h => allowedHospIds.includes(String(h.Hospital_ID)));
+
+              // 🌟 เพิ่ม Logic ให้เห็นโรงพยาบาลอัตโนมัติ หากหมอที่เราดูแลสังกัดอยู่ (Implicit Assignment)
+              const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(d => String(d.Hospital_ID));
+              const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
+
+              window.VisitManagerCache.assignedHospitals = allHospitals.filter(h => allAllowedHospIds.includes(String(h.Hospital_ID)));
           }
 
           window.VisitManagerCache.products = prodRes || [];
@@ -1055,6 +1061,12 @@
       }
 
       if (!hasSecurityAccess) return false;
+
+      // 🌟 บังคับสิทธิ์ขั้นเด็ดขาด: ต้องเป็นหมอที่อยู่ใน Assignment ของตัวเองเท่านั้น (ยกเว้นเป็น Admin/Global Viewer)
+      if (!window.myIsGlobalViewer) {
+          const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID) === String(v.Doc_ID));
+          if (!isDocAssigned) return false; 
+      }
 
       let matchDate = true;
       if (startDateTerm || endDateTerm) {
