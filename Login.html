@@ -5,54 +5,55 @@
       <div class="bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 70px; height: 70px; border-radius: 50%;">
         <i class="fa-solid fa-user-lock fs-2"></i>
       </div>
-      <h3 class="fw-bold text-primary">ระบบ CRM</h3>
-      <p class="text-muted">กรุณาเข้าสู่ระบบด้วยอีเมลบริษัท</p>
+      <h3 class="fw-bold text-primary">CRM System</h3>
+      <p class="text-muted">Please log in with your company email</p>
     </div>
     
     <form id="loginForm" onsubmit="handleLogin(event); return false;">
       <div class="mb-3">
-        <label class="form-label fw-medium text-dark">อีเมล (Email)</label>
+        <label class="form-label fw-medium text-dark">Email</label>
         <div class="input-group">
           <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-envelope"></i></span>
-          <input type="email" class="form-control" id="loginEmail" required placeholder="เช่น surasak.jankasem@roche.com">
+          <input type="email" class="form-control" id="loginEmail" required placeholder="e.g. surasak.jankasem@roche.com">
         </div>
       </div>
       <div class="mb-4">
-        <label class="form-label fw-medium text-dark">รหัสผ่าน (Password)</label>
+        <label class="form-label fw-medium text-dark">Password</label>
         <div class="input-group">
           <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-key"></i></span>
-          <input type="password" class="form-control" id="loginPassword" required placeholder="ใส่รหัสผ่านของคุณ">
+          <input type="password" class="form-control" id="loginPassword" required placeholder="Enter your password">
         </div>
       </div>
       <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-2" id="loginBtn" style="border-radius: 8px; font-size: 1.1rem;">
-        เข้าสู่ระบบ
+        Log In
       </button>
 
       <div class="d-flex justify-content-between mt-3 px-1">
         <a href="#" class="text-decoration-none fw-medium text-secondary" style="font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
-          <i class="fa-solid fa-envelope-open-text me-1"></i>ลืมรหัสผ่าน
+          <i class="fa-solid fa-envelope-open-text me-1"></i>Forgot Password
         </a>
         <a href="#" class="text-decoration-none fw-medium text-secondary" style="font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-          <i class="fa-solid fa-key me-1"></i>เปลี่ยนรหัสผ่าน
+          <i class="fa-solid fa-key me-1"></i>Change Password
         </a>
       </div>
     </form>
   </div>
 
+  <!-- Forgot Password Modal -->
   <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
         <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title fw-bold">📧 ลืมรหัสผ่าน</h5>
+          <h5 class="modal-title fw-bold">📧 Forgot Password</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <form onsubmit="handleForgotPassword(event)">
           <div class="modal-body p-4">
-            <p class="text-muted mb-3" style="font-size: 0.95rem;"><i>ฟีเจอร์ส่งอีเมลไม่รองรับบนฐานข้อมูล Supabase แบบ Custom Auth กรุณาติดต่อผู้ดูแลระบบเพื่อขอรหัสผ่านใหม่ครับ</i></p>
+            <p class="text-muted mb-3" style="font-size: 0.95rem;"><i>Email features are not supported on Supabase Custom Auth database. Please contact your system administrator to request a new password.</i></p>
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button type="button" class="btn btn-secondary fw-bold w-100 py-2" data-bs-dismiss="modal" style="border-radius: 8px;">
-              ปิดหน้าต่าง
+              Close
             </button>
           </div>
         </form>
@@ -60,36 +61,37 @@
     </div>
   </div>
 
+  <!-- Change Password Modal -->
   <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
         <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title fw-bold">🔑 เปลี่ยนรหัสผ่าน</h5>
+          <h5 class="modal-title fw-bold">🔑 Change Password</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
           <div class="modal-body p-4">
             <div class="mb-3">
-              <label class="form-label text-dark fw-medium">อีเมล (Email)</label>
-              <input type="email" class="form-control bg-light" id="cpEmail" required placeholder="ใส่อีเมลของคุณ">
+              <label class="form-label text-dark fw-medium">Email</label>
+              <input type="email" class="form-control bg-light" id="cpEmail" required placeholder="Enter your email">
             </div>
             <div class="mb-3">
-              <label class="form-label text-dark fw-medium">รหัสผ่านเดิม (Old Password)</label>
-              <input type="password" class="form-control bg-light" id="cpOldPassword" required placeholder="ใส่รหัสผ่านเดิม">
+              <label class="form-label text-dark fw-medium">Old Password</label>
+              <input type="password" class="form-control bg-light" id="cpOldPassword" required placeholder="Enter old password">
             </div>
             <hr class="my-4 text-muted">
             <div class="mb-3">
-              <label class="form-label text-dark fw-medium">รหัสผ่านใหม่ (New Password)</label>
-              <input type="password" class="form-control bg-light" id="cpNewPassword" required placeholder="อย่างน้อย 5 ตัวอักษร, พิมพ์ใหญ่ 1, ตัวเลข 1">
+              <label class="form-label text-dark fw-medium">New Password</label>
+              <input type="password" class="form-control bg-light" id="cpNewPassword" required placeholder="Min 5 characters, 1 uppercase, 1 number">
             </div>
             <div class="mb-3">
-              <label class="form-label text-dark fw-medium">ยืนยันรหัสผ่านใหม่</label>
-              <input type="password" class="form-control bg-light" id="cpConfirmPassword" required placeholder="พิมพ์รหัสผ่านใหม่อีกครั้ง">
+              <label class="form-label text-dark fw-medium">Confirm New Password</label>
+              <input type="password" class="form-control bg-light" id="cpConfirmPassword" required placeholder="Re-enter new password">
             </div>
           </div>
           <div class="modal-footer border-0 pb-4 px-4">
             <button type="submit" class="btn btn-primary fw-bold w-100 py-2" id="submitChangePassBtn" style="border-radius: 8px;">
-              ยืนยันการเปลี่ยนรหัสผ่าน
+              Confirm Change
             </button>
           </div>
         </form>
@@ -104,7 +106,7 @@
     e.preventDefault();
     const btn = document.getElementById('loginBtn');
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังตรวจสอบ...`;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Checking...`;
 
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPassword').value.trim();
@@ -121,8 +123,14 @@
 
       if (users && users.length > 0) {
         const user = users[0];
+        
+        // เซฟ User และล้าง Cache เพื่อเริ่ม Session ใหม่
         sessionStorage.setItem('crmUser', JSON.stringify(user));
         sessionStorage.setItem('loginTime', Date.now()); 
+        
+        window.VisitManagerCache = null;
+        window.DocManagerCache = null;
+        window.HospManagerCache = null;
         
         if (typeof saveUserLog === 'function') {
           saveUserLog(user, "Login");
@@ -131,16 +139,14 @@
         document.getElementById('loginForm').reset();
         
         if (typeof checkSession === 'function') checkSession(); 
-        if (typeof loadVisitLogs === 'function') loadVisitLogs();
-        if (typeof loadVisitDropdowns === 'function') loadVisitDropdowns();
       } else {
-        alert("❌ อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ");
+        alert("❌ Invalid email or password, or account disabled.");
       }
     } catch (err) {
-      alert("❌ เซิร์ฟเวอร์เกิดข้อผิดพลาด: " + err.message);
+      alert("❌ Server Error: " + err.message);
     } finally {
       btn.disabled = false;
-      btn.innerHTML = 'เข้าสู่ระบบ';
+      btn.innerHTML = 'Log In';
     }
   }
 
@@ -156,14 +162,14 @@
     const newPassword = document.getElementById('cpNewPassword').value;
     const confirmPassword = document.getElementById('cpConfirmPassword').value;
     
-    if (newPassword.length < 5) return alert("❌ รหัสผ่านใหม่ต้องมีอย่างน้อย 5 ตัวอักษร");
-    if (!/[A-Z]/.test(newPassword)) return alert("❌ รหัสผ่านใหม่ต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว (A-Z)");
-    if (!/[0-9]/.test(newPassword)) return alert("❌ รหัสผ่านใหม่ต้องมีตัวเลขอย่างน้อย 1 ตัว (0-9)");
-    if (newPassword !== confirmPassword) return alert("❌ รหัสผ่านใหม่และการยืนยันไม่ตรงกัน");
+    if (newPassword.length < 5) return alert("❌ New password must be at least 5 characters.");
+    if (!/[A-Z]/.test(newPassword)) return alert("❌ New password must have at least 1 uppercase letter (A-Z).");
+    if (!/[0-9]/.test(newPassword)) return alert("❌ New password must have at least 1 number (0-9).");
+    if (newPassword !== confirmPassword) return alert("❌ Passwords do not match.");
     
     const btn = document.getElementById('submitChangePassBtn');
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>กำลังตรวจสอบ...`;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Checking...`;
     
     try {
       const { data: users, error: checkError } = await supabaseClient
@@ -175,7 +181,7 @@
       if (checkError) throw checkError;
 
       if (!users || users.length === 0) {
-        throw new Error("อีเมลหรือรหัสผ่านเดิมไม่ถูกต้อง");
+        throw new Error("Invalid email or old password.");
       }
 
       const { error: updateError } = await supabaseClient
@@ -185,7 +191,7 @@
 
       if (updateError) throw updateError;
 
-      alert("✅ เปลี่ยนรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบใหม่");
+      alert("✅ Password changed successfully. Please log in again.");
       document.getElementById('changePasswordForm').reset();
       
       const modalEl = document.getElementById('changePasswordModal');
@@ -196,7 +202,7 @@
       alert("❌ " + err.message);
     } finally {
       btn.disabled = false;
-      btn.innerHTML = "ยืนยันการเปลี่ยนรหัสผ่าน";
+      btn.innerHTML = "Confirm Change";
     }
   }
 </script>
