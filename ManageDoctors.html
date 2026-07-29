@@ -823,12 +823,6 @@
       updateTomSelect('docType', getOptionsHtml('DoctorType', '- Select Type -'), '- Select Type -');
       updateTomSelect('editDocType', getOptionsHtml('DoctorType', '- Select Type -'), '- Select Type -');
 
-      document.getElementById('filterDocSpecialty').innerHTML = getOptionsHtml('Specialty', '');
-      initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
-
-      document.getElementById('filterDocType').innerHTML = getOptionsHtml('DoctorType', '');
-      initMultiTomSelect('filterDocType', '- All Types -');
-
     } catch (err) { console.error("Error loading index dropdowns:", err.message); }
   }
 
@@ -1005,6 +999,34 @@
             filterHospSelect.appendChild(opt);
         });
         initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
+    }
+
+    // 🌟 ดึงเฉพาะ Specialty จากรายชื่อหมอที่ Assignment
+    const filterSpecSelect = document.getElementById('filterDocSpecialty');
+    if (filterSpecSelect) {
+        filterSpecSelect.innerHTML = '';
+        const uniqueSpecs = [...new Set(globalDoctors.map(d => d.specialty).filter(v => v && v !== '-'))].sort();
+        uniqueSpecs.forEach(spec => {
+            const opt = document.createElement('option');
+            opt.value = spec;
+            opt.textContent = spec;
+            filterSpecSelect.appendChild(opt);
+        });
+        initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
+    }
+
+    // 🌟 ดึงเฉพาะ Doctor Type จากรายชื่อหมอที่ Assignment
+    const filterTypeSelect = document.getElementById('filterDocType');
+    if (filterTypeSelect) {
+        filterTypeSelect.innerHTML = '';
+        const uniqueTypes = [...new Set(globalDoctors.map(d => d.type).filter(v => v && v !== '-'))].sort();
+        uniqueTypes.forEach(type => {
+            const opt = document.createElement('option');
+            opt.value = type;
+            opt.textContent = type;
+            filterTypeSelect.appendChild(opt);
+        });
+        initMultiTomSelect('filterDocType', '- All Types -');
     }
 
     if (window.DocManagerCache.filters) {
