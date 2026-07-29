@@ -472,7 +472,7 @@
       teamProdLinks: [],
       sysSettings: [],
       teamList: [],
-      allowedHospIds: [],
+      allowedHospIds: [], // 🌟 เพิ่มการจำสิทธิ์ รพ.
       filters: { name: [], spec: [], type: [], hosp: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
@@ -635,7 +635,6 @@
     currentSearchIconId = null;
   }
 
-  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
   async function forceReloadDoctors() {
       const btn = document.getElementById('btnRefreshDoctors');
       if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
@@ -852,7 +851,7 @@
     return items.map(i => i.Value);
   }
 
-  // 🌟 โหลดรายชื่อหมอ (พร้อมระบบเช็คสิทธิ์แบบเดียวกับ Visit)
+  // 🌟 โหลดรายชื่อหมอ (พร้อมระบบเช็คสิทธิ์แบบเดียวกับ Visit 100%)
   async function loadDoctors(forceReload = false) {
     const tbody = document.getElementById('doctorTableBody');
     window.DocManagerCache = window.DocManagerCache || {};
@@ -980,18 +979,12 @@
     if (filterHospSelect) {
         filterHospSelect.innerHTML = '';
         
+        // 🌟 แก้ไข: ไม่ดึงรายชื่อ รพ. จากตัวหมอแล้ว ให้ดึงจาก Assignment ล้วนๆ เหมือนหน้า Visit
         let validHospIds = new Set();
         if (isGlobalViewer) {
             globalHospitals.forEach(h => validHospIds.add(String(h.Hospital_ID)));
         } else {
             allowedHospIds.forEach(id => validHospIds.add(id));
-            globalDoctors.forEach(d => {
-                validHospIds.add(String(d.hospitalId));
-                try {
-                    const wps = JSON.parse(d.workplacesJson || '[]');
-                    wps.forEach(wp => validHospIds.add(String(wp.hospitalId)));
-                } catch(e) {}
-            });
         }
         
         const filterHospitalsList = globalHospitals.filter(h => validHospIds.has(String(h.Hospital_ID)));
@@ -1085,6 +1078,7 @@
       const matchSpec = (specTerms.length === 0) || specTerms.includes(String(d.specialty));
       const matchType = (typeTerms.length === 0) || typeTerms.includes(String(d.type));
       
+      // 🌟 ค้นหาโรงพยาบาลทั้งตัวหลักและตัวรอง
       const matchHosp = (hospTermIds.length === 0) || hospTermIds.some(hId => {
           if (String(d.hospitalId) === String(hId)) return true;
           try {
