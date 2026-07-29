@@ -13,22 +13,18 @@
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
   
-  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงาม */
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
   .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
   
-  /* บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
 
-  /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
 
-  /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
@@ -40,8 +36,8 @@
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i>Visit Logs</h3>
-        <p class="text-muted mb-0">Doctor visits and daily activity logs</p>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i><span data-i18n="visit_title">Visit Logs</span></h3>
+        <p class="text-muted mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
       <div class="d-flex gap-2">
@@ -49,17 +45,16 @@
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
         <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
-          <i class="fa-solid fa-plus me-2"></i>Add New Visit
+          <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาหลัก -->
+    <!-- ส่วนค้นหาหลัก -->
     <div class="row mb-3 g-2 align-items-end">
       
-      <!-- Doctor Filter (TomSelect Multiple) -->
       <div class="col-sm-6 col-md-6 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doctor">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
           <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
@@ -68,9 +63,8 @@
         </div>
       </div>
       
-      <!-- Hospital Filter (TomSelect Multiple) -->
       <div class="col-sm-6 col-md-6 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hospital">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
           <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
@@ -79,9 +73,8 @@
         </div>
       </div>
 
-      <!-- Date Range -->
       <div class="col-sm-12 col-md-4 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1">Date Range</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_date_range">Date Range</label>
         <div class="input-group shadow-sm" style="border-radius: 10px;">
           <input type="date" class="form-control text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="Start Date">
           <span class="input-group-text bg-light border-start-0 border-end-0 px-1 text-muted">-</span>
@@ -89,9 +82,8 @@
         </div>
       </div>
 
-      <!-- Status -->
       <div class="col-sm-6 col-md-4 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1">Status</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_status">Status</label>
         <select class="form-select shadow-sm px-2" id="filterVisitStatus" onchange="filterVisits()">
           <option value="">- All -</option>
           <option value="Pending">Pending</option>
@@ -99,44 +91,41 @@
         </select>
       </div>
 
-      <!-- 🌟 ปุ่ม Toggle Advanced และ Clear Filters -->
       <div class="col-sm-6 col-md-4 col-lg-2 d-flex gap-2">
         <button class="btn btn-light border fw-bold w-50 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="Advanced Filters">
           <i class="fa-solid fa-sliders"></i>
         </button>
         <button class="btn btn-light border fw-bold w-50 shadow-sm text-secondary px-1" type="button" onclick="clearVisitFilters()" style="min-height: 42px; border-radius: 10px;" title="Clear All Filters">
-          <i class="fa-solid fa-eraser"></i> Clear
+          <i class="fa-solid fa-eraser"></i> <span data-i18n="btn_clear">Clear</span>
         </button>
       </div>
 
     </div>
 
-    <!-- ส่วนค้นหาเพิ่มเติม (ซ่อนเป็นค่าเริ่มต้น) -->
+    <!-- Advanced Filters -->
     <div class="collapse mb-4" id="advancedFilters">
       <div class="card card-body bg-light border-0 shadow-sm" style="border-radius: 15px;">
         <div class="row g-3">
-          
           <div class="col-sm-12 col-md-4">
-            <label class="form-label fw-bold text-secondary small mb-1">User</label>
+            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User</label>
             <select class="form-select shadow-sm" id="filterVisitRep" onchange="handleFilterChange('rep')">
               <option value="">- All Users -</option>
             </select>
           </div>
 
           <div class="col-sm-6 col-md-4">
-            <label class="form-label fw-bold text-secondary small mb-1">Territory</label>
+            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_territory">Territory</label>
             <select class="form-select shadow-sm" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
               <option value="">- All Territories -</option>
             </select>
           </div>
 
           <div class="col-sm-6 col-md-4">
-            <label class="form-label fw-bold text-secondary small mb-1">Product</label>
+            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_product">Product</label>
             <select class="form-select shadow-sm" id="filterVisitProduct" onchange="filterVisits()">
               <option value="">- All Products -</option>
             </select>
           </div>
-
         </div>
       </div>
     </div>
@@ -147,24 +136,24 @@
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
           <thead class="table-light text-center">
             <tr>
-              <th class="py-3 sortable-th" onclick="sortVisits('date')">Date <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('doctor')">Doctor <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('hospital')">Hospital <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('products')">Products <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('purpose')">Purpose <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-              <th class="py-3 sortable-th" onclick="sortVisits('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+            <tr><td colspan="6" class="text-center py-5"><span data-i18n="msg_loading">Loading data...</span> <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- ส่วนควบคุมการแบ่งหน้า (Pagination Controls) -->
+      <!-- Pagination -->
       <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
-          <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
+          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
           <select class="form-select form-select-sm shadow-sm" id="visitRowsPerPage" onchange="changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
             <option value="10">10</option>
             <option value="20" selected>20</option>
@@ -174,8 +163,7 @@
           <span class="text-muted small ms-3" id="visitPageInfo">Showing 1 to 10 of 50 entries</span>
         </div>
         <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination">
-          </ul>
+          <ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination"></ul>
         </nav>
       </div>
 
@@ -186,7 +174,7 @@
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="cancelVisitForm()">
-        <i class="fa-solid fa-arrow-left me-1"></i> Back
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
     </div>
@@ -198,21 +186,21 @@
         <div class="p-3 rounded-4 mb-4 border bg-light">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
-              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i>User</span>
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i><span data-i18n="lbl_user">User</span></span>
               <span class="fw-bold text-dark fs-6" id="dispSalesRepName">-</span>
             </div>
             <div class="col-md-6">
-              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i>Territory</span>
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i><span data-i18n="lbl_territory">Territory</span></span>
               <span class="fw-bold text-dark fs-6" id="dispTerritoryName">-</span>
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i>Visit Information</h5>
+          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Doctor Name (EN/TH) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
               <div class="input-group shadow-sm" style="border-radius: 10px;">
                 <select class="form-select bg-white" id="visitDocId" required>
                   <option value="">-- Search/Select Doctor --</option>
@@ -221,76 +209,71 @@
                   <i class="fa-solid fa-microphone" id="micDocIcon"></i>
                 </button>
               </div>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitDoc" style="display:none !important;">⚠️ Please select a doctor.</div>
             </div>
             
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Products <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitProduct" style="display:none !important;">⚠️ Please select at least one product.</div>
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">Date <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
               <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitDate" style="display:none !important;">⚠️ Please specify the visit date.</div>
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">Start Time</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_start_time">Start Time</label>
               <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">End Time</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_end_time">End Time</label>
               <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i>Activity Details</h5>
+          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">Purpose <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
               <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
                 <option value="">-- Select Purpose --</option>
               </select>
-              <div class="invalid-feedback d-block text-danger small" id="errVisitPurpose" style="display:none !important;">⚠️ Please select a purpose.</div>
             </div>
             
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0">Details</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')" title="Dictate">
-                  <i class="fa-solid fa-microphone me-1"></i>Dictate
+                <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')">
+                  <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                 </button>
               </div>
-              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3" placeholder="Enter discussion summary or additional details..."></textarea>
+              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3"></textarea>
             </div>
 
-            <!-- ช่องข้อมูลเชิงลึก (Insight) -->
             <div class="col-md-12 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0">Insight</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')" title="Dictate">
-                  <i class="fa-solid fa-microphone me-1"></i>Dictate
+                <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_insight">Insight</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')">
+                  <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                 </button>
               </div>
-              <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2" placeholder="Enter insights, competitor info, or attitudes..."></textarea>
+              <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2"></textarea>
             </div>
 
             <div class="col-md-7 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0">Next Action</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="Dictate">
-                  <i class="fa-solid fa-microphone me-1"></i>Dictate
+                <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_next_action">Next Action</label>
+                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')">
+                  <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                 </button>
               </div>
-              <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction" placeholder="Specify next steps...">
+              <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
             </div>
             
             <div class="col-md-5 mb-2">
-              <label class="form-label fw-bold text-dark mb-1">Status</label>
+              <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
               <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
                 <option value="Pending" class="text-warning">⏳ Pending (Draft)</option>
                 <option value="Submitted" class="text-success">✅ Submitted</option>
@@ -300,1324 +283,11 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()">Cancel</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 Save</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
         </div>
       </form>
     </div>
   </div>
 
 </div>
-
-<script>
-  async function fetchAllRecords(tableName, queryModifier = null) {
-      let allData = [];
-      let start = 0;
-      const step = 1000;
-      while (true) {
-          let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
-          if (queryModifier) query = queryModifier(query);
-          const { data, error } = await query;
-          if (error) throw error;
-          allData = allData.concat(data);
-          if (data.length < step) break;
-          start += step;
-      }
-      return allData;
-  }
-
-  window.VisitManagerCache = window.VisitManagerCache || {
-      isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
-      allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], teamProdLinks: [],
-      indexTypes: [], indexes: [], pendingUnlocks: [],
-      filters: { doc: [], hosp: [], startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
-  };
-
-  var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
-  var globalAllHospitals = [], globalAssignedHospitals = [], globalProductsList = [], globalTerritoryList = [];
-  var globalUsersList = [], globalTeamList = [], globalPendingUnlockVisits = [], globalCurrentUserRole = '';
-  
-  var tomSelectDocInstance = null;
-  var tomSelectProdInstance = null; 
-
-  var currentSortCol = 'date';
-  var currentSortAsc = false; 
-  var currentPage = 1;
-  var rowsPerPage = 20;
-
-  window.openAddVisitModal = function(fromDocId = null) {
-    if (!fromDocId) sessionStorage.removeItem('returnToDocId');
-    openAddVisitView();
-  };
-
-  window.openEditVisitModal = function(visitId, fromDocId = null) {
-    if (!fromDocId) sessionStorage.removeItem('returnToDocId');
-    openEditVisitView(visitId);
-  };
-
-  function clearVisitFilters() {
-      const clearTs = (id) => {
-          const el = document.getElementById(id);
-          if (el && el.tomselect) el.tomselect.clear();
-          else if (el) el.value = '';
-      };
-      
-      clearTs('filterVisitDoctor');
-      clearTs('filterVisitHospital');
-      clearTs('filterStartDate');
-      clearTs('filterEndDate');
-      clearTs('filterVisitStatus');
-      clearTs('filterVisitRep');
-      clearTs('filterVisitTerritory');
-      clearTs('filterVisitProduct');
-      
-      filterVisits();
-  }
-
-  function returnToDoctorProfile(docId) {
-    if (typeof window.loadComponent === 'function') {
-      window.loadComponent('doctor');
-    } else {
-      document.querySelectorAll('.nav-link, a, button, .menu-item').forEach(btn => {
-        const txt = btn.textContent || btn.innerText;
-        if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().includes('Doctor'))) btn.click();
-      });
-    }
-    let attempts = 0;
-    const checkReady = setInterval(() => {
-      attempts++;
-      if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
-        clearInterval(checkReady);
-        window.openViewDoctorProfile(docId, '#tab-doc-history'); 
-      } else if (attempts > 50) clearInterval(checkReady);
-    }, 100);
-  }
-
-  function cancelVisitForm() {
-    const returnDocId = sessionStorage.getItem('returnToDocId');
-    if (returnDocId) {
-      sessionStorage.removeItem('returnToDocId');
-      returnToDoctorProfile(returnDocId); 
-    } else switchVisitView('visitListView');
-  }
-
-  var activeSearchRecognition=null, currentSearchInputId=null, currentSearchBtnId=null, currentSearchIconId=null;
-
-  function searchAndSelectTomSelect(selectId, keyword) {
-      const selectEl = document.getElementById(selectId);
-      if (!selectEl) return;
-      const searchKey = keyword.toLowerCase();
-      if (selectEl.tomselect) {
-          const ts = selectEl.tomselect; 
-          ts.focus(); 
-          ts.setTextboxValue(keyword); 
-          const options = ts.options; 
-          let matchedId = null;
-          for (let id in options) { 
-              const text = (options[id].text || '').toLowerCase();
-              if (text.includes(searchKey)) { matchedId = id; break; }
-          }
-          if (matchedId) {
-              if (selectEl.hasAttribute('multiple')) ts.addItem(matchedId); 
-              else ts.setValue(matchedId);
-              ts.setTextboxValue(''); 
-              ts.blur();
-          }
-      } else {
-           selectEl.value = keyword; 
-           selectEl.dispatchEvent(new Event('change'));
-      }
-  }
-
-  function toggleSpeechSearch(inputId, btnId, iconId) {
-    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("Your browser doesn't support voice recognition.");
-    if(activeSearchRecognition && currentSearchInputId === inputId) return stopSpeechSearch();
-    if(activeSearchRecognition) stopSpeechSearch();
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    activeSearchRecognition = new SpeechRecognition(); activeSearchRecognition.lang='th-TH';
-    currentSearchInputId=inputId; currentSearchBtnId=btnId; currentSearchIconId=iconId;
-    
-    const btn = document.getElementById(btnId), icon = document.getElementById(iconId);
-    if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('text-white','fa-microphone-lines','fa-fade'); icon.classList.remove('text-muted');}
-    
-    activeSearchRecognition.onresult = function(event) {
-      let spokenText = ''; 
-      for(let i=event.resultIndex; i<event.results.length; ++i) { if(event.results[i].isFinal) spokenText += event.results[i][0].transcript; }
-      
-      const inputEl = document.getElementById(inputId); 
-      if(inputEl && spokenText.trim()){
-         if(inputEl.tagName === 'SELECT') searchAndSelectTomSelect(inputId, spokenText.trim());
-         else inputEl.value = spokenText.trim(); 
-         filterVisits();
-      } 
-      stopSpeechSearch();
-    };
-    activeSearchRecognition.onerror=stopSpeechSearch; activeSearchRecognition.onend=stopSpeechSearch; activeSearchRecognition.start();
-  }
-  function stopSpeechSearch() {
-    if(activeSearchRecognition){activeSearchRecognition.stop(); activeSearchRecognition=null;}
-    if(currentSearchBtnId&&currentSearchIconId){
-      const btn=document.getElementById(currentSearchBtnId), icon=document.getElementById(currentSearchIconId);
-      if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('text-white','fa-microphone-lines','fa-fade'); icon.classList.add('text-muted');}
-    }
-  }
-
-  var activeDictationRecognition=null, currentDictationTargetId=null, currentDictationBtnId=null;
-  function toggleTextDictation(targetInputId, btnId) {
-    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert("Your browser doesn't support voice recognition.");
-    if(activeDictationRecognition && currentDictationTargetId === targetInputId) return stopTextDictation();
-    if(activeDictationRecognition) stopTextDictation();
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    activeDictationRecognition = new SpeechRecognition(); activeDictationRecognition.lang='th-TH';
-    currentDictationTargetId=targetInputId; currentDictationBtnId=btnId;
-    const btn=document.getElementById(btnId); if(btn){btn.classList.add('btn-danger','text-white','mic-active'); btn.classList.remove('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone-lines fa-fade me-1"></i>Listening...`;}
-    activeDictationRecognition.onresult = function(event) {
-      let spokenText=''; for(let i=event.resultIndex; i<event.results.length; ++i){if(event.results[i].isFinal) spokenText+=event.results[i][0].transcript;}
-      const inputEl = document.getElementById(targetInputId); if(inputEl&&spokenText.trim()){const currentVal=inputEl.value.trim(); inputEl.value=currentVal ? `${currentVal} ${spokenText.trim()}` : spokenText.trim();} stopTextDictation();
-    };
-    activeDictationRecognition.onerror=stopTextDictation; activeDictationRecognition.onend=stopTextDictation; activeDictationRecognition.start();
-  }
-  function stopTextDictation() {
-    if(activeDictationRecognition){activeDictationRecognition.stop(); activeDictationRecognition=null;}
-    if(currentDictationBtnId){const btn=document.getElementById(currentDictationBtnId); if(btn){btn.classList.remove('btn-danger','text-white','mic-active'); btn.classList.add('btn-outline-danger'); btn.innerHTML=`<i class="fa-solid fa-microphone me-1"></i>Dictate`;}}
-  }
-
-  var docSpeechRecognition, isDocRecording=false;
-  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-    const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition; docSpeechRecognition=new SpeechRecognition(); docSpeechRecognition.lang='th-TH';
-    docSpeechRecognition.onresult=function(event){
-      let spokenText=''; for(let i=event.resultIndex;i<event.results.length;++i){if(event.results[i].isFinal) spokenText+=event.results[i][0].transcript;}
-      if(spokenText.trim()) searchAndSelectTomSelect('visitDocId', spokenText.trim()); stopDocDictation();
-    };
-    docSpeechRecognition.onerror=stopDocDictation; docSpeechRecognition.onend=function(){if(isDocRecording) stopDocDictation();};
-  }
-  function toggleDocDictation(){
-    if(!docSpeechRecognition) return alert("Your browser doesn't support voice recognition."); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
-    if(isDocRecording) stopDocDictation(); else {isDocRecording=true; docSpeechRecognition.start(); if(btn&&icon){btn.classList.add('btn-danger','mic-active','text-white'); btn.classList.remove('bg-white'); icon.classList.add('fa-microphone-lines','fa-fade');}}
-  }
-  function stopDocDictation(){
-    isDocRecording=false; if(docSpeechRecognition) docSpeechRecognition.stop(); const btn=document.getElementById('btnMicDoc'), icon=document.getElementById('micDocIcon');
-    if(btn&&icon){btn.classList.remove('btn-danger','mic-active','text-white'); btn.classList.add('bg-white'); icon.classList.remove('fa-microphone-lines','fa-fade');}
-  }
-
-  async function forceReloadVisits() {
-      const btn = document.getElementById('btnRefreshVisits');
-      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-      await loadDropdowns(true);
-      await loadVisits(true);
-      if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
-  }
-
-  setTimeout(async function() { await loadDropdowns(); initUserInfo(); await loadVisits(); }, 300);
-
-  function initUserInfo() {
-    try {
-      const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      const repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown User";
-      const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || "-") : "-";
-      
-      let terrNameShow = rawTerr;
-      if (globalTerritoryList && globalTerritoryList.length > 0) {
-        const found = globalTerritoryList.find(t => String(t.Territory_ID || t.territory_id || t.id) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase());
-        if (found) terrNameShow = found.Territory;
-        else if (String(terrNameShow).length > 20) terrNameShow = '-'; 
-      }
-      
-      document.getElementById('dispSalesRepName').innerText = repName; 
-      document.getElementById('dispTerritoryName').innerText = terrNameShow;
-    } catch(e) {}
-  }
-
-  function switchVisitView(viewId) {
-    ['visitListView', 'visitFormView'].forEach(v => { const el = document.getElementById(v); if(el) el.classList.add('d-none'); });
-    const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
-    window.scrollTo(0, 0);
-  }
-
-  async function loadDropdowns(forceReload = false) {
-    try {
-      let crmUser = null; 
-      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-
-      globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-      
-      // 🌟 ดึงค่า Scope ป้องกันชื่อ Field ดิ้น (Snake Case, Camel Case)
-      const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
-
-      window.myIsGlobalViewer = false;
-      if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) {
-          window.myIsGlobalViewer = true;
-      }
-      const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-      if (globalRoles.includes(globalCurrentUserRole.toUpperCase())) {
-          window.myIsGlobalViewer = true;
-      }
-      const isGlobalViewer = window.myIsGlobalViewer;
-
-      window.VisitManagerCache = window.VisitManagerCache || {};
-
-      if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-          const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
-            // 🌟 ปลดล็อกการดึงข้อมูลหมอทั้งหมดมาเก็บไว้ใน Cache เพื่อให้สามารถแปลชื่อหมอจากประวัติในอดีต หรือหมอที่ถูกระงับสิทธิ์ได้
-            fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
-            fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
-            supabaseClient.from('Territory').select('*'),
-            fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
-            supabaseClient.from('Team').select('*'),            
-            fetchAllRecords('Products_Team'),   
-            supabaseClient.from('IndexType').select('*'),
-            supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-            fetchAllRecords('Rep_Users'),
-            fetchAllRecords('Assignment')
-          ]);
-
-          const allDoctors = docRes || [];
-          const allHospitals = hospRes || [];
-          const allAssignments = assignRes || [];
-          const globalTerritoryListLocal = territoryRes.data || [];
-          const globalTeamListLocal = teamRes.data || [];
-
-          let allowedTerIds = [];
-
-          if (isGlobalViewer) {
-              window.VisitManagerCache.assignedDoctors = allDoctors;
-              window.VisitManagerCache.assignedHospitals = allHospitals;
-          } else {
-              let matchedTeam = globalTeamListLocal.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-              let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
-
-              if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
-                  if (matchedTeam) {
-                      const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-                  } else if (rawScope) {
-                      const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-                  }
-              } else if (globalCurrentUserRole === 'BU Head') {
-                  const buTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
-                  buTeams.forEach(t => {
-                      const terrs = globalTerritoryListLocal.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
-                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-                  });
-              } else {
-                  if (matchedTerr) {
-                      allowedTerIds.push(String(matchedTerr.Territory_ID));
-                  } else if (rawScope) {
-                      allowedTerIds.push(rawScope);
-                  }
-              }
-
-              const myAssignments = allAssignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
-              const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
-              const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
-
-              window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)));
-
-              const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(d => String(d.Hospital_ID || d.hospital_id));
-              const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
-
-              window.VisitManagerCache.assignedHospitals = allHospitals.filter(h => allAllowedHospIds.includes(String(h.Hospital_ID || h.id)));
-          }
-
-          window.VisitManagerCache.allDoctors = allDoctors; // 🌟 รับประกันว่ามีหมอทุกคนเพื่อใช้แปลชื่อในตาราง
-          window.VisitManagerCache.products = prodRes || [];
-          window.VisitManagerCache.territories = globalTerritoryListLocal;
-          window.VisitManagerCache.teams = globalTeamListLocal;
-          window.VisitManagerCache.teamProdLinks = productsTeamRes || [];
-          window.VisitManagerCache.indexTypes = typeRes.data || [];
-          window.VisitManagerCache.indexes = idxRes.data || [];
-          window.VisitManagerCache.users = usersRes || [];
-          window.VisitManagerCache.dropdownsLoaded = true;
-      }
-
-      globalAllDoctors = window.VisitManagerCache.allDoctors; 
-      globalAssignedDoctors = window.VisitManagerCache.assignedDoctors;
-      globalAllHospitals = window.VisitManagerCache.allHospitals; 
-      globalAssignedHospitals = window.VisitManagerCache.assignedHospitals;
-      globalProductsList = window.VisitManagerCache.products; 
-      globalTerritoryList = window.VisitManagerCache.territories;
-      globalUsersList = window.VisitManagerCache.users; 
-      globalTeamList = window.VisitManagerCache.teams;
-
-      const filterDocSelect = document.getElementById('filterVisitDoctor');
-      if (filterDocSelect) {
-          filterDocSelect.innerHTML = '';
-          globalAssignedDoctors.forEach(d => {
-              const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
-              const opt = document.createElement('option'); 
-              opt.value = d.Doc_ID || d.doc_id || d.id; 
-              opt.textContent = `${d.Doc_Name}${nameThShow}`; 
-              filterDocSelect.appendChild(opt);
-          });
-          if (typeof TomSelect !== 'undefined') {
-              if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
-              new TomSelect('#filterVisitDoctor', { 
-                  plugins: ['remove_button'],
-                  create: false, 
-                  searchField: ["text"],
-                  sortField: { field: "text", direction: "asc" }, 
-                  placeholder: "- All Doctors -",
-                  maxOptions: null,
-                  dropdownParent: 'body'
-              });
-          }
-      }
-
-      const filterHospSelect = document.getElementById('filterVisitHospital');
-      if (filterHospSelect) {
-          filterHospSelect.innerHTML = '';
-          globalAssignedHospitals.forEach(h => {
-              const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
-              const opt = document.createElement('option'); 
-              opt.value = h.Hospital_ID || h.id; 
-              opt.textContent = `${h.Hospital}${knownAsShow}`; 
-              filterHospSelect.appendChild(opt);
-          });
-          if (typeof TomSelect !== 'undefined') {
-              if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
-              new TomSelect('#filterVisitHospital', { 
-                  plugins: ['remove_button'],
-                  create: false, 
-                  searchField: ["text"],
-                  sortField: { field: "text", direction: "asc" }, 
-                  placeholder: "- All Hospitals -",
-                  maxOptions: null,
-                  dropdownParent: 'body'
-              });
-          }
-      }
-
-      const docSelect = document.getElementById('visitDocId');
-      if (docSelect) { 
-        docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
-        
-        // 🌟 กรองหมอให้โชว์ใน Dropdown "สร้าง Visit ใหม่" เฉพาะหมอที่ยัง Active เท่านั้น
-        const activeAssignedDocs = globalAssignedDoctors.filter(d => String(d.Status || 'Active').toLowerCase() === 'active');
-        activeAssignedDocs.forEach(d => {
-          const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
-          const opt = document.createElement('option'); opt.value = d.Doc_ID || d.doc_id || d.id; opt.textContent = `${d.Doc_Name}${nameThShow}`; docSelect.appendChild(opt);
-        });
-        if (typeof TomSelect !== 'undefined') {
-            if (docSelect.tomselect) docSelect.tomselect.destroy();
-            tomSelectDocInstance = new TomSelect('#visitDocId', { 
-                create: false, 
-                searchField: ["text"],
-                sortField: { field: "text", direction: "asc" }, 
-                placeholder: "Search Doctor (EN/TH)...",
-                allowEmptyOption: true,
-                maxOptions: null,
-                dropdownParent: 'body'
-            });
-        }
-      }
-
-      setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
-
-      const purposeSelect = document.getElementById('visitPurpose');
-      if (purposeSelect) { 
-        const types = window.VisitManagerCache.indexTypes; 
-        const indexes = window.VisitManagerCache.indexes;
-        const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
-        let purposeHtml = '<option value="">-- Select Purpose --</option>';
-        if (purposeType) {
-          const purposeItems = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
-          purposeItems.forEach(i => purposeHtml += `<option value="${i.Value}">${i.Value}</option>`);
-        } else {
-          purposeHtml += `<option value="Follow-up">Follow-up</option><option value="Product Presentation">Product Presentation</option><option value="Deliver Documents/Research">Deliver Documents/Research</option><option value="Relationship Building">Relationship Building</option><option value="Other">Other</option>`;
-        }
-        purposeSelect.innerHTML = purposeHtml;
-      }
-
-      const returnToDocId = sessionStorage.getItem('returnToDocId');
-      if (returnToDocId) {
-        setTimeout(() => {
-          if (tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
-          else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
-        }, 200); 
-      }
-
-    } catch (err) { console.error("Error loading dropdowns:", err.message); }
-  }
-
-  function setupFiltersDropdowns(crmUser, productsTeamList) {
-    const repSelect = document.getElementById('filterVisitRep'); 
-    const terSelect = document.getElementById('filterVisitTerritory');
-    const prodFilterSelect = document.getElementById('filterVisitProduct');
-    const formProdSelect = document.getElementById('visitProductId'); 
-    if (!repSelect || !terSelect || !prodFilterSelect) return;
-
-    const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
-    const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
-    const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-
-    let isGlobalViewer = false;
-    if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
-    const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-    if (globalRoles.includes(userRole.toUpperCase())) isGlobalViewer = true;
-    
-    if (crmUser) {
-        Object.values(crmUser).forEach(val => {
-            if (typeof val === 'string' && val.trim().toUpperCase().startsWith('ALL')) {
-                isGlobalViewer = true;
-            }
-        });
-    }
-    window.myIsGlobalViewer = isGlobalViewer; 
-
-    let allowedTeamIds = [];
-    let allowedTerIds = [];
-    let allowedRepIds = [];
-    let allowedEmails = [];
-    let allowedNames = [];
-
-    if (isGlobalViewer) {
-      allowedTeamIds = globalTeamList.map(t => String(t.Team_ID));
-      allowedTerIds = globalTerritoryList.map(t => String(t.Territory_ID));
-      allowedRepIds = globalUsersList.map(u => String(u.Rep_ID || u.User_ID));
-      allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
-      allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
-    } else {
-      let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-      let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
-      
-      if (userRole === 'Manager' || userRole === 'Sales Manager') {
-          if (matchedTeam) {
-              allowedTeamIds.push(String(matchedTeam.Team_ID));
-              const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
-              terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-          } else if (rawScope) {
-              allowedTeamIds.push(rawScope);
-              const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === rawScope);
-              terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-          }
-      } else if (userRole === 'BU Head') {
-          const buTeams = globalTeamList.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
-          buTeams.forEach(t => {
-              allowedTeamIds.push(String(t.Team_ID));
-              const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
-              terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-          });
-      } else { 
-          if (matchedTerr) {
-              allowedTerIds.push(String(matchedTerr.Territory_ID));
-              if (matchedTerr.Team_ID) allowedTeamIds.push(String(matchedTerr.Team_ID));
-          } else if (rawScope) {
-              allowedTerIds.push(rawScope);
-          }
-      }
-
-      if (userRepId) allowedRepIds.push(userRepId);
-      if (userEmail) allowedEmails.push(userEmail);
-      const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
-      if (userName) allowedNames.push(userName);
-
-      if (userRole !== 'Sales' && userRole !== 'Rep') {
-          const subUsers = globalUsersList.filter(u => {
-              const uTeam = String(u.Team_ID || u.Team);
-              const uTerr = String(u.Territory_ID || u.Territory || u.territoryId);
-              return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr);
-          });
-          subUsers.forEach(u => {
-              const rId = String(u.Rep_ID || u.User_ID || u.id);
-              const rEm = String(u.Email).toLowerCase();
-              const rNm = String(u.Rep_Name || u.Name).toLowerCase();
-              if (rId && rId !== 'undefined' && rId !== 'null') allowedRepIds.push(rId);
-              if (rEm && rEm !== 'undefined' && rEm !== 'null') allowedEmails.push(rEm);
-              if (rNm && rNm !== 'undefined' && rNm !== 'null') allowedNames.push(rNm);
-          });
-      }
-    }
-
-    window.myAllowedTeamIds = allowedTeamIds;
-    window.myAllowedTerIds = allowedTerIds;
-    window.myAllowedRepIds = allowedRepIds;
-    window.myAllowedEmails = allowedEmails;
-    window.myAllowedNames = allowedNames;
-
-    const uniqueUsersMap = new Map();
-    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
-    window.fullAllowedUsers.forEach(u => {
-        const id = String(u.Rep_ID || u.User_ID || u.id);
-        if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
-    });
-
-    let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Users -</option>';
-    uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
-    repSelect.innerHTML = repHtml;
-
-    window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
-    let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : '<option value="">- All Territories -</option>';
-    window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
-    terSelect.innerHTML = tHtml;
-
-    let allowedProducts = [];
-    if (isGlobalViewer) {
-        allowedProducts = globalProductsList;
-    } else if (allowedTeamIds.length > 0 && productsTeamList) {
-        const allowedProdIds = productsTeamList
-            .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
-            .map(pt => String(pt.Product_ID));
-        allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
-    } else {
-        allowedProducts = globalProductsList;
-    }
-    
-    let pHtml = '<option value="">- All Products -</option>';
-    allowedProducts.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-    prodFilterSelect.innerHTML = pHtml;
-
-    if (formProdSelect) {
-        let fHtml = '';
-        allowedProducts.forEach(p => fHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-        formProdSelect.innerHTML = fHtml;
-        if (typeof TomSelect !== 'undefined') {
-            if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
-            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --", dropdownParent: 'body' });
-        }
-    }
-  }
-
-  function handleFilterChange(source) {
-    const repSelect = document.getElementById('filterVisitRep');
-    const terSelect = document.getElementById('filterVisitTerritory');
-    if (!repSelect || !terSelect) return;
-
-    const repVal = repSelect.value;
-    const terVal = terSelect.value;
-
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
-    const hideAllOption = (!window.myIsGlobalViewer && (userRole === 'Sales' || userRole === 'Rep'));
-
-    if (source === 'rep') {
-        let validTers = window.fullAllowedTerritories || [];
-        if (repVal !== "") {
-            const selectedRep = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID || u.id) === repVal);
-            if (selectedRep) {
-                const rTeam = String(selectedRep.Team_ID || selectedRep.Team || '');
-                const rTer = String(selectedRep.Territory_ID || selectedRep.Territory || selectedRep.territoryId || '');
-                validTers = (window.fullAllowedTerritories || []).filter(t => {
-                    const tId = String(t.Territory_ID);
-                    const tTeam = String(t.Team_ID);
-                    return tId === rTer || (rTeam && rTeam !== 'undefined' && tTeam === rTeam) || window.myIsGlobalViewer;
-                });
-                if (validTers.length === 0) validTers = window.fullAllowedTerritories;
-            }
-        }
-        
-        const currentTerVal = terSelect.value;
-        let tHtml = hideAllOption ? '' : '<option value="">- All Territories -</option>';
-        validTers.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
-        terSelect.innerHTML = tHtml;
-        
-        if (validTers.some(t => String(t.Territory_ID) === currentTerVal)) {
-            terSelect.value = currentTerVal;
-        } else {
-            terSelect.value = "";
-        }
-    }
-
-    if (source === 'territory') {
-        let validReps = window.fullAllowedUsers || [];
-        if (terVal !== "") {
-            const selectedTer = (window.fullAllowedTerritories || []).find(t => String(t.Territory_ID) === terVal);
-            if (selectedTer) {
-                const tTeam = String(selectedTer.Team_ID || '');
-                validReps = (window.fullAllowedUsers || []).filter(u => {
-                    const uTeam = String(u.Team_ID || u.Team || '');
-                    const uTer = String(u.Territory_ID || u.Territory || u.territoryId || '');
-                    return uTer === terVal || (tTeam && tTeam !== 'undefined' && uTeam === tTeam) || window.myIsGlobalViewer;
-                });
-                if (validReps.length === 0) validReps = window.fullAllowedUsers;
-            }
-        }
-        
-        const currentRepVal = repSelect.value;
-        let repHtml = hideAllOption ? '' : '<option value="">- All Users -</option>';
-        const uniqueUsersMap = new Map();
-        validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
-        uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
-        
-        repSelect.innerHTML = repHtml;
-        
-        if (validReps.some(r => String(r.Rep_ID || r.User_ID || r.id) === currentRepVal)) {
-            repSelect.value = currentRepVal;
-        } else {
-            repSelect.value = "";
-        }
-    }
-
-    filterVisits();
-  }
-
-  function sortVisits(col) {
-    if (currentSortCol === col) {
-      currentSortAsc = !currentSortAsc; 
-    } else {
-      currentSortCol = col;
-      currentSortAsc = true; 
-    }
-
-    ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'].forEach(c => {
-      const icon = document.getElementById('icon-sort-' + c);
-      if (icon) {
-        if (c === currentSortCol) {
-          icon.className = currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
-        } else {
-          icon.className = 'fa-solid fa-sort text-muted ms-1';
-        }
-      }
-    });
-
-    filterVisits(false); 
-  }
-
-  async function loadVisits(forceReload = false) {
-    const tbody = document.getElementById('visitTableBody');
-    window.VisitManagerCache = window.VisitManagerCache || {};
-
-    if (forceReload || !window.VisitManagerCache.isLoaded) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
-
-        try {
-          const [visitRes, vpRes, dcrRes] = await Promise.all([
-            fetchAllRecords('Visit_Logs'),
-            fetchAllRecords('Visit_Products'),
-            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
-          ]);
-
-          window.VisitManagerCache.visits = visitRes || [];
-          window.VisitManagerCache.visitProducts = vpRes || []; 
-          window.VisitManagerCache.pendingUnlocks = (dcrRes.data || []).map(d => d.Ref_ID);
-          window.VisitManagerCache.isLoaded = true;
-
-        } catch(err) { 
-          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ${err.message}</td></tr>`; 
-          return;
-        }
-    }
-
-    globalVisits = window.VisitManagerCache.visits;
-    globalVisitProducts = window.VisitManagerCache.visitProducts;
-    globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
-
-    if (window.VisitManagerCache.filters) {
-        const f = window.VisitManagerCache.filters;
-        
-        const docFilterEl = document.getElementById('filterVisitDoctor');
-        if (docFilterEl && docFilterEl.tomselect && f.doc && f.doc.length > 0) docFilterEl.tomselect.setValue(f.doc);
-        
-        const hospFilterEl = document.getElementById('filterVisitHospital');
-        if (hospFilterEl && hospFilterEl.tomselect && f.hosp && f.hosp.length > 0) hospFilterEl.tomselect.setValue(f.hosp);
-        
-        if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
-        if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
-        if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
-        if (document.getElementById('filterVisitRep')) document.getElementById('filterVisitRep').value = f.rep || '';
-        if (document.getElementById('filterVisitTerritory')) document.getElementById('filterVisitTerritory').value = f.territory || '';
-        if (document.getElementById('filterVisitProduct')) document.getElementById('filterVisitProduct').value = f.prod || '';
-        if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
-
-        currentPage = f.page || 1;
-        rowsPerPage = f.rows || 20;
-        currentSortCol = f.sortCol || 'date';
-        currentSortAsc = f.sortAsc !== undefined ? f.sortAsc : false;
-    }
-
-    filterVisits(false);
-  }
-
-  function filterVisits(resetPage = true) {
-    const repSelect = document.getElementById('filterVisitRep');
-    const terSelect = document.getElementById('filterVisitTerritory');
-    const repTerm = repSelect ? repSelect.value : '';
-    const terTerm = terSelect ? terSelect.value : '';
-    
-    let filterDocIds = [];
-    const docFilterEl = document.getElementById('filterVisitDoctor');
-    if (docFilterEl && docFilterEl.tomselect) {
-        let val = docFilterEl.tomselect.getValue();
-        filterDocIds = Array.isArray(val) ? val : (val ? [val] : []);
-    }
-
-    let filterHospIds = [];
-    const hospFilterEl = document.getElementById('filterVisitHospital');
-    if (hospFilterEl && hospFilterEl.tomselect) {
-        let val = hospFilterEl.tomselect.getValue();
-        filterHospIds = Array.isArray(val) ? val : (val ? [val] : []);
-    }
-    
-    const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
-    const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
-    const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-    const endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
-
-    if (resetPage) currentPage = 1;
-
-    window.VisitManagerCache.filters = {
-        doc: filterDocIds, hosp: filterHospIds, startDate: startDateTerm, endDate: endDateTerm,
-        status: statusTerm, rep: repTerm, territory: terTerm, prod: prodTerm,
-        page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
-    };
-
-    const filtered = globalVisits.filter(v => {
-      let hasSecurityAccess = false;
-
-      if (window.myIsGlobalViewer) {
-        hasSecurityAccess = true;
-      } else {
-        const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-        const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-        const vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
-
-        if (window.myAllowedRepIds.includes(rawRepId) || 
-            window.myAllowedTerIds.includes(vTerrId) || 
-            window.myAllowedEmails.includes(rawWho) || 
-            window.myAllowedNames.includes(rawWho)) {
-            hasSecurityAccess = true;
-        }
-      }
-
-      if (!hasSecurityAccess) return false;
-
-      // 🌟 บังคับสิทธิ์ให้มองเห็นหมอตาม Assignment (รองรับชื่อ Field แบบ Snake Case)
-      if (!window.myIsGlobalViewer) {
-          const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase());
-          if (!isDocAssigned) return false; 
-      }
-
-      let matchDate = true;
-      if (startDateTerm || endDateTerm) {
-          const vDate = new Date(v.Visit_Date);
-          vDate.setHours(0, 0, 0, 0); 
-          
-          if (startDateTerm) {
-              const sDate = new Date(startDateTerm);
-              sDate.setHours(0, 0, 0, 0);
-              if (vDate < sDate) matchDate = false;
-          }
-          if (endDateTerm) {
-              const eDate = new Date(endDateTerm);
-              eDate.setHours(23, 59, 59, 999);
-              if (vDate > eDate) matchDate = false;
-          }
-      }
-
-      let matchRep = (repTerm === "");
-      if (repTerm !== "") {
-          const selUser = (window.fullAllowedUsers || []).find(u => String(u.Rep_ID || u.User_ID || u.id) === repTerm);
-          const selId = repTerm;
-          const selEm = selUser ? String(selUser.Email).toLowerCase() : '';
-          const selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
-          
-          const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-          const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-
-          if (rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm)) {
-              matchRep = true;
-          }
-      }
-
-      const matchTer = (terTerm === "") ? true : (String(v.Territory_ID || v.territory_id) === String(terTerm));
-
-      // 🌟 อัปเดตการเทียบ ID ของหมอและโรงพยาบาลให้ยืดหยุ่น ป้องกันหาหมอไม่เจอ
-      const matchDoc = (filterDocIds.length === 0) || filterDocIds.includes(String(v.Doc_ID || v.doc_id || v.id));
-
-      const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
-      let hospId = docObj ? String(docObj.Hospital_ID || docObj.hospital_id || '') : '';
-      const matchHosp = (filterHospIds.length === 0) || filterHospIds.includes(hospId);
-
-      const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
-      const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
-
-      const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
-
-      return matchDate && matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
-    });
-
-    filtered.sort((a, b) => {
-      let valA = '', valB = '';
-
-      if (currentSortCol === 'date') {
-        valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
-      } 
-      else if (currentSortCol === 'doctor') {
-        const docA = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase());
-        valA = docA ? `${docA.Doc_Name} ${docA.Doc_Name_TH||''}`.toLowerCase() : '';
-        const docB = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase());
-        valB = docB ? `${docB.Doc_Name} ${docB.Doc_Name_TH||''}`.toLowerCase() : '';
-      } 
-      else if (currentSortCol === 'hospital') {
-        const docA = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase());
-        const hospA = docA ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docA.Hospital_ID || docA.hospital_id || '').trim().toLowerCase()) : null;
-        valA = hospA ? `${hospA.Hospital} ${hospA.Known_As||''}`.toLowerCase() : '';
-        
-        const docB = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase());
-        const hospB = docB ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docB.Hospital_ID || docB.hospital_id || '').trim().toLowerCase()) : null;
-        valB = hospB ? `${hospB.Hospital} ${hospB.Known_As||''}`.toLowerCase() : '';
-      } 
-      else if (currentSortCol === 'products') {
-        valA = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(a.Visit_ID)).map(vp => {
-          const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID)); return p ? p.Product : '';
-        }).join(',').toLowerCase();
-        valB = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(b.Visit_ID)).map(vp => {
-          const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID)); return p ? p.Product : '';
-        }).join(',').toLowerCase();
-      } 
-      else if (currentSortCol === 'purpose') {
-        valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase();
-      } 
-      else if (currentSortCol === 'status') {
-        valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase();
-      }
-
-      if (valA < valB) return currentSortAsc ? -1 : 1;
-      if (valA > valB) return currentSortAsc ? 1 : -1;
-      return 0;
-    });
-
-    globalFilteredVisits = filtered;
-    renderVisitTable();
-  }
-
-  function changeRowsPerPage() {
-    const selectEl = document.getElementById('visitRowsPerPage');
-    rowsPerPage = parseInt(selectEl.value);
-    currentPage = 1;
-    window.VisitManagerCache.filters.rows = rowsPerPage;
-    window.VisitManagerCache.filters.page = 1;
-    renderVisitTable();
-  }
-
-  function goToPage(page) {
-    const totalPages = Math.ceil(globalFilteredVisits.length / rowsPerPage);
-    if (page < 1 || page > totalPages) return;
-    currentPage = page;
-    window.VisitManagerCache.filters.page = page;
-    renderVisitTable();
-  }
-
-  function renderVisitTable() {
-    const tbody = document.getElementById('visitTableBody');
-    if (!tbody) return; 
-
-    tbody.innerHTML = '';
-    const data = globalFilteredVisits;
-
-    if (!Array.isArray(data) || data.length === 0) {
-        document.getElementById('visitPaginationContainer').classList.add('d-none');
-        return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>No visit records found for the selected period.</td></tr>`;
-    }
-
-    document.getElementById('visitPaginationContainer').classList.remove('d-none');
-
-    const totalItems = data.length;
-    const totalPages = Math.ceil(totalItems / rowsPerPage);
-    if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
-
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
-    
-    document.getElementById('visitPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
-
-    const paginatedData = data.slice(startIndex, endIndex);
-
-    paginatedData.forEach(v => {
-      const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
-      let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
-      let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
-
-      if (isPendingUnlock) {
-        badge = 'bg-secondary';
-        statusShow = '⏳ Pending Unlock';
-      }
-
-      const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
-
-      // 🌟 ใช้การจับคู่แบบทนทาน (Robust ID Matching) ป้องกัน Doc_ID ดิ้น
-      const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
-      let docNameShow = v.Doc_ID || v.doc_id || v.id || '-', hospNameShow = '-';
-
-      if (docObj) {
-        const nameThShow = docObj.Doc_Name_TH ? ` (${docObj.Doc_Name_TH})` : '';
-        docNameShow = `${docObj.Doc_Name}${nameThShow}`;
-        
-        const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docObj.Hospital_ID || docObj.hospital_id || '').trim().toLowerCase());
-        if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
-      }
-
-      const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
-      let prodBadges = '';
-      if (visitProds.length > 0) {
-        visitProds.forEach(pid => {
-            const pObj = globalProductsList.find(p => String(p.Product_ID) === pid);
-            const pName = pObj ? pObj.Product : pid;
-            prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
-        });
-      } else {
-        prodBadges = '<span class="text-muted small">-</span>';
-      }
-
-      tbody.innerHTML += `
-        <tr>
-          <td class="text-center fw-bold">
-            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;" title="Click to view details">
-              ${dateShow}
-            </a>
-          </td>
-          <td class="fw-bold text-dark">${docNameShow}</td>
-          <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
-          <td>${prodBadges}</td>
-          <td><small>${v.Purpose || '-'}</small></td>
-          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
-        </tr>
-      `;
-    });
-
-    renderPaginationControls(totalPages);
-  }
-
-  function renderPaginationControls(totalPages) {
-    const ul = document.getElementById('visitPagination');
-    let html = '';
-
-    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-              <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage - 1}); return false;">&laquo; Prev</a>
-            </li>`;
-
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
-
-    if (startPage > 1) {
-        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>`;
-        if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-        html += `<li class="page-item ${currentPage === i ? 'active' : ''}">
-                  <a class="page-link shadow-sm" href="#" onclick="goToPage(${i}); return false;">${i}</a>
-                </li>`;
-    }
-
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
-        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(${totalPages}); return false;">${totalPages}</a></li>`;
-    }
-
-    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-              <a class="page-link shadow-sm" href="#" onclick="goToPage(${currentPage + 1}); return false;">Next &raquo;</a>
-            </li>`;
-
-    ul.innerHTML = html;
-  }
-
-  function toggleVisitFormEditable(isEditable) {
-    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
-    fields.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.disabled = !isEditable;
-        if (el.tomselect) {
-          if (isEditable) el.tomselect.enable();
-          else el.tomselect.disable();
-        }
-      }
-    });
-    ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (btn) btn.disabled = !isEditable;
-    });
-  }
-
-  function openAddVisitView() {
-    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
-
-    document.getElementById('visitForm').reset();
-    document.getElementById('visitId').value = '';
-    document.getElementById('formVisitTitle').innerText = '📝 Add New Visit';
-    document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('visitStatus').value = 'Pending';
-    document.getElementById('visitInsight').value = ''; 
-
-    initUserInfo(); 
-
-    if (tomSelectDocInstance) {
-      tomSelectDocInstance.clear();
-      tomSelectDocInstance.enable(); 
-    } else { 
-      const docSelect = document.getElementById('visitDocId'); 
-      if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
-    }
-
-    if (tomSelectProdInstance) {
-      tomSelectProdInstance.clear();
-    }
-
-    const returnToDocId = sessionStorage.getItem('returnToDocId');
-    if (returnToDocId) {
-      setTimeout(() => {
-        if (tomSelectDocInstance) {
-          tomSelectDocInstance.setValue(returnToDocId);
-          tomSelectDocInstance.disable(); 
-        } else {
-          const docSelect = document.getElementById('visitDocId');
-          if (docSelect) { 
-            docSelect.value = returnToDocId; 
-            docSelect.dispatchEvent(new Event('change')); 
-            docSelect.disabled = true; 
-          }
-        }
-      }, 200); 
-    }
-
-    toggleVisitFormEditable(true);
-    if (returnToDocId) {
-      setTimeout(() => {
-        if (tomSelectDocInstance) tomSelectDocInstance.disable();
-        else document.getElementById('visitDocId').disabled = true;
-      }, 250);
-    }
-
-    const btn = document.getElementById('saveVisitBtn');
-    btn.dataset.mode = 'save';
-    btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-    btn.innerHTML = '💾 Save';
-    btn.disabled = false;
-
-    switchVisitView('visitFormView');
-  }
-
-  function openEditVisitView(visitId) {
-    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
-
-    const v = globalVisits.find(x => x.Visit_ID === visitId);
-    if (!v) return;
-
-    document.getElementById('visitId').value = v.Visit_ID;
-    document.getElementById('formVisitTitle').innerText = '✏️ Edit Visit';
-    
-    let repNameShow = v.Rep_ID || '-';
-    if (globalUsersList && globalUsersList.length > 0) {
-        const repObj = globalUsersList.find(u => String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID));
-        if (repObj) repNameShow = repObj.Rep_Name || repObj.Name || repObj.Email || repNameShow;
-    }
-    
-    let terNameShow = v.Territory_ID || '-';
-    if (globalTerritoryList && globalTerritoryList.length > 0) {
-        const terObj = globalTerritoryList.find(t => String(t.Territory_ID) === String(v.Territory_ID));
-        if (terObj) terNameShow = terObj.Territory;
-        else if (String(terNameShow).length > 20) terNameShow = '-'; 
-    }
-    
-    document.getElementById('dispSalesRepName').innerText = repNameShow;
-    document.getElementById('dispTerritoryName').innerText = terNameShow;
-
-    if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
-    else document.getElementById('visitDocId').value = v.Doc_ID || '';
-
-    const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
-    if (tomSelectProdInstance) {
-        tomSelectProdInstance.setValue(visitProds);
-    }
-
-    document.getElementById('visitDate').value = v.Visit_Date || '';
-    document.getElementById('visitStartTime').value = v.Start_Time || '';
-    document.getElementById('visitEndTime').value = v.End_Time || '';
-    document.getElementById('visitPurpose').value = v.Purpose || '';
-    document.getElementById('visitDetails').value = v.Details || '';
-    document.getElementById('visitInsight').value = v.Insight || ''; 
-    document.getElementById('visitNextAction').value = v.Next_Action || '';
-    document.getElementById('visitStatus').value = v.Status || 'Pending';
-
-    const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
-    const btn = document.getElementById('saveVisitBtn');
-
-    if (isPendingUnlock) {
-      toggleVisitFormEditable(false);
-      btn.disabled = true;
-      btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock';
-      btn.dataset.mode = 'disabled';
-    } else if (v.Status === 'Submitted') {
-      toggleVisitFormEditable(false);
-      btn.disabled = false;
-      btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
-      btn.dataset.mode = 'request_unlock';
-    } else {
-      toggleVisitFormEditable(true);
-      btn.disabled = false;
-      btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '💾 Save';
-      btn.dataset.mode = 'save';
-      
-      if (sessionStorage.getItem('returnToDocId')) {
-         if (tomSelectDocInstance) tomSelectDocInstance.disable();
-         else document.getElementById('visitDocId').disabled = true;
-      }
-    }
-
-    switchVisitView('visitFormView');
-  }
-
-  async function requestUnlockVisit(visitId) {
-    const btn = document.getElementById('saveVisitBtn');
-    btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...`;
-
-    let crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-
-    const payload = {
-      Action: 'Unlock Visit',
-      Ref_ID: visitId,
-      Requested_Data: JSON.stringify({ Status: 'Pending' }),
-      Status: 'Pending',
-      Whoupdated: whoUpdated
-    };
-
-    try {
-      const { error } = await supabaseClient.from('DCR').insert([payload]);
-      if (error) throw error;
-      alert("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.");
-      
-      const returnDocId = sessionStorage.getItem('returnToDocId');
-      if (returnDocId) {
-        sessionStorage.removeItem('returnToDocId');
-        returnToDoctorProfile(returnDocId); 
-      } else {
-        switchVisitView('visitListView');
-        await loadVisits(true); 
-      }
-    } catch(err) {
-      alert("❌ Error: " + err.message);
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
-    }
-  }
-
-  function generateUUID() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-    }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-  }
-
-  async function handleSaveVisit(e) {
-    e.preventDefault();
-    const btn = document.getElementById('saveVisitBtn');
-    const mode = btn.dataset.mode;
-
-    if (mode === 'disabled') return;
-    if (mode === 'request_unlock') {
-      requestUnlockVisit(document.getElementById('visitId').value);
-      return;
-    }
-
-    const docSelect = document.getElementById('visitDocId');
-    const dateInput = document.getElementById('visitDate');
-    const purposeSelect = document.getElementById('visitPurpose');
-
-    let selectedProducts = [];
-    if (tomSelectProdInstance) {
-        let val = tomSelectProdInstance.getValue();
-        selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
-    } else {
-        const prodSelect = document.getElementById('visitProductId');
-        selectedProducts = Array.from(prodSelect.selectedOptions).map(o => o.value);
-    }
-    selectedProducts = selectedProducts.filter(p => p.trim() !== "");
-
-    ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
-
-    let missingFields = [];
-    if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• Doctor"); }
-    if (selectedProducts.length === 0) { 
-        const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); 
-        document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• Products"); 
-    }
-    if (!dateInput.value) { dateInput.classList.add('is-invalid'); document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important'); missingFields.push("• Date"); }
-    if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important'); missingFields.push("• Purpose"); }
-
-    if (missingFields.length > 0) {
-      alert("⚠️ Cannot save! Please complete the following required fields:\n\n" + missingFields.join("\n"));
-      return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...`;
-
-    let crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-    const repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
-    const territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
-
-    const existingVisitId = document.getElementById('visitId').value;
-    const targetVisitId = existingVisitId || generateUUID();
-    
-    const payload = {
-      Visit_ID: targetVisitId,
-      Rep_ID: repId,
-      Territory_ID: territoryId,
-      Doc_ID: docSelect.value,
-      Visit_Date: dateInput.value,
-      Start_Time: document.getElementById('visitStartTime').value || null,
-      End_Time: document.getElementById('visitEndTime').value || null,
-      Purpose: purposeSelect.value,
-      Details: document.getElementById('visitDetails').value.trim(),
-      Insight: document.getElementById('visitInsight').value.trim(), 
-      Next_Action: document.getElementById('visitNextAction').value.trim(),
-      Status: document.getElementById('visitStatus').value,
-      Whoupdated: whoUpdated,
-      Whenupdated: new Date().toISOString()
-    };
-
-    try {
-      if (existingVisitId) {
-        const { error: updErr } = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
-        if (updErr) throw new Error("Update Visit_Logs error: " + updErr.message);
-
-        const { error: delErr } = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
-        if (delErr) throw new Error("Delete old Visit_Products error: " + delErr.message);
-
-      } else {
-        const { error: insErr } = await supabaseClient.from('Visit_Logs').insert([payload]);
-        if (insErr) throw new Error("Insert Visit_Logs error: " + insErr.message);
-      }
-
-      if (selectedProducts.length > 0) {
-          const vpPayload = selectedProducts.map(p => ({ Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }));
-          const { error: vpErr } = await supabaseClient.from('Visit_Products').insert(vpPayload);
-          if (vpErr) throw new Error("Insert Visit_Products error: " + vpErr.message);
-      }
-
-      const returnDocId = sessionStorage.getItem('returnToDocId');
-      if (returnDocId) {
-        sessionStorage.removeItem('returnToDocId');
-        returnToDoctorProfile(returnDocId); 
-      } else {
-        switchVisitView('visitListView');
-        await loadVisits(true); 
-      }
-
-    } catch(err) {
-      console.error("Save Visit Error:", err);
-      alert("❌ Failed to save data.\n\nReason: " + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = "💾 Save";
-    }
-  }
-</script>
