@@ -9,6 +9,16 @@
   
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+
+  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงามและไม่โดนบัง */
+  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
+  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
+  .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
+  .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+  
+  /* 🌟 บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
+  .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
+  .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
   
   .workplace-row { background-color: #ffffff; border-radius: 8px; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; transition: 0.2s;}
   .workplace-row:hover { border-color: #ffc107; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -57,20 +67,21 @@
         <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
-        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4" onclick="openAddDoctorView()">
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddDoctorView()">
           <i class="fa-solid fa-plus me-2"></i>Add New Doctor
         </button>
       </div>
     </div>
 
-    <!-- ส่วนค้นหาทั้งหมด -->
+    <!-- 🌟 ส่วนค้นหาทั้งหมด (ปรับเป็น Dropdown TomSelect) -->
     <div class="row mb-4 doctor-filter-group g-3 align-items-end">
       
       <div class="col-sm-6 col-md-6 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1">Doctor Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocName" placeholder="Search Doctor..." onkeyup="filterDoctors()">
+          <select class="form-select bg-white" id="filterDocName" onchange="filterDoctors()">
+            <option value="">- All Doctors -</option>
+          </select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
           </button>
@@ -78,10 +89,11 @@
       </div>
 
       <div class="col-sm-6 col-md-6 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Primary Hospital</label>
+        <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-          <input type="text" class="form-control border-start-0 border-end-0 ps-0" id="filterDocWorkplace" placeholder="Search Hospital..." onkeyup="filterDoctors()">
+          <select class="form-select bg-white" id="filterDocWorkplace" onchange="filterDoctors()">
+            <option value="">- All Hospitals -</option>
+          </select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
           </button>
@@ -161,7 +173,7 @@
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i>General Information</h5>
           <div class="row g-3">
             <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">Title</label><select class="form-select bg-white" id="docTitle"></select></div>
-            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN)</label><input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai"></div>
+            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN)</label><input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai" required></div>
             <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">Name (TH)</label><input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี"></div>
           </div>
           <div class="row g-3 mt-1">
@@ -218,7 +230,7 @@
           <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">General Information</h5>
           <div class="row g-3">
             <div class="col-sm-4 col-md-3"><label class="form-label fw-bold text-dark">Title</label><select class="form-select bg-white" id="editDocTitle"></select></div>
-            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN)</label><input type="text" class="form-control bg-white" id="editDocNameEn"></div>
+            <div class="col-sm-8 col-md-4"><label class="form-label fw-bold text-dark">Name (EN) <span class="text-danger">*</span></label><input type="text" class="form-control bg-white" id="editDocNameEn" required></div>
             <div class="col-sm-12 col-md-5"><label class="form-label fw-bold text-dark">Name (TH)</label><input type="text" class="form-control bg-white" id="editDocNameTh"></div>
           </div>
           <div class="row g-3 mt-1">
@@ -458,11 +470,32 @@
 
   window.openViewDoctorProfile = openViewDoctorProfile;
 
-  // ===================== 🎙️ ระบบ Voice to Text =====================
+  // ===================== 🎙️ ระบบ Voice to Text (เข้า TomSelect โดยตรง) =====================
   var activeSearchRecognition = null;
   var currentSearchInputId = null;
   var currentSearchBtnId = null;
   var currentSearchIconId = null;
+
+  function searchAndSelectTomSelect(selectId, keyword) {
+      const selectEl = document.getElementById(selectId);
+      if (!selectEl) return;
+      const searchKey = keyword.toLowerCase();
+      if (selectEl.tomselect) {
+          const ts = selectEl.tomselect; 
+          ts.focus(); 
+          ts.setTextboxValue(keyword); 
+          const options = ts.options; 
+          let matchedId = null;
+          for (let id in options) { 
+              const text = (options[id].text || '').toLowerCase();
+              if (text.includes(searchKey)) { matchedId = id; break; }
+          }
+          if (matchedId) ts.setValue(matchedId);
+      } else {
+           selectEl.value = keyword; 
+           selectEl.dispatchEvent(new Event('change'));
+      }
+  }
 
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -503,8 +536,12 @@
       
       const inputEl = document.getElementById(inputId);
       if (inputEl && spokenText) {
-        inputEl.value = spokenText;
-        filterDoctors();
+          if (inputEl.tagName === 'SELECT') {
+              searchAndSelectTomSelect(inputId, spokenText);
+          } else {
+              inputEl.value = spokenText;
+          }
+          filterDoctors();
       }
       stopSpeechSearch();
     };
@@ -726,7 +763,7 @@
     window.DocManagerCache = window.DocManagerCache || {};
 
     if (forceReload || !window.DocManagerCache.isLoaded) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
         try {
           let crmUser = null;
           try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -802,26 +839,80 @@
           window.DocManagerCache.doctors = list;
           window.DocManagerCache.isLoaded = true;
         } catch (err) { 
-          tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
+          if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
           return;
         }
     }
 
     globalDoctors = window.DocManagerCache.doctors;
     
+    // 🌟 สร้าง Dropdown ของช่อง Filter หมอ
+    const filterDocSelect = document.getElementById('filterDocName');
+    if (filterDocSelect) {
+        filterDocSelect.innerHTML = '<option value="">- All Doctors -</option>';
+        globalDoctors.forEach(d => {
+            const nameThShow = d.nameTh ? ` (${d.nameTh})` : '';
+            const opt = document.createElement('option'); 
+            opt.value = d.id; 
+            opt.textContent = `${d.nameEn}${nameThShow}`; 
+            filterDocSelect.appendChild(opt);
+        });
+        if (typeof TomSelect !== 'undefined') {
+            if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
+            new TomSelect('#filterDocName', { 
+                create: false, 
+                searchField: ["text"],
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: "Search Doctor (EN/TH)...",
+                allowEmptyOption: true,
+                maxOptions: null,
+                dropdownParent: 'body' // 🌟 ลอยทับกรอบ Input Group เสมอ
+            });
+        }
+    }
+
+    // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล (โชว์เฉพาะที่มีหมอในสังกัดสิทธิ์ตัวเอง)
+    const filterHospSelect = document.getElementById('filterDocWorkplace');
+    if (filterHospSelect) {
+        filterHospSelect.innerHTML = '<option value="">- All Hospitals -</option>';
+        
+        // หา Hospital_ID ทั้งหมดจากหมอที่ตัวเองมีสิทธิ์เห็น
+        const allowedHospIdsFromDocs = [...new Set(globalDoctors.map(d => String(d.hospitalId)))];
+        const allowedHospitals = globalHospitals.filter(h => allowedHospIdsFromDocs.includes(String(h.Hospital_ID)));
+
+        allowedHospitals.forEach(h => {
+            const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
+            const opt = document.createElement('option'); 
+            opt.value = h.Hospital_ID; 
+            opt.textContent = `${h.Hospital}${knownAsShow}`; 
+            filterHospSelect.appendChild(opt);
+        });
+        
+        if (typeof TomSelect !== 'undefined') {
+            if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
+            new TomSelect('#filterDocWorkplace', { 
+                create: false, 
+                searchField: ["text"],
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: "Search Hospital (EN/TH)...",
+                allowEmptyOption: true,
+                maxOptions: null,
+                dropdownParent: 'body' // 🌟 ลอยทับกรอบ Input Group เสมอ
+            });
+        }
+    }
+
     // 🌟 ดึงค่า Filter เดิมกลับมาแสดงในหน้าจอ UI
     if (window.DocManagerCache.filters) {
         const f = window.DocManagerCache.filters;
-        const nameEl = document.getElementById('filterDocName');
         const specEl = document.getElementById('filterDocSpecialty');
         const typeEl = document.getElementById('filterDocType'); 
-        const hospEl = document.getElementById('filterDocWorkplace');
         const rowsEl = document.getElementById('doctorRowsPerPage');
 
-        if (nameEl) nameEl.value = f.name || '';
+        if (filterDocSelect && filterDocSelect.tomselect && f.name) filterDocSelect.tomselect.setValue(f.name);
+        if (filterHospSelect && filterHospSelect.tomselect && f.hosp) filterHospSelect.tomselect.setValue(f.hosp);
         if (specEl) specEl.value = f.spec || '';
         if (typeEl) typeEl.value = f.type || '';
-        if (hospEl) hospEl.value = f.hosp || '';
         if (rowsEl) rowsEl.value = f.rows || 20;
 
         currentPage = f.page || 1;
@@ -862,18 +953,19 @@
     const typeEl = document.getElementById('filterDocType'); 
     const hospEl = document.getElementById('filterDocWorkplace');
     
-    const nameTerm = nameEl ? nameEl.value.toLowerCase().trim() : "";
+    // เปลี่ยนมารับค่า Value (ID) แทนตัวหนังสือ
+    const nameTermId = nameEl ? nameEl.value : "";
     const specTerm = specEl ? specEl.value : "";
     const typeTerm = typeEl ? typeEl.value : "";
-    const hospTerm = hospEl ? hospEl.value.toLowerCase().trim() : "";
+    const hospTermId = hospEl ? hospEl.value : "";
 
     if (resetPage) currentPage = 1; 
 
     window.DocManagerCache.filters = {
-        name: nameTerm,
+        name: nameTermId,
         spec: specTerm,
         type: typeTerm,
-        hosp: hospTerm,
+        hosp: hospTermId,
         page: currentPage,
         rows: rowsPerPage,
         sortCol: currentDocSortCol,
@@ -881,12 +973,11 @@
     };
 
     const filtered = globalDoctors.filter(d => {
-      const nameSearchStr = `${d.nameEn || ''} ${d.nameTh || ''}`.toLowerCase();
-      const matchName = (nameTerm === "") || nameSearchStr.includes(nameTerm);
-      
+      // ค้นหาด้วย ID ทำให้แม่นยำ 100%
+      const matchName = (nameTermId === "") || (String(d.id) === String(nameTermId));
       const matchSpec = (specTerm === "") || (d.specialty === specTerm);
       const matchType = (typeTerm === "") || (d.type === typeTerm);
-      const matchHosp = (hospTerm === "") || (d.hospitalName && d.hospitalName.toLowerCase().includes(hospTerm));
+      const matchHosp = (hospTermId === "") || (String(d.hospitalId) === String(hospTermId));
 
       return matchName && matchSpec && matchType && matchHosp;
     });
@@ -934,6 +1025,7 @@
 
   function renderDoctorTable() {
     const tbody = document.getElementById('doctorTableBody'); 
+    if(!tbody) return;
     tbody.innerHTML = '';
     
     const data = globalFilteredDoctors;
