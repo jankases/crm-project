@@ -449,7 +449,7 @@
       return allData;
   }
 
-  // 🌟 ระบบ Caching สำหรับหน้า Doctors เพื่อป้องกันการโหลดใหม่ตอนสลับเมนู
+  // 🌟 ระบบ Caching
   window.DocManagerCache = window.DocManagerCache || {
       isLoaded: false,
       indexLoaded: false,
@@ -465,7 +465,8 @@
       teamProdLinks: [],
       sysSettings: [],
       teamList: [],
-      filters: { name: [], spec: [], type: [], hosp: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } // 🌟 เปลี่ยนเป็น Array สำหรับ Multi-select
+      allowedHospIds: [], // เพิ่มการจำสิทธิ์ รพ.
+      filters: { name: [], spec: [], type: [], hosp: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
   var globalDoctors = [];
@@ -608,7 +609,6 @@
     currentSearchIconId = null;
   }
 
-  // 🌟 ฟังก์ชันบังคับโหลดข้อมูลใหม่จากปุ่ม Refresh
   async function forceReloadDoctors() {
       const btn = document.getElementById('btnRefreshDoctors');
       if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
@@ -630,7 +630,6 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันช่วยเหลือสร้างและอัปเดต TomSelect สำหรับ Add/Edit (Single Select)
   function updateTomSelect(id, html, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -647,7 +646,6 @@
       });
   }
 
-  // 🌟 ฟังก์ชันช่วยเหลือสร้าง TomSelect สำหรับ Filter (Multi Select)
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -664,7 +662,6 @@
       });
   }
 
-  // 🌟 โหลด Dropdowns (ใช้ Cache)
   async function loadIndexDropdowns(forceReload = false) {
     try {
       let crmUser = null;
@@ -775,7 +772,7 @@
 
       const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = globalIndexTypes.find(t => t.Name.toLowerCase() === typeName.toLowerCase());
-        let html = defaultText ? `<option value="">${defaultText}</option>` : ''; // ถ้าเป็น Multiple Select ไม่ต้องใส่ option เปล่า
+        let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
         if (typeObj) {
           const items = globalIndexes.filter(i => i.IndexType_ID === typeObj.IndexType_ID);
           items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
@@ -783,17 +780,13 @@
         return html;
       };
 
-      // 🌟 ใช้ updateTomSelect สำหรับฟอร์ม Add/Edit (เลือกได้แค่อันเดียว)
       updateTomSelect('docTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
       updateTomSelect('editDocTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
-      
       updateTomSelect('docSpecialty', getOptionsHtml('Specialty', '- Select Specialty -'), '- Select Specialty -');
       updateTomSelect('editDocSpecialty', getOptionsHtml('Specialty', '- Select Specialty -'), '- Select Specialty -');
-      
       updateTomSelect('docType', getOptionsHtml('DoctorType', '- Select Type -'), '- Select Type -');
       updateTomSelect('editDocType', getOptionsHtml('DoctorType', '- Select Type -'), '- Select Type -');
 
-      // 🌟 ใช้ initMultiTomSelect สำหรับช่อง Filter (เลือกได้หลายอัน)
       document.getElementById('filterDocSpecialty').innerHTML = getOptionsHtml('Specialty', '');
       initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
 
@@ -832,7 +825,7 @@
     return items.map(i => i.Value);
   }
 
-  // 🌟 โหลดรายชื่อหมอ (ใช้ Cache)
+  // 🌟 โหลดรายชื่อหมอ (พร้อมระบบเช็คสิทธิ์แบบเดียวกับ Visit)
   async function loadDoctors(forceReload = false) {
     const tbody = document.getElementById('doctorTableBody');
     window.DocManagerCache = window.DocManagerCache || {};
@@ -843,43 +836,61 @@
           let crmUser = null;
           try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
-          const userRole = crmUser ? (crmUser.Role || crmUser.role) : '';
-          const userTerritory = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory) : null;
-          const userTeam = crmUser ? (crmUser.Team_ID || crmUser.teamId || crmUser.Team) : null;
-          const userBu = crmUser ? (crmUser.BU_ID || crmUser.buId || crmUser.BU) : null;
+          const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+          const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-          const [allDoctors, assignments, terrRes, teamRes, pendingAddRes, pendingEditRes] = await Promise.all([
+          const [allDoctors, assignRes, pendingAddRes, pendingEditRes] = await Promise.all([
             fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
-            fetchAllRecords('Assignment', q => q.eq('Type', 'Doctor')),
-            supabaseClient.from('Territory').select('*'),
-            supabaseClient.from('Team').select('*'),
+            fetchAllRecords('Assignment'),
             supabaseClient.from('DCR').select('*').eq('Action', 'Add Doctor').eq('Status', 'Pending'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Doctor').eq('Status', 'Pending')
           ]);
 
-          let territories = terrRes.data || [];
-          let teams = teamRes.data || [];
-          let allowedDocIds = [];
+          const assignments = assignRes || [];
+          const territories = window.DocManagerCache.territories || [];
+          const teams = window.DocManagerCache.teamList || [];
+          
+          const isGlobalViewer = ['Admin', 'Staff', 'Director', 'Executive'].includes(userRole) || rawScope.toUpperCase() === 'ALL';
 
-          if (userRole === 'Sales' || userRole === 'Rep') {
-            let myTerritoryId = userTerritory;
-            const terrObj = territories.find(t => String(t.Territory_ID) === String(userTerritory) || String(t.Territory).toLowerCase() === String(userTerritory).toLowerCase());
-            if (terrObj) myTerritoryId = terrObj.Territory_ID;
-            allowedDocIds = assignments.filter(a => String(a.Territory_ID) === String(myTerritoryId)).map(a => a.Account_ID);
+          let allowedTerIds = [];
+          if (!isGlobalViewer) {
+              let matchedTeam = teams.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+              let matchedTerr = territories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
+
+              if (userRole === 'Manager' || userRole === 'Sales Manager') {
+                  if (matchedTeam) {
+                      const terrs = territories.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                  } else if (rawScope) {
+                      const terrs = territories.filter(t => String(t.Team_ID) === rawScope);
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                  }
+              } else if (userRole === 'BU Head') {
+                  const buTeams = teams.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
+                  buTeams.forEach(t => {
+                      const terrs = territories.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
+                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+                  });
+              } else {
+                  if (matchedTerr) {
+                      allowedTerIds.push(String(matchedTerr.Territory_ID));
+                  } else if (rawScope) {
+                      allowedTerIds.push(rawScope);
+                  }
+              }
           }
-          else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-            const teamTerritories = territories.filter(t => String(t.Team_ID) === String(userTeam)).map(t => t.Territory_ID);
-            allowedDocIds = assignments.filter(a => teamTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
-          }
-          else if (userRole === 'BU Head' && userBu) {
-            const buTeamIds = teams.filter(tm => String(tm.BU_ID) === String(userBu) || String(tm.BU).toLowerCase() === String(userBu).toLowerCase()).map(tm => tm.Team_ID);
-            const buTerritories = territories.filter(t => buTeamIds.includes(t.Team_ID)).map(t => t.Territory_ID);
-            allowedDocIds = assignments.filter(a => buTerritories.includes(a.Territory_ID)).map(a => a.Account_ID);
+
+          let allowedDocIds = [];
+          let allowedHospIds = [];
+          if (!isGlobalViewer) {
+              const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID)));
+              allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
+              allowedHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
           }
 
           let visibleDoctors = allDoctors;
-          if (userRole !== 'Admin' && allowedDocIds.length > 0) {
-            visibleDoctors = allDoctors.filter(d => allowedDocIds.includes(d.Doc_ID));
+          if (!isGlobalViewer) {
+              visibleDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID)));
           }
 
           const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
@@ -912,6 +923,8 @@
           }
 
           window.DocManagerCache.doctors = list;
+          window.DocManagerCache.allowedHospIds = allowedHospIds; 
+          window.DocManagerCache.isGlobalViewer = isGlobalViewer;
           window.DocManagerCache.isLoaded = true;
         } catch (err) { 
           if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`; 
@@ -920,8 +933,9 @@
     }
 
     globalDoctors = window.DocManagerCache.doctors;
+    const allowedHospIds = window.DocManagerCache.allowedHospIds;
+    const isGlobalViewer = window.DocManagerCache.isGlobalViewer;
     
-    // 🌟 สร้าง Dropdown ของช่อง Filter หมอ (โชว์เฉพาะหมอที่ได้รับมอบหมาย + ค้นหาได้หลายคน)
     const filterDocSelect = document.getElementById('filterDocName');
     if (filterDocSelect) {
         filterDocSelect.innerHTML = '';
@@ -935,16 +949,28 @@
         initMultiTomSelect('filterDocName', '- All Doctors -');
     }
 
-    // 🌟 สร้าง Dropdown ของช่อง Filter โรงพยาบาล (โชว์เฉพาะที่มีหมอในสังกัดสิทธิ์ตัวเอง + ค้นหาได้หลายอัน)
     const filterHospSelect = document.getElementById('filterDocWorkplace');
     if (filterHospSelect) {
         filterHospSelect.innerHTML = '';
         
-        // หา Hospital_ID ทั้งหมดจากหมอที่ตัวเองมีสิทธิ์เห็น
-        const allowedHospIdsFromDocs = [...new Set(globalDoctors.map(d => String(d.hospitalId)))];
-        const allowedHospitals = globalHospitals.filter(h => allowedHospIdsFromDocs.includes(String(h.Hospital_ID)));
+        // 🌟 รวบรวม Hospital_ID ที่มีสิทธิ์เห็น ทั้งจาก Assignment ตรงๆ และจากการผูกในตัวหมอ
+        let validHospIds = new Set();
+        if (isGlobalViewer) {
+            globalHospitals.forEach(h => validHospIds.add(String(h.Hospital_ID)));
+        } else {
+            allowedHospIds.forEach(id => validHospIds.add(id));
+            globalDoctors.forEach(d => {
+                validHospIds.add(String(d.hospitalId));
+                try {
+                    const wps = JSON.parse(d.workplacesJson || '[]');
+                    wps.forEach(wp => validHospIds.add(String(wp.hospitalId)));
+                } catch(e) {}
+            });
+        }
+        
+        const filterHospitalsList = globalHospitals.filter(h => validHospIds.has(String(h.Hospital_ID)));
 
-        allowedHospitals.forEach(h => {
+        filterHospitalsList.forEach(h => {
             const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
             const opt = document.createElement('option'); 
             opt.value = h.Hospital_ID; 
@@ -954,7 +980,6 @@
         initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
     }
 
-    // 🌟 ดึงค่า Filter เดิมกลับมาแสดงในหน้าจอ UI (รองรับ Array สำหรับ Multi-Select)
     if (window.DocManagerCache.filters) {
         const f = window.DocManagerCache.filters;
         const docEl = document.getElementById('filterDocName');
@@ -975,7 +1000,7 @@
         currentDocSortAsc = f.sortAsc !== undefined ? f.sortAsc : true;
     }
 
-    filterDoctors(false); // กรองข้อมูลโดยไม่ต้องรีเซ็ตหน้า
+    filterDoctors(false); 
   }
 
   function sortDoctors(col) {
@@ -1030,11 +1055,18 @@
     };
 
     const filtered = globalDoctors.filter(d => {
-      // ค้นหาด้วยเงื่อนไข Multi-Select
       const matchName = (nameTermIds.length === 0) || nameTermIds.includes(String(d.id));
       const matchSpec = (specTerms.length === 0) || specTerms.includes(String(d.specialty));
       const matchType = (typeTerms.length === 0) || typeTerms.includes(String(d.type));
-      const matchHosp = (hospTermIds.length === 0) || hospTermIds.includes(String(d.hospitalId));
+      
+      // 🌟 ค้นหาโรงพยาบาลทั้งตัวหลักและตัวรอง
+      const matchHosp = (hospTermIds.length === 0) || hospTermIds.some(hId => {
+          if (String(d.hospitalId) === String(hId)) return true;
+          try {
+              const wps = JSON.parse(d.workplacesJson || '[]');
+              return wps.some(wp => String(wp.hospitalId) === String(hId));
+          } catch(e) { return false; }
+      });
 
       return matchName && matchSpec && matchType && matchHosp;
     });
@@ -1174,7 +1206,6 @@
     ul.innerHTML = html;
   }
 
-  // 🌟 ฟังก์ชันเคลียร์ TomSelect ของ Workplace
   function clearWorkplaceContainer(containerId) {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -1183,7 +1214,6 @@
       container.innerHTML = '';
   }
 
-  // 🌟 ฟังก์ชันลบแถว Workplace และลบ TomSelect
   function removeWorkplaceRow(btn) {
       const row = btn.closest('.workplace-row');
       const sel = row.querySelector('.hospital-select');
@@ -1224,7 +1254,6 @@
     `;
     container.appendChild(row);
 
-    // 🌟 เปิดใช้งาน TomSelect สำหรับ Hospital ใหม่ที่ถูกเพิ่ม
     new TomSelect(`#${selectId}`, {
         create: false, 
         searchField: ["text"], 
@@ -1251,7 +1280,6 @@
   function openAddDoctorView() {
     document.getElementById('addDoctorForm').reset();
     
-    // 🌟 เคลียร์ค่า TomSelect ในฟอร์มเพิ่มข้อมูล
     const clearTs = (id) => { const el = document.getElementById(id); if (el && el.tomselect) el.tomselect.clear(); };
     clearTs('docTitle');
     clearTs('docSpecialty');
@@ -1280,7 +1308,6 @@
     
     document.getElementById('editDocId').value = d.id; 
     
-    // 🌟 ดึงข้อมูลเข้า TomSelect ในฟอร์มแก้ไข
     const setTsVal = (elId, val) => { const el = document.getElementById(elId); if(el && el.tomselect) el.tomselect.setValue(val); else if (el) el.value = val; };
     setTsVal('editDocTitle', d.title || '');
     setTsVal('editDocSpecialty', d.specialty || '');
