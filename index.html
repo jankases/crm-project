@@ -12,20 +12,17 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* 🌟 ส่วนที่ 2: พื้นหลังเนื้อหาหลักสีเทาอ่อน สบายตา (ลดแสงสะท้อน) */
     body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
     #appContainer { display: none; } 
     
-    /* 🌟 ส่วนที่ 1: แถบเมนูสีขาวสะอาดตา พร้อมเงาให้ดูลอยแยกชั้นชัดเจน */
     .navbar { 
       background-color: #ffffff !important; 
       border-bottom: 1px solid #e9ecef; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; /* เพิ่มเงาบางๆ */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
     }
     
     #mainContent { margin-top: 20px; }
 
-    /* ตกแต่งเมนูทั่วไป */
     .nav-menu-item {
       color: #495057; 
       font-weight: 500;
@@ -39,7 +36,6 @@
       white-space: nowrap; 
     }
     
-    /* 🎨 Theme สีเฉพาะของแต่ละเมนู */
     .menu-visit i { color: #198754; }
     .menu-visit:hover { background-color: #eaf6ec; color: #146c43; }
     .menu-visit.active { background-color: #d1e7dd !important; color: #146c43 !important; font-weight: 700; }
@@ -82,7 +78,6 @@
   <div id="loginComponent"></div>
 
   <div id="appContainer">
-    <!-- 🌟 เอา navbar-expand-xl ออก เพื่อให้ JS เติมให้ตาม Role -->
     <nav id="mainNavbar" class="navbar navbar-light sticky-top">
       <div class="container-fluid px-3 px-md-4">
         
@@ -93,37 +88,36 @@
           <span class="d-none d-sm-inline">CRM System</span>
         </a>
         
-        <!-- ปุ่ม Hamburger -->
         <button class="navbar-toggler border-0 shadow-sm bg-light px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- เมนูตรงกลาง -->
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-md-0" style="font-size: 0.95rem;">
-            <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1"></i> บันทึกเยี่ยม</a></li>
-            <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1"></i> แพทย์</a></li>
-            <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1"></i> โรงพยาบาล</a></li>
+            <!-- เมนูเป็นภาษาอังกฤษทั้งหมด -->
+            <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1"></i> Visit Logs</a></li>
+            <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1"></i> Doctors</a></li>
+            <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-1"></i> Hospitals</a></li>
             
             <div class="vr mx-2 text-muted d-none d-xl-block admin-only" style="display: none !important; opacity: 0.2;"></div>
 
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-org" href="#" data-page="organization" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap me-1"></i> โครงสร้าง</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-org" href="#" data-page="organization" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap me-1"></i> Organization</a></li>
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-matrix" href="#" data-page="matrix" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all me-1"></i> Matrix</a></li>
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-assign" href="#" data-page="assignment" onclick="loadComponent('assignment')"><i class="fa-solid fa-link me-1"></i> Assignment</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-setting" href="#" data-page="indexData" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul me-1"></i> ตั้งค่า</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-dcr" href="#" data-page="dcr" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature me-1"></i> อนุมัติ DCR</a></li>
-            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-user" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1"></i> ผู้ใช้</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-setting" href="#" data-page="indexData" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul me-1"></i> Settings</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-dcr" href="#" data-page="dcr" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature me-1"></i> DCR Approvals</a></li>
+            <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-user" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1"></i> Users</a></li>
           </ul>
 
-          <!-- ข้อมูลผู้ใช้ & ปุ่มออกระบบ -->
           <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 border-start border-secondary-subtle ps-md-3 ms-md-2 mt-3 mt-md-0 border-top border-md-0 pt-3 pt-md-0">
             <div class="text-center text-md-end me-md-3">
               <div class="fw-bold text-dark" id="displayUserName" style="font-size: 0.85rem;">-</div>
               <div class="text-muted" id="displayUserRole" style="font-size: 0.75rem;">-</div>
             </div>
+            <!-- ปุ่มออกจากระบบปรับเป็นภาษาอังกฤษ -->
             <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white shadow-sm" onclick="logout()">
-              <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span class="d-inline d-md-none d-xl-inline">ออกจากระบบ</span>
+              <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span class="d-inline d-md-none d-xl-inline">Logout</span>
             </button>
           </div>
         </div>
@@ -131,7 +125,7 @@
     </nav>
 
     <div id="mainContent" class="container-fluid max-width-md" style="max-width: 1200px; padding-bottom: 50px;">
-      <div class="text-center py-5 text-muted"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>กำลังโหลดระบบ...</div>
+      <div class="text-center py-5 text-muted"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Loading System...</div>
     </div>
   </div>
 
@@ -152,7 +146,7 @@
     async function loadLoginComponent() {
       try {
         const response = await fetch('Login.html');
-        if (!response.ok) throw new Error("ไม่พบไฟล์ Login.html");
+        if (!response.ok) throw new Error("File Login.html not found");
         const htmlText = await response.text();
         const container = document.getElementById('loginComponent');
         container.innerHTML = htmlText;
@@ -166,7 +160,7 @@
         });
       } catch (error) {
         console.error(error);
-        document.getElementById('loginComponent').innerHTML = `<div class="alert alert-danger text-center">❌ โหลดไฟล์ Login.html ล้มเหลว</div>`;
+        document.getElementById('loginComponent').innerHTML = `<div class="alert alert-danger text-center">❌ Failed to load Login.html</div>`;
       }
     }
 
@@ -199,7 +193,7 @@
 
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error('ไม่พบไฟล์ ' + url);
+        if (!response.ok) throw new Error('File not found ' + url);
         const html = await response.text();
         
         const mainContent = document.getElementById('mainContent');
@@ -221,7 +215,7 @@
         
       } catch (error) {
         console.error('Error loading component:', error);
-        document.getElementById('mainContent').innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ ไม่สามารถโหลดหน้าจอได้ (${url})<br>โปรดตรวจสอบว่าสร้างไฟล์นี้ไว้แล้วหรือยัง</div>`;
+        document.getElementById('mainContent').innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load screen (${url})<br>Please check if the file exists.</div>`;
       }
     }
 
@@ -247,7 +241,6 @@
         if(nameDisplay) nameDisplay.innerText = "👨‍💼 " + dName; 
         if(roleDisplay) roleDisplay.innerText = "⭐ " + uRole;
         
-        // 🌟 1. จัดการแสดงเมนู Admin
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
           if (uRole === 'Admin') {
@@ -257,19 +250,14 @@
           }
         });
 
-        // 🌟 2. สคริปต์จัดการ Navbar อัจฉริยะ (Dynamic Navbar)
         const navbar = document.getElementById('mainNavbar');
-        // เคลียร์ class เดิมก่อนเผื่อเข้าใหม่
         navbar.classList.remove('navbar-expand-md', 'navbar-expand-xl');
         
-        // กำหนด Role ที่มีเมนูไม่เยอะ (ไม่ต้องซ่อนบน iPad)
         const fewMenuRoles = ['Sales', 'Rep', 'Manager', 'Sales Manager', 'BU Head', 'BU'];
         
         if (fewMenuRoles.includes(uRole)) {
-          // กลุ่มเมนูน้อย ให้โชว์เรียงกัน (navbar-expand-md)
           navbar.classList.add('navbar-expand-md');
         } else {
-          // กลุ่มเมนูเยอะ (Admin, ฯลฯ) ให้ซ่อนเป็น Hamburger (navbar-expand-xl)
           navbar.classList.add('navbar-expand-xl');
         }
 
@@ -319,9 +307,21 @@
         }
         saveUserLog(user, "Logout", sessionDuration);
       }
-      sessionStorage.removeItem('crmUser');
-      sessionStorage.removeItem('loginTime'); 
-      checkSession();
+
+      // 🌟 เคลียร์ SessionStorage, LocalStorage และค่า Caching ทั้งหมด
+      sessionStorage.clear();
+      localStorage.clear();
+
+      window.VisitManagerCache = null;
+      window.DocManagerCache = null;
+      window.HospManagerCache = null;
+      
+      if (typeof globalDoctors !== 'undefined') globalDoctors = [];
+      if (typeof globalHospitals !== 'undefined') globalHospitals = [];
+      if (typeof globalVisits !== 'undefined') globalVisits = [];
+      
+      // บังคับรีโหลดเพื่อหลีกเลี่ยงการสืบทอดค่าแคชเก่า
+      window.location.reload(true); 
     }
   </script>
 </body>
