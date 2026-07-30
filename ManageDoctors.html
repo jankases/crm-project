@@ -328,7 +328,8 @@
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
-      <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
+      <!-- 🌟 เปลี่ยน onclick ปุ่ม Back ให้เรียกฟังก์ชันย้อนกลับอัจฉริยะ -->
+      <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="goBackFromDoctorProfile()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <button class="btn btn-primary fw-bold shadow-sm rounded-pill px-3" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
@@ -484,7 +485,41 @@
     return fallbackText;
   }
 
-  // ฟังก์ชันดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
+  // 🌟 ฟังก์ชันจัดการปุ่ม Back ย้อนกลับไปยังโรงพยาบาลเดิมถ้าวาร์ปมาจากหน้าโรงพยาบาล
+  function goBackFromDoctorProfile() {
+    const returnHospId = sessionStorage.getItem('returnToHospId');
+    
+    if (returnHospId) {
+      sessionStorage.removeItem('returnToHospId'); // ล้างค่าออกหลังใช้
+      
+      // 1. สั่งโหลดคอมโพเนนต์หน้า Hospital
+      if (typeof window.loadComponent === 'function') {
+        window.loadComponent('hospital');
+      } else {
+        const hospMenu = document.querySelector('.nav-menu-item[data-page="hospital"]');
+        if (hospMenu) hospMenu.click();
+      }
+
+      // 2. รอสคริปต์หน้า Hospital พร้อม แล้วย้อนกลับไปเปิดโปรไฟล์โรงพยาบาลเดิม
+      let attempts = 0;
+      const checkReady = setInterval(() => {
+        attempts++;
+        if (typeof window.openViewHospitalProfile === 'function' && window.HospManagerCache && window.HospManagerCache.isLoaded) {
+          clearInterval(checkReady);
+          setTimeout(() => {
+            window.openViewHospitalProfile(returnHospId);
+          }, 50);
+        } else if (attempts > 60) {
+          clearInterval(checkReady);
+          switchDoctorView('doctorListView');
+        }
+      }, 100);
+    } else {
+      // ถ้าไม่ได้มาจากหน้า Hospital ให้ย้อนกลับหน้ารวมหมอปกติ
+      switchDoctorView('doctorListView');
+    }
+  }
+
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -693,6 +728,13 @@
   setTimeout(async function() {
     await loadIndexDropdowns(); 
     await loadDoctors();
+
+    // 🌟 เช็คว่ามีคำสั่งลัดให้เปิด Doctor Profile จากหน้าอื่นค้างไว้ไหม
+    const directViewDocId = sessionStorage.getItem('directViewDocId');
+    if (directViewDocId) {
+        sessionStorage.removeItem('directViewDocId');
+        openViewDoctorProfile(directViewDocId, '#tab-doc-info');
+    }
   }, 100);
 
   function switchDoctorView(viewId) {
@@ -719,7 +761,6 @@
       });
   }
 
-  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -1492,7 +1533,6 @@
     loadDoctorVisitHistory(id);
     await loadDoctorRatings(id);
 
-    // 🌟 สลับ Tab ไปยังจุดที่ต้องการ (default คือ General Info)
     const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTab}"]`);
     if(tabEl) { 
       const tab = new bootstrap.Tab(tabEl); 
