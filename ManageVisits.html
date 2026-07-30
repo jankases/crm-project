@@ -1,9 +1,23 @@
 <style>
-  .visit-card { border-radius: 15px; }
-  .form-control, .form-select { min-height: 42px; border-radius: 10px; }
-  .form-control:disabled, .form-select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 1; }
+  /* 🎨 Modern Enterprise UI Theme */
+  .visit-card { 
+    border-radius: 20px !important; 
+    border: 1px solid #eef2f6 !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;
+    background: #ffffff;
+  }
+  
+  .form-control, .form-select { 
+    min-height: 42px; 
+    border-radius: 12px; 
+  }
+  .form-control:disabled, .form-select:disabled { 
+    background-color: #f8fafc !important; 
+    cursor: not-allowed; 
+    opacity: 1; 
+  }
 
-  /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล ให้แสดงเฉพาะตอน TomSelect พร้อมแล้ว */
+  /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล */
   .visit-filter-group {
     opacity: 0 !important;
     transition: opacity 0.3s ease-in-out;
@@ -12,26 +26,93 @@
     opacity: 1 !important;
   }
   
-  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
   select.form-select[multiple]:not(.tomselected) {
     display: none !important;
   }
 
-  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
-  .btn-primary {
-    background-color: #0d6efd !important;
-    border-color: #0d6efd !important;
+  /* 🌟 Stat KPI Cards */
+  .stat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s;
   }
-  .btn-primary:hover {
-    background-color: #0b5ed7 !important;
-    border-color: #0a58ca !important;
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+  .stat-card .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* ตารางสไตล์องค์กร สบายตา */
+  /* 🌟 ตารางสไตล์ Minimalist */
   .table-custom-header {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .table-hover tbody tr {
+    transition: all 0.2s ease;
+  }
+  .table-hover tbody tr:hover {
+    background-color: #f8fafc !important;
+  }
+
+  .table-visit-link {
+    color: #0d6efd;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .table-visit-link:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+  }
+
+  /* 🌟 Soft Pastel Badges */
+  .badge-soft-pending {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fef3c7 !important;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 30px;
+  }
+
+  .badge-soft-success {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #d1fae5 !important;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 30px;
+  }
+
+  .badge-soft-secondary {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 30px;
+  }
+
+  .badge-soft-product {
     background-color: #f1f5f9 !important;
     color: #334155 !important;
-    font-weight: 600;
+    border: 1px solid #e2e8f0 !important;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 4px 8px;
   }
 
   .mic-active { 
@@ -44,35 +125,31 @@
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
   
-  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
-  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
-  .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
-  .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
-  
-  .ts-dropdown { z-index: 99999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
-  .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
+  .ts-control { border-radius: 12px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
+  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
+  .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
 
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
-  .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
-  .sortable-th i { transition: transform 0.2s; }
+  .sortable-th:hover { color: #0d6efd; }
 
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
-  .custom-pagination .page-link:hover { background-color: #e9ecef; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
   <div id="visitListView">
-    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+    
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i><span data-i18n="visit_title">Visit Logs</span></h3>
-        <p class="text-muted mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
+        <h3 class="text-dark fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2 text-primary"></i><span data-i18n="visit_title">Visit Logs</span></h3>
+        <p class="text-muted small mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
       <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
+        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
         <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
@@ -81,90 +158,113 @@
       </div>
     </div>
 
-    <!-- 🌟 ส่วนค้นหาหลัก (ใส่คลาส visit-filter-group เพื่อซ่อนตอนกำลังโหลด) -->
-    <div class="row mb-3 g-2 align-items-end visit-filter-group" id="visitFilterZoneGroup">
-      
-      <div class="col-sm-6 col-md-6 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doctor">Doctor Name (EN/TH)</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple></select>
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicDocSearch" onclick="toggleSpeechSearch('filterVisitDoctor', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
-            <i class="fa-solid fa-microphone text-muted" id="micDocSearchIcon"></i>
-          </button>
+    <!-- 🌟 Quick Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-md-4">
+        <div class="stat-card d-flex align-items-center">
+          <div class="stat-icon bg-primary-subtle text-primary me-3"><i class="fa-solid fa-calendar-days fs-5"></i></div>
+          <div>
+            <div class="text-muted small fw-semibold">Total Visits</div>
+            <h4 class="fw-bold mb-0 text-dark" id="statTotalVisits">0</h4>
+          </div>
         </div>
       </div>
-      
-      <div class="col-sm-6 col-md-6 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hospital">Hospital Name (EN/TH)</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple></select>
-          <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterVisitHospital', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
-            <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
-          </button>
+      <div class="col-sm-6 col-md-4">
+        <div class="stat-card d-flex align-items-center">
+          <div class="stat-icon bg-warning-subtle text-warning me-3"><i class="fa-solid fa-clock-rotate-left fs-5"></i></div>
+          <div>
+            <div class="text-muted small fw-semibold">Pending Drafts</div>
+            <h4 class="fw-bold mb-0 text-dark" id="statPendingVisits">0</h4>
+          </div>
         </div>
       </div>
-
-      <div class="col-sm-12 col-md-4 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_date_range">Date Range</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px;">
-          <input type="date" class="form-control text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="Start Date">
-          <span class="input-group-text bg-light border-start-0 border-end-0 px-1 text-muted">-</span>
-          <input type="date" class="form-control text-secondary px-1" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;" title="End Date">
+      <div class="col-sm-6 col-md-4">
+        <div class="stat-card d-flex align-items-center">
+          <div class="stat-icon bg-success-subtle text-success me-3"><i class="fa-solid fa-circle-check fs-5"></i></div>
+          <div>
+            <div class="text-muted small fw-semibold">Submitted Logs</div>
+            <h4 class="fw-bold mb-0 text-dark" id="statSubmittedVisits">0</h4>
+          </div>
         </div>
       </div>
-
-      <div class="col-sm-6 col-md-4 col-lg-2">
-        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_status">Status</label>
-        <select class="form-select shadow-sm px-2 bg-white" id="filterVisitStatus" onchange="filterVisits()">
-          <option value="" data-i18n="opt_all">- All -</option>
-          <option value="Pending">Pending</option>
-          <option value="Submitted">Submitted</option>
-        </select>
-      </div>
-
-      <div class="col-sm-6 col-md-4 col-lg-2 d-flex gap-2">
-        <button class="btn btn-light border fw-bold w-50 shadow-sm text-secondary px-1" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" style="min-height: 42px; border-radius: 10px;" title="Advanced Filters">
-          <i class="fa-solid fa-sliders"></i>
-        </button>
-        <button class="btn btn-light border fw-bold w-50 shadow-sm text-secondary px-1" type="button" onclick="clearVisitFilters()" style="min-height: 42px; border-radius: 10px;" title="Clear All Filters">
-          <i class="fa-solid fa-eraser"></i> <span data-i18n="btn_clear">Clear</span>
-        </button>
-      </div>
-
     </div>
 
-    <!-- Advanced Filters -->
-    <div class="collapse mb-4" id="advancedFilters">
-      <div class="card card-body bg-light border-0 shadow-sm" style="border-radius: 15px;">
+    <!-- 🌟 Smart Search Bar + Filter Bar -->
+    <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
+      <div class="row g-2 align-items-center">
+        
+        <!-- Smart Single Input Search (หมอ + Product / รพ.) -->
+        <div class="col-12 col-lg-5">
+          <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
+            <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none" id="smartSearchInput" placeholder="Search Doctor, Hospital or Product..." onkeyup="filterVisits()">
+            <button class="btn btn-outline-secondary border-0 bg-transparent pe-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')">
+              <i class="fa-solid fa-microphone text-muted" id="micSmartSearchIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="input-group input-group-sm border rounded-pill px-2 py-1 bg-white">
+            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;">
+            <span class="align-self-center text-muted">-</span>
+            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;">
+          </div>
+        </div>
+
+        <!-- Quick Status Filter -->
+        <div class="col-6 col-sm-3 col-lg-2">
+          <select class="form-select border rounded-pill shadow-none" id="filterVisitStatus" onchange="filterVisits()">
+            <option value="" data-i18n="opt_all">- All Status -</option>
+            <option value="Pending">Pending Drafts</option>
+            <option value="Submitted">Submitted Logs</option>
+          </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
+          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
+            <i class="fa-solid fa-sliders"></i>
+          </button>
+          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" onclick="clearVisitFilters()" title="Clear All Filters">
+            <i class="fa-solid fa-eraser"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Advanced Filters Dropdown Collapse -->
+      <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
-          <div class="col-sm-12 col-md-4">
+          <div class="col-sm-12 col-md-3">
+            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doctor">Doctor (Multi-select)</label>
+            <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple></select>
+          </div>
+          <div class="col-sm-12 col-md-3">
+            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hospital">Hospital (Multi-select)</label>
+            <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple></select>
+          </div>
+          <div class="col-sm-6 col-md-2">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User</label>
-            <select class="form-select shadow-sm bg-white" id="filterVisitRep" onchange="handleFilterChange('rep')">
-              <option value="" data-i18n="opt_all_users">- All Users -</option>
-            </select>
+            <select class="form-select shadow-none" id="filterVisitRep" onchange="handleFilterChange('rep')"></select>
           </div>
-
-          <div class="col-sm-6 col-md-4">
+          <div class="col-sm-6 col-md-2">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_territory">Territory</label>
-            <select class="form-select shadow-sm bg-white" id="filterVisitTerritory" onchange="handleFilterChange('territory')">
-              <option value="" data-i18n="opt_all_territories">- All Territories -</option>
-            </select>
+            <select class="form-select shadow-none" id="filterVisitTerritory" onchange="handleFilterChange('territory')"></select>
           </div>
-
-          <div class="col-sm-6 col-md-4">
+          <div class="col-sm-12 col-md-2">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_product">Product</label>
-            <select class="form-select shadow-sm bg-white" id="filterVisitProduct" onchange="filterVisits()">
-              <option value="" data-i18n="opt_all_products">- All Products -</option>
-            </select>
+            <select class="form-select shadow-none" id="filterVisitProduct" onchange="filterVisits()"></select>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ตารางประวัติ -->
+    <!-- 🌟 ตารางประวัติสไตล์ Modern Minimalist -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
-        <table class="table table-hover align-middle" style="font-size: 0.95rem;">
+        <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
             <tr>
               <th class="py-3 sortable-th" onclick="sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
@@ -352,7 +452,7 @@
       isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
       allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], bus: [], teamProdLinks: [],
       indexTypes: [], indexes: [], pendingUnlocks: [],
-      filters: { doc: [], hosp: [], startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
+      filters: { smartSearch: '', doc: [], hosp: [], startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
   };
 
   var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
@@ -392,6 +492,7 @@
       clearTs('filterVisitRep');
       clearTs('filterVisitTerritory');
       clearTs('filterVisitProduct');
+      if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
       
       filterVisits();
   }
@@ -675,7 +776,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ปรับปรุงการกรองสินค้าสมบูรณ์ 100% ครอบคลุมทั้ง Admin, Manager, BU Head, Sales
+  // 🌟 ปรับปรุงการดึงสินค้าให้ครอบคลุมทั้ง Admin, BU Head, Manager, Sales สดใสสมบูรณ์ 100%
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -790,10 +891,9 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 Logic การดึงสินค้า: รองรับ Admin, BU Head, Manager, Sales
+    // 🌟 Logic การดึงสินค้า: ปรับแก้ไม่ให้ Admin และ Sales หลุดกล่องว่าง
     let allowedProducts = [];
     if (isGlobalViewer) {
-        // Admin / Global Viewer ดึงรายการสินค้าทั้งหมดขึ้นมาแสดงทันที
         allowedProducts = globalProductsList;
     } else {
         if (allowedTeamIds.length > 0 && productsTeamList && productsTeamList.length > 0) {
@@ -808,7 +908,7 @@
             allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
-        // Safety Fallback 2: ดึงสินค้า active ทั้งหมดป้องกันการว่างเปล่า
+        // Safety Fallback 2: ดึงสินค้า active ทั้งหมด
         if (allowedProducts.length === 0) {
             allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
             if (allowedProducts.length === 0) allowedProducts = globalProductsList;
@@ -971,6 +1071,7 @@
         const hospFilterEl = document.getElementById('filterVisitHospital');
         if (hospFilterEl && hospFilterEl.tomselect && f.hosp && f.hosp.length > 0) hospFilterEl.tomselect.setValue(f.hosp);
         
+        if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
         if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
@@ -988,12 +1089,15 @@
     filterVisits(false);
   }
 
+  // 🌟 ฟังก์ชันกรองการค้นหาอัจฉริยะ (Smart Single Search: หมอ + Product / รพ.)
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
     const repTerm = repSelect ? repSelect.value : '';
     const terTerm = terSelect ? terSelect.value : '';
     
+    const smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+
     let filterDocIds = [];
     const docFilterEl = document.getElementById('filterVisitDoctor');
     if (docFilterEl && docFilterEl.tomselect) {
@@ -1016,10 +1120,12 @@
     if (resetPage) currentPage = 1;
 
     window.VisitManagerCache.filters = {
-        doc: filterDocIds, hosp: filterHospIds, startDate: startDateTerm, endDate: endDateTerm,
+        smartSearch: smartSearchKey, doc: filterDocIds, hosp: filterHospIds, startDate: startDateTerm, endDate: endDateTerm,
         status: statusTerm, rep: repTerm, territory: terTerm, prod: prodTerm,
         page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
     };
+
+    const searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(k => k !== '') : [];
 
     const filtered = globalVisits.filter(v => {
       let hasSecurityAccess = false;
@@ -1044,6 +1150,26 @@
       if (!window.myIsGlobalViewer && !['BU Head', 'BU', 'Manager', 'Sales Manager'].includes(globalCurrentUserRole)) {
           const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase());
           if (!isDocAssigned) return false; 
+      }
+
+      // 🌟 คำนวณ Smart Search (หมอ + Product / รพ.)
+      if (searchKeywords.length > 0) {
+        const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
+        const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}`.toLowerCase() : '';
+        
+        const hospObj = docObj ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docObj.Hospital_ID || docObj.hospital_id || '').trim().toLowerCase()) : null;
+        const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}`.toLowerCase() : '';
+
+        const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
+        const prodNames = visitProds.map(vp => {
+          const p = globalProductsList.find(px => String(px.Product_ID) === String(vp.Product_ID));
+          return p ? p.Product.toLowerCase() : '';
+        }).join(' ');
+
+        const rowFullText = `${docName} ${hospName} ${prodNames} ${v.Purpose || ''} ${v.Details || ''}`;
+
+        const matchSmart = searchKeywords.every(key => rowFullText.includes(key));
+        if (!matchSmart) return false;
       }
 
       let matchDate = true;
@@ -1136,7 +1262,22 @@
     });
 
     globalFilteredVisits = filtered;
+
+    // 🌟 อัปเดตตัวเลข Quick Stat Cards
+    updateStatCards(globalVisits);
+
     renderVisitTable();
+  }
+
+  // 🌟 ฟังก์ชันคำนวณตัวเลข Stat Cards ตามสิทธิ์การมองเห็นจริง
+  function updateStatCards(allAccessibleVisits) {
+    const total = allAccessibleVisits.length;
+    const pending = allAccessibleVisits.filter(v => v.Status === 'Pending').length;
+    const submitted = allAccessibleVisits.filter(v => v.Status === 'Submitted').length;
+
+    if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
+    if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
+    if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
   }
 
   function changeRowsPerPage() {
@@ -1165,7 +1306,7 @@
 
     if (!Array.isArray(data) || data.length === 0) {
         document.getElementById('visitPaginationContainer').classList.add('d-none');
-        return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block"></i>No visit records found for the selected period.</td></tr>`;
+        return tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No visit records found for the selected period.</td></tr>`;
     }
 
     document.getElementById('visitPaginationContainer').classList.remove('d-none');
@@ -1184,11 +1325,11 @@
 
     paginatedData.forEach(v => {
       const isPendingUnlock = globalPendingUnlockVisits.includes(v.Visit_ID);
-      let badge = (v.Status === 'Submitted') ? 'bg-success' : 'bg-warning text-dark';
+      let badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
       let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
 
       if (isPendingUnlock) {
-        badge = 'bg-secondary';
+        badgeClass = 'badge-soft-secondary';
         statusShow = '⏳ Pending Unlock';
       }
 
@@ -1211,7 +1352,7 @@
         visitProds.forEach(pid => {
             const pObj = globalProductsList.find(p => String(p.Product_ID) === pid);
             const pName = pObj ? pObj.Product : pid;
-            prodBadges += `<span class="badge bg-light text-primary border border-primary-subtle me-1 mb-1 shadow-sm">${pName}</span>`;
+            prodBadges += `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
         });
       } else {
         prodBadges = '<span class="text-muted small">-</span>';
@@ -1220,15 +1361,15 @@
       tbody.innerHTML += `
         <tr>
           <td class="text-center fw-bold">
-            <a href="#" class="text-decoration-none text-primary border-bottom border-primary pb-1" onclick="openEditVisitView('${v.Visit_ID}'); return false;" title="Click to view details">
+            <a href="#" class="table-visit-link" onclick="openEditVisitView('${v.Visit_ID}'); return false;" title="Click to view details">
               ${dateShow}
             </a>
           </td>
           <td class="fw-bold text-dark">${docNameShow}</td>
           <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
           <td>${prodBadges}</td>
-          <td><small>${v.Purpose || '-'}</small></td>
-          <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusShow}</span></td>
+          <td><small class="text-secondary">${v.Purpose || '-'}</small></td>
+          <td class="text-center"><span class="badge ${badgeClass}">${statusShow}</span></td>
         </tr>
       `;
     });
@@ -1290,7 +1431,6 @@
 
   function openAddVisitView() {
     ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
 
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
@@ -1349,7 +1489,6 @@
 
   function openEditVisitView(visitId) {
     ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
 
     const v = globalVisits.find(x => x.Visit_ID === visitId);
     if (!v) return;
@@ -1494,16 +1633,12 @@
     selectedProducts = selectedProducts.filter(p => p.trim() !== "");
 
     ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-    ['errVisitDoc', 'errVisitProduct', 'errVisitDate', 'errVisitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.style.setProperty('display', 'none', 'important'); });
 
     let missingFields = [];
-    if (!docSelect.value) { docSelect.classList.add('is-invalid'); document.getElementById('errVisitDoc').style.setProperty('display', 'block', 'important'); missingFields.push("• Doctor"); }
-    if (selectedProducts.length === 0) { 
-        const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); 
-        document.getElementById('errVisitProduct').style.setProperty('display', 'block', 'important'); missingFields.push("• Products"); 
-    }
-    if (!dateInput.value) { dateInput.classList.add('is-invalid'); document.getElementById('errVisitDate').style.setProperty('display', 'block', 'important'); missingFields.push("• Date"); }
-    if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); document.getElementById('errVisitPurpose').style.setProperty('display', 'block', 'important'); missingFields.push("• Purpose"); }
+    if (!docSelect.value) { docSelect.classList.add('is-invalid'); missingFields.push("• Doctor"); }
+    if (selectedProducts.length === 0) { const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); missingFields.push("• Products"); }
+    if (!dateInput.value) { dateInput.classList.add('is-invalid'); missingFields.push("• Date"); }
+    if (!purposeSelect.value) { purposeSelect.classList.add('is-invalid'); missingFields.push("• Purpose"); }
 
     if (missingFields.length > 0) {
       alert("⚠️ Cannot save! Please complete the following required fields:\n\n" + missingFields.join("\n"));
