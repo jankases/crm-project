@@ -1,27 +1,44 @@
 <style>
+  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
+  .btn-primary {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+  }
+  .btn-primary:hover {
+    background-color: #0b5ed7 !important;
+    border-color: #0a58ca !important;
+  }
+
   /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
     min-height: 42px; border-radius: 10px;
   }
-  .table-doctor th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+  
+  /* หัวตารางสไตล์องค์กร สบายตา */
+  .table-doctor-header {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 600;
+  }
+  .table-doctor th { white-space: nowrap; }
   .table-doctor td { vertical-align: middle; }
   
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับช่อง Input Group สวยงามและไม่โดนบัง */
+  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับระบบและสบายตา */
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
-  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
+  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
   
   /* 🌟 บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
-  .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
+  .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
   
   .workplace-row { background-color: #ffffff; border-radius: 8px; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; transition: 0.2s;}
-  .workplace-row:hover { border-color: #ffc107; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+  .workplace-row:hover { border-color: #0d6efd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
   .doctor-profile-tabs .nav-link {
     color: #495057;
@@ -33,7 +50,8 @@
     transition: all 0.2s;
   }
   .doctor-profile-tabs .nav-link:hover {
-    background-color: #e9ecef;
+    background-color: #f0f5ff;
+    color: #0d6efd;
   }
   .doctor-profile-tabs .nav-link.active {
     background-color: #0d6efd !important;
@@ -43,7 +61,7 @@
 
   /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
-  .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
+  .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
 
   /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
@@ -118,7 +136,7 @@
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
-          <thead class="text-center">
+          <thead class="table-doctor-header text-center">
             <tr>
               <th class="py-3 sortable-th" onclick="sortDoctors('nameEn')">Doctor Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-nameEn"></i></th>
               <th class="py-3 sortable-th" onclick="sortDoctors('nameTh')">Doctor Name (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-nameTh"></i></th>
@@ -194,10 +212,10 @@
           </div>
         </div>
 
-        <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
-            <button type="button" class="btn btn-sm btn-outline-warning fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
               <i class="fa-solid fa-plus me-1"></i> Add Hospital
             </button>
           </div>
@@ -276,10 +294,10 @@
           </div>
         </div>
 
-        <div class="p-4 rounded-4 mb-4 border" style="background-color: #fffaf0; border-color: #ffe0b2 !important;">
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-warning mb-0" style="color: #fd7e14 !important;"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
-            <button type="button" class="btn btn-sm btn-outline-warning fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
               <i class="fa-solid fa-plus me-1"></i> Add Hospital
             </button>
           </div>
@@ -312,7 +330,7 @@
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <button class="btn btn-warning text-dark fw-bold shadow-sm rounded-pill px-3" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
+      <button class="btn btn-primary fw-bold shadow-sm rounded-pill px-3" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Doctor (DCR)
       </button>
       <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h4>
@@ -381,7 +399,7 @@
 
           <div class="table-responsive">
             <table class="table table-hover align-middle" style="font-size: 0.9rem;">
-              <thead class="table-light text-center">
+              <thead class="table-doctor-header text-center">
                 <tr>
                   <th class="py-3 sortable-th" onclick="sortDoctorVisits('date')">Date <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
                   <th class="py-3 sortable-th" onclick="sortDoctorVisits('user')">User <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
@@ -413,7 +431,7 @@
           
           <div class="table-responsive">
             <table class="table table-bordered text-center align-middle" id="ratingTable">
-              <thead class="table-light">
+              <thead class="table-doctor-header">
                 <tr>
                   <th style="width: 25%;">Product</th>
                   <th style="width: 15%;">Adoption</th>
@@ -788,7 +806,7 @@
               const buTeams = globalTeamList.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
               buTeams.forEach(t => allowedTeamIds.push(String(t.Team_ID)));
           } else { 
-              if (matchedTerr && matchedTerr.Team_ID) { allowedTeamIds.push(String(matchedTerr.Team_ID)); } 
+              if (matchedTerr && matchedTerr.Team_ID) { allowedTeamIds.push(String(matchedTerr.Territory_ID)); } 
               else if (rawScope) { allowedTeamIds.push(rawScope); }
           }
       }
@@ -1221,7 +1239,7 @@
         <tr>
           <td>${nameCellLink}</td>
           <td class="fw-medium text-secondary">${d.nameTh || '-'}</td>
-          <td><span class="badge bg-light text-dark border">${d.specialty || '-'}</span></td>
+          <td><span class="badge bg-light text-primary border border-primary-subtle">${d.specialty || '-'}</span></td>
           <td class="text-primary fw-medium"><small><i class="fa-regular fa-hospital me-1"></i>${d.hospitalName || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
           <td class="text-center">${actionButton}</td>
@@ -1297,7 +1315,7 @@
 
     row.innerHTML = `
       <div class="col-sm-12 col-md-7 mb-2 mb-md-0">
-        <select class="form-select hospital-select bg-white border-warning" id="${selectId}" required>
+        <select class="form-select hospital-select bg-white border-primary" id="${selectId}" required>
           ${optionsHtml}
         </select>
       </div>
@@ -1574,7 +1592,7 @@
               const pObj = globalProducts.find(p => String(p.Product_ID) === pid);
               const pName = pObj ? pObj.Product : pid;
               prodNames.push(pName);
-              prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
+              prodBadges += `<span class="badge bg-light text-primary border border-primary-subtle me-1 mb-1 shadow-sm">${pName}</span>`;
           });
       } else {
           prodBadges = '<span class="text-muted small">-</span>';
@@ -1635,7 +1653,7 @@
             </a>
           </td>
           <td class="fw-bold text-dark">${v.mappedUser}</td>
-          <td class="text-center"><span class="badge bg-light text-primary border">${v.mappedTerritory}</span></td>
+          <td class="text-center"><span class="badge bg-light text-primary border border-primary-subtle">${v.mappedTerritory}</span></td>
           <td>${v.mappedProductsHtml}</td>
           <td><small>${v.Purpose || '-'}</small></td>
           <td class="text-center"><span class="badge ${v.mappedBadge} px-2 py-1">${v.mappedStatusShow}</span></td>
