@@ -259,7 +259,7 @@
           </div>
         </div>
 
-        <!-- 🌟 จัด Layout ใหม่แบบ 2 คอลัมน์คู่ขนาน (2-Column Grid) มองเห็นครบถ้วน -->
+        <!-- Layout แบบ 2 คอลัมน์คู่ขนาน -->
         <div class="row g-4">
           
           <!-- คอลัมน์ซ้าย: ข้อมูลการเข้าพบ -->
@@ -301,7 +301,7 @@
               <div class="mb-2">
                 <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
-                  <option value="">-- Select Purpose --</option>
+                  <option value="" data-i18n="opt_select_purpose">-- Select Purpose --</option>
                 </select>
               </div>
             </div>
@@ -356,7 +356,6 @@
 
         </div>
 
-        <!-- ปุ่มควบคุมด้านล่าง -->
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
@@ -671,7 +670,7 @@
 
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        docSelect.innerHTML = '<option value="">-- Search/Select Doctor --</option>';
+        docSelect.innerHTML = `<option value="">${safeTranslate('opt_search_doc', 'Search Doctor (EN/TH)...')}</option>`;
         const activeAssignedDocs = globalAssignedDoctors.filter(d => String(d.Status || 'Active').toLowerCase() === 'active');
         activeAssignedDocs.forEach(d => {
           const nameThShow = d.Doc_Name_TH ? ` (${d.Doc_Name_TH})` : '';
@@ -694,12 +693,14 @@
 
       setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
+      // 🌟 ดึงข้อมูล Purpose และแปลตัวเลือกเริ่มต้น `-- Select Purpose --`
       const purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
         const types = window.VisitManagerCache.indexTypes; 
         const indexes = window.VisitManagerCache.indexes;
         const purposeType = types.find(t => t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose');
-        let purposeHtml = '<option value="">-- Select Purpose --</option>';
+        const defaultPurposeText = safeTranslate('opt_select_purpose', '-- Select Purpose --');
+        let purposeHtml = `<option value="" data-i18n="opt_select_purpose">${defaultPurposeText}</option>`;
         if (purposeType) {
           const purposeItems = indexes.filter(i => i.IndexType_ID === purposeType.IndexType_ID);
           purposeItems.forEach(i => purposeHtml += `<option value="${i.Value}">${i.Value}</option>`);
@@ -724,7 +725,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ปรับปรุงให้ดึงสินค้าสำหรับ BU Head, Manager, Sales และ Admin ครบถูกต้อง 100%
+  // 🌟 ปรับสิทธิ์การเห็นสินค้าของ BU Head / Manager / Sales / Admin
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -844,7 +845,6 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 ดึงสินค้าสำหรับ Admin, BU Head, Manager, Sales สดใสครบถ้วน
     let allowedProducts = [];
     if (isGlobalViewer) {
         allowedProducts = globalProductsList;
