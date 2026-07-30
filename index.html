@@ -123,13 +123,13 @@
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- 🌟 เมนูหลักตรงกลาง: สั้น กระชับ ไม่ล้นจอ -->
+          <!-- 🌟 เมนูหลักตรงกลาง -->
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-lg-0">
             <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-2"></i> <span data-i18n="menu_visit">Visit Logs</span></a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-2"></i> <span data-i18n="menu_doctor">Doctors</span></a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-2"></i> <span data-i18n="menu_hospital">Hospitals</span></a></li>
             
-            <!-- 🌟 เมนูสำหรับ ADMIN รวบเข้า Dropdown เดียว โล่งสบายตา -->
+            <!-- 🌟 เมนูสำหรับ ADMIN -->
             <li class="nav-item dropdown admin-only ms-1" style="display: none;">
               <a class="nav-link nav-menu-item dropdown-toggle" href="#" id="adminToolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-sliders me-2"></i> <span data-i18n="menu_admin_tools">Admin Tools</span>
@@ -146,16 +146,14 @@
             </li>
           </ul>
 
-          <!-- 🌟 โซนขวา: ภาษา + ข้อมูลผู้ใช้ + ปุ่ม Logout (ไม่มีทางล้นจอ) -->
+          <!-- 🌟 โซนขวา: ภาษา + ข้อมูลผู้ใช้ + ปุ่ม Logout -->
           <div class="d-flex flex-column flex-lg-row align-items-center justify-content-end gap-2 mt-3 mt-lg-0 pt-3 pt-lg-0 border-top border-lg-0">
             
-            <!-- ปุ่มสลับภาษา -->
             <div class="btn-group lang-btn-group me-lg-2" role="group">
               <button type="button" class="btn btn-outline-primary" id="btnLangEN" onclick="setLanguage('en')">EN</button>
               <button type="button" class="btn btn-outline-primary" id="btnLangTH" onclick="setLanguage('th')">TH</button>
             </div>
 
-            <!-- Profile Pill -->
             <div class="user-profile-pill d-flex align-items-center me-lg-2">
               <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                 <i class="fa-solid fa-user small"></i>
@@ -166,7 +164,6 @@
               </div>
             </div>
 
-            <!-- Logout Button -->
             <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white shadow-xs" onclick="logout()">
               <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span data-i18n="btn_logout">Logout</span>
             </button>
@@ -227,6 +224,7 @@
         opt_search_doc: "Search Doctor (EN/TH)...",
         opt_select_products: "-- Select Products --",
         opt_select_purpose: "-- Select Purpose --",
+        opt_select_doc_default: "-- Search/Select Doctor --",
 
         visit_title: "Visit Logs",
         visit_subtitle: "Doctor visits and daily activity logs",
@@ -365,6 +363,7 @@
         opt_search_doc: "ค้นหาชื่อแพทย์ (EN/TH)...",
         opt_select_products: "-- เลือกผลิตภัณฑ์ --",
         opt_select_purpose: "-- เลือกวัตถุประสงค์ --",
+        opt_select_doc_default: "-- ค้นหา/เลือกแพทย์ --",
 
         visit_title: "บันทึกเยี่ยม",
         visit_subtitle: "บันทึกการเข้าพบแพทย์และกิจกรรมประจำวัน",
