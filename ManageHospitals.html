@@ -24,7 +24,7 @@
   /* ปรับแต่ง UI ให้เข้าชุดกับหน้า Doctor */
   .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
   .hospital-form-group .form-control, .hospital-form-group .form-select {
-    min-height: 42px; border-radius: 10px;
+    min-height: 42px; border-radius: 10px; background-color: #ffffff !important;
   }
   .hospital-form-group textarea { border-radius: 10px; }
   
@@ -63,7 +63,6 @@
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
-  /* 🌟 ปรับแต่ง Tabs ในหน้า Hospital Profile ให้เป็นแคปซูลสไตล์เดียวกัน */
   .hospital-profile-tabs .nav-link {
     color: #495057;
     font-weight: 600;
@@ -313,7 +312,7 @@
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <button class="btn btn-primary fw-bold me-3 shadow-sm rounded-pill px-3" onclick="openEditHospitalView(currentSelectedHospId)">
-        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Hospital (DCR)
+        <i class="fa-solid fa-pen-to-square me-1"></i> <span data-i18n="btn_edit_hosp_dcr">Edit Hospital (DCR)</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="viewHospTitleName">🏥 Hospital Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-3"></div>
@@ -321,7 +320,7 @@
     
     <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
       
-      <!-- 🌟 Tabs สำหรับแยกส่วนเนื้อหา (เพิ่ม data-i18n) -->
+      <!-- 🌟 Tabs สำหรับแยกส่วนเนื้อหา -->
       <ul class="nav nav-pills hospital-profile-tabs mb-4 border-bottom pb-3" role="tablist">
         <li class="nav-item">
           <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-hosp-info" type="button" id="tabHospInfoBtn"><i class="fa-solid fa-circle-info me-1"></i> <span data-i18n="tab_general_info">General Info</span></button>
@@ -332,7 +331,7 @@
       </ul>
 
       <div class="tab-content">
-        <!-- Tab 1: ข้อมูลโรงพยาบาลทั่วไป (เพิ่ม data-i18n) -->
+        <!-- Tab 1: ข้อมูลโรงพยาบาลทั่วไป -->
         <div class="tab-pane fade show active" id="tab-hosp-info">
           <div class="row mb-3">
             <div class="col-md-6 mb-3">
@@ -368,7 +367,7 @@
           </div>
         </div>
 
-        <!-- Tab 2: รายชื่อแพทย์ประจำโรงพยาบาลนี้ (เพิ่ม data-i18n) -->
+        <!-- Tab 2: รายชื่อแพทย์ประจำโรงพยาบาลนี้ (กรองตามสิทธิ์) -->
         <div class="tab-pane fade" id="tab-hosp-doctors">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-users me-2"></i><span data-i18n="title_affiliated_doctors">Doctors Affiliated with this Hospital</span></h6>
@@ -546,7 +545,13 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
+  // 🌟 Initialize TomSelect ชั่วคราวล่วงหน้า 100ms แรก ป้องกันกล่องแหว่ง/สีกรอบหลุด
   setTimeout(async function() {
+    if (typeof TomSelect !== 'undefined') {
+      initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
+      initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- All Provinces -'));
+      initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- All Zones -'));
+    }
     await loadIndexDropdowns(); 
     await loadHospitals();
 
@@ -565,6 +570,7 @@
     window.scrollTo(0, 0); 
   }
 
+  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
