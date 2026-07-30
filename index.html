@@ -25,56 +25,44 @@
     
     #mainContent { margin-top: 20px; }
 
-    /* ตกแต่งเมนูทั่วไป */
+    /* 🎨 คุมโทนสีเมนูให้เป็น Professional Corporate Theme (สีน้ำเงิน Primary เดียวกันทั้งหมด) */
     .nav-menu-item {
       color: #495057; 
       font-weight: 500;
-      padding: 8px 12px !important; 
+      padding: 8px 16px !important; 
       border-radius: 50px; 
-      transition: all 0.2s ease;
+      transition: all 0.2s ease-in-out;
       display: inline-flex;
       align-items: center;
-      margin: 0 2px;
+      margin: 0 3px;
       text-decoration: none;
       white-space: nowrap; 
     }
     
-    /* 🎨 Theme สีเฉพาะของแต่ละเมนู */
-    .menu-visit i { color: #198754; }
-    .menu-visit:hover { background-color: #eaf6ec; color: #146c43; }
-    .menu-visit.active { background-color: #d1e7dd !important; color: #146c43 !important; font-weight: 700; }
+    .nav-menu-item i {
+      color: #0d6efd; /* ไอคอนสี Primary Blue เดียวกันทุกเมนู */
+      transition: color 0.2s ease;
+    }
 
-    .menu-doctor i { color: #0d6efd; }
-    .menu-doctor:hover { background-color: #eff5ff; color: #084298; }
-    .menu-doctor.active { background-color: #cfe2ff !important; color: #084298 !important; font-weight: 700; }
+    /* Hover State */
+    .nav-menu-item:hover { 
+      background-color: #f0f5ff; 
+      color: #0d6efd; 
+    }
+    .nav-menu-item:hover i { 
+      color: #0a58ca; 
+    }
 
-    .menu-hospital i { color: #0dcaf0; }
-    .menu-hospital:hover { background-color: #eafafc; color: #05a0c0; }
-    .menu-hospital.active { background-color: #cff4fc !important; color: #055160 !important; font-weight: 700; }
-
-    .menu-org i { color: #6f42c1; }
-    .menu-org:hover { background-color: #f4effa; color: #502b8e; }
-    .menu-org.active { background-color: #e0cffc !important; color: #502b8e !important; font-weight: 700; }
-
-    .menu-matrix i { color: #fd7e14; }
-    .menu-matrix:hover { background-color: #fff4ec; color: #cc5900; }
-    .menu-matrix.active { background-color: #ffe5d0 !important; color: #cc5900 !important; font-weight: 700; }
-
-    .menu-assign i { color: #6610f2; }
-    .menu-assign:hover { background-color: #f2eefd; color: #4309a3; }
-    .menu-assign.active { background-color: #e0d4fc !important; color: #4309a3 !important; font-weight: 700; }
-
-    .menu-setting i { color: #6c757d; }
-    .menu-setting:hover { background-color: #f0f1f2; color: #383d41; }
-    .menu-setting.active { background-color: #e2e3e5 !important; color: #383d41 !important; font-weight: 700; }
-
-    .menu-dcr i { color: #dc3545; }
-    .menu-dcr:hover { background-color: #fdf3f4; color: #b02a37; }
-    .menu-dcr.active { background-color: #f8d7da !important; color: #842029 !important; font-weight: 700; }
-
-    .menu-user i { color: #d63384; }
-    .menu-user:hover { background-color: #fdf1f6; color: #a62364; }
-    .menu-user.active { background-color: #f7d6e6 !important; color: #a62364 !important; font-weight: 700; }
+    /* Active State (เมนูที่ถูกเลือกอยู่) */
+    .nav-menu-item.active { 
+      background-color: #0d6efd !important; 
+      color: #ffffff !important; 
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(13, 110, 253, 0.25);
+    }
+    .nav-menu-item.active i { 
+      color: #ffffff !important; 
+    }
 
     /* ปุ่มสลับภาษา */
     .lang-btn-group .btn {
