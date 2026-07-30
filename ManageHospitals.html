@@ -56,7 +56,7 @@
   .tt-suggestion:hover { background-color: #f0f5ff; color: #0d6efd; }
   .tt-suggestion:last-child { border-bottom: none; }
 
-  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
+  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
@@ -119,12 +119,12 @@
 
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_province">Province</label>
-        <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" multiple></select>
+        <select class="form-select bg-white shadow-sm" id="filterHospProvince" onchange="filterHospitals()" multiple></select>
       </div>
 
       <div class="col-sm-6 col-md-3 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_zone">Zone</label>
-        <select class="form-select shadow-sm" id="filterHospZone" onchange="filterHospitals()" multiple></select>
+        <select class="form-select bg-white shadow-sm" id="filterHospZone" onchange="filterHospitals()" multiple></select>
       </div>
 
       <div class="col-sm-12 col-md-12 col-lg-2 d-flex justify-content-end">
@@ -546,10 +546,16 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
+  // 🌟 เริ่มต้นสั่งสร้าง TomSelect Placeholder เปล่าๆ ทันทีที่เปิดหน้า ป้องกันกล่องแหว่ง
   setTimeout(async function() {
+    if (typeof TomSelect !== 'undefined') {
+      initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
+      initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- All Provinces -'));
+      initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- All Zones -'));
+    }
     await loadIndexDropdowns(); 
     await loadHospitals();
-  }, 300);
+  }, 100);
 
   function switchHospitalView(viewId) {
     const views = ['hospitalListView', 'hospitalAddView', 'hospitalEditView', 'hospitalProfileView'];
@@ -611,7 +617,7 @@
           try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
           const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-          const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+          const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
           let isGlobalViewer = false;
           if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
@@ -623,11 +629,12 @@
               });
           }
 
-          const [allHospitals, assignments, terrRes, teamRes, allDocs, pendingAddRes, pendingEditRes] = await Promise.all([
+          const [allHospitals, assignments, terrRes, teamRes, buRes, allDocs, pendingAddRes, pendingEditRes] = await Promise.all([
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
             fetchAllRecords('Assignment'),
             supabaseClient.from('Territory').select('*'),
             supabaseClient.from('Team').select('*'),
+            supabaseClient.from('BU').select('*'),
             fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
             supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending')
@@ -635,13 +642,22 @@
 
           let territories = terrRes.data || [];
           let teams = teamRes.data || [];
+          let buList = buRes.data || [];
 
           let allowedTerIds = [];
           if (!isGlobalViewer) {
-              let matchedTeam = teams.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-              let matchedTerr = territories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
+              if (userRole === 'BU Head' || userRole === 'BU') {
+                  const matchedBu = buList.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
+                  const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-              if (userRole === 'Manager' || userRole === 'Sales Manager') {
+                  const buTeams = teams.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+                  const buTeamIds = buTeams.map(t => String(t.Team_ID));
+
+                  const terrs = territories.filter(ter => buTeamIds.includes(String(ter.Team_ID)) || String(ter.BU_ID) === targetBuId);
+                  terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+
+              } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+                  let matchedTeam = teams.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
                   if (matchedTeam) {
                       const terrs = territories.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
@@ -649,13 +665,8 @@
                       const terrs = territories.filter(t => String(t.Team_ID) === rawScope);
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   }
-              } else if (userRole === 'BU Head') {
-                  const buTeams = teams.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
-                  buTeams.forEach(t => {
-                      const terrs = territories.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
-                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-                  });
               } else {
+                  let matchedTerr = territories.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
                   if (matchedTerr) {
                       allowedTerIds.push(String(matchedTerr.Territory_ID));
                   } else if (rawScope) {
