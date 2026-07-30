@@ -43,7 +43,7 @@
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้คลิกได้ทันที 100% */
+  /* 🌟 ปรับแต่ง TomSelect ให้กดคลิกติดง่ายและลอยบนสุด */
   .ts-wrapper { position: relative; width: 100%; flex: 1 1 auto; }
   .ts-control { 
     border-radius: 10px !important; 
@@ -59,6 +59,7 @@
   }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   
+  /* บังคับให้ Dropdown ลอยขึ้นมาเหนือทุกอย่างบนหน้าจอ */
   .ts-dropdown { z-index: 99999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
@@ -532,13 +533,7 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
-  // 🌟 Initialize TomSelect ชั่วคราวล่วงหน้า 100ms แรก โดยใช้คำสั้นๆ - ทั้งหมด -
   setTimeout(async function() {
-    if (typeof TomSelect !== 'undefined') {
-      initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- ทั้งหมด -'));
-      initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- ทั้งหมด -'));
-      initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- ทั้งหมด -'));
-    }
     await loadIndexDropdowns(); 
     await loadHospitals();
 
@@ -557,7 +552,7 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
+  // 🌟 ฟังก์ชันสร้าง TomSelect พร้อมการทำลายล้างเพื่อความเสถียร 100%
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -571,7 +566,8 @@
           sortField: { field: "text", direction: "asc" }, 
           placeholder: placeholder, 
           allowEmptyOption: true, 
-          maxOptions: null
+          maxOptions: null,
+          dropdownParent: 'body'
       });
   }
 
@@ -1076,8 +1072,8 @@
   // 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile -> Tab General Info
   function goToDoctorProfile(docId) {
       sessionStorage.setItem('returnToHospId', currentSelectedHospId);
-      sessionStorage.setItem('returnToHospTabDoc', currentSelectedHospId); // 🌟 ฝากคำสั่งให้ย้อนกลับมาที่ Tab Affiliated Doctors
-      sessionStorage.setItem('directViewDocId', docId); // 🌟 ฝาก ID ให้หน้า Doctor เปิด View Profile ทันที
+      sessionStorage.setItem('returnToHospTabDoc', currentSelectedHospId);
+      sessionStorage.setItem('directViewDocId', docId);
       
       if (typeof window.loadComponent === 'function') {
           window.loadComponent('doctor');
@@ -1092,7 +1088,7 @@
           if (typeof window.openViewDoctorProfile === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
               setTimeout(() => {
-                  window.openViewDoctorProfile(docId, '#tab-doc-info'); // 🌟 เปิดหน้า Doctor Profile
+                  window.openViewDoctorProfile(docId, '#tab-doc-info');
               }, 50);
           } else if (attempts > 60) { 
               clearInterval(checkReady);
@@ -1112,7 +1108,6 @@
     document.getElementById('viewHospStatus').className = `form-control bg-light fw-bold ${h.status === 'Active' ? 'text-success' : 'text-danger'}`;
     checkPendingDCR(h.id, 'profileDcrStatusBadge'); 
     
-    // 🌟 สลับ Tab ไปตามที่ระบุ (default คือ General Info)
     const tabEl = document.querySelector(`#hospitalProfileView .nav-link[data-bs-target="${targetTab}"]`);
     if(tabEl) { 
       const tab = new bootstrap.Tab(tabEl); 
@@ -1125,7 +1120,6 @@
     renderHospDoctors(h.id);
     switchHospitalView('hospitalProfileView');
 
-    // เรียกแปลภาษาในเนื้อหาทันที
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
       setLanguage(currentLang);
     }
