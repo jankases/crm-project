@@ -154,7 +154,6 @@
     // =========================================================================
     const i18nDictionary = {
       en: {
-        // --- เมนูหลักเดิม ---
         app_title: "CRM System",
         menu_visit: "Visit Logs",
         menu_doctor: "Doctors",
@@ -170,7 +169,6 @@
         msg_load_failed: "Failed to load screen",
         msg_check_file: "Please check if the file exists.",
 
-        // --- เพิ่มเติม: ตัวเลือก/ตัวกรอง Dropdown ---
         opt_all: "- All -",
         opt_all_doctors: "- All -",
         opt_all_hospitals: "- All -",
@@ -182,7 +180,6 @@
         opt_all_provinces: "- All -",
         opt_all_zones: "- All -",
 
-        // --- หน้า Visit Logs ---
         visit_title: "Visit Logs",
         visit_subtitle: "Doctor visits and daily activity logs",
         btn_add_visit: "Add New Visit",
@@ -225,7 +222,6 @@
         sec_visit_info: "Visit Information",
         sec_activity_details: "Activity Details",
 
-        // --- หน้า Doctors ---
         doc_title: "Doctors Management",
         doc_subtitle: "Database of Doctors and Workplaces",
         btn_add_doctor: "Add New Doctor",
@@ -254,15 +250,24 @@
         th_zone: "Zone",
         th_sales_id: "Sales ID",
         th_workplace_type: "Workplace Type",
+        
+        // --- 🌟 เพิ่มเติมคำแปลสำหรับฟอร์ม Hospital (Add / Edit) ---
+        title_add_hosp: "Add New Hospital (DCR)",
+        title_edit_hosp: "Edit Hospital (DCR)",
+        sec_hosp_info: "Hospital Information",
+        sec_addr_info: "Address Information",
+        lbl_hosp_name_en: "Hospital Name (EN)",
+        lbl_known_as_th: "Known As (TH)",
+        lbl_province_zone: "Province (Zone)",
+        lbl_sales_id: "Sales ID",
         lbl_full_address: "Full Address",
+        btn_submit_dcr: "Submit DCR",
 
-        // --- หน้า Detail/Profile ของ Hospital ---
         tab_general_info: "General Info",
         tab_affiliated_doctors: "Affiliated Doctors",
         title_affiliated_doctors: "Doctors Affiliated with this Hospital"
       },
       th: {
-        // --- เมนูหลักเดิม ---
         app_title: "ระบบ CRM",
         menu_visit: "บันทึกเยี่ยม",
         menu_doctor: "แพทย์",
@@ -278,7 +283,6 @@
         msg_load_failed: "ไม่สามารถโหลดหน้าจอได้",
         msg_check_file: "โปรดตรวจสอบว่าสร้างไฟล์นี้ไว้แล้วหรือยัง",
 
-        // --- เพิ่มเติม: ตัวเลือก/ตัวกรอง Dropdown ---
         opt_all: "- ทั้งหมด -",
         opt_all_doctors: "- ทั้งหมด -",
         opt_all_hospitals: "- ทั้งหมด -",
@@ -290,7 +294,6 @@
         opt_all_provinces: "- ทั้งหมด -",
         opt_all_zones: "- ทั้งหมด -",
 
-        // --- หน้า Visit Logs ---
         visit_title: "บันทึกเยี่ยม",
         visit_subtitle: "บันทึกการเข้าพบแพทย์และกิจกรรมประจำวัน",
         btn_add_visit: "สร้างบันทึกเยี่ยมใหม่",
@@ -333,7 +336,6 @@
         sec_visit_info: "ข้อมูลการเข้าพบ",
         sec_activity_details: "รายละเอียดกิจกรรม",
 
-        // --- หน้า Doctors ---
         doc_title: "จัดการข้อมูลแพทย์",
         doc_subtitle: "ฐานข้อมูลรายชื่อแพทย์และสถานที่ปฏิบัติงาน",
         btn_add_doctor: "เพิ่มแพทย์ใหม่",
@@ -362,9 +364,19 @@
         th_zone: "เขต/โซน",
         th_sales_id: "รหัสฝ่ายขาย (Sales ID)",
         th_workplace_type: "ประเภทสถานที่ทำงาน",
+        
+        // --- 🌟 เพิ่มเติมคำแปลสำหรับฟอร์ม Hospital (Add / Edit) ---
+        title_add_hosp: "เพิ่มโรงพยาบาลใหม่ (DCR)",
+        title_edit_hosp: "แก้ไขข้อมูลโรงพยาบาล (DCR)",
+        sec_hosp_info: "ข้อมูลโรงพยาบาล",
+        sec_addr_info: "ข้อมูลที่อยู่",
+        lbl_hosp_name_en: "ชื่อโรงพยาบาล (EN)",
+        lbl_known_as_th: "ชื่อเรียก (TH)",
+        lbl_province_zone: "จังหวัด (โซน)",
+        lbl_sales_id: "รหัสฝ่ายขาย (Sales ID)",
         lbl_full_address: "ที่อยู่ฉบับเต็ม",
+        btn_submit_dcr: "ส่งคำขอ DCR",
 
-        // --- หน้า Detail/Profile ของ Hospital ---
         tab_general_info: "ข้อมูลทั่วไป",
         tab_affiliated_doctors: "แพทย์ในสังกัด",
         title_affiliated_doctors: "รายชื่อแพทย์สังกัดโรงพยาบาลนี้"
@@ -378,7 +390,6 @@
       currentLang = lang;
       localStorage.setItem('appLang', lang);
 
-      // อัปเดตปุ่มภาษา
       const btnEN = document.getElementById('btnLangEN');
       const btnTH = document.getElementById('btnLangTH');
       if (btnEN && btnTH) {
@@ -391,7 +402,6 @@
         }
       }
 
-      // สแกนแปลเฉพาะองค์ประกอบที่มี attribute data-i18n
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
@@ -405,7 +415,6 @@
         }
       });
 
-      // 🌟 สั่งอัปเดต Placeholder ของ TomSelect แบบ Real-time
       const updateTsPlaceholder = (id, key) => {
         const ts = document.getElementById(id)?.tomselect;
         if (ts) {
@@ -414,42 +423,34 @@
         }
       };
 
-      // Update Visits Filters
       updateTsPlaceholder('filterVisitDoctor', 'opt_all_doctors');
       updateTsPlaceholder('filterVisitHospital', 'opt_all_hospitals');
 
-      // Update Doctors Filters
       updateTsPlaceholder('filterDocName', 'opt_all_doctors');
       updateTsPlaceholder('filterDocWorkplace', 'opt_all_hospitals');
       updateTsPlaceholder('filterDocSpecialty', 'opt_all_specialties');
       updateTsPlaceholder('filterDocType', 'opt_all_types');
 
-      // Update Hospitals Filters
       updateTsPlaceholder('filterHospName', 'opt_all_hospitals');
       updateTsPlaceholder('filterHospProvince', 'opt_all_provinces');
       updateTsPlaceholder('filterHospZone', 'opt_all_zones');
 
-      // รีเซ็ตข้อความใน Dropdown ที่สร้างจาก JS
       if (typeof setupFiltersDropdowns === 'function') {
         const crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
         setupFiltersDropdowns(crmUser, window.VisitManagerCache?.teamProdLinks);
       }
     }
 
-    // 🌟 Helper ฟังก์ชันแปลภาษาสำหรับใช้ใน JS
     function t(key) {
       return (i18nDictionary[currentLang] && i18nDictionary[currentLang][key]) 
         ? i18nDictionary[currentLang][key] 
         : key;
     }
 
-    // =========================================================================
-    // ⚙️ 2. ระบบจัดการส่วนหลักของแอพพลิเคชัน
-    // =========================================================================
     window.addEventListener('load', async () => {
       await loadLoginComponent();
       checkSession();
-      setLanguage(currentLang); // ตั้งค่าภาษาเริ่มต้น
+      setLanguage(currentLang);
     });
 
     async function loadLoginComponent() {
@@ -522,7 +523,6 @@
            if(bsCollapse) bsCollapse.hide();
         }
         
-        // 🌟 เมื่อเปลี่ยนหน้า ให้รันคำสั่งแปลภาษาครอบส่วนประกอบใหม่ด้วย
         setLanguage(currentLang);
 
       } catch (error) {
@@ -620,7 +620,6 @@
         saveUserLog(user, "Logout", sessionDuration);
       }
 
-      // 🌟 เคลียร์ SessionStorage, LocalStorage และค่า Caching ทั้งหมด
       sessionStorage.clear();
       localStorage.clear();
 
@@ -632,7 +631,6 @@
       if (typeof globalHospitals !== 'undefined') globalHospitals = [];
       if (typeof globalVisits !== 'undefined') globalVisits = [];
       
-      // บังคับรีโหลดเพื่อล้างหน่วยความจำอย่างสมบูรณ์
       window.location.reload(true); 
     }
   </script>
