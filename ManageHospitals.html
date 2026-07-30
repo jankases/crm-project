@@ -109,7 +109,7 @@
       
       <div class="col-sm-12 col-md-6 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hosp_name">Hospital Name (EN/TH)</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+        <div class="input-group shadow-sm" style="border-radius: 10px;">
           <select class="form-select bg-white" id="filterHospName" onchange="filterHospitals()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterHospName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
@@ -546,13 +546,7 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
-  // 🌟 เริ่มต้นสั่งสร้าง TomSelect Placeholder เปล่าๆ ทันทีที่เปิดหน้า ป้องกันกล่องแหว่ง
   setTimeout(async function() {
-    if (typeof TomSelect !== 'undefined') {
-      initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
-      initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- All Provinces -'));
-      initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- All Zones -'));
-    }
     await loadIndexDropdowns(); 
     await loadHospitals();
   }, 100);
@@ -564,10 +558,13 @@
     window.scrollTo(0, 0); 
   }
 
+  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
-      if(el.tomselect) el.tomselect.destroy();
+      if(el.tomselect) {
+          el.tomselect.destroy();
+      }
       new TomSelect(`#${id}`, { 
           plugins: ['remove_button'],
           create: false, 
@@ -575,8 +572,7 @@
           sortField: { field: "text", direction: "asc" }, 
           placeholder: placeholder, 
           allowEmptyOption: true, 
-          maxOptions: null,
-          dropdownParent: 'body' 
+          maxOptions: null
       });
   }
 
