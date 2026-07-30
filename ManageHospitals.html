@@ -1063,9 +1063,10 @@
       });
   }
 
-  // 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile
+// 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile -> เปิด Tab General Info
   function goToDoctorProfile(docId) {
       sessionStorage.setItem('returnToHospId', currentSelectedHospId); // จำว่ามาจากโรงพยาบาลไหน
+      
       const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
       allMenus.forEach(btn => {
           const txt = btn.textContent || btn.innerText;
@@ -1079,7 +1080,8 @@
           attempts++;
           if (typeof window.openViewDoctorProfile === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
-              window.openViewDoctorProfile(docId); 
+              // 👈 ส่ง '#tab-doc-info' เข้าไปเพื่อให้เจาะจงเปิดหน้า General Info
+              window.openViewDoctorProfile(docId, '#tab-doc-info'); 
           } else if (attempts > 50) { 
               clearInterval(checkReady);
               alert("Please switch to 'Doctors' menu manually to view this doctor.");
