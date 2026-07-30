@@ -16,6 +16,11 @@
     border-color: #0a58ca !important;
   }
 
+  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
+  select.form-select[multiple]:not(.tomselected) {
+    display: none !important;
+  }
+
   /* ปรับแต่ง UI ให้เข้าชุดกับหน้า Doctor */
   .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
   .hospital-form-group .form-control, .hospital-form-group .form-select {
@@ -394,7 +399,7 @@
 </div>
 
 <script>
-  // 🌟 Helper แปลภาษาอย่างปลอดภัย
+  // Helper แปลภาษาอย่างปลอดภัย
   function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
       const res = t(key);
@@ -742,7 +747,6 @@
 
     globalHospitals = window.HospManagerCache.hospitals;
 
-    // 🌟 เรียกใช้ safeTranslate สำหรับ TomSelect Placeholder
     const filterHospNameSelect = document.getElementById('filterHospName');
     if (filterHospNameSelect) {
         filterHospNameSelect.innerHTML = '';
@@ -902,7 +906,6 @@
     renderHospitalTable();
   }
 
-  // 🌟 ฟังก์ชัน Render ตาราง ให้ดึงข้อความปุ่ม Edit แปลภาษา
   function renderHospitalTable() {
     const tbody = document.getElementById('hospitalTableBody'); 
     if(!tbody) return; 
