@@ -63,7 +63,8 @@
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
-  .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
+  /* 🌟 Mic Pulse Effect */
+  .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
   .ts-control { border-radius: 12px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
@@ -128,15 +129,16 @@
       </div>
     </div>
 
-    <!-- Smart Search Bar + Filter Bar -->
+    <!-- Smart Search Bar + Filter Bar (ปรับปุ่มไมค์ให้คลิกติดชัวร์ 100%) -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
+        
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none" id="smartSearchInput" placeholder="Search Doctor, Hospital or Product..." onkeyup="filterVisits()">
-            <button class="btn btn-outline-secondary border-0 bg-transparent pe-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')">
-              <i class="fa-solid fa-microphone text-muted" id="micSmartSearchIcon"></i>
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" placeholder="Search Doctor, Hospital or Product..." onkeyup="filterVisits()">
+            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
+              <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
             </button>
           </div>
         </div>
@@ -165,6 +167,7 @@
             <i class="fa-solid fa-eraser"></i>
           </button>
         </div>
+
       </div>
 
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
@@ -232,7 +235,7 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View แบบ Modern 2-Column Grid) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -245,7 +248,6 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
-        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -259,10 +261,8 @@
           </div>
         </div>
 
-        <!-- Layout 2 คอลัมน์คู่ขนาน -->
         <div class="row g-4">
           
-          <!-- คอลัมน์ซ้าย: ข้อมูลการเข้าพบ -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100">
               <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
@@ -307,7 +307,6 @@
             </div>
           </div>
 
-          <!-- คอลัมน์ขวา: รายละเอียดกิจกรรม -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
@@ -373,6 +372,75 @@
       return res !== key ? res : fallbackText;
     }
     return fallbackText;
+  }
+
+  // 🌟 ฟังก์ชั่นไมโครโฟนพิมพ์ด้วยเสียงสำหรับช่อง Smart Search
+  var searchRecognition;
+  var currentSearchInputId = null;
+  var currentSearchBtnId = null;
+  var currentSearchIconId = null;
+
+  function toggleSpeechSearch(inputId, btnId, iconId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    }
+
+    if (searchRecognition && currentSearchInputId === inputId) {
+      stopSearchDictation();
+      return;
+    }
+
+    if (searchRecognition) stopSearchDictation();
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    searchRecognition = new SpeechRecognition();
+    searchRecognition.lang = 'th-TH';
+    searchRecognition.continuous = false;
+    searchRecognition.interimResults = false;
+
+    currentSearchInputId = inputId;
+    currentSearchBtnId = btnId;
+    currentSearchIconId = iconId;
+
+    const btn = document.getElementById(btnId);
+    const icon = document.getElementById(iconId);
+
+    if (btn && icon) {
+      btn.classList.add('mic-active');
+      if (icon) icon.classList.add('fa-fade');
+    }
+
+    searchRecognition.onresult = function(event) {
+      let spokenText = event.results[0][0].transcript.trim();
+      const inputEl = document.getElementById(inputId);
+      if (inputEl && spokenText) {
+          inputEl.value = spokenText;
+          filterVisits();
+      }
+      stopSearchDictation();
+    };
+
+    searchRecognition.onerror = stopSearchDictation;
+    searchRecognition.onend = stopSearchDictation;
+    searchRecognition.start();
+  }
+
+  function stopSearchDictation() {
+    if (searchRecognition) {
+      searchRecognition.stop();
+      searchRecognition = null;
+    }
+    if (currentSearchBtnId && currentSearchIconId) {
+      const btn = document.getElementById(currentSearchBtnId);
+      const icon = document.getElementById(currentSearchIconId);
+      if (btn && icon) {
+        btn.classList.remove('mic-active');
+        if (icon) icon.classList.remove('fa-fade');
+      }
+    }
+    currentSearchInputId = null;
+    currentSearchBtnId = null;
+    currentSearchIconId = null;
   }
 
   async function fetchAllRecords(tableName, queryModifier = null) {
@@ -576,7 +644,7 @@
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                      terrs.forEach(t => allowedTerIds.push(String(ter.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -669,7 +737,7 @@
           }
       }
 
-      // 🌟 สร้าง Dropdown หมอพร้อมป้องกันการขึ้น ???
+      // 🌟 สร้าง Dropdown หมอ
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         const docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
