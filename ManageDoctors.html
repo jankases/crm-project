@@ -9,6 +9,15 @@
     border-color: #0a58ca !important;
   }
 
+  /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล ให้แสดงเฉพาะตอน TomSelect พร้อมแล้ว (ตามแบบหน้า รพ.) */
+  .doctor-filter-group {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  .doctor-filter-group.ready {
+    opacity: 1;
+  }
+
   /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
   select.form-select[multiple]:not(.tomselected) {
     display: none !important;
@@ -17,7 +26,7 @@
   /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
-    min-height: 42px; border-radius: 10px;
+    min-height: 42px; border-radius: 10px; background-color: #ffffff !important;
   }
   
   /* หัวตารางสไตล์องค์กร สบายตา */
@@ -32,14 +41,24 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับระบบและสบายตา */
-  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
+  /* 🌟 ปรับแต่ง TomSelect ให้กดคลิกติดง่ายและลอยบนสุด */
+  .ts-wrapper { position: relative; width: 100%; flex: 1 1 auto; }
+  .ts-control { 
+    border-radius: 10px !important; 
+    min-height: 42px; 
+    display: flex; 
+    align-items: center; 
+    background-color: #ffffff !important; 
+    cursor: pointer !important;
+  }
+  .input-group > .ts-wrapper > .ts-control { 
+    border-top-right-radius: 0 !important; 
+    border-bottom-right-radius: 0 !important; 
+  }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
-  .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
-  .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
   
-  /* 🌟 บังคับให้ Dropdown ลอยอยู่บนสุดเสมอ */
-  .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
+  /* บังคับให้ Dropdown ลอยขึ้นมาเหนือทุกอย่างบนหน้าจอ */
+  .ts-dropdown { z-index: 99999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
   
   .workplace-row { background-color: #ffffff; border-radius: 8px; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px; transition: 0.2s;}
@@ -94,7 +113,7 @@
     </div>
 
     <!-- ส่วนค้นหาทั้งหมด -->
-    <div class="row mb-4 doctor-filter-group g-3 align-items-end">
+    <div class="row mb-4 doctor-filter-group g-3 align-items-end" id="doctorFilterZoneGroup">
       
       <div class="col-sm-6 col-md-6 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_name">Doctor Name (EN/TH)</label>
@@ -328,7 +347,7 @@
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
-      <!-- 🌟 เปลี่ยน onclick ปุ่ม Back ให้เรียกฟังก์ชันย้อนกลับอัจฉริยะ -->
+      <!-- 🌟 ปุ่ม Back เรียกฟังก์ชันย้อนกลับอัจฉริยะ -->
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="goBackFromDoctorProfile()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
@@ -490,9 +509,8 @@
     const returnHospId = sessionStorage.getItem('returnToHospId');
     
     if (returnHospId) {
-      sessionStorage.removeItem('returnToHospId'); // ล้างค่าออกหลังใช้
+      sessionStorage.removeItem('returnToHospId');
       
-      // 1. สั่งโหลดคอมโพเนนต์หน้า Hospital
       if (typeof window.loadComponent === 'function') {
         window.loadComponent('hospital');
       } else {
@@ -500,7 +518,6 @@
         if (hospMenu) hospMenu.click();
       }
 
-      // 2. รอสคริปต์หน้า Hospital พร้อม แล้วย้อนกลับไปเปิดโปรไฟล์โรงพยาบาลเดิม
       let attempts = 0;
       const checkReady = setInterval(() => {
         attempts++;
@@ -515,7 +532,6 @@
         }
       }, 100);
     } else {
-      // ถ้าไม่ได้มาจากหน้า Hospital ให้ย้อนกลับหน้ารวมหมอปกติ
       switchDoctorView('doctorListView');
     }
   }
@@ -743,6 +759,11 @@
     });
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0); 
+
+    // 🌟 เรียกสั่งแปลภาษาครอบคลุม View ใหม่ทุกครั้งที่เปลี่ยนหน้า
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+      setLanguage(currentLang);
+    }
   }
 
   function updateTomSelect(id, html, placeholder) {
@@ -774,7 +795,8 @@
           sortField: { field: "text", direction: "asc" }, 
           placeholder: placeholder, 
           allowEmptyOption: true, 
-          maxOptions: null
+          maxOptions: null,
+          dropdownParent: 'body'
       });
   }
 
@@ -950,6 +972,7 @@
 
   async function loadDoctors(forceReload = false) {
     const tbody = document.getElementById('doctorTableBody');
+    const filterGroup = document.getElementById('doctorFilterZoneGroup');
     window.DocManagerCache = window.DocManagerCache || {};
 
     if (forceReload || !window.DocManagerCache.isLoaded) {
@@ -1076,7 +1099,7 @@
             opt.textContent = `${d.nameEn}${nameThShow}`; 
             filterDocSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterDocName', safeTranslate('opt_all_doctors', '- All Doctors -'));
+        initMultiTomSelect('filterDocName', safeTranslate('opt_all_doctors', '- ทั้งหมด -'));
     }
 
     const filterHospSelect = document.getElementById('filterDocWorkplace');
@@ -1099,7 +1122,7 @@
             opt.textContent = `${h.Hospital}${knownAsShow}`; 
             filterHospSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterDocWorkplace', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
+        initMultiTomSelect('filterDocWorkplace', safeTranslate('opt_all_hospitals', '- ทั้งหมด -'));
     }
 
     const filterSpecSelect = document.getElementById('filterDocSpecialty');
@@ -1112,7 +1135,7 @@
             opt.textContent = spec;
             filterSpecSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterDocSpecialty', safeTranslate('opt_all_specialties', '- All Specialties -'));
+        initMultiTomSelect('filterDocSpecialty', safeTranslate('opt_all_specialties', '- ทั้งหมด -'));
     }
 
     const filterTypeSelect = document.getElementById('filterDocType');
@@ -1125,7 +1148,7 @@
             opt.textContent = type;
             filterTypeSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterDocType', safeTranslate('opt_all_types', '- All Types -'));
+        initMultiTomSelect('filterDocType', safeTranslate('opt_all_types', '- ทั้งหมด -'));
     }
 
     if (window.DocManagerCache.filters) {
@@ -1149,6 +1172,11 @@
     }
 
     filterDoctors(false); 
+
+    // 🌟 แสดงผลโซน Filter หมออย่างสวยงามเมื่อเตรียม TomSelect พร้อม 100%
+    if (filterGroup) {
+      filterGroup.classList.add('ready');
+    }
   }
 
   function sortDoctors(col) {
