@@ -6,13 +6,30 @@
 <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 
 <style>
-  /* ปรับแต่ง UI ให้ตรงกับหน้า Doctor */
+  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
+  .btn-primary {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+  }
+  .btn-primary:hover {
+    background-color: #0b5ed7 !important;
+    border-color: #0a58ca !important;
+  }
+
+  /* ปรับแต่ง UI ให้เข้าชุดกับหน้า Doctor */
   .hospital-filter-group .form-control, .hospital-filter-group .form-select, 
   .hospital-form-group .form-control, .hospital-form-group .form-select {
     min-height: 42px; border-radius: 10px;
   }
   .hospital-form-group textarea { border-radius: 10px; }
-  .table-hospital th { background-color: #f8f9fa; color: #495057; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+  
+  /* หัวตารางสไตล์องค์กร สบายตา */
+  .table-hospital-header {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 600;
+  }
+  .table-hospital th { white-space: nowrap; }
   .table-hospital td { vertical-align: middle; }
   
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
@@ -20,28 +37,28 @@
 
   /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ (Sort) */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
-  .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
+  .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
 
   /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
-  .custom-pagination .page-item.active .page-link { background-color: #0dcaf0; border-color: #0dcaf0; color: white; box-shadow: 0 2px 5px rgba(13,202,240,0.3); }
+  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
 
   /* สไตล์สำหรับ Auto Address และ TomSelect */
   .tt-menu { background-color: #fff; border: 1px solid #ced4da; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; margin-top: 5px; z-index: 9999 !important; }
   .tt-suggestion { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
-  .tt-suggestion:hover { background-color: #e9ecef; color: #0dcaf0; }
+  .tt-suggestion:hover { background-color: #f0f5ff; color: #0d6efd; }
   .tt-suggestion:last-child { border-bottom: none; }
 
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
-  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
+  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
-  .ts-dropdown .active { background-color: #e9ecef !important; color: #0dcaf0 !important; }
+  .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
-  /* 🌟 เพิ่มสไตล์สำหรับ Tabs ในหน้า Hospital Profile */
+  /* 🌟 ปรับแต่ง Tabs ในหน้า Hospital Profile ให้เป็นแคปซูลสไตล์เดียวกัน */
   .hospital-profile-tabs .nav-link {
     color: #495057;
     font-weight: 600;
@@ -52,12 +69,13 @@
     transition: all 0.2s;
   }
   .hospital-profile-tabs .nav-link:hover {
-    background-color: #e9ecef;
+    background-color: #f0f5ff;
+    color: #0d6efd;
   }
   .hospital-profile-tabs .nav-link.active {
-    background-color: #0dcaf0 !important;
-    color: #055160 !important;
-    box-shadow: 0 4px 10px rgba(13, 202, 240, 0.25);
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
   }
 </style>
 
@@ -75,7 +93,7 @@
         <button type="button" class="btn btn-outline-secondary fw-bold shadow-sm rounded-pill px-3" onclick="forceReloadHospitals()" id="btnRefreshHospitals" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
-        <button type="button" class="btn btn-info text-white fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
           <i class="fa-solid fa-plus me-2"></i>Add New Hospital
         </button>
       </div>
@@ -116,9 +134,9 @@
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
       <div class="table-responsive">
         <table class="table table-hover table-hospital align-middle" style="font-size: 0.95rem;">
-          <thead class="text-center">
+          <thead class="table-hospital-header text-center">
             <tr>
-              <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')">Hospital Name (EN) <i class="fa-solid fa-sort-up text-info ms-1" id="icon-sort-hosp-nameEn"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')">Hospital Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-hosp-nameEn"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('knownAs')">Known As (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-knownAs"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('province')">Province <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-province"></i></th>
               <th class="py-3 sortable-th" onclick="sortHospitals('zone')">Zone <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-zone"></i></th>
@@ -128,7 +146,7 @@
             </tr>
           </thead>
           <tbody id="hospitalTableBody">
-            <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-info"></i></td></tr>
+            <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -160,14 +178,14 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-info fw-bold mb-0">🏥 Add New Hospital (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">🏥 Add New Hospital (DCR)</h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
       <form id="addHospitalForm" onsubmit="handleAddHospital(event)">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-info mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">Hospital Name (EN) <span class="text-danger">*</span></label>
@@ -193,11 +211,11 @@
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-info mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-info"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
-              <input type="text" class="form-control bg-white border-info shadow-sm" id="autoAddressAdd" placeholder="Type sub-district, district, province or zipcode...">
+              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
+              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressAdd" placeholder="Type sub-district, district, province or zipcode...">
             </div>
             <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
@@ -208,7 +226,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">Cancel</button>
-          <button type="submit" class="btn btn-info text-white fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">Submit DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -220,7 +238,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <h4 class="text-info fw-bold mb-0">✏️ Edit Hospital (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ Edit Hospital (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -229,7 +247,7 @@
         <input type="hidden" id="editHospId">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-info mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
               <label class="form-label fw-bold text-dark">Hospital Name (EN) <span class="text-danger">*</span></label>
@@ -262,11 +280,11 @@
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-info mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
           <div class="row g-3">
              <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-info"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
-              <input type="text" class="form-control bg-white border-info shadow-sm" id="autoAddressEdit" placeholder="Type sub-district, district, province or zipcode...">
+              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
+              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressEdit" placeholder="Type sub-district, district, province or zipcode...">
             </div>
             <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
@@ -277,7 +295,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">Cancel</button>
-          <button type="submit" class="btn btn-info text-white fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">Submit DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -289,10 +307,10 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> Back
       </button>
-      <button class="btn btn-warning text-dark fw-bold me-3 shadow-sm rounded-pill px-3" onclick="openEditHospitalView(currentSelectedHospId)">
+      <button class="btn btn-primary fw-bold me-3 shadow-sm rounded-pill px-3" onclick="openEditHospitalView(currentSelectedHospId)">
         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Hospital (DCR)
       </button>
-      <h4 class="text-info fw-bold mb-0" id="viewHospTitleName" style="color: #0dcaf0 !important;">🏥 Hospital Profile</h4>
+      <h4 class="text-primary fw-bold mb-0" id="viewHospTitleName">🏥 Hospital Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -328,7 +346,7 @@
             </div>
             <div class="col-md-6 mb-3">
               <label class="text-muted small fw-bold">Sales ID</label>
-              <input type="text" class="form-control bg-light text-info fw-medium" id="viewHospSalesId" disabled style="border-radius: 10px; min-height: 42px;">
+              <input type="text" class="form-control bg-light text-primary fw-medium" id="viewHospSalesId" disabled style="border-radius: 10px; min-height: 42px;">
             </div>
           </div>
           <div class="row mb-3">
@@ -352,7 +370,7 @@
           </div>
           <div class="table-responsive">
             <table class="table table-hover align-middle text-center" style="font-size: 0.9rem;">
-              <thead class="table-light">
+              <thead class="table-hospital-header">
                 <tr>
                   <th class="py-3">Doctor Name (EN)</th>
                   <th class="py-3">Doctor Name (TH)</th>
@@ -573,7 +591,7 @@
     window.HospManagerCache = window.HospManagerCache || {};
 
     if (forceReload || !window.HospManagerCache.isLoaded) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-info"></i></td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>`;
         
         try {
           let crmUser = null;
@@ -795,7 +813,7 @@
       const icon = document.getElementById('icon-sort-hosp-' + c);
       if (icon) {
         if (c === currentHospSortCol) {
-          icon.className = currentHospSortAsc ? 'fa-solid fa-sort-up text-info ms-1' : 'fa-solid fa-sort-down text-info ms-1';
+          icon.className = currentHospSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
         } else {
           icon.className = 'fa-solid fa-sort text-muted ms-1';
         }
@@ -911,7 +929,7 @@
     paginatedData.forEach(h => {
       let badge = 'bg-success';
       let statusText = h.status || 'Active';
-      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-info fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
 
       if (h.isPendingDcr) {
         badge = 'bg-warning text-dark';
@@ -925,15 +943,15 @@
 
       const nameCell = h.isPendingDcr ? 
         `<span class="fw-bold text-dark"><i class="fa-regular fa-hospital me-2 text-warning"></i>${h.name || '-'}</span>` : 
-        `<a href="#" class="text-decoration-none text-info fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-muted"></i>${h.name || '-'}</a>${pendingEditTag}`;
+        `<a href="#" class="text-decoration-none text-primary fw-bold" onclick="openViewHospitalProfile('${h.id}'); return false;"><i class="fa-regular fa-hospital me-2 text-primary"></i>${h.name || '-'}</a>${pendingEditTag}`;
 
       tbody.innerHTML += `
         <tr>
           <td>${nameCell}</td>
           <td class="text-secondary fw-medium">${h.knownAs || '-'}</td>
-          <td><span class="badge bg-light text-dark border">${h.provinceOnly || '-'}</span></td>
+          <td><span class="badge bg-light text-primary border border-primary-subtle">${h.provinceOnly || '-'}</span></td>
           <td class="text-muted"><small>${h.zoneOnly || '-'}</small></td>
-          <td class="text-center text-info"><small>${h.salesId || '-'}</small></td>
+          <td class="text-center text-primary fw-medium"><small>${h.salesId || '-'}</small></td>
           <td class="text-center"><span class="badge ${badge} px-2 py-1">${statusText}</span></td>
           <td class="text-center">${actionButton}</td>
         </tr>`;
@@ -1027,16 +1045,16 @@
       }
 
       affiliatedDocs.forEach(d => {
-          const badgeClass = d.workplaceType === 'Primary' ? 'bg-info text-white' : 'bg-secondary text-white';
+          const badgeClass = d.workplaceType === 'Primary' ? 'bg-primary text-white' : 'bg-secondary text-white';
           const docId = d.Doc_ID || d.doc_id || d.id;
           tbody.innerHTML += `
               <tr>
-                  <td class="fw-bold text-dark text-start ps-3"><i class="fa-solid fa-user-doctor me-2 text-info"></i>${d.Doc_Name || '-'}</td>
+                  <td class="fw-bold text-dark text-start ps-3"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${d.Doc_Name || '-'}</td>
                   <td class="text-muted">${d.Doc_Name_TH || '-'}</td>
-                  <td><span class="badge bg-light text-dark border">${d.Specialty || '-'}</span></td>
+                  <td><span class="badge bg-light text-primary border border-primary-subtle">${d.Specialty || '-'}</span></td>
                   <td><span class="badge ${badgeClass}">${d.workplaceType}</span></td>
                   <td>
-                      <button class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-sm fw-bold" onclick="goToDoctorProfile('${docId}')">
+                      <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToDoctorProfile('${docId}')">
                           <i class="fa-solid fa-eye me-1"></i> View
                       </button>
                   </td>
