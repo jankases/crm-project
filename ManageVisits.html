@@ -563,7 +563,7 @@
                   const matchedBu = globalBuListLocal.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
                   const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-                  const matchedTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+                  const matchedTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope));
                   const matchedTeamIds = matchedTeams.map(t => String(t.Team_ID));
 
                   const terrs = globalTerritoryListLocal.filter(ter => matchedTeamIds.includes(String(ter.Team_ID)) || String(ter.BU_ID) === targetBuId);
@@ -693,7 +693,6 @@
 
       setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-      // 🌟 ดึงข้อมูล Purpose และแปลตัวเลือกเริ่มต้น `-- Select Purpose --`
       const purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
         const types = window.VisitManagerCache.indexTypes; 
@@ -725,7 +724,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ปรับสิทธิ์การเห็นสินค้าของ BU Head / Manager / Sales / Admin
+  // 🌟 ปรับปรุงดึงสินค้าตามสิทธิ์ BU Head / Manager / Sales / Admin สดใสสมบูรณ์ 100%
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
