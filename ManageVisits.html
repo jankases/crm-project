@@ -1,5 +1,4 @@
 <style>
-  /* 🎨 Modern Enterprise UI Theme */
   .visit-card { 
     border-radius: 20px !important; 
     border: 1px solid #eef2f6 !important;
@@ -17,7 +16,6 @@
     opacity: 1; 
   }
 
-  /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล */
   .visit-filter-group {
     opacity: 0 !important;
     transition: opacity 0.3s ease-in-out;
@@ -30,28 +28,15 @@
     display: none !important;
   }
 
-  /* 🌟 Stat KPI Cards */
-  .stat-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 16px 20px;
-    border: 1px solid #eef2f6;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-    transition: transform 0.2s;
+  .btn-primary {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
   }
-  .stat-card:hover {
-    transform: translateY(-2px);
-  }
-  .stat-card .stat-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .btn-primary:hover {
+    background-color: #0b5ed7 !important;
+    border-color: #0a58ca !important;
   }
 
-  /* 🌟 ตารางสไตล์ Minimalist */
   .table-custom-header {
     background-color: #f8fafc !important;
     color: #64748b !important;
@@ -61,69 +46,25 @@
     letter-spacing: 0.5px;
   }
 
-  .table-hover tbody tr {
-    transition: all 0.2s ease;
+  .stat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   }
-  .table-hover tbody tr:hover {
-    background-color: #f8fafc !important;
-  }
-
-  .table-visit-link {
-    color: #0d6efd;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .table-visit-link:hover {
-    color: #0a58ca;
-    text-decoration: underline;
+  .stat-card .stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
   }
 
-  /* 🌟 Soft Pastel Badges */
-  .badge-soft-pending {
-    background-color: #fffbeb !important;
-    color: #b45309 !important;
-    border: 1px solid #fef3c7 !important;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 30px;
-  }
+  .badge-soft-pending { background-color: #fffbeb !important; color: #b45309 !important; border: 1px solid #fef3c7 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
+  .badge-soft-success { background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #d1fae5 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
+  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
+  .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
-  .badge-soft-success {
-    background-color: #ecfdf5 !important;
-    color: #047857 !important;
-    border: 1px solid #d1fae5 !important;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 30px;
-  }
-
-  .badge-soft-secondary {
-    background-color: #f1f5f9 !important;
-    color: #475569 !important;
-    border: 1px solid #e2e8f0 !important;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 30px;
-  }
-
-  .badge-soft-product {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
-    font-weight: 500;
-    border-radius: 8px;
-    padding: 4px 8px;
-  }
-
-  .mic-active { 
-    animation: pulse-red 1.5s infinite; 
-    border-color: #dc3545 !important; 
-  }
-  @keyframes pulse-red { 
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 
-    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 
-    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
-  }
+  .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
+  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
   .ts-control { border-radius: 12px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
@@ -140,8 +81,6 @@
   
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
   <div id="visitListView">
-    
-    <!-- Page Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
         <h3 class="text-dark fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2 text-primary"></i><span data-i18n="visit_title">Visit Logs</span></h3>
@@ -158,7 +97,7 @@
       </div>
     </div>
 
-    <!-- 🌟 Quick Stat Cards -->
+    <!-- Quick Stat Cards -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -189,11 +128,9 @@
       </div>
     </div>
 
-    <!-- 🌟 Smart Search Bar + Filter Bar -->
+    <!-- Smart Search Bar + Filter Bar -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
-        
-        <!-- Smart Single Input Search (หมอ + Product / รพ.) -->
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -204,7 +141,6 @@
           </div>
         </div>
 
-        <!-- Date Range Filter -->
         <div class="col-12 col-sm-6 col-lg-3">
           <div class="input-group input-group-sm border rounded-pill px-2 py-1 bg-white">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;">
@@ -213,7 +149,6 @@
           </div>
         </div>
 
-        <!-- Quick Status Filter -->
         <div class="col-6 col-sm-3 col-lg-2">
           <select class="form-select border rounded-pill shadow-none" id="filterVisitStatus" onchange="filterVisits()">
             <option value="" data-i18n="opt_all">- All Status -</option>
@@ -222,7 +157,6 @@
           </select>
         </div>
 
-        <!-- Action Buttons -->
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
           <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
             <i class="fa-solid fa-sliders"></i>
@@ -231,10 +165,8 @@
             <i class="fa-solid fa-eraser"></i>
           </button>
         </div>
-
       </div>
 
-      <!-- Advanced Filters Dropdown Collapse -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-3">
@@ -261,7 +193,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ตารางประวัติสไตล์ Modern Minimalist -->
+    <!-- ตารางประวัติ -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
@@ -281,7 +213,6 @@
         </table>
       </div>
 
-      <!-- Pagination -->
       <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
@@ -301,10 +232,10 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View แบบ Modern 2-Column Grid) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="cancelVisitForm()">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
@@ -314,7 +245,8 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
-        <div class="p-3 rounded-4 mb-4 border bg-light">
+        <!-- Banner ข้อมูลพนักงาน -->
+        <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
               <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-user-tie me-1"></i><span data-i18n="lbl_user">User</span></span>
@@ -327,93 +259,105 @@
           </div>
         </div>
 
-        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
-          <div class="row g-3">
-            <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
-              <div class="input-group shadow-sm" style="border-radius: 10px;">
-                <select class="form-select bg-white" id="visitDocId" required>
-                  <option value="">-- Search/Select Doctor --</option>
+        <!-- 🌟 จัด Layout ใหม่แบบ 2 คอลัมน์คู่ขนาน (2-Column Grid) มองเห็นครบถ้วน -->
+        <div class="row g-4">
+          
+          <!-- คอลัมน์ซ้าย: ข้อมูลการเข้าพบ -->
+          <div class="col-12 col-lg-6">
+            <div class="p-4 rounded-4 border bg-white shadow-xs h-100">
+              <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
+                <div class="input-group shadow-sm" style="border-radius: 12px;">
+                  <select class="form-select bg-white" id="visitDocId" required></select>
+                  <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
+                    <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+                <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label fw-bold text-dark" data-i18n="lbl_start_time">Start Time</label>
+                  <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold text-dark" data-i18n="lbl_end_time">End Time</label>
+                  <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
+                  <option value="">-- Select Purpose --</option>
                 </select>
-                <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
-                  <i class="fa-solid fa-microphone" id="micDocIcon"></i>
-                </button>
               </div>
             </div>
-            
-            <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-              <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
+          </div>
+
+          <!-- คอลัมน์ขวา: รายละเอียดกิจกรรม -->
+          <div class="col-12 col-lg-6">
+            <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+              <div>
+                <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h5>
+
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')">
+                      <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
+                    </button>
+                  </div>
+                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_insight">Insight</label>
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')">
+                      <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
+                    </button>
+                  </div>
+                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2"></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_next_action">Next Action</label>
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')">
+                      <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
+                    </button>
+                  </div>
+                  <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
+                </div>
+              </div>
+
+              <div class="mb-0 pt-2 border-top">
+                <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
+                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
+                  <option value="Pending" class="text-warning">⏳ Pending (Draft)</option>
+                  <option value="Submitted" class="text-success">✅ Submitted</option>
+                </select>
+              </div>
             </div>
           </div>
-          <div class="row g-3 mt-1">
-            <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-              <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
-            </div>
-            <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark" data-i18n="lbl_start_time">Start Time</label>
-              <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
-            </div>
-            <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark" data-i18n="lbl_end_time">End Time</label>
-              <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
-            </div>
-          </div>
+
         </div>
 
-        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h5>
-          <div class="row g-3">
-            <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-              <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
-                <option value="">-- Select Purpose --</option>
-              </select>
-            </div>
-            
-            <div class="col-md-12 mb-2">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')">
-                  <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
-                </button>
-              </div>
-              <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3"></textarea>
-            </div>
-
-            <div class="col-md-12 mb-2">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_insight">Insight</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')">
-                  <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
-                </button>
-              </div>
-              <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2"></textarea>
-            </div>
-
-            <div class="col-md-7 mb-2">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_next_action">Next Action</label>
-                <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')">
-                  <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
-                </button>
-              </div>
-              <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
-            </div>
-            
-            <div class="col-md-5 mb-2">
-              <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-              <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
-                <option value="Pending" class="text-warning">⏳ Pending (Draft)</option>
-                <option value="Submitted" class="text-success">✅ Submitted</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+        <!-- ปุ่มควบคุมด้านล่าง -->
+        <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
         </div>
@@ -561,6 +505,10 @@
     ['visitListView', 'visitFormView'].forEach(v => { const el = document.getElementById(v); if(el) el.classList.add('d-none'); });
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0);
+
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+      setLanguage(currentLang);
+    }
   }
 
   async function loadDropdowns(forceReload = false) {
@@ -731,11 +679,12 @@
         });
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
+            const docPlaceholder = safeTranslate('opt_search_doc', 'Search Doctor (EN/TH)...');
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
                 searchField: ["text"],
                 sortField: { field: "text", direction: "asc" }, 
-                placeholder: "Search Doctor (EN/TH)...",
+                placeholder: docPlaceholder,
                 allowEmptyOption: true,
                 maxOptions: null,
                 dropdownParent: 'body'
@@ -768,7 +717,6 @@
         }, 200); 
       }
 
-      // 🌟 สั่งแสดงผลโซน Filter ทันทีเมื่อ TomSelect สร้างเสร็จสมบูรณ์
       if (filterGroup) {
         filterGroup.classList.add('ready');
       }
@@ -776,7 +724,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ปรับปรุงการดึงสินค้าให้ครอบคลุมทั้ง Admin, BU Head, Manager, Sales สดใสสมบูรณ์ 100%
+  // 🌟 ปรับปรุงให้ดึงสินค้าสำหรับ BU Head, Manager, Sales และ Admin ครบถูกต้อง 100%
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -815,12 +763,17 @@
           const matchedBu = buList.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
           const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-          const buTeams = globalTeamList.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+          const buTeams = globalTeamList.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope));
           buTeams.forEach(t => {
               allowedTeamIds.push(String(t.Team_ID));
               const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
               terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
           });
+          
+          if (allowedTeamIds.length === 0) {
+            globalTeamList.forEach(t => allowedTeamIds.push(String(t.Team_ID)));
+          }
+
       } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
           let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
           if (matchedTeam) {
@@ -891,7 +844,7 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 Logic การดึงสินค้า: ปรับแก้ไม่ให้ Admin และ Sales หลุดกล่องว่าง
+    // 🌟 ดึงสินค้าสำหรับ Admin, BU Head, Manager, Sales สดใสครบถ้วน
     let allowedProducts = [];
     if (isGlobalViewer) {
         allowedProducts = globalProductsList;
@@ -903,12 +856,10 @@
             allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         }
         
-        // Safety Fallback 1: ดึงสินค้าตาม Team_ID ตรงๆ
         if (allowedProducts.length === 0 && allowedTeamIds.length > 0) {
             allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
-        // Safety Fallback 2: ดึงสินค้า active ทั้งหมด
         if (allowedProducts.length === 0) {
             allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
             if (allowedProducts.length === 0) allowedProducts = globalProductsList;
@@ -1089,7 +1040,6 @@
     filterVisits(false);
   }
 
-  // 🌟 ฟังก์ชันกรองการค้นหาอัจฉริยะ (Smart Single Search: หมอ + Product / รพ.)
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -1152,7 +1102,6 @@
           if (!isDocAssigned) return false; 
       }
 
-      // 🌟 คำนวณ Smart Search (หมอ + Product / รพ.)
       if (searchKeywords.length > 0) {
         const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
         const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}`.toLowerCase() : '';
@@ -1263,13 +1212,11 @@
 
     globalFilteredVisits = filtered;
 
-    // 🌟 อัปเดตตัวเลข Quick Stat Cards
     updateStatCards(globalVisits);
 
     renderVisitTable();
   }
 
-  // 🌟 ฟังก์ชันคำนวณตัวเลข Stat Cards ตามสิทธิ์การมองเห็นจริง
   function updateStatCards(allAccessibleVisits) {
     const total = allAccessibleVisits.length;
     const pending = allAccessibleVisits.filter(v => v.Status === 'Pending').length;
@@ -1434,7 +1381,7 @@
 
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
-    document.getElementById('formVisitTitle').innerText = '📝 Add New Visit';
+    document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">Add New Visit</span>';
     document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
@@ -1481,7 +1428,7 @@
     const btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
     btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-    btn.innerHTML = '💾 Save';
+    btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
     btn.disabled = false;
 
     switchVisitView('visitFormView');
@@ -1494,7 +1441,7 @@
     if (!v) return;
 
     document.getElementById('visitId').value = v.Visit_ID;
-    document.getElementById('formVisitTitle').innerText = '✏️ Edit Visit';
+    document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
     
     let repNameShow = v.Rep_ID || '-';
     if (globalUsersList && globalUsersList.length > 0) {
@@ -1548,7 +1495,7 @@
       toggleVisitFormEditable(true);
       btn.disabled = false;
       btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '💾 Save';
+      btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
       btn.dataset.mode = 'save';
       
       if (sessionStorage.getItem('returnToDocId')) {
