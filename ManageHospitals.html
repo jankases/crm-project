@@ -9,9 +9,13 @@
     border-color: #0a58ca !important;
   }
 
-  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
-  select.form-select[multiple]:not(.tomselected) {
-    display: none !important;
+  /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล ให้แสดงเฉพาะตอน TomSelect พร้อมแล้ว */
+  .hospital-filter-group {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  .hospital-filter-group.ready {
+    opacity: 1;
   }
 
   /* ปรับแต่ง UI ให้เข้าชุดกับหน้า Doctor */
@@ -43,7 +47,7 @@
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้กดคลิกติดง่ายและลอยบนสุด */
+  /* 🌟 ปรับแต่ง TomSelect ให้คลิกได้ทันที 100% */
   .ts-wrapper { position: relative; width: 100%; flex: 1 1 auto; }
   .ts-control { 
     border-radius: 10px !important; 
@@ -59,7 +63,6 @@
   }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   
-  /* บังคับให้ Dropdown ลอยขึ้นมาเหนือทุกอย่างบนหน้าจอ */
   .ts-dropdown { z-index: 99999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
@@ -104,7 +107,7 @@
     </div>
 
     <!-- ส่วนค้นหาทั้งหมด (Multi-Select TomSelect) -->
-    <div class="row mb-4 hospital-filter-group g-3 align-items-end">
+    <div class="row mb-4 hospital-filter-group g-3 align-items-end" id="filterZoneGroup">
       
       <div class="col-sm-12 col-md-6 col-lg-4">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hosp_name">Hospital Name (EN/TH)</label>
@@ -552,7 +555,7 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันสร้าง TomSelect พร้อมการทำลายล้างเพื่อความเสถียร 100%
+  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -598,6 +601,7 @@
 
   async function loadHospitals(forceReload = false) {
     const tbody = document.getElementById('hospitalTableBody');
+    const filterGroup = document.getElementById('filterZoneGroup');
     window.HospManagerCache = window.HospManagerCache || {};
 
     if (forceReload || !window.HospManagerCache.isLoaded) {
@@ -807,6 +811,11 @@
     }
 
     filterHospitals(false); 
+
+    // 🌟 เปิดการแสดงผลโซน Filter อย่างสวยงามเมื่อพร้อม 100%
+    if (filterGroup) {
+      filterGroup.classList.add('ready');
+    }
   }
 
   function sortHospitals(col) {
