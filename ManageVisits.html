@@ -415,7 +415,6 @@
     } else switchVisitView('visitListView');
   }
 
-  // 🌟 บังคับรันคำสั่งแสดงหน้างานทันทีแบบ Safe Mode
   setTimeout(async function() { 
     try {
       await loadDropdowns(); 
@@ -517,10 +516,10 @@
                   let matchedTeam = globalTeamListLocal.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
                   if (matchedTeam) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -588,7 +587,7 @@
               if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
               new TomSelect('#filterVisitDoctor', { 
                   plugins: ['remove_button'], create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, 
-                  placeholder: safeTranslate('opt_all_doctors', '- All Doctors -'), maxOptions: null, dropdownParent: 'body'
+                  placeholder: safeTranslate('opt_all_doctors', '- ทั้งหมด -'), maxOptions: null, dropdownParent: 'body'
               });
           }
       }
@@ -607,7 +606,7 @@
               if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
               new TomSelect('#filterVisitHospital', { 
                   plugins: ['remove_button'], create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, 
-                  placeholder: safeTranslate('opt_all_hospitals', '- All Hospitals -'), maxOptions: null, dropdownParent: 'body'
+                  placeholder: safeTranslate('opt_all_hospitals', '- ทั้งหมด -'), maxOptions: null, dropdownParent: 'body'
               });
           }
       }
@@ -662,6 +661,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
+  // 🌟 ปรับปรุงการกรองสินค้าให้ถูกต้องตามสิทธิ์ Manager / BU Head / Sales
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -762,28 +762,37 @@
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
-    let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : `<option value="">${safeTranslate('opt_all_users', '- All Users -')}</option>`;
+    let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : `<option value="">${safeTranslate('opt_all_users', '- ทั้งหมด -')}</option>`;
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
     window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
-    let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : `<option value="">${safeTranslate('opt_all_territories', '- All Territories -')}</option>`;
+    let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : `<option value="">${safeTranslate('opt_all_territories', '- ทั้งหมด -')}</option>`;
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
+    // 🌟 ดึงสินค้าตามสิทธิ์ทีมของ Manager / Sales / BU Head
     let allowedProducts = [];
     if (isGlobalViewer) {
         allowedProducts = globalProductsList;
-    } else if (allowedTeamIds.length > 0 && productsTeamList) {
+    } else if (allowedTeamIds.length > 0 && productsTeamList && productsTeamList.length > 0) {
         const allowedProdIds = productsTeamList
-            .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && pt.Status === 'Active')
+            .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
             .map(pt => String(pt.Product_ID));
         allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
-    } else {
+        
+        // Safety Fallback: ถ้าดึงตาม Products_Team แล้วไม่เจอสินค้า ให้ถอยกลับมาแสดงสินค้าที่ถือ Team_ID ตรงๆ
+        if (allowedProducts.length === 0) {
+            allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
+        }
+    }
+    
+    // ถ้ายังคงไม่พบ ให้เปิดเป็นสินค้าทั้งหมดเพื่อป้องกัน Dropdown ว่างเปล่า
+    if (allowedProducts.length === 0) {
         allowedProducts = globalProductsList;
     }
     
-    let pHtml = `<option value="">${safeTranslate('opt_all_products', '- All Products -')}</option>`;
+    let pHtml = `<option value="">${safeTranslate('opt_all_products', '- ทั้งหมด -')}</option>`;
     allowedProducts.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
     prodFilterSelect.innerHTML = pHtml;
 
@@ -793,7 +802,16 @@
         formProdSelect.innerHTML = fHtml;
         if (typeof TomSelect !== 'undefined') {
             if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
-            tomSelectProdInstance = new TomSelect('#visitProductId', { plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: "-- Select Products (Multiple allowed) --", dropdownParent: 'body' });
+            
+            // 🌟 รองรับ 2 ภาษาใน TomSelect Placeholder
+            const prodPlaceholder = safeTranslate('opt_select_products', '-- Select Products --');
+            tomSelectProdInstance = new TomSelect('#visitProductId', { 
+                plugins: ['remove_button'], 
+                create: false, 
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: prodPlaceholder, 
+                dropdownParent: 'body' 
+            });
         }
     }
   }
@@ -827,7 +845,7 @@
         }
         
         const currentTerVal = terSelect.value;
-        let tHtml = hideAllOption ? '' : `<option value="">${safeTranslate('opt_all_territories', '- All Territories -')}</option>`;
+        let tHtml = hideAllOption ? '' : `<option value="">${safeTranslate('opt_all_territories', '- ทั้งหมด -')}</option>`;
         validTers.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
         terSelect.innerHTML = tHtml;
         
@@ -854,7 +872,7 @@
         }
         
         const currentRepVal = repSelect.value;
-        let repHtml = hideAllOption ? '' : `<option value="">${safeTranslate('opt_all_users', '- All Users -')}</option>`;
+        let repHtml = hideAllOption ? '' : `<option value="">${safeTranslate('opt_all_users', '- ทั้งหมด -')}</option>`;
         const uniqueUsersMap = new Map();
         validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
         uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
