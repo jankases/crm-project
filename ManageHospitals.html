@@ -1078,26 +1078,29 @@
       });
   }
 
+  // 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile -> เปิด Tab General Info (แก้ไขให้สลับหน้าเสถียร)
   function goToDoctorProfile(docId) {
-      sessionStorage.setItem('returnToHospId', currentSelectedHospId);
+      sessionStorage.setItem('returnToHospId', currentSelectedHospId); // จำว่ามาจากโรงพยาบาลไหน
       
-      const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
-      allMenus.forEach(btn => {
-          const txt = btn.textContent || btn.innerText;
-          if (txt && (txt.trim().includes('แพทย์') || txt.trim().includes('Doctors')) && !txt.includes('Affiliated')) {
-              btn.click();
-          }
-      });
+      // 1. สั่งโหลดคอมโพเนนต์หน้า Doctor
+      if (typeof window.loadComponent === 'function') {
+          window.loadComponent('doctor');
+      } else {
+          const docMenu = document.querySelector('.nav-menu-item[data-page="doctor"]');
+          if (docMenu) docMenu.click();
+      }
 
+      // 2. รอจนกว่าสคริปต์และ Cache หน้า Doctor จะโหลดมาเสร็จสมบูรณ์
       let attempts = 0;
       const checkReady = setInterval(() => {
           attempts++;
           if (typeof window.openViewDoctorProfile === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
+              // เปิดหน้า Doctor Profile และเน้นไปที่ Tab General Info (#tab-doc-info)
               window.openViewDoctorProfile(docId, '#tab-doc-info'); 
-          } else if (attempts > 50) { 
+          } else if (attempts > 60) { 
               clearInterval(checkReady);
-              alert("Please switch to 'Doctors' menu manually to view this doctor.");
+              alert("Data loading took too long. Please try clicking manually.");
           }
       }, 100);
   }
