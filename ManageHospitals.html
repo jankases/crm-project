@@ -1,10 +1,3 @@
-<!-- นำเข้า Library ตัวช่วยกรอกที่อยู่ไทย (ฟรี 100%) -->
-<link rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
-
 <style>
   /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
   .btn-primary {
@@ -50,7 +43,7 @@
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
 
-  /* 🌟 แก้ไขสไตล์ TomSelect ให้กดคลิกติดง่ายขึ้น ไม่บังไอคอนไมโครโฟน */
+  /* 🌟 ปรับแต่ง TomSelect ให้คลิกได้ทันที 100% */
   .ts-wrapper { position: relative; width: 100%; flex: 1 1 auto; }
   .ts-control { 
     border-radius: 10px !important; 
@@ -66,8 +59,7 @@
   }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   
-  /* บังคับให้ Dropdown ลอยขึ้นมาคลิกง่าย */
-  .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
+  .ts-dropdown { z-index: 99999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
   .hospital-profile-tabs .nav-link {
@@ -225,10 +217,6 @@
           <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
-              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressAdd" placeholder="Type sub-district, district, province or zipcode...">
-            </div>
-            <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
               <textarea class="form-control bg-white" id="hospAddress" rows="3" placeholder="Enter full address..." required></textarea>
             </div>
@@ -293,10 +281,6 @@
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
           <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
           <div class="row g-3">
-             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-fill Address Helper</label>
-              <input type="text" class="form-control bg-white border-primary shadow-sm" id="autoAddressEdit" placeholder="Type sub-district, district, province or zipcode...">
-            </div>
             <div class="col-md-12 mb-2">
               <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
               <textarea class="form-control bg-white" id="editHospAddress" rows="3" required></textarea>
@@ -446,9 +430,6 @@
   var globalProvinces = [];
   var currentSelectedHospId = ""; 
 
-  var isAutoAddressAddInit = false;
-  var isAutoAddressEditInit = false;
-
   var currentHospSortCol = 'nameEn';
   var currentHospSortAsc = true; 
   var currentHospPage = 1;
@@ -468,7 +449,6 @@
   }
 
   var searchRecognition;
-  var isSearchRecording = false;
   var currentSearchInputId = null;
   var currentSearchBtnId = null;
   var currentSearchIconId = null;
@@ -1156,22 +1136,6 @@
   function openAddHospitalView() {
     document.getElementById('addHospitalForm').reset();
     switchHospitalView('hospitalAddView');
-
-    if (!isAutoAddressAddInit) {
-      $.Thailand({
-        database: 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json',
-        $search: $('#autoAddressAdd'),
-        onDataFill: function(data){
-          const textArea = document.getElementById('hospAddress');
-          const currentTxt = textArea.value.trim();
-          const districtPrefix = data.province === 'กรุงเทพมหานคร' ? 'แขวง' : 'ต.';
-          const amphoePrefix = data.province === 'กรุงเทพมหานคร' ? 'เขต' : 'อ.';
-          textArea.value = (currentTxt ? currentTxt + ' ' : '') + `${districtPrefix}${data.district} ${amphoePrefix}${data.amphoe} จ.${data.province} ${data.zipcode}`;
-          $('#autoAddressAdd').val('');
-        }
-      });
-      isAutoAddressAddInit = true; 
-    }
   }
 
   function openEditHospitalView(id) {
@@ -1184,22 +1148,6 @@
     checkPendingDCR(h.id, 'editDcrStatusBadge');
     
     switchHospitalView('hospitalEditView');
-
-    if (!isAutoAddressEditInit) {
-      $.Thailand({
-        database: 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json',
-        $search: $('#autoAddressEdit'),
-        onDataFill: function(data){
-          const textArea = document.getElementById('editHospAddress');
-          const currentTxt = textArea.value.trim();
-          const districtPrefix = data.province === 'กรุงเทพมหานคร' ? 'แขวง' : 'ต.';
-          const amphoePrefix = data.province === 'กรุงเทพมหานคร' ? 'เขต' : 'อ.';
-          textArea.value = (currentTxt ? currentTxt + ' ' : '') + `${districtPrefix}${data.district} ${amphoePrefix}${data.amphoe} จ.${data.province} ${data.zipcode}`;
-          $('#autoAddressEdit').val('');
-        }
-      });
-      isAutoAddressEditInit = true; 
-    }
   }
 
   async function handleAddHospital(e) {
