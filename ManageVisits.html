@@ -498,16 +498,14 @@
               window.VisitManagerCache.assignedDoctors = allDoctors;
               window.VisitManagerCache.assignedHospitals = allHospitals;
           } else {
+              // 🌟 แก้ไขจุดเกิดเหตุ: ต้องเปิดให้ขอบเขตไม่ใช่ Global Viewer เรียกใช้งานได้ด้วย
               if (globalCurrentUserRole === 'BU Head' || globalCurrentUserRole === 'BU') {
-                  // 🌟 1. หา BU ID ที่ตรงกับ Scope (เช่น LUNG)
                   const matchedBu = globalBuListLocal.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
                   const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-                  // 🌟 2. หา Team ทั้งหมดที่มี BU_ID ตรงกัน (เช่น LUNG1)
                   const matchedTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
                   const matchedTeamIds = matchedTeams.map(t => String(t.Team_ID));
 
-                  // 🌟 3. หา Territory ทั้งหมดของทุกทีมใน BU นี้ (เช่น L1, L2, L3)
                   const terrs = globalTerritoryListLocal.filter(ter => matchedTeamIds.includes(String(ter.Team_ID)) || String(ter.BU_ID) === targetBuId);
                   terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
 
@@ -533,7 +531,6 @@
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
 
-              // 🌟 สำหรับ BU Head / Manager ให้เห็น Doctor ทั้งหมดที่ผูกกับ Territory สังกัดทีม
               if (['BU Head', 'BU', 'Manager', 'Sales Manager'].includes(globalCurrentUserRole)) {
                   window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => 
                       allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)) ||
@@ -693,7 +690,6 @@
       allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
     } else {
       if (userRole === 'BU Head' || userRole === 'BU') {
-          // 🌟 1. ดึงทีมทั้งหมดที่ผูกกับ BU LUNG (เช่น LUNG1)
           const buList = window.VisitManagerCache.bus || [];
           const matchedBu = buList.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
           const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
@@ -730,7 +726,6 @@
       const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
       if (userName) allowedNames.push(userName);
 
-      // 🌟 ดึงลูกน้องทั้งหมดที่อยู่ใน Team_ID หรือ Territory_ID สังกัด BU
       if (userRole !== 'Sales' && userRole !== 'Rep') {
           const subUsers = globalUsersList.filter(u => {
               const uTeam = String(u.Team_ID || u.Team || u.team_id || '');
@@ -992,7 +987,6 @@
         const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
         const vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
 
-        // 🌟 สแกนหา Rep_ID / Territory_ID / Email ของลูกทีมภายใต้ BU
         if (window.myAllowedRepIds.includes(rawRepId) || 
             window.myAllowedTerIds.includes(vTerrId) || 
             window.myAllowedEmails.includes(rawWho) || 
@@ -1003,7 +997,6 @@
 
       if (!hasSecurityAccess) return false;
 
-      // 🌟 BU Head & Manager ไม่โดนบล็อกหากหมอใน Log ไม่ได้ผูกกับ Assignment ตรงๆ
       if (!window.myIsGlobalViewer && !['BU Head', 'BU', 'Manager', 'Sales Manager'].includes(globalCurrentUserRole)) {
           const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase());
           if (!isDocAssigned) return false; 
