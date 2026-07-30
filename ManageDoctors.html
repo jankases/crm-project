@@ -416,7 +416,7 @@
             </table>
           </div>
 
-          <!-- 🌟 ส่วนควบคุมการแบ่งหน้าใน Tab Visit History -->
+          <!-- ส่วนควบคุมการแบ่งหน้าใน Tab Visit History -->
           <div id="pvisitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
             <div class="d-flex align-items-center mb-3 mb-md-0">
               <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
@@ -484,7 +484,7 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
+  // ฟังก์ชันดึงข้อมูลทะลุขีดจำกัด 1000 รายการของ Supabase
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -542,7 +542,6 @@
   var currentPVisitSortCol = 'date';
   var currentPVisitSortAsc = false;
   
-  // 🌟 ตัวแปร Pagination สำหรับ Visit History ใน Doctor Profile
   var currentPVisitPage = 1;
   var pvisitRowsPerPage = 10;
 
@@ -691,14 +690,7 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
-  // 🌟 เริ่มต้นสั่งสร้าง TomSelect Placeholder เปล่าๆ ทันทีที่เปิดหน้า ป้องกันกล่องแหว่ง
   setTimeout(async function() {
-    if (typeof TomSelect !== 'undefined') {
-      initMultiTomSelect('filterDocName', safeTranslate('opt_all_doctors', '- All Doctors -'));
-      initMultiTomSelect('filterDocWorkplace', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
-      initMultiTomSelect('filterDocSpecialty', safeTranslate('opt_all_specialties', '- All Specialties -'));
-      initMultiTomSelect('filterDocType', safeTranslate('opt_all_types', '- All Types -'));
-    }
     await loadIndexDropdowns(); 
     await loadDoctors();
   }, 100);
@@ -727,10 +719,13 @@
       });
   }
 
+  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
-      if(el.tomselect) el.tomselect.destroy();
+      if(el.tomselect) {
+          el.tomselect.destroy();
+      }
       new TomSelect(`#${id}`, { 
           plugins: ['remove_button'],
           create: false, 
@@ -738,8 +733,7 @@
           sortField: { field: "text", direction: "asc" }, 
           placeholder: placeholder, 
           allowEmptyOption: true, 
-          maxOptions: null,
-          dropdownParent: 'body' 
+          maxOptions: null
       });
   }
 
@@ -1557,7 +1551,7 @@
       globalCurrentDoctorVisitProducts = vpRes.data || [];
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
 
-      currentPVisitPage = 1; // 🌟 รีเซ็ตกลับไปหน้า 1 เมื่อโหลดใหม่
+      currentPVisitPage = 1;
       filterAndRenderDoctorVisits();
 
     } catch(err) {
@@ -1565,7 +1559,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันจัดการแบ่งหน้าใน Tab Visit History
   function changePVisitRowsPerPage() {
     const selectEl = document.getElementById('pvisitRowsPerPage');
     pvisitRowsPerPage = parseInt(selectEl.value);
@@ -1699,7 +1692,6 @@
 
     if (pagCont) pagCont.classList.remove('d-none');
 
-    // 🌟 คำนวณแบ่งหน้า Pagination ใน Tab Visit History
     const totalItems = mappedData.length;
     const totalPages = Math.ceil(totalItems / pvisitRowsPerPage);
     if (currentPVisitPage > totalPages) currentPVisitPage = totalPages;
@@ -1733,7 +1725,6 @@
     renderPVisitPaginationControls(totalPages);
   }
 
-  // 🌟 ฟังก์ชันวาดปุ่ม Pagination ของ Visit History ใน Profile
   function renderPVisitPaginationControls(totalPages) {
     const ul = document.getElementById('pvisitPagination');
     if (!ul) return;
