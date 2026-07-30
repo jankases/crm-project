@@ -9,6 +9,11 @@
     border-color: #0a58ca !important;
   }
 
+  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
+  select.form-select[multiple]:not(.tomselected) {
+    display: none !important;
+  }
+
   /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
@@ -27,7 +32,7 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้สวยงามและสม่ำเสมอ */
+  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับระบบและสบายตา */
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
@@ -410,6 +415,25 @@
               </tbody>
             </table>
           </div>
+
+          <!-- 🌟 ส่วนควบคุมการแบ่งหน้าใน Tab Visit History -->
+          <div id="pvisitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+              <select class="form-select form-select-sm shadow-sm" id="pvisitRowsPerPage" onchange="changePVisitRowsPerPage()" style="width: 80px; border-radius: 8px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination">
+              </ul>
+            </nav>
+          </div>
+
         </div>
 
         <!-- Tab: Target Call -->
@@ -517,6 +541,10 @@
   var globalCurrentDoctorVisitProducts = [];
   var currentPVisitSortCol = 'date';
   var currentPVisitSortAsc = false;
+  
+  // 🌟 ตัวแปร Pagination สำหรับ Visit History ใน Doctor Profile
+  var currentPVisitPage = 1;
+  var pvisitRowsPerPage = 10;
 
   var currentDocSortCol = 'nameEn';
   var currentDocSortAsc = true; 
@@ -666,10 +694,10 @@
   // 🌟 เริ่มต้นสั่งสร้าง TomSelect Placeholder เปล่าๆ ทันทีที่เปิดหน้า ป้องกันกล่องแหว่ง
   setTimeout(async function() {
     if (typeof TomSelect !== 'undefined') {
-      initMultiTomSelect('filterDocName', safeTranslate('opt_all_doctors', 'Loading Doctors...'));
-      initMultiTomSelect('filterDocWorkplace', safeTranslate('opt_all_hospitals', 'Loading Hospitals...'));
-      initMultiTomSelect('filterDocSpecialty', safeTranslate('opt_all_specialties', 'Loading Specialties...'));
-      initMultiTomSelect('filterDocType', safeTranslate('opt_all_types', 'Loading Types...'));
+      initMultiTomSelect('filterDocName', safeTranslate('opt_all_doctors', '- All Doctors -'));
+      initMultiTomSelect('filterDocWorkplace', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
+      initMultiTomSelect('filterDocSpecialty', safeTranslate('opt_all_specialties', '- All Specialties -'));
+      initMultiTomSelect('filterDocType', safeTranslate('opt_all_types', '- All Types -'));
     }
     await loadIndexDropdowns(); 
     await loadDoctors();
@@ -1529,11 +1557,25 @@
       globalCurrentDoctorVisitProducts = vpRes.data || [];
       globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
 
+      currentPVisitPage = 1; // 🌟 รีเซ็ตกลับไปหน้า 1 เมื่อโหลดใหม่
       filterAndRenderDoctorVisits();
 
     } catch(err) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load failed: ${err.message}</td></tr>`;
     }
+  }
+
+  // 🌟 ฟังก์ชันจัดการแบ่งหน้าใน Tab Visit History
+  function changePVisitRowsPerPage() {
+    const selectEl = document.getElementById('pvisitRowsPerPage');
+    pvisitRowsPerPage = parseInt(selectEl.value);
+    currentPVisitPage = 1;
+    filterAndRenderDoctorVisits();
+  }
+
+  function goToPVisitPage(page) {
+    currentPVisitPage = page;
+    filterAndRenderDoctorVisits();
   }
 
   function filterAndRenderDoctorVisits() {
@@ -1647,12 +1689,30 @@
     });
 
     tbody.innerHTML = '';
+    const pagCont = document.getElementById('pvisitPaginationContainer');
+
     if(mappedData.length === 0) {
+      if (pagCont) pagCont.classList.add('d-none');
       tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No visit history found.</td></tr>';
       return;
     }
 
-    mappedData.forEach(v => {
+    if (pagCont) pagCont.classList.remove('d-none');
+
+    // 🌟 คำนวณแบ่งหน้า Pagination ใน Tab Visit History
+    const totalItems = mappedData.length;
+    const totalPages = Math.ceil(totalItems / pvisitRowsPerPage);
+    if (currentPVisitPage > totalPages) currentPVisitPage = totalPages;
+    if (currentPVisitPage < 1) currentPVisitPage = 1;
+
+    const startIndex = (currentPVisitPage - 1) * pvisitRowsPerPage;
+    const endIndex = Math.min(startIndex + pvisitRowsPerPage, totalItems);
+
+    document.getElementById('pvisitPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
+
+    const paginatedData = mappedData.slice(startIndex, endIndex);
+
+    paginatedData.forEach(v => {
       const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
       tbody.innerHTML += `
         <tr class="align-middle">
@@ -1669,6 +1729,44 @@
         </tr>
       `;
     });
+
+    renderPVisitPaginationControls(totalPages);
+  }
+
+  // 🌟 ฟังก์ชันวาดปุ่ม Pagination ของ Visit History ใน Profile
+  function renderPVisitPaginationControls(totalPages) {
+    const ul = document.getElementById('pvisitPagination');
+    if (!ul) return;
+    let html = '';
+
+    html += `<li class="page-item ${currentPVisitPage === 1 ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToPVisitPage(${currentPVisitPage - 1}); return false;">&laquo; Prev</a>
+            </li>`;
+
+    let startPage = Math.max(1, currentPVisitPage - 2);
+    let endPage = Math.min(totalPages, currentPVisitPage + 2);
+
+    if (startPage > 1) {
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPVisitPage(1); return false;">1</a></li>`;
+        if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<li class="page-item ${currentPVisitPage === i ? 'active' : ''}">
+                  <a class="page-link shadow-sm" href="#" onclick="goToPVisitPage(${i}); return false;">${i}</a>
+                </li>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>`;
+        html += `<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPVisitPage(${totalPages}); return false;">${totalPages}</a></li>`;
+    }
+
+    html += `<li class="page-item ${currentPVisitPage === totalPages ? 'disabled' : ''}">
+              <a class="page-link shadow-sm" href="#" onclick="goToPVisitPage(${currentPVisitPage + 1}); return false;">Next &raquo;</a>
+            </li>`;
+
+    ul.innerHTML = html;
   }
 
   function goToQuickAddCall() {
