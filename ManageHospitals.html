@@ -558,6 +558,7 @@
     window.scrollTo(0, 0); 
   }
 
+  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -1073,10 +1074,10 @@
       });
   }
 
-  // 🌟 ฟังก์ชันวาร์ปไปหน้า Edit Doctor (DCR) (แก้ไขส่งคำสั่งเปิดทาง sessionStorage ป้องกันหลุดหน้า)
+  // 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile -> Tab General Info
   function goToDoctorProfile(docId) {
       sessionStorage.setItem('returnToHospId', currentSelectedHospId);
-      sessionStorage.setItem('directEditDocId', docId); // 🌟 ฝาก ID ให้หน้า Doctor เปิด Edit ทันที
+      sessionStorage.setItem('directViewDocId', docId); // 🌟 ฝาก ID ให้หน้า Doctor เปิด View Profile ทันที
       
       if (typeof window.loadComponent === 'function') {
           window.loadComponent('doctor');
@@ -1088,10 +1089,10 @@
       let attempts = 0;
       const checkReady = setInterval(() => {
           attempts++;
-          if (typeof window.openEditDoctorView === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
+          if (typeof window.openViewDoctorProfile === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
               setTimeout(() => {
-                  window.openEditDoctorView(docId);
+                  window.openViewDoctorProfile(docId, '#tab-doc-info'); // 🌟 เปิดหน้า Doctor Profile
               }, 50);
           } else if (attempts > 60) { 
               clearInterval(checkReady);
