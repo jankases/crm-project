@@ -3,6 +3,11 @@
   .form-control, .form-select { min-height: 42px; border-radius: 10px; }
   .form-control:disabled, .form-select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 1; }
   
+  /* 🌟 แก้ไข: ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
+  select.form-select[multiple]:not(.tomselected) {
+    display: none !important;
+  }
+
   /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
   .btn-primary {
     background-color: #0d6efd !important;
@@ -498,7 +503,6 @@
               window.VisitManagerCache.assignedDoctors = allDoctors;
               window.VisitManagerCache.assignedHospitals = allHospitals;
           } else {
-              // 🌟 แก้ไขจุดเกิดเหตุ: ต้องเปิดให้ขอบเขตไม่ใช่ Global Viewer เรียกใช้งานได้ด้วย
               if (globalCurrentUserRole === 'BU Head' || globalCurrentUserRole === 'BU') {
                   const matchedBu = globalBuListLocal.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
                   const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
