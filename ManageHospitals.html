@@ -85,8 +85,8 @@
   <div id="hospitalListView">
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
       <div>
-        <h3 class="text-primary fw-bold mb-1"><i class="fa-regular fa-hospital me-2"></i>Hospitals Management</h3>
-        <p class="text-muted mb-0">Database of Hospitals and Workplaces</p>
+        <h3 class="text-primary fw-bold mb-1"><i class="fa-regular fa-hospital me-2"></i><span data-i18n="hosp_title">Hospitals Management</span></h3>
+        <p class="text-muted mb-0" data-i18n="hosp_subtitle">Database of Hospitals and Workplaces</p>
       </div>
       
       <div class="d-flex gap-2">
@@ -94,7 +94,7 @@
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
         <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddHospitalView()">
-          <i class="fa-solid fa-plus me-2"></i>Add New Hospital
+          <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_hosp">Add New Hospital</span>
         </button>
       </div>
     </div>
@@ -103,7 +103,7 @@
     <div class="row mb-4 hospital-filter-group g-3 align-items-end">
       
       <div class="col-sm-12 col-md-6 col-lg-4">
-        <label class="form-label fw-bold text-secondary small mb-1">Hospital Name (EN/TH)</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hosp_name">Hospital Name (EN/TH)</label>
         <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <select class="form-select bg-white" id="filterHospName" onchange="filterHospitals()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterHospName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
@@ -113,18 +113,18 @@
       </div>
 
       <div class="col-sm-6 col-md-3 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Province</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_province">Province</label>
         <select class="form-select shadow-sm" id="filterHospProvince" onchange="filterHospitals()" multiple></select>
       </div>
 
       <div class="col-sm-6 col-md-3 col-lg-3">
-        <label class="form-label fw-bold text-secondary small mb-1">Zone</label>
+        <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_zone">Zone</label>
         <select class="form-select shadow-sm" id="filterHospZone" onchange="filterHospitals()" multiple></select>
       </div>
 
       <div class="col-sm-12 col-md-12 col-lg-2 d-flex justify-content-end">
         <button class="btn btn-light border fw-bold w-100 shadow-sm text-secondary" type="button" onclick="clearHospitalFilters()" style="min-height: 42px; border-radius: 10px;">
-          <i class="fa-solid fa-eraser me-1"></i> Clear Filters
+          <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
         </button>
       </div>
 
@@ -136,13 +136,13 @@
         <table class="table table-hover table-hospital align-middle" style="font-size: 0.95rem;">
           <thead class="table-hospital-header text-center">
             <tr>
-              <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')">Hospital Name (EN) <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-hosp-nameEn"></i></th>
-              <th class="py-3 sortable-th" onclick="sortHospitals('knownAs')">Known As (TH) <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-knownAs"></i></th>
-              <th class="py-3 sortable-th" onclick="sortHospitals('province')">Province <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-province"></i></th>
-              <th class="py-3 sortable-th" onclick="sortHospitals('zone')">Zone <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-zone"></i></th>
-              <th class="py-3 sortable-th" onclick="sortHospitals('salesId')">Sales ID <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-salesId"></i></th>
-              <th class="py-3 sortable-th" onclick="sortHospitals('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-status"></i></th>
-              <th class="py-3">Action</th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('nameEn')"><span data-i18n="th_hosp_name_en">Hospital Name (EN)</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-hosp-nameEn"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('knownAs')"><span data-i18n="th_known_as_th">Known As (TH)</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-knownAs"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('province')"><span data-i18n="th_province">Province</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-province"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('zone')"><span data-i18n="th_zone">Zone</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-zone"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('salesId')"><span data-i18n="th_sales_id">Sales ID</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-salesId"></i></th>
+              <th class="py-3 sortable-th" onclick="sortHospitals('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hosp-status"></i></th>
+              <th class="py-3" data-i18n="th_action">Action</th>
             </tr>
           </thead>
           <tbody id="hospitalTableBody">
@@ -154,7 +154,7 @@
       <!-- ส่วนควบคุมการแบ่งหน้า (Pagination) -->
       <div id="hospitalPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
-          <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
+          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
           <select class="form-select form-select-sm shadow-sm" id="hospitalRowsPerPage" onchange="changeHospRowsPerPage()" style="width: 80px; border-radius: 8px;">
             <option value="10">10</option>
             <option value="20" selected>20</option>
@@ -176,7 +176,7 @@
   <div id="hospitalAddView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> Back
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0">🏥 Add New Hospital (DCR)</h4>
     </div>
@@ -225,7 +225,7 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">Cancel</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">Submit DCR</button>
         </div>
       </form>
@@ -236,7 +236,7 @@
   <div id="hospitalEditView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> Back
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0">✏️ Edit Hospital (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
@@ -294,7 +294,7 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')">Cancel</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">Submit DCR</button>
         </div>
       </form>
@@ -305,7 +305,7 @@
   <div id="hospitalProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
-        <i class="fa-solid fa-arrow-left me-1"></i> Back
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <button class="btn btn-primary fw-bold me-3 shadow-sm rounded-pill px-3" onclick="openEditHospitalView(currentSelectedHospId)">
         <i class="fa-solid fa-pen-to-square me-1"></i> Edit Hospital (DCR)
@@ -316,7 +316,7 @@
     
     <div class="card p-4 p-md-5 border-0 shadow-sm" style="border-radius: 15px;">
       
-      <!-- 🌟 เพิ่ม Tabs สำหรับแยกส่วนเนื้อหา -->
+      <!-- 🌟 Tabs สำหรับแยกส่วนเนื้อหา -->
       <ul class="nav nav-pills hospital-profile-tabs mb-4 border-bottom pb-3" role="tablist">
         <li class="nav-item">
           <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-hosp-info" type="button"><i class="fa-solid fa-circle-info me-1"></i> General Info</button>
@@ -327,7 +327,7 @@
       </ul>
 
       <div class="tab-content">
-        <!-- 🌟 Tab 1: ข้อมูลโรงพยาบาลทั่วไป -->
+        <!-- Tab 1: ข้อมูลโรงพยาบาลทั่วไป -->
         <div class="tab-pane fade show active" id="tab-hosp-info">
           <div class="row mb-3">
             <div class="col-md-6 mb-3">
@@ -363,7 +363,7 @@
           </div>
         </div>
 
-        <!-- 🌟 Tab 2: รายชื่อแพทย์ประจำโรงพยาบาลนี้ (กรองตามสิทธิ์) -->
+        <!-- Tab 2: รายชื่อแพทย์ประจำโรงพยาบาลนี้ (กรองตามสิทธิ์) -->
         <div class="tab-pane fade" id="tab-hosp-doctors">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-users me-2"></i>Doctors Affiliated with this Hospital</h6>
@@ -394,6 +394,15 @@
 </div>
 
 <script>
+  // 🌟 Helper แปลภาษาอย่างปลอดภัย
+  function safeTranslate(key, fallbackText) {
+    if (typeof t === 'function') {
+      const res = t(key);
+      return res !== key ? res : fallbackText;
+    }
+    return fallbackText;
+  }
+
   async function fetchAllRecords(tableName, queryModifier = null) {
       let allData = [];
       let start = 0;
@@ -417,7 +426,7 @@
       indexLoaded: false,
       hospitals: [],
       provinces: [],
-      assignedDoctors: [], // 🌟 เก็บรายชื่อหมอที่ User มีสิทธิ์
+      assignedDoctors: [],
       filters: { name: [], prov: [], zone: [], page: 1, rows: 20, sortCol: 'nameEn', sortAsc: true } 
   };
 
@@ -560,7 +569,6 @@
       });
   }
 
-  // 🌟 โหลดข้อมูลจากตาราง Province 
   async function loadIndexDropdowns(forceReload = false) {
     try {
       window.HospManagerCache = window.HospManagerCache || {};
@@ -600,7 +608,6 @@
           const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
           const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-          // 🌟 สแกนหาสิทธิ์ Global Viewer
           let isGlobalViewer = false;
           if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
           const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
@@ -616,7 +623,7 @@
             fetchAllRecords('Assignment'),
             supabaseClient.from('Territory').select('*'),
             supabaseClient.from('Team').select('*'),
-            fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })), // 🌟 ดึงหมอทั้งหมด
+            fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
             supabaseClient.from('DCR').select('*').eq('Action', 'Add Hospital').eq('Status', 'Pending'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Edit Hospital').eq('Status', 'Pending')
           ]);
@@ -655,18 +662,14 @@
           let visibleHospitals = allHospitals;
           
           if (isGlobalViewer) {
-              window.HospManagerCache.assignedDoctors = allDocs; // เก็บรายชื่อหมอเพื่อเอาไปโชว์ใน Tab
+              window.HospManagerCache.assignedDoctors = allDocs;
           } else {
               const myAssignments = assignments.filter(a => allowedTerIds.includes(String(a.Territory_ID || a.Territory)));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
-              
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               
-              // 🌟 เก็บรายชื่อหมอที่ตัวเองมีสิทธิ์ไว้แสดงใน Tab
               window.HospManagerCache.assignedDoctors = allDocs.filter(d => allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)));
-              
               const implicitHospIds = window.HospManagerCache.assignedDoctors.map(d => String(d.Hospital_ID || d.hospital_id));
-
               const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
 
               visibleHospitals = allHospitals.filter(h => allAllowedHospIds.includes(String(h.Hospital_ID || h.id)));
@@ -674,7 +677,6 @@
 
           const pendingEditIds = (pendingEditRes.data || []).map(d => d.Ref_ID);
 
-          // 🌟 Map ข้อมูลโดยอ้างอิงจาก Province_ID
           let list = visibleHospitals.map(h => {
              let provName = '-';
              let zoneName = '-';
@@ -708,7 +710,6 @@
             pendingAddDcrs.forEach(d => {
               try {
                 const req = typeof d.Requested_Data === 'string' ? JSON.parse(d.Requested_Data) : d.Requested_Data;
-                
                 let provName = '-'; let zoneName = '-';
                 let provObj = globalProvinces.find(p => p.Province_ID === req.Province_ID);
                 if (provObj) { provName = provObj.Province; zoneName = provObj.Zone; } 
@@ -741,6 +742,7 @@
 
     globalHospitals = window.HospManagerCache.hospitals;
 
+    // 🌟 เรียกใช้ safeTranslate สำหรับ TomSelect Placeholder
     const filterHospNameSelect = document.getElementById('filterHospName');
     if (filterHospNameSelect) {
         filterHospNameSelect.innerHTML = '';
@@ -751,7 +753,7 @@
             opt.textContent = `${h.name}${knownAsShow}`; 
             filterHospNameSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterHospName', '- All Hospitals -');
+        initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
     }
 
     const filterProvSelect = document.getElementById('filterHospProvince');
@@ -764,7 +766,7 @@
             opt.textContent = prov;
             filterProvSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterHospProvince', '- All Provinces -');
+        initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- All Provinces -'));
     }
 
     const filterZoneSelect = document.getElementById('filterHospZone');
@@ -777,7 +779,7 @@
             opt.textContent = zone;
             filterZoneSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterHospZone', '- All Zones -');
+        initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- All Zones -'));
     }
 
     if (window.HospManagerCache.filters) {
@@ -900,6 +902,7 @@
     renderHospitalTable();
   }
 
+  // 🌟 ฟังก์ชัน Render ตาราง ให้ดึงข้อความปุ่ม Edit แปลภาษา
   function renderHospitalTable() {
     const tbody = document.getElementById('hospitalTableBody'); 
     if(!tbody) return; 
@@ -929,7 +932,8 @@
     paginatedData.forEach(h => {
       let badge = 'bg-success';
       let statusText = h.status || 'Active';
-      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
+      let btnEditText = safeTranslate('btn_edit', 'Edit');
+      let actionButton = `<button class="btn btn-sm btn-light border shadow-sm text-primary fw-bold rounded-pill px-3" onclick="openEditHospitalView('${h.id}')"><i class="fa-solid fa-pen"></i> ${btnEditText}</button>`;
 
       if (h.isPendingDcr) {
         badge = 'bg-warning text-dark';
@@ -1003,7 +1007,6 @@
     } catch (err) {}
   }
 
-  // 🌟 ฟังก์ชันเรนเดอร์รายชื่อหมอใน Tab ที่ 2 ของหน้า Profile
   function renderHospDoctors(hospId) {
       const tbody = document.getElementById('viewHospDoctorsBody');
       if (!tbody) return;
@@ -1016,13 +1019,11 @@
           let isAffiliated = false;
           let workplaceType = '';
 
-          // 1. ตรวจสอบว่าเป็น Primary Hospital ตรงๆ หรือไม่
           if (String(doc.Hospital_ID || doc.hospital_id) === String(hospId)) {
               isAffiliated = true;
               workplaceType = 'Primary';
           }
 
-          // 2. ตรวจสอบใน Workplaces_JSON (มีสิทธิ์เป็น Primary หรือ Secondary)
           if (doc.Workplaces_JSON || doc.workplaces_json) {
               try {
                   const wps = JSON.parse(doc.Workplaces_JSON || doc.workplaces_json);
@@ -1063,9 +1064,8 @@
       });
   }
 
-// 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile -> เปิด Tab General Info
   function goToDoctorProfile(docId) {
-      sessionStorage.setItem('returnToHospId', currentSelectedHospId); // จำว่ามาจากโรงพยาบาลไหน
+      sessionStorage.setItem('returnToHospId', currentSelectedHospId);
       
       const allMenus = document.querySelectorAll('.nav-link, a, button, .menu-item');
       allMenus.forEach(btn => {
@@ -1080,7 +1080,6 @@
           attempts++;
           if (typeof window.openViewDoctorProfile === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
-              // 👈 ส่ง '#tab-doc-info' เข้าไปเพื่อให้เจาะจงเปิดหน้า General Info
               window.openViewDoctorProfile(docId, '#tab-doc-info'); 
           } else if (attempts > 50) { 
               clearInterval(checkReady);
@@ -1099,7 +1098,6 @@
     document.getElementById('viewHospStatus').className = `form-control bg-light fw-bold ${h.status === 'Active' ? 'text-success' : 'text-danger'}`;
     checkPendingDCR(h.id, 'profileDcrStatusBadge'); 
     
-    // 🌟 รีเซ็ต Tab กลับไปหน้าแรกเสมอ และเรนเดอร์รายชื่อหมอ
     const firstTabEl = document.querySelector('#hospitalProfileView .nav-link');
     if(firstTabEl) { const tab = new bootstrap.Tab(firstTabEl); tab.show(); }
     renderHospDoctors(h.id);
