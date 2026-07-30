@@ -9,11 +9,6 @@
     border-color: #0a58ca !important;
   }
 
-  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
-  select.form-select[multiple]:not(.tomselected) {
-    display: none !important;
-  }
-
   /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
@@ -32,8 +27,8 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้เข้ากับระบบและสบายตา */
-  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
+  /* 🌟 ปรับแต่ง TomSelect ให้สวยงามและสม่ำเสมอ */
+  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
@@ -64,12 +59,10 @@
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
   }
 
-  /* คลาสสำหรับหัวตารางที่กดเรียงลำดับได้ */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
 
-  /* ตกแต่งปุ่มแบ่งหน้า (Pagination) */
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
@@ -100,7 +93,7 @@
       
       <div class="col-sm-6 col-md-6 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_name">Doctor Name (EN/TH)</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+        <div class="input-group shadow-sm" style="border-radius: 10px;">
           <select class="form-select bg-white" id="filterDocName" onchange="filterDoctors()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
@@ -110,7 +103,7 @@
 
       <div class="col-sm-6 col-md-6 col-lg-3">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hosp_name">Hospital Name (EN/TH)</label>
-        <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+        <div class="input-group shadow-sm" style="border-radius: 10px;">
           <select class="form-select bg-white" id="filterDocWorkplace" onchange="filterDoctors()" multiple></select>
           <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
             <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
@@ -120,12 +113,12 @@
 
       <div class="col-sm-6 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_specialty">Specialty</label>
-        <select class="form-select shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()" multiple></select>
+        <select class="form-select bg-white shadow-sm" id="filterDocSpecialty" onchange="filterDoctors()" multiple></select>
       </div>
 
       <div class="col-sm-6 col-md-4 col-lg-2">
         <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_type">Doctor Type</label>
-        <select class="form-select shadow-sm" id="filterDocType" onchange="filterDoctors()" multiple></select>
+        <select class="form-select bg-white shadow-sm" id="filterDocType" onchange="filterDoctors()" multiple></select>
       </div>
 
       <div class="col-sm-12 col-md-4 col-lg-2 d-flex justify-content-end">
@@ -670,10 +663,17 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
+  // 🌟 เริ่มต้นสั่งสร้าง TomSelect Placeholder เปล่าๆ ทันทีที่เปิดหน้า ป้องกันกล่องแหว่ง
   setTimeout(async function() {
+    if (typeof TomSelect !== 'undefined') {
+      initMultiTomSelect('filterDocName', safeTranslate('opt_all_doctors', 'Loading Doctors...'));
+      initMultiTomSelect('filterDocWorkplace', safeTranslate('opt_all_hospitals', 'Loading Hospitals...'));
+      initMultiTomSelect('filterDocSpecialty', safeTranslate('opt_all_specialties', 'Loading Specialties...'));
+      initMultiTomSelect('filterDocType', safeTranslate('opt_all_types', 'Loading Types...'));
+    }
     await loadIndexDropdowns(); 
     await loadDoctors();
-  }, 300);
+  }, 100);
 
   function switchDoctorView(viewId) {
     ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
