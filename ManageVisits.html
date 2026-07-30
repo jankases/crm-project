@@ -3,6 +3,23 @@
   .form-control, .form-select { min-height: 42px; border-radius: 10px; }
   .form-control:disabled, .form-select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 1; }
   
+  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional */
+  .btn-primary {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+  }
+  .btn-primary:hover {
+    background-color: #0b5ed7 !important;
+    border-color: #0a58ca !important;
+  }
+
+  /* ตารางสไตล์องค์กร สบายตา */
+  .table-custom-header {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 600;
+  }
+
   .mic-active { 
     animation: pulse-red 1.5s infinite; 
     border-color: #dc3545 !important; 
@@ -14,15 +31,15 @@
   }
   
   .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
-  .ts-control .item { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; }
+  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
   
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
-  .ts-dropdown .active { background-color: #e9ecef !important; color: #0d6efd !important; }
+  .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
-  .sortable-th:hover { background-color: #e2e6ea; color: #0d6efd; }
+  .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
   .sortable-th i { transition: transform 0.2s; }
 
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
@@ -134,7 +151,7 @@
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle" style="font-size: 0.95rem;">
-          <thead class="table-light text-center">
+          <thead class="table-custom-header text-center">
             <tr>
               <th class="py-3 sortable-th" onclick="sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
               <th class="py-3 sortable-th" onclick="sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
@@ -493,6 +510,7 @@
               } else if (globalCurrentUserRole === 'BU Head') {
                   const buTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
                   buTeams.forEach(t => {
+                      allowedTeamIds.push(String(t.Team_ID));
                       const terrs = globalTerritoryListLocal.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
                       terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
                   });
@@ -1146,7 +1164,7 @@
         visitProds.forEach(pid => {
             const pObj = globalProductsList.find(p => String(p.Product_ID) === pid);
             const pName = pObj ? pObj.Product : pid;
-            prodBadges += `<span class="badge bg-light text-dark border me-1 mb-1 shadow-sm">${pName}</span>`;
+            prodBadges += `<span class="badge bg-light text-primary border border-primary-subtle me-1 mb-1 shadow-sm">${pName}</span>`;
         });
       } else {
         prodBadges = '<span class="text-muted small">-</span>';
