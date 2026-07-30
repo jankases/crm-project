@@ -3,7 +3,7 @@
   .form-control, .form-select { min-height: 42px; border-radius: 10px; }
   .form-control:disabled, .form-select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 1; }
   
-  /* 🌟 แก้ไข: ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
+  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
   select.form-select[multiple]:not(.tomselected) {
     display: none !important;
   }
@@ -35,7 +35,7 @@
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } 
   }
   
-  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; }
+  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
   .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
@@ -482,7 +482,7 @@
             supabaseClient.from('Territory').select('*'),
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
             supabaseClient.from('Team').select('*'),            
-            supabaseClient.from('Business_Unit').select('*'),            
+            supabaseClient.from('BU').select('*'),            
             fetchAllRecords('Products_Team'),   
             supabaseClient.from('IndexType').select('*'),
             supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
