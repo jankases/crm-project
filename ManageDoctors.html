@@ -9,6 +9,11 @@
     border-color: #0a58ca !important;
   }
 
+  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
+  select.form-select[multiple]:not(.tomselected) {
+    display: none !important;
+  }
+
   /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
@@ -1414,6 +1419,7 @@
     switchDoctorView('doctorEditView');
   }
 
+  // 🌟 ฟังก์ชันเปิดหน้า Doctor Profile (เจาะจง Tab ได้)
   async function openViewDoctorProfile(id, targetTab = '#tab-doc-info') {
     currentTargetDocId = id; 
     const d = globalDoctors.find(x => x.id === id); 
@@ -1464,6 +1470,7 @@
     loadDoctorVisitHistory(id);
     await loadDoctorRatings(id);
 
+    // 🌟 สลับ Tab ไปยังจุดที่ต้องการ (default คือ General Info)
     const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTab}"]`);
     if(tabEl) { 
       const tab = new bootstrap.Tab(tabEl); 
