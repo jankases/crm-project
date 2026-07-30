@@ -182,6 +182,14 @@
         msg_load_failed: "Failed to load screen",
         msg_check_file: "Please check if the file exists.",
 
+        // --- เพิ่มเติม: ตัวเลือก/ตัวกรอง Dropdown ---
+        opt_all: "- All -",
+        opt_all_doctors: "- All Doctors -",
+        opt_all_hospitals: "- All Hospitals -",
+        opt_all_users: "- All Users -",
+        opt_all_territories: "- All Territories -",
+        opt_all_products: "- All Products -",
+
         // --- เพิ่มเติม: หน้า Visit Logs ---
         visit_title: "Visit Logs",
         visit_subtitle: "Doctor visits and daily activity logs",
@@ -240,6 +248,14 @@
         msg_loading: "กำลังโหลดระบบ...",
         msg_load_failed: "ไม่สามารถโหลดหน้าจอได้",
         msg_check_file: "โปรดตรวจสอบว่าสร้างไฟล์นี้ไว้แล้วหรือยัง",
+
+        // --- เพิ่มเติม: ตัวเลือก/ตัวกรอง Dropdown ---
+        opt_all: "- ทั้งหมด -",
+        opt_all_doctors: "- แพทย์ทั้งหมด -",
+        opt_all_hospitals: "- โรงพยาบาลทั้งหมด -",
+        opt_all_users: "- พนักงานทั้งหมด -",
+        opt_all_territories: "- เขตพื้นที่ทั้งหมด -",
+        opt_all_products: "- ผลิตภัณฑ์ทั้งหมด -",
 
         // --- เพิ่มเติม: หน้า Visit Logs ---
         visit_title: "บันทึกเยี่ยม",
@@ -311,14 +327,35 @@
         if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
           if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
             el.placeholder = i18nDictionary[lang][key];
+          } else if (el.tagName === 'OPTION') {
+            el.text = i18nDictionary[lang][key];
           } else {
             el.innerText = i18nDictionary[lang][key];
           }
         }
       });
+
+      // 🌟 สั่งอัปเดต Placeholder ของ TomSelect แบบ Real-time
+      const filterDoc = document.getElementById('filterVisitDoctor');
+      if (filterDoc && filterDoc.tomselect) {
+        filterDoc.tomselect.settings.placeholder = t('opt_all_doctors');
+        filterDoc.tomselect.inputState();
+      }
+
+      const filterHosp = document.getElementById('filterVisitHospital');
+      if (filterHosp && filterHosp.tomselect) {
+        filterHosp.tomselect.settings.placeholder = t('opt_all_hospitals');
+        filterHosp.tomselect.inputState();
+      }
+
+      // รีเซ็ตข้อความใน Dropdown ที่สร้างจาก JS
+      if (typeof setupFiltersDropdowns === 'function') {
+        const crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
+        setupFiltersDropdowns(crmUser, window.VisitManagerCache?.teamProdLinks);
+      }
     }
 
-    // 🌟 Helper ฟังก์ชันแปลภาษาสำหรับใช้ใน JS (ถ้าหาคำแปลไม่เจอ จะใช้ค่าเดิมจาก DB/Master โดยตรง)
+    // 🌟 Helper ฟังก์ชันแปลภาษาสำหรับใช้ใน JS
     function t(key) {
       return (i18nDictionary[currentLang] && i18nDictionary[currentLang][key]) 
         ? i18nDictionary[currentLang][key] 
