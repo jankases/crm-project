@@ -3,7 +3,7 @@
   .form-control, .form-select { min-height: 42px; border-radius: 10px; }
   .form-control:disabled, .form-select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 1; }
   
-  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional */
+  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
   .btn-primary {
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
@@ -337,7 +337,7 @@
 
   window.VisitManagerCache = window.VisitManagerCache || {
       isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
-      allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], teamProdLinks: [],
+      allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], bus: [], teamProdLinks: [],
       indexTypes: [], indexes: [], pendingUnlocks: [],
       filters: { doc: [], hosp: [], startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
   };
@@ -456,7 +456,7 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-      const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+      const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
       window.myIsGlobalViewer = false;
       if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) {
@@ -471,12 +471,13 @@
       window.VisitManagerCache = window.VisitManagerCache || {};
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-          const [docRes, prodRes, territoryRes, hospRes, teamRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
+          const [docRes, prodRes, territoryRes, hospRes, teamRes, buRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
             fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
             fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
             supabaseClient.from('Territory').select('*'),
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
             supabaseClient.from('Team').select('*'),            
+            supabaseClient.from('Business_Unit').select('*'),            
             fetchAllRecords('Products_Team'),   
             supabaseClient.from('IndexType').select('*'),
             supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
@@ -489,6 +490,7 @@
           const allAssignments = assignRes || [];
           const globalTerritoryListLocal = territoryRes.data || [];
           const globalTeamListLocal = teamRes.data || [];
+          const globalBuListLocal = buRes.data || [];
 
           let allowedTerIds = [];
 
@@ -496,10 +498,21 @@
               window.VisitManagerCache.assignedDoctors = allDoctors;
               window.VisitManagerCache.assignedHospitals = allHospitals;
           } else {
-              let matchedTeam = globalTeamListLocal.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-              let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
+              if (globalCurrentUserRole === 'BU Head' || globalCurrentUserRole === 'BU') {
+                  // 🌟 1. หา BU ID ที่ตรงกับ Scope (เช่น LUNG)
+                  const matchedBu = globalBuListLocal.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
+                  const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-              if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
+                  // 🌟 2. หา Team ทั้งหมดที่มี BU_ID ตรงกัน (เช่น LUNG1)
+                  const matchedTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+                  const matchedTeamIds = matchedTeams.map(t => String(t.Team_ID));
+
+                  // 🌟 3. หา Territory ทั้งหมดของทุกทีมใน BU นี้ (เช่น L1, L2, L3)
+                  const terrs = globalTerritoryListLocal.filter(ter => matchedTeamIds.includes(String(ter.Team_ID)) || String(ter.BU_ID) === targetBuId);
+                  terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+
+              } else if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
+                  let matchedTeam = globalTeamListLocal.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
                   if (matchedTeam) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
@@ -507,14 +520,8 @@
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   }
-              } else if (globalCurrentUserRole === 'BU Head') {
-                  const buTeams = globalTeamListLocal.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
-                  buTeams.forEach(t => {
-                      allowedTeamIds.push(String(t.Team_ID));
-                      const terrs = globalTerritoryListLocal.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
-                      terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-                  });
               } else {
+                  let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
                   if (matchedTerr) {
                       allowedTerIds.push(String(matchedTerr.Territory_ID));
                   } else if (rawScope) {
@@ -526,7 +533,18 @@
               const allowedDocIds = myAssignments.filter(a => a.Type === 'Doctor').map(a => String(a.Account_ID));
               const explicitHospIds = myAssignments.filter(a => a.Type === 'Hospital').map(a => String(a.Account_ID));
 
-              window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)));
+              // 🌟 สำหรับ BU Head / Manager ให้เห็น Doctor ทั้งหมดที่ผูกกับ Territory สังกัดทีม
+              if (['BU Head', 'BU', 'Manager', 'Sales Manager'].includes(globalCurrentUserRole)) {
+                  window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => 
+                      allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)) ||
+                      allowedTerIds.includes(String(d.Territory_ID || d.territory_id))
+                  );
+                  if (window.VisitManagerCache.assignedDoctors.length === 0) {
+                      window.VisitManagerCache.assignedDoctors = allDoctors;
+                  }
+              } else {
+                  window.VisitManagerCache.assignedDoctors = allDoctors.filter(d => allowedDocIds.includes(String(d.Doc_ID || d.doc_id || d.id)));
+              }
 
               const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(d => String(d.Hospital_ID || d.hospital_id));
               const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
@@ -538,6 +556,7 @@
           window.VisitManagerCache.products = prodRes || [];
           window.VisitManagerCache.territories = globalTerritoryListLocal;
           window.VisitManagerCache.teams = globalTeamListLocal;
+          window.VisitManagerCache.bus = globalBuListLocal;
           window.VisitManagerCache.teamProdLinks = productsTeamRes || [];
           window.VisitManagerCache.indexTypes = typeRes.data || [];
           window.VisitManagerCache.indexes = idxRes.data || [];
@@ -567,13 +586,8 @@
           if (typeof TomSelect !== 'undefined') {
               if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
               new TomSelect('#filterVisitDoctor', { 
-                  plugins: ['remove_button'],
-                  create: false, 
-                  searchField: ["text"],
-                  sortField: { field: "text", direction: "asc" }, 
-                  placeholder: safeTranslate('opt_all_doctors', '- All Doctors -'),
-                  maxOptions: null,
-                  dropdownParent: 'body'
+                  plugins: ['remove_button'], create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, 
+                  placeholder: safeTranslate('opt_all_doctors', '- All Doctors -'), maxOptions: null, dropdownParent: 'body'
               });
           }
       }
@@ -591,13 +605,8 @@
           if (typeof TomSelect !== 'undefined') {
               if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
               new TomSelect('#filterVisitHospital', { 
-                  plugins: ['remove_button'],
-                  create: false, 
-                  searchField: ["text"],
-                  sortField: { field: "text", direction: "asc" }, 
-                  placeholder: safeTranslate('opt_all_hospitals', '- All Hospitals -'),
-                  maxOptions: null,
-                  dropdownParent: 'body'
+                  plugins: ['remove_button'], create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, 
+                  placeholder: safeTranslate('opt_all_hospitals', '- All Hospitals -'), maxOptions: null, dropdownParent: 'body'
               });
           }
       }
@@ -660,7 +669,7 @@
     if (!repSelect || !terSelect || !prodFilterSelect) return;
 
     const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
-    const rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+    const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
     const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
@@ -668,14 +677,6 @@
     if (!rawScope || rawScope.toUpperCase().startsWith('ALL')) isGlobalViewer = true;
     const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
     if (globalRoles.includes(userRole.toUpperCase())) isGlobalViewer = true;
-    
-    if (crmUser) {
-        Object.values(crmUser).forEach(val => {
-            if (typeof val === 'string' && val.trim().toUpperCase().startsWith('ALL')) {
-                isGlobalViewer = true;
-            }
-        });
-    }
     window.myIsGlobalViewer = isGlobalViewer; 
 
     let allowedTeamIds = [];
@@ -691,10 +692,20 @@
       allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
       allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
     } else {
-      let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-      let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
-      
-      if (userRole === 'Manager' || userRole === 'Sales Manager') {
+      if (userRole === 'BU Head' || userRole === 'BU') {
+          // 🌟 1. ดึงทีมทั้งหมดที่ผูกกับ BU LUNG (เช่น LUNG1)
+          const buList = window.VisitManagerCache.bus || [];
+          const matchedBu = buList.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope);
+          const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+
+          const buTeams = globalTeamList.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+          buTeams.forEach(t => {
+              allowedTeamIds.push(String(t.Team_ID));
+              const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
+              terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+          });
+      } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
+          let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
           if (matchedTeam) {
               allowedTeamIds.push(String(matchedTeam.Team_ID));
               const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
@@ -704,14 +715,8 @@
               const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === rawScope);
               terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
           }
-      } else if (userRole === 'BU Head') {
-          const buTeams = globalTeamList.filter(t => String(t.BU_ID) === rawScope || String(t.BU) === rawScope);
-          buTeams.forEach(t => {
-              allowedTeamIds.push(String(t.Team_ID));
-              const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
-              terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-          });
       } else { 
+          let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
           if (matchedTerr) {
               allowedTerIds.push(String(matchedTerr.Territory_ID));
               if (matchedTerr.Team_ID) allowedTeamIds.push(String(matchedTerr.Team_ID));
@@ -725,12 +730,15 @@
       const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
       if (userName) allowedNames.push(userName);
 
+      // 🌟 ดึงลูกน้องทั้งหมดที่อยู่ใน Team_ID หรือ Territory_ID สังกัด BU
       if (userRole !== 'Sales' && userRole !== 'Rep') {
           const subUsers = globalUsersList.filter(u => {
-              const uTeam = String(u.Team_ID || u.Team);
-              const uTerr = String(u.Territory_ID || u.Territory || u.territoryId);
-              return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr);
+              const uTeam = String(u.Team_ID || u.Team || u.team_id || '');
+              const uTerr = String(u.Territory_ID || u.Territory || u.territoryId || '');
+              const uScope = String(u.Scope || u.scope || u.BU_ID || u.BU || '');
+              return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr) || uScope === rawScope;
           });
+
           subUsers.forEach(u => {
               const rId = String(u.Rep_ID || u.User_ID || u.id);
               const rEm = String(u.Email).toLowerCase();
@@ -984,6 +992,7 @@
         const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
         const vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
 
+        // 🌟 สแกนหา Rep_ID / Territory_ID / Email ของลูกทีมภายใต้ BU
         if (window.myAllowedRepIds.includes(rawRepId) || 
             window.myAllowedTerIds.includes(vTerrId) || 
             window.myAllowedEmails.includes(rawWho) || 
@@ -994,7 +1003,8 @@
 
       if (!hasSecurityAccess) return false;
 
-      if (!window.myIsGlobalViewer) {
+      // 🌟 BU Head & Manager ไม่โดนบล็อกหากหมอใน Log ไม่ได้ผูกกับ Assignment ตรงๆ
+      if (!window.myIsGlobalViewer && !['BU Head', 'BU', 'Manager', 'Sales Manager'].includes(globalCurrentUserRole)) {
           const isDocAssigned = globalAssignedDoctors.some(d => String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase());
           if (!isDocAssigned) return false; 
       }
