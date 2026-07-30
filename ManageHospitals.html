@@ -558,7 +558,6 @@
     window.scrollTo(0, 0); 
   }
 
-  // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
   function initMultiTomSelect(id, placeholder) {
       const el = document.getElementById(id);
       if(!el) return;
@@ -1074,11 +1073,11 @@
       });
   }
 
-  // 🌟 ฟังก์ชันวาร์ปไปหน้า Edit Doctor (DCR) (แก้ไขเปิดหน้าฟอร์ม Edit)
+  // 🌟 ฟังก์ชันวาร์ปไปหน้า Edit Doctor (DCR) (แก้ไขส่งคำสั่งเปิดทาง sessionStorage ป้องกันหลุดหน้า)
   function goToDoctorProfile(docId) {
-      sessionStorage.setItem('returnToHospId', currentSelectedHospId); // จำว่ามาจากโรงพยาบาลไหน
+      sessionStorage.setItem('returnToHospId', currentSelectedHospId);
+      sessionStorage.setItem('directEditDocId', docId); // 🌟 ฝาก ID ให้หน้า Doctor เปิด Edit ทันที
       
-      // 1. สั่งโหลดคอมโพเนนต์หน้า Doctor
       if (typeof window.loadComponent === 'function') {
           window.loadComponent('doctor');
       } else {
@@ -1086,13 +1085,14 @@
           if (docMenu) docMenu.click();
       }
 
-      // 2. รอสคริปต์หน้า Doctor พร้อม แล้วเปิดหน้า Edit Doctor (DCR)
       let attempts = 0;
       const checkReady = setInterval(() => {
           attempts++;
           if (typeof window.openEditDoctorView === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
-              window.openEditDoctorView(docId); // 🌟 เปิดหน้าฟอร์มแก้ไขหมอ
+              setTimeout(() => {
+                  window.openEditDoctorView(docId);
+              }, 50);
           } else if (attempts > 60) { 
               clearInterval(checkReady);
               alert("Data loading took too long. Please try clicking manually.");
