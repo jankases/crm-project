@@ -50,16 +50,23 @@
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
   .custom-pagination .page-link:hover { background-color: #e9ecef; }
 
-  /* สไตล์สำหรับ Auto Address และ TomSelect */
-  .tt-menu { background-color: #fff; border: 1px solid #ced4da; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; margin-top: 5px; z-index: 9999 !important; }
-  .tt-suggestion { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
-  .tt-suggestion:hover { background-color: #f0f5ff; color: #0d6efd; }
-  .tt-suggestion:last-child { border-bottom: none; }
-
-  .ts-control { border-radius: 10px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
+  /* 🌟 แก้ไขสไตล์ TomSelect ให้กดคลิกติดง่ายขึ้น ไม่บังไอคอนไมโครโฟน */
+  .ts-wrapper { position: relative; width: 100%; flex: 1 1 auto; }
+  .ts-control { 
+    border-radius: 10px !important; 
+    min-height: 42px; 
+    display: flex; 
+    align-items: center; 
+    background-color: #ffffff !important; 
+    cursor: pointer !important;
+  }
+  .input-group > .ts-wrapper > .ts-control { 
+    border-top-right-radius: 0 !important; 
+    border-bottom-right-radius: 0 !important; 
+  }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
-  .input-group > .ts-wrapper { flex: 1 1 auto; width: 1%; }
-  .input-group > .ts-wrapper > .ts-control { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+  
+  /* บังคับให้ Dropdown ลอยขึ้นมาคลิกง่าย */
   .ts-dropdown { z-index: 9999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
 
@@ -545,12 +552,12 @@
       if (btn) btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i>`;
   }
 
-  // 🌟 Initialize TomSelect ชั่วคราวล่วงหน้า 100ms แรก ป้องกันกล่องแหว่ง/สีกรอบหลุด
+  // 🌟 Initialize TomSelect ชั่วคราวล่วงหน้า 100ms แรก โดยใช้คำสั้นๆ - ทั้งหมด -
   setTimeout(async function() {
     if (typeof TomSelect !== 'undefined') {
-      initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
-      initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- All Provinces -'));
-      initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- All Zones -'));
+      initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- ทั้งหมด -'));
+      initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- ทั้งหมด -'));
+      initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- ทั้งหมด -'));
     }
     await loadIndexDropdowns(); 
     await loadHospitals();
@@ -776,7 +783,7 @@
             opt.textContent = `${h.name}${knownAsShow}`; 
             filterHospNameSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- All Hospitals -'));
+        initMultiTomSelect('filterHospName', safeTranslate('opt_all_hospitals', '- ทั้งหมด -'));
     }
 
     const filterProvSelect = document.getElementById('filterHospProvince');
@@ -789,7 +796,7 @@
             opt.textContent = prov;
             filterProvSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- All Provinces -'));
+        initMultiTomSelect('filterHospProvince', safeTranslate('opt_all_provinces', '- ทั้งหมด -'));
     }
 
     const filterZoneSelect = document.getElementById('filterHospZone');
@@ -802,7 +809,7 @@
             opt.textContent = zone;
             filterZoneSelect.appendChild(opt);
         });
-        initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- All Zones -'));
+        initMultiTomSelect('filterHospZone', safeTranslate('opt_all_zones', '- ทั้งหมด -'));
     }
 
     if (window.HospManagerCache.filters) {
