@@ -185,43 +185,43 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
-      <h4 class="text-primary fw-bold mb-0">🏥 Add New Hospital (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0" data-i18n="title_add_hosp">🏥 Add New Hospital (DCR)</h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
       <form id="addHospitalForm" onsubmit="handleAddHospital(event)">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i><span data-i18n="sec_hosp_info">Hospital Information</span></h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Hospital Name (EN) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_hosp_name_en">Hospital Name (EN)</span> <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-white" id="hospName" placeholder="e.g. Siriraj Hospital" required>
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Known As (TH)</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_known_as_th">Known As (TH)</label>
               <input type="text" class="form-control bg-white" id="hospKnownAs" placeholder="e.g. โรงพยาบาลศิริราช">
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Province (Zone) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_province_zone">Province (Zone)</span> <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="hospProvince" required>
                 <option value="">- Select Province -</option>
               </select>
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Sales ID</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_sales_id">Sales ID</label>
               <input type="text" class="form-control bg-white" id="hospSalesId" placeholder="e.g. 17000280">
             </div>
           </div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i><span data-i18n="sec_addr_info">Address Information</span></h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_full_address">Full Address</span> <span class="text-danger">*</span></label>
               <textarea class="form-control bg-white" id="hospAddress" rows="3" placeholder="Enter full address..." required></textarea>
             </div>
           </div>
@@ -229,7 +229,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')" data-i18n="btn_cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn">Submit DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitHospBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -241,7 +241,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
-      <h4 class="text-primary fw-bold mb-0">✏️ Edit Hospital (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0" data-i18n="title_edit_hosp">✏️ Edit Hospital (DCR)</h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -250,30 +250,30 @@
         <input type="hidden" id="editHospId">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i>Hospital Information</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-file-signature me-2"></i><span data-i18n="sec_hosp_info">Hospital Information</span></h5>
           <div class="row g-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Hospital Name (EN) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_hosp_name_en">Hospital Name (EN)</span> <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-white" id="editHospName" required>
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label fw-bold text-dark">Known As (TH)</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_known_as_th">Known As (TH)</label>
               <input type="text" class="form-control bg-white" id="editHospKnownAs">
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">Province (Zone) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_province_zone">Province (Zone)</span> <span class="text-danger">*</span></label>
               <select class="form-select bg-white" id="editHospProvince" required>
                 <option value="">- Select Province -</option>
               </select>
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-dark">Sales ID</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_sales_id">Sales ID</label>
               <input type="text" class="form-control bg-white" id="editHospSalesId">
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label fw-bold text-danger">Status</label>
+              <label class="form-label fw-bold text-danger" data-i18n="lbl_status">Status</label>
               <select class="form-select bg-white border-danger fw-bold" id="editHospStatus">
                 <option value="Active" class="text-success">Active</option>
                 <option value="Inactive" class="text-danger">Inactive</option>
@@ -283,10 +283,10 @@
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i>Address Information</h5>
+          <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-map-location-dot me-2"></i><span data-i18n="sec_addr_info">Address Information</span></h5>
           <div class="row g-3">
             <div class="col-md-12 mb-2">
-              <label class="form-label fw-bold text-dark">Full Address <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_full_address">Full Address</span> <span class="text-danger">*</span></label>
               <textarea class="form-control bg-white" id="editHospAddress" rows="3" required></textarea>
             </div>
           </div>
@@ -294,7 +294,7 @@
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchHospitalView('hospitalListView')" data-i18n="btn_cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn">Submit DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateHospBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -330,21 +330,21 @@
         <div class="tab-pane fade show active" id="tab-hosp-info">
           <div class="row mb-3">
             <div class="col-md-6 mb-3">
-              <label class="text-muted small fw-bold" data-i18n="th_hosp_name_en">Hospital Name (EN)</label>
+              <label class="text-muted small fw-bold" data-i18n="lbl_hosp_name_en">Hospital Name (EN)</label>
               <input type="text" class="form-control bg-light text-dark fw-bold" id="viewHospName" disabled style="border-radius: 10px; min-height: 42px;">
             </div>
             <div class="col-md-6 mb-3">
-              <label class="text-muted small fw-bold" data-i18n="th_known_as_th">Known As (TH)</label>
+              <label class="text-muted small fw-bold" data-i18n="lbl_known_as_th">Known As (TH)</label>
               <input type="text" class="form-control bg-light" id="viewHospKnownAs" disabled style="border-radius: 10px; min-height: 42px;">
             </div>
           </div>
           <div class="row mb-3">
             <div class="col-md-6 mb-3">
-              <label class="text-muted small fw-bold" data-i18n="th_province">Province (Zone)</label>
+              <label class="text-muted small fw-bold" data-i18n="lbl_province_zone">Province (Zone)</label>
               <input type="text" class="form-control bg-light" id="viewHospProvince" disabled style="border-radius: 10px; min-height: 42px;">
             </div>
             <div class="col-md-6 mb-3">
-              <label class="text-muted small fw-bold" data-i18n="th_sales_id">Sales ID</label>
+              <label class="text-muted small fw-bold" data-i18n="lbl_sales_id">Sales ID</label>
               <input type="text" class="form-control bg-light text-primary fw-medium" id="viewHospSalesId" disabled style="border-radius: 10px; min-height: 42px;">
             </div>
           </div>
@@ -356,7 +356,7 @@
           </div>
           <div class="row mb-3">
             <div class="col-md-4 mb-3">
-              <label class="text-muted small fw-bold" data-i18n="th_status">Status</label>
+              <label class="text-muted small fw-bold" data-i18n="lbl_status">Status</label>
               <input type="text" class="form-control bg-light fw-bold" id="viewHospStatus" disabled style="border-radius: 10px; min-height: 42px;">
             </div>
           </div>
@@ -553,6 +553,11 @@
     views.forEach(v => { const el = document.getElementById(v); if (el) el.classList.add('d-none'); });
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0); 
+
+    // 🌟 เรียกปรับเปลี่ยนภาษาแบบ Real-time ทุกครั้งที่สลับเปลี่ยน View
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+      setLanguage(currentLang);
+    }
   }
 
   // 🌟 ฟังก์ชันสร้าง TomSelect หลายตัวเลือก โดยสั่งทำลายตัวเก่าอย่างปลอดภัยก่อนสร้างใหม่เสมอ
