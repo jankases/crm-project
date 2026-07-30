@@ -63,7 +63,6 @@
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
-  /* 🌟 Mic Pulse Effect */
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
@@ -98,7 +97,7 @@
       </div>
     </div>
 
-    <!-- Quick Stat Cards -->
+    <!-- 🌟 Quick Stat Cards (ปรับคำนวณตัวเลขล้อตามการ Filter) -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -129,10 +128,11 @@
       </div>
     </div>
 
-    <!-- Smart Search Bar + Filter Bar (ปรับปุ่มไมค์ให้คลิกติดชัวร์ 100%) -->
+    <!-- 🌟 Smart Search Bar + Filter Bar (ปรับตัดช่องซ้ำซ้อนออก) -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
+        <!-- Smart Input Search ค้นหาได้ทั้ง หมอ, รพ., สินค้า -->
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -143,6 +143,7 @@
           </div>
         </div>
 
+        <!-- Date Range Filter -->
         <div class="col-12 col-sm-6 col-lg-3">
           <div class="input-group input-group-sm border rounded-pill px-2 py-1 bg-white">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;">
@@ -151,6 +152,7 @@
           </div>
         </div>
 
+        <!-- Status Filter -->
         <div class="col-6 col-sm-3 col-lg-2">
           <select class="form-select border rounded-pill shadow-none" id="filterVisitStatus" onchange="filterVisits()">
             <option value="" data-i18n="opt_all">- All Status -</option>
@@ -159,8 +161,9 @@
           </select>
         </div>
 
+        <!-- Action Buttons -->
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
-          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
+          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters (User/Territory)">
             <i class="fa-solid fa-sliders"></i>
           </button>
           <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" onclick="clearVisitFilters()" title="Clear All Filters">
@@ -170,27 +173,16 @@
 
       </div>
 
+      <!-- 🌟 Advanced Filters (ตัดช่อง หมอ, รพ., สินค้า ที่ซ้ำออก เหลือแค่ User กับ Territory) -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
-          <div class="col-sm-12 col-md-3">
-            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doctor">Doctor (Multi-select)</label>
-            <select class="form-select bg-white" id="filterVisitDoctor" onchange="filterVisits()" multiple></select>
-          </div>
-          <div class="col-sm-12 col-md-3">
-            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hospital">Hospital (Multi-select)</label>
-            <select class="form-select bg-white" id="filterVisitHospital" onchange="filterVisits()" multiple></select>
-          </div>
-          <div class="col-sm-6 col-md-2">
-            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User</label>
+          <div class="col-sm-12 col-md-6">
+            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User / Sales Rep</label>
             <select class="form-select shadow-none" id="filterVisitRep" onchange="handleFilterChange('rep')"></select>
           </div>
-          <div class="col-sm-6 col-md-2">
+          <div class="col-sm-12 col-md-6">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_territory">Territory</label>
             <select class="form-select shadow-none" id="filterVisitTerritory" onchange="handleFilterChange('territory')"></select>
-          </div>
-          <div class="col-sm-12 col-md-2">
-            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_product">Product</label>
-            <select class="form-select shadow-none" id="filterVisitProduct" onchange="filterVisits()"></select>
           </div>
         </div>
       </div>
@@ -235,7 +227,7 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View แบบ Modern 2-Column Grid) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -248,6 +240,7 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
+        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -374,7 +367,6 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชั่นไมโครโฟนพิมพ์ด้วยเสียงสำหรับช่อง Smart Search
   var searchRecognition;
   var currentSearchInputId = null;
   var currentSearchBtnId = null;
@@ -463,7 +455,7 @@
       isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
       allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], bus: [], teamProdLinks: [],
       indexTypes: [], indexes: [], pendingUnlocks: [],
-      filters: { smartSearch: '', doc: [], hosp: [], startDate: '', endDate: '', status: '', rep: '', territory: '', prod: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
+      filters: { smartSearch: '', startDate: '', endDate: '', status: '', rep: '', territory: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
   };
 
   var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
@@ -495,14 +487,11 @@
           else if (el) el.value = '';
       };
       
-      clearTs('filterVisitDoctor');
-      clearTs('filterVisitHospital');
       clearTs('filterStartDate');
       clearTs('filterEndDate');
       clearTs('filterVisitStatus');
       clearTs('filterVisitRep');
       clearTs('filterVisitTerritory');
-      clearTs('filterVisitProduct');
       if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
       
       filterVisits();
@@ -644,7 +633,7 @@
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(ter.Territory_ID)));
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -698,46 +687,7 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      const filterDocSelect = document.getElementById('filterVisitDoctor');
-      if (filterDocSelect) {
-          filterDocSelect.innerHTML = '';
-          globalAssignedDoctors.forEach(d => {
-              const hasQuestionMarks = d.Doc_Name_TH && d.Doc_Name_TH.includes('???');
-              const nameThShow = (d.Doc_Name_TH && !hasQuestionMarks) ? ` (${d.Doc_Name_TH})` : '';
-              const opt = document.createElement('option'); 
-              opt.value = d.Doc_ID || d.doc_id || d.id; 
-              opt.textContent = `${d.Doc_Name}${nameThShow}`; 
-              filterDocSelect.appendChild(opt);
-          });
-          if (typeof TomSelect !== 'undefined') {
-              if (filterDocSelect.tomselect) filterDocSelect.tomselect.destroy();
-              new TomSelect('#filterVisitDoctor', { 
-                  plugins: ['remove_button'], create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, 
-                  placeholder: safeTranslate('opt_all_doctors', '- ทั้งหมด -'), maxOptions: null, dropdownParent: 'body'
-              });
-          }
-      }
-
-      const filterHospSelect = document.getElementById('filterVisitHospital');
-      if (filterHospSelect) {
-          filterHospSelect.innerHTML = '';
-          globalAssignedHospitals.forEach(h => {
-              const knownAsShow = h.Known_As ? ` (${h.Known_As})` : '';
-              const opt = document.createElement('option'); 
-              opt.value = h.Hospital_ID || h.id; 
-              opt.textContent = `${h.Hospital}${knownAsShow}`; 
-              filterHospSelect.appendChild(opt);
-          });
-          if (typeof TomSelect !== 'undefined') {
-              if (filterHospSelect.tomselect) filterHospSelect.tomselect.destroy();
-              new TomSelect('#filterVisitHospital', { 
-                  plugins: ['remove_button'], create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" }, 
-                  placeholder: safeTranslate('opt_all_hospitals', '- ทั้งหมด -'), maxOptions: null, dropdownParent: 'body'
-              });
-          }
-      }
-
-      // 🌟 สร้าง Dropdown หมอ
+      // 🌟 สร้าง Dropdown หมอ ป้องกันคำหลุดเครื่องหมาย ???
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         const docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
