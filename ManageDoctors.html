@@ -1,5 +1,4 @@
 <style>
-  /* 🎨 คุมโทนระบบสีให้ดูลักชัวรี & Professional Corporate Blue */
   .btn-primary {
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
@@ -9,7 +8,6 @@
     border-color: #0a58ca !important;
   }
 
-  /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล ให้แสดงเฉพาะตอน TomSelect พร้อมแล้ว (ตามแบบหน้า รพ.) */
   .doctor-filter-group {
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
@@ -18,18 +16,15 @@
     opacity: 1;
   }
 
-  /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
   select.form-select[multiple]:not(.tomselected) {
     display: none !important;
   }
 
-  /* ปรับแต่ง UI สไตล์แคปซูล นุ่มนวล */
   .doctor-filter-group .form-control, .doctor-filter-group .form-select, 
   .doctor-form-group .form-control, .doctor-form-group .form-select {
     min-height: 42px; border-radius: 10px; background-color: #ffffff !important;
   }
   
-  /* หัวตารางสไตล์องค์กร สบายตา */
   .table-doctor-header {
     background-color: #f1f5f9 !important;
     color: #334155 !important;
@@ -41,7 +36,6 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-  /* 🌟 ปรับแต่ง TomSelect ให้กดคลิกติดง่ายและลอยบนสุด */
   .ts-wrapper { position: relative; width: 100%; flex: 1 1 auto; }
   .ts-control { 
     border-radius: 10px !important; 
@@ -57,7 +51,6 @@
   }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 5px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   
-  /* บังคับให้ Dropdown ลอยขึ้นมาเหนือทุกอย่างบนหน้าจอ */
   .ts-dropdown { z-index: 99999 !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ced4da; }
   .ts-dropdown .active { background-color: #e7f1ff !important; color: #0d6efd !important; }
   
@@ -199,34 +192,34 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
-      <h4 class="text-primary fw-bold mb-0">🩺 Add New Doctor (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">🩺 <span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm doctor-form-group" style="border-radius: 15px;">
       <form id="addDoctorForm" onsubmit="handleAddDoctor(event)">
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i>General Information</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="sec_gen_info">General Information</span></h5>
           <div class="row g-3">
             <div class="col-sm-4 col-md-3">
-              <label class="form-label fw-bold text-dark">Title</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_title">Title</label>
               <select class="form-select bg-white" id="docTitle"></select>
             </div>
             <div class="col-sm-8 col-md-4">
-              <label class="form-label fw-bold text-dark">Name (EN) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai" required>
             </div>
             <div class="col-sm-12 col-md-5">
-              <label class="form-label fw-bold text-dark">Name (TH)</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_name_th">Name (TH)</label>
               <input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี">
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-sm-6 col-md-6">
-              <label class="form-label fw-bold text-dark">Specialty</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_specialty">Specialty</label>
               <select class="form-select bg-white" id="docSpecialty"></select>
             </div>
             <div class="col-sm-6 col-md-6">
-              <label class="form-label fw-bold text-dark">Type</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_type">Type</label>
               <select class="form-select bg-white" id="docType"></select>
             </div>
           </div>
@@ -234,35 +227,35 @@
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace">Workplace</span></h5>
             <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
-              <i class="fa-solid fa-plus me-1"></i> Add Hospital
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
             </button>
           </div>
           <div id="workplaceContainerAdd"></div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i>Contact & Consent</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h5>
           <div class="row g-3">
             <div class="col-sm-6 col-md-6">
-              <label class="form-label fw-bold text-dark">Privacy Policy</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_privacy">Privacy Policy</label>
               <select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
             </div>
             <div class="col-sm-6 col-md-6">
-              <label class="form-label fw-bold text-dark">Terms of Service</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_tos">Terms of Service</label>
               <select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
             </div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> Email</label><input type="email" class="form-control bg-white" id="docEmail"></div>
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> Mobile</label><input type="text" class="form-control bg-white" id="docMobile"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label><input type="email" class="form-control bg-white" id="docEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label><input type="text" class="form-control bg-white" id="docMobile"></div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn">Submit DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="submitDoctorBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -274,7 +267,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchDoctorView('doctorListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
-      <h4 class="text-primary fw-bold mb-0">✏️ Edit Doctor (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ <span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -283,32 +276,32 @@
         <input type="hidden" id="editDocId">
         
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f8f9fa;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">General Information</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2" data-i18n="sec_gen_info">General Information</h5>
           <div class="row g-3">
             <div class="col-sm-4 col-md-3">
-              <label class="form-label fw-bold text-dark">Title</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_title">Title</label>
               <select class="form-select bg-white" id="editDocTitle"></select>
             </div>
             <div class="col-sm-8 col-md-4">
-              <label class="form-label fw-bold text-dark">Name (EN) <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-white" id="editDocNameEn" required>
             </div>
             <div class="col-sm-12 col-md-5">
-              <label class="form-label fw-bold text-dark">Name (TH)</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_name_th">Name (TH)</label>
               <input type="text" class="form-control bg-white" id="editDocNameTh">
             </div>
           </div>
           <div class="row g-3 mt-1">
             <div class="col-sm-6 col-md-4">
-              <label class="form-label fw-bold text-dark">Specialty</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_specialty">Specialty</label>
               <select class="form-select bg-white" id="editDocSpecialty"></select>
             </div>
             <div class="col-sm-6 col-md-4">
-              <label class="form-label fw-bold text-dark">Type</label>
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_type">Type</label>
               <select class="form-select bg-white" id="editDocType"></select>
             </div>
             <div class="col-sm-12 col-md-4">
-              <label class="form-label fw-bold text-danger">Status</label>
+              <label class="form-label fw-bold text-danger" data-i18n="lbl_status">Status</label>
               <select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select>
             </div>
           </div>
@@ -316,29 +309,29 @@
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i>Workplace</h5>
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace">Workplace</span></h5>
             <button type="button" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 shadow-sm" onclick="addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
-              <i class="fa-solid fa-plus me-1"></i> Add Hospital
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
             </button>
           </div>
           <div id="workplaceContainerEdit"></div>
         </div>
 
         <div class="p-4 rounded-4 mb-4 border" style="background-color: #f4f6f9;">
-          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">Contact & Consent</h5>
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2" data-i18n="sec_contact_consent">Contact & Consent</h5>
           <div class="row g-3">
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Privacy Policy</label><select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
-            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark">Terms of Service</label><select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark" data-i18n="lbl_privacy">Privacy Policy</label><select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark" data-i18n="lbl_tos">Terms of Service</label><select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
           </div>
           <div class="row g-3 mt-1">
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> Email</label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
-            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> Mobile</label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
           </div>
         </div>
 
         <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn">Submit DCR</button>
+          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="updateDoctorBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
         </div>
       </form>
     </div>
@@ -347,44 +340,46 @@
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none">
     <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
-      <!-- 🌟 ปุ่ม Back เรียกฟังก์ชันย้อนกลับอัจฉริยะ -->
+      <!-- 🌟 ปุ่ม Back พร้อมแท็กแปลภาษา -->
       <button class="btn btn-light border fw-bold rounded-pill px-3" onclick="goBackFromDoctorProfile()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
+      <!-- 🌟 ปุ่ม Edit Doctor พร้อมแท็กแปลภาษา -->
       <button class="btn btn-primary fw-bold shadow-sm rounded-pill px-3" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
-        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Doctor (DCR)
+        <i class="fa-solid fa-pen-to-square me-1"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
       </button>
       <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-2"></div>
     </div>
     
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+      <!-- 🌟 แท็บต่างๆ พร้อมแท็กแปลภาษา -->
       <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
         <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> General Info</button>
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span></button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> Visit History</button>
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span></button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> Target Call</button>
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span></button>
         </li>
       </ul>
 
       <div class="tab-content">
-        <!-- Tab: General Info -->
+        <!-- Tab: General Info (เพิ่มแท็ก data-i18n ในหัวข้อทั้งหมด) -->
         <div class="tab-pane fade show active" id="tab-doc-info">
           <div class="row mb-3 g-3">
-            <div class="col-md-4"><label class="text-muted small fw-bold">Specialty</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold">Type</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold">Status</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_status">Status</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
           </div>
           <div class="row mb-3 g-3">
-            <div class="col-md-6"><label class="text-muted small fw-bold">Email</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
-            <div class="col-md-6"><label class="text-muted small fw-bold">Mobile</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_email">Email</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_mobile">Mobile</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
           </div>
           <div class="border rounded-4 p-4 bg-light mt-4">
-            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i>Workplace History</label>
+            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">Workplace History</span></label>
             <div id="viewWorkplaceContainer"></div>
           </div>
         </div>
@@ -392,15 +387,15 @@
         <!-- Tab: Visit History -->
         <div class="tab-pane fade" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i>Visit History</h6>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
             <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" onclick="goToQuickAddCall()">
-              <i class="fa-solid fa-plus me-1"></i> Add Call
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
             </button>
           </div>
 
           <div class="row g-2 mb-3 bg-light p-2 rounded-3 border">
             <div class="col-md-5">
-              <label class="form-label text-secondary small fw-bold mb-1">Date Range</label>
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
               <div class="input-group input-group-sm shadow-sm" style="border-radius: 8px; overflow: hidden;">
                 <input type="date" class="form-control" id="filterProfileVisitStart" onchange="filterAndRenderDoctorVisits()" style="border-radius: 8px 0 0 8px;">
                 <span class="input-group-text bg-white border-start-0 border-end-0 text-muted">-</span>
@@ -408,13 +403,13 @@
               </div>
             </div>
             <div class="col-md-4">
-              <label class="form-label text-secondary small fw-bold mb-1">Product</label>
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
               <select class="form-select form-select-sm shadow-sm" id="filterProfileVisitProduct" onchange="filterAndRenderDoctorVisits()" style="border-radius: 8px;">
                 <option value="">- All Products -</option>
               </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-                 <button class="btn btn-sm btn-outline-secondary w-100 fw-bold shadow-sm" onclick="clearProfileVisitFilters()" style="border-radius: 8px;">Clear Filters</button>
+                 <button class="btn btn-sm btn-outline-secondary w-100 fw-bold shadow-sm" onclick="clearProfileVisitFilters()" style="border-radius: 8px;" data-i18n="btn_clear_filters">Clear Filters</button>
             </div>
           </div>
 
@@ -422,12 +417,12 @@
             <table class="table table-hover align-middle" style="font-size: 0.9rem;">
               <thead class="table-doctor-header text-center">
                 <tr>
-                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('date')">Date <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
-                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('user')">User <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
-                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('territory')">Territory <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
-                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('products')">Products <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
-                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('purpose')">Purpose <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
-                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('status')">Status <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
                 </tr>
               </thead>
               <tbody id="viewVisitHistoryBody">
@@ -436,7 +431,6 @@
             </table>
           </div>
 
-          <!-- ส่วนควบคุมการแบ่งหน้าใน Tab Visit History -->
           <div id="pvisitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
             <div class="d-flex align-items-center mb-3 mb-md-0">
               <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
@@ -495,7 +489,6 @@
 </div>
 
 <script>
-  // Helper แปลภาษาอย่างปลอดภัย
   function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
       const res = t(key);
@@ -504,7 +497,6 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันจัดการปุ่ม Back ย้อนกลับไปยังโรงพยาบาลเดิมถ้าวาร์ปมาจากหน้าโรงพยาบาล
   function goBackFromDoctorProfile() {
     const returnHospId = sessionStorage.getItem('returnToHospId');
     
@@ -745,7 +737,6 @@
     await loadIndexDropdowns(); 
     await loadDoctors();
 
-    // 🌟 เช็คว่ามีคำสั่งลัดให้เปิด Doctor Profile จากหน้าอื่นค้างไว้ไหม
     const directViewDocId = sessionStorage.getItem('directViewDocId');
     if (directViewDocId) {
         sessionStorage.removeItem('directViewDocId');
@@ -760,7 +751,7 @@
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0); 
 
-    // 🌟 เรียกสั่งแปลภาษาครอบคลุม View ใหม่ทุกครั้งที่เปลี่ยนหน้า
+    // 🌟 บังคับรันคำสั่งแปลภาษาครอบคลุม View ใหม่ทุกครั้งที่สลับหน้า
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
       setLanguage(currentLang);
     }
@@ -1173,7 +1164,6 @@
 
     filterDoctors(false); 
 
-    // 🌟 แสดงผลโซน Filter หมออย่างสวยงามเมื่อเตรียม TomSelect พร้อม 100%
     if (filterGroup) {
       filterGroup.classList.add('ready');
     }
