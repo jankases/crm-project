@@ -185,7 +185,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
-      <h4 class="text-primary fw-bold mb-0" data-i18n="title_add_hosp">🏥 Add New Hospital (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">🏥 <span data-i18n="title_add_hosp">Add New Hospital (DCR)</span></h4>
     </div>
     
     <div class="card p-4 p-md-5 border-0 shadow-sm hospital-form-group" style="border-radius: 15px;">
@@ -241,7 +241,7 @@
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3" onclick="switchHospitalView('hospitalListView')">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
-      <h4 class="text-primary fw-bold mb-0" data-i18n="title_edit_hosp">✏️ Edit Hospital (DCR)</h4>
+      <h4 class="text-primary fw-bold mb-0">✏️ <span data-i18n="title_edit_hosp">Edit Hospital (DCR)</span></h4>
       <div id="editDcrStatusBadge" class="ms-3"></div>
     </div>
     
@@ -554,7 +554,7 @@
     const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0); 
 
-    // 🌟 เรียกปรับเปลี่ยนภาษาแบบ Real-time ทุกครั้งที่สลับเปลี่ยน View
+    // 🌟 เรียกสั่งแปลภาษาครอบคลุม View ใหม่ทุกครั้งที่เปลี่ยนหน้า
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
       setLanguage(currentLang);
     }
