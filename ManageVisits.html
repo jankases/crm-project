@@ -5,11 +5,11 @@
 
   /* 🌟 ซ่อนโซน Filter ทั้งหมดตอนกำลังโหลดข้อมูล ให้แสดงเฉพาะตอน TomSelect พร้อมแล้ว */
   .visit-filter-group {
-    opacity: 0;
+    opacity: 0 !important;
     transition: opacity 0.3s ease-in-out;
   }
   .visit-filter-group.ready {
-    opacity: 1;
+    opacity: 1 !important;
   }
   
   /* 🌟 ซ่อนช่อง select ดิบๆ ตอนกำลังโหลดข้อมูล ก่อนที่ TomSelect จะทำงาน */
@@ -81,7 +81,7 @@
       </div>
     </div>
 
-    <!-- ส่วนค้นหาหลัก (ใส่คลาส visit-filter-group เพื่อซ่อนตอนกำลังโหลด) -->
+    <!-- 🌟 ส่วนค้นหาหลัก (ใส่คลาส visit-filter-group เพื่อซ่อนตอนกำลังโหลด) -->
     <div class="row mb-3 g-2 align-items-end visit-filter-group" id="visitFilterZoneGroup">
       
       <div class="col-sm-6 col-md-6 col-lg-3">
@@ -675,7 +675,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ปรับปรุงการกรองสินค้าสมบูรณ์ 100% ครอบคลุมทั้ง Sales, Manager, BU Head
+  // 🌟 ปรับปรุงการกรองสินค้าสมบูรณ์ 100% ครอบคลุมทั้ง Admin, Manager, BU Head, Sales
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -707,7 +707,6 @@
       allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
       allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
     } else {
-      // 🌟 ดึง Team_ID ของผู้ใช้งานสังกัดปัจจุบันก่อน
       let userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
 
       if (userRole === 'BU Head' || userRole === 'BU') {
@@ -733,7 +732,6 @@
               terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
           }
       } else { 
-          // 🌟 กรณีเป็น Sales / Rep: ค้นหา Team_ID จาก Territory หรือตั้งค่าส่วนตัว
           let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
           if (matchedTerr) {
               allowedTerIds.push(String(matchedTerr.Territory_ID));
@@ -792,12 +790,13 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 Logic การดึงสินค้า: รองรับทั้ง Sales, Manager, BU Head
+    // 🌟 Logic การดึงสินค้า: รองรับ Admin, BU Head, Manager, Sales
     let allowedProducts = [];
     if (isGlobalViewer) {
+        // Admin / Global Viewer ดึงรายการสินค้าทั้งหมดขึ้นมาแสดงทันที
         allowedProducts = globalProductsList;
-    } else if (allowedTeamIds.length > 0) {
-        if (productsTeamList && productsTeamList.length > 0) {
+    } else {
+        if (allowedTeamIds.length > 0 && productsTeamList && productsTeamList.length > 0) {
             const allowedProdIds = productsTeamList
                 .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
                 .map(pt => String(pt.Product_ID));
@@ -805,15 +804,15 @@
         }
         
         // Safety Fallback 1: ดึงสินค้าตาม Team_ID ตรงๆ
-        if (allowedProducts.length === 0) {
+        if (allowedProducts.length === 0 && allowedTeamIds.length > 0) {
             allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
-    }
 
-    // Safety Fallback 2: ถ้ายังคงไม่เจอ ให้ดึงสินค้า active ทั้งหมด ป้องกันกล่องเลือกสินค้าว่างเปล่า
-    if (allowedProducts.length === 0) {
-        allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
-        if (allowedProducts.length === 0) allowedProducts = globalProductsList;
+        // Safety Fallback 2: ดึงสินค้า active ทั้งหมดป้องกันการว่างเปล่า
+        if (allowedProducts.length === 0) {
+            allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
+            if (allowedProducts.length === 0) allowedProducts = globalProductsList;
+        }
     }
     
     let pHtml = `<option value="">${safeTranslate('opt_all_products', '- ทั้งหมด -')}</option>`;
