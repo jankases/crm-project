@@ -1074,7 +1074,7 @@
       });
   }
 
-  // 🌟 ฟังก์ชันวาร์ปไปหน้า Doctor Profile -> เปิด Tab General Info (แก้ไขให้สลับหน้าเสถียร)
+  // 🌟 ฟังก์ชันวาร์ปไปหน้า Edit Doctor (DCR) (แก้ไขเปิดหน้าฟอร์ม Edit)
   function goToDoctorProfile(docId) {
       sessionStorage.setItem('returnToHospId', currentSelectedHospId); // จำว่ามาจากโรงพยาบาลไหน
       
@@ -1086,14 +1086,13 @@
           if (docMenu) docMenu.click();
       }
 
-      // 2. รอจนกว่าสคริปต์และ Cache หน้า Doctor จะโหลดมาเสร็จสมบูรณ์
+      // 2. รอสคริปต์หน้า Doctor พร้อม แล้วเปิดหน้า Edit Doctor (DCR)
       let attempts = 0;
       const checkReady = setInterval(() => {
           attempts++;
-          if (typeof window.openViewDoctorProfile === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
+          if (typeof window.openEditDoctorView === 'function' && window.DocManagerCache && window.DocManagerCache.isLoaded) {
               clearInterval(checkReady);
-              // เปิดหน้า Doctor Profile และเน้นไปที่ Tab General Info (#tab-doc-info)
-              window.openViewDoctorProfile(docId, '#tab-doc-info'); 
+              window.openEditDoctorView(docId); // 🌟 เปิดหน้าฟอร์มแก้ไขหมอ
           } else if (attempts > 60) { 
               clearInterval(checkReady);
               alert("Data loading took too long. Please try clicking manually.");
