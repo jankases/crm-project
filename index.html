@@ -12,11 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* 🌟 ส่วนที่ 2: พื้นหลังเนื้อหาหลักสีเทาอ่อน สบายตา (ลดแสงสะท้อน) */
     body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
     #appContainer { display: none; } 
     
-    /* 🌟 ส่วนที่ 1: แถบเมนูสีขาวสะอาดตา พร้อมเงาให้ดูลอยแยกชั้นชัดเจน */
     .navbar { 
       background-color: #ffffff !important; 
       border-bottom: 1px solid #e9ecef; 
@@ -25,7 +23,6 @@
     
     #mainContent { margin-top: 20px; }
 
-    /* 🎨 คุมโทนสีเมนูให้เป็น Professional Corporate Theme (สีน้ำเงิน Primary เดียวกันทั้งหมด) */
     .nav-menu-item {
       color: #495057; 
       font-weight: 500;
@@ -40,11 +37,10 @@
     }
     
     .nav-menu-item i {
-      color: #0d6efd; /* ไอคอนสี Primary Blue เดียวกันทุกเมนู */
+      color: #0d6efd;
       transition: color 0.2s ease;
     }
 
-    /* Hover State */
     .nav-menu-item:hover { 
       background-color: #f0f5ff; 
       color: #0d6efd; 
@@ -53,7 +49,6 @@
       color: #0a58ca; 
     }
 
-    /* Active State (เมนูที่ถูกเลือกอยู่) */
     .nav-menu-item.active { 
       background-color: #0d6efd !important; 
       color: #ffffff !important; 
@@ -64,7 +59,6 @@
       color: #ffffff !important; 
     }
 
-    /* ปุ่มสลับภาษา */
     .lang-btn-group .btn {
       font-size: 0.75rem;
       font-weight: 700;
@@ -87,14 +81,12 @@
           <span class="d-none d-sm-inline" data-i18n="app_title">CRM System</span>
         </a>
         
-        <!-- ปุ่ม Hamburger -->
         <button class="navbar-toggler border-0 shadow-sm bg-light px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- เมนูตรงกลาง พร้อม Tag data-i18n สำหรับแปลภาษา -->
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-md-0" style="font-size: 0.95rem;">
             <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="menu_visit">Visit Logs</span></a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-1"></i> <span data-i18n="menu_doctor">Doctors</span></a></li>
@@ -110,10 +102,8 @@
             <li class="nav-item admin-only" style="display: none;"><a class="nav-link nav-menu-item menu-user" href="#" data-page="user" onclick="loadComponent('user')"><i class="fa-solid fa-users me-1"></i> <span data-i18n="menu_user">Users</span></a></li>
           </ul>
 
-          <!-- ปุ่มสลับภาษา (EN / TH Switcher) & ข้อมูลผู้ใช้ & ปุ่มออกระบบ -->
           <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-2 border-start border-secondary-subtle ps-md-3 ms-md-2 mt-3 mt-md-0 border-top border-md-0 pt-3 pt-md-0">
             
-            <!-- ปุ่มสลับภาษา -->
             <div class="btn-group btn-group-sm lang-btn-group me-md-2" role="group">
               <button type="button" class="btn btn-outline-primary" id="btnLangEN" onclick="setLanguage('en')">EN</button>
               <button type="button" class="btn btn-outline-primary" id="btnLangTH" onclick="setLanguage('th')">TH</button>
@@ -149,9 +139,6 @@
     const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
     var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
-    // =========================================================================
-    // 🌐 1. ระบบพจนานุกรมคำแปลภาษา (I18n Translation Dictionary)
-    // =========================================================================
     const i18nDictionary = {
       en: {
         app_title: "CRM System",
@@ -222,9 +209,11 @@
         sec_visit_info: "Visit Information",
         sec_activity_details: "Activity Details",
 
+        // --- หน้า Doctors ---
         doc_title: "Doctors Management",
         doc_subtitle: "Database of Doctors and Workplaces",
         btn_add_doctor: "Add New Doctor",
+        btn_edit_doc_dcr: "Edit Doctor (DCR)",
         btn_clear_filters: "Clear Filters",
         filter_doc_name: "Doctor Name (EN/TH)",
         filter_hosp_name: "Hospital Name (EN/TH)",
@@ -236,6 +225,26 @@
         th_primary_hosp: "Primary Hospital",
         th_action: "Action",
         btn_edit: "Edit",
+
+        // --- 🌟 คำแปลสำหรับ Doctor Profile & Form ---
+        title_add_doc: "Add New Doctor (DCR)",
+        title_edit_doc: "Edit Doctor (DCR)",
+        lbl_doc_title: "Title",
+        lbl_doc_name_en: "Name (EN)",
+        lbl_doc_name_th: "Name (TH)",
+        lbl_specialty: "Specialty",
+        lbl_type: "Type",
+        lbl_email: "Email",
+        lbl_mobile: "Mobile",
+        lbl_workplace: "Workplace",
+        lbl_workplace_history: "Workplace History",
+        lbl_privacy: "Privacy Policy",
+        lbl_tos: "Terms of Service",
+        sec_gen_info: "General Information",
+        sec_contact_consent: "Contact & Consent",
+        tab_visit_history: "Visit History",
+        tab_target_call: "Target Call",
+        btn_add_call: "Add Call",
 
         // --- หน้า Hospitals ---
         hosp_title: "Hospitals Management",
@@ -251,7 +260,6 @@
         th_sales_id: "Sales ID",
         th_workplace_type: "Workplace Type",
         
-        // --- 🌟 เพิ่มเติมคำแปลสำหรับฟอร์ม Hospital (Add / Edit) ---
         title_add_hosp: "Add New Hospital (DCR)",
         title_edit_hosp: "Edit Hospital (DCR)",
         sec_hosp_info: "Hospital Information",
@@ -336,9 +344,11 @@
         sec_visit_info: "ข้อมูลการเข้าพบ",
         sec_activity_details: "รายละเอียดกิจกรรม",
 
+        // --- หน้า Doctors ---
         doc_title: "จัดการข้อมูลแพทย์",
         doc_subtitle: "ฐานข้อมูลรายชื่อแพทย์และสถานที่ปฏิบัติงาน",
         btn_add_doctor: "เพิ่มแพทย์ใหม่",
+        btn_edit_doc_dcr: "แก้ไขแพทย์ (DCR)",
         btn_clear_filters: "ล้างตัวกรอง",
         filter_doc_name: "ชื่อแพทย์ (EN/TH)",
         filter_hosp_name: "ชื่อโรงพยาบาล (EN/TH)",
@@ -350,6 +360,26 @@
         th_primary_hosp: "โรงพยาบาลหลัก",
         th_action: "การกระทำ",
         btn_edit: "แก้ไข",
+
+        // --- 🌟 คำแปลสำหรับ Doctor Profile & Form ---
+        title_add_doc: "เพิ่มแพทย์ใหม่ (DCR)",
+        title_edit_doc: "แก้ไขข้อมูลแพทย์ (DCR)",
+        lbl_doc_title: "คำนำหน้า",
+        lbl_doc_name_en: "ชื่อแพทย์ (EN)",
+        lbl_doc_name_th: "ชื่อแพทย์ (TH)",
+        lbl_specialty: "ความเชี่ยวชาญ",
+        lbl_type: "ประเภทแพทย์",
+        lbl_email: "อีเมล",
+        lbl_mobile: "เบอร์โทรศัพท์",
+        lbl_workplace: "สถานที่ทำงาน",
+        lbl_workplace_history: "ประวัติสถานที่ทำงาน",
+        lbl_privacy: "นโยบายความเป็นส่วนตัว",
+        lbl_tos: "ข้อตกลงการใช้งาน",
+        sec_gen_info: "ข้อมูลทั่วไป",
+        sec_contact_consent: "ข้อมูลติดต่อและการยินยอม",
+        tab_visit_history: "ประวัติการเยี่ยม",
+        tab_target_call: "เป้าหมายการเยี่ยม (Target Call)",
+        btn_add_call: "เพิ่มการเยี่ยม",
 
         // --- หน้า Hospitals ---
         hosp_title: "จัดการข้อมูลโรงพยาบาล",
@@ -365,7 +395,6 @@
         th_sales_id: "รหัสฝ่ายขาย (Sales ID)",
         th_workplace_type: "ประเภทสถานที่ทำงาน",
         
-        // --- 🌟 เพิ่มเติมคำแปลสำหรับฟอร์ม Hospital (Add / Edit) ---
         title_add_hosp: "เพิ่มโรงพยาบาลใหม่ (DCR)",
         title_edit_hosp: "แก้ไขข้อมูลโรงพยาบาล (DCR)",
         sec_hosp_info: "ข้อมูลโรงพยาบาล",
@@ -385,7 +414,6 @@
 
     var currentLang = localStorage.getItem('appLang') || 'en';
 
-    // 🌟 ฟังก์ชันสลับภาษา
     function setLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('appLang', lang);
