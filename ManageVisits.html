@@ -97,13 +97,13 @@
       </div>
     </div>
 
-    <!-- Quick Stat Cards (อัปเดตคำนวณตัวเลขอัตโนมัติตาม Filter) -->
+    <!-- Quick Stat Cards (2 ภาษา) -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
           <div class="stat-icon bg-primary-subtle text-primary me-3"><i class="fa-solid fa-calendar-days fs-5"></i></div>
           <div>
-            <div class="text-muted small fw-semibold">Total Visits</div>
+            <div class="text-muted small fw-semibold" data-i18n="kpi_total_visits">Total Visits</div>
             <h4 class="fw-bold mb-0 text-dark" id="statTotalVisits">0</h4>
           </div>
         </div>
@@ -112,7 +112,7 @@
         <div class="stat-card d-flex align-items-center">
           <div class="stat-icon bg-warning-subtle text-warning me-3"><i class="fa-solid fa-clock-rotate-left fs-5"></i></div>
           <div>
-            <div class="text-muted small fw-semibold">Pending Drafts</div>
+            <div class="text-muted small fw-semibold" data-i18n="kpi_pending_drafts">Pending Drafts</div>
             <h4 class="fw-bold mb-0 text-dark" id="statPendingVisits">0</h4>
           </div>
         </div>
@@ -121,14 +121,14 @@
         <div class="stat-card d-flex align-items-center">
           <div class="stat-icon bg-success-subtle text-success me-3"><i class="fa-solid fa-circle-check fs-5"></i></div>
           <div>
-            <div class="text-muted small fw-semibold">Submitted Logs</div>
+            <div class="text-muted small fw-semibold" data-i18n="kpi_submitted_logs">Submitted Logs</div>
             <h4 class="fw-bold mb-0 text-dark" id="statSubmittedVisits">0</h4>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Smart Search Bar + Filter Bar (แปลภาษา placeholder ครบถ้วน) -->
+    <!-- Smart Search Bar + Filter Bar -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
@@ -250,7 +250,6 @@
         </div>
 
         <div class="row g-4">
-          
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100">
               <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
@@ -265,7 +264,6 @@
                 </div>
               </div>
 
-              <!-- 🌟 ช่องเลือกสินค้า ปรับปรุงแสดงผลเต็มร้อย -->
               <div class="mb-3">
                 <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
@@ -341,7 +339,6 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
@@ -629,7 +626,7 @@
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(ter.Territory_ID)));
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -748,7 +745,6 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันสร้างรายการตัวเลือก User, Territory และ Products พร้อมระบบ Safety Fallback
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -849,7 +845,6 @@
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
-    // 🌟 ดร็อปดาวน์พนักงาน
     const uniqueUsersMap = new Map();
     window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(u => allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
@@ -863,7 +858,6 @@
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
-    // 🌟 ดร็อปดาวน์เขตพื้นที่
     window.fullAllowedTerritories = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(t => allowedTerIds.includes(String(t.Territory_ID)));
     if (window.fullAllowedTerritories.length === 0) window.fullAllowedTerritories = globalTerritoryList;
 
@@ -871,7 +865,6 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 ดร็อปดาวน์สินค้าในฟอร์ม (สร้าง TomSelect การันตีโชว์ 100%)
     let allowedProducts = [];
     if (isGlobalViewer) {
         allowedProducts = globalProductsList;
@@ -1200,7 +1193,7 @@
 
     globalFilteredVisits = filtered;
 
-    // 🌟 คำนวณอัปเดตตัวเลขการ์ด KPI ให้ล้อตามผลลัพธ์ที่กรองจริง
+    // 🌟 คำนวณอัปเดตตัวเลขการ์ด KPI ให้ล้อตามผลลัพธ์การกรองจริง
     updateStatCards(globalFilteredVisits);
 
     renderVisitTable();
