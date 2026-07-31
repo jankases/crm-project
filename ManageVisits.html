@@ -236,7 +236,6 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
-        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -266,7 +265,6 @@
                   </div>
                 </div>
 
-                <!-- 🌟 ช่องเลือกสินค้า -->
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
@@ -362,6 +360,25 @@
       return res !== key ? res : fallbackText;
     }
     return fallbackText;
+  }
+
+  // 🌟 ฟังก์ชันช่วยดึงชื่อโรงพยาบาลอย่างแม่นยำ ป้องกันการขึ้นเป็น -
+  function getHospitalNameFromDocOrVisit(docObj, visitObj) {
+    if (docObj) {
+      const hospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
+      if (hospId) {
+        const hospObj = globalAllHospitals.find(h => 
+          String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(hospId).trim().toLowerCase()
+        );
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
+        if (typeof hospId === 'string' && hospId.length > 2 && !hospId.includes('-')) return hospId;
+      }
+    }
+    if (visitObj) {
+      const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
+      if (directHosp && String(directHosp).trim() !== '') return directHosp;
+    }
+    return '-';
   }
 
   var searchRecognition;
@@ -630,7 +647,7 @@
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(ter.Territory_ID)));
+                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -870,11 +887,11 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 เรียกดึงรายการสินค้าใส่ในฟอร์ม
+    // 🌟 ดร็อปดาวน์สินค้า
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันการันตีการดึงและสร้าง TomSelect สำหรับสินค้าโชว์ขึ้นสมบูรณ์ 100%
+  // 🌟 ฟังก์ชันสร้าง TomSelect สำหรับสินค้าการันตีโชว์ 100%
   function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -920,7 +937,6 @@
             allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
-        // 🌟 Safety Fallback: หากแมปไม่เจอทีมจริงๆ ดึงสินค้า Active ทั้งหมดมาแสดงเสมอ
         if (allowedProducts.length === 0) {
             allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
             if (allowedProducts.length === 0) allowedProducts = globalProductsList;
@@ -1085,6 +1101,7 @@
     filterVisits(false);
   }
 
+  // 🌟 ฟังก์ชันค้นหาการเข้าพบพร้อมระบบดึงชื่อโรงพยาบาลและคำนวณ Smart Search แม่นยำ
   function filterVisits(resetPage = true) {
     const repSelect = document.getElementById('filterVisitRep');
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -1136,8 +1153,7 @@
         const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
         const docName = docObj ? `${docObj.Doc_Name} ${docObj.Doc_Name_TH || ''}`.toLowerCase() : '';
         
-        const hospObj = docObj ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docObj.Hospital_ID || docObj.hospital_id || '').trim().toLowerCase()) : null;
-        const hospName = hospObj ? `${hospObj.Hospital} ${hospObj.Known_As || ''}`.toLowerCase() : '';
+        const hospName = getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
 
         const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
         const prodNames = visitProds.map(vp => {
@@ -1204,12 +1220,10 @@
       } 
       else if (currentSortCol === 'hospital') {
         const docA = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase());
-        const hospA = docA ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docA.Hospital_ID || docA.hospital_id || '').trim().toLowerCase()) : null;
-        valA = hospA ? `${hospA.Hospital} ${hospA.Known_As||''}`.toLowerCase() : '';
+        valA = getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
         
         const docB = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase());
-        const hospB = docB ? globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docB.Hospital_ID || docB.hospital_id || '').trim().toLowerCase()) : null;
-        valB = hospB ? `${hospB.Hospital} ${hospB.Known_As||''}`.toLowerCase() : '';
+        valB = getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
       } 
       else if (currentSortCol === 'products') {
         valA = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(a.Visit_ID)).map(vp => {
@@ -1265,6 +1279,7 @@
     renderVisitTable();
   }
 
+  // 🌟 ฟังก์ชันวาดแถวตาราง แสดงชื่อโรงพยาบาลอย่างถูกต้อง
   function renderVisitTable() {
     const tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -1304,16 +1319,16 @@
       const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
       const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
-      let docNameShow = v.Doc_ID || v.doc_id || v.id || '-', hospNameShow = '-';
+      let docNameShow = v.Doc_ID || v.doc_id || v.id || '-';
 
       if (docObj) {
         const hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.includes('???');
         const nameThShow = (docObj.Doc_Name_TH && !hasQuestionMarks) ? ` (${docObj.Doc_Name_TH})` : '';
         docNameShow = `${docObj.Doc_Name}${nameThShow}`;
-        
-        const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID || h.id || '').trim().toLowerCase() === String(docObj.Hospital_ID || docObj.hospital_id || '').trim().toLowerCase());
-        if (hospObj) hospNameShow = hospObj.Known_As || hospObj.Hospital;
       }
+
+      // 🌟 ดึงชื่อโรงพยาบาลผ่าน helper function ที่แม่นยำ
+      const hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
 
       const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       let prodBadges = '';
@@ -1483,7 +1498,6 @@
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
-    // 🌟 โหลดรายการสินค้าตามสิทธิ์ของพนักงานเจ้าของ Visit Log พร้อมยัดค่าเดิมลงไปอย่างแม่นยำ
     renderFormProductDropdown(targetRepObj);
     const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
     if (tomSelectProdInstance) {
