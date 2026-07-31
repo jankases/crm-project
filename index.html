@@ -390,6 +390,7 @@
       setLanguage(currentLang);
     });
 
+    // 🌟 คืนค่าระบบโหลด Login.html ให้ปุ่ม Log In ทำงานได้ปกติ
     async function loadLoginComponent() {
       try {
         const response = await fetch('Login.html');
@@ -400,9 +401,10 @@
         
         const scripts = container.querySelectorAll('script');
         scripts.forEach(oldScript => {
-          if (oldScript.textContent) {
-            try { new Function(oldScript.textContent)(); } catch(e){ console.error(e); }
-          }
+          const newScript = document.createElement('script');
+          if (oldScript.src) newScript.src = oldScript.src;
+          if (oldScript.innerHTML) newScript.innerHTML = oldScript.innerHTML;
+          document.body.appendChild(newScript);
         });
       } catch (error) {
         console.error(error);
@@ -410,7 +412,7 @@
       }
     }
 
-    // 🎯 ฟังก์ชัน loadComponent รัน Script สดไร้ปัญหากล่องค้าง
+    // 🌟 ระบบโหลดสคริปต์หน้าหลักอย่างปลอดภัย ป้องกันปัญหาหน้าค้าง 100%[cite: 3]
     async function loadComponent(page) {
       let url = '';
       
@@ -444,11 +446,8 @@
         const html = await response.text();
         
         const mainContent = document.getElementById('mainContent');
-        
-        // 1. นำ HTML เข้า DOM ก่อน
         mainContent.innerHTML = html;
 
-        // 2. ดึง Script ทั้งหมดมารันผ่าน Function() ป้องกัน SyntaxError จาก appendChild
         const scriptElements = mainContent.querySelectorAll('script');
         scriptElements.forEach(s => {
           const code = s.textContent || s.innerText;
