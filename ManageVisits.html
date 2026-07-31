@@ -451,14 +451,13 @@
 
 </div>
 
-<!-- 📺 Presentation Modal (รองรับปุ่มเปลี่ยนหน้าสไลด์ + จับเวลารายหน้า) -->
+<!-- 📺 Presentation Modal -->
 <div class="modal fade" id="mediaPresentationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white py-2 px-3">
         <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
         
-        <!-- 📄 แถบปุ่มเปลี่ยนหน้าสไลด์ PDF -->
         <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
           <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
           <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
@@ -562,19 +561,18 @@
   }
 
   // -------------------------------------------------------------
-  // 🎬 e-Detailing & Page-Level Analytics (PDF.js Integration)
+  // 🎬 e-Detailing & Page-Level Analytics Logic
   // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
   var presentationTimerInterval = null;
 
-  // 📊 ตัวแปรระดับรายหน้า
   var pdfDocInstance = null;
   var currentPdfPage = 1;
   var totalPdfPages = 1;
   var currentPageStartTime = null;
-  var pageLogsBuffer = []; // [{ page: 1, duration: 15, openTime: ... }, ...]
+  var pageLogsBuffer = [];
 
   async function fetchDetailingMedia() {
     try {
@@ -670,7 +668,7 @@
 
     currentActiveMedia = media;
     presentationStartTime = new Date();
-    pageLogsBuffer = []; // ล้างบัฟเฟอร์รายหน้าเดิม
+    pageLogsBuffer = [];
     currentPdfPage = 1;
     currentPageStartTime = new Date();
 
@@ -684,7 +682,6 @@
       if (pdfControls) pdfControls.classList.add('d-none');
       modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
     } else {
-      // 📄 โหลดด้วย PDF.js Canvas
       if (pdfControls) pdfControls.classList.remove('d-none');
       modalBody.innerHTML = 
         '<div id="pdfCanvasContainer">' +
@@ -700,7 +697,6 @@
         renderPdfPage(1);
       } catch(e) {
         console.error("PDF.js Load Error:", e);
-        // Fallback iframe หาก PDF.js ติด CORS
         modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
       }
     }
@@ -745,13 +741,13 @@
     if (currentPageStartTime) {
       var now = new Date();
       var durationSec = Math.round((now - currentPageStartTime) / 1000);
-      if (durationSec > 0) {
-        pageLogsBuffer.push({
-          Page_Number: currentPdfPage,
-          Duration_Second: durationSec, // Match คอลัมน์ int8 ใน Supabase
-          Whenopend: currentPageStartTime.toISOString()
-        });
-      }
+      var durationToSave = durationSec > 0 ? durationSec : 1;
+      
+      pageLogsBuffer.push({
+        Page_Number: currentPdfPage,
+        Duration_Second: durationToSave,
+        Whenopend: currentPageStartTime.toISOString()
+      });
     }
   }
 
@@ -782,11 +778,11 @@
     renderPdfPage(currentPdfPage);
   }
 
-  // 🚀 บันทึกข้อมูลลงทั้ง Visit_Detailing_Logs และ Visit_Detailing_Pages ทันทีที่ปิด Pop-up
+  // 🚀 บันทึกสถิติลงทั้ง Visit_Detailing_Logs และ Visit_Detailing_Pages
   async function closeMediaPresentation() {
     if (presentationTimerInterval) clearInterval(presentationTimerInterval);
 
-    recordCurrentPageLog(); // บันทึกเวลาหน้าสุดท้ายก่อนปิด
+    recordCurrentPageLog();
 
     var now = new Date();
     var totalDurationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
@@ -803,7 +799,7 @@
       var logPayload = {
         Visit_ID: targetVisitId,
         Media_ID: currentActiveMedia.Media_ID,
-        Duration_Seconds: durationToSave, // Match คอลัมน์ int8 ใน DB
+        Duration_Seconds: durationToSave,
         Whenopend: presentationStartTime ? presentationStartTime.toISOString() : new Date().toISOString(),
         Whoupdated: whoUpdated
       };
@@ -817,13 +813,13 @@
           var createdLogId = logRes.data[0].Log_ID;
           console.log("✅ Visit_Detailing_Logs created! Log_ID:", createdLogId);
 
-          // 2️⃣ INSERT สถิติมนุษย์รายลงตาราง Visit_Detailing_Pages
+          // 2️⃣ INSERT สถิติมนุษย์รายลงตาราง Visit_Detailing_Pages (แมป Duration_Seconds มี s ตรงกับ Supabase 100%)
           if (pageLogsBuffer.length > 0) {
             var pagePayloads = pageLogsBuffer.map(function(pLog) {
               return {
                 Log_ID: createdLogId,
                 Page_Number: pLog.Page_Number,
-                Duration_Second: pLog.Duration_Second, // Match คอลัมน์ int8 ใน DB
+                Duration_Seconds: pLog.Duration_Second, // 🎯 แมปชื่อตรงคอลัมน์ Supabase
                 Whenopend: pLog.Whenopend,
                 Whoupdated: whoUpdated
               };
@@ -1364,7 +1360,7 @@
                       terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   }
               } else {
-                  var matchedTerr = globalTerritoryListLocal.filter(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
+                  var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
                   if (matchedTerr) {
                       allowedTerIds.push(String(matchedTerr.Territory_ID));
                   } else if (rawScope) {
@@ -2289,6 +2285,7 @@
     document.getElementById('dispSalesRepName').innerText = repNameShow;
     document.getElementById('dispTerritoryName').innerText = terNameShow;
 
+    // 🎯 เซ็ตค่าหมอเข้า TomSelect
     setTimeout(function() {
       if (v.Doc_ID) {
         if (tomSelectDocInstance) {
