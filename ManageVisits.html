@@ -369,11 +369,25 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital แบบครอบคลุม 100%
+  // 🌟 ฟังก์ชันดึงชื่อหมอแสดงผลตามภาษาที่เลือก (EN / TH)
+  function getDoctorNameByLang(docObj, defaultId) {
+    if (!docObj) return defaultId || '-';
+    var isTh = (typeof currentLang !== 'undefined' && currentLang === 'th');
+    
+    if (isTh) {
+      var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
+      if (docObj.Doc_Name_TH && !hasQuestionMarks) {
+        return docObj.Doc_Name_TH;
+      }
+    }
+    return docObj.Doc_Name || docObj.Doc_Name_TH || defaultId || '-';
+  }
+
+  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital แสดงผลตามภาษาที่เลือก (EN / TH)
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
+    var isTh = (typeof currentLang !== 'undefined' && currentLang === 'th');
     var targetPrimaryHospId = null;
 
-    // 1. ค้นหาจาก Workplaces_JSON ของหมอ
     if (docObj) {
       if (docObj.Workplaces_JSON || docObj.workplacesJson) {
         try {
@@ -388,8 +402,14 @@
             if (!primaryItem) primaryItem = workplaces[0];
 
             targetPrimaryHospId = primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id;
-            var directHospName = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
-            if (directHospName && directHospName !== '-') return directHospName;
+            
+            if (isTh) {
+              var directTh = primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As;
+              if (directTh && directTh !== '-') return directTh;
+            } else {
+              var directEn = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
+              if (directEn && directEn !== '-') return directEn;
+            }
           }
         } catch (e) {
           console.error("Parse Workplaces_JSON error:", e);
@@ -400,7 +420,6 @@
         targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
       }
 
-      // ค้นหาใน Array โรงพยาบาลทั้งหมด
       if (targetPrimaryHospId) {
         var hospList = (globalAllHospitals && globalAllHospitals.length > 0) 
           ? globalAllHospitals 
@@ -409,13 +428,19 @@
         var hospObj = hospList.find(function(h) { 
           return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
         });
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
+
+        if (hospObj) {
+          if (isTh) {
+            return hospObj.Known_As || hospObj.Hospital || hospObj.Hospital_Name;
+          } else {
+            return hospObj.Hospital || hospObj.Known_As || hospObj.Hospital_Name;
+          }
+        }
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
           return targetPrimaryHospId;
         }
       }
 
-      // ค้นหาจาก Assignment Cache
       if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
         var docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
         var matchedAssign = window.VisitManagerCache.assignments.find(function(a) {
@@ -424,12 +449,13 @@
         if (matchedAssign) {
           var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
           var hospObj2 = (globalAllHospitals || []).find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
-          if (hospObj2) return hospObj2.Known_As || hospObj2.Hospital;
+          if (hospObj2) {
+            return isTh ? (hospObj2.Known_As || hospObj2.Hospital) : (hospObj2.Hospital || hospObj2.Known_As);
+          }
         }
       }
     }
 
-    // 2. ค้นหาโดยตรงจากก้อน Visit
     if (visitObj) {
       var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -912,11 +938,10 @@
         
         var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
-          var hasQuestionMarks = d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') !== -1;
-          var nameThShow = (d.Doc_Name_TH && !hasQuestionMarks) ? (' (' + d.Doc_Name_TH + ')') : '';
+          var nameShow = getDoctorNameByLang(d, d.Doc_ID);
           var opt = document.createElement('option'); 
           opt.value = d.Doc_ID || d.doc_id || d.id; 
-          opt.textContent = d.Doc_Name + nameThShow; 
+          opt.textContent = nameShow; 
           docSelect.appendChild(opt);
         });
 
@@ -1425,9 +1450,9 @@
       } 
       else if (currentSortCol === 'doctor') {
         var docA = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
-        valA = docA ? (docA.Doc_Name + ' ' + (docA.Doc_Name_TH||'')).toLowerCase() : '';
+        valA = getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
         var docB = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
-        valB = docB ? (docB.Doc_Name + ' ' + (docB.Doc_Name_TH||'')).toLowerCase() : '';
+        valB = getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
       } 
       else if (currentSortCol === 'hospital') {
         var docA = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
@@ -1531,14 +1556,9 @@
       var docObj = globalAllDoctors.find(function(d) {
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
-      var docNameShow = v.Doc_ID || v.doc_id || v.id || '-';
 
-      if (docObj) {
-        var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
-        var nameThShow = (docObj.Doc_Name_TH && !hasQuestionMarks) ? (' (' + docObj.Doc_Name_TH + ')') : '';
-        docNameShow = docObj.Doc_Name + nameThShow;
-      }
-
+      // 🌟 ดึงชื่อหมอและโรงพยาบาลแยกตามภาษา
+      var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
 
       var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
@@ -1971,4 +1991,6 @@
   window.goToPage = goToPage;
   window.cancelVisitForm = cancelVisitForm;
   window.handleSaveVisit = handleSaveVisit;
+  window.getDoctorNameByLang = getDoctorNameByLang;
+  window.getHospitalNameFromDocOrVisit = getHospitalNameFromDocOrVisit;
 </script>
