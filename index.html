@@ -390,7 +390,6 @@
       setLanguage(currentLang);
     });
 
-    // 🌟 คืนค่าระบบโหลด Login.html ให้ปุ่ม Log In ทำงานได้ปกติ
     async function loadLoginComponent() {
       try {
         const response = await fetch('Login.html');
@@ -412,7 +411,7 @@
       }
     }
 
-    // 🌟 ระบบโหลดสคริปต์หน้าหลักอย่างปลอดภัย ป้องกันปัญหาหน้าค้าง 100%[cite: 3]
+    // 🌟 ระบบ Dynamic Script Execution แบบสร้างแท็กจริง ป้องกัน ReferenceError
     async function loadComponent(page) {
       let url = '';
       
@@ -448,16 +447,17 @@
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = html;
 
+        // 🎯 สกัดและสร้างแท็ก Script ให้ส่งออกไปที่ Global (window)
         const scriptElements = mainContent.querySelectorAll('script');
         scriptElements.forEach(s => {
           const code = s.textContent || s.innerText;
-          if (code && code.trim()) {
-            try {
-              new Function(code)();
-            } catch (err) {
-              console.error("Error executing component script:", err);
-            }
+          const newScript = document.createElement('script');
+          if (s.src) {
+            newScript.src = s.src;
+          } else if (code) {
+            newScript.text = code;
           }
+          document.head.appendChild(newScript).parentNode.removeChild(newScript);
         });
         
         const navbarCollapse = document.getElementById('navbarNav');
