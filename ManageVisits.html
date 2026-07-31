@@ -362,10 +362,12 @@
           </div>
         </div>
 
+        <!-- Row หลักใช้ align-items-stretch ดึงให้สองฝั่งสูงเท่ากันเป๊ะ -->
         <div class="row g-4 align-items-stretch">
+          
           <!-- ฝั่งซ้าย: Visit Information -->
-          <div class="col-12 col-lg-6">
-            <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+          <div class="col-12 col-lg-6 d-flex">
+            <div class="p-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               <div>
                 <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
                 
@@ -384,10 +386,10 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section (รองรับ 2 ภาษา + Scroll Box) -->
+                <!-- 🎬 e-Detailing Section (สลับภาษาตามระบบ + Scroll Box) -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
-                    <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span id="lblDetailingTitle">e-Detailing / Presentation</span></span>
+                    <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">e-Detailing / Presentation</span></span>
                   </label>
                   <div id="mediaListContainer" class="d-flex flex-column gap-2"></div>
                 </div>
@@ -427,9 +429,9 @@
             </div>
           </div>
 
-          <!-- ฝั่งขวา: Activity Details (ขยายช่อง + บาลานซ์ความสูงเต็มพื้นที่) -->
-          <div class="col-12 col-lg-6">
-            <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+          <!-- ฝั่งขวา: Activity Details (จัดทรงให้เต็มบาลานซ์ สวยงาม) -->
+          <div class="col-12 col-lg-6 d-flex">
+            <div class="p-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               <div>
                 <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h5>
 
@@ -440,7 +442,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="5" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="6" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -464,6 +466,7 @@
                 </div>
               </div>
 
+              <!-- Status อยู่ชิดล่างเสมอ -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -473,6 +476,7 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
@@ -660,15 +664,14 @@
 
     section.classList.remove('d-none');
     
-    // 🎯 อัปเดตภาษาข้อความ e-Detailing ตามระบบ EN / TH
-    var lang = getCurrentAppLang();
-    var titleText = lang === 'en' ? 'e-Detailing / Presentation' : 'e-Detailing / สื่อการนำเสนอ';
-    var unitText = lang === 'en' ? ' items' : ' เล่ม';
+    // 🎯 อัปเดตภาษาข้อความ e-Detailing จาก i18n
+    var titleText = safeTranslate('sec_edetailing', 'e-Detailing / Presentation');
+    var unitText = safeTranslate('unit_items', 'items');
 
     if (headerEl) {
       headerEl.innerHTML = 
-        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> ' + titleText + '</span>' +
-        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + unitText + '</span>';
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">' + titleText + '</span></span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
     }
 
     var html = '';
