@@ -63,7 +63,7 @@
       border: 1px solid #e2e8f0;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
       padding: 8px;
-      min-width: 220px;
+      min-width: 240px;
     }
     .admin-dropdown-menu .dropdown-item {
       border-radius: 10px;
@@ -132,8 +132,12 @@
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
+                
+                <!-- 🎬 [เพิ่มใหม่] เมนู Media Management (e-Detailing) -->
+                <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
+                
                 <li><hr class="dropdown-divider opacity-50"></li>
-                <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
+                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
               </ul>
             </li>
           </ul>
@@ -193,6 +197,7 @@
         menu_assign: "Assignment",
         menu_setting: "Settings",
         menu_dcr: "DCR Approvals",
+        menu_media: "Media Management",
         menu_user: "Users Management",
         btn_logout: "Logout",
         msg_loading: "Loading System...",
@@ -274,6 +279,7 @@
         menu_assign: "มอบหมายพื้นที่",
         menu_setting: "ตั้งค่าระบบ",
         menu_dcr: "อนุมัติ DCR",
+        menu_media: "จัดการสื่อ e-Detailing",
         menu_user: "ผู้ใช้งานระบบ",
         btn_logout: "ออกจากระบบ",
         msg_loading: "กำลังโหลดระบบ...",
@@ -312,7 +318,7 @@
         btn_save: "บันทึก",
         btn_view: "ดูข้อมูล",
         
- filter_doctor: "ชื่อแพทย์ (EN/TH)",
+        filter_doctor: "ชื่อแพทย์ (EN/TH)",
         filter_hospital: "ชื่อโรงพยาบาล (EN/TH)",
         filter_date_range: "ช่วงวันที่",
         filter_status: "สถานะ",
@@ -348,7 +354,6 @@
 
     var currentLang = localStorage.getItem('appLang') || 'en';
 
-    // 🌟 ระบบสลับภาษา + สั่ง Re-render ตารางทันทีโดยไม่ต้องกด F5
     function setLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('appLang', lang);
@@ -378,7 +383,6 @@
         }
       });
 
-      // 🎯 ส่งสัญญาณอัปเดตภาษาไปยังหน้ารายการ
       if (window.renderVisitTable) {
         window.renderVisitTable();
       }
@@ -433,6 +437,7 @@
         case 'assignment': url = 'ManageAssignment.html'; break;
         case 'indexData': url = 'ManageIndex.html'; break;
         case 'dcr': url = 'ManageDCR.html'; break;
+        case 'media': url = 'ManageMedia.html'; break; // 🎬 [เพิ่มใหม่] หน้าจัดการสื่อ e-Detailing
         case 'user': url = 'ManageUsers.html'; break;
         default: 
           page = 'visit'; 
