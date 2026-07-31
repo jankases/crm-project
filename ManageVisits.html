@@ -236,6 +236,7 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
+        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -265,6 +266,7 @@
                   </div>
                 </div>
 
+                <!-- 🌟 ช่องเลือกสินค้า (บังคับแสดงผล 100%) -->
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
@@ -362,15 +364,12 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันดึง Primary Hospital ตามลอจิกมาตรฐาน CRM
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
     if (docObj) {
-      // 1. เช็ค Primary Direct ID จากคอลัมน์ Hospital_ID ก่อน
       targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id;
 
-      // 2. ถ้าในคอลัมน์ปกติไม่มี ให้แกะ Workplaces_JSON หาเฉพาะก้อนที่เป็น Primary ("isPrimary": true)
       if (!targetPrimaryHospId && docObj.Workplaces_JSON) {
         try {
           let workplaces = typeof docObj.Workplaces_JSON === 'string' 
@@ -398,7 +397,6 @@
         }
       }
 
-      // 3. ค้นหาในตาราง Assignment
       if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
         const docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
         const matchedAssign = window.VisitManagerCache.assignments.find(a => 
@@ -412,7 +410,6 @@
       }
     }
 
-    // 4. Fallback: ดึงจากฟิลด์ Hospital ใน Visit_Logs
     if (visitObj) {
       const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -932,9 +929,14 @@
     renderFormProductDropdown(crmUser);
   }
 
+  // 🌟 ฟังก์ชันสร้างรายการตัวเลือกสินค้า (การันตีการดึงสินค้าสมบูรณ์ 100%)
   function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
+
+    let allProds = (globalProductsList && globalProductsList.length > 0) 
+      ? globalProductsList 
+      : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
 
     let crmUser = targetRepUser;
     if (!crmUser) {
@@ -964,22 +966,23 @@
 
     let allowedProducts = [];
     if (isGlobal) {
-        allowedProducts = globalProductsList;
+        allowedProducts = allProds;
     } else {
         if (allowedTeamIds.length > 0 && window.VisitManagerCache.teamProdLinks && window.VisitManagerCache.teamProdLinks.length > 0) {
             const allowedProdIds = window.VisitManagerCache.teamProdLinks
                 .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
                 .map(pt => String(pt.Product_ID));
-            allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+            allowedProducts = allProds.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         }
         
         if (allowedProducts.length === 0 && allowedTeamIds.length > 0) {
-            allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
+            allowedProducts = allProds.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
+        // 🌟 Safety Fallback: ถ้าดึงตามทีมไม่พบ ให้สแกนสินค้า Active ทั้งหมดเสมอ
         if (allowedProducts.length === 0) {
-            allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
-            if (allowedProducts.length === 0) allowedProducts = globalProductsList;
+            allowedProducts = allProds.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
+            if (allowedProducts.length === 0) allowedProducts = allProds;
         }
     }
 
