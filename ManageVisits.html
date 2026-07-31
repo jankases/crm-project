@@ -236,7 +236,6 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
-        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -266,7 +265,6 @@
                   </div>
                 </div>
 
-                <!-- 🌟 ช่องเลือกสินค้า (บังคับแสดงผล 100%) -->
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
@@ -364,12 +362,15 @@
     return fallbackText;
   }
 
+  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ละเอียดและครอบคลุมทุกคอลัมน์ DB 100%
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
     if (docObj) {
-      targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id;
+      // 1. ลองดึงจากคอลัมน์ Hospital_ID หรือ hospital_id
+      targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
 
+      // 2. แกะ Workplaces_JSON หาเฉพาะก้อนที่มี isPrimary = true
       if (!targetPrimaryHospId && docObj.Workplaces_JSON) {
         try {
           let workplaces = typeof docObj.Workplaces_JSON === 'string' 
@@ -387,6 +388,7 @@
         }
       }
 
+      // 3. แมปกับตาราง Hospitals ทั้งหมดในหน้างาน
       if (targetPrimaryHospId) {
         const hospObj = globalAllHospitals.find(h => 
           String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase()
@@ -397,6 +399,7 @@
         }
       }
 
+      // 4. ตรวจค้นในตาราง Assignment
       if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
         const docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
         const matchedAssign = window.VisitManagerCache.assignments.find(a => 
@@ -410,6 +413,7 @@
       }
     }
 
+    // 5. Fallback: ดึงจากชื่อ รพ. ตรงๆ ใน Visit_Logs
     if (visitObj) {
       const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -641,7 +645,7 @@
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
           const [docRes, prodRes, territoryRes, hospRes, teamRes, buRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
-            fetchAllRecords('Doctors', q => q.order('Doc_Name', { ascending: true })),
+            fetchAllRecords('Doctors'), // 🌟 ดึงข้อมูลตารางแพทย์มาสดๆ สมบูรณ์ทุกคอลัมน์
             fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
             supabaseClient.from('Territory').select('*'),
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
@@ -929,14 +933,25 @@
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันสร้างรายการตัวเลือกสินค้า (การันตีการดึงสินค้าสมบูรณ์ 100%)
-  function renderFormProductDropdown(targetRepUser = null) {
+  // 🌟 ฟังก์ชันการันตีการดึงสินค้าสร้าง TomSelect สมบูรณ์ 100%
+  async function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
     let allProds = (globalProductsList && globalProductsList.length > 0) 
       ? globalProductsList 
       : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
+
+    // Safety Fetch: หากความจำยังไม่มีสินค้า ดึงจาก Supabase สดทันที
+    if (!allProds || allProds.length === 0) {
+      try {
+        const { data } = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
+        if (data && data.length > 0) {
+          allProds = data;
+          globalProductsList = data;
+        }
+      } catch(e) {}
+    }
 
     let crmUser = targetRepUser;
     if (!crmUser) {
@@ -979,7 +994,6 @@
             allowedProducts = allProds.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
-        // 🌟 Safety Fallback: ถ้าดึงตามทีมไม่พบ ให้สแกนสินค้า Active ทั้งหมดเสมอ
         if (allowedProducts.length === 0) {
             allowedProducts = allProds.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
             if (allowedProducts.length === 0) allowedProducts = allProds;
@@ -1453,7 +1467,7 @@
     });
   }
 
-  function openAddVisitView() {
+  async function openAddVisitView() {
     ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     document.getElementById('visitForm').reset();
@@ -1473,7 +1487,7 @@
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
     }
 
-    renderFormProductDropdown();
+    await renderFormProductDropdown();
 
     const returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
@@ -1509,7 +1523,7 @@
     switchVisitView('visitFormView');
   }
 
-  function openEditVisitView(visitId) {
+  async function openEditVisitView(visitId) {
     ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     const v = globalVisits.find(x => x.Visit_ID === visitId);
@@ -1538,7 +1552,7 @@
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
-    renderFormProductDropdown(targetRepObj);
+    await renderFormProductDropdown(targetRepObj);
     const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
     if (tomSelectProdInstance) {
         tomSelectProdInstance.setValue(visitProds);
