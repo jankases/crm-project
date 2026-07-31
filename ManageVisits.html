@@ -66,7 +66,6 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
-  /* 🎯 ปรับแต่ง TomSelect ไม่ให้ทับบังเนื้อหาล่าง */
   .ts-control { border-radius: 12px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .ts-dropdown { 
@@ -132,12 +131,11 @@
   }
 
   #mediaListContainer {
-    max-height: 210px; /* จำกัดความสูง */
+    max-height: 200px;
     overflow-y: auto;
     padding-right: 4px;
   }
 
-  /* แต่ง Scrollbar ให้คลีน เรียบหรู */
   #mediaListContainer::-webkit-scrollbar {
     width: 5px;
   }
@@ -364,7 +362,8 @@
           </div>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-4 align-items-stretch">
+          <!-- ฝั่งซ้าย: Visit Information -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
@@ -385,10 +384,10 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section ( Scroll Box + Compact Cards ) -->
+                <!-- 🎬 e-Detailing Section (รองรับ 2 ภาษา + Scroll Box) -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
-                    <span><i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ</span>
+                    <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span id="lblDetailingTitle">e-Detailing / Presentation</span></span>
                   </label>
                   <div id="mediaListContainer" class="d-flex flex-column gap-2"></div>
                 </div>
@@ -428,6 +427,7 @@
             </div>
           </div>
 
+          <!-- ฝั่งขวา: Activity Details (ขยายช่อง + บาลานซ์ความสูงเต็มพื้นที่) -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
@@ -440,7 +440,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="4" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="5" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -450,7 +450,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="3" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="4" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -464,7 +464,7 @@
                 </div>
               </div>
 
-              <div class="mb-0 pt-2 border-top">
+              <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
                   <option value="Pending" class="text-warning">⏳ Pending (Draft)</option>
@@ -660,11 +660,15 @@
 
     section.classList.remove('d-none');
     
-    // อัปเดตบอกจำนวนสื่อตรงหัวข้อ
+    // 🎯 อัปเดตภาษาข้อความ e-Detailing ตามระบบ EN / TH
+    var lang = getCurrentAppLang();
+    var titleText = lang === 'en' ? 'e-Detailing / Presentation' : 'e-Detailing / สื่อการนำเสนอ';
+    var unitText = lang === 'en' ? ' items' : ' เล่ม';
+
     if (headerEl) {
       headerEl.innerHTML = 
-        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ</span>' +
-        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' เล่ม</span>';
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> ' + titleText + '</span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + unitText + '</span>';
     }
 
     var html = '';
@@ -1715,7 +1719,7 @@
             create: false, 
             sortField: { field: "text", direction: "asc" }, 
             placeholder: prodPlaceholder, 
-            dropdownParent: 'body', // 🎯 [จุดแก้ไขสำคัญ] ป้องกัน Dropdown ซ้อนทับบังโซน e-Detailing
+            dropdownParent: 'body',
             onChange: function() {
               loadProductMedia();
             }
