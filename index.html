@@ -15,7 +15,6 @@
     body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
     #appContainer { display: none; } 
     
-    /* 🌟 Navbar สไตล์ Modern Corporate Clean */
     .navbar { 
       background-color: #ffffff !important; 
       border-bottom: 1px solid #e9ecef; 
@@ -26,7 +25,6 @@
     
     #mainContent { margin-top: 20px; }
 
-    /* 🎨 คุมโทนสีเมนูแคปซูลสวยงาม */
     .nav-menu-item {
       color: #475569; 
       font-weight: 600;
@@ -60,7 +58,6 @@
       color: #ffffff !important; 
     }
 
-    /* 🌟 Dropdown สไตล์ Admin Tools */
     .admin-dropdown-menu {
       border-radius: 16px;
       border: 1px solid #e2e8f0;
@@ -84,7 +81,6 @@
       color: #0d6efd;
     }
 
-    /* ปุ่มสลับภาษา */
     .lang-btn-group .btn {
       font-size: 0.75rem;
       font-weight: 700;
@@ -92,7 +88,6 @@
       border-radius: 20px;
     }
 
-    /* User Profile Pill */
     .user-profile-pill {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -109,7 +104,6 @@
     <nav id="mainNavbar" class="navbar navbar-expand-lg sticky-top">
       <div class="container-fluid px-3 px-md-4">
         
-        <!-- Brand Logo -->
         <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" href="#" onclick="loadComponent('dashboard')">
           <div class="bg-primary text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 32px;">
             <i class="fa-solid fa-briefcase-medical fs-6"></i>
@@ -123,13 +117,11 @@
         
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- 🌟 เมนูหลักตรงกลาง -->
           <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-lg-0">
             <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-2"></i> <span data-i18n="menu_visit">Visit Logs</span></a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-2"></i> <span data-i18n="menu_doctor">Doctors</span></a></li>
             <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-2"></i> <span data-i18n="menu_hospital">Hospitals</span></a></li>
             
-            <!-- 🌟 เมนูสำหรับ ADMIN -->
             <li class="nav-item dropdown admin-only ms-1" style="display: none;">
               <a class="nav-link nav-menu-item dropdown-toggle" href="#" id="adminToolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-sliders me-2"></i> <span data-i18n="menu_admin_tools">Admin Tools</span>
@@ -146,7 +138,6 @@
             </li>
           </ul>
 
-          <!-- 🌟 โซนขวา: ภาษา + ข้อมูลผู้ใช้ + ปุ่ม Logout -->
           <div class="d-flex flex-column flex-lg-row align-items-center justify-content-end gap-2 mt-3 mt-lg-0 pt-3 pt-lg-0 border-top border-lg-0">
             
             <div class="btn-group lang-btn-group me-lg-2" role="group">
@@ -190,9 +181,6 @@
     const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
     var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
 
-    // =========================================================================
-    // 🌐 1. พจนานุกรมคำแปลภาษาฉบับอัปเดตสมบูรณ์ที่สุด (i18n Dictionary)
-    // =========================================================================
     const i18nDictionary = {
       en: {
         app_title: "CRM System",
@@ -212,16 +200,17 @@
         msg_check_file: "Please check if the file exists.",
 
         opt_all: "- All -",
-        opt_all_doctors: "- All -",
-        opt_all_hospitals: "- All -",
-        opt_all_users: "- All -",
-        opt_all_territories: "- All -",
-        opt_all_products: "- All -",
-        opt_all_specialties: "- All -",
-        opt_all_types: "- All -",
-        opt_all_provinces: "- All -",
-        opt_all_zones: "- All -",
+        opt_all_doctors: "- All Doctors -",
+        opt_all_hospitals: "- All Hospitals -",
+        opt_all_users: "- All Users -",
+        opt_all_territories: "- All Territories -",
+        opt_all_products: "- All Products -",
+        opt_all_specialties: "- All Specialties -",
+        opt_all_types: "- All Types -",
+        opt_all_provinces: "- All Provinces -",
+        opt_all_zones: "- All Zones -",
         opt_search_doc: "Search Doctor (EN/TH)...",
+        opt_smart_search_ph: "Search Doctor, Hospital or Product...",
         opt_select_products: "-- Select Products --",
         opt_select_purpose: "-- Select Purpose --",
         opt_select_doc_default: "-- Search/Select Doctor --",
@@ -242,7 +231,7 @@
         filter_hospital: "Hospital Name (EN/TH)",
         filter_date_range: "Date Range",
         filter_status: "Status",
-        filter_user: "User",
+        filter_user: "User / Sales Rep",
         filter_territory: "Territory",
         filter_product: "Product",
         
@@ -351,16 +340,17 @@
         msg_check_file: "โปรดตรวจสอบว่าสร้างไฟล์นี้ไว้แล้วหรือยัง",
 
         opt_all: "- ทั้งหมด -",
-        opt_all_doctors: "- ทั้งหมด -",
-        opt_all_hospitals: "- ทั้งหมด -",
-        opt_all_users: "- ทั้งหมด -",
-        opt_all_territories: "- ทั้งหมด -",
-        opt_all_products: "- ทั้งหมด -",
-        opt_all_specialties: "- ทั้งหมด -",
-        opt_all_types: "- ทั้งหมด -",
-        opt_all_provinces: "- ทั้งหมด -",
-        opt_all_zones: "- ทั้งหมด -",
+        opt_all_doctors: "- แพทย์ทั้งหมด -",
+        opt_all_hospitals: "- โรงพยาบาลทั้งหมด -",
+        opt_all_users: "- พนักงานทั้งหมด -",
+        opt_all_territories: "- เขตพื้นที่ทั้งหมด -",
+        opt_all_products: "- ผลิตภัณฑ์ทั้งหมด -",
+        opt_all_specialties: "- ความเชี่ยวชาญทั้งหมด -",
+        opt_all_types: "- ประเภททั้งหมด -",
+        opt_all_provinces: "- จังหวัดทั้งหมด -",
+        opt_all_zones: "- เขต/โซนทั้งหมด -",
         opt_search_doc: "ค้นหาชื่อแพทย์ (EN/TH)...",
+        opt_smart_search_ph: "ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...",
         opt_select_products: "-- เลือกผลิตภัณฑ์ --",
         opt_select_purpose: "-- เลือกวัตถุประสงค์ --",
         opt_select_doc_default: "-- ค้นหา/เลือกแพทย์ --",
@@ -381,7 +371,7 @@
         filter_hospital: "ชื่อโรงพยาบาล (EN/TH)",
         filter_date_range: "ช่วงวันที่",
         filter_status: "สถานะ",
-        filter_user: "พนักงาน",
+        filter_user: "พนักงาน / ฝ่ายขาย",
         filter_territory: "เขตพื้นที่",
         filter_product: "ผลิตภัณฑ์",
         
