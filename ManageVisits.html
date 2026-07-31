@@ -533,7 +533,6 @@
   var currentActiveMedia = null;
   var presentationStartTime = null;
   var presentationTimerInterval = null;
-  var activePresentationLogs = [];
 
   async function fetchDetailingMedia() {
     try {
@@ -608,9 +607,24 @@
     container.innerHTML = html;
   }
 
+  function generateUUID() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+  }
+
   function openMediaPresentation(mediaId) {
     var media = globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
     if (!media) return alert("❌ ไม่พบไฟล์สื่อการนำเสนอนี้");
+
+    var visitIdInput = document.getElementById('visitId');
+    if (visitIdInput && !visitIdInput.value) {
+      visitIdInput.value = generateUUID();
+    }
 
     currentActiveMedia = media;
     presentationStartTime = new Date();
@@ -641,24 +655,38 @@
     modal.show();
   }
 
-  function closeMediaPresentation() {
+  async function closeMediaPresentation() {
     if (presentationTimerInterval) clearInterval(presentationTimerInterval);
 
     var now = new Date();
     var durationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
+    var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
 
-    if (currentActiveMedia && durationSec > 0) {
+    if (currentActiveMedia && targetVisitId) {
       var crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
       var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
-      // 🎯 แมปชื่อคอลัมน์ให้อยู่ในรูป Duration_Seconds (มี s) ให้ตรงกับ Supabase 100%
-      activePresentationLogs.push({
+      var durationToSave = durationSec > 0 ? durationSec : 1;
+
+      var insertPayload = {
+        Visit_ID: targetVisitId,
         Media_ID: currentActiveMedia.Media_ID,
-        Duration_Seconds: durationSec,
-        Whenopend: presentationStartTime.toISOString(),
+        Duration_Seconds: durationToSave,
+        Whenopend: presentationStartTime ? presentationStartTime.toISOString() : new Date().toISOString(),
         Whoupdated: whoUpdated
-      });
+      };
+
+      try {
+        var res = await supabaseClient.from('Visit_Detailing_Logs').insert([insertPayload]);
+        if (res.error) {
+          console.error("❌ Direct Insert Visit_Detailing_Logs error:", res.error.message);
+        } else {
+          console.log("✅ Visit_Detailing_Logs saved directly successfully!");
+        }
+      } catch(err) {
+        console.error("❌ Direct Insert Catch error:", err);
+      }
     }
 
     var modalEl = document.getElementById('mediaPresentationModal');
@@ -1182,7 +1210,7 @@
                       terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   }
               } else {
-                  var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
+                  var matchedTerr = globalTerritoryListLocal.filter(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
                   if (matchedTerr) {
                       allowedTerIds.push(String(matchedTerr.Territory_ID));
                   } else if (rawScope) {
@@ -1233,6 +1261,7 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
+      // 🎯 สร้างตัวเลือกช่องหมอแบบค้นหาได้ 2 ภาษา (EN & TH)
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         var docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
@@ -1240,10 +1269,15 @@
         
         var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
-          var nameShow = getDoctorNameByLang(d, d.Doc_ID);
+          var nameEN = d.Doc_Name || d.doc_name || '';
+          var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
+          var displayText = nameEN + (nameTH ? ' (' + nameTH + ')' : '');
+
           var opt = document.createElement('option'); 
           opt.value = d.Doc_ID || d.doc_id || d.id; 
-          opt.textContent = nameShow; 
+          opt.textContent = displayText; 
+          opt.setAttribute('data-name-en', nameEN);
+          opt.setAttribute('data-name-th', nameTH);
           docSelect.appendChild(opt);
         });
 
@@ -1252,12 +1286,13 @@
             var docPlaceholder = safeTranslate('opt_search_doc', 'Search Doctor (EN/TH)...');
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
-                searchField: ["text"],
+                searchField: ["text", "name_en", "name_th"],
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: docPlaceholder,
                 allowEmptyOption: true,
                 maxOptions: null,
-                dropdownParent: 'body'
+                dropdownParent: 'body',
+                dataAttr: 'data'
             });
         }
       }
@@ -1999,7 +2034,6 @@
   }
 
   async function openAddVisitView() {
-    activePresentationLogs = [];
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2060,7 +2094,6 @@
   }
 
   async function openEditVisitView(visitId) {
-    activePresentationLogs = [];
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2230,16 +2263,6 @@
     }
   }
 
-  function generateUUID() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-    }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-  }
-
   async function handleSaveVisit(e) {
     e.preventDefault();
     var btn = document.getElementById('saveVisitBtn');
@@ -2329,24 +2352,6 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
-      // 🎬 บันทึกสถิติลง Visit_Detailing_Logs
-      if (activePresentationLogs.length > 0) {
-        var detailingPayload = activePresentationLogs.map(function(log) {
-          return {
-            Visit_ID: targetVisitId,
-            Media_ID: log.Media_ID,
-            Duration_Seconds: log.Duration_Seconds, // 🎯 แก้ให้ตรงกับ DB
-            Whenopend: log.Whenopend,
-            Whoupdated: log.Whoupdated
-          };
-        });
-
-        var logRes = await supabaseClient.from('Visit_Detailing_Logs').insert(detailingPayload);
-        if (logRes.error) {
-          console.error("Save Visit_Detailing_Logs error:", logRes.error);
-        }
-      }
-
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
@@ -2387,4 +2392,5 @@
   window.openMediaPresentation = openMediaPresentation;
   window.closeMediaPresentation = closeMediaPresentation;
   window.formatTimeString = formatTimeString;
+  window.generateUUID = generateUUID;
 </script>
