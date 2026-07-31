@@ -66,9 +66,15 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
+  /* 🎯 ปรับแต่ง TomSelect ไม่ให้ทับบังเนื้อหาล่าง */
   .ts-control { border-radius: 12px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
-  .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+  .ts-dropdown { 
+    z-index: 99999 !important; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+    border: 1px solid #e2e8f0; 
+  }
 
   .disabled-ts .ts-control input::placeholder {
     color: transparent !important;
@@ -118,14 +124,20 @@
     to { transform: translateX(0); opacity: 1; }
   }
 
-  /* 🎨 1. Scroll Box สำหรับโซน e-Detailing ไม่ให้ยืดฟอร์ม */
+  /* 🎨 Scroll Box สำหรับโซน e-Detailing */
+  #detailingMediaSection {
+    margin-top: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
   #mediaListContainer {
-    max-height: 200px; /* จำกัดความสูงแสดงสื่อประมาณ 2.5 ชิ้น */
+    max-height: 210px; /* จำกัดความสูง */
     overflow-y: auto;
     padding-right: 4px;
   }
 
-  /* แต่ง Scrollbar ให้เรียบหรู คลีน ไม่บังเนื้อหา */
+  /* แต่ง Scrollbar ให้คลีน เรียบหรู */
   #mediaListContainer::-webkit-scrollbar {
     width: 5px;
   }
@@ -141,7 +153,6 @@
     background: #94a3b8;
   }
 
-  /* การ์ดสื่อกระชับ สวยงาม */
   .media-card {
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -374,7 +385,7 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section (ปรับพร้อม Scrollbar แบบที่ 1) -->
+                <!-- 🎬 e-Detailing Section ( Scroll Box + Compact Cards ) -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
                     <span><i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ</span>
@@ -1704,7 +1715,7 @@
             create: false, 
             sortField: { field: "text", direction: "asc" }, 
             placeholder: prodPlaceholder, 
-            dropdownParent: 'body',
+            dropdownParent: 'body', // 🎯 [จุดแก้ไขสำคัญ] ป้องกัน Dropdown ซ้อนทับบังโซน e-Detailing
             onChange: function() {
               loadProductMedia();
             }
