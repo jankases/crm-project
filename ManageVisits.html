@@ -369,9 +369,11 @@
     return fallbackText;
   }
 
+  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital แบบครอบคลุม 100%
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     var targetPrimaryHospId = null;
 
+    // 1. ค้นหาจาก Workplaces_JSON ของหมอ
     if (docObj) {
       if (docObj.Workplaces_JSON || docObj.workplacesJson) {
         try {
@@ -386,6 +388,8 @@
             if (!primaryItem) primaryItem = workplaces[0];
 
             targetPrimaryHospId = primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id;
+            var directHospName = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
+            if (directHospName && directHospName !== '-') return directHospName;
           }
         } catch (e) {
           console.error("Parse Workplaces_JSON error:", e);
@@ -396,8 +400,13 @@
         targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
       }
 
+      // ค้นหาใน Array โรงพยาบาลทั้งหมด
       if (targetPrimaryHospId) {
-        var hospObj = globalAllHospitals.find(function(h) { 
+        var hospList = (globalAllHospitals && globalAllHospitals.length > 0) 
+          ? globalAllHospitals 
+          : (window.VisitManagerCache ? window.VisitManagerCache.allHospitals : []);
+
+        var hospObj = hospList.find(function(h) { 
           return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
         });
         if (hospObj) return hospObj.Known_As || hospObj.Hospital;
@@ -406,6 +415,7 @@
         }
       }
 
+      // ค้นหาจาก Assignment Cache
       if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
         var docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
         var matchedAssign = window.VisitManagerCache.assignments.find(function(a) {
@@ -413,12 +423,13 @@
         });
         if (matchedAssign) {
           var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
-          var hospObj2 = globalAllHospitals.find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
+          var hospObj2 = (globalAllHospitals || []).find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
           if (hospObj2) return hospObj2.Known_As || hospObj2.Hospital;
         }
       }
     }
 
+    // 2. ค้นหาโดยตรงจากก้อน Visit
     if (visitObj) {
       var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -809,6 +820,7 @@
           var globalBuListLocal = (results[5] && results[5].data) ? results[5].data : [];
 
           window.VisitManagerCache.assignments = allAssignments;
+          window.VisitManagerCache.allHospitals = allHospitals;
 
           var allowedTerIds = [];
 
@@ -1248,13 +1260,18 @@
           var promises = [
             fetchAllRecords('Visit_Logs'),
             fetchAllRecords('Visit_Products'),
-            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
+            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
+            fetchAllRecords('Hospitals')
           ];
           var results = await Promise.all(promises);
 
           window.VisitManagerCache.visits = results[0] || [];
           window.VisitManagerCache.visitProducts = results[1] || []; 
           window.VisitManagerCache.pendingUnlocks = (results[2] && results[2].data) ? results[2].data.map(function(d) { return d.Ref_ID; }) : [];
+          if (results[3] && results[3].length > 0) {
+            window.VisitManagerCache.allHospitals = results[3];
+            globalAllHospitals = results[3];
+          }
           window.VisitManagerCache.isLoaded = true;
 
         } catch(err) { 
@@ -1266,6 +1283,9 @@
     globalVisits = window.VisitManagerCache.visits;
     globalVisitProducts = window.VisitManagerCache.visitProducts;
     globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
+    if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) {
+      globalAllHospitals = window.VisitManagerCache.allHospitals;
+    }
 
     if (window.VisitManagerCache.filters) {
         var f = window.VisitManagerCache.filters;
