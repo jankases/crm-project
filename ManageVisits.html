@@ -118,16 +118,39 @@
     to { transform: translateX(0); opacity: 1; }
   }
 
+  /* 🎨 1. Scroll Box สำหรับโซน e-Detailing ไม่ให้ยืดฟอร์ม */
+  #mediaListContainer {
+    max-height: 200px; /* จำกัดความสูงแสดงสื่อประมาณ 2.5 ชิ้น */
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  /* แต่ง Scrollbar ให้เรียบหรู คลีน ไม่บังเนื้อหา */
+  #mediaListContainer::-webkit-scrollbar {
+    width: 5px;
+  }
+  #mediaListContainer::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+  #mediaListContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  #mediaListContainer::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* การ์ดสื่อกระชับ สวยงาม */
   .media-card {
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 10px 14px;
-    background: #f8fafc;
+    padding: 8px 12px;
+    background: #ffffff;
     transition: all 0.2s ease;
   }
   .media-card:hover {
     border-color: #0d6efd;
-    background: #ffffff;
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
   }
 
@@ -351,10 +374,10 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section -->
+                <!-- 🎬 e-Detailing Section (ปรับพร้อม Scrollbar แบบที่ 1) -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
-                  <label class="form-label fw-bold text-primary mb-2">
-                    <i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ
+                  <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
+                    <span><i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ</span>
                   </label>
                   <div id="mediaListContainer" class="d-flex flex-column gap-2"></div>
                 </div>
@@ -588,6 +611,7 @@
   async function loadProductMedia() {
     var container = document.getElementById('mediaListContainer');
     var section = document.getElementById('detailingMediaSection');
+    var headerEl = document.getElementById('detailingMediaHeader');
     if (!container || !section) return;
 
     var selectedProducts = [];
@@ -624,21 +648,29 @@
     }
 
     section.classList.remove('d-none');
+    
+    // อัปเดตบอกจำนวนสื่อตรงหัวข้อ
+    if (headerEl) {
+      headerEl.innerHTML = 
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ</span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' เล่ม</span>';
+    }
+
     var html = '';
     matchedMedia.forEach(function(m) {
       var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
       var typeText = m.Type || 'PDF';
       
       html += 
-        '<div class="media-card d-flex justify-content-between align-items-center">' +
+        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs">' +
           '<div class="d-flex align-items-center me-2 overflow-hidden">' +
-            '<i class="fa-solid ' + icon + ' fs-4 me-3"></i>' +
+            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
             '<div class="text-truncate">' +
-              '<div class="fw-bold text-dark small text-truncate">' + m.Title + '</div>' +
-              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.68rem;">' + typeText + '</span>' +
+              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="btn btn-primary btn-sm fw-bold rounded-pill px-3 shadow-xs" onclick="openMediaPresentation(\'' + m.Media_ID + '\')">' +
+          '<button type="button" class="btn btn-primary btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="openMediaPresentation(\'' + m.Media_ID + '\')">' +
             '<i class="fa-solid fa-display me-1"></i> Present' +
           '</button>' +
         '</div>';
@@ -778,7 +810,6 @@
     renderPdfPage(currentPdfPage);
   }
 
-  // 🚀 บันทึกสถิติลงทั้ง Visit_Detailing_Logs และ Visit_Detailing_Pages
   async function closeMediaPresentation() {
     if (presentationTimerInterval) clearInterval(presentationTimerInterval);
 
@@ -795,7 +826,6 @@
 
       var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
 
-      // 1️⃣ INSERT สื่อลงตาราง Visit_Detailing_Logs
       var logPayload = {
         Visit_ID: targetVisitId,
         Media_ID: currentActiveMedia.Media_ID,
@@ -813,13 +843,12 @@
           var createdLogId = logRes.data[0].Log_ID;
           console.log("✅ Visit_Detailing_Logs created! Log_ID:", createdLogId);
 
-          // 2️⃣ INSERT สถิติมนุษย์รายลงตาราง Visit_Detailing_Pages (แมป Duration_Seconds มี s ตรงกับ Supabase 100%)
           if (pageLogsBuffer.length > 0) {
             var pagePayloads = pageLogsBuffer.map(function(pLog) {
               return {
                 Log_ID: createdLogId,
                 Page_Number: pLog.Page_Number,
-                Duration_Seconds: pLog.Duration_Second, // 🎯 แมปชื่อตรงคอลัมน์ Supabase
+                Duration_Seconds: pLog.Duration_Second,
                 Whenopend: pLog.Whenopend,
                 Whoupdated: whoUpdated
               };
@@ -2285,7 +2314,6 @@
     document.getElementById('dispSalesRepName').innerText = repNameShow;
     document.getElementById('dispTerritoryName').innerText = terNameShow;
 
-    // 🎯 เซ็ตค่าหมอเข้า TomSelect
     setTimeout(function() {
       if (v.Doc_ID) {
         if (tomSelectDocInstance) {
