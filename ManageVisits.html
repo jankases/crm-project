@@ -70,6 +70,13 @@
   .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
   .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
 
+  .disabled-ts .ts-control input::placeholder {
+    color: transparent !important;
+  }
+  .disabled-ts .ts-control input {
+    opacity: 0 !important;
+  }
+
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd; }
 
@@ -393,7 +400,7 @@
         var hospObj = globalAllHospitals.find(function(h) { 
           return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
         });
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;[cite: 1]
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
           return targetPrimaryHospId;
         }
@@ -418,6 +425,135 @@
     }
 
     return '-';
+  }
+
+  // 🌟 ระบบไมค์ค้นหาหมอ
+  var docRecognition = null;
+  function toggleDocDictation() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    }
+
+    var btn = document.getElementById('btnMicDoc');
+    var icon = document.getElementById('micDocIcon');
+
+    if (docRecognition) {
+      docRecognition.stop();
+      docRecognition = null;
+      if (btn && icon) {
+        btn.classList.remove('mic-active');
+        icon.classList.remove('fa-fade');
+      }
+      return;
+    }
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    docRecognition = new SpeechRecognition();
+    docRecognition.lang = 'th-TH';
+    docRecognition.continuous = false;
+
+    if (btn && icon) {
+      btn.classList.add('mic-active');
+      icon.classList.add('fa-fade');
+    }
+
+    docRecognition.onresult = function(event) {
+      var spokenText = event.results[0][0].transcript.trim().toLowerCase();
+      
+      if (tomSelectDocInstance) {
+        tomSelectDocInstance.focus();
+        tomSelectDocInstance.setTextboxValue(spokenText);
+        var options = tomSelectDocInstance.options;
+        var matchedId = null;
+        for (var id in options) {
+          var text = (options[id].text || '').toLowerCase();
+          if (text.indexOf(spokenText) !== -1) {
+            matchedId = id;
+            break;
+          }
+        }
+        if (matchedId) {
+          tomSelectDocInstance.setValue(matchedId);
+          tomSelectDocInstance.setTextboxValue('');
+          tomSelectDocInstance.blur();
+        }
+      }
+      stopDocDictation();
+    };
+
+    docRecognition.onerror = stopDocDictation;
+    docRecognition.onend = stopDocDictation;
+    docRecognition.start();
+  }
+
+  function stopDocDictation() {
+    if (docRecognition) {
+      docRecognition.stop();
+      docRecognition = null;
+    }
+    var btn = document.getElementById('btnMicDoc');
+    var icon = document.getElementById('micDocIcon');
+    if (btn && icon) {
+      btn.classList.remove('mic-active');
+      icon.classList.remove('fa-fade');
+    }
+  }
+
+  // 🌟 ระบบไมค์สั่งงานสำหรับช่องข้อความ
+  var textRecognition = null;
+  var currentDictTargetId = null;
+  var currentDictBtnId = null;
+
+  function toggleTextDictation(targetInputId, btnId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+    }
+
+    var btn = document.getElementById(btnId);
+
+    if (textRecognition && currentDictTargetId === targetInputId) {
+      stopTextDictation();
+      return;
+    }
+
+    if (textRecognition) stopTextDictation();
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    textRecognition = new SpeechRecognition();
+    textRecognition.lang = 'th-TH';
+    textRecognition.continuous = true;
+    textRecognition.interimResults = false;
+
+    currentDictTargetId = targetInputId;
+    currentDictBtnId = btnId;
+
+    if (btn) btn.classList.add('mic-active');
+
+    textRecognition.onresult = function(event) {
+      var spokenText = event.results[event.results.length - 1][0].transcript.trim();
+      var inputEl = document.getElementById(targetInputId);
+      if (inputEl && spokenText) {
+        var currentVal = inputEl.value;
+        inputEl.value = currentVal ? (currentVal + ' ' + spokenText) : spokenText;
+      }
+    };
+
+    textRecognition.onerror = stopTextDictation;
+    textRecognition.onend = stopTextDictation;
+    textRecognition.start();
+  }
+
+  function stopTextDictation() {
+    if (textRecognition) {
+      textRecognition.stop();
+      textRecognition = null;
+    }
+    if (currentDictBtnId) {
+      var btn = document.getElementById(currentDictBtnId);
+      if (btn) btn.classList.remove('mic-active');
+    }
+    currentDictTargetId = null;
+    currentDictBtnId = null;
   }
 
   var searchRecognition = null;
@@ -918,7 +1054,6 @@
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันดึงสินค้าสร้าง TomSelect สมบูรณ์ 100%
   async function renderFormProductDropdown(targetRepUser) {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -966,7 +1101,7 @@
     var teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
     if (!teamProdLinks || teamProdLinks.length === 0) {
       try {
-        teamProdLinks = await fetchAllRecords('Products_Team');
+        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
         if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
       } catch(e){}
     }
@@ -977,8 +1112,8 @@
     } else {
         if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
             var matchedProdIds = teamProdLinks
-                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })
-                .map(function(pt) { return String(pt.Product_ID); });
+                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })[cite: 2]
+                .map(function(pt) { return String(pt.Product_ID); });[cite: 2]
             
             allowedProducts = allProds.filter(function(p) { return matchedProdIds.indexOf(String(p.Product_ID)) !== -1; });
         }
@@ -1252,7 +1387,10 @@
           }
       }
 
-      var matchTer = (terTerm === "") ? true : (String(v.Territory_ID || v.territory_id) === String(terTerm));
+      var matchTer = (terTerm === "");
+      if (terTerm !== "") {
+          matchTer = (String(v.Territory_ID || v.territory_id) === String(terTerm));
+      }
 
       var matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
@@ -1448,6 +1586,18 @@
 
   function toggleVisitFormEditable(isEditable) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
+    var formView = document.getElementById('visitFormView');
+
+    if (tomSelectProdInstance) {
+      if (isEditable) {
+        tomSelectProdInstance.enable();
+        if (formView) formView.classList.remove('disabled-ts');
+      } else {
+        tomSelectProdInstance.disable();
+        if (formView) formView.classList.add('disabled-ts');
+      }
+    }
+
     fields.forEach(function(id) {
       var el = document.getElementById(id);
       if (el) {
@@ -1458,6 +1608,7 @@
         }
       }
     });
+
     var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'];
     btns.forEach(function(id) {
       var btn = document.getElementById(id);
@@ -1525,12 +1676,31 @@
     switchVisitView('visitFormView');
   }
 
+  // 🌟 ฟังก์ชันเปิดดู/แก้ไขบันทึกเยี่ยม (พร้อมสิทธิ์เฉพาะคนสร้างเท่านั้นที่จะแก้ได้ ยกเว้น Admin)
   async function openEditVisitView(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     var v = globalVisits.find(function(x) { return x.Visit_ID === visitId; });
     if (!v) return;
+
+    // 🎯 ดึงข้อมูลผู้ใช้งานปัจจุบัน
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    // 🎯 ตรวจสอบความเป็นเจ้าของบันทึกเยี่ยม (Creator หรือ Admin)
+    var isAdmin = (myRole === 'admin');
+    var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+    var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+
+    var isCreator = false;
+    if (myRepId && creatorRepId && myRepId === creatorRepId) isCreator = true;
+    if (myEmail && creatorWho && myEmail === creatorWho) isCreator = true;
+
+    var canEdit = (isAdmin || isCreator);
 
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
@@ -1581,20 +1751,37 @@
       btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
       toggleVisitFormEditable(false);
-      btn.disabled = false;
-      btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
-      btn.dataset.mode = 'request_unlock';
+      if (canEdit) {
+        btn.disabled = false;
+        btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
+        btn.dataset.mode = 'request_unlock';
+      } else {
+        btn.disabled = true;
+        btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Locked (Read-Only)';
+        btn.dataset.mode = 'disabled';
+      }
     } else {
-      toggleVisitFormEditable(true);
-      btn.disabled = false;
-      btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
-      btn.dataset.mode = 'save';
-      
-      if (sessionStorage.getItem('returnToDocId')) {
-         if (tomSelectDocInstance) tomSelectDocInstance.disable();
-         else document.getElementById('visitDocId').disabled = true;
+      // 🎯 สถานะ Pending (Draft)
+      if (canEdit) {
+        toggleVisitFormEditable(true);
+        btn.disabled = false;
+        btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
+        btn.dataset.mode = 'save';
+        
+        if (sessionStorage.getItem('returnToDocId')) {
+           if (tomSelectDocInstance) tomSelectDocInstance.disable();
+           else document.getElementById('visitDocId').disabled = true;
+        }
+      } else {
+        // หากคนอื่นเข้ามาดู จะแก้อะไรรวมถึงบันทึกไม่ได้
+        toggleVisitFormEditable(false);
+        btn.disabled = true;
+        btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)';
+        btn.dataset.mode = 'disabled';
       }
     }
 
@@ -1754,4 +1941,19 @@
       btn.innerHTML = "💾 Save";
     }
   }
+
+  // 🌟 บังคับประกาศฟังก์ชันเข้าสู่ Global Scope (window)
+  window.openAddVisitView = openAddVisitView;
+  window.openEditVisitView = openEditVisitView;
+  window.toggleDocDictation = toggleDocDictation;
+  window.toggleTextDictation = toggleTextDictation;
+  window.toggleSpeechSearch = toggleSpeechSearch;
+  window.filterVisits = filterVisits;
+  window.handleFilterChange = handleFilterChange;
+  window.clearVisitFilters = clearVisitFilters;
+  window.sortVisits = sortVisits;
+  window.changeRowsPerPage = changeRowsPerPage;
+  window.goToPage = goToPage;
+  window.cancelVisitForm = cancelVisitForm;
+  window.handleSaveVisit = handleSaveVisit;
 </script>
