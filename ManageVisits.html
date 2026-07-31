@@ -83,7 +83,6 @@
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
 
-  /* 🌟 สไตล์แถบสีไฮไลต์คำค้นหา */
   mark.highlight-text {
     background-color: #fef08a !important;
     color: #854d0e !important;
@@ -92,7 +91,6 @@
     font-weight: 700;
   }
 
-  /* 🌟 สไตล์ปุ่มกดเวลาด่วน */
   .quick-time-btn {
     font-size: 0.72rem;
     padding: 2px 8px;
@@ -100,7 +98,6 @@
     font-weight: 600;
   }
 
-  /* 🌟 สไตล์ Toast แจ้งเตือนฉบับร่าง */
   .draft-toast {
     position: fixed;
     top: 80px;
@@ -120,9 +117,22 @@
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
   }
+
+  /* 🎬 e-Detailing Card Styling */
+  .media-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+  }
+  .media-card:hover {
+    border-color: #0d6efd;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+  }
 </style>
 
-<!-- 🔔 Container สำหรับ Toast แจ้งเตือนฉบับร่างค้าง -->
 <div id="draftToastContainer"></div>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
@@ -315,7 +325,17 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
+                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
+                </div>
+
+                <!-- 🎬 e-Detailing / Presentation Media Section -->
+                <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
+                  <label class="form-label fw-bold text-primary mb-2">
+                    <i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing / Presentation สื่อการนำเสนอ
+                  </label>
+                  <div id="mediaListContainer" class="d-flex flex-column gap-2">
+                    <span class="text-muted small">โปรดเลือกผลิตภัณฑ์เพื่อดูสื่อการนำเสนอ</span>
+                  </div>
                 </div>
 
                 <div class="mb-3">
@@ -330,7 +350,6 @@
                   <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
                 </div>
 
-                <!-- ⚡ ช่องใส่เวลา พร้อมปุ่มกดทางลัดเวลาด่วน -->
                 <div class="row g-2 mb-2">
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -411,6 +430,24 @@
 
 </div>
 
+<!-- 📺 Modal สำหรับเปิดพรีเซนต์ PDF/Video เต็มหน้าจอ + จับเวลา -->
+<div class="modal fade" id="mediaPresentationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white py-2 px-3">
+        <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
+          <button type="button" class="btn-close btn-close-white" onclick="closeMediaPresentation()"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0 bg-black d-flex align-items-center justify-content-center" id="mediaModalBody">
+        <!-- Viewer Content (Iframe PDF / Video Player) -->
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
@@ -428,7 +465,6 @@
     return 'th';
   }
 
-  // ⚡ ฟังก์ชันเติมเวลาด่วน [ตอนนี้], [+30ม.], [+1ชม.]
   function setQuickTime(type, addMinutes) {
     var now = new Date();
     if (type === 'start') {
@@ -449,7 +485,6 @@
     }
   }
 
-  // 🟡 ฟังก์ชันช่วยใส่แถบสีไฮไลต์คำค้นหาในตาราง
   function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -465,7 +500,6 @@
     return escapedText;
   }
 
-  // 🔔 ฟังก์ชันแสดง Toast แจ้งเตือนฉบับร่างค้าง (เฉพาะของตัวเอง)
   function checkMyDraftsReminder(myDraftCount) {
     var toastContainer = document.getElementById('draftToastContainer');
     if (!toastContainer) return;
@@ -481,7 +515,6 @@
           '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
         '</div>';
 
-      // จางหายไปเองอัตโนมัติภายใน 7 วินาที
       setTimeout(function() {
         var t = document.getElementById('myDraftToast');
         if (t) t.remove();
@@ -489,6 +522,153 @@
     } else {
       toastContainer.innerHTML = '';
     }
+  }
+
+  // -------------------------------------------------------------
+  // 🎬 ระบบ e-Detailing & Media Presentation Logic
+  // -------------------------------------------------------------
+  var globalAllMediaList = [];
+  var currentActiveMedia = null;
+  var presentationStartTime = null;
+  var presentationTimerInterval = null;
+  var activePresentationLogs = []; // เก็บสถิติชั่วคราวก่อนเซฟ Visit
+
+  async function fetchDetailingMedia() {
+    try {
+      // ดึงเฉพาะสื่อที่ Status = true (Active)
+      var res = await supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
+      if (!res.error && res.data) {
+        globalAllMediaList = res.data;
+      }
+    } catch(e) {
+      console.error("Fetch Detailing Media Error:", e);
+    }
+  }
+
+  async function loadProductMedia() {
+    var container = document.getElementById('mediaListContainer');
+    var section = document.getElementById('detailingMediaSection');
+    if (!container || !section) return;
+
+    var selectedProducts = [];
+    if (tomSelectProdInstance) {
+      var val = tomSelectProdInstance.getValue();
+      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    } else {
+      var pSelect = document.getElementById('visitProductId');
+      if (pSelect) {
+        selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
+      }
+    }
+
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
+
+    if (selectedProducts.length === 0) {
+      section.classList.add('d-none');
+      container.innerHTML = '';
+      return;
+    }
+
+    if (globalAllMediaList.length === 0) {
+      await fetchDetailingMedia();
+    }
+
+    // กรองสื่อที่ผูกกับ Product_ID ที่ถูกเลือกในฟอร์ม
+    var matchedMedia = globalAllMediaList.filter(function(m) {
+      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
+    });
+
+    if (matchedMedia.length === 0) {
+      section.classList.add('d-none');
+      container.innerHTML = '';
+      return;
+    }
+
+    section.classList.remove('d-none');
+    var html = '';
+    matchedMedia.forEach(function(m) {
+      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
+      var typeText = m.Type || 'PDF';
+      
+      html += 
+        '<div class="media-card d-flex justify-content-between align-items-center">' +
+          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
+            '<i class="fa-solid ' + icon + ' fs-4 me-3"></i>' +
+            '<div class="text-truncate">' +
+              '<div class="fw-bold text-dark small text-truncate">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.68rem;">' + typeText + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn btn-primary btn-sm fw-bold rounded-pill px-3 shadow-xs" onclick="openMediaPresentation(\'' + m.Media_ID + '\')">' +
+            '<i class="fa-solid fa-display me-1"></i> Present' +
+          '</button>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function openMediaPresentation(mediaId) {
+    var media = globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    if (!media) return alert("❌ ไม่พบไฟล์สื่อการนำเสนอนี้");
+
+    currentActiveMedia = media;
+    presentationStartTime = new Date(); // ⏱️ เวลาที่กดเปิดสื่อ (Whenopend)
+
+    document.getElementById('mediaModalTitle').innerHTML = 
+      '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title;
+
+    var modalBody = document.getElementById('mediaModalBody');
+    if (media.Type === 'Video') {
+      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
+    } else {
+      modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+    }
+
+    // เริ่มจับเวลา
+    var secondsElapsed = 0;
+    document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
+    
+    if (presentationTimerInterval) clearInterval(presentationTimerInterval);
+    presentationTimerInterval = setInterval(function() {
+      secondsElapsed++;
+      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      var s = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
+    }, 1000);
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  }
+
+  function closeMediaPresentation() {
+    if (presentationTimerInterval) clearInterval(presentationTimerInterval);
+
+    var now = new Date();
+    var durationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
+
+    if (currentActiveMedia && durationSec > 0) {
+      var crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+
+      // เก็บ Log ชั่วคราวเตรียมลง DB ตอนกด Save Visit
+      activePresentationLogs.push({
+        Media_ID: currentActiveMedia.Media_ID,
+        Duration_Second: durationSec, // Match คอลัมน์ int8 ใน DB
+        Whenopend: presentationStartTime.toISOString(), // Match คอลัมน์ timestamp ใน DB
+        Whoupdated: whoUpdated
+      });
+    }
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    document.getElementById('mediaModalBody').innerHTML = '';
+    currentActiveMedia = null;
+    presentationStartTime = null;
   }
 
   function getDoctorNameByLang(docObj, defaultId) {
@@ -878,6 +1058,7 @@
       await loadDropdowns(); 
       initUserInfo(); 
       await loadVisits(); 
+      await fetchDetailingMedia(); // 🎬 โหลดคลังสื่อ Presentation
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
       }
@@ -1299,7 +1480,10 @@
             create: false, 
             sortField: { field: "text", direction: "asc" }, 
             placeholder: prodPlaceholder, 
-            dropdownParent: 'body' 
+            dropdownParent: 'body',
+            onChange: function() {
+              loadProductMedia(); // ดึงสื่อนำเสนอทันทีที่มีการเปลี่ยนยา
+            }
         });
     }
   }
@@ -1453,7 +1637,6 @@
 
     filterVisits(false);
 
-    // 🔔 ตรวจสอบและแจ้งเตือนฉบับร่างค้างของตัวเองทันทีที่โหลดข้อมูลเสร็จ
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
@@ -1704,7 +1887,6 @@
       var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
       var purposeShow = v.Purpose || '-';
 
-      // 🟡 ใส่แถบสีไฮไลต์คำค้นหาสำหรับทุกฟิลด์ในตาราง
       var highlightedDoc = applySearchHighlight(docNameShow, smartSearchVal);
       var highlightedHosp = applySearchHighlight(hospNameShow, smartSearchVal);
       var highlightedPurpose = applySearchHighlight(purposeShow, smartSearchVal);
@@ -1806,6 +1988,7 @@
   }
 
   async function openAddVisitView() {
+    activePresentationLogs = []; // ล้างสถิติ presentation เก่า
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -1866,6 +2049,7 @@
   }
 
   async function openEditVisitView(visitId) {
+    activePresentationLogs = []; // ล้างสถิติ presentation เก่า
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -1916,6 +2100,8 @@
     if (tomSelectProdInstance) {
         tomSelectProdInstance.setValue(visitProds);
     }
+
+    loadProductMedia(); // โหลดรายการสื่อ e-Detailing ตามยาเดิมที่เคยเลือกไว้
 
     document.getElementById('visitDate').value = v.Visit_Date || '';
     document.getElementById('visitStartTime').value = v.Start_Time || '';
@@ -2108,6 +2294,24 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
+      // 🎬 บันทึกสถิติการเปิดสื่อ e-Detailing ลงตาราง Visit_Detailing_Logs
+      if (activePresentationLogs.length > 0) {
+        var detailingPayload = activePresentationLogs.map(function(log) {
+          return {
+            Visit_ID: targetVisitId,
+            Media_ID: log.Media_ID,
+            Duration_Second: log.Duration_Second, // Match คอลัมน์ int8 ใน DB
+            Whenopend: log.Whenopend,             // Match คอลัมน์ timestamp ใน DB
+            Whoupdated: log.Whoupdated
+          };
+        });
+
+        var logRes = await supabaseClient.from('Visit_Detailing_Logs').insert(detailingPayload);
+        if (logRes.error) {
+          console.error("Save Visit_Detailing_Logs error:", logRes.error);
+        }
+      }
+
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
@@ -2144,4 +2348,7 @@
   window.setQuickTime = setQuickTime;
   window.getDoctorNameByLang = getDoctorNameByLang;
   window.getHospitalNameFromDocOrVisit = getHospitalNameFromDocOrVisit;
+  window.loadProductMedia = loadProductMedia;
+  window.openMediaPresentation = openMediaPresentation;
+  window.closeMediaPresentation = closeMediaPresentation;
 </script>
