@@ -362,12 +362,12 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary แกะจาก Workplaces_JSON เหมือนโค้ดหน้าหมอ 100%
+  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ถอดแบบจากหน้าหมอ 100%[cite: 1]
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
     if (docObj) {
-      // 1. ลองดึงจาก Workplaces_JSON แบบหน้าหมอก่อน[cite: 1]
+      // 1. ลองแกะ Workplaces_JSON หาตัวที่เป็น Primary ก่อน[cite: 1]
       if (docObj.Workplaces_JSON || docObj.workplacesJson) {
         try {
           let workplaces = typeof docObj.Workplaces_JSON === 'string' 
@@ -385,37 +385,24 @@
         }
       }
 
-      // 2. ถ้าใน JSON ไม่มี ค่อยอ่านจากคอลัมน์ Hospital_ID ตรงๆ
+      // 2. ถ้าใน JSON ไม่มี ค่อยอ่านคอลัมน์ Hospital_ID
       if (!targetPrimaryHospId) {
         targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
       }
 
-      // 3. แมปกับตาราง Hospitals ทั้งหมด
+      // 3. แมปกับตาราง Hospitals ทั้งหมดในหน้างาน[cite: 1]
       if (targetPrimaryHospId) {
         const hospObj = globalAllHospitals.find(h => 
           String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase()
         );
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;[cite: 1]
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && !targetPrimaryHospId.includes('-')) {
           return targetPrimaryHospId;
         }
       }
-
-      // 4. ตรวจค้นในตาราง Assignment
-      if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
-        const docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
-        const matchedAssign = window.VisitManagerCache.assignments.find(a => 
-          String(a.Account_ID || a.Doc_ID) === docIdStr && (a.Type === 'Doctor' || a.Type === 'Workplace')
-        );
-        if (matchedAssign) {
-          const assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
-          const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID || h.id) === String(assignHospId));
-          if (hospObj) return hospObj.Known_As || hospObj.Hospital;
-        }
-      }
     }
 
-    // 5. Fallback: ดึงจากฟิลด์ Hospital ใน Visit_Logs
+    // 4. Fallback: ดึงจากชื่อ รพ. ตรงๆ ใน Visit_Logs
     if (visitObj) {
       const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -841,6 +828,19 @@
       allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
     } else {
       let userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
+      let userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+
+      // 🌟 ดึง Team_ID จาก Territory ของพนักงานขาย (เช่น L1 -> LUNG1)[cite: 2]
+      if (userTerrId) {
+        allowedTerIds.push(userTerrId);
+        const foundTerr = globalTerritoryList.find(t => String(t.Territory_ID) === userTerrId || String(t.Territory) === userTerrId);
+        if (foundTerr && foundTerr.Team_ID) {
+          allowedTeamIds.push(String(foundTerr.Team_ID));
+        }
+      }
+      if (userTeamId && !allowedTeamIds.includes(userTeamId)) {
+        allowedTeamIds.push(userTeamId);
+      }
 
       if (userRole === 'BU Head' || userRole === 'BU') {
           const buList = window.VisitManagerCache.bus || [];
@@ -853,32 +853,12 @@
               const terrs = globalTerritoryList.filter(ter => String(ter.Team_ID) === String(t.Team_ID));
               terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
           });
-          
-          if (allowedTeamIds.length === 0) {
-            globalTeamList.forEach(t => allowedTeamIds.push(String(t.Team_ID)));
-          }
-
       } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
           let matchedTeam = globalTeamList.find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
           if (matchedTeam) {
               allowedTeamIds.push(String(matchedTeam.Team_ID));
               const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
               terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-          } else if (rawScope) {
-              allowedTeamIds.push(rawScope);
-              const terrsInTeam = globalTerritoryList.filter(t => String(t.Team_ID) === rawScope);
-              terrsInTeam.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-          }
-      } else { 
-          let matchedTerr = globalTerritoryList.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
-          if (matchedTerr) {
-              allowedTerIds.push(String(matchedTerr.Territory_ID));
-              if (matchedTerr.Team_ID) allowedTeamIds.push(String(matchedTerr.Team_ID));
-          } else if (rawScope) {
-              allowedTerIds.push(rawScope);
-          }
-          if (userTeamId && !allowedTeamIds.includes(userTeamId)) {
-              allowedTeamIds.push(userTeamId);
           }
       }
 
@@ -886,22 +866,6 @@
       if (userEmail) allowedEmails.push(userEmail);
       const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
       if (userName) allowedNames.push(userName);
-
-      const subUsers = globalUsersList.filter(u => {
-          const uTeam = String(u.Team_ID || u.Team || u.team_id || '');
-          const uTerr = String(u.Territory_ID || u.Territory || u.territoryId || '');
-          const uScope = String(u.Scope || u.scope || u.BU_ID || u.BU || '');
-          return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr) || uScope === rawScope;
-      });
-
-      subUsers.forEach(u => {
-          const rId = String(u.Rep_ID || u.User_ID || u.id);
-          const rEm = String(u.Email).toLowerCase();
-          const rNm = String(u.Rep_Name || u.Name).toLowerCase();
-          if (rId && rId !== 'undefined' && rId !== 'null') allowedRepIds.push(rId);
-          if (rEm && rEm !== 'undefined' && rEm !== 'null') allowedEmails.push(rEm);
-          if (rNm && rNm !== 'undefined' && rNm !== 'null') allowedNames.push(rNm);
-      });
     }
 
     window.myAllowedTeamIds = allowedTeamIds;
@@ -935,7 +899,7 @@
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันดึงสินค้าสร้าง TomSelect ฉบับแก้ไข Async การันตีโชว์ตัวเลือก 100%
+  // 🌟 ฟังก์ชันกรองดึงสินค้าเฉพาะที่แมปกับ Team_ID ใน Products_Team ตรงตาม Organization 100%[cite: 2]
   async function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -944,7 +908,6 @@
       ? globalProductsList 
       : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
 
-    // 🎯 ดึงตรงจาก Supabase ป้องกันเคสตัวแปรในความจำยังไม่ถูกโหลด
     if (!allProds || allProds.length === 0) {
       try {
         const { data } = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
@@ -960,8 +923,8 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     }
 
-    let allowedTeamIds = window.myAllowedTeamIds || [];
     let isGlobal = window.myIsGlobalViewer;
+    let myTeamIds = [...(window.myAllowedTeamIds || [])];
 
     if (crmUser && !isGlobal) {
         const uRole = String(crmUser.Role || crmUser.role || '').trim();
@@ -971,34 +934,43 @@
         if (['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].includes(uRole.toUpperCase())) {
             isGlobal = true;
         } else {
-            if (uTeam && !allowedTeamIds.includes(uTeam)) allowedTeamIds.push(uTeam);
+            if (uTeam && !myTeamIds.includes(uTeam)) myTeamIds.push(uTeam);
             if (uTerr) {
                 const foundTerr = globalTerritoryList.find(t => String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr);
-                if (foundTerr && foundTerr.Team_ID && !allowedTeamIds.includes(String(foundTerr.Team_ID))) {
-                    allowedTeamIds.push(String(foundTerr.Team_ID));
+                if (foundTerr && foundTerr.Team_ID && !myTeamIds.includes(String(foundTerr.Team_ID))) {
+                    myTeamIds.push(String(foundTerr.Team_ID));
                 }
             }
         }
+    }
+
+    let teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
+    if (!teamProdLinks || teamProdLinks.length === 0) {
+      try {
+        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
+        if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
+      } catch(e){}
     }
 
     let allowedProducts = [];
     if (isGlobal) {
         allowedProducts = allProds;
     } else {
-        if (allowedTeamIds.length > 0 && window.VisitManagerCache.teamProdLinks && window.VisitManagerCache.teamProdLinks.length > 0) {
-            const allowedProdIds = window.VisitManagerCache.teamProdLinks
-                .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
-                .map(pt => String(pt.Product_ID));
-            allowedProducts = allProds.filter(p => allowedProdIds.includes(String(p.Product_ID)));
+        // 🎯 ดึงสินค้าเฉพาะที่ผูกกับ Team_ID ในตาราง Products_Team (เช่น LUNG1 -> Tecentriq, Polivy)[cite: 2]
+        if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
+            const matchedProdIds = teamProdLinks
+                .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')[cite: 2]
+                .map(pt => String(pt.Product_ID));[cite: 2]
+            
+            allowedProducts = allProds.filter(p => matchedProdIds.includes(String(p.Product_ID)));
         }
-        
-        if (allowedProducts.length === 0 && allowedTeamIds.length > 0) {
-            allowedProducts = allProds.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
+
+        if (allowedProducts.length === 0 && myTeamIds.length > 0) {
+            allowedProducts = allProds.filter(p => myTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
         if (allowedProducts.length === 0) {
             allowedProducts = allProds.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
-            if (allowedProducts.length === 0) allowedProducts = allProds;
         }
     }
 
