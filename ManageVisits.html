@@ -97,7 +97,7 @@
       </div>
     </div>
 
-    <!-- Quick Stat Cards (2 ภาษา) -->
+    <!-- Quick Stat Cards -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -223,7 +223,7 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View แบบ 2-Column สมดุลลงตัว) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -236,6 +236,7 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
+        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -249,51 +250,58 @@
           </div>
         </div>
 
+        <!-- 🌟 Layout ปรับบาลานซ์ความสูงของทั้งสองฝั่งให้เต็มพื้นที่สมบูรณ์ -->
         <div class="row g-4">
+          
+          <!-- คอลัมน์ซ้าย: ข้อมูลการเข้าพบ -->
           <div class="col-12 col-lg-6">
-            <div class="p-4 rounded-4 border bg-white shadow-xs h-100">
-              <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
-              
-              <div class="mb-3">
-                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
-                <div class="input-group shadow-sm" style="border-radius: 12px;">
-                  <select class="form-select bg-white" id="visitDocId" required></select>
-                  <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
-                    <i class="fa-solid fa-microphone" id="micDocIcon"></i>
-                  </button>
+            <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+              <div>
+                <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
+                
+                <div class="mb-3">
+                  <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
+                  <div class="input-group shadow-sm" style="border-radius: 12px;">
+                    <select class="form-select bg-white" id="visitDocId" required></select>
+                    <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
+                      <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div class="mb-3">
-                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-                <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
-              </div>
-
-              <div class="row g-2 mb-3">
-                <div class="col-6">
-                  <label class="form-label fw-bold text-dark" data-i18n="lbl_start_time">Start Time</label>
-                  <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
+                <!-- 🌟 ช่องเลือกสินค้า การันตีการสร้าง TomSelect ทำงานสมบูรณ์ -->
+                <div class="mb-3">
+                  <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
                 </div>
-                <div class="col-6">
-                  <label class="form-label fw-bold text-dark" data-i18n="lbl_end_time">End Time</label>
-                  <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
-                </div>
-              </div>
 
-              <div class="mb-2">
-                <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
-                  <option value="" data-i18n="opt_select_purpose">-- Select Purpose --</option>
-                </select>
+                <div class="mb-3">
+                  <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                  <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
+                    <option value="" data-i18n="opt_select_purpose">-- Select Purpose --</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-bold text-dark"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
+                </div>
+
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <label class="form-label fw-bold text-dark" data-i18n="lbl_start_time">Start Time</label>
+                    <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-bold text-dark" data-i18n="lbl_end_time">End Time</label>
+                    <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- คอลัมน์ขวา: รายละเอียดกิจกรรม (ปรับขยายช่อง Textarea ให้เต็มพื้นที่พอดีกัน) -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
@@ -306,7 +314,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="3"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="4" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -316,7 +324,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="3" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -339,6 +347,7 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
@@ -745,6 +754,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
+  // 🌟 ฟังก์ชันสร้างรายการตัวเลือก User, Territory และ สินค้า (บังคับสร้าง TomSelect โชว์ 100%)
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
@@ -845,6 +855,7 @@
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
+    // 🌟 ดร็อปดาวน์พนักงาน
     const uniqueUsersMap = new Map();
     window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(u => allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
@@ -858,6 +869,7 @@
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
+    // 🌟 ดร็อปดาวน์เขตพื้นที่
     window.fullAllowedTerritories = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(t => allowedTerIds.includes(String(t.Territory_ID)));
     if (window.fullAllowedTerritories.length === 0) window.fullAllowedTerritories = globalTerritoryList;
 
@@ -865,19 +877,32 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
+    // 🌟 ดร็อปดาวน์สินค้าในฟอร์ม
+    renderFormProductDropdown();
+  }
+
+  // 🌟 ฟังก์ชันการันตีการสร้าง TomSelect สำหรับสินค้าโชว์ขึ้นสมบูรณ์ 100%
+  function renderFormProductDropdown() {
+    const formProdSelect = document.getElementById('visitProductId');
+    if (!formProdSelect) return;
+
+    let crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+
     let allowedProducts = [];
-    if (isGlobalViewer) {
+    if (window.myIsGlobalViewer) {
         allowedProducts = globalProductsList;
     } else {
-        if (allowedTeamIds.length > 0 && productsTeamList && productsTeamList.length > 0) {
-            const allowedProdIds = productsTeamList
-                .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
+        if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0 && window.VisitManagerCache.teamProdLinks && window.VisitManagerCache.teamProdLinks.length > 0) {
+            const allowedProdIds = window.VisitManagerCache.teamProdLinks
+                .filter(pt => window.myAllowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
                 .map(pt => String(pt.Product_ID));
             allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         }
         
-        if (allowedProducts.length === 0 && allowedTeamIds.length > 0) {
-            allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
+        if (allowedProducts.length === 0 && window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
+            allowedProducts = globalProductsList.filter(p => window.myAllowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
         if (allowedProducts.length === 0) {
@@ -886,22 +911,21 @@
         }
     }
 
-    if (formProdSelect) {
-        let fHtml = '';
-        allowedProducts.forEach(p => fHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-        formProdSelect.innerHTML = fHtml;
-        if (typeof TomSelect !== 'undefined') {
-            if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
-            
-            const prodPlaceholder = safeTranslate('opt_select_products', '-- Select Products --');
-            tomSelectProdInstance = new TomSelect('#visitProductId', { 
-                plugins: ['remove_button'], 
-                create: false, 
-                sortField: { field: "text", direction: "asc" }, 
-                placeholder: prodPlaceholder, 
-                dropdownParent: 'body' 
-            });
-        }
+    let fHtml = '';
+    allowedProducts.forEach(p => fHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+    formProdSelect.innerHTML = fHtml;
+
+    if (typeof TomSelect !== 'undefined') {
+        if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
+        
+        const prodPlaceholder = safeTranslate('opt_select_products', '-- Select Products --');
+        tomSelectProdInstance = new TomSelect('#visitProductId', { 
+            plugins: ['remove_button'], 
+            create: false, 
+            sortField: { field: "text", direction: "asc" }, 
+            placeholder: prodPlaceholder, 
+            dropdownParent: 'body' 
+        });
     }
   }
 
@@ -1193,7 +1217,7 @@
 
     globalFilteredVisits = filtered;
 
-    // 🌟 คำนวณอัปเดตตัวเลขการ์ด KPI ให้ล้อตามผลลัพธ์การกรองจริง
+    // 🌟 อัปเดตตัวเลขการ์ด KPI ให้ล้อตามผลลัพธ์ที่กรองจริง
     updateStatCards(globalFilteredVisits);
 
     renderVisitTable();
@@ -1379,9 +1403,8 @@
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
     }
 
-    if (tomSelectProdInstance) {
-      tomSelectProdInstance.clear();
-    }
+    // 🌟 บังคับสร้างดร็อปดาวน์สินค้าแบบ TomSelect ใหม่ทุกครั้งเปิดฟอร์ม
+    renderFormProductDropdown();
 
     const returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
@@ -1445,6 +1468,8 @@
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
+    // 🌟 บังคับสร้างดร็อปดาวน์สินค้าแบบ TomSelect พร้อมยัดค่าเดิมลงไป
+    renderFormProductDropdown();
     const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
     if (tomSelectProdInstance) {
         tomSelectProdInstance.setValue(visitProds);
