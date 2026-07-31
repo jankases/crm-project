@@ -369,7 +369,7 @@
     return fallbackText;
   }
 
-  // 🎯 ดึงภาษาแม่นยำ 100% สแกนจากสถานะปุ่มกด Navbar
+  // 🎯 เช็คคลาสปุ่มกดบน Navbar เพื่อระบุภาษาให้แม่นยำ 100%
   function getCurrentAppLang() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
@@ -384,10 +384,10 @@
     var lang = getCurrentAppLang();
     
     if (lang === 'en') {
-      // 🟢 ภาษาอังกฤษ: ดึง Doc_Name เพียวๆ
+      // 🟢 ถ้าเลือก EN -> แสดง Doc_Name ภาษาอังกฤษเพียวๆ
       return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
     } else {
-      // 🔴 ภาษาไทย: ดึง Doc_Name_TH หากไม่มีค่อยเอาภาษาอังกฤษ
+      // 🔴 ถ้าเลือก TH -> แสดง Doc_Name_TH ภาษาไทย
       var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
       if (docObj.Doc_Name_TH && !hasQuestionMarks) {
         return docObj.Doc_Name_TH;
@@ -444,8 +444,10 @@
 
         if (hospObj) {
           if (lang === 'en') {
+            // 🟢 ถ้าเลือก EN -> ดึง Hospital ภาษาอังกฤษเท่านั้น
             return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
           } else {
+            // 🔴 ถ้าเลือก TH -> ดึง Known_As ภาษาไทย
             return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
           }
         }
@@ -1573,7 +1575,7 @@
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
 
-      // 🌟 ดึงชื่อหมอและโรงพยาบาลตามภาษาที่ถูกเลือกไว้บน Navbar ทันที
+      // 🌟 ดึงชื่อหมอและโรงพยาบาลตามภาษาที่ถูกเลือกบน Navbar แบบเรียลไทม์
       var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
 
