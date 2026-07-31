@@ -97,7 +97,7 @@
       </div>
     </div>
 
-    <!-- 🌟 Quick Stat Cards (ปรับคำนวณตัวเลขล้อตามการ Filter) -->
+    <!-- Quick Stat Cards (อัปเดตคำนวณตัวเลขอัตโนมัติตาม Filter) -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -128,22 +128,20 @@
       </div>
     </div>
 
-    <!-- 🌟 Smart Search Bar + Filter Bar (ปรับตัดช่องซ้ำซ้อนออก) -->
+    <!-- Smart Search Bar + Filter Bar (แปลภาษา placeholder ครบถ้วน) -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
-        <!-- Smart Input Search ค้นหาได้ทั้ง หมอ, รพ., สินค้า -->
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" placeholder="Search Doctor, Hospital or Product..." onkeyup="filterVisits()">
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="filterVisits()">
             <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
               <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
             </button>
           </div>
         </div>
 
-        <!-- Date Range Filter -->
         <div class="col-12 col-sm-6 col-lg-3">
           <div class="input-group input-group-sm border rounded-pill px-2 py-1 bg-white">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;">
@@ -152,7 +150,6 @@
           </div>
         </div>
 
-        <!-- Status Filter -->
         <div class="col-6 col-sm-3 col-lg-2">
           <select class="form-select border rounded-pill shadow-none" id="filterVisitStatus" onchange="filterVisits()">
             <option value="" data-i18n="opt_all">- All Status -</option>
@@ -161,9 +158,8 @@
           </select>
         </div>
 
-        <!-- Action Buttons -->
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
-          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters (User/Territory)">
+          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
             <i class="fa-solid fa-sliders"></i>
           </button>
           <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" onclick="clearVisitFilters()" title="Clear All Filters">
@@ -173,7 +169,7 @@
 
       </div>
 
-      <!-- 🌟 Advanced Filters (ตัดช่อง หมอ, รพ., สินค้า ที่ซ้ำออก เหลือแค่ User กับ Territory) -->
+      <!-- Advanced Filters (User + Territory) -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
@@ -227,7 +223,7 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View แบบ Modern 2-Column Grid) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -240,7 +236,6 @@
       <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
         <input type="hidden" id="visitId">
 
-        <!-- Banner ข้อมูลพนักงาน -->
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
           <div class="row align-items-center">
             <div class="col-md-6 mb-2 mb-md-0">
@@ -270,6 +265,7 @@
                 </div>
               </div>
 
+              <!-- 🌟 ช่องเลือกสินค้า ปรับปรุงแสดงผลเต็มร้อย -->
               <div class="mb-3">
                 <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
@@ -633,7 +629,7 @@
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                      terrs.forEach(t => allowedTerIds.push(String(ter.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -687,7 +683,7 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown หมอ ป้องกันคำหลุดเครื่องหมาย ???
+      // 🌟 สร้าง Dropdown หมอ
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         const docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
@@ -752,12 +748,12 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
+  // 🌟 ฟังก์ชันสร้างรายการตัวเลือก User, Territory และ Products พร้อมระบบ Safety Fallback
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
-    const prodFilterSelect = document.getElementById('filterVisitProduct');
     const formProdSelect = document.getElementById('visitProductId'); 
-    if (!repSelect || !terSelect || !prodFilterSelect) return;
+    if (!repSelect || !terSelect) return;
 
     const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
     const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
@@ -779,7 +775,7 @@
     if (isGlobalViewer) {
       allowedTeamIds = globalTeamList.map(t => String(t.Team_ID));
       allowedTerIds = globalTerritoryList.map(t => String(t.Territory_ID));
-      allowedRepIds = globalUsersList.map(u => String(u.Rep_ID || u.User_ID));
+      allowedRepIds = globalUsersList.map(u => String(u.Rep_ID || u.User_ID || u.id));
       allowedEmails = globalUsersList.map(u => String(u.Email).toLowerCase());
       allowedNames = globalUsersList.map(u => String(u.Rep_Name || u.Name).toLowerCase());
     } else {
@@ -830,23 +826,21 @@
       const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
       if (userName) allowedNames.push(userName);
 
-      if (userRole !== 'Sales' && userRole !== 'Rep') {
-          const subUsers = globalUsersList.filter(u => {
-              const uTeam = String(u.Team_ID || u.Team || u.team_id || '');
-              const uTerr = String(u.Territory_ID || u.Territory || u.territoryId || '');
-              const uScope = String(u.Scope || u.scope || u.BU_ID || u.BU || '');
-              return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr) || uScope === rawScope;
-          });
+      const subUsers = globalUsersList.filter(u => {
+          const uTeam = String(u.Team_ID || u.Team || u.team_id || '');
+          const uTerr = String(u.Territory_ID || u.Territory || u.territoryId || '');
+          const uScope = String(u.Scope || u.scope || u.BU_ID || u.BU || '');
+          return allowedTeamIds.includes(uTeam) || allowedTerIds.includes(uTerr) || uScope === rawScope;
+      });
 
-          subUsers.forEach(u => {
-              const rId = String(u.Rep_ID || u.User_ID || u.id);
-              const rEm = String(u.Email).toLowerCase();
-              const rNm = String(u.Rep_Name || u.Name).toLowerCase();
-              if (rId && rId !== 'undefined' && rId !== 'null') allowedRepIds.push(rId);
-              if (rEm && rEm !== 'undefined' && rEm !== 'null') allowedEmails.push(rEm);
-              if (rNm && rNm !== 'undefined' && rNm !== 'null') allowedNames.push(rNm);
-          });
-      }
+      subUsers.forEach(u => {
+          const rId = String(u.Rep_ID || u.User_ID || u.id);
+          const rEm = String(u.Email).toLowerCase();
+          const rNm = String(u.Rep_Name || u.Name).toLowerCase();
+          if (rId && rId !== 'undefined' && rId !== 'null') allowedRepIds.push(rId);
+          if (rEm && rEm !== 'undefined' && rEm !== 'null') allowedEmails.push(rEm);
+          if (rNm && rNm !== 'undefined' && rNm !== 'null') allowedNames.push(rNm);
+      });
     }
 
     window.myAllowedTeamIds = allowedTeamIds;
@@ -855,22 +849,29 @@
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
+    // 🌟 ดร็อปดาวน์พนักงาน
     const uniqueUsersMap = new Map();
-    window.fullAllowedUsers = globalUsersList.filter(u => isGlobalViewer || allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
+    window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(u => allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
+    if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
+
     window.fullAllowedUsers.forEach(u => {
         const id = String(u.Rep_ID || u.User_ID || u.id);
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
-    let repHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : `<option value="">${safeTranslate('opt_all_users', '- ทั้งหมด -')}</option>`;
+    let repHtml = `<option value="">${safeTranslate('opt_all_users', '- ทั้งหมด -')}</option>`;
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
-    window.fullAllowedTerritories = globalTerritoryList.filter(t => isGlobalViewer || allowedTerIds.includes(String(t.Territory_ID)));
-    let tHtml = (!isGlobalViewer && (userRole === 'Sales' || userRole === 'Rep')) ? '' : `<option value="">${safeTranslate('opt_all_territories', '- ทั้งหมด -')}</option>`;
+    // 🌟 ดร็อปดาวน์เขตพื้นที่
+    window.fullAllowedTerritories = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(t => allowedTerIds.includes(String(t.Territory_ID)));
+    if (window.fullAllowedTerritories.length === 0) window.fullAllowedTerritories = globalTerritoryList;
+
+    let tHtml = `<option value="">${safeTranslate('opt_all_territories', '- ทั้งหมด -')}</option>`;
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
+    // 🌟 ดร็อปดาวน์สินค้าในฟอร์ม (สร้าง TomSelect การันตีโชว์ 100%)
     let allowedProducts = [];
     if (isGlobalViewer) {
         allowedProducts = globalProductsList;
@@ -891,10 +892,6 @@
             if (allowedProducts.length === 0) allowedProducts = globalProductsList;
         }
     }
-    
-    let pHtml = `<option value="">${safeTranslate('opt_all_products', '- ทั้งหมด -')}</option>`;
-    allowedProducts.forEach(p => pHtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-    prodFilterSelect.innerHTML = pHtml;
 
     if (formProdSelect) {
         let fHtml = '';
@@ -923,10 +920,6 @@
     const repVal = repSelect.value;
     const terVal = terSelect.value;
 
-    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    const userRole = crmUser ? String(crmUser.Role || crmUser.role).trim() : '';
-    const hideAllOption = (!window.myIsGlobalViewer && (userRole === 'Sales' || userRole === 'Rep'));
-
     if (source === 'rep') {
         let validTers = window.fullAllowedTerritories || [];
         if (repVal !== "") {
@@ -944,7 +937,7 @@
         }
         
         const currentTerVal = terSelect.value;
-        let tHtml = hideAllOption ? '' : `<option value="">${safeTranslate('opt_all_territories', '- ทั้งหมด -')}</option>`;
+        let tHtml = `<option value="">${safeTranslate('opt_all_territories', '- ทั้งหมด -')}</option>`;
         validTers.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
         terSelect.innerHTML = tHtml;
         
@@ -971,7 +964,7 @@
         }
         
         const currentRepVal = repSelect.value;
-        let repHtml = hideAllOption ? '' : `<option value="">${safeTranslate('opt_all_users', '- ทั้งหมด -')}</option>`;
+        let repHtml = `<option value="">${safeTranslate('opt_all_users', '- ทั้งหมด -')}</option>`;
         const uniqueUsersMap = new Map();
         validReps.forEach(u => { const id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
         uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
@@ -1042,19 +1035,12 @@
     if (window.VisitManagerCache.filters) {
         const f = window.VisitManagerCache.filters;
         
-        const docFilterEl = document.getElementById('filterVisitDoctor');
-        if (docFilterEl && docFilterEl.tomselect && f.doc && f.doc.length > 0) docFilterEl.tomselect.setValue(f.doc);
-        
-        const hospFilterEl = document.getElementById('filterVisitHospital');
-        if (hospFilterEl && hospFilterEl.tomselect && f.hosp && f.hosp.length > 0) hospFilterEl.tomselect.setValue(f.hosp);
-        
         if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
         if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
         if (document.getElementById('filterVisitRep')) document.getElementById('filterVisitRep').value = f.rep || '';
         if (document.getElementById('filterVisitTerritory')) document.getElementById('filterVisitTerritory').value = f.territory || '';
-        if (document.getElementById('filterVisitProduct')) document.getElementById('filterVisitProduct').value = f.prod || '';
         if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
 
         currentPage = f.page || 1;
@@ -1074,21 +1060,6 @@
     
     const smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
 
-    let filterDocIds = [];
-    const docFilterEl = document.getElementById('filterVisitDoctor');
-    if (docFilterEl && docFilterEl.tomselect) {
-        let val = docFilterEl.tomselect.getValue();
-        filterDocIds = Array.isArray(val) ? val : (val ? [val] : []);
-    }
-
-    let filterHospIds = [];
-    const hospFilterEl = document.getElementById('filterVisitHospital');
-    if (hospFilterEl && hospFilterEl.tomselect) {
-        let val = hospFilterEl.tomselect.getValue();
-        filterHospIds = Array.isArray(val) ? val : (val ? [val] : []);
-    }
-    
-    const prodTerm = document.getElementById('filterVisitProduct') ? document.getElementById('filterVisitProduct').value : '';
     const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
     const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     const endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
@@ -1096,8 +1067,8 @@
     if (resetPage) currentPage = 1;
 
     window.VisitManagerCache.filters = {
-        smartSearch: smartSearchKey, doc: filterDocIds, hosp: filterHospIds, startDate: startDateTerm, endDate: endDateTerm,
-        status: statusTerm, rep: repTerm, territory: terTerm, prod: prodTerm,
+        smartSearch: smartSearchKey, startDate: startDateTerm, endDate: endDateTerm,
+        status: statusTerm, rep: repTerm, territory: terTerm,
         page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
     };
 
@@ -1181,18 +1152,9 @@
 
       const matchTer = (terTerm === "") ? true : (String(v.Territory_ID || v.territory_id) === String(terTerm));
 
-      const matchDoc = (filterDocIds.length === 0) || filterDocIds.includes(String(v.Doc_ID || v.doc_id || v.id));
-
-      const docObj = globalAllDoctors.find(d => String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase());
-      let hospId = docObj ? String(docObj.Hospital_ID || docObj.hospital_id || '') : '';
-      const matchHosp = (filterHospIds.length === 0) || filterHospIds.includes(hospId);
-
-      const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
-      const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
-
       const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
-      return matchDate && matchRep && matchTer && matchDoc && matchHosp && matchProd && matchStatus;
+      return matchDate && matchRep && matchTer && matchStatus;
     });
 
     filtered.sort((a, b) => {
@@ -1238,15 +1200,16 @@
 
     globalFilteredVisits = filtered;
 
-    updateStatCards(globalVisits);
+    // 🌟 คำนวณอัปเดตตัวเลขการ์ด KPI ให้ล้อตามผลลัพธ์ที่กรองจริง
+    updateStatCards(globalFilteredVisits);
 
     renderVisitTable();
   }
 
-  function updateStatCards(allAccessibleVisits) {
-    const total = allAccessibleVisits.length;
-    const pending = allAccessibleVisits.filter(v => v.Status === 'Pending').length;
-    const submitted = allAccessibleVisits.filter(v => v.Status === 'Submitted').length;
+  function updateStatCards(filteredVisits) {
+    const total = filteredVisits.length;
+    const pending = filteredVisits.filter(v => v.Status === 'Pending').length;
+    const submitted = filteredVisits.filter(v => v.Status === 'Submitted').length;
 
     if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
     if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
