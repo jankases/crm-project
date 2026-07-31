@@ -312,7 +312,7 @@
         btn_save: "บันทึก",
         btn_view: "ดูข้อมูล",
         
-        filter_doctor: "ชื่อแพทย์ (EN/TH)",
+ filter_doctor: "ชื่อแพทย์ (EN/TH)",
         filter_hospital: "ชื่อโรงพยาบาล (EN/TH)",
         filter_date_range: "ช่วงวันที่",
         filter_status: "สถานะ",
@@ -348,6 +348,7 @@
 
     var currentLang = localStorage.getItem('appLang') || 'en';
 
+    // 🌟 ระบบสลับภาษา + สั่ง Re-render ตารางทันทีโดยไม่ต้องกด F5
     function setLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('appLang', lang);
@@ -376,6 +377,14 @@
           }
         }
       });
+
+      // 🎯 ส่งสัญญาณอัปเดตภาษาไปยังหน้ารายการ
+      if (window.renderVisitTable) {
+        window.renderVisitTable();
+      }
+      if (window.loadDropdowns) {
+        window.loadDropdowns(false);
+      }
     }
 
     function t(key) {
@@ -411,7 +420,6 @@
       }
     }
 
-    // 🌟 ระบบ Dynamic Script Execution แบบสร้างแท็กจริง ป้องกัน ReferenceError
     async function loadComponent(page) {
       let url = '';
       
@@ -447,7 +455,6 @@
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = html;
 
-        // 🎯 สกัดและสร้างแท็ก Script ให้ส่งออกไปที่ Global (window)
         const scriptElements = mainContent.querySelectorAll('script');
         scriptElements.forEach(s => {
           const code = s.textContent || s.innerText;
