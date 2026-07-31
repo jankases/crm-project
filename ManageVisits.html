@@ -362,7 +362,7 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันดึง Primary Hospital ตามสถาปัตยกรรมหน้าหมอ 100%[cite: 1]
+  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ถอดแบบถ้วนถี่จากหน้าหมอ[cite: 1]
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
@@ -1722,20 +1722,20 @@
     try {
       if (existingVisitId) {
         const updRes = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
-        if (updRes.error) throw new Error("Update Visit_Logs error: " + updErr.message);
+        if (updRes.error) throw new Error("Update Visit_Logs error: " + updRes.error.message);
 
         const delRes = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
-        if (delRes.error) throw new Error("Delete old Visit_Products error: " + delErr.message);
+        if (delRes.error) throw new Error("Delete old Visit_Products error: " + delRes.error.message);
 
       } else {
         const insRes = await supabaseClient.from('Visit_Logs').insert([payload]);
-        if (insRes.error) throw new Error("Insert Visit_Logs error: " + insErr.message);
+        if (insRes.error) throw new Error("Insert Visit_Logs error: " + insRes.error.message);
       }
 
       if (selectedProducts.length > 0) {
           const vpPayload = selectedProducts.map(function(p) { return { Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }; });
           const vpRes = await supabaseClient.from('Visit_Products').insert(vpPayload);
-          if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpErr.message);
+          if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
       const returnDocId = sessionStorage.getItem('returnToDocId');
