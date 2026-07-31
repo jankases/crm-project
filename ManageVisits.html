@@ -1263,7 +1263,6 @@
 
       setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-      // 🎯 ดึงตัวเลือก Purpose จากตาราง Index (IndexType_ID = 9e6feb89-83e2-4c83-a0e5-5fbd057afbf2)
       var purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
         var types = window.VisitManagerCache.indexTypes; 
@@ -1283,7 +1282,6 @@
             purposeHtml += '<option value="' + i.Value + '">' + i.Value + '</option>'; 
           });
         } else {
-          // Fallback ค่าภาษาไทยตรงตามตาราง Index ใน Supabase
           purposeHtml += '<option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>' +
                          '<option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>' +
                          '<option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>' +
@@ -2060,7 +2058,7 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 ฟังก์ชันเปิดหน้าดู/แก้ไขข้อมูล (แก้ปัญหา Doc_ID, Purpose, Start/End Time เติมค่าครบ 100%)
+  // 🌟 ฟังก์ชันเปิดหน้าดู/แก้ไขข้อมูล (แก้ไขระบบ Async เติมค่าครบถ้วน 100%)
   async function openEditVisitView(visitId) {
     activePresentationLogs = [];
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
@@ -2105,34 +2103,47 @@
     document.getElementById('dispSalesRepName').innerText = repNameShow;
     document.getElementById('dispTerritoryName').innerText = terNameShow;
 
-    // 🎯 1. เติมข้อมูลแพทย์ (Doc_ID)
-    if (v.Doc_ID) {
-      if (tomSelectDocInstance) {
-        tomSelectDocInstance.setValue(v.Doc_ID);
-      } else {
-        var dEl = document.getElementById('visitDocId');
-        if (dEl) dEl.value = v.Doc_ID;
+    // 🎯 1. เติมข้อมูลแพทย์ (Doctor) ครอบ setTimeout การันตี TomSelect โหลดเสร็จ
+    setTimeout(function() {
+      if (v.Doc_ID) {
+        if (tomSelectDocInstance) {
+          tomSelectDocInstance.setValue(v.Doc_ID);
+        } else {
+          var dEl = document.getElementById('visitDocId');
+          if (dEl) dEl.value = v.Doc_ID;
+        }
       }
-    }
+    }, 100);
 
     // 🎯 2. เติมข้อมูลยา (Products)
     await renderFormProductDropdown(targetRepObj);
     var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
-    if (tomSelectProdInstance && visitProds.length > 0) {
-        tomSelectProdInstance.setValue(visitProds);
-    }
-
-    loadProductMedia();
+    
+    setTimeout(function() {
+      if (tomSelectProdInstance && visitProds.length > 0) {
+          tomSelectProdInstance.setValue(visitProds);
+      } else {
+          var pEl = document.getElementById('visitProductId');
+          if (pEl) {
+            Array.from(pEl.options).forEach(function(opt) {
+              if (visitProds.indexOf(opt.value) !== -1) opt.selected = true;
+            });
+          }
+      }
+      loadProductMedia();
+    }, 150);
 
     // 🎯 3. เติมข้อมูลวันที่, เวลา และวัตถุประสงค์ (Purpose & Time Format)
     document.getElementById('visitDate').value = v.Visit_Date || '';
     document.getElementById('visitStartTime').value = formatTimeString(v.Start_Time);
     document.getElementById('visitEndTime').value = formatTimeString(v.End_Time);
 
-    var purposeSelect = document.getElementById('visitPurpose');
-    if (purposeSelect && v.Purpose) {
-      purposeSelect.value = v.Purpose;
-    }
+    setTimeout(function() {
+      var purposeSelect = document.getElementById('visitPurpose');
+      if (purposeSelect && v.Purpose) {
+        purposeSelect.value = v.Purpose;
+      }
+    }, 100);
 
     // 🎯 4. เติมข้อมูลรายละเอียดกิจกรรม (Activity Details)
     document.getElementById('visitDetails').value = v.Details || '';
