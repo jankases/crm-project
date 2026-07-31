@@ -362,20 +362,17 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ละเอียดและครอบคลุมทุกคอลัมน์ DB 100%
+  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary แกะจาก Workplaces_JSON เหมือนโค้ดหน้าหมอ 100%
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
     if (docObj) {
-      // 1. ลองดึงจากคอลัมน์ Hospital_ID หรือ hospital_id
-      targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
-
-      // 2. แกะ Workplaces_JSON หาเฉพาะก้อนที่มี isPrimary = true
-      if (!targetPrimaryHospId && docObj.Workplaces_JSON) {
+      // 1. ลองดึงจาก Workplaces_JSON แบบหน้าหมอก่อน[cite: 1]
+      if (docObj.Workplaces_JSON || docObj.workplacesJson) {
         try {
           let workplaces = typeof docObj.Workplaces_JSON === 'string' 
             ? JSON.parse(docObj.Workplaces_JSON) 
-            : docObj.Workplaces_JSON;
+            : (docObj.Workplaces_JSON || JSON.parse(docObj.workplacesJson || '[]'));
 
           if (Array.isArray(workplaces) && workplaces.length > 0) {
             let primaryItem = workplaces.find(w => w.isPrimary === true || w.isPrimary === 'true' || w.type === 'Primary' || w.Type === 'Primary');
@@ -388,7 +385,12 @@
         }
       }
 
-      // 3. แมปกับตาราง Hospitals ทั้งหมดในหน้างาน
+      // 2. ถ้าใน JSON ไม่มี ค่อยอ่านจากคอลัมน์ Hospital_ID ตรงๆ
+      if (!targetPrimaryHospId) {
+        targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
+      }
+
+      // 3. แมปกับตาราง Hospitals ทั้งหมด
       if (targetPrimaryHospId) {
         const hospObj = globalAllHospitals.find(h => 
           String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase()
@@ -413,7 +415,7 @@
       }
     }
 
-    // 5. Fallback: ดึงจากชื่อ รพ. ตรงๆ ใน Visit_Logs
+    // 5. Fallback: ดึงจากฟิลด์ Hospital ใน Visit_Logs
     if (visitObj) {
       const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -645,7 +647,7 @@
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
           const [docRes, prodRes, territoryRes, hospRes, teamRes, buRes, productsTeamRes, typeRes, idxRes, usersRes, assignRes] = await Promise.all([
-            fetchAllRecords('Doctors'), // 🌟 ดึงข้อมูลตารางแพทย์มาสดๆ สมบูรณ์ทุกคอลัมน์
+            fetchAllRecords('Doctors'),
             fetchAllRecords('Products', q => q.order('Product', { ascending: true })), 
             supabaseClient.from('Territory').select('*'),
             fetchAllRecords('Hospitals', q => q.order('Hospital', { ascending: true })),
@@ -933,7 +935,7 @@
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันการันตีการดึงสินค้าสร้าง TomSelect สมบูรณ์ 100%
+  // 🌟 ฟังก์ชันดึงสินค้าสร้าง TomSelect ฉบับแก้ไข Async การันตีโชว์ตัวเลือก 100%
   async function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -942,7 +944,7 @@
       ? globalProductsList 
       : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
 
-    // Safety Fetch: หากความจำยังไม่มีสินค้า ดึงจาก Supabase สดทันที
+    // 🎯 ดึงตรงจาก Supabase ป้องกันเคสตัวแปรในความจำยังไม่ถูกโหลด
     if (!allProds || allProds.length === 0) {
       try {
         const { data } = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
