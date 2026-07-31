@@ -356,25 +356,24 @@
 <script>
   function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
-      const res = t(key);
+      var res = t(key);
       if (res && res !== key) return res;
     }
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ถอดแบบถ้วนถี่จากหน้าหมอ[cite: 1]
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
-    let targetPrimaryHospId = null;
+    var targetPrimaryHospId = null;
 
     if (docObj) {
       if (docObj.Workplaces_JSON || docObj.workplacesJson) {
         try {
-          let workplaces = typeof docObj.Workplaces_JSON === 'string' 
+          var workplaces = typeof docObj.Workplaces_JSON === 'string' 
             ? JSON.parse(docObj.Workplaces_JSON) 
             : (docObj.Workplaces_JSON || JSON.parse(docObj.workplacesJson || '[]'));
 
           if (Array.isArray(workplaces) && workplaces.length > 0) {
-            let primaryItem = workplaces.find(function(w) { 
+            var primaryItem = workplaces.find(function(w) { 
               return w.isPrimary === true || w.isPrimary === 'true' || w.type === 'Primary' || w.Type === 'Primary'; 
             });
             if (!primaryItem) primaryItem = workplaces[0];
@@ -391,30 +390,30 @@
       }
 
       if (targetPrimaryHospId) {
-        const hospObj = globalAllHospitals.find(function(h) { 
+        var hospObj = globalAllHospitals.find(function(h) { 
           return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
         });
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;[cite: 1]
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
           return targetPrimaryHospId;
         }
       }
 
       if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
-        const docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
-        const matchedAssign = window.VisitManagerCache.assignments.find(function(a) {
+        var docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
+        var matchedAssign = window.VisitManagerCache.assignments.find(function(a) {
           return String(a.Account_ID || a.Doc_ID) === docIdStr && (a.Type === 'Doctor' || a.Type === 'Workplace');
         });
         if (matchedAssign) {
-          const assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
-          const hospObj = globalAllHospitals.find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
-          if (hospObj) return hospObj.Known_As || hospObj.Hospital;
+          var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
+          var hospObj2 = globalAllHospitals.find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
+          if (hospObj2) return hospObj2.Known_As || hospObj2.Hospital;
         }
       }
     }
 
     if (visitObj) {
-      const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
+      var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
     }
 
@@ -438,7 +437,7 @@
 
     if (searchRecognition) stopSearchDictation();
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     searchRecognition = new SpeechRecognition();
     searchRecognition.lang = 'th-TH';
     searchRecognition.continuous = false;
@@ -448,8 +447,8 @@
     currentSearchBtnId = btnId;
     currentSearchIconId = iconId;
 
-    const btn = document.getElementById(btnId);
-    const icon = document.getElementById(iconId);
+    var btn = document.getElementById(btnId);
+    var icon = document.getElementById(iconId);
 
     if (btn && icon) {
       btn.classList.add('mic-active');
@@ -457,8 +456,8 @@
     }
 
     searchRecognition.onresult = function(event) {
-      let spokenText = event.results[0][0].transcript.trim();
-      const inputEl = document.getElementById(inputId);
+      var spokenText = event.results[0][0].transcript.trim();
+      var inputEl = document.getElementById(inputId);
       if (inputEl && spokenText) {
           inputEl.value = spokenText;
           filterVisits();
@@ -477,8 +476,8 @@
       searchRecognition = null;
     }
     if (currentSearchBtnId && currentSearchIconId) {
-      const btn = document.getElementById(currentSearchBtnId);
-      const icon = document.getElementById(currentSearchIconId);
+      var btn = document.getElementById(currentSearchBtnId);
+      var icon = document.getElementById(currentSearchIconId);
       if (btn && icon) {
         btn.classList.remove('mic-active');
         icon.classList.remove('fa-fade');
@@ -490,13 +489,13 @@
   }
 
   async function fetchAllRecords(tableName, queryModifier) {
-      let allData = [];
-      let start = 0;
-      const step = 1000;
+      var allData = [];
+      var start = 0;
+      var step = 1000;
       while (true) {
-          let query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
+          var query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
           if (queryModifier) query = queryModifier(query);
-          const res = await query;
+          var res = await query;
           if (res.error) throw res.error;
           allData = allData.concat(res.data || []);
           if (!res.data || res.data.length < step) break;
@@ -535,8 +534,8 @@
   };
 
   function clearVisitFilters() {
-      const clearTs = function(id) {
-          const el = document.getElementById(id);
+      var clearTs = function(id) {
+          var el = document.getElementById(id);
           if (el && el.tomselect) el.tomselect.clear();
           else if (el) el.value = '';
       };
@@ -555,14 +554,14 @@
     if (typeof window.loadComponent === 'function') {
       window.loadComponent('doctor');
     } else {
-      const menus = document.querySelectorAll('.nav-link, a, button, .menu-item');
+      var menus = document.querySelectorAll('.nav-link, a, button, .menu-item');
       menus.forEach(function(btn) {
-        const txt = btn.textContent || btn.innerText;
+        var txt = btn.textContent || btn.innerText;
         if (txt && (txt.trim() === 'แพทย์' || txt.trim() === 'Doctors' || txt.trim().indexOf('Doctor') !== -1)) btn.click();
       });
     }
-    let attempts = 0;
-    const checkReady = setInterval(function() {
+    var attempts = 0;
+    var checkReady = setInterval(function() {
       attempts++;
       if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
         clearInterval(checkReady);
@@ -572,7 +571,7 @@
   }
 
   function cancelVisitForm() {
-    const returnDocId = sessionStorage.getItem('returnToDocId');
+    var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
       returnToDoctorProfile(returnDocId); 
@@ -589,20 +588,20 @@
       }
     } catch(err) {
       console.error("Init Visits Failed:", err);
-      const tbody = document.getElementById('visitTableBody');
+      var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
     }
   }, 100);
 
   function initUserInfo() {
     try {
-      const crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      const repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown User";
-      const rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || "-") : "-";
+      var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
+      var repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown User";
+      var rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || "-") : "-";
       
-      let terrNameShow = rawTerr;
+      var terrNameShow = rawTerr;
       if (globalTerritoryList && globalTerritoryList.length > 0) {
-        const found = globalTerritoryList.find(function(t) {
+        var found = globalTerritoryList.find(function(t) {
           return String(t.Territory_ID || t.territory_id || t.id) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase();
         });
         if (found) terrNameShow = found.Territory;
@@ -615,12 +614,12 @@
   }
 
   function switchVisitView(viewId) {
-    const views = ['visitListView', 'visitFormView'];
+    var views = ['visitListView', 'visitFormView'];
     views.forEach(function(v) { 
-      const el = document.getElementById(v); 
+      var el = document.getElementById(v); 
       if(el) el.classList.add('d-none'); 
     });
-    const target = document.getElementById(viewId); 
+    var target = document.getElementById(viewId); 
     if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0);
 
@@ -630,28 +629,28 @@
   }
 
   async function loadDropdowns(forceReload) {
-    const filterGroup = document.getElementById('visitFilterZoneGroup');
+    var filterGroup = document.getElementById('visitFilterZoneGroup');
     try {
-      let crmUser = null; 
+      var crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
       globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-      const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+      var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
       window.myIsGlobalViewer = false;
       if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) {
           window.myIsGlobalViewer = true;
       }
-      const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+      var globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
       if (globalRoles.indexOf(globalCurrentUserRole.toUpperCase()) !== -1) {
           window.myIsGlobalViewer = true;
       }
-      const isGlobalViewer = window.myIsGlobalViewer;
+      var isGlobalViewer = window.myIsGlobalViewer;
 
       window.VisitManagerCache = window.VisitManagerCache || {};
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-          const promises = [
+          var promises = [
             fetchAllRecords('Doctors'),
             fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
             supabaseClient.from('Territory').select('*'),
@@ -664,50 +663,50 @@
             fetchAllRecords('Rep_Users'),
             fetchAllRecords('Assignment')
           ];
-          const results = await Promise.all(promises);
+          var results = await Promise.all(promises);
 
-          const allDoctors = results[0] || [];
-          const allHospitals = results[3] || [];
-          const allAssignments = results[10] || [];
-          const globalTerritoryListLocal = (results[2] && results[2].data) ? results[2].data : [];
-          const globalTeamListLocal = (results[4] && results[4].data) ? results[4].data : [];
-          const globalBuListLocal = (results[5] && results[5].data) ? results[5].data : [];
+          var allDoctors = results[0] || [];
+          var allHospitals = results[3] || [];
+          var allAssignments = results[10] || [];
+          var globalTerritoryListLocal = (results[2] && results[2].data) ? results[2].data : [];
+          var globalTeamListLocal = (results[4] && results[4].data) ? results[4].data : [];
+          var globalBuListLocal = (results[5] && results[5].data) ? results[5].data : [];
 
           window.VisitManagerCache.assignments = allAssignments;
 
-          let allowedTerIds = [];
+          var allowedTerIds = [];
 
           if (isGlobalViewer) {
               window.VisitManagerCache.assignedDoctors = allDoctors;
               window.VisitManagerCache.assignedHospitals = allHospitals;
           } else {
               if (globalCurrentUserRole === 'BU Head' || globalCurrentUserRole === 'BU') {
-                  const matchedBu = globalBuListLocal.find(function(b) {
+                  var matchedBu = globalBuListLocal.find(function(b) {
                     return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope;
                   });
-                  const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+                  var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-                  const matchedTeams = globalTeamListLocal.filter(function(t) {
+                  var matchedTeams = globalTeamListLocal.filter(function(t) {
                     return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope);
                   });
-                  const matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
+                  var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
 
-                  const terrs = globalTerritoryListLocal.filter(function(ter) {
+                  var terrs = globalTerritoryListLocal.filter(function(ter) {
                     return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId;
                   });
                   terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
 
               } else if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
-                  let matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
+                  var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
-                      const terrs = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                      terrs.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
+                      terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
-                      const terrs = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === rawScope; });
-                      terrs.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      var terrs3 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === rawScope; });
+                      terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   }
               } else {
-                  let matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
+                  var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
                   if (matchedTerr) {
                       allowedTerIds.push(String(matchedTerr.Territory_ID));
                   } else if (rawScope) {
@@ -715,9 +714,9 @@
                   }
               }
 
-              const myAssignments = allAssignments.filter(function(a) { return allowedTerIds.indexOf(String(a.Territory_ID || a.Territory)) !== -1; });
-              const allowedDocIds = myAssignments.filter(function(a) { return a.Type === 'Doctor'; }).map(function(a) { return String(a.Account_ID); });
-              const explicitHospIds = myAssignments.filter(function(a) { return a.Type === 'Hospital'; }).map(function(a) { return String(a.Account_ID); });
+              var myAssignments = allAssignments.filter(function(a) { return allowedTerIds.indexOf(String(a.Territory_ID || a.Territory)) !== -1; });
+              var allowedDocIds = myAssignments.filter(function(a) { return a.Type === 'Doctor'; }).map(function(a) { return String(a.Account_ID); });
+              var explicitHospIds = myAssignments.filter(function(a) { return a.Type === 'Hospital'; }).map(function(a) { return String(a.Account_ID); });
 
               if (['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(globalCurrentUserRole) !== -1) {
                   window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
@@ -731,8 +730,8 @@
                   window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1; });
               }
 
-              const implicitHospIds = window.VisitManagerCache.assignedDoctors.map(function(d) { return String(d.Hospital_ID || d.hospital_id); });
-              const allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
+              var implicitHospIds = window.VisitManagerCache.assignedDoctors.map(function(d) { return String(d.Hospital_ID || d.hospital_id); });
+              var allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
 
               window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { return allAllowedHospIds.indexOf(String(h.Hospital_ID || h.id)) !== -1; });
           }
@@ -758,16 +757,16 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      const docSelect = document.getElementById('visitDocId');
+      var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        const docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
+        var docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
         docSelect.innerHTML = '<option value="" data-i18n="opt_select_doc_default">' + docDefaultText + '</option>';
         
-        const activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
+        var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
-          const hasQuestionMarks = d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') !== -1;
-          const nameThShow = (d.Doc_Name_TH && !hasQuestionMarks) ? (' (' + d.Doc_Name_TH + ')') : '';
-          const opt = document.createElement('option'); 
+          var hasQuestionMarks = d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') !== -1;
+          var nameThShow = (d.Doc_Name_TH && !hasQuestionMarks) ? (' (' + d.Doc_Name_TH + ')') : '';
+          var opt = document.createElement('option'); 
           opt.value = d.Doc_ID || d.doc_id || d.id; 
           opt.textContent = d.Doc_Name + nameThShow; 
           docSelect.appendChild(opt);
@@ -775,7 +774,7 @@
 
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
-            const docPlaceholder = safeTranslate('opt_search_doc', 'Search Doctor (EN/TH)...');
+            var docPlaceholder = safeTranslate('opt_search_doc', 'Search Doctor (EN/TH)...');
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
                 searchField: ["text"],
@@ -790,15 +789,15 @@
 
       setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-      const purposeSelect = document.getElementById('visitPurpose');
+      var purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
-        const types = window.VisitManagerCache.indexTypes; 
-        const indexes = window.VisitManagerCache.indexes;
-        const purposeType = types.find(function(t) { return t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose'; });
-        const defaultPurposeText = safeTranslate('opt_select_purpose', '-- Select Purpose --');
-        let purposeHtml = '<option value="" data-i18n="opt_select_purpose">' + defaultPurposeText + '</option>';
+        var types = window.VisitManagerCache.indexTypes; 
+        var indexes = window.VisitManagerCache.indexes;
+        var purposeType = types.find(function(t) { return t.Name.toLowerCase() === 'purpose' || t.Name.toLowerCase() === 'callpurpose'; });
+        var defaultPurposeText = safeTranslate('opt_select_purpose', '-- Select Purpose --');
+        var purposeHtml = '<option value="" data-i18n="opt_select_purpose">' + defaultPurposeText + '</option>';
         if (purposeType) {
-          const purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
+          var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
           purposeItems.forEach(function(i) { purposeHtml += '<option value="' + i.Value + '">' + i.Value + '</option>'; });
         } else {
           purposeHtml += '<option value="Follow-up">Follow-up</option><option value="Product Presentation">Product Presentation</option><option value="Deliver Documents/Research">Deliver Documents/Research</option><option value="Relationship Building">Relationship Building</option><option value="Other">Other</option>';
@@ -806,7 +805,7 @@
         purposeSelect.innerHTML = purposeHtml;
       }
 
-      const returnToDocId = sessionStorage.getItem('returnToDocId');
+      var returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
         setTimeout(function() {
           if (tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
@@ -822,26 +821,26 @@
   }
 
   function setupFiltersDropdowns(crmUser, productsTeamList) {
-    const repSelect = document.getElementById('filterVisitRep'); 
-    const terSelect = document.getElementById('filterVisitTerritory');
+    var repSelect = document.getElementById('filterVisitRep'); 
+    var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
 
-    const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
-    const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
-    const userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    const userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
+    var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+    var userRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var userEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
 
-    let isGlobalViewer = false;
+    var isGlobalViewer = false;
     if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) isGlobalViewer = true;
-    const globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+    var globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
     if (globalRoles.indexOf(userRole.toUpperCase()) !== -1) isGlobalViewer = true;
     window.myIsGlobalViewer = isGlobalViewer; 
 
-    let allowedTeamIds = [];
-    let allowedTerIds = [];
-    let allowedRepIds = [];
-    let allowedEmails = [];
-    let allowedNames = [];
+    var allowedTeamIds = [];
+    var allowedTerIds = [];
+    var allowedRepIds = [];
+    var allowedEmails = [];
+    var allowedNames = [];
 
     if (isGlobalViewer) {
       allowedTeamIds = globalTeamList.map(function(t) { return String(t.Team_ID); });
@@ -850,12 +849,12 @@
       allowedEmails = globalUsersList.map(function(u) { return String(u.Email).toLowerCase(); });
       allowedNames = globalUsersList.map(function(u) { return String(u.Rep_Name || u.Name).toLowerCase(); });
     } else {
-      let userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
-      let userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+      var userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
+      var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
       if (userTerrId) {
         allowedTerIds.push(userTerrId);
-        const foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === userTerrId || String(t.Territory) === userTerrId; });
+        var foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === userTerrId || String(t.Territory) === userTerrId; });
         if (foundTerr && foundTerr.Team_ID) {
           allowedTeamIds.push(String(foundTerr.Team_ID));
         }
@@ -865,28 +864,28 @@
       }
 
       if (userRole === 'BU Head' || userRole === 'BU') {
-          const buList = window.VisitManagerCache.bus || [];
-          const matchedBu = buList.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
-          const targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+          var buList = window.VisitManagerCache.bus || [];
+          var matchedBu = buList.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
+          var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-          const buTeams = globalTeamList.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope); });
+          var buTeams = globalTeamList.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope); });
           buTeams.forEach(function(t) {
               allowedTeamIds.push(String(t.Team_ID));
-              const terrs = globalTerritoryList.filter(function(ter) { return String(ter.Team_ID) === String(t.Team_ID); });
+              var terrs = globalTerritoryList.filter(function(ter) { return String(ter.Team_ID) === String(t.Team_ID); });
               terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
           });
       } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
-          let matchedTeam = globalTeamList.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
+          var matchedTeam = globalTeamList.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
           if (matchedTeam) {
               allowedTeamIds.push(String(matchedTeam.Team_ID));
-              const terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
+              var terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
               terrsInTeam.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
           }
       }
 
       if (userRepId) allowedRepIds.push(userRepId);
       if (userEmail) allowedEmails.push(userEmail);
-      const userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
+      var userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
       if (userName) allowedNames.push(userName);
     }
 
@@ -896,41 +895,40 @@
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
-    const uniqueUsersMap = new Map();
+    var uniqueUsersMap = new Map();
     window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { return allowedRepIds.indexOf(String(u.Rep_ID || u.User_ID || u.id)) !== -1; });
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
 
     window.fullAllowedUsers.forEach(function(u) {
-        const id = String(u.Rep_ID || u.User_ID || u.id);
+        var id = String(u.Rep_ID || u.User_ID || u.id);
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
-    let repHtml = '<option value="">' + safeTranslate('opt_all_users', '- ทั้งหมด -') + '</option>';
+    var repHtml = '<option value="">' + safeTranslate('opt_all_users', '- ทั้งหมด -') + '</option>';
     uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
     repSelect.innerHTML = repHtml;
 
     window.fullAllowedTerritories = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(function(t) { return allowedTerIds.indexOf(String(t.Territory_ID)) !== -1; });
     if (window.fullAllowedTerritories.length === 0) window.fullAllowedTerritories = globalTerritoryList;
 
-    let tHtml = '<option value="">' + safeTranslate('opt_all_territories', '- ทั้งหมด -') + '</option>';
+    var tHtml = '<option value="">' + safeTranslate('opt_all_territories', '- ทั้งหมด -') + '</option>';
     window.fullAllowedTerritories.forEach(function(t) { tHtml += '<option value="' + t.Territory_ID + '">' + t.Territory + '</option>'; });
     terSelect.innerHTML = tHtml;
 
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันดึงสินค้าสร้าง TomSelect สมบูรณ์ 100%
   async function renderFormProductDropdown(targetRepUser) {
-    const formProdSelect = document.getElementById('visitProductId');
+    var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
-    let allProds = (globalProductsList && globalProductsList.length > 0) 
+    var allProds = (globalProductsList && globalProductsList.length > 0) 
       ? globalProductsList 
       : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
 
     if (!allProds || allProds.length === 0) {
       try {
-        const res = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
+        var res = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
         if (res.data && res.data.length > 0) {
           allProds = res.data;
           globalProductsList = res.data;
@@ -938,25 +936,25 @@
       } catch(e) {}
     }
 
-    let crmUser = targetRepUser;
+    var crmUser = targetRepUser;
     if (!crmUser) {
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     }
 
-    let isGlobal = window.myIsGlobalViewer;
-    let myTeamIds = [...(window.myAllowedTeamIds || [])];
+    var isGlobal = window.myIsGlobalViewer;
+    var myTeamIds = [...(window.myAllowedTeamIds || [])];
 
     if (crmUser && !isGlobal) {
-        const uRole = String(crmUser.Role || crmUser.role || '').trim();
-        const uTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
-        const uTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim();
+        var uRole = String(crmUser.Role || crmUser.role || '').trim();
+        var uTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+        var uTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim();
 
         if (['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole.toUpperCase()) !== -1) {
             isGlobal = true;
         } else {
             if (uTeam && myTeamIds.indexOf(uTeam) === -1) myTeamIds.push(uTeam);
             if (uTerr) {
-                const foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
+                var foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
                 if (foundTerr && foundTerr.Team_ID && myTeamIds.indexOf(String(foundTerr.Team_ID)) === -1) {
                     myTeamIds.push(String(foundTerr.Team_ID));
                 }
@@ -964,22 +962,22 @@
         }
     }
 
-    let teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
+    var teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
     if (!teamProdLinks || teamProdLinks.length === 0) {
       try {
-        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
+        teamProdLinks = await fetchAllRecords('Products_Team');
         if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
       } catch(e){}
     }
 
-    let allowedProducts = [];
+    var allowedProducts = [];
     if (isGlobal) {
         allowedProducts = allProds;
     } else {
         if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
-            const matchedProdIds = teamProdLinks
-                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })[cite: 2]
-                .map(function(pt) { return String(pt.Product_ID); });[cite: 2]
+            var matchedProdIds = teamProdLinks
+                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })
+                .map(function(pt) { return String(pt.Product_ID); });
             
             allowedProducts = allProds.filter(function(p) { return matchedProdIds.indexOf(String(p.Product_ID)) !== -1; });
         }
@@ -993,14 +991,14 @@
         }
     }
 
-    let fHtml = '';
+    var fHtml = '';
     allowedProducts.forEach(function(p) { fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; });
     formProdSelect.innerHTML = fHtml;
 
     if (typeof TomSelect !== 'undefined') {
         if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
         
-        const prodPlaceholder = safeTranslate('opt_select_products', '-- Select Products --');
+        var prodPlaceholder = safeTranslate('opt_select_products', '-- Select Products --');
         tomSelectProdInstance = new TomSelect('#visitProductId', { 
             plugins: ['remove_button'], 
             create: false, 
@@ -1012,31 +1010,31 @@
   }
 
   function handleFilterChange(source) {
-    const repSelect = document.getElementById('filterVisitRep');
-    const terSelect = document.getElementById('filterVisitTerritory');
+    var repSelect = document.getElementById('filterVisitRep');
+    var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
 
-    const repVal = repSelect.value;
-    const terVal = terSelect.value;
+    var repVal = repSelect.value;
+    var terVal = terSelect.value;
 
     if (source === 'rep') {
-        let validTers = window.fullAllowedTerritories || [];
+        var validTers = window.fullAllowedTerritories || [];
         if (repVal !== "") {
-            const selectedRep = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === repVal; });
+            var selectedRep = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === repVal; });
             if (selectedRep) {
-                const rTeam = String(selectedRep.Team_ID || selectedRep.Team || '');
-                const rTer = String(selectedRep.Territory_ID || selectedRep.Territory || selectedRep.territoryId || '');
+                var rTeam = String(selectedRep.Team_ID || selectedRep.Team || '');
+                var rTer = String(selectedRep.Territory_ID || selectedRep.Territory || selectedRep.territoryId || '');
                 validTers = (window.fullAllowedTerritories || []).filter(function(t) {
-                    const tId = String(t.Territory_ID);
-                    const tTeam = String(t.Team_ID);
+                    var tId = String(t.Territory_ID);
+                    var tTeam = String(t.Team_ID);
                     return tId === rTer || (rTeam && rTeam !== 'undefined' && tTeam === rTeam) || window.myIsGlobalViewer;
                 });
                 if (validTers.length === 0) validTers = window.fullAllowedTerritories;
             }
         }
         
-        const currentTerVal = terSelect.value;
-        let tHtml = '<option value="">' + safeTranslate('opt_all_territories', '- ทั้งหมด -') + '</option>';
+        var currentTerVal = terSelect.value;
+        var tHtml = '<option value="">' + safeTranslate('opt_all_territories', '- ทั้งหมด -') + '</option>';
         validTers.forEach(function(t) { tHtml += '<option value="' + t.Territory_ID + '">' + t.Territory + '</option>'; });
         terSelect.innerHTML = tHtml;
         
@@ -1048,24 +1046,24 @@
     }
 
     if (source === 'territory') {
-        let validReps = window.fullAllowedUsers || [];
+        var validReps = window.fullAllowedUsers || [];
         if (terVal !== "") {
-            const selectedTer = (window.fullAllowedTerritories || []).find(function(t) { return String(t.Territory_ID) === terVal; });
+            var selectedTer = (window.fullAllowedTerritories || []).find(function(t) { return String(t.Territory_ID) === terVal; });
             if (selectedTer) {
-                const tTeam = String(selectedTer.Team_ID || '');
+                var tTeam = String(selectedTer.Team_ID || '');
                 validReps = (window.fullAllowedUsers || []).filter(function(u) {
-                    const uTeam = String(u.Team_ID || u.Team || '');
-                    const uTer = String(u.Territory_ID || u.Territory || u.territoryId || '');
+                    var uTeam = String(u.Team_ID || u.Team || '');
+                    var uTer = String(u.Territory_ID || u.Territory || u.territoryId || '');
                     return uTer === terVal || (tTeam && tTeam !== 'undefined' && uTeam === tTeam) || window.myIsGlobalViewer;
                 });
                 if (validReps.length === 0) validReps = window.fullAllowedUsers;
             }
         }
         
-        const currentRepVal = repSelect.value;
-        let repHtml = '<option value="">' + safeTranslate('opt_all_users', '- ทั้งหมด -') + '</option>';
-        const uniqueUsersMap = new Map();
-        validReps.forEach(function(u) { const id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
+        var currentRepVal = repSelect.value;
+        var repHtml = '<option value="">' + safeTranslate('opt_all_users', '- ทั้งหมด -') + '</option>';
+        var uniqueUsersMap = new Map();
+        validReps.forEach(function(u) { var id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
         uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
         
         repSelect.innerHTML = repHtml;
@@ -1088,9 +1086,9 @@
       currentSortAsc = true; 
     }
 
-    const cols = ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'];
+    var cols = ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'];
     cols.forEach(function(c) {
-      const icon = document.getElementById('icon-sort-' + c);
+      var icon = document.getElementById('icon-sort-' + c);
       if (icon) {
         if (c === currentSortCol) {
           icon.className = currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
@@ -1104,19 +1102,19 @@
   }
 
   async function loadVisits(forceReload) {
-    const tbody = document.getElementById('visitTableBody');
+    var tbody = document.getElementById('visitTableBody');
     window.VisitManagerCache = window.VisitManagerCache || {};
 
     if (forceReload || !window.VisitManagerCache.isLoaded) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
 
         try {
-          const promises = [
+          var promises = [
             fetchAllRecords('Visit_Logs'),
             fetchAllRecords('Visit_Products'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
           ];
-          const results = await Promise.all(promises);
+          var results = await Promise.all(promises);
 
           window.VisitManagerCache.visits = results[0] || [];
           window.VisitManagerCache.visitProducts = results[1] || []; 
@@ -1134,7 +1132,7 @@
     globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
 
     if (window.VisitManagerCache.filters) {
-        const f = window.VisitManagerCache.filters;
+        var f = window.VisitManagerCache.filters;
         
         if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
@@ -1155,16 +1153,16 @@
 
   function filterVisits(resetPage) {
     if (resetPage === undefined) resetPage = true;
-    const repSelect = document.getElementById('filterVisitRep');
-    const terSelect = document.getElementById('filterVisitTerritory');
-    const repTerm = repSelect ? repSelect.value : '';
-    const terTerm = terSelect ? terSelect.value : '';
+    var repSelect = document.getElementById('filterVisitRep');
+    var terSelect = document.getElementById('filterVisitTerritory');
+    var repTerm = repSelect ? repSelect.value : '';
+    var terTerm = terSelect ? terSelect.value : '';
     
-    const smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
 
-    const statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
-    const startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-    const endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+    var statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
+    var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
+    var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
     if (resetPage) currentPage = 1;
 
@@ -1174,17 +1172,17 @@
         page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
     };
 
-    const searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(function(k) { return k !== ''; }) : [];
+    var searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(function(k) { return k !== ''; }) : [];
 
-    const filtered = globalVisits.filter(function(v) {
-      let hasSecurityAccess = false;
+    var filtered = globalVisits.filter(function(v) {
+      var hasSecurityAccess = false;
 
       if (window.myIsGlobalViewer) {
         hasSecurityAccess = true;
       } else {
-        const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-        const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-        const vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
+        var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+        var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
+        var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
 
         if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || 
             window.myAllowedTerIds.indexOf(vTerrId) !== -1 || 
@@ -1197,94 +1195,94 @@
       if (!hasSecurityAccess) return false;
 
       if (!window.myIsGlobalViewer && ['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(globalCurrentUserRole) === -1) {
-          const isDocAssigned = globalAssignedDoctors.some(function(d) {
+          var isDocAssigned = globalAssignedDoctors.some(function(d) {
             return String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase();
           });
           if (!isDocAssigned) return false; 
       }
 
       if (searchKeywords.length > 0) {
-        const docObj = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
-        const docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
+        var docObj = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
+        var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
         
-        const hospName = getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
 
-        const visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
-        const prodNames = visitProds.map(function(vp) {
-          const p = globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
+        var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
+        var prodNames = visitProds.map(function(vp) {
+          var p = globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
           return p ? p.Product.toLowerCase() : '';
         }).join(' ');
 
-        const rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + (v.Purpose || '') + ' ' + (v.Details || '');
+        var rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + (v.Purpose || '') + ' ' + (v.Details || '');
 
-        const matchSmart = searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; });
+        var matchSmart = searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; });
         if (!matchSmart) return false;
       }
 
-      let matchDate = true;
+      var matchDate = true;
       if (startDateTerm || endDateTerm) {
-          const vDate = new Date(v.Visit_Date);
+          var vDate = new Date(v.Visit_Date);
           vDate.setHours(0, 0, 0, 0); 
           
           if (startDateTerm) {
-              const sDate = new Date(startDateTerm);
+              var sDate = new Date(startDateTerm);
               sDate.setHours(0, 0, 0, 0);
               if (vDate < sDate) matchDate = false;
           }
           if (endDateTerm) {
-              const eDate = new Date(endDateTerm);
+              var eDate = new Date(endDateTerm);
               eDate.setHours(23, 59, 59, 999);
               if (vDate > eDate) matchDate = false;
           }
       }
 
-      let matchRep = (repTerm === "");
+      var matchRep = (repTerm === "");
       if (repTerm !== "") {
-          const selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === repTerm; });
-          const selId = repTerm;
-          const selEm = selUser ? String(selUser.Email).toLowerCase() : '';
-          const selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
+          var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === repTerm; });
+          var selId = repTerm;
+          var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
+          var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
           
-          const rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-          const rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
+          var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+          var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
 
           if (rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm)) {
               matchRep = true;
           }
       }
 
-      const matchTer = (terTerm === "") ? true : (String(v.Territory_ID || v.territory_id) === String(terTerm));
+      var matchTer = (terTerm === "") ? true : (String(v.Territory_ID || v.territory_id) === String(terTerm));
 
-      const matchStatus = (statusTerm === "") || (v.Status === statusTerm);
+      var matchStatus = (statusTerm === "") || (v.Status === statusTerm);
 
       return matchDate && matchRep && matchTer && matchStatus;
     });
 
     filtered.sort(function(a, b) {
-      let valA = '', valB = '';
+      var valA = '', valB = '';
 
       if (currentSortCol === 'date') {
         valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
       } 
       else if (currentSortCol === 'doctor') {
-        const docA = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
+        var docA = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
         valA = docA ? (docA.Doc_Name + ' ' + (docA.Doc_Name_TH||'')).toLowerCase() : '';
-        const docB = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
+        var docB = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
         valB = docB ? (docB.Doc_Name + ' ' + (docB.Doc_Name_TH||'')).toLowerCase() : '';
       } 
       else if (currentSortCol === 'hospital') {
-        const docA = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
+        var docA = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
         valA = getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
         
-        const docB = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
+        var docB = globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
         valB = getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
       } 
       else if (currentSortCol === 'products') {
         valA = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(a.Visit_ID); }).map(function(vp) {
-          const p = globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
+          var p = globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
         }).join(',').toLowerCase();
         valB = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(b.Visit_ID); }).map(function(vp) {
-          const p = globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
+          var p = globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
         }).join(',').toLowerCase();
       } 
       else if (currentSortCol === 'purpose') {
@@ -1307,9 +1305,9 @@
   }
 
   function updateStatCards(filteredVisits) {
-    const total = filteredVisits.length;
-    const pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
-    const submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
+    var total = filteredVisits.length;
+    var pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
+    var submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
 
     if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
     if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
@@ -1317,7 +1315,7 @@
   }
 
   function changeRowsPerPage() {
-    const selectEl = document.getElementById('visitRowsPerPage');
+    var selectEl = document.getElementById('visitRowsPerPage');
     rowsPerPage = parseInt(selectEl.value);
     currentPage = 1;
     window.VisitManagerCache.filters.rows = rowsPerPage;
@@ -1326,7 +1324,7 @@
   }
 
   function goToPage(page) {
-    const totalPages = Math.ceil(globalFilteredVisits.length / rowsPerPage);
+    var totalPages = Math.ceil(globalFilteredVisits.length / rowsPerPage);
     if (page < 1 || page > totalPages) return;
     currentPage = page;
     window.VisitManagerCache.filters.page = page;
@@ -1334,11 +1332,11 @@
   }
 
   function renderVisitTable() {
-    const tbody = document.getElementById('visitTableBody');
+    var tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
 
     tbody.innerHTML = '';
-    const data = globalFilteredVisits;
+    var data = globalFilteredVisits;
 
     if (!Array.isArray(data) || data.length === 0) {
         document.getElementById('visitPaginationContainer').classList.add('d-none');
@@ -1347,49 +1345,49 @@
 
     document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
-    const totalItems = data.length;
-    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    var totalItems = data.length;
+    var totalPages = Math.ceil(totalItems / rowsPerPage);
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
 
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+    var startIndex = (currentPage - 1) * rowsPerPage;
+    var endIndex = Math.min(startIndex + rowsPerPage, totalItems);
     
     document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
 
-    const paginatedData = data.slice(startIndex, endIndex);
+    var paginatedData = data.slice(startIndex, endIndex);
 
     paginatedData.forEach(function(v) {
-      const isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
-      let badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
-      let statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+      var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
+      var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
+      var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
 
       if (isPendingUnlock) {
         badgeClass = 'badge-soft-secondary';
         statusShow = '⏳ Pending Unlock';
       }
 
-      const dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
+      var dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
 
-      const docObj = globalAllDoctors.find(function(d) {
+      var docObj = globalAllDoctors.find(function(d) {
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
-      let docNameShow = v.Doc_ID || v.doc_id || v.id || '-';
+      var docNameShow = v.Doc_ID || v.doc_id || v.id || '-';
 
       if (docObj) {
-        const hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
-        const nameThShow = (docObj.Doc_Name_TH && !hasQuestionMarks) ? (' (' + docObj.Doc_Name_TH + ')') : '';
+        var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
+        var nameThShow = (docObj.Doc_Name_TH && !hasQuestionMarks) ? (' (' + docObj.Doc_Name_TH + ')') : '';
         docNameShow = docObj.Doc_Name + nameThShow;
       }
 
-      const hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
+      var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
 
-      const visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
-      let prodBadges = '';
+      var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
+      var prodBadges = '';
       if (visitProds.length > 0) {
         visitProds.forEach(function(pid) {
-            const pObj = globalProductsList.find(function(p) { return String(p.Product_ID) === pid; });
-            const pName = pObj ? pObj.Product : pid;
+            var pObj = globalProductsList.find(function(p) { return String(p.Product_ID) === pid; });
+            var pName = pObj ? pObj.Product : pid;
             prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + pName + '</span>';
         });
       } else {
@@ -1414,22 +1412,22 @@
   }
 
   function renderPaginationControls(totalPages) {
-    const ul = document.getElementById('visitPagination');
-    let html = '';
+    var ul = document.getElementById('visitPagination');
+    var html = '';
 
     html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
               '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage - 1) + '); return false;">&laquo; Prev</a>' +
             '</li>';
 
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
+    var startPage = Math.max(1, currentPage - 2);
+    var endPage = Math.min(totalPages, currentPage + 2);
 
     if (startPage > 1) {
         html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>';
         if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
     }
 
-    for (let i = startPage; i <= endPage; i++) {
+    for (var i = startPage; i <= endPage; i++) {
         html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
                   '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a>' +
                 '</li>';
@@ -1448,9 +1446,9 @@
   }
 
   function toggleVisitFormEditable(isEditable) {
-    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
+    var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     fields.forEach(function(id) {
-      const el = document.getElementById(id);
+      var el = document.getElementById(id);
       if (el) {
         el.disabled = !isEditable;
         if (el.tomselect) {
@@ -1459,16 +1457,16 @@
         }
       }
     });
-    const btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'];
+    var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'];
     btns.forEach(function(id) {
-      const btn = document.getElementById(id);
+      var btn = document.getElementById(id);
       if (btn) btn.disabled = !isEditable;
     });
   }
 
   async function openAddVisitView() {
-    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    fields.forEach(function(id) { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
+    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
@@ -1483,20 +1481,20 @@
       tomSelectDocInstance.clear();
       tomSelectDocInstance.enable(); 
     } else { 
-      const docSelect = document.getElementById('visitDocId'); 
+      var docSelect = document.getElementById('visitDocId'); 
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
     }
 
     await renderFormProductDropdown();
 
-    const returnToDocId = sessionStorage.getItem('returnToDocId');
+    var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       setTimeout(function() {
         if (tomSelectDocInstance) {
           tomSelectDocInstance.setValue(returnToDocId);
           tomSelectDocInstance.disable(); 
         } else {
-          const docSelect = document.getElementById('visitDocId');
+          var docSelect = document.getElementById('visitDocId');
           if (docSelect) { 
             docSelect.value = returnToDocId; 
             docSelect.dispatchEvent(new Event('change')); 
@@ -1511,13 +1509,13 @@
       setTimeout(function() {
         if (tomSelectDocInstance) tomSelectDocInstance.disable();
         else {
-          const dEl = document.getElementById('visitDocId');
+          var dEl = document.getElementById('visitDocId');
           if (dEl) dEl.disabled = true;
         }
       }, 250);
     }
 
-    const btn = document.getElementById('saveVisitBtn');
+    var btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
     btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
     btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
@@ -1527,25 +1525,25 @@
   }
 
   async function openEditVisitView(visitId) {
-    const fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    fields.forEach(function(id) { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
+    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
-    const v = globalVisits.find(function(x) { return x.Visit_ID === visitId; });
+    var v = globalVisits.find(function(x) { return x.Visit_ID === visitId; });
     if (!v) return;
 
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
     
-    let repNameShow = v.Rep_ID || '-';
-    let targetRepObj = null;
+    var repNameShow = v.Rep_ID || '-';
+    var targetRepObj = null;
     if (globalUsersList && globalUsersList.length > 0) {
         targetRepObj = globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
         if (targetRepObj) repNameShow = targetRepObj.Rep_Name || targetRepObj.Name || targetRepObj.Email || repNameShow;
     }
     
-    let terNameShow = v.Territory_ID || '-';
+    var terNameShow = v.Territory_ID || '-';
     if (globalTerritoryList && globalTerritoryList.length > 0) {
-        const terObj = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === String(v.Territory_ID); });
+        var terObj = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === String(v.Territory_ID); });
         if (terObj) terNameShow = terObj.Territory;
         else if (String(terNameShow).length > 20) terNameShow = '-'; 
     }
@@ -1557,7 +1555,7 @@
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
     await renderFormProductDropdown(targetRepObj);
-    const visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
+    var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     if (tomSelectProdInstance) {
         tomSelectProdInstance.setValue(visitProds);
     }
@@ -1571,8 +1569,8 @@
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
 
-    const isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
-    const btn = document.getElementById('saveVisitBtn');
+    var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
+    var btn = document.getElementById('saveVisitBtn');
 
     if (isPendingUnlock) {
       toggleVisitFormEditable(false);
@@ -1603,15 +1601,15 @@
   }
 
   async function requestUnlockVisit(visitId) {
-    const btn = document.getElementById('saveVisitBtn');
+    var btn = document.getElementById('saveVisitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...';
 
-    let crmUser = null; 
+    var crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
-    const payload = {
+    var payload = {
       Action: 'Unlock Visit',
       Ref_ID: visitId,
       Requested_Data: JSON.stringify({ Status: 'Pending' }),
@@ -1620,11 +1618,11 @@
     };
 
     try {
-      const res = await supabaseClient.from('DCR').insert([payload]);
+      var res = await supabaseClient.from('DCR').insert([payload]);
       if (res.error) throw res.error;
       alert("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.");
       
-      const returnDocId = sessionStorage.getItem('returnToDocId');
+      var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
         returnToDoctorProfile(returnDocId); 
@@ -1651,8 +1649,8 @@
 
   async function handleSaveVisit(e) {
     e.preventDefault();
-    const btn = document.getElementById('saveVisitBtn');
-    const mode = btn.dataset.mode;
+    var btn = document.getElementById('saveVisitBtn');
+    var mode = btn.dataset.mode;
 
     if (mode === 'disabled') return;
     if (mode === 'request_unlock') {
@@ -1660,28 +1658,28 @@
       return;
     }
 
-    const docSelect = document.getElementById('visitDocId');
-    const dateInput = document.getElementById('visitDate');
-    const purposeSelect = document.getElementById('visitPurpose');
+    var docSelect = document.getElementById('visitDocId');
+    var dateInput = document.getElementById('visitDate');
+    var purposeSelect = document.getElementById('visitPurpose');
 
-    let selectedProducts = [];
+    var selectedProducts = [];
     if (tomSelectProdInstance) {
-        let val = tomSelectProdInstance.getValue();
+        var val = tomSelectProdInstance.getValue();
         selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     } else {
-        const prodSelect = document.getElementById('visitProductId');
+        var prodSelect = document.getElementById('visitProductId');
         if (prodSelect) {
             selectedProducts = Array.from(prodSelect.selectedOptions).map(function(o) { return o.value; });
         }
     }
     selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
 
-    const validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    validateFields.forEach(function(id) { const el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+    var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
+    validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
-    let missingFields = [];
+    var missingFields = [];
     if (!docSelect || !docSelect.value) { if(docSelect) docSelect.classList.add('is-invalid'); missingFields.push("• Doctor"); }
-    if (selectedProducts.length === 0) { const pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); missingFields.push("• Products"); }
+    if (selectedProducts.length === 0) { var pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); missingFields.push("• Products"); }
     if (!dateInput || !dateInput.value) { if(dateInput) dateInput.classList.add('is-invalid'); missingFields.push("• Date"); }
     if (!purposeSelect || !purposeSelect.value) { if(purposeSelect) purposeSelect.classList.add('is-invalid'); missingFields.push("• Purpose"); }
 
@@ -1693,16 +1691,16 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...';
 
-    let crmUser = null; 
+    var crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-    const repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
-    const territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
+    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+    var repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
+    var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
 
-    const existingVisitId = document.getElementById('visitId').value;
-    const targetVisitId = existingVisitId || generateUUID();
+    var existingVisitId = document.getElementById('visitId').value;
+    var targetVisitId = existingVisitId || generateUUID();
     
-    const payload = {
+    var payload = {
       Visit_ID: targetVisitId,
       Rep_ID: repId,
       Territory_ID: territoryId,
@@ -1721,24 +1719,24 @@
 
     try {
       if (existingVisitId) {
-        const updRes = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
+        var updRes = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
         if (updRes.error) throw new Error("Update Visit_Logs error: " + updRes.error.message);
 
-        const delRes = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
+        var delRes = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
         if (delRes.error) throw new Error("Delete old Visit_Products error: " + delRes.error.message);
 
       } else {
-        const insRes = await supabaseClient.from('Visit_Logs').insert([payload]);
+        var insRes = await supabaseClient.from('Visit_Logs').insert([payload]);
         if (insRes.error) throw new Error("Insert Visit_Logs error: " + insRes.error.message);
       }
 
       if (selectedProducts.length > 0) {
-          const vpPayload = selectedProducts.map(function(p) { return { Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }; });
-          const vpRes = await supabaseClient.from('Visit_Products').insert(vpPayload);
+          var vpPayload = selectedProducts.map(function(p) { return { Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }; });
+          var vpRes = await supabaseClient.from('Visit_Products').insert(vpPayload);
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
-      const returnDocId = sessionStorage.getItem('returnToDocId');
+      var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
         returnToDoctorProfile(returnDocId); 
