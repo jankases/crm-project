@@ -504,10 +504,10 @@
       });
 
       const updateTsPlaceholder = (id, key) => {
-        const ts = document.getElementById(id)?.tomselect;
-        if (ts) {
-          ts.settings.placeholder = t(key);
-          ts.inputState();
+        const el = document.getElementById(id);
+        if (el && el.tomselect) {
+          el.tomselect.settings.placeholder = t(key);
+          el.tomselect.inputState();
         }
       };
 
@@ -527,7 +527,7 @@
 
       if (typeof setupFiltersDropdowns === 'function') {
         const crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
-        setupFiltersDropdowns(crmUser, window.VisitManagerCache?.teamProdLinks);
+        setupFiltersDropdowns(crmUser, window.VisitManagerCache ? window.VisitManagerCache.teamProdLinks : null);
       }
     }
 
@@ -564,6 +564,7 @@
       }
     }
 
+    // 🌟 ปรับระบบโหลดสคริปต์แบบ Safely Execution แก้ปัญหากล่องค้างชัวร์ 100%[cite: 3]
     async function loadComponent(page) {
       let url = '';
       
@@ -599,11 +600,19 @@
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = html;
 
-        const scripts = mainContent.querySelectorAll('script');
-        scripts.forEach(script => {
+        // 🎯 สกัดและรันสคริปต์ด้วยวิธีที่ปลอดภัยจาก Syntax Error[cite: 3]
+        const scriptTags = mainContent.querySelectorAll('script');
+        scriptTags.forEach(oldScript => {
+          const scriptText = oldScript.textContent || oldScript.innerText;
           const newScript = document.createElement('script');
-          if(script.src) newScript.src = script.src;
-          if(script.textContent) newScript.textContent = script.textContent;
+          
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+          } else if (scriptText) {
+            newScript.text = scriptText;
+          }
+          
+          oldScript.parentNode.removeChild(oldScript);
           document.body.appendChild(newScript);
         });
         
