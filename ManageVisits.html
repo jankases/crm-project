@@ -400,7 +400,7 @@
         var hospObj = globalAllHospitals.find(function(h) { 
           return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
         });
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;[cite: 1]
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
           return targetPrimaryHospId;
         }
@@ -1101,7 +1101,7 @@
     var teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
     if (!teamProdLinks || teamProdLinks.length === 0) {
       try {
-        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
+        teamProdLinks = await fetchAllRecords('Products_Team');
         if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
       } catch(e){}
     }
@@ -1112,8 +1112,8 @@
     } else {
         if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
             var matchedProdIds = teamProdLinks
-                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })[cite: 2]
-                .map(function(pt) { return String(pt.Product_ID); });[cite: 2]
+                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })
+                .map(function(pt) { return String(pt.Product_ID); });
             
             allowedProducts = allProds.filter(function(p) { return matchedProdIds.indexOf(String(p.Product_ID)) !== -1; });
         }
@@ -1676,7 +1676,6 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 ฟังก์ชันเปิดดู/แก้ไขบันทึกเยี่ยม (พร้อมสิทธิ์เฉพาะคนสร้างเท่านั้นที่จะแก้ได้ ยกเว้น Admin)
   async function openEditVisitView(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -1684,14 +1683,12 @@
     var v = globalVisits.find(function(x) { return x.Visit_ID === visitId; });
     if (!v) return;
 
-    // 🎯 ดึงข้อมูลผู้ใช้งานปัจจุบัน
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
 
-    // 🎯 ตรวจสอบความเป็นเจ้าของบันทึกเยี่ยม (Creator หรือ Admin)
     var isAdmin = (myRole === 'admin');
     var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
     var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
@@ -1763,7 +1760,6 @@
         btn.dataset.mode = 'disabled';
       }
     } else {
-      // 🎯 สถานะ Pending (Draft)
       if (canEdit) {
         toggleVisitFormEditable(true);
         btn.disabled = false;
@@ -1776,7 +1772,6 @@
            else document.getElementById('visitDocId').disabled = true;
         }
       } else {
-        // หากคนอื่นเข้ามาดู จะแก้อะไรรวมถึงบันทึกไม่ได้
         toggleVisitFormEditable(false);
         btn.disabled = true;
         btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
