@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 42px; 
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
   .form-control:disabled, .form-select:disabled { 
@@ -66,8 +66,8 @@
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
-  .ts-control { border-radius: 12px !important; min-height: 42px; display: flex; align-items: center; background-color: #ffffff !important; }
-  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; }
+  .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
+  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
   .ts-dropdown { 
     z-index: 99999 !important; 
     border-radius: 12px; 
@@ -75,12 +75,8 @@
     border: 1px solid #e2e8f0; 
   }
 
-  .disabled-ts .ts-control input::placeholder {
-    color: transparent !important;
-  }
-  .disabled-ts .ts-control input {
-    opacity: 0 !important;
-  }
+  .disabled-ts .ts-control input::placeholder { color: transparent !important; }
+  .disabled-ts .ts-control input { opacity: 0 !important; }
 
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd; }
@@ -88,20 +84,9 @@
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
 
-  mark.highlight-text {
-    background-color: #fef08a !important;
-    color: #854d0e !important;
-    padding: 0 3px;
-    border-radius: 4px;
-    font-weight: 700;
-  }
+  mark.highlight-text { background-color: #fef08a !important; color: #854d0e !important; padding: 0 3px; border-radius: 4px; font-weight: 700; }
 
-  .quick-time-btn {
-    font-size: 0.72rem;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-  }
+  .quick-time-btn { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
 
   .draft-toast {
     position: fixed;
@@ -136,25 +121,15 @@
     padding-right: 4px;
   }
 
-  #mediaListContainer::-webkit-scrollbar {
-    width: 5px;
-  }
-  #mediaListContainer::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-  }
-  #mediaListContainer::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-  }
-  #mediaListContainer::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
+  #mediaListContainer::-webkit-scrollbar { width: 5px; }
+  #mediaListContainer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+  #mediaListContainer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  #mediaListContainer::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
   .media-card {
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 8px 12px;
+    padding: 10px 14px;
     background: #ffffff;
     transition: all 0.2s ease;
   }
@@ -336,7 +311,7 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View - iPad Optimized) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -345,8 +320,8 @@
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
     </div>
 
-    <div class="card p-4 p-md-5 border-0 shadow-sm visit-card">
-      <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate>
+    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card">
+      <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate class="d-flex flex-column">
         <input type="hidden" id="visitId">
 
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
@@ -362,12 +337,12 @@
           </div>
         </div>
 
-        <!-- Row หลักใช้ align-items-stretch ดึงให้สองฝั่งสูงเท่ากันเป๊ะ -->
+        <!-- 🎯 Grid 2 คอลัมน์สำหรับ iPad แนวนอน / ซ้อน 1 คอลัมน์บน iPad แนวตั้ง -->
         <div class="row g-4 align-items-stretch">
           
           <!-- ฝั่งซ้าย: Visit Information -->
-          <div class="col-12 col-lg-6 d-flex">
-            <div class="p-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
+          <div class="col-12 col-xl-6 d-flex">
+            <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               <div>
                 <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h5>
                 
@@ -375,8 +350,8 @@
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                   <div class="input-group shadow-sm" style="border-radius: 12px;">
                     <select class="form-select bg-white" id="visitDocId" required></select>
-                    <button class="btn btn-outline-danger bg-white border-start-0" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
-                      <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                    <button class="btn btn-outline-danger bg-white border-start-0 px-3" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
+                      <i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i>
                     </button>
                   </div>
                 </div>
@@ -429,36 +404,38 @@
             </div>
           </div>
 
-          <!-- ฝั่งขวา: Activity Details (จัดทรงให้เต็มบาลานซ์ สวยงาม) -->
-          <div class="col-12 col-lg-6 d-flex">
-            <div class="p-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
-              <div>
+          <!-- ฝั่งขวา: Activity Details (สั่ง Auto-Flex ยืดเต็มความสูงสมดุลเป๊ะ 100%) -->
+          <div class="col-12 col-xl-6 d-flex">
+            <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
+              
+              <div class="d-flex flex-column flex-grow-1">
                 <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h5>
 
-                <div class="mb-3">
+                <!-- 🎯 ช่อง Details ยืดอัตโนมัติตามพื้นที่ว่างฝั่งซ้าย -->
+                <div class="mb-3 d-flex flex-column flex-grow-1">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitDetails" rows="6" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm flex-grow-1" id="visitDetails" style="min-height: 120px; resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_insight">Insight</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="4" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="3" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_next_action">Next Action</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-2 py-0" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
@@ -466,7 +443,7 @@
                 </div>
               </div>
 
-              <!-- Status อยู่ชิดล่างเสมอ -->
+              <!-- Status อยู่ชิดขอบล่างพอดีฝั่งซ้ายเสมอ -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -474,6 +451,7 @@
                   <option value="Submitted" class="text-success">✅ Submitted</option>
                 </select>
               </div>
+
             </div>
           </div>
 
