@@ -419,7 +419,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm flex-grow-1" id="visitDetails" style="min-height: 120px; resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm flex-grow-1" id="visitDetails" style="min-height: 160px; resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -537,11 +537,11 @@
     }
   }
 
+  // 🎯 [จุดแก้ไข] Escape HTML เพื่อป้องกันแท็กพังหลุดลอยเวลามีคำค้นหา
   function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
     
-    // แปลงข้อความให้เป็น HTML Safe ก่อนเพื่อป้องกันแท็กพัง
     var div = document.createElement('div');
     div.innerText = text;
     var safeText = div.innerHTML;
@@ -550,7 +550,6 @@
 
     keywords.forEach(function(kw) {
       if (!kw) return;
-      // 🎯 ใช้ Regex แบบฉลาด: เลือกเฉพาะคำที่ไม่ได้อยู่ใน HTML Tag/Attribute
       var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![^<]*>)', 'gi');
       safeText = safeText.replace(regex, '<mark class="highlight-text">$1</mark>');
     });
@@ -614,7 +613,7 @@
     if (!container || !section) return;
 
     var selectedProducts = [];
-    if (tomSelectProdInstance) {
+    if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
       var val = tomSelectProdInstance.getValue();
       selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     } else {
@@ -648,7 +647,6 @@
 
     section.classList.remove('d-none');
     
-    // 🎯 อัปเดตภาษาข้อความ e-Detailing จาก i18n
     var titleText = safeTranslate('sec_edetailing', 'e-Detailing / Presentation');
     var unitText = safeTranslate('unit_items', 'items');
 
@@ -1007,7 +1005,7 @@
     docRecognition.onresult = function(event) {
       var spokenText = event.results[0][0].transcript.trim().toLowerCase();
       
-      if (tomSelectDocInstance) {
+      if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
         tomSelectDocInstance.focus();
         tomSelectDocInstance.setTextboxValue(spokenText);
         var options = tomSelectDocInstance.options;
@@ -1510,7 +1508,7 @@
       var returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
         setTimeout(function() {
-          if (tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
+          if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
           else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
         }, 200); 
       }
@@ -2185,7 +2183,7 @@
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     var formView = document.getElementById('visitFormView');
 
-    if (tomSelectProdInstance) {
+    if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
       if (isEditable) {
         tomSelectProdInstance.enable();
         if (formView) formView.classList.remove('disabled-ts');
@@ -2226,7 +2224,7 @@
 
     initUserInfo(); 
 
-    if (tomSelectDocInstance) {
+    if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
       tomSelectDocInstance.clear();
       tomSelectDocInstance.enable(); 
     } else { 
@@ -2239,7 +2237,7 @@
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       setTimeout(function() {
-        if (tomSelectDocInstance) {
+        if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
           tomSelectDocInstance.setValue(returnToDocId);
           tomSelectDocInstance.disable(); 
         } else {
@@ -2256,7 +2254,7 @@
     toggleVisitFormEditable(true);
     if (returnToDocId) {
       setTimeout(function() {
-        if (tomSelectDocInstance) tomSelectDocInstance.disable();
+        if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.disable();
         else {
           var dEl = document.getElementById('visitDocId');
           if (dEl) dEl.disabled = true;
@@ -2318,7 +2316,7 @@
 
     setTimeout(function() {
       if (v.Doc_ID) {
-        if (tomSelectDocInstance) {
+        if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
           tomSelectDocInstance.setValue(v.Doc_ID);
         } else {
           var dEl = document.getElementById('visitDocId');
@@ -2331,7 +2329,7 @@
     var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     
     setTimeout(function() {
-      if (tomSelectProdInstance && visitProds.length > 0) {
+      if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance && visitProds.length > 0) {
           tomSelectProdInstance.setValue(visitProds);
       } else {
           var pEl = document.getElementById('visitProductId');
@@ -2391,7 +2389,7 @@
         btn.dataset.mode = 'save';
         
         if (sessionStorage.getItem('returnToDocId')) {
-           if (tomSelectDocInstance) tomSelectDocInstance.disable();
+           if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.disable();
            else document.getElementById('visitDocId').disabled = true;
         }
       } else {
@@ -2459,7 +2457,7 @@
     var purposeSelect = document.getElementById('visitPurpose');
 
     var selectedProducts = [];
-    if (tomSelectProdInstance) {
+    if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
         var val = tomSelectProdInstance.getValue();
         selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     } else {
