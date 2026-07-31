@@ -130,7 +130,31 @@
     background: #ffffff;
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
   }
+
+  /* 📄 PDF Canvas Container */
+  #pdfCanvasContainer {
+    width: 100%;
+    height: calc(100vh - 60px);
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1e1e1e;
+  }
+  #pdfRenderCanvas {
+    max-width: 95%;
+    max-height: 95vh;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
 </style>
+
+<!-- 📚 โหลด PDF.js Library สำหรับเปลี่ยนหน้าสไลด์และนับเวลา -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 
 <div id="draftToastContainer"></div>
 
@@ -427,18 +451,26 @@
 
 </div>
 
-<!-- 📺 Presentation Modal -->
+<!-- 📺 Presentation Modal (รองรับปุ่มเปลี่ยนหน้าสไลด์ + จับเวลารายหน้า) -->
 <div class="modal fade" id="mediaPresentationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white py-2 px-3">
         <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
+        
+        <!-- 📄 แถบปุ่มเปลี่ยนหน้าสไลด์ PDF -->
+        <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
+          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
+          <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
+          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
+        </div>
+
         <div class="d-flex align-items-center gap-3">
           <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
           <button type="button" class="btn-close btn-close-white" onclick="closeMediaPresentation()"></button>
         </div>
       </div>
-      <div class="modal-body p-0 bg-black d-flex align-items-center justify-content-center" id="mediaModalBody"></div>
+      <div class="modal-body p-0 bg-black" id="mediaModalBody"></div>
     </div>
   </div>
 </div>
@@ -529,10 +561,20 @@
     }
   }
 
+  // -------------------------------------------------------------
+  // 🎬 e-Detailing & Page-Level Analytics (PDF.js Integration)
+  // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
   var presentationTimerInterval = null;
+
+  // 📊 ตัวแปรระดับรายหน้า
+  var pdfDocInstance = null;
+  var currentPdfPage = 1;
+  var totalPdfPages = 1;
+  var currentPageStartTime = null;
+  var pageLogsBuffer = []; // [{ page: 1, duration: 15, openTime: ... }, ...]
 
   async function fetchDetailingMedia() {
     try {
@@ -617,7 +659,7 @@
     });
   }
 
-  function openMediaPresentation(mediaId) {
+  async function openMediaPresentation(mediaId) {
     var media = globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
     if (!media) return alert("❌ ไม่พบไฟล์สื่อการนำเสนอนี้");
 
@@ -628,15 +670,39 @@
 
     currentActiveMedia = media;
     presentationStartTime = new Date();
+    pageLogsBuffer = []; // ล้างบัฟเฟอร์รายหน้าเดิม
+    currentPdfPage = 1;
+    currentPageStartTime = new Date();
 
     document.getElementById('mediaModalTitle').innerHTML = 
       '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title;
 
     var modalBody = document.getElementById('mediaModalBody');
+    var pdfControls = document.getElementById('pdfControls');
+
     if (media.Type === 'Video') {
+      if (pdfControls) pdfControls.classList.add('d-none');
       modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
     } else {
-      modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      // 📄 โหลดด้วย PDF.js Canvas
+      if (pdfControls) pdfControls.classList.remove('d-none');
+      modalBody.innerHTML = 
+        '<div id="pdfCanvasContainer">' +
+          '<canvas id="pdfRenderCanvas"></canvas>' +
+        '</div>';
+
+      try {
+        var loadingTask = pdfjsLib.getDocument(media.File_URL);
+        pdfDocInstance = await loadingTask.promise;
+        totalPdfPages = pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = totalPdfPages;
+        document.getElementById('pdfPageNum').value = 1;
+        renderPdfPage(1);
+      } catch(e) {
+        console.error("PDF.js Load Error:", e);
+        // Fallback iframe หาก PDF.js ติด CORS
+        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      }
     }
 
     var secondsElapsed = 0;
@@ -655,11 +721,75 @@
     modal.show();
   }
 
+  async function renderPdfPage(num) {
+    if (!pdfDocInstance) return;
+    try {
+      var page = await pdfDocInstance.getPage(num);
+      var canvas = document.getElementById('pdfRenderCanvas');
+      if (!canvas) return;
+
+      var context = canvas.getContext('2d');
+      var viewport = page.getViewport({ scale: 1.5 });
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      var renderContext = { canvasContext: context, viewport: viewport };
+      await page.render(renderContext).promise;
+    } catch(e) {
+      console.error("Render Page Error:", e);
+    }
+  }
+
+  function recordCurrentPageLog() {
+    if (currentPageStartTime) {
+      var now = new Date();
+      var durationSec = Math.round((now - currentPageStartTime) / 1000);
+      if (durationSec > 0) {
+        pageLogsBuffer.push({
+          Page_Number: currentPdfPage,
+          Duration_Second: durationSec, // Match คอลัมน์ int8 ใน Supabase
+          Whenopend: currentPageStartTime.toISOString()
+        });
+      }
+    }
+  }
+
+  function prevPdfPage() {
+    if (currentPdfPage <= 1) return;
+    recordCurrentPageLog();
+    currentPdfPage--;
+    currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = currentPdfPage;
+    renderPdfPage(currentPdfPage);
+  }
+
+  function nextPdfPage() {
+    if (currentPdfPage >= totalPdfPages) return;
+    recordCurrentPageLog();
+    currentPdfPage++;
+    currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = currentPdfPage;
+    renderPdfPage(currentPdfPage);
+  }
+
+  function jumpPdfPage() {
+    var val = parseInt(document.getElementById('pdfPageNum').value);
+    if (isNaN(val) || val < 1 || val > totalPdfPages) return;
+    recordCurrentPageLog();
+    currentPdfPage = val;
+    currentPageStartTime = new Date();
+    renderPdfPage(currentPdfPage);
+  }
+
+  // 🚀 บันทึกข้อมูลลงทั้ง Visit_Detailing_Logs และ Visit_Detailing_Pages ทันทีที่ปิด Pop-up
   async function closeMediaPresentation() {
     if (presentationTimerInterval) clearInterval(presentationTimerInterval);
 
+    recordCurrentPageLog(); // บันทึกเวลาหน้าสุดท้ายก่อนปิด
+
     var now = new Date();
-    var durationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
+    var totalDurationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
     var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
 
     if (currentActiveMedia && targetVisitId) {
@@ -667,25 +797,48 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
       var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
-      var durationToSave = durationSec > 0 ? durationSec : 1;
+      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
 
-      var insertPayload = {
+      // 1️⃣ INSERT สื่อลงตาราง Visit_Detailing_Logs
+      var logPayload = {
         Visit_ID: targetVisitId,
         Media_ID: currentActiveMedia.Media_ID,
-        Duration_Seconds: durationToSave,
+        Duration_Seconds: durationToSave, // Match คอลัมน์ int8 ใน DB
         Whenopend: presentationStartTime ? presentationStartTime.toISOString() : new Date().toISOString(),
         Whoupdated: whoUpdated
       };
 
       try {
-        var res = await supabaseClient.from('Visit_Detailing_Logs').insert([insertPayload]);
-        if (res.error) {
-          console.error("❌ Direct Insert Visit_Detailing_Logs error:", res.error.message);
-        } else {
-          console.log("✅ Visit_Detailing_Logs saved directly successfully!");
+        var logRes = await supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+        
+        if (logRes.error) {
+          console.error("❌ Insert Visit_Detailing_Logs error:", logRes.error.message);
+        } else if (logRes.data && logRes.data.length > 0) {
+          var createdLogId = logRes.data[0].Log_ID;
+          console.log("✅ Visit_Detailing_Logs created! Log_ID:", createdLogId);
+
+          // 2️⃣ INSERT สถิติมนุษย์รายลงตาราง Visit_Detailing_Pages
+          if (pageLogsBuffer.length > 0) {
+            var pagePayloads = pageLogsBuffer.map(function(pLog) {
+              return {
+                Log_ID: createdLogId,
+                Page_Number: pLog.Page_Number,
+                Duration_Second: pLog.Duration_Second, // Match คอลัมน์ int8 ใน DB
+                Whenopend: pLog.Whenopend,
+                Whoupdated: whoUpdated
+              };
+            });
+
+            var pageRes = await supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+            if (pageRes.error) {
+              console.error("❌ Insert Visit_Detailing_Pages error:", pageRes.error.message);
+            } else {
+              console.log("🎉 Visit_Detailing_Pages saved successfully!", pagePayloads.length, "pages");
+            }
+          }
         }
       } catch(err) {
-        console.error("❌ Direct Insert Catch error:", err);
+        console.error("❌ Close Media Catch error:", err);
       }
     }
 
@@ -696,6 +849,7 @@
     document.getElementById('mediaModalBody').innerHTML = '';
     currentActiveMedia = null;
     presentationStartTime = null;
+    pdfDocInstance = null;
   }
 
   function getDoctorNameByLang(docObj, defaultId) {
@@ -1261,46 +1415,37 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🎯 สร้างตัวเลือกช่องหมอแบบค้นหาได้ 2 ภาษา (EN & TH)
-      // 🎯 [แก้ไขจุดนี้] สร้างตัวเลือกหมอให้มีทั้งภาษาไทยและอังกฤษใน Option เดียวกันเสมอ
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         var docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
         docSelect.innerHTML = '<option value="" data-i18n="opt_select_doc_default">' + docDefaultText + '</option>';
         
-        var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { 
-          return String(d.Status || 'Active').toLowerCase() === 'active'; 
-        });
-
+        var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
           var nameEN = d.Doc_Name || d.doc_name || '';
           var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
-          
-          // 🌟 รวมชื่อ 2 ภาษาเข้าด้วยกันเสมอ ไม่ว่าหน้าจอจะเปิดภาษาไหนอยู่
-          var combinedName = nameEN;
-          if (nameTH && nameTH !== nameEN) {
-            combinedName += ' (' + nameTH + ')';
-          }
-          if (!combinedName) combinedName = d.Doc_ID || '-';
+          var displayText = nameEN + (nameTH ? ' (' + nameTH + ')' : '');
 
           var opt = document.createElement('option'); 
           opt.value = d.Doc_ID || d.doc_id || d.id; 
-          opt.textContent = combinedName; // เก็บค่าทั้ง Surasak Jank และ สุรศักดิ์ จันทร์
+          opt.textContent = displayText; 
+          opt.setAttribute('data-name-en', nameEN);
+          opt.setAttribute('data-name-th', nameTH);
           docSelect.appendChild(opt);
         });
 
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
             var docPlaceholder = safeTranslate('opt_search_doc', 'Search Doctor (EN/TH)...');
-            
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
-                searchField: ["text"], // 🌟 สแกนค้นหาคำจากชื่อ 2 ภาษาที่อยู่ใน text ทันที
+                searchField: ["text", "name_en", "name_th"],
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: docPlaceholder,
                 allowEmptyOption: true,
                 maxOptions: null,
-                dropdownParent: 'body'
+                dropdownParent: 'body',
+                dataAttr: 'data'
             });
         }
       }
@@ -2401,4 +2546,8 @@
   window.closeMediaPresentation = closeMediaPresentation;
   window.formatTimeString = formatTimeString;
   window.generateUUID = generateUUID;
+  window.renderPdfPage = renderPdfPage;
+  window.prevPdfPage = prevPdfPage;
+  window.nextPdfPage = nextPdfPage;
+  window.jumpPdfPage = jumpPdfPage;
 </script>
