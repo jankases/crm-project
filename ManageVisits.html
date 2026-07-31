@@ -369,23 +369,32 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อหมอแสดงผลตามภาษาที่เลือก (EN / TH)
+  // 🌟 ฟังก์ชันดึงภาษาปัจจุบันอย่างถูกต้องจาก localStorage หรือ Window
+  function getCurrentAppLang() {
+    return localStorage.getItem('appLang') || (typeof currentLang !== 'undefined' ? currentLang : 'en');
+  }
+
+  // 🌟 ฟังก์ชันดึงชื่อหมอตามภาษาที่เลือก (EN / TH)
   function getDoctorNameByLang(docObj, defaultId) {
     if (!docObj) return defaultId || '-';
-    var isTh = (typeof currentLang !== 'undefined' && currentLang === 'th');
+    var lang = getCurrentAppLang();
     
-    if (isTh) {
+    if (lang === 'en') {
+      // 🟢 ถ้าเลือก EN -> บังคับดึงเฉพาะชื่อภาษาอังกฤษเท่านั้น
+      return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
+    } else {
+      // 🔴 ถ้าเลือก TH -> ดึงชื่อภาษาไทย หากไม่มีให้ใช้ชื่อภาษาอังกฤษ
       var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
       if (docObj.Doc_Name_TH && !hasQuestionMarks) {
         return docObj.Doc_Name_TH;
       }
+      return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
     }
-    return docObj.Doc_Name || docObj.Doc_Name_TH || defaultId || '-';
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital แสดงผลตามภาษาที่เลือก (EN / TH)
+  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital ตามภาษาที่เลือก (EN / TH)
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
-    var isTh = (typeof currentLang !== 'undefined' && currentLang === 'th');
+    var lang = getCurrentAppLang();
     var targetPrimaryHospId = null;
 
     if (docObj) {
@@ -403,12 +412,12 @@
 
             targetPrimaryHospId = primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id;
             
-            if (isTh) {
-              var directTh = primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As;
-              if (directTh && directTh !== '-') return directTh;
-            } else {
+            if (lang === 'en') {
               var directEn = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
               if (directEn && directEn !== '-') return directEn;
+            } else {
+              var directTh = primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As;
+              if (directTh && directTh !== '-') return directTh;
             }
           }
         } catch (e) {
@@ -430,10 +439,12 @@
         });
 
         if (hospObj) {
-          if (isTh) {
-            return hospObj.Known_As || hospObj.Hospital || hospObj.Hospital_Name;
+          if (lang === 'en') {
+            // 🟢 ถ้าเลือก EN -> ดึง Hospital ภาษาอังกฤษเท่านั้น
+            return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
           } else {
-            return hospObj.Hospital || hospObj.Known_As || hospObj.Hospital_Name;
+            // 🔴 ถ้าเลือก TH -> ดึง Known_As ภาษาไทย
+            return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
           }
         }
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
@@ -450,7 +461,7 @@
           var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
           var hospObj2 = (globalAllHospitals || []).find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
           if (hospObj2) {
-            return isTh ? (hospObj2.Known_As || hospObj2.Hospital) : (hospObj2.Hospital || hospObj2.Known_As);
+            return (lang === 'en') ? (hospObj2.Hospital || hospObj2.Known_As) : (hospObj2.Known_As || hospObj2.Hospital);
           }
         }
       }
@@ -1437,7 +1448,10 @@
           matchTer = (String(v.Territory_ID || v.territory_id) === String(terTerm));
       }
 
-      var matchStatus = (statusTerm === "") || (v.Status === statusTerm);
+      var matchStatus = (statusTerm === "");
+      if (statusTerm !== "") {
+          matchStatus = (v.Status === statusTerm);
+      }
 
       return matchDate && matchRep && matchTer && matchStatus;
     });
@@ -1557,7 +1571,7 @@
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
 
-      // 🌟 ดึงชื่อหมอและโรงพยาบาลแยกตามภาษา
+      // 🌟 ดึงชื่อหมอและโรงพยาบาลตามภาษาที่เลือกไว้
       var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
 
@@ -1984,6 +1998,7 @@
   window.toggleTextDictation = toggleTextDictation;
   window.toggleSpeechSearch = toggleSpeechSearch;
   window.filterVisits = filterVisits;
+  window.renderVisitTable = renderVisitTable;
   window.handleFilterChange = handleFilterChange;
   window.clearVisitFilters = clearVisitFilters;
   window.sortVisits = sortVisits;
