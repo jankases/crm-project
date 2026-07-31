@@ -264,8 +264,8 @@
         
         sec_visit_info: "Visit Information",
         sec_activity_details: "Activity Details",
-        sec_edetailing: "e-Detailing / Presentation", // 🎯 [เพิ่มใหม่]
-        unit_items: "items" // 🎯 [เพิ่มใหม่]
+        sec_edetailing: "e-Detailing / Presentation",
+        unit_items: "items"
       },
       th: {
         app_title: "ระบบ CRM",
@@ -348,14 +348,14 @@
         
         sec_visit_info: "ข้อมูลการเข้าพบ",
         sec_activity_details: "รายละเอียดกิจกรรม",
-        sec_edetailing: "e-Detailing / สื่อการนำเสนอ", // 🎯 [เพิ่มใหม่]
-        unit_items: "เล่ม" // 🎯 [เพิ่มใหม่]
+        sec_edetailing: "e-Detailing / สื่อการนำเสนอ",
+        unit_items: "เล่ม"
       }
     };
 
     var currentLang = localStorage.getItem('appLang') || 'en';
 
-   function setLanguage(lang) {
+    function setLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('appLang', lang);
 
@@ -371,12 +371,17 @@
         }
       }
 
-      // 📌 1. แอบจำค่า Doctor, Products และ Purpose ที่ผู้ใช้เลือกไว้ก่อนสลับภาษา
-      var savedDocVal = tomSelectDocInstance ? tomSelectDocInstance.getValue() : (document.getElementById('visitDocId') ? document.getElementById('visitDocId').value : '');
-      var savedProdVal = tomSelectProdInstance ? tomSelectProdInstance.getValue() : '';
+      // 🎯 เช็คความปลอดภัยตัวแปรเพื่อป้องกัน ReferenceError บน Console
+      var savedDocVal = (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) 
+        ? tomSelectDocInstance.getValue() 
+        : (document.getElementById('visitDocId') ? document.getElementById('visitDocId').value : '');
+        
+      var savedProdVal = (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) 
+        ? tomSelectProdInstance.getValue() 
+        : '';
+        
       var savedPurposeVal = document.getElementById('visitPurpose') ? document.getElementById('visitPurpose').value : '';
 
-      // 📌 2. แปลภาษาข้อความตาม data-i18n
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
@@ -390,26 +395,23 @@
         }
       });
 
-      // 🎯 3. อัปเดตตารางและดร็อปดาวน์
       if (window.renderVisitTable) {
         window.renderVisitTable();
       }
       
       if (window.loadDropdowns) {
-        // สั่งโหลดดร็อปดาวน์ใหม่ แล้วยัดค่าเดิมกลับคืนทันที
         window.loadDropdowns(false).then(() => {
           setTimeout(() => {
             if (savedDocVal) {
-              if (tomSelectDocInstance) tomSelectDocInstance.setValue(savedDocVal);
+              if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.setValue(savedDocVal);
               else if (document.getElementById('visitDocId')) document.getElementById('visitDocId').value = savedDocVal;
             }
             if (savedProdVal && savedProdVal.length > 0) {
-              if (tomSelectProdInstance) tomSelectProdInstance.setValue(savedProdVal);
+              if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) tomSelectProdInstance.setValue(savedProdVal);
             }
             if (savedPurposeVal && document.getElementById('visitPurpose')) {
               document.getElementById('visitPurpose').value = savedPurposeVal;
             }
-            // เรียกโหลดสื่อ e-Detailing กลับมาแสดงเหมือนเดิม
             if (window.loadProductMedia) {
               window.loadProductMedia();
             }
