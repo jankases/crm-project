@@ -362,7 +362,6 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ถอดแบบจากหน้าหมอ 100%[cite: 1]
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
@@ -906,7 +905,6 @@
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันดึงสินค้าสร้าง TomSelect สมบูรณ์ 100%
   async function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -954,7 +952,7 @@
     let teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
     if (!teamProdLinks || teamProdLinks.length === 0) {
       try {
-        teamProdLinks = await fetchAllRecords('Products_Team');
+        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
         if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
       } catch(e){}
     }
@@ -965,8 +963,8 @@
     } else {
         if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
             const matchedProdIds = teamProdLinks
-                .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
-                .map(pt => String(pt.Product_ID));
+                .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')[cite: 2]
+                .map(pt => String(pt.Product_ID));[cite: 2]
             
             allowedProducts = allProds.filter(p => matchedProdIds.includes(String(p.Product_ID)));
         }
