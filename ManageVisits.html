@@ -223,7 +223,7 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View แบบ 2-Column สมดุลลงตัว) ================= -->
+  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -250,10 +250,7 @@
           </div>
         </div>
 
-        <!-- 🌟 Layout ปรับบาลานซ์ความสูงของทั้งสองฝั่งให้เต็มพื้นที่สมบูรณ์ -->
         <div class="row g-4">
-          
-          <!-- คอลัมน์ซ้าย: ข้อมูลการเข้าพบ -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
@@ -269,7 +266,7 @@
                   </div>
                 </div>
 
-                <!-- 🌟 ช่องเลือกสินค้า การันตีการสร้าง TomSelect ทำงานสมบูรณ์ -->
+                <!-- 🌟 ช่องเลือกสินค้า -->
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required></select>
@@ -301,7 +298,6 @@
             </div>
           </div>
 
-          <!-- คอลัมน์ขวา: รายละเอียดกิจกรรม (ปรับขยายช่อง Textarea ให้เต็มพื้นที่พอดีกัน) -->
           <div class="col-12 col-lg-6">
             <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
@@ -347,7 +343,6 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
@@ -635,7 +630,7 @@
                       terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
                   } else if (rawScope) {
                       const terrs = globalTerritoryListLocal.filter(t => String(t.Team_ID) === rawScope);
-                      terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+                      terrs.forEach(t => allowedTerIds.push(String(ter.Territory_ID)));
                   }
               } else {
                   let matchedTerr = globalTerritoryListLocal.find(t => String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope);
@@ -754,11 +749,9 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🌟 ฟังก์ชันสร้างรายการตัวเลือก User, Territory และ สินค้า (บังคับสร้าง TomSelect โชว์ 100%)
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     const repSelect = document.getElementById('filterVisitRep'); 
     const terSelect = document.getElementById('filterVisitTerritory');
-    const formProdSelect = document.getElementById('visitProductId'); 
     if (!repSelect || !terSelect) return;
 
     const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : ''; 
@@ -877,34 +870,57 @@
     window.fullAllowedTerritories.forEach(t => tHtml += `<option value="${t.Territory_ID}">${t.Territory}</option>`);
     terSelect.innerHTML = tHtml;
 
-    // 🌟 ดร็อปดาวน์สินค้าในฟอร์ม
-    renderFormProductDropdown();
+    // 🌟 เรียกดึงรายการสินค้าใส่ในฟอร์ม
+    renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันการันตีการสร้าง TomSelect สำหรับสินค้าโชว์ขึ้นสมบูรณ์ 100%
-  function renderFormProductDropdown() {
+  // 🌟 ฟังก์ชันการันตีการดึงและสร้าง TomSelect สำหรับสินค้าโชว์ขึ้นสมบูรณ์ 100%
+  function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
-    let crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    const userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+    let crmUser = targetRepUser;
+    if (!crmUser) {
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    }
+
+    let allowedTeamIds = window.myAllowedTeamIds || [];
+    let isGlobal = window.myIsGlobalViewer;
+
+    if (crmUser && !isGlobal) {
+        const uRole = String(crmUser.Role || crmUser.role || '').trim();
+        const uTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+        const uTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim();
+
+        if (['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].includes(uRole.toUpperCase())) {
+            isGlobal = true;
+        } else {
+            if (uTeam && !allowedTeamIds.includes(uTeam)) allowedTeamIds.push(uTeam);
+            if (uTerr) {
+                const foundTerr = globalTerritoryList.find(t => String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr);
+                if (foundTerr && foundTerr.Team_ID && !allowedTeamIds.includes(String(foundTerr.Team_ID))) {
+                    allowedTeamIds.push(String(foundTerr.Team_ID));
+                }
+            }
+        }
+    }
 
     let allowedProducts = [];
-    if (window.myIsGlobalViewer) {
+    if (isGlobal) {
         allowedProducts = globalProductsList;
     } else {
-        if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0 && window.VisitManagerCache.teamProdLinks && window.VisitManagerCache.teamProdLinks.length > 0) {
+        if (allowedTeamIds.length > 0 && window.VisitManagerCache.teamProdLinks && window.VisitManagerCache.teamProdLinks.length > 0) {
             const allowedProdIds = window.VisitManagerCache.teamProdLinks
-                .filter(pt => window.myAllowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
+                .filter(pt => allowedTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
                 .map(pt => String(pt.Product_ID));
             allowedProducts = globalProductsList.filter(p => allowedProdIds.includes(String(p.Product_ID)));
         }
         
-        if (allowedProducts.length === 0 && window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
-            allowedProducts = globalProductsList.filter(p => window.myAllowedTeamIds.includes(String(p.Team_ID || p.team_id)));
+        if (allowedProducts.length === 0 && allowedTeamIds.length > 0) {
+            allowedProducts = globalProductsList.filter(p => allowedTeamIds.includes(String(p.Team_ID || p.team_id)));
         }
 
+        // 🌟 Safety Fallback: หากแมปไม่เจอทีมจริงๆ ดึงสินค้า Active ทั้งหมดมาแสดงเสมอ
         if (allowedProducts.length === 0) {
             allowedProducts = globalProductsList.filter(p => String(p.Status || 'Active').toLowerCase() === 'active');
             if (allowedProducts.length === 0) allowedProducts = globalProductsList;
@@ -1217,7 +1233,6 @@
 
     globalFilteredVisits = filtered;
 
-    // 🌟 อัปเดตตัวเลขการ์ด KPI ให้ล้อตามผลลัพธ์ที่กรองจริง
     updateStatCards(globalFilteredVisits);
 
     renderVisitTable();
@@ -1403,7 +1418,6 @@
       if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
     }
 
-    // 🌟 บังคับสร้างดร็อปดาวน์สินค้าแบบ TomSelect ใหม่ทุกครั้งเปิดฟอร์ม
     renderFormProductDropdown();
 
     const returnToDocId = sessionStorage.getItem('returnToDocId');
@@ -1450,9 +1464,10 @@
     document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
     
     let repNameShow = v.Rep_ID || '-';
+    let targetRepObj = null;
     if (globalUsersList && globalUsersList.length > 0) {
-        const repObj = globalUsersList.find(u => String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID));
-        if (repObj) repNameShow = repObj.Rep_Name || repObj.Name || repObj.Email || repNameShow;
+        targetRepObj = globalUsersList.find(u => String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID));
+        if (targetRepObj) repNameShow = targetRepObj.Rep_Name || targetRepObj.Name || targetRepObj.Email || repNameShow;
     }
     
     let terNameShow = v.Territory_ID || '-';
@@ -1468,8 +1483,8 @@
     if (tomSelectDocInstance) tomSelectDocInstance.setValue(v.Doc_ID);
     else document.getElementById('visitDocId').value = v.Doc_ID || '';
 
-    // 🌟 บังคับสร้างดร็อปดาวน์สินค้าแบบ TomSelect พร้อมยัดค่าเดิมลงไป
-    renderFormProductDropdown();
+    // 🌟 โหลดรายการสินค้าตามสิทธิ์ของพนักงานเจ้าของ Visit Log พร้อมยัดค่าเดิมลงไปอย่างแม่นยำ
+    renderFormProductDropdown(targetRepObj);
     const visitProds = globalVisitProducts.filter(vp => String(vp.Visit_ID) === String(visitId)).map(vp => String(vp.Product_ID));
     if (tomSelectProdInstance) {
         tomSelectProdInstance.setValue(visitProds);
