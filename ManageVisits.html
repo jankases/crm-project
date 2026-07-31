@@ -541,15 +541,21 @@
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
     
+    // แปลงข้อความให้เป็น HTML Safe ก่อนเพื่อป้องกันแท็กพัง
+    var div = document.createElement('div');
+    div.innerText = text;
+    var safeText = div.innerHTML;
+
     var keywords = searchKeyword.trim().toLowerCase().split(' ').filter(function(k) { return k !== ''; });
-    var escapedText = text;
 
     keywords.forEach(function(kw) {
-      var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-      escapedText = escapedText.replace(regex, '<mark class="highlight-text">$1</mark>');
+      if (!kw) return;
+      // 🎯 ใช้ Regex แบบฉลาด: เลือกเฉพาะคำที่ไม่ได้อยู่ใน HTML Tag/Attribute
+      var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![^<]*>)', 'gi');
+      safeText = safeText.replace(regex, '<mark class="highlight-text">$1</mark>');
     });
 
-    return escapedText;
+    return safeText;
   }
 
   function checkMyDraftsReminder(myDraftCount) {
