@@ -652,9 +652,10 @@
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
       var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
+      // 🎯 แมปชื่อคอลัมน์ให้อยู่ในรูป Duration_Seconds (มี s) ให้ตรงกับ Supabase 100%
       activePresentationLogs.push({
         Media_ID: currentActiveMedia.Media_ID,
-        Duration_Second: durationSec,
+        Duration_Seconds: durationSec,
         Whenopend: presentationStartTime.toISOString(),
         Whoupdated: whoUpdated
       });
@@ -2058,7 +2059,6 @@
     switchVisitView('visitFormView');
   }
 
-  // 🌟 ฟังก์ชันเปิดหน้าดู/แก้ไขข้อมูล (แก้ไขระบบ Async เติมค่าครบถ้วน 100%)
   async function openEditVisitView(visitId) {
     activePresentationLogs = [];
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
@@ -2103,7 +2103,6 @@
     document.getElementById('dispSalesRepName').innerText = repNameShow;
     document.getElementById('dispTerritoryName').innerText = terNameShow;
 
-    // 🎯 1. เติมข้อมูลแพทย์ (Doctor) ครอบ setTimeout การันตี TomSelect โหลดเสร็จ
     setTimeout(function() {
       if (v.Doc_ID) {
         if (tomSelectDocInstance) {
@@ -2115,7 +2114,6 @@
       }
     }, 100);
 
-    // 🎯 2. เติมข้อมูลยา (Products)
     await renderFormProductDropdown(targetRepObj);
     var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     
@@ -2133,7 +2131,6 @@
       loadProductMedia();
     }, 150);
 
-    // 🎯 3. เติมข้อมูลวันที่, เวลา และวัตถุประสงค์ (Purpose & Time Format)
     document.getElementById('visitDate').value = v.Visit_Date || '';
     document.getElementById('visitStartTime').value = formatTimeString(v.Start_Time);
     document.getElementById('visitEndTime').value = formatTimeString(v.End_Time);
@@ -2145,7 +2142,6 @@
       }
     }, 100);
 
-    // 🎯 4. เติมข้อมูลรายละเอียดกิจกรรม (Activity Details)
     document.getElementById('visitDetails').value = v.Details || '';
     document.getElementById('visitInsight').value = v.Insight || ''; 
     document.getElementById('visitNextAction').value = v.Next_Action || '';
@@ -2333,12 +2329,13 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
+      // 🎬 บันทึกสถิติลง Visit_Detailing_Logs
       if (activePresentationLogs.length > 0) {
         var detailingPayload = activePresentationLogs.map(function(log) {
           return {
             Visit_ID: targetVisitId,
             Media_ID: log.Media_ID,
-            Duration_Second: log.Duration_Second,
+            Duration_Seconds: log.Duration_Seconds, // 🎯 แก้ให้ตรงกับ DB
             Whenopend: log.Whenopend,
             Whoupdated: log.Whoupdated
           };
