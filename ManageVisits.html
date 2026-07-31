@@ -369,21 +369,25 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันดึงภาษาปัจจุบันอย่างถูกต้องจาก localStorage หรือ Window
+  // 🎯 ดึงภาษาแม่นยำ 100% สแกนจากสถานะปุ่มกด Navbar
   function getCurrentAppLang() {
-    return localStorage.getItem('appLang') || (typeof currentLang !== 'undefined' ? currentLang : 'en');
+    var btnEN = document.getElementById('btnLangEN');
+    if (btnEN && btnEN.classList.contains('btn-primary')) {
+      return 'en';
+    }
+    return 'th';
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อหมอตามภาษาที่เลือก (EN / TH)
+  // 🌟 ฟังก์ชันดึงชื่อหมอภาษา EN หรือ TH
   function getDoctorNameByLang(docObj, defaultId) {
     if (!docObj) return defaultId || '-';
     var lang = getCurrentAppLang();
     
     if (lang === 'en') {
-      // 🟢 ถ้าเลือก EN -> บังคับดึงเฉพาะชื่อภาษาอังกฤษเท่านั้น
+      // 🟢 ภาษาอังกฤษ: ดึง Doc_Name เพียวๆ
       return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
     } else {
-      // 🔴 ถ้าเลือก TH -> ดึงชื่อภาษาไทย หากไม่มีให้ใช้ชื่อภาษาอังกฤษ
+      // 🔴 ภาษาไทย: ดึง Doc_Name_TH หากไม่มีค่อยเอาภาษาอังกฤษ
       var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
       if (docObj.Doc_Name_TH && !hasQuestionMarks) {
         return docObj.Doc_Name_TH;
@@ -392,7 +396,7 @@
     }
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital ตามภาษาที่เลือก (EN / TH)
+  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital ภาษา EN หรือ TH
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     var lang = getCurrentAppLang();
     var targetPrimaryHospId = null;
@@ -440,10 +444,8 @@
 
         if (hospObj) {
           if (lang === 'en') {
-            // 🟢 ถ้าเลือก EN -> ดึง Hospital ภาษาอังกฤษเท่านั้น
             return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
           } else {
-            // 🔴 ถ้าเลือก TH -> ดึง Known_As ภาษาไทย
             return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
           }
         }
@@ -1571,7 +1573,7 @@
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
 
-      // 🌟 ดึงชื่อหมอและโรงพยาบาลตามภาษาที่เลือกไว้
+      // 🌟 ดึงชื่อหมอและโรงพยาบาลตามภาษาที่ถูกเลือกไว้บน Navbar ทันที
       var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
 
