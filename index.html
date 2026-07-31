@@ -132,10 +132,7 @@
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
-                
-                <!-- 🎬 [เพิ่มใหม่] เมนู Media Management (e-Detailing) -->
                 <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
-                
                 <li><hr class="dropdown-divider opacity-50"></li>
                 <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
               </ul>
@@ -266,7 +263,9 @@
         lbl_status: "Status",
         
         sec_visit_info: "Visit Information",
-        sec_activity_details: "Activity Details"
+        sec_activity_details: "Activity Details",
+        sec_edetailing: "e-Detailing / Presentation", // 🎯 [เพิ่มใหม่]
+        unit_items: "items" // 🎯 [เพิ่มใหม่]
       },
       th: {
         app_title: "ระบบ CRM",
@@ -348,7 +347,9 @@
         lbl_status: "สถานะ",
         
         sec_visit_info: "ข้อมูลการเข้าพบ",
-        sec_activity_details: "รายละเอียดกิจกรรม"
+        sec_activity_details: "รายละเอียดกิจกรรม",
+        sec_edetailing: "e-Detailing / สื่อการนำเสนอ", // 🎯 [เพิ่มใหม่]
+        unit_items: "เล่ม" // 🎯 [เพิ่มใหม่]
       }
     };
 
@@ -388,6 +389,9 @@
       }
       if (window.loadDropdowns) {
         window.loadDropdowns(false);
+      }
+      if (window.loadProductMedia) {
+        window.loadProductMedia();
       }
     }
 
@@ -437,7 +441,7 @@
         case 'assignment': url = 'ManageAssignment.html'; break;
         case 'indexData': url = 'ManageIndex.html'; break;
         case 'dcr': url = 'ManageDCR.html'; break;
-        case 'media': url = 'ManageMedia.html'; break; // 🎬 [เพิ่มใหม่] หน้าจัดการสื่อ e-Detailing
+        case 'media': url = 'ManageMedia.html'; break;
         case 'user': url = 'ManageUsers.html'; break;
         default: 
           page = 'visit'; 
