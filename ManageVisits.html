@@ -82,7 +82,48 @@
 
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+
+  /* 🌟 สไตล์แถบสีไฮไลต์คำค้นหา */
+  mark.highlight-text {
+    background-color: #fef08a !important;
+    color: #854d0e !important;
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  /* 🌟 สไตล์ปุ่มกดเวลาด่วน */
+  .quick-time-btn {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  /* 🌟 สไตล์ Toast แจ้งเตือนฉบับร่าง */
+  .draft-toast {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    background: #ffffff;
+    border-left: 4px solid #f59e0b;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 </style>
+
+<!-- 🔔 Container สำหรับ Toast แจ้งเตือนฉบับร่างค้าง -->
+<div id="draftToastContainer"></div>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
@@ -289,13 +330,23 @@
                   <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
                 </div>
 
+                <!-- ⚡ ช่องใส่เวลา พร้อมปุ่มกดทางลัดเวลาด่วน -->
                 <div class="row g-2 mb-2">
                   <div class="col-6">
-                    <label class="form-label fw-bold text-dark" data-i18n="lbl_start_time">Start Time</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_start_time">Start Time</label>
+                      <button type="button" class="btn btn-outline-primary quick-time-btn" onclick="setQuickTime('start', 0)">[ตอนนี้]</button>
+                    </div>
                     <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
                   </div>
                   <div class="col-6">
-                    <label class="form-label fw-bold text-dark" data-i18n="lbl_end_time">End Time</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_end_time">End Time</label>
+                      <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-outline-secondary quick-time-btn" onclick="setQuickTime('end', 30)">[+30ม.]</button>
+                        <button type="button" class="btn btn-outline-secondary quick-time-btn" onclick="setQuickTime('end', 60)">[+1ชม.]</button>
+                      </div>
+                    </div>
                     <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
                   </div>
                 </div>
@@ -369,7 +420,6 @@
     return fallbackText;
   }
 
-  // 🎯 เช็คคลาสปุ่มกดบน Navbar เพื่อระบุภาษาให้แม่นยำ 100%
   function getCurrentAppLang() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
@@ -378,16 +428,76 @@
     return 'th';
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อหมอภาษา EN หรือ TH
+  // ⚡ ฟังก์ชันเติมเวลาด่วน [ตอนนี้], [+30ม.], [+1ชม.]
+  function setQuickTime(type, addMinutes) {
+    var now = new Date();
+    if (type === 'start') {
+      var hours = String(now.getHours()).padStart(2, '0');
+      var minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('visitStartTime').value = hours + ':' + minutes;
+    } else if (type === 'end') {
+      var startVal = document.getElementById('visitStartTime').value;
+      var baseDate = new Date();
+      if (startVal) {
+        var parts = startVal.split(':');
+        baseDate.setHours(parseInt(parts[0]), parseInt(parts[1]), 0);
+      }
+      baseDate.setMinutes(baseDate.getMinutes() + addMinutes);
+      var endHours = String(baseDate.getHours()).padStart(2, '0');
+      var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
+      document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
+    }
+  }
+
+  // 🟡 ฟังก์ชันช่วยใส่แถบสีไฮไลต์คำค้นหาในตาราง
+  function applySearchHighlight(text, searchKeyword) {
+    if (!text) return '-';
+    if (!searchKeyword || searchKeyword.trim() === '') return text;
+    
+    var keywords = searchKeyword.trim().toLowerCase().split(' ').filter(function(k) { return k !== ''; });
+    var escapedText = text;
+
+    keywords.forEach(function(kw) {
+      var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      escapedText = escapedText.replace(regex, '<mark class="highlight-text">$1</mark>');
+    });
+
+    return escapedText;
+  }
+
+  // 🔔 ฟังก์ชันแสดง Toast แจ้งเตือนฉบับร่างค้าง (เฉพาะของตัวเอง)
+  function checkMyDraftsReminder(myDraftCount) {
+    var toastContainer = document.getElementById('draftToastContainer');
+    if (!toastContainer) return;
+
+    if (myDraftCount > 0) {
+      toastContainer.innerHTML = 
+        '<div class="draft-toast" id="myDraftToast">' +
+          '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
+          '<div>' +
+            '<div class="fw-bold text-dark small">มีฉบับร่างค้างยืนยัน</div>' +
+            '<div class="text-secondary" style="font-size: 0.82rem;">คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง</div>' +
+          '</div>' +
+          '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
+        '</div>';
+
+      // จางหายไปเองอัตโนมัติภายใน 7 วินาที
+      setTimeout(function() {
+        var t = document.getElementById('myDraftToast');
+        if (t) t.remove();
+      }, 7000);
+    } else {
+      toastContainer.innerHTML = '';
+    }
+  }
+
   function getDoctorNameByLang(docObj, defaultId) {
     if (!docObj) return defaultId || '-';
     var lang = getCurrentAppLang();
     
     if (lang === 'en') {
-      // 🟢 ถ้าเลือก EN -> แสดง Doc_Name ภาษาอังกฤษเพียวๆ
       return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
     } else {
-      // 🔴 ถ้าเลือก TH -> แสดง Doc_Name_TH ภาษาไทย
       var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
       if (docObj.Doc_Name_TH && !hasQuestionMarks) {
         return docObj.Doc_Name_TH;
@@ -396,7 +506,6 @@
     }
   }
 
-  // 🌟 ฟังก์ชันดึงชื่อ Primary Hospital ภาษา EN หรือ TH
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     var lang = getCurrentAppLang();
     var targetPrimaryHospId = null;
@@ -444,10 +553,8 @@
 
         if (hospObj) {
           if (lang === 'en') {
-            // 🟢 ถ้าเลือก EN -> ดึง Hospital ภาษาอังกฤษเท่านั้น
             return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
           } else {
-            // 🔴 ถ้าเลือก TH -> ดึง Known_As ภาษาไทย
             return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
           }
         }
@@ -1345,6 +1452,22 @@
     }
 
     filterVisits(false);
+
+    // 🔔 ตรวจสอบและแจ้งเตือนฉบับร่างค้างของตัวเองทันทีที่โหลดข้อมูลเสร็จ
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var myDraftsCount = globalVisits.filter(function(v) {
+      var isPending = (v.Status === 'Pending');
+      var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+      var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+      var isMine = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
+      return isPending && isMine;
+    }).length;
+
+    checkMyDraftsReminder(myDraftsCount);
   }
 
   function filterVisits(resetPage) {
@@ -1559,6 +1682,8 @@
 
     var paginatedData = data.slice(startIndex, endIndex);
 
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+
     paginatedData.forEach(function(v) {
       var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
       var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
@@ -1575,9 +1700,14 @@
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
 
-      // 🌟 ดึงชื่อหมอและโรงพยาบาลตามภาษาที่ถูกเลือกบน Navbar แบบเรียลไทม์
       var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
+      var purposeShow = v.Purpose || '-';
+
+      // 🟡 ใส่แถบสีไฮไลต์คำค้นหาสำหรับทุกฟิลด์ในตาราง
+      var highlightedDoc = applySearchHighlight(docNameShow, smartSearchVal);
+      var highlightedHosp = applySearchHighlight(hospNameShow, smartSearchVal);
+      var highlightedPurpose = applySearchHighlight(purposeShow, smartSearchVal);
 
       var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
       var prodBadges = '';
@@ -1585,7 +1715,8 @@
         visitProds.forEach(function(pid) {
             var pObj = globalProductsList.find(function(p) { return String(p.Product_ID) === pid; });
             var pName = pObj ? pObj.Product : pid;
-            prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + pName + '</span>';
+            var highlightedProdName = applySearchHighlight(pName, smartSearchVal);
+            prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
         });
       } else {
         prodBadges = '<span class="text-muted small">-</span>';
@@ -1597,10 +1728,10 @@
             dateShow +
           '</a>' +
         '</td>' +
-        '<td class="fw-bold text-dark">' + docNameShow + '</td>' +
-        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + hospNameShow + '</small></td>' +
+        '<td class="fw-bold text-dark">' + highlightedDoc + '</td>' +
+        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
         '<td>' + prodBadges + '</td>' +
-        '<td><small class="text-secondary">' + (v.Purpose || '-') + '</small></td>' +
+        '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
         '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
       '</tr>';
     });
@@ -2010,6 +2141,7 @@
   window.goToPage = goToPage;
   window.cancelVisitForm = cancelVisitForm;
   window.handleSaveVisit = handleSaveVisit;
+  window.setQuickTime = setQuickTime;
   window.getDoctorNameByLang = getDoctorNameByLang;
   window.getHospitalNameFromDocOrVisit = getHospitalNameFromDocOrVisit;
 </script>
