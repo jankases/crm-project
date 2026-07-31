@@ -393,7 +393,7 @@
         var hospObj = globalAllHospitals.find(function(h) { 
           return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
         });
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;[cite: 1]
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
           return targetPrimaryHospId;
         }
@@ -966,7 +966,7 @@
     var teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
     if (!teamProdLinks || teamProdLinks.length === 0) {
       try {
-        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
+        teamProdLinks = await fetchAllRecords('Products_Team');
         if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
       } catch(e){}
     }
@@ -977,8 +977,8 @@
     } else {
         if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
             var matchedProdIds = teamProdLinks
-                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })[cite: 2]
-                .map(function(pt) { return String(pt.Product_ID); });[cite: 2]
+                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })
+                .map(function(pt) { return String(pt.Product_ID); });
             
             allowedProducts = allProds.filter(function(p) { return matchedProdIds.indexOf(String(p.Product_ID)) !== -1; });
         }
