@@ -362,12 +362,10 @@
     return fallbackText;
   }
 
-  // 🌟 ฟังก์ชันค้นหาโรงพยาบาล Primary ถอดแบบจากหน้าหมอ 100%[cite: 1]
   function getHospitalNameFromDocOrVisit(docObj, visitObj) {
     let targetPrimaryHospId = null;
 
     if (docObj) {
-      // 1. ลองแกะ Workplaces_JSON หาตัวที่เป็น Primary ก่อน[cite: 1]
       if (docObj.Workplaces_JSON || docObj.workplacesJson) {
         try {
           let workplaces = typeof docObj.Workplaces_JSON === 'string' 
@@ -385,24 +383,33 @@
         }
       }
 
-      // 2. ถ้าใน JSON ไม่มี ค่อยอ่านคอลัมน์ Hospital_ID
       if (!targetPrimaryHospId) {
         targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
       }
 
-      // 3. แมปกับตาราง Hospitals ทั้งหมดในหน้างาน[cite: 1]
       if (targetPrimaryHospId) {
         const hospObj = globalAllHospitals.find(h => 
           String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase()
         );
-        if (hospObj) return hospObj.Known_As || hospObj.Hospital;[cite: 1]
+        if (hospObj) return hospObj.Known_As || hospObj.Hospital;
         if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && !targetPrimaryHospId.includes('-')) {
           return targetPrimaryHospId;
         }
       }
+
+      if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
+        const docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
+        const matchedAssign = window.VisitManagerCache.assignments.find(a => 
+          String(a.Account_ID || a.Doc_ID) === docIdStr && (a.Type === 'Doctor' || a.Type === 'Workplace')
+        );
+        if (matchedAssign) {
+          const assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
+          const hospObj = globalAllHospitals.find(h => String(h.Hospital_ID || h.id) === String(assignHospId));
+          if (hospObj) return hospObj.Known_As || hospObj.Hospital;
+        }
+      }
     }
 
-    // 4. Fallback: ดึงจากชื่อ รพ. ตรงๆ ใน Visit_Logs
     if (visitObj) {
       const directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
       if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -733,7 +740,6 @@
       globalUsersList = window.VisitManagerCache.users; 
       globalTeamList = window.VisitManagerCache.teams;
 
-      // 🌟 สร้าง Dropdown หมอ
       const docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         const docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
@@ -766,7 +772,6 @@
 
       setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-      // 🌟 สร้าง Dropdown วัตถุประสงค์
       const purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
         const types = window.VisitManagerCache.indexTypes; 
@@ -830,7 +835,6 @@
       let userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
       let userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-      // 🌟 ดึง Team_ID จาก Territory ของพนักงานขาย (เช่น L1 -> LUNG1)[cite: 2]
       if (userTerrId) {
         allowedTerIds.push(userTerrId);
         const foundTerr = globalTerritoryList.find(t => String(t.Territory_ID) === userTerrId || String(t.Territory) === userTerrId);
@@ -874,7 +878,6 @@
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
-    // 🌟 ดร็อปดาวน์พนักงาน
     const uniqueUsersMap = new Map();
     window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(u => allowedRepIds.includes(String(u.Rep_ID || u.User_ID || u.id)));
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
@@ -888,7 +891,6 @@
     uniqueUsersMap.forEach((u, id) => { repHtml += `<option value="${id}">${u.Rep_Name || u.Name || u.Email}</option>`; });
     repSelect.innerHTML = repHtml;
 
-    // 🌟 ดร็อปดาวน์เขตพื้นที่
     window.fullAllowedTerritories = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(t => allowedTerIds.includes(String(t.Territory_ID)));
     if (window.fullAllowedTerritories.length === 0) window.fullAllowedTerritories = globalTerritoryList;
 
@@ -899,7 +901,6 @@
     renderFormProductDropdown(crmUser);
   }
 
-  // 🌟 ฟังก์ชันกรองดึงสินค้าเฉพาะที่แมปกับ Team_ID ใน Products_Team ตรงตาม Organization 100%[cite: 2]
   async function renderFormProductDropdown(targetRepUser = null) {
     const formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -947,7 +948,7 @@
     let teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
     if (!teamProdLinks || teamProdLinks.length === 0) {
       try {
-        teamProdLinks = await fetchAllRecords('Products_Team');[cite: 2]
+        teamProdLinks = await fetchAllRecords('Products_Team');
         if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
       } catch(e){}
     }
@@ -956,11 +957,10 @@
     if (isGlobal) {
         allowedProducts = allProds;
     } else {
-        // 🎯 ดึงสินค้าเฉพาะที่ผูกกับ Team_ID ในตาราง Products_Team (เช่น LUNG1 -> Tecentriq, Polivy)[cite: 2]
         if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
             const matchedProdIds = teamProdLinks
-                .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')[cite: 2]
-                .map(pt => String(pt.Product_ID));[cite: 2]
+                .filter(pt => myTeamIds.includes(String(pt.Team_ID)) && String(pt.Status || 'Active').toLowerCase() === 'active')
+                .map(pt => String(pt.Product_ID));
             
             allowedProducts = allProds.filter(p => matchedProdIds.includes(String(p.Product_ID)));
         }
