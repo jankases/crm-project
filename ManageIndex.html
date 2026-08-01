@@ -53,12 +53,13 @@
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
 
-  /* 🎯 Sortable Header */
+  /* 🎯 Sortable Header & Text Wrapping */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
+  .desc-wrap { max-width: 250px; white-space: normal; word-wrap: break-word; line-height: 1.4; margin: 0 auto; }
 </style>
 
-<div class="container-fluid p-0" style="max-width: 1100px; margin: 0 auto;">
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -109,8 +110,8 @@
   </div>
 
   <div class="row g-4">
-    <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ================= -->
-    <div class="col-lg-4 d-flex">
+    <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ขยับเป็น col-lg-3 ================= -->
+    <div class="col-lg-3 d-flex">
       <div class="card p-4 border-0 visit-card w-100">
         <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
           <h5 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-layer-group me-2 text-secondary"></i>1. Categories</h5>
@@ -129,8 +130,8 @@
       </div>
     </div>
 
-    <!-- ================= ส่วนขวา: จัดการ Index (Values) ================= -->
-    <div class="col-lg-8 d-flex">
+    <!-- ================= ส่วนขวา: จัดการ Index (Values) ขยับเป็น col-lg-9 ให้พื้นที่เยอะขึ้น ================= -->
+    <div class="col-lg-9 d-flex">
       <div class="card p-4 border-0 visit-card w-100">
         
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2 gap-2">
@@ -150,19 +151,19 @@
           <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header">
               <tr>
-                <th id="thCategory" class="text-start sortable-th" onclick="window.sortIndexes('category')">
+                <th id="thCategory" class="text-start sortable-th" style="width: 15%;" onclick="window.sortIndexes('category')">
                   <span id="lblThCategory">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
                 </th>
-                <th id="thValue" class="sortable-th" onclick="window.sortIndexes('value')">
+                <th id="thValue" class="sortable-th" style="width: 20%;" onclick="window.sortIndexes('value')">
                   <span id="lblThValue">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
                 </th>
-                <th id="thValue1" class="d-none sortable-th" onclick="window.sortIndexes('value1')">
+                <th id="thValue1" class="d-none sortable-th" style="width: 28%;" onclick="window.sortIndexes('value1')">
                   <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
                 </th>
-                <th id="thValue2" class="d-none sortable-th" onclick="window.sortIndexes('value2')">
+                <th id="thValue2" class="d-none sortable-th" style="width: 28%;" onclick="window.sortIndexes('value2')">
                   <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
                 </th>
-                <th style="width: 100px;">Action</th>
+                <th style="width: 90px;">Action</th>
               </tr>
             </thead>
             <tbody id="indexTableBody">
@@ -172,7 +173,7 @@
         </div>
 
         <!-- 🎯 Pagination Controls สำหรับ Index Table -->
-        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top d-none">
           <div class="d-flex align-items-center mb-3 mb-md-0">
             <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
             <select class="form-select form-select-sm shadow-sm" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 80px; border-radius: 8px;">
@@ -219,9 +220,9 @@
     </div>
   </div>
 
-  <!-- Modal สำหรับ Index Value (🎯 Dynamic Form) -->
+  <!-- Modal สำหรับ Index Value (🎯 ปรับ Layout ให้สวยขึ้นสำหรับ 2 ภาษา) -->
   <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- ขยายขนาดเป็น modal-lg -->
       <div class="modal-content border-0 shadow-lg visit-card">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-primary" id="indexModalTitle">Add Value</h5>
@@ -231,28 +232,33 @@
           <div class="modal-body p-4">
             <input type="hidden" id="modalIndexId">
             
-            <div class="mb-3">
-              <label class="form-label fw-bold text-secondary small">Category (IndexType)</label>
-              <select class="form-select bg-light fw-bold" id="modalIndexSelectType" disabled></select>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-secondary small">Category (IndexType)</label>
+                <select class="form-select bg-light fw-bold text-secondary" id="modalIndexSelectType" disabled></select>
+              </div>
+
+              <!-- ช่อง Value หลัก -->
+              <div class="col-md-6 mb-3" id="groupValue">
+                <label class="form-label fw-bold text-dark small" id="lblValue">Value <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="modalIndexValue" required>
+              </div>
             </div>
 
-            <!-- ช่อง Value หลัก -->
-            <div class="mb-3" id="groupValue">
-              <label class="form-label fw-bold text-dark small" id="lblValue">Value <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="modalIndexValue" required>
-            </div>
+            <!-- 🎯 นำ Value 1 และ 2 มาเรียงกันแบบ Side-by-side -->
+            <div class="row mt-2" id="groupTranslations">
+              <!-- ช่อง Value 1 -->
+              <div class="col-md-6 mb-3 d-none" id="groupValue1">
+                <label class="form-label fw-bold text-dark small" id="lblValue1">Value 1</label>
+                <input type="text" class="form-control" id="modalIndexValue1_input">
+                <select class="form-select d-none" id="modalIndexValue1_select"></select>
+              </div>
 
-            <!-- ช่อง Value 1 -->
-            <div class="mb-3 d-none" id="groupValue1">
-              <label class="form-label fw-bold text-dark small" id="lblValue1">Value 1</label>
-              <input type="text" class="form-control" id="modalIndexValue1_input">
-              <select class="form-select d-none" id="modalIndexValue1_select"></select>
-            </div>
-
-            <!-- ช่อง Value 2 -->
-            <div class="mb-2 d-none" id="groupValue2">
-              <label class="form-label fw-bold text-dark small" id="lblValue2">Value 2</label>
-              <input type="text" class="form-control" id="modalIndexValue2">
+              <!-- ช่อง Value 2 -->
+              <div class="col-md-6 mb-3 d-none" id="groupValue2">
+                <label class="form-label fw-bold text-dark small" id="lblValue2">Value 2</label>
+                <input type="text" class="form-control" id="modalIndexValue2">
+              </div>
             </div>
 
           </div>
@@ -436,7 +442,7 @@
              <i class="fa-solid fa-folder-open text-primary opacity-50 me-2"></i>${t.Name}
           </td>
           <td class="text-end pe-3">
-            <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-secondary" onclick="window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')">Edit</button>
+            <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-secondary" onclick="window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')"><i class="fa-solid fa-pen"></i></button>
           </td>
         </tr>`;
     });
@@ -484,7 +490,7 @@
     finally { btn.disabled = false; btn.innerHTML = "Save"; }
   };
 
-  // ================= 🎯 ส่วนจัดการ Index Value (Dynamic Logic + Sorting) =================
+  // ================= 🎯 ส่วนจัดการ Index Value =================
 
   window.populateIndexTypeDropdowns = function() {
     let opts = '<option value="">- Select Category -</option>';
@@ -502,7 +508,6 @@
     filterEl.value = currentFilter;
   };
 
-  // 🎯 ฟังก์ชันจัดการการกด Sort
   window.sortIndexes = function(col) {
     if (window.indexSortCol === col) {
       window.indexSortAsc = !window.indexSortAsc;
@@ -560,10 +565,10 @@
         thValue2.classList.add('d-none');
     } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
         lblThValue.innerText = "Date";        
-        lblThValue1.innerText = "Description (TH)"; // 🌟 อัปเดตหัวข้อให้ชัดเจน
-        lblThValue2.innerText = "Description (EN)"; // 🌟 เปิดใช้งาน Description ภาษาอังกฤษ
+        lblThValue1.innerText = "Description (TH)"; 
+        lblThValue2.innerText = "Description (EN)"; 
         thValue1.classList.remove('d-none');
-        thValue2.classList.remove('d-none');        // 🌟 เปิดใช้งานการแสดงผล Value2 สำหรับวันหยุด
+        thValue2.classList.remove('d-none');        
     } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title') { 
         lblThValue.innerText = "Value (TH)";    
         lblThValue1.innerText = "Value (EN)";   
@@ -631,16 +636,17 @@
       let rowHtml = `<tr><td class="text-start ps-4 text-secondary"><span class="badge badge-soft-secondary">${typeName}</span></td>`;
       rowHtml += `<td class="fw-bold text-dark">${i.Value || '-'}</td>`;
 
+      // 🎯 แสดงข้อมูลพร้อมจัดรูปแบบห่อข้อความ (Text-wrap) กันตารางล้น
       if (!thValue1.classList.contains('d-none')) {
           if (selectedTypeName === 'province') {
               rowHtml += `<td><span class="badge badge-soft-primary">${i.Value1 || '-'}</span></td>`;
           } else {
-              rowHtml += `<td class="text-muted small">${i.Value1 || '-'}</td>`;
+              rowHtml += `<td><div class="text-muted small desc-wrap">${i.Value1 || '-'}</div></td>`;
           }
       }
       
       if (!thValue2.classList.contains('d-none')) {
-         rowHtml += `<td class="text-muted small">${i.Value2 || '-'}</td>`;
+         rowHtml += `<td><div class="text-muted small desc-wrap">${i.Value2 || '-'}</div></td>`;
       }
 
       const safeVal = (i.Value || '').replace(/'/g, "\\'");
@@ -708,7 +714,7 @@
     ul.innerHTML = html;
   };
 
-  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic 
+  // 🎯 ปรับแต่ง Form Modal ให้แสดงช่องกรอกคู่กัน
   window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
       const typeName = tObj ? tObj.Name.toLowerCase() : "";
@@ -754,16 +760,16 @@
           lblVal.innerHTML = 'Date <span class="text-danger">*</span>'; 
           inputValMain.type = 'date'; 
           
-          lblVal1.innerHTML = 'Description (TH)'; // 🌟 เปิดใช้งาน Value1 สำหรับคำอธิบายภาษาไทย
+          lblVal1.innerHTML = 'Description (TH)'; 
           inputVal1.type = 'text';
           inputVal1.classList.remove('d-none');
           selectVal1.classList.add('d-none');
           
-          lblVal2.innerHTML = 'Description (EN)'; // 🌟 เปิดใช้งาน Value2 สำหรับคำอธิบายภาษาอังกฤษ
+          lblVal2.innerHTML = 'Description (EN)'; 
           inputVal2.type = 'text';
           
           grpVal1.classList.remove('d-none');
-          grpVal2.classList.remove('d-none');     // 🌟 โชว์กรอบ Value2 ให้กรอก
+          grpVal2.classList.remove('d-none');     
       } 
       else if (typeName === 'purpose' || typeName === 'title') { 
           lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
@@ -818,12 +824,11 @@
     const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
     const typeName = tObj ? tObj.Name.toLowerCase() : "";
 
-    // 🎯 แยกการดึงข้อมูลเพื่อบันทึกลงฐานข้อมูลให้ถูกต้อง
     if (typeName === 'province') {
         val1 = document.getElementById('modalIndexValue1_select').value;
     } else if (typeName === 'public holiday' || typeName === 'holiday') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
-        val2 = document.getElementById('modalIndexValue2').value.trim(); // 🌟 บันทึกภาษาอังกฤษลง Value2
+        val2 = document.getElementById('modalIndexValue2').value.trim(); 
     } else if (typeName === 'purpose' || typeName === 'title') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
         val2 = null;
