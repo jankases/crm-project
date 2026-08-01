@@ -11,13 +11,14 @@
     border-radius: 12px; 
   }
 
-  /* 🎯 ปรับสีตัวอักษรตอน View (Disabled) ให้อ่านง่ายและชัดเจนขึ้น */
-  .form-control:disabled, .form-select:disabled { 
+  /* 🎯 1. บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% */
+  .form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
     background-color: #f8fafc !important; 
-    color: #334155 !important; 
-    -webkit-text-fill-color: #334155 !important; /* บังคับสีไม่ให้จางบน Safari/iOS */
+    color: #1e293b !important; 
+    -webkit-text-fill-color: #1e293b !important; /* บังคับ Safari/iOS ห้ามดรอปสี */
     cursor: not-allowed; 
     opacity: 1 !important; 
+    font-weight: 500;
   }
 
   .visit-filter-group {
@@ -85,10 +86,11 @@
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
 
-  /* 🎯 บังคับสี TomSelect ตอนที่โดน Disable ให้อ่านง่าย */
+  /* 🎯 2. ทะลวง Opacity ของ TomSelect ที่ทำสีจาง 50% ให้กลับมา 100% และเข้มขึ้น */
+  .ts-wrapper.disabled { opacity: 1 !important; }
   .ts-wrapper.disabled .ts-control { background-color: #f8fafc !important; }
-  .ts-wrapper.disabled.single .ts-control > .item { color: #334155 !important; }
-  .ts-wrapper.disabled.multi .ts-control > .item { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; color: #334155 !important; }
+  .ts-wrapper.disabled.single .ts-control > .item { color: #1e293b !important; -webkit-text-fill-color: #1e293b !important; font-weight: 500; }
+  .ts-wrapper.disabled.multi .ts-control > .item { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; color: #1e293b !important; -webkit-text-fill-color: #1e293b !important; font-weight: 500; }
 
   .filter-placeholder-text { color: #6c757d !important; }
   .filter-placeholder-text option { color: #212529 !important; }
@@ -589,9 +591,6 @@
     }
   }
 
-  // -------------------------------------------------------------
-  // 🎬 e-Detailing & Page-Level Analytics Logic
-  // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
@@ -1666,92 +1665,137 @@
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
+    var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-    var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1 || (!rawScope);
-    var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
-    var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
-    var isSales = !isGlobalViewer && !isBuHead && !isManager;
+    var isGlobalViewer = false;
+    if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) isGlobalViewer = true;
+    var globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+    if (globalRoles.indexOf(uRole) !== -1) isGlobalViewer = true;
+    window.myIsGlobalViewer = isGlobalViewer; 
 
-    var myAllowedTeamIds = [];
-    var myAllowedTerIds = [];
-    var myAllowedRepIds = [];
-    var myAllowedEmails = [];
+    var isSalesRole = (!isGlobalViewer && ['BU HEAD', 'BU', 'MANAGER', 'SALES MANAGER'].indexOf(uRole) === -1);
 
-    if (!isGlobalViewer) {
-        if (uRepId) myAllowedRepIds.push(uRepId);
-        if (uEmail) myAllowedEmails.push(uEmail);
+    var allowedTeamIds = [];
+    var allowedTerIds = [];
+    var allowedRepIds = [];
+    var allowedEmails = [];
+    var allowedNames = [];
+    var targetBuId = '';
 
-        if (isBuHead) {
-            var busList = window.VisitManagerCache.bus || [];
-            var matchedBu = busList.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope; });
-            var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+    if (isGlobalViewer) {
+      allowedTeamIds = globalTeamList.map(function(t) { return String(t.Team_ID); });
+      allowedTerIds = globalTerritoryList.map(function(t) { return String(t.Territory_ID); });
+      allowedRepIds = globalUsersList.map(function(u) { return String(u.Rep_ID || u.User_ID || u.id); });
+      allowedEmails = globalUsersList.map(function(u) { return String(u.Email).toLowerCase(); });
+      allowedNames = globalUsersList.map(function(u) { return String(u.Rep_Name || u.Name).toLowerCase(); });
+      
+    } else if (isSalesRole) {
+      if (uRepId) allowedRepIds.push(uRepId);
+      if (uEmail) allowedEmails.push(uEmail);
+      var userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
+      if (userName) allowedNames.push(userName);
 
-            var buTeams = globalTeamList.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope; });
-            buTeams.forEach(function(t) {
-                myAllowedTeamIds.push(String(t.Team_ID));
-                var terrs = globalTerritoryList.filter(function(ter) { return String(ter.Team_ID) === String(t.Team_ID); });
-                terrs.forEach(function(ter) { myAllowedTerIds.push(String(ter.Territory_ID)); });
-            });
-        } else if (isManager) {
-            var matchedTeam = globalTeamList.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
-            if (matchedTeam) {
-                myAllowedTeamIds.push(String(matchedTeam.Team_ID));
-                var terrs = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                terrs.forEach(function(t) { myAllowedTerIds.push(String(t.Territory_ID)); });
-            } else if (rawScope) {
-                myAllowedTeamIds.push(rawScope); 
-            }
-        } else if (isSales) {
-            var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim() : rawScope;
-            if (userTerrId) myAllowedTerIds.push(userTerrId);
+      if (userTerrId) allowedTerIds.push(userTerrId);
+      var foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === userTerrId || String(t.Territory) === userTerrId; });
+      if (foundTerr && foundTerr.Team_ID) {
+          allowedTeamIds.push(String(foundTerr.Team_ID));
+      }
+
+    } else {
+      var userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
+
+      if (userTerrId) {
+        allowedTerIds.push(userTerrId);
+        var foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === userTerrId || String(t.Territory) === userTerrId; });
+        if (foundTerr && foundTerr.Team_ID) {
+          allowedTeamIds.push(String(foundTerr.Team_ID));
         }
+      }
+      if (userTeamId && allowedTeamIds.indexOf(userTeamId) === -1) {
+        allowedTeamIds.push(userTeamId);
+      }
 
-        globalUsersList.forEach(function(u) {
-            var uid = String(u.Rep_ID || u.User_ID || u.id).trim();
-            var uteam = String(u.Team_ID || u.Team || '').trim();
-            var uter = String(u.Territory_ID || u.Territory || '').trim();
-            var uem = String(u.Email || u.email || '').toLowerCase().trim();
+      if (uRole === 'BU HEAD' || uRole === 'BU') {
+          var busList = window.VisitManagerCache.bus || [];
+          var matchedBu = busList.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope; });
+          targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
-            if (!isSales) {
-                if (myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTerIds.indexOf(uter) !== -1 || myAllowedTeamIds.indexOf(uter) !== -1) {
-                    if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                    if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+          var buTeams = globalTeamList.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope; });
+          buTeams.forEach(function(t) {
+              allowedTeamIds.push(String(t.Team_ID));
+              var terrs = globalTerritoryList.filter(function(ter) { return String(ter.Team_ID) === String(t.Team_ID); });
+              terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
+          });
+          if (allowedTeamIds.indexOf(rawScope) === -1) allowedTeamIds.push(rawScope);
+      } else if (uRole === 'MANAGER' || uRole === 'SALES MANAGER') {
+          var matchedTeam = globalTeamList.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
+          if (matchedTeam) {
+              allowedTeamIds.push(String(matchedTeam.Team_ID));
+              var terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
+              terrsInTeam.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+          } else if (rawScope) {
+              allowedTeamIds.push(rawScope);
+          }
+      }
+
+      if (uRepId) allowedRepIds.push(uRepId);
+      if (uEmail) allowedEmails.push(uEmail);
+      var userName = crmUser ? String(crmUser.Rep_Name || crmUser.Name || crmUser.name || '').trim().toLowerCase() : '';
+      if (userName) allowedNames.push(userName);
+    }
+
+    window.myAllowedTeamIds = allowedTeamIds;
+    window.myAllowedTerIds = allowedTerIds;
+
+    if (!isGlobalViewer && !isSalesRole) {
+        globalVisits.forEach(function(v) {
+            var vTer = String(v.Territory_ID || v.territory_id || '').trim();
+            var vRep = String(v.Rep_ID || v.rep_id || '').trim();
+            if (vTer && (allowedTerIds.indexOf(vTer) !== -1 || allowedTeamIds.indexOf(vTer) !== -1 || vTer === rawScope || vTer === targetBuId)) {
+                if (vRep && allowedRepIds.indexOf(vRep) === -1) {
+                    allowedRepIds.push(vRep);
                 }
             }
         });
-        
-        if (!isSales) {
-            globalVisits.forEach(function(v) {
-                var vTer = String(v.Territory_ID || '').trim();
-                var vRep = String(v.Rep_ID || '').trim();
-                if (vTer && (myAllowedTerIds.indexOf(vTer) !== -1 || myAllowedTeamIds.indexOf(vTer) !== -1)) {
-                    if (vRep && myAllowedRepIds.indexOf(vRep) === -1) myAllowedRepIds.push(vRep);
-                }
-            });
-        }
     }
 
-    window.myIsSalesRole = isSales;
-    window.myAllowedTeamIds = myAllowedTeamIds;
-    window.myAllowedTerIds = myAllowedTerIds;
-    window.myAllowedRepIds = myAllowedRepIds;
-    window.myAllowedEmails = myAllowedEmails;
+    window.myAllowedRepIds = allowedRepIds;
+    window.myAllowedEmails = allowedEmails;
+    window.myAllowedNames = allowedNames;
 
     var uniqueUsersMap = new Map();
-    var fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) {
+    
+    window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { 
         var uid = String(u.Rep_ID || u.User_ID || u.id);
-        if (isSales) {
-            return uid === uRepId;
+        
+        if (isSalesRole) {
+            var uem = String(u.Email || u.email || '').toLowerCase().trim();
+            return uid === uRepId || (uEmail && uem === uEmail);
         }
-        return myAllowedRepIds.indexOf(uid) !== -1;
+
+        var uteam = String(u.Team_ID || u.team_id || u.Team || '');
+        var uter = String(u.Territory_ID || u.territory_id || u.territoryId || u.Territory || '');
+        var ubu = String(u.BU_ID || u.bu_id || u.BU || '');
+        
+        var isMatched = window.myAllowedRepIds.indexOf(uid) !== -1 || 
+                        window.myAllowedTeamIds.indexOf(uteam) !== -1 || 
+                        window.myAllowedTerIds.indexOf(uter) !== -1 ||
+                        window.myAllowedTeamIds.indexOf(uter) !== -1;
+                        
+        if (!isMatched && targetBuId && (ubu === targetBuId || ubu === rawScope)) {
+            isMatched = true;
+        }
+        return isMatched;
     });
     
-    if (isSales && fullAllowedUsers.length === 0 && uRepId) {
-        var me = globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === uRepId; });
-        if (me) fullAllowedUsers = [me];
+    if (window.fullAllowedUsers.length === 0 && uRepId) {
+        var fallbackU = globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === uRepId; });
+        if (fallbackU) window.fullAllowedUsers = [fallbackU];
+    } else if (window.fullAllowedUsers.length === 0 && !isSalesRole) {
+        window.fullAllowedUsers = globalUsersList;
     }
-    
-    fullAllowedUsers.forEach(function(u) {
+
+    window.fullAllowedUsers.forEach(function(u) {
         var id = String(u.Rep_ID || u.User_ID || u.id);
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
@@ -1761,28 +1805,33 @@
     repSelect.innerHTML = repHtml;
 
     var terMap = new Map();
+    var validTers = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(function(t) { 
+        var tid = String(t.Territory_ID);
+        var tnm = String(t.Territory);
+        if (isSalesRole) return tid === userTerrId || tnm === userTerrId;
+        return allowedTerIds.indexOf(tid) !== -1 || window.myAllowedTeamIds.indexOf(String(t.Team_ID)) !== -1; 
+    });
     
-    if (isGlobalViewer || isBuHead || isManager) {
+    validTers.forEach(function(t) {
+        if (t.Territory_ID) terMap.set(String(t.Territory_ID), String(t.Territory));
+    });
+
+    if (!isSalesRole) {
         globalTeamList.forEach(function(t) {
             var tid = String(t.Team_ID);
             var tnm = String(t.Team || t.Team_Name || tid);
-            if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tnm) !== -1) {
+            if (isGlobalViewer || window.myAllowedTeamIds.indexOf(tid) !== -1 || window.myAllowedTeamIds.indexOf(tnm) !== -1) {
                 if (tid && !terMap.has(tid)) terMap.set(tid, tnm + ' (Team)');
             }
         });
     }
-    
-    globalTerritoryList.forEach(function(t) {
-        var tid = String(t.Territory_ID);
-        var tnm = String(t.Territory);
-        if (isGlobalViewer || myAllowedTerIds.indexOf(tid) !== -1 || myAllowedTerIds.indexOf(tnm) !== -1) {
-            if (tid && !terMap.has(tid)) terMap.set(tid, tnm);
-        }
-    });
 
-    if (isSales && terMap.size === 0 && crmUser && (crmUser.Territory_ID || crmUser.Territory)) {
-        terMap.set(String(crmUser.Territory_ID || crmUser.Territory), String(crmUser.Territory || crmUser.Territory_ID));
-    }
+    window.fullAllowedUsers.forEach(function(u) {
+        var uter = String(u.Territory_ID || u.territory_id || u.territoryId || u.Territory || '').trim();
+        var uteam = String(u.Team_ID || u.team_id || u.Team || '').trim();
+        if (uter && uter !== 'undefined' && !terMap.has(uter)) terMap.set(uter, uter);
+        if (uteam && uteam !== 'undefined' && !isSalesRole && !terMap.has(uteam)) terMap.set(uteam, uteam + ' (Team)');
+    });
 
     var tHtml = '';
     terMap.forEach(function(text, id) { 
@@ -1834,7 +1883,61 @@
       } catch(e) {}
     }
 
-    var allowedProducts = allProds;
+    var crmUser = targetRepUser;
+    if (!crmUser) {
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    }
+
+    var isGlobal = window.myIsGlobalViewer;
+    var myTeamIds = window.myAllowedTeamIds ? [...window.myAllowedTeamIds] : [];
+
+    if (crmUser && !isGlobal) {
+        var uRole = String(crmUser.Role || crmUser.role || '').trim();
+        var uTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+        var uTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim();
+
+        if (['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole.toUpperCase()) !== -1) {
+            isGlobal = true;
+        } else {
+            if (uTeam && myTeamIds.indexOf(uTeam) === -1) myTeamIds.push(uTeam);
+            if (uTerr) {
+                var foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
+                if (foundTerr && foundTerr.Team_ID && myTeamIds.indexOf(String(foundTerr.Team_ID)) === -1) {
+                    myTeamIds.push(String(foundTerr.Team_ID));
+                }
+            }
+        }
+    }
+
+    var teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
+    if (!teamProdLinks || teamProdLinks.length === 0) {
+      try {
+        teamProdLinks = await fetchAllRecords('Products_Team');
+        if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
+      } catch(e){}
+    }
+
+    var allowedProducts = [];
+    if (isGlobal) {
+        allowedProducts = allProds;
+    } else {
+        if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
+            var matchedProdIds = teamProdLinks
+                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })
+                .map(function(pt) { return String(pt.Product_ID); });
+            
+            allowedProducts = allProds.filter(function(p) { return matchedProdIds.indexOf(String(p.Product_ID)) !== -1; });
+        }
+
+        if (allowedProducts.length === 0 && myTeamIds.length > 0) {
+            allowedProducts = allProds.filter(function(p) { return myTeamIds.indexOf(String(p.Team_ID || p.team_id)) !== -1; });
+        }
+
+        if (allowedProducts.length === 0) {
+            allowedProducts = allProds.filter(function(p) { return String(p.Status || 'Active').toLowerCase() === 'active'; });
+        }
+    }
+
     var fHtml = '';
     allowedProducts.forEach(function(p) { fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; });
     formProdSelect.innerHTML = fHtml;
@@ -2245,40 +2348,6 @@
     });
 
     renderPaginationControls(totalPages);
-  }
-
-  function renderPaginationControls(totalPages) {
-    var ul = document.getElementById('visitPagination');
-    var html = '';
-
-    html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
-              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage - 1) + '); return false;">&laquo; Prev</a>' +
-            '</li>';
-
-    var startPage = Math.max(1, currentPage - 2);
-    var endPage = Math.min(totalPages, currentPage + 2);
-
-    if (startPage > 1) {
-        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>';
-        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-    }
-
-    for (var i = startPage; i <= endPage; i++) {
-        html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
-                  '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a>' +
-                '</li>';
-    }
-
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
-    }
-
-    html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
-              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage + 1) + '); return false;">Next &raquo;</a>' +
-            '</li>';
-
-    ul.innerHTML = html;
   }
 
   function toggleVisitFormEditable(isEditable) {
