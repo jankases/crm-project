@@ -1291,32 +1291,52 @@
         repNameShow = repObj.Rep_Name || repObj.Name || repObj.name || repObj.Email || '-';
         var role = String(repObj.Role || repObj.role || '').toLowerCase();
         
-        var userTerr = String(repObj.Territory_ID || repObj.territory_id || repObj.territoryId || repObj.Territory || '').trim();
-        var userTeam = String(repObj.Team_ID || repObj.team_id || repObj.teamId || repObj.Team || '').trim();
-        var userBU = String(repObj.BU_ID || repObj.bu_id || repObj.buId || repObj.BU || '').trim();
+        var userTerr = String(repObj.Territory_ID || repObj.territory_id || repObj.Territory || '').trim();
+        var userTeam = String(repObj.Team_ID || repObj.team_id || repObj.Team || '').trim();
+        var userBU = String(repObj.BU_ID || repObj.bu_id || repObj.BU || '').trim();
         
         var genericScope = userBU || userTeam || userTerr;
+        var scopeFromVisit = fallbackTerrId || genericScope;
 
         if (role.indexOf('manager') !== -1) {
             labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
-            var tObj = (globalTeamList || []).find(function(t) { return String(t.Team_ID) === userTeam || String(t.Team) === userTeam; });
-            locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : (genericScope || '-');
+            var targetTeam = userTeam || scopeFromVisit;
+            var tObj = (globalTeamList || []).find(function(t) { return String(t.Team_ID) === targetTeam || String(t.Team) === targetTeam; });
+            locNameShow = tObj ? (tObj.Team || tObj.Team_Name || targetTeam) : (targetTeam || '-');
         } else if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
             labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
             var bus = window.VisitManagerCache ? window.VisitManagerCache.bus : [];
-            var bObj = (bus || []).find(function(b) { return String(b.BU_ID) === userBU || String(b.BU) === userBU; });
-            locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : (genericScope || '-');
+            var targetBu = userBU || scopeFromVisit; 
+            var bObj = (bus || []).find(function(b) { return String(b.BU_ID) === targetBu || String(b.BU) === targetBu || String(b.BU_Name) === targetBu; });
+            locNameShow = bObj ? (bObj.BU || bObj.BU_Name || targetBu) : (targetBu || '-');
         } else {
             labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
-            var checkTer = fallbackTerrId || userTerr || genericScope;
-            var terObj = (globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(checkTer) || String(t.Territory) === String(checkTer); });
-            locNameShow = terObj ? terObj.Territory : (checkTer || '-');
-            if (String(locNameShow).length > 30) locNameShow = '-';
+            var targetTer = userTerr || scopeFromVisit;
+            var terObj = (globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === targetTer || String(t.Territory) === targetTer; });
+            locNameShow = terObj ? (terObj.Territory || targetTer) : (targetTer || '-');
+            
+            if (String(locNameShow).length > 30 && locNameShow.indexOf('-') > -1) {
+                var tFallback = (globalTeamList || []).find(function(t) { return String(t.Team_ID) === targetTer; });
+                if(tFallback) locNameShow = tFallback.Team || tFallback.Team_Name;
+                else {
+                    var bFallback = (window.VisitManagerCache.bus || []).find(function(b) { return String(b.BU_ID) === targetTer; });
+                    if(bFallback) locNameShow = bFallback.BU || bFallback.BU_Name;
+                }
+            }
         }
-    } else {
+    } else if (fallbackTerrId) {
          var terObj = (globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(fallbackTerrId); });
-         locNameShow = terObj ? terObj.Territory : (fallbackTerrId || '-');
-         if (String(locNameShow).length > 30) locNameShow = '-';
+         locNameShow = terObj ? terObj.Territory : fallbackTerrId;
+         
+         if (String(locNameShow).length > 30 && locNameShow.indexOf('-') > -1) {
+             var tFallback = (globalTeamList || []).find(function(t) { return String(t.Team_ID) === String(fallbackTerrId); });
+             if(tFallback) locNameShow = tFallback.Team || tFallback.Team_Name;
+             else {
+                 var busFallback = window.VisitManagerCache ? window.VisitManagerCache.bus : [];
+                 var bFallback = (busFallback || []).find(function(b) { return String(b.BU_ID) === String(fallbackTerrId); });
+                 if(bFallback) locNameShow = bFallback.BU || bFallback.BU_Name;
+             }
+         }
     }
 
     var repNameEl = document.getElementById('dispSalesRepName');
@@ -1364,6 +1384,12 @@
 
       var formOptPending = document.getElementById('formOptPending'); if(formOptPending) formOptPending.innerText = appLang === 'th' ? '⏳ ฉบับร่าง (Pending)' : '⏳ Pending (Draft)';
       var formOptSubmitted = document.getElementById('formOptSubmitted'); if(formOptSubmitted) formOptSubmitted.innerText = appLang === 'th' ? '✅ ส่งบันทึก (Submitted)' : '✅ Submitted';
+
+      var lblArea = document.getElementById('lblFilterTerritory');
+      if(lblArea) {
+          lblArea.removeAttribute('data-i18n');
+          lblArea.innerText = appLang === 'th' ? 'พื้นที่ / ทีม (Area)' : 'Area / Team';
+      }
 
       var statusSelect = document.getElementById('filterVisitStatus');
       if (statusSelect) {
@@ -1430,6 +1456,7 @@
 
           window.VisitManagerCache.assignments = allAssignments;
           window.VisitManagerCache.allHospitals = allHospitals;
+          window.VisitManagerCache.bus = globalBuListLocal || [];
 
           var allowedTerIds = [];
 
@@ -1497,7 +1524,6 @@
           window.VisitManagerCache.products = results[1] || [];
           window.VisitManagerCache.territories = globalTerritoryListLocal;
           window.VisitManagerCache.teams = globalTeamListLocal;
-          window.VisitManagerCache.bus = globalBuListLocal || [];
           window.VisitManagerCache.teamProdLinks = results[6] || [];
           window.VisitManagerCache.indexTypes = (results[7] && results[7].data) ? results[7].data : [];
           window.VisitManagerCache.indexes = (results[8] && results[8].data) ? results[8].data : [];
@@ -1631,6 +1657,8 @@
     var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1 || (!rawScope);
     var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
     var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
+    
+    // 🎯 ถ้าไม่ใช่ Admin, ไม่ใช่ BU, ไม่ใช่ Manager แปลว่าเป็น Sales ทั่วไป
     var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
     var myAllowedTeamIds = [];
@@ -1663,10 +1691,12 @@
                 myAllowedTeamIds.push(rawScope); 
             }
         } else if (isSales) {
+            // 🎯 Sales เห็นแค่เขตของตัวเองเท่านั้น
             var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim() : rawScope;
             if (userTerrId) myAllowedTerIds.push(userTerrId);
         }
 
+        // กวาดชื่อ Users เข้ามารวมในสิทธิ์ (เฉพาะถ้าระดับสูงกว่า Sales)
         globalUsersList.forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id).trim();
             var uteam = String(u.Team_ID || u.Team || '').trim();
@@ -1681,6 +1711,7 @@
             }
         });
         
+        // 🎯 ดึง Manager/Sales ที่ทำ Visit ในพื้นที่ที่รับผิดชอบเข้ามารวม (Aggressive Mapping)
         if (!isSales) {
             globalVisits.forEach(function(v) {
                 var vTer = String(v.Territory_ID || '').trim();
@@ -1692,15 +1723,20 @@
         }
     }
 
+    // เซฟลง Global ไว้ให้ filterVisits นำไปใช้งานต่อ
     window.myIsSalesRole = isSales;
     window.myAllowedTeamIds = myAllowedTeamIds;
     window.myAllowedTerIds = myAllowedTerIds;
     window.myAllowedRepIds = myAllowedRepIds;
     window.myAllowedEmails = myAllowedEmails;
 
+    // 🎯 1. ใส่ข้อมูลให้ Dropdown พนักงาน
     var uniqueUsersMap = new Map();
     var fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id);
+        if (isSales) {
+            return uid === uRepId; // 🎯 Sales เห็นเฉพาะตัวเอง
+        }
         return myAllowedRepIds.indexOf(uid) !== -1;
     });
     
@@ -1718,6 +1754,7 @@
     uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
     repSelect.innerHTML = repHtml;
 
+    // 🎯 2. ใส่ข้อมูลให้ Dropdown Area/Team
     var terMap = new Map();
     
     if (isGlobalViewer || isBuHead || isManager) {
@@ -1748,6 +1785,7 @@
     });
     terSelect.innerHTML = tHtml;
 
+    // สร้าง TomSelect
     var appLang = getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
@@ -1792,61 +1830,7 @@
       } catch(e) {}
     }
 
-    var crmUser = targetRepUser;
-    if (!crmUser) {
-      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    }
-
-    var isGlobal = window.myIsGlobalViewer;
-    var myTeamIds = window.myAllowedTeamIds ? [...window.myAllowedTeamIds] : [];
-
-    if (crmUser && !isGlobal) {
-        var uRole = String(crmUser.Role || crmUser.role || '').trim();
-        var uTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
-        var uTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim();
-
-        if (['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole.toUpperCase()) !== -1) {
-            isGlobal = true;
-        } else {
-            if (uTeam && myTeamIds.indexOf(uTeam) === -1) myTeamIds.push(uTeam);
-            if (uTerr) {
-                var foundTerr = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
-                if (foundTerr && foundTerr.Team_ID && myTeamIds.indexOf(String(foundTerr.Team_ID)) === -1) {
-                    myTeamIds.push(String(foundTerr.Team_ID));
-                }
-            }
-        }
-    }
-
-    var teamProdLinks = window.VisitManagerCache ? (window.VisitManagerCache.teamProdLinks || []) : [];
-    if (!teamProdLinks || teamProdLinks.length === 0) {
-      try {
-        teamProdLinks = await fetchAllRecords('Products_Team');
-        if (window.VisitManagerCache) window.VisitManagerCache.teamProdLinks = teamProdLinks;
-      } catch(e){}
-    }
-
-    var allowedProducts = [];
-    if (isGlobal) {
-        allowedProducts = allProds;
-    } else {
-        if (myTeamIds.length > 0 && teamProdLinks.length > 0) {
-            var matchedProdIds = teamProdLinks
-                .filter(function(pt) { return myTeamIds.indexOf(String(pt.Team_ID)) !== -1 && String(pt.Status || 'Active').toLowerCase() === 'active'; })
-                .map(function(pt) { return String(pt.Product_ID); });
-            
-            allowedProducts = allProds.filter(function(p) { return matchedProdIds.indexOf(String(p.Product_ID)) !== -1; });
-        }
-
-        if (allowedProducts.length === 0 && myTeamIds.length > 0) {
-            allowedProducts = allProds.filter(function(p) { return myTeamIds.indexOf(String(p.Team_ID || p.team_id)) !== -1; });
-        }
-
-        if (allowedProducts.length === 0) {
-            allowedProducts = allProds.filter(function(p) { return String(p.Status || 'Active').toLowerCase() === 'active'; });
-        }
-    }
-
+    var allowedProducts = allProds;
     var fHtml = '';
     allowedProducts.forEach(function(p) { fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; });
     formProdSelect.innerHTML = fHtml;
@@ -2000,7 +1984,6 @@
     var allowedTers = window.myAllowedTerIds || [];
     var allowedTeams = window.myAllowedTeamIds || [];
     var allowedEmails = window.myAllowedEmails || [];
-    var allowedNames = window.myAllowedNames || [];
 
     var filtered = globalVisits.filter(function(v) {
       var hasSecurityAccess = false;
@@ -2024,8 +2007,7 @@
                   allowedTers.indexOf(vTerrId) !== -1 || 
                   allowedTeams.indexOf(vTerrId) !== -1 || 
                   vTerrId === rawScope ||
-                  allowedEmails.indexOf(rawWho) !== -1 || 
-                  allowedNames.indexOf(rawWho) !== -1) {
+                  allowedEmails.indexOf(rawWho) !== -1) {
                   hasSecurityAccess = true;
               }
           }
