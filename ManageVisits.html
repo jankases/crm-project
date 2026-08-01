@@ -1141,6 +1141,7 @@
     }
   };
 
+  // 🎯 8. ฟังก์ชันแสดงปฏิทิน: ตัดเวลาออก, ให้เป็น AllDay และมี Tooltip
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1154,7 +1155,9 @@
         var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v);
         
-        // 🎯 เติมเวลาไว้หน้าชื่อแทนการใช้ระบบ Time ของ Calendar (แก้ปัญหากล่องทะลุข้ามวัน 100%)
+        // 🎯 ดึงแค่วันที่ (YYYY-MM-DD) ทิ้ง Timezone
+        var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
+        
         var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
         var title = timePrefix + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
         
@@ -1168,8 +1171,8 @@
         return {
             id: v.Visit_ID,
             title: title,
-            start: v.Visit_Date, // 🌟 ส่งแค่วันที่ ไม่ส่งเวลา 
-            allDay: true,        // 🌟 บังคับเป็น All Day กล่องจะได้อยู่ในวันเดียวเป๊ะๆ
+            start: dateOnly, // 🌟 ส่งแค่วันที่ล้วนๆ
+            allDay: true,    // 🌟 บังคับเป็น All Day กล่องจะไม่ทะลุวันแน่นอน
             backgroundColor: bgColor,
             borderColor: bgColor,
             textColor: '#ffffff', 
@@ -1190,13 +1193,13 @@
             });
 
             holidayEvents = holidayData.map(function(h) {
-                // 🌟 ถอดธงชาติหรือคำว่า TH ออกตามคำขอ
+                // 🌟 ดึงแค่ Value1 (TH) หรือ Value2 (EN) เพียวๆ ไม่ต้องใส่คำว่า TH นำหน้าแล้ว
                 var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
                 
                 return {
                     id: 'hol_' + h.Index_ID,
                     title: holidayTitle, 
-                    start: h.Value,                         
+                    start: h.Value ? h.Value.split('T')[0] : '', 
                     allDay: true,
                     backgroundColor: '#ef4444',             
                     borderColor: '#ef4444',
@@ -1224,7 +1227,7 @@
             },
             events: allEvents,
             eventDidMount: function(info) {
-                // 🎯 Tooltip สำหรับอ่านข้อความเต็ม
+                // 🎯 เอาเมาส์ชี้แล้วมี Tooltip ให้เห็นชื่อเต็มๆ
                 info.el.setAttribute('title', info.event.title);
             },
             eventClick: function(info) {
