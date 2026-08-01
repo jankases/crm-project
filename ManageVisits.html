@@ -11,14 +11,14 @@
     border-radius: 12px; 
   }
 
-  /* 🎯 บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% */
+  /* 🎯 1. บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% ตัวหนาขึ้น */
   .form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
-    background-color: #f8fafc !important; 
-    color: #1e293b !important; 
-    -webkit-text-fill-color: #1e293b !important; /* บังคับ Safari/iOS ห้ามดรอปสี */
+    background-color: #f1f5f9 !important; 
+    color: #0f172a !important; 
+    -webkit-text-fill-color: #0f172a !important; /* บังคับ Safari/iOS ห้ามดรอปสี */
     cursor: not-allowed; 
     opacity: 1 !important; 
-    font-weight: 500;
+    font-weight: 600 !important;
   }
 
   .visit-filter-group {
@@ -86,11 +86,24 @@
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
 
-  /* 🎯 ทะลวง Opacity ของ TomSelect ที่ทำสีจาง 50% ให้กลับมา 100% และเข้มขึ้น */
+  /* 🎯 2. ทะลวง Opacity ของ TomSelect อย่างเด็ดขาด (ล้างความโปร่งใส 50% ของ Default CSS) */
   .ts-wrapper.disabled { opacity: 1 !important; }
-  .ts-wrapper.disabled .ts-control { background-color: #f8fafc !important; }
-  .ts-wrapper.disabled.single .ts-control > .item { color: #1e293b !important; -webkit-text-fill-color: #1e293b !important; font-weight: 500; }
-  .ts-wrapper.disabled.multi .ts-control > .item { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; color: #1e293b !important; -webkit-text-fill-color: #1e293b !important; font-weight: 500; }
+  .ts-wrapper.disabled .ts-control { 
+    opacity: 1 !important; /* <--- ตัวการคือตรงนี้ครับ บังคับให้ทึบ 100% */
+    background-color: #f1f5f9 !important; 
+  }
+  .ts-wrapper.disabled.single .ts-control > .item { 
+    color: #0f172a !important; 
+    -webkit-text-fill-color: #0f172a !important; 
+    font-weight: 600 !important; 
+  }
+  .ts-wrapper.disabled.multi .ts-control > .item { 
+    background-color: #cbd5e1 !important; /* ให้พื้นหลังเข้มขึ้นนิดนึงจะได้ตัดกับตัวอักษร */
+    border-color: #94a3b8 !important; 
+    color: #0f172a !important; 
+    -webkit-text-fill-color: #0f172a !important; 
+    font-weight: 600 !important; 
+  }
 
   .filter-placeholder-text { color: #6c757d !important; }
   .filter-placeholder-text option { color: #212529 !important; }
@@ -2246,7 +2259,6 @@
       '</tr>';
     });
 
-    // 🎯 วาดปุ่ม Pagination ของจริง
     renderPaginationControls(totalPages);
   }
 
