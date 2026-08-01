@@ -81,9 +81,6 @@
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
 
-  .filter-placeholder-text { color: #6c757d !important; }
-  .filter-placeholder-text option { color: #212529 !important; }
-
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd; }
 
@@ -244,12 +241,9 @@
           </div>
         </div>
 
+        <!-- 🎯 อัปเกรด Status เป็น TomSelect ให้กลืนเข้ากับตัวอื่นๆ 100% -->
         <div class="col-6 col-sm-3 col-lg-2">
-          <select class="form-select border rounded-pill shadow-none filter-placeholder-text" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); filterVisits();" style="font-weight: 500; font-size: 0.9rem;">
-            <option value="" id="optAllStatus">- All Status -</option>
-            <option value="Pending" id="optStatusPending">Pending Drafts</option>
-            <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
-          </select>
+          <select class="form-select shadow-none" id="filterVisitStatus"></select>
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
@@ -345,7 +339,6 @@
 
         <div class="row g-4 align-items-stretch">
           
-          <!-- ฝั่งซ้าย: Visit Information -->
           <div class="col-12 col-xl-6 d-flex">
             <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               <div>
@@ -366,7 +359,6 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
                     <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">e-Detailing / Presentation</span></span>
@@ -407,7 +399,6 @@
             </div>
           </div>
 
-          <!-- ฝั่งขวา: Activity Details -->
           <div class="col-12 col-xl-6 d-flex">
             <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               
@@ -581,9 +572,6 @@
     }
   }
 
-  // -------------------------------------------------------------
-  // 🎬 e-Detailing & Page-Level Analytics Logic
-  // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
@@ -841,7 +829,6 @@
           console.error("❌ Insert Visit_Detailing_Logs error:", logRes.error.message);
         } else if (logRes.data && logRes.data.length > 0) {
           var createdLogId = logRes.data[0].Log_ID;
-          console.log("✅ Visit_Detailing_Logs created! Log_ID:", createdLogId);
 
           if (pageLogsBuffer.length > 0) {
             var pagePayloads = pageLogsBuffer.map(function(pLog) {
@@ -857,8 +844,6 @@
             var pageRes = await supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
             if (pageRes.error) {
               console.error("❌ Insert Visit_Detailing_Pages error:", pageRes.error.message);
-            } else {
-              console.log("🎉 Visit_Detailing_Pages saved successfully!", pagePayloads.length, "pages");
             }
           }
         }
@@ -1201,6 +1186,8 @@
   var tomSelectPurposeInstance = null; 
   var tomSelectRepInstance = null;
   var tomSelectTerInstance = null;
+  // 🎯 เพิ่มตัวแปรสำหรับ Status Filter TomSelect
+  var tomSelectStatusInstance = null;
 
   var currentSortCol = 'date';
   var currentSortAsc = false; 
@@ -1218,26 +1205,13 @@
   };
 
   function clearVisitFilters() {
-      if (tomSelectRepInstance) tomSelectRepInstance.clear();
-      if (tomSelectTerInstance) tomSelectTerInstance.clear();
+      if (tomSelectRepInstance) tomSelectRepInstance.clear(true);
+      if (tomSelectTerInstance) tomSelectTerInstance.clear(true);
+      if (tomSelectStatusInstance) tomSelectStatusInstance.clear(true);
       
-      var clearTs = function(id) {
-          var el = document.getElementById(id);
-          if (el && el.tomselect) el.tomselect.clear();
-          else if (el) el.value = '';
-      };
-      
-      clearTs('filterStartDate');
-      clearTs('filterEndDate');
-      clearTs('filterVisitStatus');
-      
-      var stEl = document.getElementById('filterVisitStatus');
-      if (stEl) {
-          stEl.value = '';
-          stEl.classList.add('filter-placeholder-text');
-      }
-
-      if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
+      document.getElementById('filterStartDate').value = '';
+      document.getElementById('filterEndDate').value = '';
+      document.getElementById('smartSearchInput').value = '';
       
       filterVisits();
   }
@@ -1286,7 +1260,6 @@
     }
   }, 100);
 
-  // 🎯 ดึงชื่อขอบเขต/ทีม/BU อัตโนมัติ ป้องกันโชว์ขีดกลาง '-'
   window.updateFormUserInfo = function(repObj, fallbackTerrId) {
     var appLang = getCurrentAppLang();
     var repNameShow = '-';
@@ -1368,12 +1341,31 @@
       var btnQuick30 = document.getElementById('btnQuick30'); if(btnQuick30) btnQuick30.innerText = appLang === 'th' ? '[+30ม.]' : '[+30m]';
       var btnQuick60 = document.getElementById('btnQuick60'); if(btnQuick60) btnQuick60.innerText = appLang === 'th' ? '[+1ชม.]' : '[+1h]';
 
-      var optAllStatus = document.getElementById('optAllStatus'); if(optAllStatus) optAllStatus.innerText = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
-      var optStatusPending = document.getElementById('optStatusPending'); if(optStatusPending) optStatusPending.innerText = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
-      var optStatusSubmitted = document.getElementById('optStatusSubmitted'); if(optStatusSubmitted) optStatusSubmitted.innerText = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
-
       var formOptPending = document.getElementById('formOptPending'); if(formOptPending) formOptPending.innerText = appLang === 'th' ? '⏳ ฉบับร่าง (Pending)' : '⏳ Pending (Draft)';
       var formOptSubmitted = document.getElementById('formOptSubmitted'); if(formOptSubmitted) formOptSubmitted.innerText = appLang === 'th' ? '✅ ส่งบันทึก (Submitted)' : '✅ Submitted';
+
+      // 🎯 อัปเกรด Status เป็น TomSelect 
+      var statusSelect = document.getElementById('filterVisitStatus');
+      if (statusSelect) {
+          var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
+          var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
+          var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
+
+          statusSelect.innerHTML = 
+              '<option value="">' + optAllStatus + '</option>' +
+              '<option value="Pending">' + optStatusPending + '</option>' +
+              '<option value="Submitted">' + optStatusSubmitted + '</option>';
+
+          if (typeof TomSelect !== 'undefined') {
+              if (statusSelect.tomselect) statusSelect.tomselect.destroy();
+              tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
+                  create: false,
+                  placeholder: optAllStatus,
+                  dropdownParent: 'body',
+                  onChange: function() { filterVisits(); }
+              });
+          }
+      }
 
       var crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
@@ -1683,44 +1675,54 @@
     window.myAllowedTeamIds = allowedTeamIds;
     window.myAllowedTerIds = allowedTerIds;
 
-    // 🎯 ดึง Manager/ลูกทีมทั้งหมด ที่อยู่ใน Team/BU เดียวกันมาให้เลือก
-    globalUsersList.forEach(function(u) {
-        var uid = String(u.Rep_ID || u.User_ID || u.id).trim();
-        var uteam = String(u.Team_ID || u.team_id || u.Team || '').trim();
-        var uter = String(u.Territory_ID || u.territory_id || u.territoryId || u.Territory || '').trim();
-        var ubu = String(u.BU_ID || u.bu_id || u.BU || '').trim();
-        
-        var genericScope = ubu || uteam || uter; 
-
-        var isUnderBU = false;
-        if (isGlobalViewer) {
-            isUnderBU = true;
-        } else {
-            if (rawScope && (ubu === rawScope || ubu === targetBuId || uteam === rawScope || uter === rawScope || genericScope === rawScope)) isUnderBU = true;
-            if (allowedTeamIds.indexOf(uteam) !== -1 || allowedTeamIds.indexOf(uter) !== -1 || allowedTeamIds.indexOf(genericScope) !== -1) isUnderBU = true;
-            if (allowedTerIds.indexOf(uter) !== -1 || allowedTerIds.indexOf(genericScope) !== -1) isUnderBU = true;
-        }
-
-        if (isUnderBU || uid === userRepId) {
-            if (uid && allowedRepIds.indexOf(uid) === -1) allowedRepIds.push(uid);
-            var uem = String(u.Email || u.email || '').toLowerCase().trim();
-            if (uem && allowedEmails.indexOf(uem) === -1) allowedEmails.push(uem);
-            var unm = String(u.Rep_Name || u.Name || u.name || '').toLowerCase().trim();
-            if (unm && allowedNames.indexOf(unm) === -1) allowedNames.push(unm);
-        }
-    });
+    if (!isGlobalViewer) {
+        globalVisits.forEach(function(v) {
+            var vTer = String(v.Territory_ID || v.territory_id || '').trim();
+            var vRep = String(v.Rep_ID || v.rep_id || '').trim();
+            if (vTer && (allowedTerIds.indexOf(vTer) !== -1 || allowedTeamIds.indexOf(vTer) !== -1 || vTer === rawScope || vTer === targetBuId)) {
+                if (vRep && allowedRepIds.indexOf(vRep) === -1) {
+                    allowedRepIds.push(vRep);
+                }
+            }
+        });
+    }
 
     window.myAllowedRepIds = allowedRepIds;
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
 
     var uniqueUsersMap = new Map();
-    window.fullAllowedUsers = globalUsersList.filter(function(u) {
-        var uid = String(u.Rep_ID || u.User_ID || u.id).trim();
-        return allowedRepIds.indexOf(uid) !== -1;
+    
+    window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { 
+        var uid = String(u.Rep_ID || u.User_ID || u.id);
+        var uteam = String(u.Team_ID || u.team_id || u.Team || '');
+        var uter = String(u.Territory_ID || u.territory_id || u.territoryId || u.Territory || '');
+        var ubu = String(u.BU_ID || u.bu_id || u.BU || '');
+        
+        var isMatched = window.myAllowedRepIds.indexOf(uid) !== -1 || 
+                        window.myAllowedTeamIds.indexOf(uteam) !== -1 || 
+                        window.myAllowedTerIds.indexOf(uter) !== -1 ||
+                        window.myAllowedTeamIds.indexOf(uter) !== -1;
+                        
+        if (!isMatched && targetBuId && (ubu === targetBuId || ubu === rawScope)) {
+            isMatched = true;
+        }
+        return isMatched;
     });
     
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
+
+    if (!isGlobalViewer) {
+        window.fullAllowedUsers.forEach(function(u) {
+            var uid = String(u.Rep_ID || u.User_ID || u.id);
+            var uem = String(u.Email || u.email || '').toLowerCase();
+            var unm = String(u.Rep_Name || u.Name || u.name || '').toLowerCase();
+            
+            if (uid && window.myAllowedRepIds.indexOf(uid) === -1) window.myAllowedRepIds.push(uid);
+            if (uem && window.myAllowedEmails.indexOf(uem) === -1) window.myAllowedEmails.push(uem);
+            if (unm && window.myAllowedNames.indexOf(unm) === -1) window.myAllowedNames.push(unm);
+        });
+    }
 
     window.fullAllowedUsers.forEach(function(u) {
         var id = String(u.Rep_ID || u.User_ID || u.id);
@@ -1932,14 +1934,11 @@
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
         
-        if (document.getElementById('filterVisitStatus')) {
-            var stEl = document.getElementById('filterVisitStatus');
-            stEl.value = f.status || '';
-            stEl.classList.toggle('filter-placeholder-text', stEl.value === '');
-        }
+        // 🎯 ดึงสถานะเดิมมาใส่ใน TomSelect แบบเงียบๆ (ไม่กระตุ้นการเปลี่ยนหน้าซ้ำ)
+        if (tomSelectStatusInstance && f.status !== undefined) tomSelectStatusInstance.setValue(f.status, true);
         
-        if (tomSelectRepInstance && f.rep) tomSelectRepInstance.setValue(f.rep);
-        if (tomSelectTerInstance && f.territory) tomSelectTerInstance.setValue(f.territory);
+        if (tomSelectRepInstance && f.rep) tomSelectRepInstance.setValue(f.rep, true);
+        if (tomSelectTerInstance && f.territory) tomSelectTerInstance.setValue(f.territory, true);
         if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
 
         currentPage = f.page || 1;
@@ -1976,7 +1975,7 @@
     if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
     var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-    var statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
+    var statusTerm = tomSelectStatusInstance ? tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '');
     var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -1998,8 +1997,14 @@
       } else {
         var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
         var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-        
+        var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
+        var rawScope = '';
+        try { var cu = JSON.parse(sessionStorage.getItem('crmUser')); rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : ''; } catch(e){}
+
         if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || 
+            window.myAllowedTerIds.indexOf(vTerrId) !== -1 || 
+            window.myAllowedTeamIds.indexOf(vTerrId) !== -1 || 
+            vTerrId === rawScope ||
             window.myAllowedEmails.indexOf(rawWho) !== -1 || 
             window.myAllowedNames.indexOf(rawWho) !== -1) {
             hasSecurityAccess = true;
