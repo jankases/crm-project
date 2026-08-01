@@ -148,7 +148,6 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.95rem;">
-            <!-- 🎯 ปรับปรุงส่วน Header ใส่ Class Sort และแยกข้อความใส่ Span -->
             <thead class="table-custom-header">
               <tr>
                 <th id="thCategory" class="text-start sortable-th" onclick="window.sortIndexes('category')">
@@ -512,7 +511,6 @@
       window.indexSortAsc = true;
     }
 
-    // อัปเดตไอคอนบนหัวตาราง
     const cols = ['category', 'value', 'value1', 'value2'];
     cols.forEach(c => {
       const icon = document.getElementById('icon-sort-' + c);
@@ -525,7 +523,7 @@
       }
     });
 
-    window.indexCurrentPage = 1; // กลับไปหน้าแรกเสมอเมื่อจัดเรียงใหม่
+    window.indexCurrentPage = 1; 
     window.renderIndexTable();
   };
 
@@ -548,7 +546,6 @@
        if (tObj) selectedTypeName = tObj.Name.toLowerCase();
     }
 
-    // อ้างอิง th และ span ขัางใน (เพื่อให้เปลี่ยนชื่อได้โดยไม่ทับไอคอน Sort)
     const thValue1 = document.getElementById('thValue1');
     const thValue2 = document.getElementById('thValue2');
     
@@ -556,7 +553,6 @@
     const lblThValue1 = document.getElementById('lblThValue1');
     const lblThValue2 = document.getElementById('lblThValue2');
 
-    // 🎯 ควบคุมการแสดงผลข้อความหัวตาราง
     if (selectedTypeName === 'province') {
         lblThValue.innerText = "Province";
         lblThValue1.innerText = "Zone";
@@ -590,7 +586,7 @@
 
     if(paginationContainer) paginationContainer.classList.remove('d-none');
 
-    // 🎯 ทำการ Sort ข้อมูลก่อน
+    // 🎯 Sorting Logic
     window.globalFilteredIndexes.sort((a, b) => {
         let valA = '', valB = '';
         
@@ -646,9 +642,14 @@
          rowHtml += `<td class="text-muted small">${i.Value2 || '-'}</td>`;
       }
 
+      // 🎯 ดักจับเครื่องหมาย Single Quote เพื่อป้องกัน Syntax Error ตอนส่งค่าเข้าฟังก์ชัน
+      const safeVal = (i.Value || '').replace(/'/g, "\\'");
+      const safeVal1 = (i.Value1 || '').replace(/'/g, "\\'");
+      const safeVal2 = (i.Value2 || '').replace(/'/g, "\\'");
+
       rowHtml += `
           <td>
-            <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-primary" onclick="window.openEditIndexModal('${i.Index_ID}', '${i.IndexType_ID}', '${i.Value}', '${i.Value1 || ''}', '${i.Value2 || ''}')"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-primary" onclick="window.openEditIndexModal('${i.Index_ID}', '${i.IndexType_ID}', '${safeVal}', '${safeVal1}', '${safeVal2}')"><i class="fa-solid fa-pen"></i></button>
           </td>
         </tr>`;
       
@@ -707,7 +708,7 @@
     ul.innerHTML = html;
   };
 
-  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic 
+  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic
   window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
       const typeName = tObj ? tObj.Name.toLowerCase() : "";
