@@ -334,7 +334,6 @@
               <span class="fw-bold text-dark fs-6" id="dispSalesRepName">-</span>
             </div>
             <div class="col-md-6">
-              <!-- 🎯 ไดนามิกแท็ก Territory/Team/BU จะถูกอัปเดตผ่าน JS ที่นี่ -->
               <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i><span id="dynamicTerritoryLabel">Territory</span></span>
               <span class="fw-bold text-dark fs-6" id="dispTerritoryName">-</span>
             </div>
@@ -537,7 +536,6 @@
     }
   }
 
-  // 🎯 Escape HTML เพื่อป้องกันแท็กพังหลุดลอยเวลามีคำค้นหา
   function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -1279,7 +1277,6 @@
     }
   }, 100);
 
-  // 🎯 สร้างฟังก์ชันแสดงผล User และ Role อัตโนมัติ (สลับคำว่า Territory / Team / BU)
   window.updateFormUserInfo = function(repObj, fallbackTerrId) {
     var appLang = getCurrentAppLang();
     var repNameShow = '-';
@@ -1322,7 +1319,7 @@
     if (repNameEl) repNameEl.innerText = repNameShow;
     if (terNameEl) terNameEl.innerText = locNameShow;
     if (terLabelEl) {
-        terLabelEl.removeAttribute('data-i18n'); // กันโดน setLanguage จากไฟล์ index.html ทับ
+        terLabelEl.removeAttribute('data-i18n');
         terLabelEl.innerText = labelText;
     }
   };
@@ -1575,7 +1572,6 @@
         }, 200); 
       }
 
-      // 🎯 อัปเดตข้อมูล Form Info (ทีม/อาณาเขต) ทุกครั้งที่โหลดดร็อปดาวน์เสร็จ
       var formView = document.getElementById('visitFormView');
       if (formView && !formView.classList.contains('d-none')) {
           var visitId = document.getElementById('visitId').value;
@@ -1653,6 +1649,7 @@
               var terrs = globalTerritoryList.filter(function(ter) { return String(ter.Team_ID) === String(t.Team_ID); });
               terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
           });
+          if (allowedTeamIds.indexOf(rawScope) === -1) allowedTeamIds.push(rawScope);
       } else if (userRole === 'Manager' || userRole === 'Sales Manager') {
           var matchedTeam = globalTeamList.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
           if (matchedTeam) {
@@ -1672,6 +1669,20 @@
 
     window.myAllowedTeamIds = allowedTeamIds;
     window.myAllowedTerIds = allowedTerIds;
+
+    // 🎯 ดึง Manager ที่ทำบันทึกเยี่ยมในพื้นที่ของ BU เข้ามารวมสิทธิ์ด้วย (Aggressive Mapping)
+    if (!isGlobalViewer) {
+        globalVisits.forEach(function(v) {
+            var vTer = String(v.Territory_ID || v.territory_id || '').trim();
+            var vRep = String(v.Rep_ID || v.rep_id || '').trim();
+            if (vTer && (allowedTerIds.indexOf(vTer) !== -1 || allowedTeamIds.indexOf(vTer) !== -1 || vTer === rawScope || vTer === targetBuId)) {
+                if (vRep && allowedRepIds.indexOf(vRep) === -1) {
+                    allowedRepIds.push(vRep);
+                }
+            }
+        });
+    }
+
     window.myAllowedRepIds = allowedRepIds;
     window.myAllowedEmails = allowedEmails;
     window.myAllowedNames = allowedNames;
@@ -1686,7 +1697,8 @@
         
         var isMatched = window.myAllowedRepIds.indexOf(uid) !== -1 || 
                         window.myAllowedTeamIds.indexOf(uteam) !== -1 || 
-                        window.myAllowedTerIds.indexOf(uter) !== -1;
+                        window.myAllowedTerIds.indexOf(uter) !== -1 ||
+                        window.myAllowedTeamIds.indexOf(uter) !== -1;
                         
         if (!isMatched && targetBuId && (ubu === targetBuId || ubu === rawScope)) {
             isMatched = true;
@@ -1979,9 +1991,14 @@
         var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
         var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
         var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
+        var rawScope = '';
+        try { var cu = JSON.parse(sessionStorage.getItem('crmUser')); rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : ''; } catch(e){}
 
+        // 🎯 เช็คสิทธิ์ด้วย Aggressive Fallback สำหรับ Manager ที่ทำ Visit ใน Team/BU Area
         if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || 
             window.myAllowedTerIds.indexOf(vTerrId) !== -1 || 
+            window.myAllowedTeamIds.indexOf(vTerrId) !== -1 || 
+            vTerrId === rawScope ||
             window.myAllowedEmails.indexOf(rawWho) !== -1 || 
             window.myAllowedNames.indexOf(rawWho) !== -1) {
             hasSecurityAccess = true;
@@ -2360,7 +2377,6 @@
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
     
-    // 🎯 ดึงข้อมูลพนักงานของ Visit นั้นไปอัปเดต Header อัตโนมัติ (สลับ Team/Territory/BU)
     var targetRepObj = null;
     if (globalUsersList && globalUsersList.length > 0) {
         targetRepObj = globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
@@ -2502,6 +2518,9 @@
     }
     selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
 
+    var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
+    validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+
     var missingFields = [];
     if (!docVal) missingFields.push("• Doctor");
     if (selectedProducts.length === 0) missingFields.push("• Products");
@@ -2607,4 +2626,5 @@
   window.nextPdfPage = nextPdfPage;
   window.jumpPdfPage = jumpPdfPage;
   window.loadDropdowns = loadDropdowns;
+  window.updateFormUserInfo = updateFormUserInfo;
 </script>
