@@ -67,7 +67,11 @@
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
   .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
-  .ts-control .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
+  
+  /* 🎯 แก้ไขให้กรอบสีฟ้า (Pill) แสดงเฉพาะช่องเลือกหลายรายการ (Products/Filters) เท่านั้น */
+  .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
+  .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
+  
   .ts-dropdown { 
     z-index: 99999 !important; 
     border-radius: 12px; 
@@ -239,7 +243,6 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2">
-          <!-- 🎯 แก้ไขตัวกรอง Status ให้มี id เฉพาะเพื่อรับการเปลี่ยนภาษา -->
           <select class="form-select border rounded-pill shadow-none" id="filterVisitStatus" onchange="filterVisits()">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
@@ -371,9 +374,8 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-sm" id="visitPurpose" required>
-                    <option value="" data-i18n="opt_select_purpose">-- Select Purpose --</option>
-                  </select>
+                  <!-- 🎯 จับวัตถุประสงค์ใส่ TomSelect ด้วย เพื่อให้สีและขนาดเท่ากับ 2 ช่องด้านบน -->
+                  <select class="form-select bg-white shadow-sm" id="visitPurpose" required></select>
                 </div>
 
                 <div class="mb-3">
@@ -381,7 +383,6 @@
                   <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
                 </div>
 
-                <!-- 🎯 แก้ไขปุ่ม Quick Time ให้มี id เพื่อรับการเปลี่ยนภาษา -->
                 <div class="row g-2 mb-2">
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
@@ -443,10 +444,8 @@
                 </div>
               </div>
 
-              <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <!-- 🎯 เพิ่ม ID ให้ตัวเลือกสถานะภายในฟอร์มเพื่ออัปเดตภาษา -->
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
@@ -538,6 +537,7 @@
     }
   }
 
+  // 🎯 Escape HTML เพื่อป้องกันแท็กพังหลุดลอยเวลามีคำค้นหา
   function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -1198,6 +1198,7 @@
   
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
+  var tomSelectPurposeInstance = null; /* 🎯 อัปเกรด Purpose ให้ใช้ TomSelect */
   var tomSelectRepInstance = null;
   var tomSelectTerInstance = null;
 
@@ -1318,7 +1319,6 @@
     try {
       var appLang = getCurrentAppLang();
       
-      // 🎯 1. อัปเดตภาษาปุ่ม Quick Time และ สถานะ
       var btnQuickNow = document.getElementById('btnQuickNow'); if(btnQuickNow) btnQuickNow.innerText = appLang === 'th' ? '[ตอนนี้]' : '[Now]';
       var btnQuick30 = document.getElementById('btnQuick30'); if(btnQuick30) btnQuick30.innerText = appLang === 'th' ? '[+30ม.]' : '[+30m]';
       var btnQuick60 = document.getElementById('btnQuick60'); if(btnQuick60) btnQuick60.innerText = appLang === 'th' ? '[+1ชม.]' : '[+1h]';
@@ -1459,8 +1459,8 @@
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        var docDefaultText = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
-        docSelect.innerHTML = '<option value="">' + docDefaultText + '</option>';
+        // 🎯 1. ใส่ Option ว่างเปล่าเท่านั้น เพื่อให้ Placeholder ทำงาน 100%
+        docSelect.innerHTML = '<option value=""></option>';
         
         var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
@@ -1485,11 +1485,11 @@
                 searchField: ["text", "name_en", "name_th"],
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: docPlaceholder,
-                allowEmptyOption: true,
                 maxOptions: null,
                 dropdownParent: 'body',
                 dataAttr: 'data'
             });
+            // เอา allowEmptyOption: true ออกแล้ว เพื่อป้องกันปัญหากล่องฟ้าหลอน
         }
       }
 
@@ -1505,8 +1505,8 @@
                  t.Name.toLowerCase() === 'callpurpose'; 
         });
 
-        var defaultPurposeText = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
-        var purposeHtml = '<option value="">' + defaultPurposeText + '</option>';
+        // 🎯 2. ทำ Purpose ให้เป็น TomSelect ด้วยเลย สีจะได้เป๊ะกับ 2 ตัวบน!
+        var purposeHtml = '<option value=""></option>';
         
         if (purposeType) {
           var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
@@ -1521,6 +1521,18 @@
                          '<option value="อื่นๆ">อื่นๆ</option>';
         }
         purposeSelect.innerHTML = purposeHtml;
+
+        if (typeof TomSelect !== 'undefined') {
+            if (purposeSelect.tomselect) purposeSelect.tomselect.destroy();
+            
+            var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
+            tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
+                create: false, 
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: purPlaceholder,
+                dropdownParent: 'body'
+            });
+        }
       }
 
       var returnToDocId = sessionStorage.getItem('returnToDocId');
@@ -2165,28 +2177,32 @@
   }
 
   function toggleVisitFormEditable(isEditable) {
-    var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitStartTime', 'visitEndTime', 'visitPurpose', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
+    var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     var formView = document.getElementById('visitFormView');
 
+    if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+      if (isEditable) tomSelectDocInstance.enable();
+      else tomSelectDocInstance.disable();
+    }
+    
     if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
-      if (isEditable) {
-        tomSelectProdInstance.enable();
-        if (formView) formView.classList.remove('disabled-ts');
-      } else {
-        tomSelectProdInstance.disable();
-        if (formView) formView.classList.add('disabled-ts');
-      }
+      if (isEditable) tomSelectProdInstance.enable();
+      else tomSelectProdInstance.disable();
+    }
+    
+    if (typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) {
+      if (isEditable) tomSelectPurposeInstance.enable();
+      else tomSelectPurposeInstance.disable();
+    }
+
+    if (formView) {
+      if(isEditable) formView.classList.remove('disabled-ts');
+      else formView.classList.add('disabled-ts');
     }
 
     fields.forEach(function(id) {
       var el = document.getElementById(id);
-      if (el) {
-        el.disabled = !isEditable;
-        if (el.tomselect) {
-          if (isEditable) el.tomselect.enable();
-          else el.tomselect.disable();
-        }
-      }
+      if (el) el.disabled = !isEditable;
     });
 
     var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'];
@@ -2212,9 +2228,11 @@
     if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
       tomSelectDocInstance.clear();
       tomSelectDocInstance.enable(); 
-    } else { 
-      var docSelect = document.getElementById('visitDocId'); 
-      if (docSelect) { docSelect.value = ''; docSelect.disabled = false; }
+    }
+    
+    if (typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) {
+      tomSelectPurposeInstance.clear();
+      tomSelectPurposeInstance.enable(); 
     }
 
     await renderFormProductDropdown();
@@ -2225,13 +2243,6 @@
         if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
           tomSelectDocInstance.setValue(returnToDocId);
           tomSelectDocInstance.disable(); 
-        } else {
-          var docSelect = document.getElementById('visitDocId');
-          if (docSelect) { 
-            docSelect.value = returnToDocId; 
-            docSelect.dispatchEvent(new Event('change')); 
-            docSelect.disabled = true; 
-          }
         }
       }, 200); 
     }
@@ -2240,10 +2251,6 @@
     if (returnToDocId) {
       setTimeout(function() {
         if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.disable();
-        else {
-          var dEl = document.getElementById('visitDocId');
-          if (dEl) dEl.disabled = true;
-        }
       }, 250);
     }
 
@@ -2300,13 +2307,8 @@
     document.getElementById('dispTerritoryName').innerText = terNameShow;
 
     setTimeout(function() {
-      if (v.Doc_ID) {
-        if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+      if (v.Doc_ID && typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
           tomSelectDocInstance.setValue(v.Doc_ID);
-        } else {
-          var dEl = document.getElementById('visitDocId');
-          if (dEl) dEl.value = v.Doc_ID;
-        }
       }
     }, 100);
 
@@ -2316,13 +2318,6 @@
     setTimeout(function() {
       if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance && visitProds.length > 0) {
           tomSelectProdInstance.setValue(visitProds);
-      } else {
-          var pEl = document.getElementById('visitProductId');
-          if (pEl) {
-            Array.from(pEl.options).forEach(function(opt) {
-              if (visitProds.indexOf(opt.value) !== -1) opt.selected = true;
-            });
-          }
       }
       loadProductMedia();
     }, 150);
@@ -2332,9 +2327,8 @@
     document.getElementById('visitEndTime').value = formatTimeString(v.End_Time);
 
     setTimeout(function() {
-      var purposeSelect = document.getElementById('visitPurpose');
-      if (purposeSelect && v.Purpose) {
-        purposeSelect.value = v.Purpose;
+      if (v.Purpose && typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) {
+          tomSelectPurposeInstance.setValue(v.Purpose);
       }
     }, 100);
 
@@ -2373,9 +2367,8 @@
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
         btn.dataset.mode = 'save';
         
-        if (sessionStorage.getItem('returnToDocId')) {
-           if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.disable();
-           else document.getElementById('visitDocId').disabled = true;
+        if (sessionStorage.getItem('returnToDocId') && typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+           tomSelectDocInstance.disable();
         }
       } else {
         toggleVisitFormEditable(false);
@@ -2437,30 +2430,22 @@
       return;
     }
 
-    var docSelect = document.getElementById('visitDocId');
+    var docVal = (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) ? tomSelectDocInstance.getValue() : '';
     var dateInput = document.getElementById('visitDate');
-    var purposeSelect = document.getElementById('visitPurpose');
+    var purposeVal = (typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) ? tomSelectPurposeInstance.getValue() : '';
 
     var selectedProducts = [];
     if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
         var val = tomSelectProdInstance.getValue();
         selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
-    } else {
-        var prodSelect = document.getElementById('visitProductId');
-        if (prodSelect) {
-            selectedProducts = Array.from(prodSelect.selectedOptions).map(function(o) { return o.value; });
-        }
     }
     selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
 
-    var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-
     var missingFields = [];
-    if (!docSelect || !docSelect.value) { if(docSelect) docSelect.classList.add('is-invalid'); missingFields.push("• Doctor"); }
-    if (selectedProducts.length === 0) { var pEl = document.getElementById('visitProductId'); if(pEl) pEl.classList.add('is-invalid'); missingFields.push("• Products"); }
-    if (!dateInput || !dateInput.value) { if(dateInput) dateInput.classList.add('is-invalid'); missingFields.push("• Date"); }
-    if (!purposeSelect || !purposeSelect.value) { if(purposeSelect) purposeSelect.classList.add('is-invalid'); missingFields.push("• Purpose"); }
+    if (!docVal) missingFields.push("• Doctor");
+    if (selectedProducts.length === 0) missingFields.push("• Products");
+    if (!dateInput || !dateInput.value) missingFields.push("• Date");
+    if (!purposeVal) missingFields.push("• Purpose");
 
     if (missingFields.length > 0) {
       alert("⚠️ Cannot save! Please complete the following required fields:\n\n" + missingFields.join("\n"));
@@ -2483,11 +2468,11 @@
       Visit_ID: targetVisitId,
       Rep_ID: repId,
       Territory_ID: territoryId,
-      Doc_ID: docSelect.value,
+      Doc_ID: docVal,
       Visit_Date: dateInput.value,
       Start_Time: document.getElementById('visitStartTime').value || null,
       End_Time: document.getElementById('visitEndTime').value || null,
-      Purpose: purposeSelect.value,
+      Purpose: purposeVal,
       Details: document.getElementById('visitDetails').value.trim(),
       Insight: document.getElementById('visitInsight').value.trim(), 
       Next_Action: document.getElementById('visitNextAction').value.trim(),
@@ -2533,7 +2518,7 @@
     }
   }
 
-  // 🌟 บังคับประกาศฟังก์ชันเข้าสู่ Global Scope (window) เพื่อให้ index.html สั่งรีเฟรชได้
+  // 🌟 บังคับประกาศฟังก์ชันเข้าสู่ Global Scope
   window.openAddVisitView = openAddVisitView;
   window.openEditVisitView = openEditVisitView;
   window.toggleDocDictation = toggleDocDictation;
