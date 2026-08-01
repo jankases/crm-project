@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
+    min-height: 44px; 
     border-radius: 12px; 
   }
 
@@ -165,7 +165,13 @@
         <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
-        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="window.openAddVisitView()">
+
+        <!-- 🌟 เพิ่มปุ่ม Add TOT (Time Off Territory) -->
+        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
+          <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
+        </button>
+
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2 ms-1" onclick="window.openAddVisitView()">
           <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
@@ -476,9 +482,76 @@
   </div>
 </div>
 
+<!-- 🏖️ TOT Modal (Time Off Territory) -->
+<div class="modal fade" id="totModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg visit-card">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-info" id="totModalTitle"><i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT (Time Off Territory)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form onsubmit="window.handleSaveTot(event)">
+        <div class="modal-body p-4">
+          <input type="hidden" id="totId">
+          
+          <div class="mb-3">
+            <label class="form-label fw-bold text-dark small">TOT Type <span class="text-danger">*</span></label>
+            <select class="form-select shadow-sm" id="totType" required></select>
+          </div>
+
+          <div class="row mb-3 g-2">
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">Start Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control shadow-sm" id="totStartDate" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">End Date</label>
+              <input type="date" class="form-control shadow-sm" id="totEndDate">
+            </div>
+          </div>
+
+          <div class="row mb-3 g-2">
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">Start Time</label>
+              <input type="time" class="form-control shadow-sm" id="totStartTime">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">End Time</label>
+              <input type="time" class="form-control shadow-sm" id="totEndTime">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold text-dark small">Remark (เหตุผล/รายละเอียด)</label>
+            <textarea class="form-control shadow-sm" id="totRemark" rows="2" style="resize: none;"></textarea>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label fw-bold text-dark small">Status</label>
+            <select class="form-select shadow-sm fw-bold" id="totStatus">
+              <option value="Approved" class="text-success">✅ Approved</option>
+              <option value="Pending" class="text-warning">⏳ Pending</option>
+            </select>
+          </div>
+
+        </div>
+        <div class="modal-footer border-0 pt-0 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
+          <div class="d-flex gap-2 ms-auto">
+              <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" id="saveTotBtn">💾 Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
   window.globalVisits = [];
   window.globalFilteredVisits = [];
+  window.globalTotLogs = [];
+  window.globalFilteredTotLogs = [];
   window.globalVisitProducts = [];
   window.globalAllDoctors = [];
   window.globalAssignedDoctors = [];
@@ -498,6 +571,7 @@
   window.tomSelectTerInstance = null;
   window.tomSelectStatusInstance = null;
   window.globalCalendarInstance = null; 
+  window.totModalInstance = null;
 
   window.currentSortCol = 'date';
   window.currentSortAsc = false; 
@@ -514,16 +588,6 @@
   window.currentPageStartTime = null;
   window.pageLogsBuffer = [];
   window.globalIsMediaPreviewMode = false;
-
-  window.filterDebounceTimer = null;
-  window.docRecognition = null;
-  window.textRecognition = null;
-  window.searchRecognition = null;
-  window.currentDictTargetId = null;
-  window.currentDictBtnId = null;
-  window.currentSearchInputId = null;
-  window.currentSearchBtnId = null;
-  window.currentSearchIconId = null;
 
   window.generateUUID = function() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -625,6 +689,9 @@
           form.addEventListener('input', window.saveFormDraft);
           form.addEventListener('change', window.saveFormDraft);
       }
+      if(document.getElementById('totModal')) {
+          window.totModalInstance = new bootstrap.Modal(document.getElementById('totModal'));
+      }
   }, 1000);
 
   window.safeTranslate = function(key, fallbackText) {
@@ -651,6 +718,19 @@
       return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0');
     }
     return str;
+  };
+
+  // 🎯 1. ฟังก์ชันแปลงวันที่ให้เป็น MM/DD/YYYY เสมอ (ค.ศ. เพียวๆ ไม่บวก พ.ศ.)
+  window.formatDateToLocal = function(dateStr) {
+      if (!dateStr) return '-';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      var day = String(d.getDate()).padStart(2, '0');
+      var month = String(d.getMonth() + 1).padStart(2, '0');
+      var year = d.getFullYear(); // ใช้ ค.ศ. เสมอ
+      
+      return month + '/' + day + '/' + year;
   };
 
   window.setQuickTime = function(type, addMinutes) {
@@ -691,25 +771,6 @@
     });
 
     return safeText;
-  };
-
-  // 🎯 ฟังก์ชันจัดการวันที่: แปลงเป็น DD/MM/YYYY พร้อมรองรับ พ.ศ. / ค.ศ.
-  window.formatDateToLocal = function(dateStr) {
-      if (!dateStr) return '-';
-      var d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      
-      var appLang = window.getCurrentAppLang();
-      var day = String(d.getDate()).padStart(2, '0');
-      var month = String(d.getMonth() + 1).padStart(2, '0');
-      var year = d.getFullYear();
-      
-      // ถ้าเลือกภาษาไทย ให้บวก 543 เข้าไปในปี ค.ศ.
-      if (appLang === 'th') {
-          year = year + 543;
-      }
-      
-      return day + '/' + month + '/' + year;
   };
 
   window.checkMyDraftsReminder = function(myDraftCount) {
@@ -1160,12 +1221,14 @@
     }
   };
 
+  // 🎯 2. ฟังก์ชันวาดปฏิทิน (เพิ่ม TOT Events ลงไป)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
     
     var appLang = window.getCurrentAppLang(); 
 
+    // ---- Event 1: Visit Logs ----
     var visitEvents = window.globalFilteredVisits.map(function(v) {
         var docObj = window.globalAllDoctors.find(function(d) {
             return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
@@ -1211,6 +1274,7 @@
         };
     });
 
+    // ---- Event 2: Public Holidays ----
     var holidayEvents = [];
     if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
         var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
@@ -1240,7 +1304,47 @@
         }
     }
 
-    var allEvents = visitEvents.concat(holidayEvents);
+    // ---- Event 3: TOT Logs (ลางาน/ประชุม) ----
+    var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
+        var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+        var displayType = t.TOT_Type || 'Time Off';
+        
+        if (appLang === 'en' && window.VisitManagerCache.indexes) {
+            var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+            if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+        }
+
+        var baseTitle = timePrefix + '[TOT] ' + displayType;
+        
+        var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
+        var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
+
+        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; // สีฟ้าอนุมัติ สีเทารอ
+
+        var ev = {
+            id: 'tot_' + t.TOT_ID,
+            title: baseTitle,
+            start: t.Start_Date ? t.Start_Date.split('T')[0] : '',
+            allDay: true, 
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff',
+            display: 'block',
+            extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
+        };
+
+        // ลาหลายวัน (วาดกล่องให้ยาวถึงวันจบ)
+        if (t.End_Date && t.End_Date !== t.Start_Date) {
+            var eDate = new Date(t.End_Date);
+            eDate.setDate(eDate.getDate() + 1); // FullCalendar ต้องบวก 1 วันเพื่อให้ครอบคลุมวันสุดท้าย
+            ev.end = eDate.toISOString().split('T')[0];
+        }
+
+        return ev;
+    });
+
+    // 🎯 วาดรวมกันทั้งหมด
+    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents);
 
     if (window.globalCalendarInstance) {
         window.globalCalendarInstance.removeAllEvents();
@@ -1263,6 +1367,10 @@
                 if (info.event.extendedProps.isHoliday) {
                     return; 
                 }
+                if (info.event.extendedProps.isTot) {
+                    window.openEditTotModal(info.event.extendedProps.totId);
+                    return;
+                }
                 window.openEditVisitView(info.event.id);
             },
             dateClick: function(info) {
@@ -1273,6 +1381,143 @@
         window.globalCalendarInstance.render();
     }
   };
+
+  // 🎯 3. ฟังก์ชันระบบ TOT (Time Off Territory)
+  window.populateTotTypes = function() {
+      var select = document.getElementById('totType');
+      if(!select) return;
+
+      var appLang = window.getCurrentAppLang();
+      var types = window.VisitManagerCache.indexTypes || [];
+      var indexes = window.VisitManagerCache.indexes || [];
+      var tType = types.find(t => t.Name.toLowerCase() === 'tot type' || t.Name.toLowerCase() === 'tot');
+      
+      var html = '<option value="">-- ' + (appLang === 'en' ? 'Select Type' : 'เลือกประเภท') + ' --</option>';
+      
+      if (tType) {
+          var items = indexes.filter(i => i.IndexType_ID === tType.IndexType_ID);
+          items.forEach(i => {
+              var textTh = i.Value || '';
+              var textEn = i.Value1 || i.Value || '';
+              var display = appLang === 'en' ? textEn : textTh;
+              html += '<option value="'+textTh+'">'+display+'</option>';
+          });
+      } else {
+          // Fallback ถ้ายังไม่ได้ตั้ง Master Data
+          html += '<option value="Annual Leave">Annual Leave (ลาพักร้อน)</option>' +
+                  '<option value="Sick Leave">Sick Leave (ลาป่วย)</option>' +
+                  '<option value="Internal Meeting">Internal Meeting (ประชุมภายใน)</option>' +
+                  '<option value="Training">Training (อบรม)</option>';
+      }
+      select.innerHTML = html;
+  };
+
+  window.openAddTotModal = function() {
+      document.getElementById('totId').value = '';
+      document.getElementById('totStartDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('totEndDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('totStartTime').value = '';
+      document.getElementById('totEndTime').value = '';
+      document.getElementById('totRemark').value = '';
+      document.getElementById('totStatus').value = 'Approved'; // ค่าเริ่มต้น
+      
+      window.populateTotTypes();
+
+      var btnDelete = document.getElementById('btnDeleteTot');
+      if(btnDelete) btnDelete.classList.add('d-none');
+
+      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
+      
+      if(window.totModalInstance) window.totModalInstance.show();
+  };
+
+  window.openEditTotModal = function(id) {
+      var tot = window.globalTotLogs.find(function(t) { return t.TOT_ID === id; });
+      if(!tot) return;
+
+      document.getElementById('totId').value = tot.TOT_ID;
+      document.getElementById('totStartDate').value = tot.Start_Date || '';
+      document.getElementById('totEndDate').value = tot.End_Date || '';
+      document.getElementById('totStartTime').value = window.formatTimeString(tot.Start_Time);
+      document.getElementById('totEndTime').value = window.formatTimeString(tot.End_Time);
+      document.getElementById('totRemark').value = tot.Remark || '';
+      document.getElementById('totStatus').value = tot.Status || 'Approved';
+
+      window.populateTotTypes();
+      setTimeout(function() { document.getElementById('totType').value = tot.TOT_Type; }, 50);
+
+      var btnDelete = document.getElementById('btnDeleteTot');
+      if(btnDelete) btnDelete.classList.remove('d-none');
+
+      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
+
+      if(window.totModalInstance) window.totModalInstance.show();
+  };
+
+  window.handleSaveTot = async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('saveTotBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+      var id = document.getElementById('totId').value;
+      var crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
+      var repId = crmUser.Rep_ID || crmUser.id || null;
+      var whoUpdated = crmUser.Email || crmUser.Rep_Name || 'Unknown';
+      
+      var payload = {
+          Rep_ID: repId,
+          TOT_Type: document.getElementById('totType').value,
+          Start_Date: document.getElementById('totStartDate').value,
+          End_Date: document.getElementById('totEndDate').value || document.getElementById('totStartDate').value,
+          Start_Time: document.getElementById('totStartTime').value || null,
+          End_Time: document.getElementById('totEndTime').value || null,
+          Remark: document.getElementById('totRemark').value,
+          Status: document.getElementById('totStatus').value,
+          Whoupdated: whoUpdated,
+          Whenupdated: new Date().toISOString()
+      };
+
+      try {
+          if(id) {
+              var {error} = await supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id);
+              if(error) throw error;
+          } else {
+              payload.TOT_ID = window.generateUUID();
+              var {error} = await supabaseClient.from('TOT_Logs').insert([payload]);
+              if(error) throw error;
+          }
+          window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
+          if(window.totModalInstance) window.totModalInstance.hide();
+          await window.loadVisits(true);
+      } catch(err) {
+          window.showToast("Error: " + err.message, "error");
+      } finally {
+          btn.disabled = false;
+          btn.innerHTML = '💾 Save';
+      }
+  };
+
+  window.deleteTot = async function() {
+      var id = document.getElementById('totId').value;
+      if(!id) return;
+
+      var appLang = window.getCurrentAppLang();
+      var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
+      if (!confirm(confirmMsg)) return;
+
+      try {
+          var {error} = await supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
+          if (error) throw error;
+          window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
+          if(window.totModalInstance) window.totModalInstance.hide();
+          await window.loadVisits(true);
+      } catch(err) {
+          window.showToast("Error: " + err.message, "error");
+      }
+  };
+
+  // ----------------------------------------------------
 
   window.toggleDocDictation = function() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1840,6 +2085,7 @@
               } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
+                      myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                       var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
                       terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
@@ -2258,6 +2504,7 @@
     window.filterVisits(false); 
   };
 
+  // 🎯 4. โหลดข้อมูลรวมทั้ง Visit_Logs และ TOT_Logs จากฐานข้อมูล
   window.loadVisits = async function(forceReload) {
     var tbody = document.getElementById('visitTableBody');
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -2270,7 +2517,8 @@
             window.fetchAllRecords('Visit_Logs'),
             window.fetchAllRecords('Visit_Products'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-            window.fetchAllRecords('Hospitals')
+            window.fetchAllRecords('Hospitals'),
+            window.fetchAllRecords('TOT_Logs') // 🌟 ดึงข้อมูล TOT เพิ่มเติม
           ];
           var results = await Promise.all(promises);
 
@@ -2281,6 +2529,8 @@
             window.VisitManagerCache.allHospitals = results[3];
             window.globalAllHospitals = results[3];
           }
+          window.VisitManagerCache.totLogs = results[4] || []; // 🌟 เก็บข้อมูล TOT
+          
           window.VisitManagerCache.isLoaded = true;
 
         } catch(err) { 
@@ -2290,6 +2540,7 @@
     }
 
     window.globalVisits = window.VisitManagerCache.visits;
+    window.globalTotLogs = window.VisitManagerCache.totLogs;
     window.globalVisitProducts = window.VisitManagerCache.visitProducts;
     window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
     if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) {
@@ -2362,6 +2613,7 @@
     var allowedTeams = window.myAllowedTeamIds || [];
     var allowedEmails = window.myAllowedEmails || [];
 
+    // Filter Visit Logs
     var filtered = window.globalVisits.filter(function(v) {
       var hasSecurityAccess = false;
 
@@ -2405,8 +2657,7 @@
         
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
 
-        var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
-        var prodNames = visitProds.map(function(vp) {
+        var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) {
           var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
           return p ? p.Product.toLowerCase() : '';
         }).join(' ');
@@ -2463,6 +2714,50 @@
       }
 
       return matchDate && matchRep && matchTer && matchStatus;
+    });
+
+    // 🌟 Filter สำหรับ TOT Logs ด้วย
+    window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
+        var hasAccess = false;
+        var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+        var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
+        var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
+        
+        if (window.myIsGlobalViewer) hasAccess = true;
+        else {
+             var rawRepId = String(tot.Rep_ID || '').trim();
+             var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
+             if (window.myIsSalesRole) {
+                 if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasAccess = true;
+             } else {
+                 if (allowedReps.indexOf(rawRepId) !== -1 || allowedEmails.indexOf(rawWho) !== -1) hasAccess = true;
+             }
+        }
+        if(!hasAccess) return false;
+
+        var matchDate = true;
+        if (startDateTerm || endDateTerm) {
+            var vDate = new Date(tot.Start_Date);
+            vDate.setHours(0, 0, 0, 0); 
+            if (startDateTerm) {
+                var sDate = new Date(startDateTerm);
+                sDate.setHours(0, 0, 0, 0);
+                if (vDate < sDate) matchDate = false;
+            }
+            if (endDateTerm) {
+                var eDate = new Date(endDateTerm);
+                eDate.setHours(23, 59, 59, 999);
+                if (vDate > eDate) matchDate = false;
+            }
+        }
+        
+        var matchRep = (selectedReps.length === 0);
+        if (selectedReps.length > 0) {
+            var rawRepIdFilt = String(tot.Rep_ID || '').trim();
+            matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1;
+        }
+
+        return matchDate && matchRep;
     });
 
     filtered.sort(function(a, b) {
@@ -2582,7 +2877,6 @@
         statusShow = '⏳ Pending Unlock';
       }
 
-      // 🎯 ดึงฟังก์ชันแปลง Format วันที่มาใช้ (DD/MM/YYYY ตามภาษา)
       var dateShow = window.formatDateToLocal(v.Visit_Date);
 
       var docObj = window.globalAllDoctors.find(function(d) {
