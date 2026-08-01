@@ -1141,7 +1141,7 @@
     }
   };
 
-  // 🎯 8. ฟังก์ชันแสดงปฏิทิน: ตัดเวลาออก, ให้เป็น AllDay และมี Tooltip
+  // 🎯 8. ฟังก์ชันแสดงปฏิทิน: จัดการ Tooltip ให้แสดง Purpose ด้วย (แบบขึ้นบรรทัดใหม่ไม่ให้เกะกะ)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1155,12 +1155,28 @@
         var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v);
         
-        // 🎯 ดึงแค่วันที่ (YYYY-MM-DD) ทิ้ง Timezone
+        // 🎯 ดึง Purpose พร้อมแปลภาษา
+        var purposeShow = v.Purpose || '-';
+        if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+            var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
+            if (pType) {
+                var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+                if (pIdx && pIdx.Value1) {
+                    purposeShow = pIdx.Value1;
+                }
+            }
+        }
+
         var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
-        
         var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
-        var title = timePrefix + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
         
+        // 🎯 สิ่งที่จะโชว์บนกล่องปฏิทิน
+        var baseTitle = timePrefix + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        // 🎯 สิ่งที่จะโชว์ใน Tooltip (ใส่ \n เพื่อขึ้นบรรทัดใหม่)
+        var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
+        var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
+
         var isPending = (v.Status === 'Pending');
         var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
         
@@ -1170,14 +1186,14 @@
         
         return {
             id: v.Visit_ID,
-            title: title,
-            start: dateOnly, // 🌟 ส่งแค่วันที่ล้วนๆ
-            allDay: true,    // 🌟 บังคับเป็น All Day กล่องจะไม่ทะลุวันแน่นอน
+            title: baseTitle, 
+            start: dateOnly, 
+            allDay: true,    
             backgroundColor: bgColor,
             borderColor: bgColor,
             textColor: '#ffffff', 
             display: 'block',     
-            extendedProps: { status: v.Status, isHoliday: false }
+            extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
         };
     });
 
@@ -1193,7 +1209,6 @@
             });
 
             holidayEvents = holidayData.map(function(h) {
-                // 🌟 ดึงแค่ Value1 (TH) หรือ Value2 (EN) เพียวๆ ไม่ต้องใส่คำว่า TH นำหน้าแล้ว
                 var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
                 
                 return {
@@ -1205,7 +1220,7 @@
                     borderColor: '#ef4444',
                     textColor: '#ffffff',
                     display: 'block',
-                    extendedProps: { status: 'Holiday', isHoliday: true }
+                    extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: holidayTitle }
                 };
             });
         }
@@ -1227,8 +1242,9 @@
             },
             events: allEvents,
             eventDidMount: function(info) {
-                // 🎯 เอาเมาส์ชี้แล้วมี Tooltip ให้เห็นชื่อเต็มๆ
-                info.el.setAttribute('title', info.event.title);
+                // 🎯 ดึงข้อความ Tooltip จาก extendedProps ที่เตรียมไว้
+                var tooltipMsg = info.event.extendedProps.fullTooltip || info.event.title;
+                info.el.setAttribute('title', tooltipMsg);
             },
             eventClick: function(info) {
                 if (info.event.extendedProps.isHoliday) {
@@ -1239,7 +1255,7 @@
             dateClick: function(info) {
                 window.openAddVisitView(info.dateStr); 
             },
-            displayEventTime: false // 🌟 ปิดการโชว์เวลาของ Calendar เพราะเราแปะไว้ใน Title แล้ว
+            displayEventTime: false 
         });
         window.globalCalendarInstance.render();
     }
@@ -1811,6 +1827,7 @@
               } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
+                      myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                       var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
                       terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
