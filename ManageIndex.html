@@ -110,7 +110,7 @@
   </div>
 
   <div class="row g-4">
-    <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ขยับเป็น col-lg-3 ================= -->
+    <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ================= -->
     <div class="col-lg-3 d-flex">
       <div class="card p-4 border-0 visit-card w-100">
         <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
@@ -130,7 +130,7 @@
       </div>
     </div>
 
-    <!-- ================= ส่วนขวา: จัดการ Index (Values) ขยับเป็น col-lg-9 ให้พื้นที่เยอะขึ้น ================= -->
+    <!-- ================= ส่วนขวา: จัดการ Index (Values) ================= -->
     <div class="col-lg-9 d-flex">
       <div class="card p-4 border-0 visit-card w-100">
         
@@ -222,7 +222,7 @@
 
   <!-- Modal สำหรับ Index Value (🎯 ปรับ Layout ให้สวยขึ้นสำหรับ 2 ภาษา) -->
   <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- ขยายขนาดเป็น modal-lg -->
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg visit-card">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-primary" id="indexModalTitle">Add Value</h5>
@@ -245,7 +245,6 @@
               </div>
             </div>
 
-            <!-- 🎯 นำ Value 1 และ 2 มาเรียงกันแบบ Side-by-side -->
             <div class="row mt-2" id="groupTranslations">
               <!-- ช่อง Value 1 -->
               <div class="col-md-6 mb-3 d-none" id="groupValue1">
@@ -569,7 +568,8 @@
         lblThValue2.innerText = "Description (EN)"; 
         thValue1.classList.remove('d-none');
         thValue2.classList.remove('d-none');        
-    } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title') { 
+    // 🎯 เพิ่มการรองรับ TOT Type แบบ 2 ภาษาตรงนี้
+    } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title' || selectedTypeName === 'tot type' || selectedTypeName === 'tottype') { 
         lblThValue.innerText = "Value (TH)";    
         lblThValue1.innerText = "Value (EN)";   
         thValue1.classList.remove('d-none'); 
@@ -592,7 +592,6 @@
 
     if(paginationContainer) paginationContainer.classList.remove('d-none');
 
-    // 🎯 Sorting Logic
     window.globalFilteredIndexes.sort((a, b) => {
         let valA = '', valB = '';
         
@@ -636,7 +635,6 @@
       let rowHtml = `<tr><td class="text-start ps-4 text-secondary"><span class="badge badge-soft-secondary">${typeName}</span></td>`;
       rowHtml += `<td class="fw-bold text-dark">${i.Value || '-'}</td>`;
 
-      // 🎯 แสดงข้อมูลพร้อมจัดรูปแบบห่อข้อความ (Text-wrap) กันตารางล้น
       if (!thValue1.classList.contains('d-none')) {
           if (selectedTypeName === 'province') {
               rowHtml += `<td><span class="badge badge-soft-primary">${i.Value1 || '-'}</span></td>`;
@@ -714,7 +712,6 @@
     ul.innerHTML = html;
   };
 
-  // 🎯 ปรับแต่ง Form Modal ให้แสดงช่องกรอกคู่กัน
   window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
       const typeName = tObj ? tObj.Name.toLowerCase() : "";
@@ -771,7 +768,8 @@
           grpVal1.classList.remove('d-none');
           grpVal2.classList.remove('d-none');     
       } 
-      else if (typeName === 'purpose' || typeName === 'title') { 
+      // 🎯 เปิดใช้งานรองรับ 2 ภาษาใน Modal สำหรับ TOT Type
+      else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') { 
           lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
           
           lblVal1.innerHTML = 'Value (EN)'; 
@@ -829,7 +827,8 @@
     } else if (typeName === 'public holiday' || typeName === 'holiday') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
         val2 = document.getElementById('modalIndexValue2').value.trim(); 
-    } else if (typeName === 'purpose' || typeName === 'title') {
+    // 🎯 ดึงค่า Value (EN) บันทึกลงใน Value1
+    } else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
         val2 = null;
     } else {
