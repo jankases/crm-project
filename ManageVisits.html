@@ -1130,6 +1130,7 @@
     }
   };
 
+  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทยจากฐานข้อมูล (Dynamic & Sync)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1154,7 +1155,7 @@
 
         if (v.Start_Time) startStr += 'T' + v.Start_Time;
         if (v.End_Time) endStr += 'T' + v.End_Time;
-        else if (v.Start_Time) endStr += 'T' + v.Start_Time; 
+        else if (v.Start_Time) endStr += 'T' + v.Start_Time; // บังคับไม่ให้กล่องข้ามวันถ้าลืมใส่ End Time
 
         return {
             id: v.Visit_ID,
@@ -1170,45 +1171,40 @@
         };
     });
 
-    var holidayEventSource = {
-        events: function(fetchInfo, successCallback, failureCallback) {
-            var types = window.VisitManagerCache.indexTypes || [];
-            var holidayType = types.find(function(t) {
-                return t.Name.toLowerCase() === 'public holiday' || t.Name.toLowerCase() === 'holiday';
-            });
+    // 🎯 สร้าง Array วันหยุดจาก Cache ของฐานข้อมูลโดยตรง
+    var holidayEvents = [];
+    if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+        var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name.toLowerCase() === 'public holiday' || t.Name.toLowerCase() === 'holiday';
+        });
 
-            if (!holidayType) {
-                successCallback([]); 
-                return;
-            }
-
-            var indexes = window.VisitManagerCache.indexes || [];
-            var holidayData = indexes.filter(function(i) {
+        if (holidayType) {
+            var holidayData = window.VisitManagerCache.indexes.filter(function(i) {
                 return i.IndexType_ID === holidayType.IndexType_ID;
             });
 
-            var holidays = holidayData.map(function(h) {
+            holidayEvents = holidayData.map(function(h) {
                 return {
                     id: 'hol_' + h.Index_ID,
-                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), 
-                    start: h.Value,                         
+                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), // 🌟 Value1 เก็บ Description ของวันหยุด
+                    start: h.Value,                         // 🌟 Value เก็บ Date ของวันหยุด
                     allDay: true,
-                    backgroundColor: '#ef4444',             
+                    backgroundColor: '#ef4444',             // 🌟 สีแดง สำหรับวันหยุด
                     borderColor: '#ef4444',
                     textColor: '#ffffff',
                     display: 'block',
-                    extendedProps: { isHoliday: true }
+                    extendedProps: { status: 'Holiday', isHoliday: true }
                 };
             });
-            
-            successCallback(holidays);
         }
-    };
+    }
+
+    // 🎯 รวมคิวงานกับวันหยุดเข้าด้วยกัน แล้วให้ FullCalendar วาดทีเดียว
+    var allEvents = visitEvents.concat(holidayEvents);
 
     if (window.globalCalendarInstance) {
-        window.globalCalendarInstance.removeAllEventSources();
-        window.globalCalendarInstance.addEventSource(visitEvents);
-        window.globalCalendarInstance.addEventSource(holidayEventSource);
+        window.globalCalendarInstance.removeAllEvents();
+        window.globalCalendarInstance.addEventSource(allEvents);
         window.globalCalendarInstance.render();
     } else {
         window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
@@ -1218,13 +1214,10 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            eventSources: [
-                visitEvents,
-                holidayEventSource
-            ],
+            events: allEvents,
             eventClick: function(info) {
                 if (info.event.extendedProps.isHoliday) {
-                    return; 
+                    return; // กดวันหยุด ไม่ต้องเปิดหน้าฟอร์มแก้ไข
                 }
                 window.openEditVisitView(info.event.id);
             },
