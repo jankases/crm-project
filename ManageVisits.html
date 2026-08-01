@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; 
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
 
@@ -720,17 +720,15 @@
     return str;
   };
 
-  // 🎯 1. ฟังก์ชันแปลงวันที่ให้เป็น MM/DD/YYYY เสมอ (ค.ศ. เพียวๆ ไม่บวก พ.ศ.)
+  // 🎯 1. ฟังก์ชันแปลงวันที่ให้เป็นรูปแบบตาม OS (Auto-format) อัตโนมัติ
   window.formatDateToLocal = function(dateStr) {
       if (!dateStr) return '-';
       var d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
       
-      var day = String(d.getDate()).padStart(2, '0');
-      var month = String(d.getMonth() + 1).padStart(2, '0');
-      var year = d.getFullYear(); // ใช้ ค.ศ. เสมอ
-      
-      return month + '/' + day + '/' + year;
+      // 🌟 ใช้ toLocaleDateString() เพื่อให้ Browser/OS จัดการ Format อัตโนมัติ
+      // (ถ้าเครื่องไทยก็โชว์ พ.ศ. ให้เอง ถ้าเครื่อง US ก็โชว์ ค.ศ. ให้เอง ตาม Native เลยครับ)
+      return d.toLocaleDateString(); 
   };
 
   window.setQuickTime = function(type, addMinutes) {
@@ -2518,7 +2516,7 @@
             window.fetchAllRecords('Visit_Products'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
             window.fetchAllRecords('Hospitals'),
-            window.fetchAllRecords('TOT_Logs') // 🌟 ดึงข้อมูล TOT เพิ่มเติม
+            window.fetchAllRecords('TOT_Logs') 
           ];
           var results = await Promise.all(promises);
 
@@ -2529,7 +2527,7 @@
             window.VisitManagerCache.allHospitals = results[3];
             window.globalAllHospitals = results[3];
           }
-          window.VisitManagerCache.totLogs = results[4] || []; // 🌟 เก็บข้อมูล TOT
+          window.VisitManagerCache.totLogs = results[4] || []; 
           
           window.VisitManagerCache.isLoaded = true;
 
@@ -2657,7 +2655,8 @@
         
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
 
-        var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) {
+        var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
+        var prodNames = visitProds.map(function(vp) {
           var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
           return p ? p.Product.toLowerCase() : '';
         }).join(' ');
