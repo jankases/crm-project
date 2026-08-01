@@ -477,7 +477,6 @@
 </div>
 
 <script>
-  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent ทุกรณี
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalVisitProducts = [];
@@ -1151,18 +1150,14 @@
         else if (isPending) bgColor = '#f59e0b'; // Pending (สีส้ม)
         
         var startStr = v.Visit_Date;
-        var endStr = v.Visit_Date; 
-
         if (v.Start_Time) startStr += 'T' + v.Start_Time;
-        if (v.End_Time) endStr += 'T' + v.End_Time;
-        else if (v.Start_Time) endStr += 'T' + v.Start_Time; // บังคับไม่ให้กล่องข้ามวันถ้าลืมใส่ End Time
 
         return {
             id: v.Visit_ID,
             title: title,
             start: startStr,
-            end: (v.Start_Time || v.End_Time) ? endStr : undefined, 
-            allDay: (!v.Start_Time && !v.End_Time), 
+            // 🚫 ถอด end ออกไปเลย เพื่อไม่ให้ปฏิทินตีความเวลาผิดจนวาดยาวข้ามวัน
+            allDay: (!v.Start_Time), 
             backgroundColor: bgColor,
             borderColor: bgColor,
             textColor: '#ffffff', 
@@ -2488,7 +2483,7 @@
 
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
     
-    var appLang = window.getCurrentAppLang(); // 🎯 เช็คภาษาปัจจุบันสำหรับตาราง
+    var appLang = window.getCurrentAppLang(); 
 
     paginatedData.forEach(function(v) {
       var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
@@ -2509,7 +2504,6 @@
       var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
       
-      // 🎯 4. เปลี่ยนข้อความ Purpose ในตารางให้ตรงกับภาษาที่เลือก
       var purposeShow = v.Purpose || '-';
       if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
           var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
