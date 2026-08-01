@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px;
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
   .form-control:disabled, .form-select:disabled { 
@@ -257,7 +257,7 @@
 
       </div>
 
-      <!-- Advanced Filters (User + Territory) -> 🎯 ใส่ attribute multiple สั่งเลือกได้หลายค่า -->
+      <!-- Advanced Filters (User + Territory) -> 🎯 เปลี่ยนเป็น multiple -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
@@ -403,7 +403,7 @@
             </div>
           </div>
 
-          <!-- ฝั่งขวา: Activity Details (สั่ง Auto-Flex ยืดเต็มความสูงสมดุลเป๊ะ 100%) -->
+          <!-- ฝั่งขวา: Activity Details -->
           <div class="col-12 col-xl-6 d-flex">
             <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               
@@ -441,7 +441,6 @@
                 </div>
               </div>
 
-              <!-- Status อยู่ชิดขอบล่างพอดีฝั่งซ้ายเสมอ -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -535,6 +534,7 @@
     }
   }
 
+  // 🎯 Escape HTML เพื่อป้องกันแท็กพังหลุดลอยเวลามีคำค้นหา
   function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -1382,11 +1382,11 @@
               } else if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
-                      var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                      terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      allowedTeamIds.push(String(matchedTeam.Team_ID));
+                      var terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
+                      terrsInTeam.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
-                      var terrs3 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === rawScope; });
-                      terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      allowedTeamIds.push(rawScope);
                   }
               } else {
                   var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
@@ -1521,7 +1521,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🎯 [ปรับปรุง] สร้าง Multi-select TomSelect สำหรับตัวกรอง Rep และ Territory
+  // 🎯 [ปรับปรุง] สร้าง Multi-select TomSelect สำหรับตัวกรอง Rep และ Territory และอัปเดตสิทธิ์ให้ Manager เห็นครบ
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
@@ -1582,6 +1582,8 @@
               allowedTeamIds.push(String(matchedTeam.Team_ID));
               var terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
               terrsInTeam.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+          } else if (rawScope) {
+              allowedTeamIds.push(rawScope); // ถ้า rawScope คือรหัสทีมตรงๆ
           }
       }
 
@@ -1598,7 +1600,14 @@
     window.myAllowedNames = allowedNames;
 
     var uniqueUsersMap = new Map();
-    window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { return allowedRepIds.indexOf(String(u.Rep_ID || u.User_ID || u.id)) !== -1; });
+    // 🎯 [ปรับปรุง] เช็คเงื่อนไข Team_ID และ Territory_ID ให้ครบ เพื่อให้ Manager เห็นลูกทีมตัวเอง
+    window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { 
+        var uid = String(u.Rep_ID || u.User_ID || u.id);
+        var uteam = String(u.Team_ID || u.team_id || u.Team || '');
+        var uter = String(u.Territory_ID || u.territory_id || u.territoryId || u.Territory || '');
+        return allowedRepIds.indexOf(uid) !== -1 || allowedTeamIds.indexOf(uteam) !== -1 || allowedTerIds.indexOf(uter) !== -1;
+    });
+    
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
 
     window.fullAllowedUsers.forEach(function(u) {
@@ -1617,10 +1626,11 @@
     window.fullAllowedTerritories.forEach(function(t) { tHtml += '<option value="' + t.Territory_ID + '">' + t.Territory + '</option>'; });
     terSelect.innerHTML = tHtml;
 
-    // 🎯 สั่งเปลี่ยนให้ทั้ง Rep และ Territory กลายเป็น Multi-select TomSelect
+    // 🎯 [ปรับปรุง] สั่งเปิดใช้งาน maxItems: null เพื่อให้กลายเป็น Multi-Select อย่างสมบูรณ์
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
       tomSelectRepInstance = new TomSelect('#filterVisitRep', {
+        maxItems: null, // บังคับ Multi-select
         plugins: ['remove_button'],
         create: false,
         placeholder: safeTranslate('opt_all_users', '- พนักงานทั้งหมด -'),
@@ -1630,6 +1640,7 @@
 
       if (terSelect.tomselect) terSelect.tomselect.destroy();
       tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
+        maxItems: null, // บังคับ Multi-select
         plugins: ['remove_button'],
         create: false,
         placeholder: safeTranslate('opt_all_territories', '- เขตพื้นที่ทั้งหมด -'),
