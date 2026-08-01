@@ -1130,7 +1130,6 @@
     }
   };
 
-  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทยจากฐานข้อมูล (Dynamic)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1155,7 +1154,7 @@
 
         if (v.Start_Time) startStr += 'T' + v.Start_Time;
         if (v.End_Time) endStr += 'T' + v.End_Time;
-        else if (v.Start_Time) endStr += 'T' + v.Start_Time; // บังคับไม่ให้กล่องข้ามวันถ้าลืมใส่ End Time
+        else if (v.Start_Time) endStr += 'T' + v.Start_Time; 
 
         return {
             id: v.Visit_ID,
@@ -1173,31 +1172,28 @@
 
     var holidayEventSource = {
         events: function(fetchInfo, successCallback, failureCallback) {
-            // 🎯 ดึง IndexType_ID ของ "Public Holiday"
             var types = window.VisitManagerCache.indexTypes || [];
             var holidayType = types.find(function(t) {
                 return t.Name.toLowerCase() === 'public holiday' || t.Name.toLowerCase() === 'holiday';
             });
 
             if (!holidayType) {
-                successCallback([]); // ถ้าไม่มี Category วันหยุด ก็ไม่แสดง
+                successCallback([]); 
                 return;
             }
 
-            // 🎯 กรองเอาเฉพาะข้อมูลที่มี Category เป็น วันหยุด
             var indexes = window.VisitManagerCache.indexes || [];
             var holidayData = indexes.filter(function(i) {
                 return i.IndexType_ID === holidayType.IndexType_ID;
             });
 
-            // 🎯 แมพข้อมูลจากฐานข้อมูลให้กลายเป็นรูปแบบ Event ของ FullCalendar
             var holidays = holidayData.map(function(h) {
                 return {
                     id: 'hol_' + h.Index_ID,
-                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), // 🌟 Value1 เก็บ Description
-                    start: h.Value,                         // 🌟 Value เก็บ Date
+                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), 
+                    start: h.Value,                         
                     allDay: true,
-                    backgroundColor: '#ef4444',             // 🌟 สีแดง สำหรับวันหยุด
+                    backgroundColor: '#ef4444',             
                     borderColor: '#ef4444',
                     textColor: '#ffffff',
                     display: 'block',
@@ -1228,7 +1224,7 @@
             ],
             eventClick: function(info) {
                 if (info.event.extendedProps.isHoliday) {
-                    return; // กดวันหยุด ไม่ต้องเปิดหน้าฟอร์มแก้ไข
+                    return; 
                 }
                 window.openEditVisitView(info.event.id);
             },
@@ -1544,6 +1540,7 @@
     } else window.switchVisitView('visitListView');
   };
 
+  // 🎯 1. ดักจับการทำงานเมื่อเปิดหน้า ManageVisits ให้โหลดข้อมูล
   setTimeout(async function() { 
     try {
       await window.loadDropdowns(); 
@@ -1567,6 +1564,18 @@
       } else {
           window.toggleMainView(window.VisitManagerCache.currentMainView || 'list');
       }
+
+      // 🎯 2. สั่งดักการคลิกปุ่มสลับภาษา EN/TH ข้างบนสุดของจอ
+      var updateLangUI = function() {
+          setTimeout(function() {
+              window.loadDropdowns(false); // โหลด Dropdown Purpose ใหม่
+              window.renderVisitTable();   // วาดตารางใหม่ให้ภาษาตรง
+          }, 150);
+      };
+      var btnEN = document.getElementById('btnLangEN');
+      var btnTH = document.getElementById('btnLangTH');
+      if (btnEN) btnEN.addEventListener('click', updateLangUI);
+      if (btnTH) btnTH.addEventListener('click', updateLangUI);
 
     } catch(err) {
       console.error("Init Visits Failed:", err);
@@ -1884,10 +1893,14 @@
 
         var purposeHtml = '<option value=""></option>';
         
+        // 🎯 3. โหลดตัวเลือก Purpose โดยเช็คภาษาที่เลือกอยู่
         if (purposeType) {
           var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
           purposeItems.forEach(function(i) { 
-            purposeHtml += '<option value="' + i.Value + '">' + i.Value + '</option>'; 
+            var textTh = i.Value || '';
+            var textEn = i.Value1 || i.Value || '';
+            var displayVal = (appLang === 'en') ? textEn : textTh; // โชว์ตามภาษาที่กด
+            purposeHtml += '<option value="' + textTh + '" data-th="' + textTh + '" data-en="' + textEn + '">' + displayVal + '</option>'; 
           });
         } else {
           purposeHtml += '<option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>' +
@@ -1904,9 +1917,11 @@
             var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
             window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
                 create: false, 
+                searchField: ["text", "th", "en"], // ให้ค้นหาได้ทั้งภาษาไทยและอังกฤษ
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: purPlaceholder,
-                dropdownParent: 'body'
+                dropdownParent: 'body',
+                dataAttr: 'data' // เพื่อให้มันอ่านค่า data-th และ data-en
             });
         }
       }
@@ -2479,6 +2494,8 @@
     var paginatedData = data.slice(startIndex, endIndex);
 
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    
+    var appLang = window.getCurrentAppLang(); // 🎯 เช็คภาษาปัจจุบันสำหรับตาราง
 
     paginatedData.forEach(function(v) {
       var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
@@ -2498,7 +2515,18 @@
 
       var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
       var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
+      
+      // 🎯 4. เปลี่ยนข้อความ Purpose ในตารางให้ตรงกับภาษาที่เลือก
       var purposeShow = v.Purpose || '-';
+      if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
+          if (pType) {
+              var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+              if (pIdx && pIdx.Value1) {
+                  purposeShow = pIdx.Value1;
+              }
+          }
+      }
 
       var highlightedDoc = window.applySearchHighlight(docNameShow, smartSearchVal);
       var highlightedHosp = window.applySearchHighlight(hospNameShow, smartSearchVal);
