@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
+    min-height: 44px;
     border-radius: 12px; 
   }
   .form-control:disabled, .form-select:disabled { 
@@ -257,7 +257,7 @@
 
       </div>
 
-      <!-- Advanced Filters (User + Territory) -> 🎯 เปลี่ยนเป็น multiple -->
+      <!-- Advanced Filters (User + Territory) -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
@@ -360,7 +360,7 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section (สลับภาษาตามระบบ + Scroll Box) -->
+                <!-- 🎬 e-Detailing Section -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
                     <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">e-Detailing / Presentation</span></span>
@@ -441,6 +441,7 @@
                 </div>
               </div>
 
+              <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -1382,11 +1383,11 @@
               } else if (globalCurrentUserRole === 'Manager' || globalCurrentUserRole === 'Sales Manager') {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
-                      allowedTeamIds.push(String(matchedTeam.Team_ID));
-                      var terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                      terrsInTeam.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
+                      terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
-                      allowedTeamIds.push(rawScope);
+                      var terrs3 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === rawScope; });
+                      terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   }
               } else {
                   var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
@@ -1442,8 +1443,10 @@
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        var docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
-        docSelect.innerHTML = '<option value="" data-i18n="opt_select_doc_default">' + docDefaultText + '</option>';
+        // 🎯 ดักเช็คภาษาจากปุ่มกด เพื่อให้สลับภาษาได้ 100% โดยไม่ต้องพึ่งไฟล์ index.html
+        var appLang = getCurrentAppLang();
+        var docDefaultText = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
+        docSelect.innerHTML = '<option value="">' + docDefaultText + '</option>';
         
         var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
@@ -1462,7 +1465,8 @@
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
             
-            var docPlaceholder = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
+            // 🎯 อัปเดต Placeholder ของ TomSelect ดร็อปดาวน์แพทย์ตามภาษาปัจจุบัน
+            var docPlaceholder = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
                 searchField: ["text", "name_en", "name_th"],
@@ -1488,8 +1492,10 @@
                  t.Name.toLowerCase() === 'callpurpose'; 
         });
 
-        var defaultPurposeText = safeTranslate('opt_select_purpose', '-- Select Purpose --');
-        var purposeHtml = '<option value="" data-i18n="opt_select_purpose">' + defaultPurposeText + '</option>';
+        // 🎯 ดักเช็คภาษาจากโค้ดโดยตรง
+        var appLang = getCurrentAppLang();
+        var defaultPurposeText = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
+        var purposeHtml = '<option value="">' + defaultPurposeText + '</option>';
         
         if (purposeType) {
           var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
@@ -1521,7 +1527,6 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
-  // 🎯 [ปรับปรุง] สร้าง Multi-select TomSelect สำหรับตัวกรอง Rep และ Territory และอัปเดตสิทธิ์ให้ Manager เห็นครบ
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
@@ -1583,7 +1588,7 @@
               var terrsInTeam = globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
               terrsInTeam.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
           } else if (rawScope) {
-              allowedTeamIds.push(rawScope); // ถ้า rawScope คือรหัสทีมตรงๆ
+              allowedTeamIds.push(rawScope);
           }
       }
 
@@ -1600,7 +1605,6 @@
     window.myAllowedNames = allowedNames;
 
     var uniqueUsersMap = new Map();
-    // 🎯 [ปรับปรุง] เช็คเงื่อนไข Team_ID และ Territory_ID ให้ครบ เพื่อให้ Manager เห็นลูกทีมตัวเอง
     window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { 
         var uid = String(u.Rep_ID || u.User_ID || u.id);
         var uteam = String(u.Team_ID || u.team_id || u.Team || '');
@@ -1626,24 +1630,24 @@
     window.fullAllowedTerritories.forEach(function(t) { tHtml += '<option value="' + t.Territory_ID + '">' + t.Territory + '</option>'; });
     terSelect.innerHTML = tHtml;
 
-    // 🎯 [ปรับปรุง] สั่งเปิดใช้งาน maxItems: null เพื่อให้กลายเป็น Multi-Select อย่างสมบูรณ์
+    var appLang = getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
       tomSelectRepInstance = new TomSelect('#filterVisitRep', {
-        maxItems: null, // บังคับ Multi-select
+        maxItems: null,
         plugins: ['remove_button'],
         create: false,
-        placeholder: safeTranslate('opt_all_users', '- พนักงานทั้งหมด -'),
+        placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -',
         dropdownParent: 'body',
         onChange: function() { handleFilterChange('rep'); }
       });
 
       if (terSelect.tomselect) terSelect.tomselect.destroy();
       tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
-        maxItems: null, // บังคับ Multi-select
+        maxItems: null,
         plugins: ['remove_button'],
         create: false,
-        placeholder: safeTranslate('opt_all_territories', '- เขตพื้นที่ทั้งหมด -'),
+        placeholder: appLang === 'th' ? '- เขตพื้นที่ทั้งหมด -' : '- All Territories -',
         dropdownParent: 'body',
         onChange: function() { handleFilterChange('territory'); }
       });
@@ -1732,7 +1736,10 @@
     if (typeof TomSelect !== 'undefined') {
         if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
         
-        var prodPlaceholder = safeTranslate('opt_select_products', '-- Select Products --');
+        // 🎯 ดักเช็คภาษาจากโค้ดโดยตรง
+        var appLang = getCurrentAppLang();
+        var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
+        
         tomSelectProdInstance = new TomSelect('#visitProductId', { 
             plugins: ['remove_button'], 
             create: false, 
@@ -1846,7 +1853,6 @@
     checkMyDraftsReminder(myDraftsCount);
   }
 
-  // 🎯 [ปรับปรุง] รองรับ Multi-select ของ Rep และ Territory
   function filterVisits(resetPage) {
     if (resetPage === undefined) resetPage = true;
     
@@ -1933,7 +1939,6 @@
           }
       }
 
-      // 🎯 กรองพนักงานแบบหลายค่า
       var matchRep = (selectedReps.length === 0);
       if (selectedReps.length > 0) {
           var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
@@ -1947,7 +1952,6 @@
           });
       }
 
-      // 🎯 กรองเขตพื้นที่แบบหลายค่า
       var matchTer = (selectedTers.length === 0);
       if (selectedTers.length > 0) {
           matchTer = selectedTers.indexOf(String(v.Territory_ID || v.territory_id)) !== -1;
