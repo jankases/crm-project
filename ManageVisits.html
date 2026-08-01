@@ -693,6 +693,25 @@
     return safeText;
   };
 
+  // 🎯 ฟังก์ชันจัดการวันที่: แปลงเป็น DD/MM/YYYY พร้อมรองรับ พ.ศ. / ค.ศ.
+  window.formatDateToLocal = function(dateStr) {
+      if (!dateStr) return '-';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      var appLang = window.getCurrentAppLang();
+      var day = String(d.getDate()).padStart(2, '0');
+      var month = String(d.getMonth() + 1).padStart(2, '0');
+      var year = d.getFullYear();
+      
+      // ถ้าเลือกภาษาไทย ให้บวก 543 เข้าไปในปี ค.ศ.
+      if (appLang === 'th') {
+          year = year + 543;
+      }
+      
+      return day + '/' + month + '/' + year;
+  };
+
   window.checkMyDraftsReminder = function(myDraftCount) {
     var toastContainer = document.getElementById('draftToastContainer');
     if (!toastContainer) return;
@@ -1141,7 +1160,6 @@
     }
   };
 
-  // 🎯 8. ฟังก์ชันแสดงปฏิทิน: จัดการ Tooltip ให้แสดง Purpose ด้วย (แบบขึ้นบรรทัดใหม่ไม่ให้เกะกะ)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1155,7 +1173,6 @@
         var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v);
         
-        // 🎯 ดึง Purpose พร้อมแปลภาษา
         var purposeShow = v.Purpose || '-';
         if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
             var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
@@ -1170,10 +1187,7 @@
         var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
         var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
         
-        // 🎯 สิ่งที่จะโชว์บนกล่องปฏิทิน
         var baseTitle = timePrefix + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
-        
-        // 🎯 สิ่งที่จะโชว์ใน Tooltip (ใส่ \n เพื่อขึ้นบรรทัดใหม่)
         var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
         var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
 
@@ -1242,7 +1256,6 @@
             },
             events: allEvents,
             eventDidMount: function(info) {
-                // 🎯 ดึงข้อความ Tooltip จาก extendedProps ที่เตรียมไว้
                 var tooltipMsg = info.event.extendedProps.fullTooltip || info.event.title;
                 info.el.setAttribute('title', tooltipMsg);
             },
@@ -1827,7 +1840,6 @@
               } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
-                      myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                       var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
                       terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
@@ -2570,7 +2582,8 @@
         statusShow = '⏳ Pending Unlock';
       }
 
-      var dateShow = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
+      // 🎯 ดึงฟังก์ชันแปลง Format วันที่มาใช้ (DD/MM/YYYY ตามภาษา)
+      var dateShow = window.formatDateToLocal(v.Visit_Date);
 
       var docObj = window.globalAllDoctors.find(function(d) {
         return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
