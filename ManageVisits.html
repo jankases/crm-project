@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
+    min-height: 44px; 
     border-radius: 12px; 
   }
 
@@ -20,26 +20,13 @@
     font-weight: 600 !important;
   }
 
-  .visit-filter-group {
-    opacity: 0 !important;
-    transition: opacity 0.3s ease-in-out;
-  }
-  .visit-filter-group.ready {
-    opacity: 1 !important;
-  }
+  .visit-filter-group { opacity: 0 !important; transition: opacity 0.3s ease-in-out; }
+  .visit-filter-group.ready { opacity: 1 !important; }
   
-  select.form-select[multiple]:not(.tomselected) {
-    display: none !important;
-  }
+  select.form-select[multiple]:not(.tomselected) { display: none !important; }
 
-  .btn-primary {
-    background-color: #0d6efd !important;
-    border-color: #0d6efd !important;
-  }
-  .btn-primary:hover {
-    background-color: #0b5ed7 !important;
-    border-color: #0a58ca !important;
-  }
+  .btn-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+  .btn-primary:hover { background-color: #0b5ed7 !important; border-color: #0a58ca !important; }
 
   .table-custom-header {
     background-color: #f8fafc !important;
@@ -71,37 +58,14 @@
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
   
   .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
-  
   .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
   .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
-  
-  .ts-dropdown { 
-    z-index: 99999 !important; 
-    border-radius: 12px; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
-    border: 1px solid #e2e8f0; 
-  }
-
-  .disabled-ts .ts-control input::placeholder { color: transparent !important; }
-  .disabled-ts .ts-control input { opacity: 0 !important; }
+  .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
 
   .ts-wrapper.disabled { opacity: 1 !important; }
-  .ts-wrapper.disabled .ts-control { 
-    opacity: 1 !important; 
-    background-color: #f1f5f9 !important; 
-  }
-  .ts-wrapper.disabled.single .ts-control > .item { 
-    color: #0f172a !important; 
-    -webkit-text-fill-color: #0f172a !important; 
-    font-weight: 600 !important; 
-  }
-  .ts-wrapper.disabled.multi .ts-control > .item { 
-    background-color: #cbd5e1 !important; 
-    border-color: #94a3b8 !important; 
-    color: #0f172a !important; 
-    -webkit-text-fill-color: #0f172a !important; 
-    font-weight: 600 !important; 
-  }
+  .ts-wrapper.disabled .ts-control { opacity: 1 !important; background-color: #f1f5f9 !important; }
+  .ts-wrapper.disabled.single .ts-control > .item { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; font-weight: 600 !important; }
+  .ts-wrapper.disabled.multi .ts-control > .item { background-color: #cbd5e1 !important; border-color: #94a3b8 !important; color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; font-weight: 600 !important; }
 
   .filter-placeholder-text { color: #6c757d !important; }
   .filter-placeholder-text option { color: #212529 !important; }
@@ -113,74 +77,43 @@
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
 
   mark.highlight-text { background-color: #fef08a !important; color: #854d0e !important; padding: 0 3px; border-radius: 4px; font-weight: 700; }
-
   .quick-time-btn { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
 
   .draft-toast {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 9999;
-    background: #ffffff;
-    border-left: 4px solid #f59e0b;
-    border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    position: fixed; top: 80px; right: 20px; z-index: 9999; background: #ffffff;
+    border-left: 4px solid #f59e0b; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    padding: 12px 18px; display: flex; align-items: center; gap: 12px;
     animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
+  @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-  #detailingMediaSection {
-    margin-top: 10px;
-    position: relative;
-    z-index: 1;
-  }
-
-  #mediaListContainer {
-    max-height: 200px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-
+  #detailingMediaSection { margin-top: 10px; position: relative; z-index: 1; }
+  #mediaListContainer { max-height: 200px; overflow-y: auto; padding-right: 4px; }
   #mediaListContainer::-webkit-scrollbar { width: 5px; }
   #mediaListContainer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
   #mediaListContainer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   #mediaListContainer::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  .media-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; background: #ffffff; transition: all 0.2s ease; }
+  .media-card:hover { border-color: #0d6efd; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08); }
 
-  .media-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 10px 14px;
-    background: #ffffff;
-    transition: all 0.2s ease;
-  }
-  .media-card:hover {
-    border-color: #0d6efd;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
-  }
+  #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
+  #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-  #pdfCanvasContainer {
-    width: 100%;
-    height: calc(100vh - 60px);
-    overflow: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #1e1e1e;
+  /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar */
+  #calendar {
+    min-height: 600px;
+    font-family: inherit;
   }
-  #pdfRenderCanvas {
-    max-width: 95%;
-    max-height: 95vh;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  }
+  .fc-event { cursor: pointer; border: none !important; padding: 2px 4px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .fc-event-title { font-weight: 600; font-size: 0.8rem; }
+  .fc-daygrid-day-number { color: #475569; font-weight: 600; }
+  .fc-col-header-cell { background-color: #f8fafc; color: #64748b; padding: 10px 0 !important; }
+  .fc .fc-button-primary { background-color: #ffffff; border-color: #cbd5e1; color: #334155; font-weight: 600; text-transform: capitalize; }
+  .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
+  .fc-toolbar-title { font-weight: 700 !important; color: #1e293b; font-size: 1.25rem !important; }
 </style>
 
+<!-- 📚 โหลด PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
@@ -188,13 +121,15 @@
   }
 </script>
 
+<!-- 📚 โหลด FullCalendar Library สำหรับระบบปฏิทิน -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
 <div id="draftToastContainer"></div>
-<!-- 🎯 Container สำหรับ Toast Notification ยุคใหม่ -->
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
-  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
+  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List & Calendar View) ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -202,7 +137,13 @@
         <p class="text-muted small mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
+        <!-- 🎯 View Toggle Switch -->
+        <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
+          <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
+          <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
+        </div>
+
         <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
@@ -212,7 +153,7 @@
       </div>
     </div>
 
-    <!-- Quick Stat Cards -->
+    <!-- Quick Stat Cards (แสดงตลอดทั้ง 2 View) -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -243,14 +184,13 @@
       </div>
     </div>
 
-    <!-- Smart Search Bar + Filter Bar -->
+    <!-- Smart Search Bar + Filter Bar (แสดงตลอด) -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <!-- 🎯 เรียกใช้ debouncedFilterVisits() แทน filterVisits() ตรงๆ ลดอาการเครื่องกระตุก -->
             <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="debouncedFilterVisits()">
             <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
               <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
@@ -300,8 +240,8 @@
       </div>
     </div>
 
-    <!-- ตารางประวัติ -->
-    <div class="card p-4 border-0 shadow-sm visit-card">
+    <!-- 🎯 Zone 1: ตารางประวัติ (List View) -->
+    <div id="visitListZone" class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
@@ -335,8 +275,13 @@
           <ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination"></ul>
         </nav>
       </div>
-
     </div>
+
+    <!-- 🎯 Zone 2: มุมมองปฏิทิน (Calendar View) -->
+    <div id="visitCalendarZone" class="card p-4 border-0 shadow-sm visit-card d-none">
+      <div id="calendar"></div>
+    </div>
+
   </div>
 
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View - iPad Optimized) ================= -->
@@ -468,6 +413,7 @@
               <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
+                <!-- 🎯 สั่งโหลด Media ใหม่ถ้ามีการเปลี่ยนสถานะ -->
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
@@ -536,7 +482,7 @@
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
   }
 
-  // 🎯 2. ฟังก์ชัน Debounce สำหรับ Smart Search ลดการกระตุกของเครื่อง
+  // 🎯 2. ฟังก์ชัน Debounce สำหรับ Smart Search
   var filterDebounceTimer = null;
   function debouncedFilterVisits() {
       if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
@@ -590,7 +536,6 @@
       localStorage.removeItem('visitDraft_' + (visitId || 'NEW'));
   }
 
-  // เริ่มจับ Event เพื่อ Auto-save เมื่อผู้ใช้พิมพ์
   setTimeout(function() {
       var form = document.getElementById('visitForm');
       if (form) {
@@ -644,7 +589,7 @@
       var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
       document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
     }
-    saveFormDraft(); // Auto-save trigger
+    saveFormDraft();
   }
 
   function applySearchHighlight(text, searchKeyword) {
@@ -690,6 +635,9 @@
     }
   }
 
+  // -------------------------------------------------------------
+  // 🎬 e-Detailing
+  // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
@@ -700,7 +648,6 @@
   var totalPdfPages = 1;
   var currentPageStartTime = null;
   var pageLogsBuffer = [];
-  
   var globalIsMediaPreviewMode = false;
 
   async function fetchDetailingMedia() {
@@ -1103,7 +1050,6 @@
     return '-';
   }
 
-  // 🌟 ระบบไมค์ค้นหาหมอ
   var docRecognition = null;
   function toggleDocDictation() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1175,7 +1121,6 @@
     }
   }
 
-  // 🌟 ระบบไมค์สั่งงานสำหรับช่องข้อความ
   var textRecognition = null;
   var currentDictTargetId = null;
   var currentDictBtnId = null;
@@ -1211,7 +1156,7 @@
       if (inputEl && spokenText) {
         var currentVal = inputEl.value;
         inputEl.value = currentVal ? (currentVal + ' ' + spokenText) : spokenText;
-        saveFormDraft(); // Auto-save
+        saveFormDraft(); 
       }
     };
 
@@ -1321,7 +1266,8 @@
       isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
       allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], bus: [], teamProdLinks: [],
       assignments: [], indexTypes: [], indexes: [], pendingUnlocks: [],
-      filters: { smartSearch: '', startDate: '', endDate: '', status: '', rep: [], territory: [], page: 1, rows: 20, sortCol: 'date', sortAsc: false }
+      filters: { smartSearch: '', startDate: '', endDate: '', status: '', rep: [], territory: [], page: 1, rows: 20, sortCol: 'date', sortAsc: false },
+      currentMainView: 'list' // 🎯 เก็บสถานะ View เริ่มต้น
   };
 
   var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
@@ -1334,15 +1280,18 @@
   var tomSelectRepInstance = null;
   var tomSelectTerInstance = null;
   var tomSelectStatusInstance = null;
+  
+  // 🎯 ตัวแปรสำหรับปฏิทิน
+  var globalCalendarInstance = null;
 
   var currentSortCol = 'date';
   var currentSortAsc = false; 
   var currentPage = 1;
   var rowsPerPage = 20;
 
-  window.openAddVisitModal = function(fromDocId) {
+  window.openAddVisitModal = function(fromDocId, presetDate) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
-    openAddVisitView();
+    openAddVisitView(presetDate);
   };
 
   window.openEditVisitModal = function(visitId, fromDocId) {
@@ -1405,6 +1354,94 @@
     } else switchVisitView('visitListView');
   }
 
+  // 🎯 ฟังก์ชันสลับมุมมอง List / Calendar
+  function toggleMainView(viewName) {
+    window.VisitManagerCache.currentMainView = viewName;
+    var btnList = document.getElementById('btnToggleList');
+    var btnCal = document.getElementById('btnToggleCal');
+    var listZone = document.getElementById('visitListZone');
+    var calZone = document.getElementById('visitCalendarZone');
+
+    if (viewName === 'calendar') {
+        btnCal.classList.replace('btn-light', 'btn-primary');
+        btnCal.classList.replace('text-secondary', 'text-white');
+        btnList.classList.replace('btn-primary', 'btn-light');
+        btnList.classList.add('text-secondary');
+        
+        listZone.classList.add('d-none');
+        calZone.classList.remove('d-none');
+        
+        renderCalendarView();
+    } else {
+        btnList.classList.replace('btn-light', 'btn-primary');
+        btnList.classList.remove('text-secondary');
+        btnCal.classList.replace('btn-primary', 'btn-light');
+        btnCal.classList.add('text-secondary');
+        
+        calZone.classList.add('d-none');
+        listZone.classList.remove('d-none');
+    }
+  }
+
+  // 🎯 ฟังก์ชันสร้างและวาดปฏิทิน
+  function renderCalendarView() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    var events = globalFilteredVisits.map(function(v) {
+        var docObj = globalAllDoctors.find(function(d) {
+            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
+        });
+        var docName = getDoctorNameByLang(docObj, v.Doc_ID);
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v);
+        var title = docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        var isPending = (v.Status === 'Pending');
+        var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
+        
+        var bgColor = '#10b981'; // Green for Submitted
+        if (isPendingUnlock) bgColor = '#64748b'; // Gray for Pending Unlock
+        else if (isPending) bgColor = '#f59e0b'; // Yellow for Pending Draft
+        
+        var startStr = v.Visit_Date;
+        if (v.Start_Time) startStr += 'T' + v.Start_Time;
+
+        return {
+            id: v.Visit_ID,
+            title: title,
+            start: startStr,
+            backgroundColor: bgColor,
+            borderColor: 'transparent',
+            extendedProps: { status: v.Status }
+        };
+    });
+
+    if (globalCalendarInstance) {
+        globalCalendarInstance.removeAllEvents();
+        globalCalendarInstance.addEventSource(events);
+        globalCalendarInstance.render();
+    } else {
+        globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: events,
+            eventClick: function(info) {
+                openEditVisitView(info.event.id);
+            },
+            dateClick: function(info) {
+                openAddVisitView(info.dateStr); // ส่งวันที่ไปพรีฟิลในฟอร์ม
+            },
+            eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
+            displayEventTime: true
+        });
+        globalCalendarInstance.render();
+    }
+  }
+
   setTimeout(async function() { 
     try {
       await loadDropdowns(); 
@@ -1414,6 +1451,23 @@
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
       }
+      
+      // 🎯 ตรวจสอบ Default View
+      var crmUser = null; 
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
+      var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1;
+      var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
+      var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
+      var isSales = !isGlobalViewer && !isBuHead && !isManager;
+
+      // 🎯 ถ้าเป็น Sales ให้ Default เป็น Calendar
+      if (isSales && window.VisitManagerCache.currentMainView === 'list') {
+          toggleMainView('calendar');
+      } else {
+          toggleMainView(window.VisitManagerCache.currentMainView || 'list');
+      }
+
     } catch(err) {
       console.error("Init Visits Failed:", err);
       var tbody = document.getElementById('visitTableBody');
@@ -1496,21 +1550,6 @@
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
       window.updateFormUserInfo(crmUser, null);
     } catch(e) {}
-  }
-
-  function switchVisitView(viewId) {
-    var views = ['visitListView', 'visitFormView'];
-    views.forEach(function(v) { 
-      var el = document.getElementById(v); 
-      if(el) el.classList.add('d-none'); 
-    });
-    var target = document.getElementById(viewId); 
-    if(target) target.classList.remove('d-none');
-    window.scrollTo(0, 0);
-
-    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-      setLanguage(currentLang);
-    }
   }
 
   async function loadDropdowns(forceReload) {
@@ -1664,6 +1703,7 @@
           window.VisitManagerCache.products = results[1] || [];
           window.VisitManagerCache.territories = globalTerritoryListLocal;
           window.VisitManagerCache.teams = globalTeamListLocal;
+          window.VisitManagerCache.bus = globalBuListLocal || [];
           window.VisitManagerCache.teamProdLinks = results[6] || [];
           window.VisitManagerCache.indexTypes = (results[7] && results[7].data) ? results[7].data : [];
           window.VisitManagerCache.indexes = (results[8] && results[8].data) ? results[8].data : [];
@@ -2263,6 +2303,11 @@
     updateStatCards(globalFilteredVisits);
 
     renderVisitTable();
+    
+    // 🎯 ให้อัปเดตปฏิทินด้วยเวลา Filter เปลี่ยน
+    if (window.VisitManagerCache.currentMainView === 'calendar') {
+        renderCalendarView();
+    }
   }
 
   function updateStatCards(filteredVisits) {
@@ -2374,41 +2419,6 @@
     renderPaginationControls(totalPages);
   }
 
-  window.renderPaginationControls = function(totalPages) {
-    var ul = document.getElementById('visitPagination');
-    if (!ul) return;
-    var html = '';
-
-    html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
-              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage - 1) + '); return false;">&laquo; Prev</a>' +
-            '</li>';
-
-    var startPage = Math.max(1, currentPage - 2);
-    var endPage = Math.min(totalPages, currentPage + 2);
-
-    if (startPage > 1) {
-        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>';
-        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-    }
-
-    for (var i = startPage; i <= endPage; i++) {
-        html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
-                  '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a>' +
-                '</li>';
-    }
-
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
-    }
-
-    html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
-              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage + 1) + '); return false;">Next &raquo;</a>' +
-            '</li>';
-
-    ul.innerHTML = html;
-  }
-
   function toggleVisitFormEditable(isEditable) {
     var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     var formView = document.getElementById('visitFormView');
@@ -2445,14 +2455,16 @@
     });
   }
 
-  async function openAddVisitView() {
+  async function openAddVisitView(presetDate) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     document.getElementById('visitForm').reset();
     document.getElementById('visitId').value = '';
     document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">Add New Visit</span>';
-    document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+    
+    // 🎯 ถ้าส่ง presetDate มาจาก Calendar ให้ใช้วันที่นั้น ถ้าไม่ให้ใช้วันนี้
+    document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
 
@@ -2487,7 +2499,6 @@
       }, 250);
     }
 
-    // 🎯 3. สั่งดึง Draft มาโชว์ ถ้ามี
     setTimeout(function() { restoreFormDraft('NEW'); }, 500);
 
     var btn = document.getElementById('saveVisitBtn');
@@ -2562,7 +2573,6 @@
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
 
-    // 🎯 3. สั่งดึง Draft มาโชว์ ถ้ามี (ทับข้อมูลเดิมไปเลย)
     setTimeout(function() { restoreFormDraft(visitId); }, 500);
 
     var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
@@ -2732,8 +2742,6 @@
       }
 
       showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-      
-      // 🎯 เมื่อ Save สำเร็จ ให้เคลียร์ Draft ทิ้ง
       clearFormDraft(existingVisitId || 'NEW');
 
       var returnDocId = sessionStorage.getItem('returnToDocId');
@@ -2785,4 +2793,6 @@
   window.loadDropdowns = loadDropdowns;
   window.updateFormUserInfo = updateFormUserInfo;
   window.debouncedFilterVisits = debouncedFilterVisits;
+  window.toggleMainView = toggleMainView;
+  window.renderCalendarView = renderCalendarView;
 </script>
