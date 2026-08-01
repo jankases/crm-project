@@ -81,6 +81,10 @@
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
 
+  /* 🎯 คลาสเฉพาะเพื่อปรับสี Filter ให้เป็นสีเทากลืนกัน */
+  .filter-placeholder-text { color: #6c757d !important; }
+  .filter-placeholder-text option { color: #212529 !important; }
+
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd; }
 
@@ -111,7 +115,6 @@
     to { transform: translateX(0); opacity: 1; }
   }
 
-  /* 🎨 Scroll Box สำหรับโซน e-Detailing */
   #detailingMediaSection {
     margin-top: 10px;
     position: relative;
@@ -141,7 +144,6 @@
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
   }
 
-  /* 📄 PDF Canvas Container */
   #pdfCanvasContainer {
     width: 100%;
     height: calc(100vh - 60px);
@@ -158,7 +160,6 @@
   }
 </style>
 
-<!-- 📚 โหลด PDF.js Library สำหรับเปลี่ยนหน้าสไลด์และนับเวลา -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
@@ -170,7 +171,6 @@
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
-  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -188,7 +188,6 @@
       </div>
     </div>
 
-    <!-- Quick Stat Cards -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -219,7 +218,6 @@
       </div>
     </div>
 
-    <!-- Smart Search Bar + Filter Bar -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
@@ -242,7 +240,8 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2">
-          <select class="form-select border rounded-pill shadow-none" id="filterVisitStatus" onchange="filterVisits()">
+          <!-- 🎯 ปรับแต่งสี Filter สถานะให้สีกลมกลืนกับ TomSelect -->
+          <select class="form-select border rounded-pill shadow-none filter-placeholder-text" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); filterVisits();" style="font-weight: 500; font-size: 0.9rem;">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
             <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
@@ -260,7 +259,6 @@
 
       </div>
 
-      <!-- Advanced Filters (User + Territory) -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
@@ -275,7 +273,6 @@
       </div>
     </div>
 
-    <!-- ตารางประวัติ -->
     <div class="card p-4 border-0 shadow-sm visit-card">
       <div class="table-responsive">
         <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
@@ -314,7 +311,6 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View - iPad Optimized) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
@@ -342,7 +338,6 @@
 
         <div class="row g-4 align-items-stretch">
           
-          <!-- ฝั่งซ้าย: Visit Information -->
           <div class="col-12 col-xl-6 d-flex">
             <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               <div>
@@ -363,7 +358,6 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
-                <!-- 🎬 e-Detailing Section -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
                     <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">e-Detailing / Presentation</span></span>
@@ -404,7 +398,6 @@
             </div>
           </div>
 
-          <!-- ฝั่งขวา: Activity Details -->
           <div class="col-12 col-xl-6 d-flex">
             <div class="p-3 p-md-4 rounded-4 border bg-white shadow-xs w-100 d-flex flex-column justify-content-between">
               
@@ -442,7 +435,6 @@
                 </div>
               </div>
 
-              <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -1228,6 +1220,14 @@
       clearTs('filterStartDate');
       clearTs('filterEndDate');
       clearTs('filterVisitStatus');
+      
+      // 🎯 ดักคืนค่าสีเทาให้ Filter สถานะเวลาล้างข้อมูล
+      var stEl = document.getElementById('filterVisitStatus');
+      if (stEl) {
+          stEl.value = '';
+          stEl.classList.add('filter-placeholder-text');
+      }
+
       if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
       
       filterVisits();
@@ -1670,7 +1670,6 @@
     window.myAllowedTeamIds = allowedTeamIds;
     window.myAllowedTerIds = allowedTerIds;
 
-    // 🎯 ดึง Manager ที่ทำบันทึกเยี่ยมในพื้นที่ของ BU เข้ามารวมสิทธิ์ด้วย (Aggressive Mapping)
     if (!isGlobalViewer) {
         globalVisits.forEach(function(v) {
             var vTer = String(v.Territory_ID || v.territory_id || '').trim();
@@ -1929,7 +1928,13 @@
         if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
-        if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
+        
+        if (document.getElementById('filterVisitStatus')) {
+            var stEl = document.getElementById('filterVisitStatus');
+            stEl.value = f.status || '';
+            stEl.classList.toggle('filter-placeholder-text', stEl.value === '');
+        }
+        
         if (tomSelectRepInstance && f.rep) tomSelectRepInstance.setValue(f.rep);
         if (tomSelectTerInstance && f.territory) tomSelectTerInstance.setValue(f.territory);
         if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
@@ -1994,7 +1999,6 @@
         var rawScope = '';
         try { var cu = JSON.parse(sessionStorage.getItem('crmUser')); rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : ''; } catch(e){}
 
-        // 🎯 เช็คสิทธิ์ด้วย Aggressive Fallback สำหรับ Manager ที่ทำ Visit ใน Team/BU Area
         if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || 
             window.myAllowedTerIds.indexOf(vTerrId) !== -1 || 
             window.myAllowedTeamIds.indexOf(vTerrId) !== -1 || 
@@ -2517,9 +2521,6 @@
         selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     }
     selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
-
-    var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     var missingFields = [];
     if (!docVal) missingFields.push("• Doctor");
