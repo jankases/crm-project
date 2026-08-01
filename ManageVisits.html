@@ -61,7 +61,6 @@
   .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
   .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
   
-  /* 🎯 ดักจับให้ "- All Status -" มีสีและน้ำหนักเหมือน Placeholder ปกติ */
   .ts-wrapper.single .ts-control > .item[data-value=""] { color: #6c757d !important; font-weight: 400 !important; }
 
   .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
@@ -105,9 +104,25 @@
 
   /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar */
   #calendar { min-height: 600px; font-family: inherit; }
-  .fc-event { cursor: pointer; border: none !important; padding: 3px 6px !important; border-radius: 6px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 3px !important; color: #ffffff !important; }
-  .fc-event-main { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; }
+  
+  .fc-event { 
+      cursor: pointer; 
+      border: none !important; 
+      padding: 3px 6px !important; 
+      border-radius: 6px !important; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+      margin-bottom: 3px !important; 
+      color: #ffffff !important; 
+  }
+  .fc-event-main {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+  }
   .fc-daygrid-event-dot { display: none !important; }
+
   .fc-event-title { font-weight: 600; font-size: 0.8rem; }
   .fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
   .fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; }
@@ -149,7 +164,7 @@
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
-        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
+        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
         <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="window.openAddVisitView()">
@@ -464,6 +479,7 @@
 </div>
 
 <script>
+  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent ทุกรณี
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalVisitProducts = [];
@@ -512,6 +528,7 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
+  // 🎯 1. ฟังก์ชันสร้าง UUID 
   window.generateUUID = function() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -1136,12 +1153,23 @@
         else if (isPending) bgColor = '#f59e0b'; // Pending (สีส้ม)
         
         var startStr = v.Visit_Date;
+        var endStr = v.Visit_Date; 
+
         if (v.Start_Time) startStr += 'T' + v.Start_Time;
+        
+        // 🎯 ดักจับ End Time เพื่อไม่ให้ปฏิทินวาดข้ามวัน
+        if (v.End_Time) {
+            endStr += 'T' + v.End_Time;
+        } else if (v.Start_Time) {
+            endStr += 'T' + v.Start_Time; 
+        }
 
         return {
             id: v.Visit_ID,
             title: title,
             start: startStr,
+            end: (v.Start_Time || v.End_Time) ? endStr : undefined, 
+            allDay: (!v.Start_Time && !v.End_Time), 
             backgroundColor: bgColor,
             borderColor: bgColor,
             textColor: '#ffffff', 
