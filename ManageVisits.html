@@ -60,6 +60,10 @@
   .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
   .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
+  
+  /* 🎯 ดักจับให้ "- All Status -" มีสีและน้ำหนักเหมือน Placeholder ปกติ */
+  .ts-wrapper.single .ts-control > .item[data-value=""] { color: #6c757d !important; font-weight: 400 !important; }
+
   .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
 
   .ts-wrapper.disabled { opacity: 1 !important; }
@@ -99,9 +103,11 @@
   #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
   #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-  /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar ให้สวยและชัดเจนขึ้น */
+  /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar */
   #calendar { min-height: 600px; font-family: inherit; }
-  .fc-event { cursor: pointer; border: none !important; padding: 2px 6px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 3px; }
+  .fc-event { cursor: pointer; border: none !important; padding: 3px 6px !important; border-radius: 6px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 3px !important; color: #ffffff !important; }
+  .fc-event-main { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; }
+  .fc-daygrid-event-dot { display: none !important; }
   .fc-event-title { font-weight: 600; font-size: 0.8rem; }
   .fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
   .fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; }
@@ -139,14 +145,14 @@
       <div class="d-flex gap-2 align-items-center">
         <!-- 🎯 View Toggle Switch -->
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
-          <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
-          <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
+          <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
+          <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
         <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="forceReloadVisits()" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
-        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="openAddVisitView()">
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2" onclick="window.openAddVisitView()">
           <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
@@ -458,7 +464,6 @@
 </div>
 
 <script>
-  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent ทุกรณี
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalVisitProducts = [];
@@ -507,7 +512,6 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // 🎯 1. ฟังก์ชันสร้าง UUID 
   window.generateUUID = function() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -1096,20 +1100,16 @@
     var calZone = document.getElementById('visitCalendarZone');
 
     if (viewName === 'calendar') {
-        btnCal.classList.replace('btn-light', 'btn-primary');
-        btnCal.classList.replace('text-secondary', 'text-white');
-        btnList.classList.replace('btn-primary', 'btn-light');
-        btnList.classList.add('text-secondary');
+        btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
         
         listZone.classList.add('d-none');
         calZone.classList.remove('d-none');
         
         window.renderCalendarView();
     } else {
-        btnList.classList.replace('btn-light', 'btn-primary');
-        btnList.classList.remove('text-secondary');
-        btnCal.classList.replace('btn-primary', 'btn-light');
-        btnCal.classList.add('text-secondary');
+        btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
         
         calZone.classList.add('d-none');
         listZone.classList.remove('d-none');
@@ -1131,9 +1131,9 @@
         var isPending = (v.Status === 'Pending');
         var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
         
-        var bgColor = '#10b981'; 
+        var bgColor = '#10b981'; // Submitted (สีเขียว)
         if (isPendingUnlock) bgColor = '#64748b'; 
-        else if (isPending) bgColor = '#f59e0b'; 
+        else if (isPending) bgColor = '#f59e0b'; // Pending (สีส้ม)
         
         var startStr = v.Visit_Date;
         if (v.Start_Time) startStr += 'T' + v.Start_Time;
@@ -1143,7 +1143,9 @@
             title: title,
             start: startStr,
             backgroundColor: bgColor,
-            borderColor: 'transparent',
+            borderColor: bgColor,
+            textColor: '#ffffff', 
+            display: 'block',     
             extendedProps: { status: v.Status }
         };
     });
@@ -1631,7 +1633,7 @@
           if (typeof TomSelect !== 'undefined') {
               if (statusSelect.tomselect) statusSelect.tomselect.destroy();
               window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
-                  allowEmptyOption: true, // 🎯 แก้ปัญหาตัวเลือกที่มี value="" หายไป
+                  allowEmptyOption: true,
                   create: false,
                   placeholder: optAllStatus,
                   dropdownParent: 'body',
