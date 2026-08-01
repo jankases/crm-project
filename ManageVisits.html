@@ -68,7 +68,6 @@
   
   .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
   
-  /* 🎯 แก้ไขให้กรอบสีฟ้า (Pill) แสดงเฉพาะช่องเลือกหลายรายการ (Products/Filters) เท่านั้น */
   .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
   .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
   
@@ -374,7 +373,6 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                  <!-- 🎯 จับวัตถุประสงค์ใส่ TomSelect ด้วย เพื่อให้สีและขนาดเท่ากับ 2 ช่องด้านบน -->
                   <select class="form-select bg-white shadow-sm" id="visitPurpose" required></select>
                 </div>
 
@@ -444,6 +442,7 @@
                 </div>
               </div>
 
+              <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -1198,7 +1197,7 @@
   
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
-  var tomSelectPurposeInstance = null; /* 🎯 อัปเกรด Purpose ให้ใช้ TomSelect */
+  var tomSelectPurposeInstance = null; 
   var tomSelectRepInstance = null;
   var tomSelectTerInstance = null;
 
@@ -1459,7 +1458,7 @@
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        // 🎯 1. ใส่ Option ว่างเปล่าเท่านั้น เพื่อให้ Placeholder ทำงาน 100%
+        // 🎯 1. ใส่ Option ว่างเพื่อให้ TomSelect ใช้งาน Placeholder ได้สวยงาม และไม่เกิดกรอบฟ้าหลอน
         docSelect.innerHTML = '<option value=""></option>';
         
         var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
@@ -1485,11 +1484,10 @@
                 searchField: ["text", "name_en", "name_th"],
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: docPlaceholder,
-                maxOptions: null,
+                maxOptions: null, // 🎯 ลบ allowEmptyOption: true ออกไป จะได้ไม่ขึ้นกรอบสีฟ้าเปล่าๆ
                 dropdownParent: 'body',
                 dataAttr: 'data'
             });
-            // เอา allowEmptyOption: true ออกแล้ว เพื่อป้องกันปัญหากล่องฟ้าหลอน
         }
       }
 
@@ -1505,7 +1503,7 @@
                  t.Name.toLowerCase() === 'callpurpose'; 
         });
 
-        // 🎯 2. ทำ Purpose ให้เป็น TomSelect ด้วยเลย สีจะได้เป๊ะกับ 2 ตัวบน!
+        // 🎯 2. ทำ Purpose ให้เป็น TomSelect ด้วยเลย เพื่อให้สีตัวอักษรกลืนกันเป๊ะ 100% กับ 2 ช่องด้านบน
         var purposeHtml = '<option value=""></option>';
         
         if (purposeType) {
@@ -1571,6 +1569,8 @@
     var allowedRepIds = [];
     var allowedEmails = [];
     var allowedNames = [];
+    
+    var targetBuId = '';
 
     if (isGlobalViewer) {
       allowedTeamIds = globalTeamList.map(function(t) { return String(t.Team_ID); });
@@ -1596,7 +1596,7 @@
       if (userRole === 'BU Head' || userRole === 'BU') {
           var buList = window.VisitManagerCache.bus || [];
           var matchedBu = buList.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
-          var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+          targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
 
           var buTeams = globalTeamList.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope); });
           buTeams.forEach(function(t) {
@@ -1628,14 +1628,36 @@
     window.myAllowedNames = allowedNames;
 
     var uniqueUsersMap = new Map();
+    
     window.fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) { 
         var uid = String(u.Rep_ID || u.User_ID || u.id);
         var uteam = String(u.Team_ID || u.team_id || u.Team || '');
         var uter = String(u.Territory_ID || u.territory_id || u.territoryId || u.Territory || '');
-        return allowedRepIds.indexOf(uid) !== -1 || allowedTeamIds.indexOf(uteam) !== -1 || allowedTerIds.indexOf(uter) !== -1;
+        var ubu = String(u.BU_ID || u.bu_id || u.BU || '');
+        
+        var isMatched = window.myAllowedRepIds.indexOf(uid) !== -1 || 
+                        window.myAllowedTeamIds.indexOf(uteam) !== -1 || 
+                        window.myAllowedTerIds.indexOf(uter) !== -1;
+                        
+        if (!isMatched && targetBuId && (ubu === targetBuId || ubu === rawScope)) {
+            isMatched = true;
+        }
+        return isMatched;
     });
     
     if (window.fullAllowedUsers.length === 0) window.fullAllowedUsers = globalUsersList;
+
+    if (!isGlobalViewer) {
+        window.fullAllowedUsers.forEach(function(u) {
+            var uid = String(u.Rep_ID || u.User_ID || u.id);
+            var uem = String(u.Email || u.email || '').toLowerCase();
+            var unm = String(u.Rep_Name || u.Name || u.name || '').toLowerCase();
+            
+            if (uid && window.myAllowedRepIds.indexOf(uid) === -1) window.myAllowedRepIds.push(uid);
+            if (uem && window.myAllowedEmails.indexOf(uem) === -1) window.myAllowedEmails.push(uem);
+            if (unm && window.myAllowedNames.indexOf(unm) === -1) window.myAllowedNames.push(unm);
+        });
+    }
 
     window.fullAllowedUsers.forEach(function(u) {
         var id = String(u.Rep_ID || u.User_ID || u.id);
