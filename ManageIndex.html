@@ -46,8 +46,8 @@
   input:focus + .slider { box-shadow: 0 0 1px #10b981; }
   input:checked + .slider:before { -webkit-transform: translateX(24px); -ms-transform: translateX(24px); transform: translateX(24px); }
 
-  .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
-  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+  .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; }
+  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1100px; margin: 0 auto;">
@@ -87,12 +87,12 @@
         <div class="text-center" style="min-width: 140px;">
           <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
           <label class="switch mb-0">
-            <input type="checkbox" id="ratingToggleSwitch" onchange="toggleRatingSystem()">
+            <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
             <span class="slider"></span>
           </label>
         </div>
         <div>
-          <button class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm text-nowrap" id="btnSaveSysSettings" onclick="saveSystemSettings()" style="height: 38px;">
+          <button class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm text-nowrap" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 38px;">
             <i class="fa-solid fa-save me-1"></i> Save
           </button>
         </div>
@@ -106,7 +106,7 @@
       <div class="card p-4 border-0 visit-card w-100">
         <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
           <h5 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-layer-group me-2 text-secondary"></i>1. Categories</h5>
-          <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 shadow-sm" onclick="openAddIndexTypeModal()">
+          <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 shadow-sm" onclick="window.openAddIndexTypeModal()">
             <i class="fa-solid fa-plus"></i>
           </button>
         </div>
@@ -129,10 +129,10 @@
           <h5 class="fw-bold text-primary mb-0 fs-6"><i class="fa-solid fa-list-check me-2"></i>2. Index Values</h5>
           
           <div class="d-flex align-items-center gap-2">
-            <select class="form-select form-select-sm shadow-sm border-primary fw-bold text-primary" id="filterIndexType" onchange="filterIndexValues()" style="border-radius: 8px; min-width: 200px;">
+            <select class="form-select form-select-sm shadow-sm border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; min-width: 200px;">
               <option value="">- All Categories -</option>
             </select>
-            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-sm text-nowrap" onclick="openAddIndexModal()">
+            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-sm text-nowrap" onclick="window.openAddIndexModal()">
               <i class="fa-solid fa-plus me-1"></i>Add Value
             </button>
           </div>
@@ -140,7 +140,6 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.95rem;">
-            <!-- 🎯 หัวตารางที่จะแปรผันตาม Category -->
             <thead class="table-custom-header">
               <tr>
                 <th id="thCategory" class="text-start">Category</th>
@@ -170,7 +169,7 @@
           <h5 class="modal-title fw-bold text-dark" id="indexTypeModalTitle">Add Category</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <form onsubmit="handleSaveIndexType(event)">
+        <form onsubmit="window.handleSaveIndexType(event)">
           <div class="modal-body p-4">
             <input type="hidden" id="modalIndexTypeId">
             <div class="mb-2">
@@ -195,7 +194,7 @@
           <h5 class="modal-title fw-bold text-primary" id="indexModalTitle">Add Value</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <form onsubmit="handleSaveIndex(event)">
+        <form onsubmit="window.handleSaveIndex(event)">
           <div class="modal-body p-4">
             <input type="hidden" id="modalIndexId">
             
@@ -207,6 +206,7 @@
             <!-- ช่อง Value หลัก -->
             <div class="mb-3" id="groupValue">
               <label class="form-label fw-bold text-dark small" id="lblValue">Value <span class="text-danger">*</span></label>
+              <!-- ตัวนี้จะถูกสลับเป็น type="date" ถ้าระบบเจอว่าเป็น Category วันหยุด -->
               <input type="text" class="form-control" id="modalIndexValue" required>
             </div>
 
@@ -250,7 +250,6 @@
   }, 300);
 
   // ================= 🌟 ส่วนจัดการ System_Settings =================
-
   window.loadSystemSettings = async function() {
     try {
       const { data, error } = await supabaseClient.from('System_Settings').select('*');
@@ -358,7 +357,6 @@
   };
 
   // ================= ส่วนโหลด Index =================
-
   window.loadAllIndexData = async function() {
     try {
       const [typeRes, idxRes] = await Promise.all([
@@ -381,7 +379,6 @@
   };
 
   // ================= ส่วนจัดการ IndexType =================
-
   window.renderIndexTypeTable = function() {
     const tbody = document.getElementById('indexTypeTableBody');
     tbody.innerHTML = '';
@@ -472,22 +469,21 @@
        if (tObj) selectedTypeName = tObj.Name.toLowerCase();
     }
 
-    // 🎯 ควบคุมการซ่อน/แสดงหัวตารางแบบ Dynamic
     const thValue = document.getElementById('thValue');
     const thValue1 = document.getElementById('thValue1');
     const thValue2 = document.getElementById('thValue2');
 
+    // 🎯 ควบคุมการแสดงผลหัวตาราง
     if (selectedTypeName === 'province') {
         thValue.innerText = "Province";
         thValue1.innerText = "Zone";
         thValue1.classList.remove('d-none');
         thValue2.classList.add('d-none');
     } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
-        thValue.innerText = "Year";
-        thValue1.innerText = "Date";
-        thValue2.innerText = "Description";
+        thValue.innerText = "Date";        // 🌟 เปลี่ยนหัวข้อเป็น Date
+        thValue1.innerText = "Description"; // 🌟 เปลี่ยนหัวข้อ Value1 เป็น Description
         thValue1.classList.remove('d-none');
-        thValue2.classList.remove('d-none');
+        thValue2.classList.add('d-none');   // 🌟 ซ่อน Value2 เพราะไม่ใช้แล้ว
     } else {
         thValue.innerText = "Value";
         thValue1.classList.add('d-none');
@@ -517,7 +513,9 @@
       if (selectedTypeName === 'province' || selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
          rowHtml += `<td><span class="badge badge-soft-primary">${i.Value1 || '-'}</span></td>`;
       }
-      if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
+      
+      // วันหยุดไม่โชว์ Value 2 แล้ว
+      if (selectedTypeName !== 'province' && selectedTypeName !== 'public holiday' && selectedTypeName !== 'holiday' && !thValue2.classList.contains('d-none')) {
          rowHtml += `<td class="text-muted small">${i.Value2 || '-'}</td>`;
       }
 
@@ -531,12 +529,14 @@
     });
   };
 
-  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic ตาม Category
+  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic
   window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
       const typeName = tObj ? tObj.Name.toLowerCase() : "";
 
+      const inputValMain = document.getElementById('modalIndexValue');
       const lblVal = document.getElementById('lblValue');
+      
       const grpVal1 = document.getElementById('groupValue1');
       const lblVal1 = document.getElementById('lblValue1');
       const inputVal1 = document.getElementById('modalIndexValue1_input');
@@ -546,7 +546,8 @@
       const lblVal2 = document.getElementById('lblValue2');
       const inputVal2 = document.getElementById('modalIndexValue2');
 
-      // Reset Form State
+      // Reset Form State กลับเป็นปกติก่อน
+      inputValMain.type = 'text'; 
       inputVal1.type = 'text';
       inputVal1.value = prefillVal1 || '';
       inputVal2.value = prefillVal2 || '';
@@ -562,7 +563,6 @@
           grpVal1.classList.remove('d-none');
           grpVal2.classList.add('d-none');
 
-          // โหลดข้อมูล Zone มาใส่ Dropdown
           const zoneType = window.globalIndexTypes.find(t => t.Name.toLowerCase() === 'zone');
           if (zoneType) {
               const zones = window.globalIndexes.filter(i => i.IndexType_ID === zoneType.IndexType_ID);
@@ -573,16 +573,16 @@
           }
       } 
       else if (typeName === 'public holiday' || typeName === 'holiday') {
-          lblVal.innerHTML = 'Year <span class="text-danger">*</span>';
-          lblVal1.innerHTML = 'Date';
-          lblVal2.innerHTML = 'Description';
-
-          inputVal1.type = 'date';
+          lblVal.innerHTML = 'Date <span class="text-danger">*</span>'; // 🌟 เปลี่ยนเป็น Date
+          inputValMain.type = 'date'; // 🌟 แปลง Input ให้กลายเป็น Date Picker ปฏิทิน
+          
+          lblVal1.innerHTML = 'Description'; // 🌟 เปลี่ยน Value1 เป็น Description
+          inputVal1.type = 'text';
           inputVal1.classList.remove('d-none');
           selectVal1.classList.add('d-none');
           
           grpVal1.classList.remove('d-none');
-          grpVal2.classList.remove('d-none');
+          grpVal2.classList.add('d-none'); // 🌟 ซ่อน Value 2 ทิ้งไปเลย
       } 
       else {
           lblVal.innerHTML = 'Value <span class="text-danger">*</span>';
@@ -620,7 +620,6 @@
     const typeId = document.getElementById('modalIndexSelectType').value;
     const val = document.getElementById('modalIndexValue').value.trim();
 
-    // ดึงค่า Value1 และ Value2 จากฟอร์มที่ Dynamic ขึ้นมา
     let val1 = null;
     let val2 = null;
 
@@ -630,12 +629,18 @@
     if (typeName === 'province') {
         val1 = document.getElementById('modalIndexValue1_select').value;
     } else if (typeName === 'public holiday' || typeName === 'holiday') {
-        val1 = document.getElementById('modalIndexValue1_input').value;
-        val2 = document.getElementById('modalIndexValue2').value.trim();
+        val1 = document.getElementById('modalIndexValue1_input').value.trim();
+        val2 = null; // 🌟 ไม่ใช้ val2 ในวันหยุด
     }
 
+    // 🌟 ระบบดัก Data ซ้ำจะทำงานอิงจาก val (ซึ่งสำหรับวันหยุดก็คือ Date นั่นเอง ทำให้ใส่วันที่ซ้ำไม่ได้)
     const isDuplicate = window.globalIndexes.some(i => i.IndexType_ID === typeId && i.Value.toLowerCase() === val.toLowerCase() && i.Index_ID !== id);
-    if (isDuplicate) return alert(`❌ Cannot save! The value "${val}" already exists.`);
+    if (isDuplicate) {
+        if (typeName === 'public holiday' || typeName === 'holiday') {
+            return alert(`❌ Cannot save! A holiday on the date "${val}" already exists.`);
+        }
+        return alert(`❌ Cannot save! The value "${val}" already exists.`);
+    }
 
     const btn = document.getElementById('btnSaveIndex');
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
