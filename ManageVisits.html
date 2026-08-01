@@ -334,7 +334,8 @@
               <span class="fw-bold text-dark fs-6" id="dispSalesRepName">-</span>
             </div>
             <div class="col-md-6">
-              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i><span data-i18n="lbl_territory">Territory</span></span>
+              <!-- 🎯 ไดนามิกแท็ก Territory/Team/BU จะถูกอัปเดตผ่าน JS ที่นี่ -->
+              <span class="text-muted small fw-bold d-block"><i class="fa-solid fa-map-location-dot me-1"></i><span id="dynamicTerritoryLabel">Territory</span></span>
               <span class="fw-bold text-dark fs-6" id="dispTerritoryName">-</span>
             </div>
           </div>
@@ -1278,23 +1279,58 @@
     }
   }, 100);
 
+  // 🎯 สร้างฟังก์ชันแสดงผล User และ Role อัตโนมัติ (สลับคำว่า Territory / Team / BU)
+  window.updateFormUserInfo = function(repObj, fallbackTerrId) {
+    var appLang = getCurrentAppLang();
+    var repNameShow = '-';
+    var locNameShow = '-';
+    var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory'; 
+
+    if (repObj) {
+        repNameShow = repObj.Rep_Name || repObj.Name || repObj.name || repObj.Email || '-';
+        var role = String(repObj.Role || repObj.role || '').toLowerCase();
+        var userTerr = String(repObj.Territory_ID || repObj.territory_id || repObj.territoryId || repObj.Territory || '').trim();
+        var userTeam = String(repObj.Team_ID || repObj.team_id || repObj.teamId || repObj.Team || '').trim();
+        var userBU = String(repObj.BU_ID || repObj.bu_id || repObj.buId || repObj.BU || '').trim();
+
+        if (role.indexOf('manager') !== -1) {
+            labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
+            var tObj = (globalTeamList || []).find(function(t) { return String(t.Team_ID) === userTeam || String(t.Team) === userTeam; });
+            locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : (userTeam || '-');
+        } else if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
+            labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
+            var bus = window.VisitManagerCache ? window.VisitManagerCache.bus : [];
+            var bObj = (bus || []).find(function(b) { return String(b.BU_ID) === userBU || String(b.BU) === userBU; });
+            locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : (userBU || '-');
+        } else {
+            labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
+            var checkTer = fallbackTerrId || userTerr;
+            var terObj = (globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(checkTer) || String(t.Territory) === String(checkTer); });
+            locNameShow = terObj ? terObj.Territory : (checkTer || '-');
+            if (String(locNameShow).length > 30) locNameShow = '-';
+        }
+    } else {
+         var terObj = (globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(fallbackTerrId); });
+         locNameShow = terObj ? terObj.Territory : (fallbackTerrId || '-');
+         if (String(locNameShow).length > 30) locNameShow = '-';
+    }
+
+    var repNameEl = document.getElementById('dispSalesRepName');
+    var terNameEl = document.getElementById('dispTerritoryName');
+    var terLabelEl = document.getElementById('dynamicTerritoryLabel');
+
+    if (repNameEl) repNameEl.innerText = repNameShow;
+    if (terNameEl) terNameEl.innerText = locNameShow;
+    if (terLabelEl) {
+        terLabelEl.removeAttribute('data-i18n'); // กันโดน setLanguage จากไฟล์ index.html ทับ
+        terLabelEl.innerText = labelText;
+    }
+  };
+
   function initUserInfo() {
     try {
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      var repName = crmUser ? (crmUser.Rep_Name || crmUser.name || crmUser.Email) : "Unknown User";
-      var rawTerr = crmUser ? (crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || "-") : "-";
-      
-      var terrNameShow = rawTerr;
-      if (globalTerritoryList && globalTerritoryList.length > 0) {
-        var found = globalTerritoryList.find(function(t) {
-          return String(t.Territory_ID || t.territory_id || t.id) === String(rawTerr) || String(t.Territory).toLowerCase() === String(rawTerr).toLowerCase();
-        });
-        if (found) terrNameShow = found.Territory;
-        else if (String(terrNameShow).length > 20) terrNameShow = '-'; 
-      }
-      
-      document.getElementById('dispSalesRepName').innerText = repName; 
-      document.getElementById('dispTerritoryName').innerText = terrNameShow;
+      window.updateFormUserInfo(crmUser, null);
     } catch(e) {}
   }
 
@@ -1458,7 +1494,6 @@
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        // 🎯 1. ใส่ Option ว่างเพื่อให้ TomSelect ใช้งาน Placeholder ได้สวยงาม และไม่เกิดกรอบฟ้าหลอน
         docSelect.innerHTML = '<option value=""></option>';
         
         var activeAssignedDocs = globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
@@ -1484,7 +1519,7 @@
                 searchField: ["text", "name_en", "name_th"],
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: docPlaceholder,
-                maxOptions: null, // 🎯 ลบ allowEmptyOption: true ออกไป จะได้ไม่ขึ้นกรอบสีฟ้าเปล่าๆ
+                maxOptions: null, 
                 dropdownParent: 'body',
                 dataAttr: 'data'
             });
@@ -1503,7 +1538,6 @@
                  t.Name.toLowerCase() === 'callpurpose'; 
         });
 
-        // 🎯 2. ทำ Purpose ให้เป็น TomSelect ด้วยเลย เพื่อให้สีตัวอักษรกลืนกันเป๊ะ 100% กับ 2 ช่องด้านบน
         var purposeHtml = '<option value=""></option>';
         
         if (purposeType) {
@@ -1539,6 +1573,21 @@
           if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
           else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
         }, 200); 
+      }
+
+      // 🎯 อัปเดตข้อมูล Form Info (ทีม/อาณาเขต) ทุกครั้งที่โหลดดร็อปดาวน์เสร็จ
+      var formView = document.getElementById('visitFormView');
+      if (formView && !formView.classList.contains('d-none')) {
+          var visitId = document.getElementById('visitId').value;
+          if (visitId) {
+              var v = globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
+              if (v) {
+                  var targetRepObj = globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
+                  window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+              }
+          } else {
+              initUserInfo();
+          }
       }
 
       if (filterGroup) {
@@ -2311,22 +2360,12 @@
     document.getElementById('visitId').value = v.Visit_ID;
     document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
     
-    var repNameShow = v.Rep_ID || '-';
+    // 🎯 ดึงข้อมูลพนักงานของ Visit นั้นไปอัปเดต Header อัตโนมัติ (สลับ Team/Territory/BU)
     var targetRepObj = null;
     if (globalUsersList && globalUsersList.length > 0) {
         targetRepObj = globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-        if (targetRepObj) repNameShow = targetRepObj.Rep_Name || targetRepObj.Name || targetRepObj.Email || repNameShow;
     }
-    
-    var terNameShow = v.Territory_ID || '-';
-    if (globalTerritoryList && globalTerritoryList.length > 0) {
-        var terObj = globalTerritoryList.find(function(t) { return String(t.Territory_ID) === String(v.Territory_ID); });
-        if (terObj) terNameShow = terObj.Territory;
-        else if (String(terNameShow).length > 20) terNameShow = '-'; 
-    }
-    
-    document.getElementById('dispSalesRepName').innerText = repNameShow;
-    document.getElementById('dispTerritoryName').innerText = terNameShow;
+    window.updateFormUserInfo(targetRepObj, v.Territory_ID);
 
     setTimeout(function() {
       if (v.Doc_ID && typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
