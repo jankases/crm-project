@@ -11,7 +11,6 @@
     border-radius: 12px; 
   }
 
-  /* 🎯 บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% ตัวหนาขึ้น */
   .form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
     background-color: #f1f5f9 !important; 
     color: #0f172a !important; 
@@ -86,7 +85,6 @@
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
 
-  /* 🎯 ทะลวง Opacity ของ TomSelect ที่ทำสีจาง 50% ให้กลับมา 100% และเข้มขึ้น */
   .ts-wrapper.disabled { opacity: 1 !important; }
   .ts-wrapper.disabled .ts-control { 
     opacity: 1 !important; 
@@ -183,7 +181,6 @@
   }
 </style>
 
-<!-- 📚 โหลด PDF.js Library สำหรับเปลี่ยนหน้าสไลด์และนับเวลา -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
@@ -192,9 +189,12 @@
 </script>
 
 <div id="draftToastContainer"></div>
+<!-- 🎯 Container สำหรับ Toast Notification ยุคใหม่ -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
+  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -250,7 +250,8 @@
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="filterVisits()">
+            <!-- 🎯 เรียกใช้ debouncedFilterVisits() แทน filterVisits() ตรงๆ ลดอาการเครื่องกระตุก -->
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="debouncedFilterVisits()">
             <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
               <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
             </button>
@@ -467,7 +468,6 @@
               <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <!-- 🎯 สั่งโหลด Media ใหม่ถ้ามีการเปลี่ยนสถานะ -->
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
@@ -513,6 +513,93 @@
 </div>
 
 <script>
+  // 🎯 1. ฟังก์ชัน Toast Notification หรูหรา ไม่ขัดจังหวะการทำงาน
+  function showToast(message, type = 'success') {
+    var container = document.getElementById('toastContainer');
+    if (!container) return;
+    var icon = type === 'success' ? 'fa-check-circle text-success' : (type === 'error' ? 'fa-circle-xmark text-danger' : 'fa-circle-exclamation text-warning');
+    var toastId = 'toast_' + Date.now();
+    var toastHtml = 
+      '<div id="' + toastId + '" class="toast align-items-center bg-white border-0 shadow-sm mb-2" role="alert" aria-live="assertive" aria-atomic="true">' +
+        '<div class="d-flex p-2">' +
+          '<div class="toast-body d-flex align-items-center fw-bold text-dark">' +
+            '<i class="fa-solid ' + icon + ' fs-4 me-3"></i> ' +
+            '<span style="white-space: pre-line;">' + message + '</span>' +
+          '</div>' +
+          '<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+        '</div>' +
+      '</div>';
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    var toastEl = document.getElementById(toastId);
+    var toast = new bootstrap.Toast(toastEl, { delay: type === 'error' ? 5000 : 3000 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
+  }
+
+  // 🎯 2. ฟังก์ชัน Debounce สำหรับ Smart Search ลดการกระตุกของเครื่อง
+  var filterDebounceTimer = null;
+  function debouncedFilterVisits() {
+      if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+      filterDebounceTimer = setTimeout(function() {
+          filterVisits();
+      }, 300); // หน่วงเวลา 0.3 วินาที
+  }
+
+  // 🎯 3. ฟังก์ชัน Auto-Save (Draft แบบออฟไลน์)
+  function saveFormDraft() {
+      var visitId = document.getElementById('visitId').value || 'NEW';
+      var draftData = {
+          date: document.getElementById('visitDate').value,
+          startTime: document.getElementById('visitStartTime').value,
+          endTime: document.getElementById('visitEndTime').value,
+          details: document.getElementById('visitDetails').value,
+          insight: document.getElementById('visitInsight').value,
+          nextAction: document.getElementById('visitNextAction').value,
+          status: document.getElementById('visitStatus').value,
+          timestamp: Date.now()
+      };
+      localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
+  }
+
+  function restoreFormDraft(visitId) {
+      var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
+      if (draftStr) {
+          try {
+              var draft = JSON.parse(draftStr);
+              // ถ้า Draft เก่ากว่า 12 ชั่วโมง ให้ทิ้งไปเลย
+              if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
+                  clearFormDraft(visitId);
+                  return false;
+              }
+              if (draft.date) document.getElementById('visitDate').value = draft.date;
+              if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
+              if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
+              if (draft.details) document.getElementById('visitDetails').value = draft.details;
+              if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
+              if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+              if (draft.status) document.getElementById('visitStatus').value = draft.status;
+              
+              showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              return true;
+          } catch(e) { console.error(e); }
+      }
+      return false;
+  }
+
+  function clearFormDraft(visitId) {
+      localStorage.removeItem('visitDraft_' + (visitId || 'NEW'));
+  }
+
+  // เริ่มจับ Event เพื่อ Auto-save เมื่อผู้ใช้พิมพ์
+  setTimeout(function() {
+      var form = document.getElementById('visitForm');
+      if (form) {
+          form.addEventListener('input', saveFormDraft);
+          form.addEventListener('change', saveFormDraft);
+      }
+  }, 1000);
+
+
   function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
       var res = t(key);
@@ -557,6 +644,7 @@
       var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
       document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
     }
+    saveFormDraft(); // Auto-save trigger
   }
 
   function applySearchHighlight(text, searchKeyword) {
@@ -602,9 +690,6 @@
     }
   }
 
-  // -------------------------------------------------------------
-  // 🎬 e-Detailing & Page-Level Analytics Logic
-  // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
@@ -616,7 +701,6 @@
   var currentPageStartTime = null;
   var pageLogsBuffer = [];
   
-  // 🎯 ตัวแปรเก็บสถานะการเปิดสื่อว่าเป็นแค่ Preview (ไม่บันทึก) หรือ Present (บันทึก)
   var globalIsMediaPreviewMode = false;
 
   async function fetchDetailingMedia() {
@@ -636,18 +720,16 @@
     var headerEl = document.getElementById('detailingMediaHeader');
     if (!container || !section) return;
 
-    // 🎯 ดึงสถานะปัจจุบันของ Visit (ถ้าส่งแล้วให้เป็น Preview โหมด)
     var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
     var isSubmitted = (visitStatus === 'Submitted');
 
-    // 🎯 ดึงข้อมูล User ปัจจุบันเพื่อเช็คความเป็นเจ้าของ
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
 
     var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-    var isOwner = true; // สมมติให้เป็นเจ้าของก่อน (สำหรับกรณี Add New)
+    var isOwner = true; 
     
     if (currentVisitId && globalVisits && globalVisits.length > 0) {
         var v = globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
@@ -664,7 +746,6 @@
         }
     }
 
-    // 🎯 ตัดสินใจโหมดการแสดงผล
     var isPreviewMode = isSubmitted || !isOwner;
 
     var selectedProducts = [];
@@ -712,7 +793,6 @@
     }
 
     var html = '';
-    // 🎯 ปรับแต่งสีและปุ่มตามโหมด Preview หรือ Present
     var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-primary';
     var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
     var btnText = isPreviewMode ? 'Preview' : 'Present';
@@ -740,10 +820,10 @@
   }
 
   async function openMediaPresentation(mediaId, isPreview) {
-    globalIsMediaPreviewMode = isPreview || false; // เก็บสถานะโหมด
+    globalIsMediaPreviewMode = isPreview || false;
 
     var media = globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
-    if (!media) return alert("❌ ไม่พบไฟล์สื่อการนำเสนอนี้");
+    if (!media) return showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error");
 
     var visitIdInput = document.getElementById('visitId');
     if (visitIdInput && !visitIdInput.value) {
@@ -756,7 +836,6 @@
     currentPdfPage = 1;
     currentPageStartTime = new Date();
 
-    // 🎯 เพิ่มวงเล็บ [Preview Only] ท้ายชื่อเรื่องให้สังเกตง่าย
     var titleSuffix = globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
     document.getElementById('mediaModalTitle').innerHTML = 
       '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
@@ -827,8 +906,6 @@
     if (currentPageStartTime) {
       var now = new Date();
       var durationSec = Math.round((now - currentPageStartTime) / 1000);
-      
-      // 🎯 กฎข้อ 3: ต้องเปิดดูสไลด์หน้านั้นทิ้งไว้อย่างน้อย 5 วินาที ถึงจะจัดเก็บ
       if (durationSec >= 5) {
           pageLogsBuffer.push({
             Page_Number: currentPdfPage,
@@ -875,7 +952,6 @@
     var totalDurationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
     var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
 
-    // 🎯 กฎข้อ 1, 2, 3: บันทึกเมื่อ "ไม่ใช้ Preview" และ "ดูนานกว่า 5 วินาที"
     if (!globalIsMediaPreviewMode && totalDurationSec >= 5 && currentActiveMedia && targetVisitId) {
       var crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -919,7 +995,7 @@
       }
     } else {
         if (globalIsMediaPreviewMode) console.log("👁️ Preview Mode: No logs recorded.");
-        else if (totalDurationSec < 5) console.log("⏳ Duration < 5s: Log ignored (assumed accidental click).");
+        else if (totalDurationSec < 5) console.log("⏳ Duration < 5s: Log ignored.");
     }
 
     var modalEl = document.getElementById('mediaPresentationModal');
@@ -1027,10 +1103,11 @@
     return '-';
   }
 
+  // 🌟 ระบบไมค์ค้นหาหมอ
   var docRecognition = null;
   function toggleDocDictation() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+      return showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
     }
 
     var btn = document.getElementById('btnMicDoc');
@@ -1098,13 +1175,14 @@
     }
   }
 
+  // 🌟 ระบบไมค์สั่งงานสำหรับช่องข้อความ
   var textRecognition = null;
   var currentDictTargetId = null;
   var currentDictBtnId = null;
 
   function toggleTextDictation(targetInputId, btnId) {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+      return showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
     }
 
     var btn = document.getElementById(btnId);
@@ -1133,6 +1211,7 @@
       if (inputEl && spokenText) {
         var currentVal = inputEl.value;
         inputEl.value = currentVal ? (currentVal + ' ' + spokenText) : spokenText;
+        saveFormDraft(); // Auto-save
       }
     };
 
@@ -1161,7 +1240,7 @@
 
   function toggleSpeechSearch(inputId, btnId, iconId) {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      return alert("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง");
+      return showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
     }
 
     if (searchRecognition && currentSearchInputId === inputId) {
@@ -1194,7 +1273,7 @@
       var inputEl = document.getElementById(inputId);
       if (inputEl && spokenText) {
           inputEl.value = spokenText;
-          filterVisits();
+          debouncedFilterVisits();
       }
       stopSearchDictation();
     };
@@ -1318,6 +1397,7 @@
   }
 
   function cancelVisitForm() {
+    clearFormDraft(document.getElementById('visitId').value || 'NEW');
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
@@ -1584,7 +1664,6 @@
           window.VisitManagerCache.products = results[1] || [];
           window.VisitManagerCache.territories = globalTerritoryListLocal;
           window.VisitManagerCache.teams = globalTeamListLocal;
-          window.VisitManagerCache.bus = globalBuListLocal || [];
           window.VisitManagerCache.teamProdLinks = results[6] || [];
           window.VisitManagerCache.indexTypes = (results[7] && results[7].data) ? results[7].data : [];
           window.VisitManagerCache.indexes = (results[8] && results[8].data) ? results[8].data : [];
@@ -2295,7 +2374,7 @@
     renderPaginationControls(totalPages);
   }
 
-  function renderPaginationControls(totalPages) {
+  window.renderPaginationControls = function(totalPages) {
     var ul = document.getElementById('visitPagination');
     if (!ul) return;
     var html = '';
@@ -2408,6 +2487,9 @@
       }, 250);
     }
 
+    // 🎯 3. สั่งดึง Draft มาโชว์ ถ้ามี
+    setTimeout(function() { restoreFormDraft('NEW'); }, 500);
+
     var btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
     btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
@@ -2480,6 +2562,9 @@
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
 
+    // 🎯 3. สั่งดึง Draft มาโชว์ ถ้ามี (ทับข้อมูลเดิมไปเลย)
+    setTimeout(function() { restoreFormDraft(visitId); }, 500);
+
     var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
     var btn = document.getElementById('saveVisitBtn');
 
@@ -2545,7 +2630,7 @@
     try {
       var res = await supabaseClient.from('DCR').insert([payload]);
       if (res.error) throw res.error;
-      alert("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.");
+      showToast("ส่งคำขอปลดล็อกเรียบร้อยแล้ว กรุณารอแอดมินอนุมัติ", "success");
       
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
@@ -2556,7 +2641,7 @@
         await loadVisits(true); 
       }
     } catch(err) {
-      alert("❌ Error: " + err.message);
+      showToast("Error: " + err.message, "error");
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
     }
@@ -2588,13 +2673,13 @@
     validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
     var missingFields = [];
-    if (!docVal) missingFields.push("• Doctor");
-    if (selectedProducts.length === 0) missingFields.push("• Products");
-    if (!dateInput || !dateInput.value) missingFields.push("• Date");
-    if (!purposeVal) missingFields.push("• Purpose");
+    if (!docVal) missingFields.push("• ชื่อแพทย์ (Doctor)");
+    if (selectedProducts.length === 0) missingFields.push("• ผลิตภัณฑ์ (Products)");
+    if (!dateInput || !dateInput.value) missingFields.push("• วันที่ (Date)");
+    if (!purposeVal) missingFields.push("• วัตถุประสงค์ (Purpose)");
 
     if (missingFields.length > 0) {
-      alert("⚠️ Cannot save! Please complete the following required fields:\n\n" + missingFields.join("\n"));
+      showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
       return;
     }
 
@@ -2646,6 +2731,11 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
+      showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+      
+      // 🎯 เมื่อ Save สำเร็จ ให้เคลียร์ Draft ทิ้ง
+      clearFormDraft(existingVisitId || 'NEW');
+
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
@@ -2657,7 +2747,7 @@
 
     } catch(err) {
       console.error("Save Visit Error:", err);
-      alert("❌ Failed to save data.\n\nReason: " + err.message);
+      showToast("Failed to save data. Reason: " + err.message, "error");
     } finally {
       btn.disabled = false;
       btn.innerHTML = "💾 Save";
@@ -2672,6 +2762,7 @@
   window.toggleSpeechSearch = toggleSpeechSearch;
   window.filterVisits = filterVisits;
   window.renderVisitTable = renderVisitTable;
+  window.renderPaginationControls = renderPaginationControls;
   window.handleFilterChange = handleFilterChange;
   window.clearVisitFilters = clearVisitFilters;
   window.sortVisits = sortVisits;
@@ -2693,4 +2784,5 @@
   window.jumpPdfPage = jumpPdfPage;
   window.loadDropdowns = loadDropdowns;
   window.updateFormUserInfo = updateFormUserInfo;
+  window.debouncedFilterVisits = debouncedFilterVisits;
 </script>
