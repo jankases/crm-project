@@ -565,7 +565,6 @@
       }, 300); 
   };
 
-  // 🎯 [FIX] อัปเกรดระบบ Draft ให้จำข้อมูลในกล่อง Dropdown ด้วย (ป้องกันข้อมูลหายตอนสลับภาษา)
   window.saveFormDraft = function() {
       var visitId = document.getElementById('visitId').value || 'NEW';
       var draftData = {
@@ -584,7 +583,6 @@
       localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
   };
 
-  // 🎯 [FIX] อัปเกรดระบบกู้คืน Draft ให้กู้คืน Dropdown ด้วย
   window.restoreFormDraft = function(visitId) {
       var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
       if (draftStr) {
@@ -595,7 +593,6 @@
                   return false;
               }
 
-              // 🎯 ใช้ setTimeout หน่วงเวลาเพื่อกู้คืนข้อมูลกล่อง TomSelect ให้ชัวร์ 100%
               setTimeout(function() {
                   if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
                   if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
@@ -1145,9 +1142,12 @@
     }
   };
 
+  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทยจากฐานข้อมูล
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
+    
+    var appLang = window.getCurrentAppLang(); // 🎯 เช็คภาษาปัจจุบัน
 
     var visitEvents = window.globalFilteredVisits.map(function(v) {
         var docObj = window.globalAllDoctors.find(function(d) {
@@ -1192,9 +1192,12 @@
             });
 
             holidayEvents = holidayData.map(function(h) {
+                // 🎯 แสดงชื่อวันหยุดตามภาษา ถ้าเลือก EN โชว์ Value2 ถ้าไม่มีค่อยโชว์ Value1 (TH)
+                var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
+                
                 return {
                     id: 'hol_' + h.Index_ID,
-                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), 
+                    title: holidayTitle, 
                     start: h.Value,                         
                     allDay: true,
                     backgroundColor: '#ef4444',             
@@ -1222,6 +1225,10 @@
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             events: allEvents,
+            eventDidMount: function(info) {
+                // 🎯 เพิ่ม Tooltip ให้แสดงข้อความเต็มเวลาเอาเมาส์ชี้
+                info.el.setAttribute('title', info.event.title);
+            },
             eventClick: function(info) {
                 if (info.event.extendedProps.isHoliday) {
                     return; 
@@ -1540,7 +1547,6 @@
     } else window.switchVisitView('visitListView');
   };
 
-  // 🎯 1. ดักจับการทำงานเมื่อเปิดหน้า ManageVisits ให้โหลดข้อมูล
   setTimeout(async function() { 
     try {
       await window.loadDropdowns(); 
@@ -1565,9 +1571,7 @@
           window.toggleMainView(window.VisitManagerCache.currentMainView || 'list');
       }
 
-      // 🎯 2. สั่งดักการคลิกปุ่มสลับภาษา EN/TH ข้อมูลในฟอร์มจะได้ไม่หาย
       var updateLangUI = function() {
-          // สั่งเซฟ Draft ก่อนที่ Dropdown จะถูกทำลาย
           var formView = document.getElementById('visitFormView');
           if (formView && !formView.classList.contains('d-none')) {
               window.saveFormDraft();
@@ -1580,7 +1584,10 @@
                       window.restoreFormDraft(currentVisitId);
                   }
               }); 
-              window.renderVisitTable();   
+              window.renderVisitTable();
+              if (window.VisitManagerCache.currentMainView === 'calendar') {
+                  window.renderCalendarView(); 
+              }   
           }, 150);
       };
       var btnEN = document.getElementById('btnLangEN');
@@ -1690,7 +1697,6 @@
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
     
-    // 🎯 ดึงค่าปัจจุบันที่หน้าจอไว้
     var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
     var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '';
     var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1894,7 +1900,6 @@
                 dropdownParent: 'body',
                 dataAttr: 'data'
             });
-            // 🎯 ใช้ Timeout ให้ชัวร์ว่า TomSelect สร้างเสร็จก่อนจะยัดข้อมูลกลับเข้าไป
             if (oldDocVal) {
                 setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
             }
@@ -1944,7 +1949,6 @@
                 dropdownParent: 'body',
                 dataAttr: 'data' 
             });
-            // 🎯 คืนค่า Purpose ด้วย Timeout
             if (oldPurpVal) {
                 setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
             }
@@ -2192,7 +2196,6 @@
             }
         });
 
-        // 🎯 คืนค่า Product ด้วย Timeout
         if (oldProdVal.length > 0) {
             setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
         }
