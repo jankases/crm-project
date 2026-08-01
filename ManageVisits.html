@@ -477,7 +477,6 @@
 </div>
 
 <script>
-  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent ทุกรณี
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalVisitProducts = [];
@@ -526,7 +525,6 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // 🎯 ฟังก์ชันสร้าง UUID 
   window.generateUUID = function() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -1131,7 +1129,7 @@
     }
   };
 
-  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทย
+  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทย (แบบดักจับ Error 100%)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1178,7 +1176,21 @@
             try {
                 // ดึงวันหยุดประเทศไทย
                 var response = await fetch('https://date.nager.at/api/v3/PublicHolidays/' + year + '/TH');
-                var data = await response.json();
+                
+                // 🎯 ป้องกัน Error ถ้า API ปีอนาคตส่งค่าเปล่ากลับมา (เช่น 404 Not Found)
+                if (!response.ok) {
+                    successCallback([]);
+                    return;
+                }
+                
+                var text = await response.text();
+                // 🎯 ป้องกัน Error ถ้า API คืนค่า Status 200 แต่ Body ว่างเปล่า
+                if (!text) {
+                    successCallback([]);
+                    return;
+                }
+                
+                var data = JSON.parse(text);
                 var holidays = data.map(function(h) {
                     return {
                         id: 'hol_' + h.date,
@@ -1194,7 +1206,8 @@
                 });
                 successCallback(holidays);
             } catch (error) {
-                console.error("Error fetching holidays:", error);
+                // เปลี่ยน error เป็นการ console.warn เพื่อไม่ให้ขึ้นตัวแดงน่ากลัวในระบบ
+                console.warn("Holiday API skipped for year " + year + ": " + error.message);
                 successCallback([]); 
             }
         }
