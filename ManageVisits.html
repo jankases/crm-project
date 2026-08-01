@@ -477,7 +477,6 @@
 </div>
 
 <script>
-  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent ทุกรณี
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalVisitProducts = [];
@@ -1142,12 +1141,11 @@
     }
   };
 
-  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทยจากฐานข้อมูล
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
     
-    var appLang = window.getCurrentAppLang(); // 🎯 เช็คภาษาปัจจุบัน
+    var appLang = window.getCurrentAppLang(); 
 
     var visitEvents = window.globalFilteredVisits.map(function(v) {
         var docObj = window.globalAllDoctors.find(function(d) {
@@ -1155,23 +1153,23 @@
         });
         var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v);
-        var title = docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        // 🎯 เติมเวลาไว้หน้าชื่อแทนการใช้ระบบ Time ของ Calendar (แก้ปัญหากล่องทะลุข้ามวัน 100%)
+        var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
+        var title = timePrefix + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
         
         var isPending = (v.Status === 'Pending');
         var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
         
-        var bgColor = '#10b981'; // Submitted (สีเขียว)
+        var bgColor = '#10b981'; // Submitted
         if (isPendingUnlock) bgColor = '#64748b'; 
-        else if (isPending) bgColor = '#f59e0b'; // Pending (สีส้ม)
+        else if (isPending) bgColor = '#f59e0b'; // Pending
         
-        var startStr = v.Visit_Date;
-        if (v.Start_Time) startStr += 'T' + v.Start_Time;
-
         return {
             id: v.Visit_ID,
             title: title,
-            start: startStr,
-            allDay: (!v.Start_Time), 
+            start: v.Visit_Date, // 🌟 ส่งแค่วันที่ ไม่ส่งเวลา 
+            allDay: true,        // 🌟 บังคับเป็น All Day กล่องจะได้อยู่ในวันเดียวเป๊ะๆ
             backgroundColor: bgColor,
             borderColor: bgColor,
             textColor: '#ffffff', 
@@ -1192,7 +1190,7 @@
             });
 
             holidayEvents = holidayData.map(function(h) {
-                // 🎯 แสดงชื่อวันหยุดตามภาษา ถ้าเลือก EN โชว์ Value2 ถ้าไม่มีค่อยโชว์ Value1 (TH)
+                // 🌟 ถอดธงชาติหรือคำว่า TH ออกตามคำขอ
                 var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
                 
                 return {
@@ -1226,7 +1224,7 @@
             },
             events: allEvents,
             eventDidMount: function(info) {
-                // 🎯 เพิ่ม Tooltip ให้แสดงข้อความเต็มเวลาเอาเมาส์ชี้
+                // 🎯 Tooltip สำหรับอ่านข้อความเต็ม
                 info.el.setAttribute('title', info.event.title);
             },
             eventClick: function(info) {
@@ -1238,8 +1236,7 @@
             dateClick: function(info) {
                 window.openAddVisitView(info.dateStr); 
             },
-            eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
-            displayEventTime: true
+            displayEventTime: false // 🌟 ปิดการโชว์เวลาของ Calendar เพราะเราแปะไว้ใน Title แล้ว
         });
         window.globalCalendarInstance.render();
     }
