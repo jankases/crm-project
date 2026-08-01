@@ -560,9 +560,10 @@
         thValue2.classList.add('d-none');
     } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
         lblThValue.innerText = "Date";        
-        lblThValue1.innerText = "Description"; 
+        lblThValue1.innerText = "Description (TH)"; // 🌟 อัปเดตหัวข้อให้ชัดเจน
+        lblThValue2.innerText = "Description (EN)"; // 🌟 เปิดใช้งาน Description ภาษาอังกฤษ
         thValue1.classList.remove('d-none');
-        thValue2.classList.add('d-none');   
+        thValue2.classList.remove('d-none');        // 🌟 เปิดใช้งานการแสดงผล Value2 สำหรับวันหยุด
     } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title') { 
         lblThValue.innerText = "Value (TH)";    
         lblThValue1.innerText = "Value (EN)";   
@@ -642,7 +643,6 @@
          rowHtml += `<td class="text-muted small">${i.Value2 || '-'}</td>`;
       }
 
-      // 🎯 ดักจับเครื่องหมาย Single Quote เพื่อป้องกัน Syntax Error ตอนส่งค่าเข้าฟังก์ชัน
       const safeVal = (i.Value || '').replace(/'/g, "\\'");
       const safeVal1 = (i.Value1 || '').replace(/'/g, "\\'");
       const safeVal2 = (i.Value2 || '').replace(/'/g, "\\'");
@@ -708,7 +708,7 @@
     ul.innerHTML = html;
   };
 
-  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic
+  // 🎯 ปรับแต่ง Form Modal แบบ Dynamic 
   window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
       const typeName = tObj ? tObj.Name.toLowerCase() : "";
@@ -754,13 +754,16 @@
           lblVal.innerHTML = 'Date <span class="text-danger">*</span>'; 
           inputValMain.type = 'date'; 
           
-          lblVal1.innerHTML = 'Description'; 
+          lblVal1.innerHTML = 'Description (TH)'; // 🌟 เปิดใช้งาน Value1 สำหรับคำอธิบายภาษาไทย
           inputVal1.type = 'text';
           inputVal1.classList.remove('d-none');
           selectVal1.classList.add('d-none');
           
+          lblVal2.innerHTML = 'Description (EN)'; // 🌟 เปิดใช้งาน Value2 สำหรับคำอธิบายภาษาอังกฤษ
+          inputVal2.type = 'text';
+          
           grpVal1.classList.remove('d-none');
-          grpVal2.classList.add('d-none'); 
+          grpVal2.classList.remove('d-none');     // 🌟 โชว์กรอบ Value2 ให้กรอก
       } 
       else if (typeName === 'purpose' || typeName === 'title') { 
           lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
@@ -815,11 +818,15 @@
     const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
     const typeName = tObj ? tObj.Name.toLowerCase() : "";
 
+    // 🎯 แยกการดึงข้อมูลเพื่อบันทึกลงฐานข้อมูลให้ถูกต้อง
     if (typeName === 'province') {
         val1 = document.getElementById('modalIndexValue1_select').value;
-    } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'purpose' || typeName === 'title') { 
+    } else if (typeName === 'public holiday' || typeName === 'holiday') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
-        val2 = null; 
+        val2 = document.getElementById('modalIndexValue2').value.trim(); // 🌟 บันทึกภาษาอังกฤษลง Value2
+    } else if (typeName === 'purpose' || typeName === 'title') {
+        val1 = document.getElementById('modalIndexValue1_input').value.trim();
+        val2 = null;
     } else {
         if (!document.getElementById('groupValue1').classList.contains('d-none')) {
             val1 = document.getElementById('modalIndexValue1_input').value.trim();
