@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; 
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
 
@@ -100,10 +100,7 @@
   #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
   /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar */
-  #calendar {
-    min-height: 600px;
-    font-family: inherit;
-  }
+  #calendar { min-height: 600px; font-family: inherit; }
   .fc-event { cursor: pointer; border: none !important; padding: 2px 4px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
   .fc-event-title { font-weight: 600; font-size: 0.8rem; }
   .fc-daygrid-day-number { color: #475569; font-weight: 600; }
@@ -153,7 +150,7 @@
       </div>
     </div>
 
-    <!-- Quick Stat Cards (แสดงตลอดทั้ง 2 View) -->
+    <!-- Quick Stat Cards -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -184,7 +181,7 @@
       </div>
     </div>
 
-    <!-- Smart Search Bar + Filter Bar (แสดงตลอด) -->
+    <!-- Smart Search Bar + Filter Bar -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
@@ -459,7 +456,6 @@
 </div>
 
 <script>
-  // 🎯 1. ฟังก์ชัน Toast Notification หรูหรา ไม่ขัดจังหวะการทำงาน
   function showToast(message, type = 'success') {
     var container = document.getElementById('toastContainer');
     if (!container) return;
@@ -482,16 +478,14 @@
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
   }
 
-  // 🎯 2. ฟังก์ชัน Debounce สำหรับ Smart Search
   var filterDebounceTimer = null;
   function debouncedFilterVisits() {
       if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
       filterDebounceTimer = setTimeout(function() {
           filterVisits();
-      }, 300); // หน่วงเวลา 0.3 วินาที
+      }, 300); 
   }
 
-  // 🎯 3. ฟังก์ชัน Auto-Save (Draft แบบออฟไลน์)
   function saveFormDraft() {
       var visitId = document.getElementById('visitId').value || 'NEW';
       var draftData = {
@@ -512,7 +506,6 @@
       if (draftStr) {
           try {
               var draft = JSON.parse(draftStr);
-              // ถ้า Draft เก่ากว่า 12 ชั่วโมง ให้ทิ้งไปเลย
               if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
                   clearFormDraft(visitId);
                   return false;
@@ -543,7 +536,6 @@
           form.addEventListener('change', saveFormDraft);
       }
   }, 1000);
-
 
   function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
@@ -1050,6 +1042,92 @@
     return '-';
   }
 
+  function toggleMainView(viewName) {
+    window.VisitManagerCache.currentMainView = viewName;
+    var btnList = document.getElementById('btnToggleList');
+    var btnCal = document.getElementById('btnToggleCal');
+    var listZone = document.getElementById('visitListZone');
+    var calZone = document.getElementById('visitCalendarZone');
+
+    if (viewName === 'calendar') {
+        btnCal.classList.replace('btn-light', 'btn-primary');
+        btnCal.classList.replace('text-secondary', 'text-white');
+        btnList.classList.replace('btn-primary', 'btn-light');
+        btnList.classList.add('text-secondary');
+        
+        listZone.classList.add('d-none');
+        calZone.classList.remove('d-none');
+        
+        renderCalendarView();
+    } else {
+        btnList.classList.replace('btn-light', 'btn-primary');
+        btnList.classList.remove('text-secondary');
+        btnCal.classList.replace('btn-primary', 'btn-light');
+        btnCal.classList.add('text-secondary');
+        
+        calZone.classList.add('d-none');
+        listZone.classList.remove('d-none');
+    }
+  }
+
+  function renderCalendarView() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    var events = globalFilteredVisits.map(function(v) {
+        var docObj = globalAllDoctors.find(function(d) {
+            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
+        });
+        var docName = getDoctorNameByLang(docObj, v.Doc_ID);
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v);
+        var title = docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        var isPending = (v.Status === 'Pending');
+        var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
+        
+        var bgColor = '#10b981'; 
+        if (isPendingUnlock) bgColor = '#64748b'; 
+        else if (isPending) bgColor = '#f59e0b'; 
+        
+        var startStr = v.Visit_Date;
+        if (v.Start_Time) startStr += 'T' + v.Start_Time;
+
+        return {
+            id: v.Visit_ID,
+            title: title,
+            start: startStr,
+            backgroundColor: bgColor,
+            borderColor: 'transparent',
+            extendedProps: { status: v.Status }
+        };
+    });
+
+    if (globalCalendarInstance) {
+        globalCalendarInstance.removeAllEvents();
+        globalCalendarInstance.addEventSource(events);
+        globalCalendarInstance.render();
+    } else {
+        globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: events,
+            eventClick: function(info) {
+                openEditVisitView(info.event.id);
+            },
+            dateClick: function(info) {
+                openAddVisitView(info.dateStr); 
+            },
+            eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
+            displayEventTime: true
+        });
+        globalCalendarInstance.render();
+    }
+  }
+
   var docRecognition = null;
   function toggleDocDictation() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1267,7 +1345,7 @@
       allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], bus: [], teamProdLinks: [],
       assignments: [], indexTypes: [], indexes: [], pendingUnlocks: [],
       filters: { smartSearch: '', startDate: '', endDate: '', status: '', rep: [], territory: [], page: 1, rows: 20, sortCol: 'date', sortAsc: false },
-      currentMainView: 'list' // 🎯 เก็บสถานะ View เริ่มต้น
+      currentMainView: 'list'
   };
 
   var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
@@ -1280,9 +1358,6 @@
   var tomSelectRepInstance = null;
   var tomSelectTerInstance = null;
   var tomSelectStatusInstance = null;
-  
-  // 🎯 ตัวแปรสำหรับปฏิทิน
-  var globalCalendarInstance = null;
 
   var currentSortCol = 'date';
   var currentSortAsc = false; 
@@ -1354,94 +1429,6 @@
     } else switchVisitView('visitListView');
   }
 
-  // 🎯 ฟังก์ชันสลับมุมมอง List / Calendar
-  function toggleMainView(viewName) {
-    window.VisitManagerCache.currentMainView = viewName;
-    var btnList = document.getElementById('btnToggleList');
-    var btnCal = document.getElementById('btnToggleCal');
-    var listZone = document.getElementById('visitListZone');
-    var calZone = document.getElementById('visitCalendarZone');
-
-    if (viewName === 'calendar') {
-        btnCal.classList.replace('btn-light', 'btn-primary');
-        btnCal.classList.replace('text-secondary', 'text-white');
-        btnList.classList.replace('btn-primary', 'btn-light');
-        btnList.classList.add('text-secondary');
-        
-        listZone.classList.add('d-none');
-        calZone.classList.remove('d-none');
-        
-        renderCalendarView();
-    } else {
-        btnList.classList.replace('btn-light', 'btn-primary');
-        btnList.classList.remove('text-secondary');
-        btnCal.classList.replace('btn-primary', 'btn-light');
-        btnCal.classList.add('text-secondary');
-        
-        calZone.classList.add('d-none');
-        listZone.classList.remove('d-none');
-    }
-  }
-
-  // 🎯 ฟังก์ชันสร้างและวาดปฏิทิน
-  function renderCalendarView() {
-    var calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
-
-    var events = globalFilteredVisits.map(function(v) {
-        var docObj = globalAllDoctors.find(function(d) {
-            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
-        });
-        var docName = getDoctorNameByLang(docObj, v.Doc_ID);
-        var hospName = getHospitalNameFromDocOrVisit(docObj, v);
-        var title = docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
-        
-        var isPending = (v.Status === 'Pending');
-        var isPendingUnlock = globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
-        
-        var bgColor = '#10b981'; // Green for Submitted
-        if (isPendingUnlock) bgColor = '#64748b'; // Gray for Pending Unlock
-        else if (isPending) bgColor = '#f59e0b'; // Yellow for Pending Draft
-        
-        var startStr = v.Visit_Date;
-        if (v.Start_Time) startStr += 'T' + v.Start_Time;
-
-        return {
-            id: v.Visit_ID,
-            title: title,
-            start: startStr,
-            backgroundColor: bgColor,
-            borderColor: 'transparent',
-            extendedProps: { status: v.Status }
-        };
-    });
-
-    if (globalCalendarInstance) {
-        globalCalendarInstance.removeAllEvents();
-        globalCalendarInstance.addEventSource(events);
-        globalCalendarInstance.render();
-    } else {
-        globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            events: events,
-            eventClick: function(info) {
-                openEditVisitView(info.event.id);
-            },
-            dateClick: function(info) {
-                openAddVisitView(info.dateStr); // ส่งวันที่ไปพรีฟิลในฟอร์ม
-            },
-            eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
-            displayEventTime: true
-        });
-        globalCalendarInstance.render();
-    }
-  }
-
   setTimeout(async function() { 
     try {
       await loadDropdowns(); 
@@ -1451,8 +1438,7 @@
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
       }
-      
-      // 🎯 ตรวจสอบ Default View
+
       var crmUser = null; 
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
       var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
@@ -1461,7 +1447,6 @@
       var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
       var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
-      // 🎯 ถ้าเป็น Sales ให้ Default เป็น Calendar
       if (isSales && window.VisitManagerCache.currentMainView === 'list') {
           toggleMainView('calendar');
       } else {
@@ -1550,6 +1535,21 @@
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
       window.updateFormUserInfo(crmUser, null);
     } catch(e) {}
+  }
+
+  function switchVisitView(viewId) {
+    var views = ['visitListView', 'visitFormView'];
+    views.forEach(function(v) { 
+      var el = document.getElementById(v); 
+      if(el) el.classList.add('d-none'); 
+    });
+    var target = document.getElementById(viewId); 
+    if(target) target.classList.remove('d-none');
+    window.scrollTo(0, 0);
+
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+      setLanguage(currentLang);
+    }
   }
 
   async function loadDropdowns(forceReload) {
@@ -2304,7 +2304,6 @@
 
     renderVisitTable();
     
-    // 🎯 ให้อัปเดตปฏิทินด้วยเวลา Filter เปลี่ยน
     if (window.VisitManagerCache.currentMainView === 'calendar') {
         renderCalendarView();
     }
@@ -2419,6 +2418,41 @@
     renderPaginationControls(totalPages);
   }
 
+  function renderPaginationControls(totalPages) {
+    var ul = document.getElementById('visitPagination');
+    if (!ul) return;
+    var html = '';
+
+    html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage - 1) + '); return false;">&laquo; Prev</a>' +
+            '</li>';
+
+    var startPage = Math.max(1, currentPage - 2);
+    var endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>';
+        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+    }
+
+    for (var i = startPage; i <= endPage; i++) {
+        html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
+                  '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a>' +
+                '</li>';
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+    }
+
+    html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (currentPage + 1) + '); return false;">Next &raquo;</a>' +
+            '</li>';
+
+    ul.innerHTML = html;
+  }
+
   function toggleVisitFormEditable(isEditable) {
     var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     var formView = document.getElementById('visitFormView');
@@ -2463,7 +2497,6 @@
     document.getElementById('visitId').value = '';
     document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">Add New Visit</span>';
     
-    // 🎯 ถ้าส่ง presetDate มาจาก Calendar ให้ใช้วันที่นั้น ถ้าไม่ให้ใช้วันนี้
     document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
@@ -2640,7 +2673,7 @@
     try {
       var res = await supabaseClient.from('DCR').insert([payload]);
       if (res.error) throw res.error;
-      showToast("ส่งคำขอปลดล็อกเรียบร้อยแล้ว กรุณารอแอดมินอนุมัติ", "success");
+      showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
       
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
@@ -2651,7 +2684,7 @@
         await loadVisits(true); 
       }
     } catch(err) {
-      showToast("Error: " + err.message, "error");
+      showToast("❌ Error: " + err.message, "error");
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
     }
