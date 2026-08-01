@@ -104,7 +104,6 @@
 
   /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar */
   #calendar { min-height: 600px; font-family: inherit; }
-  
   .fc-event { 
       cursor: pointer; 
       border: none !important; 
@@ -122,7 +121,6 @@
       align-items: center;
   }
   .fc-daygrid-event-dot { display: none !important; }
-
   .fc-event-title { font-weight: 600; font-size: 0.8rem; }
   .fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
   .fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; }
@@ -528,7 +526,7 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // 🎯 1. ฟังก์ชันสร้าง UUID 
+  // 🎯 ฟังก์ชันสร้าง UUID 
   window.generateUUID = function() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -1133,11 +1131,12 @@
     }
   };
 
+  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทย
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
 
-    var events = window.globalFilteredVisits.map(function(v) {
+    var visitEvents = window.globalFilteredVisits.map(function(v) {
         var docObj = window.globalAllDoctors.find(function(d) {
             return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
         });
@@ -1156,13 +1155,8 @@
         var endStr = v.Visit_Date; 
 
         if (v.Start_Time) startStr += 'T' + v.Start_Time;
-        
-        // 🎯 ดักจับ End Time เพื่อไม่ให้ปฏิทินวาดข้ามวัน
-        if (v.End_Time) {
-            endStr += 'T' + v.End_Time;
-        } else if (v.Start_Time) {
-            endStr += 'T' + v.Start_Time; 
-        }
+        if (v.End_Time) endStr += 'T' + v.End_Time;
+        else if (v.Start_Time) endStr += 'T' + v.Start_Time; // บังคับไม่ให้กล่องข้ามวันถ้าลืมใส่ End Time
 
         return {
             id: v.Visit_ID,
@@ -1174,13 +1168,42 @@
             borderColor: bgColor,
             textColor: '#ffffff', 
             display: 'block',     
-            extendedProps: { status: v.Status }
+            extendedProps: { status: v.Status, isHoliday: false }
         };
     });
 
+    var holidayEventSource = {
+        events: async function(fetchInfo, successCallback, failureCallback) {
+            var year = fetchInfo.start.getFullYear();
+            try {
+                // ดึงวันหยุดประเทศไทย
+                var response = await fetch('https://date.nager.at/api/v3/PublicHolidays/' + year + '/TH');
+                var data = await response.json();
+                var holidays = data.map(function(h) {
+                    return {
+                        id: 'hol_' + h.date,
+                        title: '🇹🇭 ' + (h.localName || h.name),
+                        start: h.date,
+                        allDay: true,
+                        backgroundColor: '#ef4444', // สีแดง สำหรับวันหยุด
+                        borderColor: '#ef4444',
+                        textColor: '#ffffff',
+                        display: 'block',
+                        extendedProps: { isHoliday: true }
+                    };
+                });
+                successCallback(holidays);
+            } catch (error) {
+                console.error("Error fetching holidays:", error);
+                successCallback([]); 
+            }
+        }
+    };
+
     if (window.globalCalendarInstance) {
-        window.globalCalendarInstance.removeAllEvents();
-        window.globalCalendarInstance.addEventSource(events);
+        window.globalCalendarInstance.removeAllEventSources();
+        window.globalCalendarInstance.addEventSource(visitEvents);
+        window.globalCalendarInstance.addEventSource(holidayEventSource);
         window.globalCalendarInstance.render();
     } else {
         window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
@@ -1190,8 +1213,14 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            events: events,
+            eventSources: [
+                visitEvents,
+                holidayEventSource
+            ],
             eventClick: function(info) {
+                if (info.event.extendedProps.isHoliday) {
+                    return; // กดวันหยุด ไม่ต้องเปิดหน้าฟอร์มแก้ไข
+                }
                 window.openEditVisitView(info.event.id);
             },
             dateClick: function(info) {
