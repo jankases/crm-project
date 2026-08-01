@@ -477,6 +477,7 @@
 </div>
 
 <script>
+  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent ทุกรณี
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalVisitProducts = [];
@@ -564,9 +565,13 @@
       }, 300); 
   };
 
+  // 🎯 [FIX] อัปเกรดระบบ Draft ให้จำข้อมูลในกล่อง Dropdown ด้วย (ป้องกันข้อมูลหายตอนสลับภาษา)
   window.saveFormDraft = function() {
       var visitId = document.getElementById('visitId').value || 'NEW';
       var draftData = {
+          docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
+          productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
+          purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
           date: document.getElementById('visitDate').value,
           startTime: document.getElementById('visitStartTime').value,
           endTime: document.getElementById('visitEndTime').value,
@@ -579,6 +584,7 @@
       localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
   };
 
+  // 🎯 [FIX] อัปเกรดระบบกู้คืน Draft ให้กู้คืน Dropdown ด้วย
   window.restoreFormDraft = function(visitId) {
       var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
       if (draftStr) {
@@ -588,6 +594,14 @@
                   window.clearFormDraft(visitId);
                   return false;
               }
+
+              // 🎯 ใช้ setTimeout หน่วงเวลาเพื่อกู้คืนข้อมูลกล่อง TomSelect ให้ชัวร์ 100%
+              setTimeout(function() {
+                  if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
+                  if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
+                  if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
+              }, 200);
+
               if (draft.date) document.getElementById('visitDate').value = draft.date;
               if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
               if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
@@ -596,7 +610,9 @@
               if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
               if (draft.status) document.getElementById('visitStatus').value = draft.status;
               
-              window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              if (!document.getElementById('visitId').value) {
+                  window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              }
               return true;
           } catch(e) { console.error(e); }
       }
@@ -1524,6 +1540,7 @@
     } else window.switchVisitView('visitListView');
   };
 
+  // 🎯 1. ดักจับการทำงานเมื่อเปิดหน้า ManageVisits ให้โหลดข้อมูล
   setTimeout(async function() { 
     try {
       await window.loadDropdowns(); 
@@ -1548,9 +1565,21 @@
           window.toggleMainView(window.VisitManagerCache.currentMainView || 'list');
       }
 
+      // 🎯 2. สั่งดักการคลิกปุ่มสลับภาษา EN/TH ข้อมูลในฟอร์มจะได้ไม่หาย
       var updateLangUI = function() {
+          // สั่งเซฟ Draft ก่อนที่ Dropdown จะถูกทำลาย
+          var formView = document.getElementById('visitFormView');
+          if (formView && !formView.classList.contains('d-none')) {
+              window.saveFormDraft();
+          }
+
           setTimeout(function() {
-              window.loadDropdowns(false); 
+              window.loadDropdowns(false).then(() => {
+                  var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : 'NEW';
+                  if (formView && !formView.classList.contains('d-none')) {
+                      window.restoreFormDraft(currentVisitId);
+                  }
+              }); 
               window.renderVisitTable();   
           }, 150);
       };
@@ -1661,7 +1690,7 @@
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
     
-    // 🎯 [FIX] ดึงค่าที่กำลังเลือกอยู่เดิมเก็บไว้ก่อนจะทำลาย Dropdown ทิ้งตอนสลับภาษา
+    // 🎯 ดึงค่าปัจจุบันที่หน้าจอไว้
     var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
     var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '';
     var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1702,7 +1731,6 @@
                   dropdownParent: 'body',
                   onChange: function() { window.filterVisits(); }
               });
-              // 🎯 [FIX] คืนค่า Filter Status กลับเข้าช่อง
               if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
           }
       }
@@ -1866,8 +1894,10 @@
                 dropdownParent: 'body',
                 dataAttr: 'data'
             });
-            // 🎯 [FIX] คืนค่าหมอที่เคยเลือกไว้
-            if (oldDocVal) window.tomSelectDocInstance.setValue(oldDocVal, true);
+            // 🎯 ใช้ Timeout ให้ชัวร์ว่า TomSelect สร้างเสร็จก่อนจะยัดข้อมูลกลับเข้าไป
+            if (oldDocVal) {
+                setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
+            }
         }
       }
 
@@ -1914,8 +1944,10 @@
                 dropdownParent: 'body',
                 dataAttr: 'data' 
             });
-            // 🎯 [FIX] คืนค่า Purpose ที่เคยเลือกไว้
-            if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
+            // 🎯 คืนค่า Purpose ด้วย Timeout
+            if (oldPurpVal) {
+                setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
+            }
         }
       }
 
@@ -1953,7 +1985,6 @@
     var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
 
-    // 🎯 [FIX] เก็บค่า Filter ที่เลือกไว้
     var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
     if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
     var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
@@ -2098,8 +2129,7 @@
         dropdownParent: 'body',
         onChange: function() { window.handleFilterChange('rep'); }
       });
-      // 🎯 [FIX] คืนค่า Rep Filter
-      if (oldRepVal.length > 0) window.tomSelectRepInstance.setValue(oldRepVal, true);
+      if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
 
       if (terSelect.tomselect) terSelect.tomselect.destroy();
       window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
@@ -2110,8 +2140,7 @@
         dropdownParent: 'body',
         onChange: function() { window.handleFilterChange('territory'); }
       });
-      // 🎯 [FIX] คืนค่า Territory Filter
-      if (oldTerVal.length > 0) window.tomSelectTerInstance.setValue(oldTerVal, true);
+      if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
     }
 
     window.renderFormProductDropdown(crmUser);
@@ -2121,7 +2150,6 @@
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
-    // 🎯 [FIX] เก็บค่า Product เดิมไว้
     var oldProdVal = [];
     if (window.tomSelectProdInstance) {
         var pv = window.tomSelectProdInstance.getValue();
@@ -2164,8 +2192,10 @@
             }
         });
 
-        // 🎯 [FIX] คืนค่า Product ที่เลือกไว้กลับไป
-        if (oldProdVal.length > 0) window.tomSelectProdInstance.setValue(oldProdVal, true);
+        // 🎯 คืนค่า Product ด้วย Timeout
+        if (oldProdVal.length > 0) {
+            setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
+        }
     }
   };
 
