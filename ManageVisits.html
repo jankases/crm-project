@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px;
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
   .form-control:disabled, .form-select:disabled { 
@@ -441,7 +441,6 @@
                 </div>
               </div>
 
-              <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
@@ -1443,7 +1442,6 @@
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        // 🎯 ดักเช็คภาษาจากปุ่มกด เพื่อให้สลับภาษาได้ 100% โดยไม่ต้องพึ่งไฟล์ index.html
         var appLang = getCurrentAppLang();
         var docDefaultText = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
         docSelect.innerHTML = '<option value="">' + docDefaultText + '</option>';
@@ -1465,7 +1463,6 @@
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
             
-            // 🎯 อัปเดต Placeholder ของ TomSelect ดร็อปดาวน์แพทย์ตามภาษาปัจจุบัน
             var docPlaceholder = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
@@ -1492,7 +1489,6 @@
                  t.Name.toLowerCase() === 'callpurpose'; 
         });
 
-        // 🎯 ดักเช็คภาษาจากโค้ดโดยตรง
         var appLang = getCurrentAppLang();
         var defaultPurposeText = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
         var purposeHtml = '<option value="">' + defaultPurposeText + '</option>';
@@ -1736,7 +1732,6 @@
     if (typeof TomSelect !== 'undefined') {
         if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
         
-        // 🎯 ดักเช็คภาษาจากโค้ดโดยตรง
         var appLang = getCurrentAppLang();
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
         
@@ -2523,7 +2518,7 @@
     }
   }
 
-  // 🌟 บังคับประกาศฟังก์ชันเข้าสู่ Global Scope (window)
+  // 🌟 บังคับประกาศฟังก์ชันเข้าสู่ Global Scope (window) เพื่อให้ index.html สั่งรีเฟรชได้
   window.openAddVisitView = openAddVisitView;
   window.openEditVisitView = openEditVisitView;
   window.toggleDocDictation = toggleDocDictation;
@@ -2550,4 +2545,5 @@
   window.prevPdfPage = prevPdfPage;
   window.nextPdfPage = nextPdfPage;
   window.jumpPdfPage = jumpPdfPage;
+  window.loadDropdowns = loadDropdowns; /* 🎯 บรรทัดที่หายไป คืนชีพให้ระบบ 2 ภาษาทำงานสมบูรณ์ */
 </script>
