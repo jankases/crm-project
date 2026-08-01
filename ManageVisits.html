@@ -11,6 +11,7 @@
     border-radius: 12px; 
   }
 
+  /* 🎯 บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% ตัวหนาขึ้น */
   .form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
     background-color: #f1f5f9 !important; 
     color: #0f172a !important; 
@@ -457,29 +458,56 @@
 </div>
 
 <script>
-  // 🎯 ประกาศตัวแปร Global ไว้ที่ Window Object ทันทีเพื่อป้องกัน ReferenceError ในระบบ LoadComponent
-  window.tomSelectDocInstance = null;
-  window.tomSelectProdInstance = null; 
-  window.tomSelectPurposeInstance = null; 
-  window.tomSelectRepInstance = null;
-  window.tomSelectTerInstance = null;
-  window.tomSelectStatusInstance = null;
-  window.globalCalendarInstance = null; // 🌟 กำหนดตัวแปรสำหรับปฏิทินให้ปลอดภัย
-  window.globalAllMediaList = [];
-  window.currentActiveMedia = null;
-  window.presentationStartTime = null;
-  window.presentationTimerInterval = null;
-  window.pdfDocInstance = null;
-  window.currentPdfPage = 1;
-  window.totalPdfPages = 1;
-  window.currentPageStartTime = null;
-  window.pageLogsBuffer = [];
-  window.globalIsMediaPreviewMode = false;
-  window.docRecognition = null;
-  window.textRecognition = null;
-  window.searchRecognition = null;
+  // 🎯 ประกาศตัวแปร Global ไว้ส่วนบนสุดของ Script เพื่อให้ทุกระบบมองเห็น
+  var globalVisits = [];
+  var globalFilteredVisits = [];
+  var globalVisitProducts = [];
+  var globalAllDoctors = [];
+  var globalAssignedDoctors = [];
+  var globalAllHospitals = [];
+  var globalAssignedHospitals = [];
+  var globalProductsList = [];
+  var globalTerritoryList = [];
+  var globalUsersList = [];
+  var globalTeamList = [];
+  var globalPendingUnlockVisits = [];
+  var globalCurrentUserRole = '';
+  
+  var tomSelectDocInstance = null;
+  var tomSelectProdInstance = null; 
+  var tomSelectPurposeInstance = null; 
+  var tomSelectRepInstance = null;
+  var tomSelectTerInstance = null;
+  var tomSelectStatusInstance = null;
+  var globalCalendarInstance = null;
 
-  // 🎯 1. ฟังก์ชันสร้าง UUID (ที่เผลอลบไปรอบที่แล้ว เอามาใส่กลับแล้วครับ!)
+  var currentSortCol = 'date';
+  var currentSortAsc = false; 
+  var currentPage = 1;
+  var rowsPerPage = 20;
+
+  var globalAllMediaList = [];
+  var currentActiveMedia = null;
+  var presentationStartTime = null;
+  var presentationTimerInterval = null;
+  var pdfDocInstance = null;
+  var currentPdfPage = 1;
+  var totalPdfPages = 1;
+  var currentPageStartTime = null;
+  var pageLogsBuffer = [];
+  var globalIsMediaPreviewMode = false;
+
+  var filterDebounceTimer = null;
+  var docRecognition = null;
+  var textRecognition = null;
+  var searchRecognition = null;
+  var currentDictTargetId = null;
+  var currentDictBtnId = null;
+  var currentSearchInputId = null;
+  var currentSearchBtnId = null;
+  var currentSearchIconId = null;
+
+  // 🎯 ฟังก์ชันสร้าง UUID 
   function generateUUID() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -512,7 +540,6 @@
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
   }
 
-  var filterDebounceTimer = null;
   function debouncedFilterVisits() {
       if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
       filterDebounceTimer = setTimeout(function() {
@@ -665,7 +692,7 @@
     try {
       var res = await supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
       if (!res.error && res.data) {
-        window.globalAllMediaList = res.data;
+        globalAllMediaList = res.data;
       }
     } catch(e) {
       console.error("Fetch Detailing Media Error:", e);
@@ -707,8 +734,8 @@
     var isPreviewMode = isSubmitted || !isOwner;
 
     var selectedProducts = [];
-    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
-      var val = window.tomSelectProdInstance.getValue();
+    if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
+      var val = tomSelectProdInstance.getValue();
       selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     } else {
       var pSelect = document.getElementById('visitProductId');
@@ -725,11 +752,11 @@
       return;
     }
 
-    if (window.globalAllMediaList.length === 0) {
+    if (globalAllMediaList.length === 0) {
       await fetchDetailingMedia();
     }
 
-    var matchedMedia = window.globalAllMediaList.filter(function(m) {
+    var matchedMedia = globalAllMediaList.filter(function(m) {
       return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
     });
 
@@ -778,9 +805,9 @@
   }
 
   async function openMediaPresentation(mediaId, isPreview) {
-    window.globalIsMediaPreviewMode = isPreview || false;
+    globalIsMediaPreviewMode = isPreview || false;
 
-    var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    var media = globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
     if (!media) return showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error");
 
     var visitIdInput = document.getElementById('visitId');
@@ -788,13 +815,13 @@
       visitIdInput.value = generateUUID();
     }
 
-    window.currentActiveMedia = media;
-    window.presentationStartTime = new Date();
-    window.pageLogsBuffer = [];
-    window.currentPdfPage = 1;
-    window.currentPageStartTime = new Date();
+    currentActiveMedia = media;
+    presentationStartTime = new Date();
+    pageLogsBuffer = [];
+    currentPdfPage = 1;
+    currentPageStartTime = new Date();
 
-    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+    var titleSuffix = globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
     document.getElementById('mediaModalTitle').innerHTML = 
       '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
 
@@ -813,9 +840,9 @@
 
       try {
         var loadingTask = pdfjsLib.getDocument(media.File_URL);
-        window.pdfDocInstance = await loadingTask.promise;
-        window.totalPdfPages = window.pdfDocInstance.numPages;
-        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
+        pdfDocInstance = await loadingTask.promise;
+        totalPdfPages = pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = totalPdfPages;
         document.getElementById('pdfPageNum').value = 1;
         renderPdfPage(1);
       } catch(e) {
@@ -827,8 +854,8 @@
     var secondsElapsed = 0;
     document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
     
-    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
-    window.presentationTimerInterval = setInterval(function() {
+    if (presentationTimerInterval) clearInterval(presentationTimerInterval);
+    presentationTimerInterval = setInterval(function() {
       secondsElapsed++;
       var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
       var s = String(secondsElapsed % 60).padStart(2, '0');
@@ -841,9 +868,9 @@
   }
 
   async function renderPdfPage(num) {
-    if (!window.pdfDocInstance) return;
+    if (!pdfDocInstance) return;
     try {
-      var page = await window.pdfDocInstance.getPage(num);
+      var page = await pdfDocInstance.getPage(num);
       var canvas = document.getElementById('pdfRenderCanvas');
       if (!canvas) return;
 
@@ -861,56 +888,56 @@
   }
 
   function recordCurrentPageLog() {
-    if (window.currentPageStartTime) {
+    if (currentPageStartTime) {
       var now = new Date();
-      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
+      var durationSec = Math.round((now - currentPageStartTime) / 1000);
       if (durationSec >= 5) {
-          window.pageLogsBuffer.push({
-            Page_Number: window.currentPdfPage,
+          pageLogsBuffer.push({
+            Page_Number: currentPdfPage,
             Duration_Second: durationSec,
-            Whenopend: window.currentPageStartTime.toISOString()
+            Whenopend: currentPageStartTime.toISOString()
           });
       }
     }
   }
 
   function prevPdfPage() {
-    if (window.currentPdfPage <= 1) return;
+    if (currentPdfPage <= 1) return;
     recordCurrentPageLog();
-    window.currentPdfPage--;
-    window.currentPageStartTime = new Date();
-    document.getElementById('pdfPageNum').value = window.currentPdfPage;
-    renderPdfPage(window.currentPdfPage);
+    currentPdfPage--;
+    currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = currentPdfPage;
+    renderPdfPage(currentPdfPage);
   }
 
   function nextPdfPage() {
-    if (window.currentPdfPage >= window.totalPdfPages) return;
+    if (currentPdfPage >= totalPdfPages) return;
     recordCurrentPageLog();
-    window.currentPdfPage++;
-    window.currentPageStartTime = new Date();
-    document.getElementById('pdfPageNum').value = window.currentPdfPage;
-    renderPdfPage(window.currentPdfPage);
+    currentPdfPage++;
+    currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = currentPdfPage;
+    renderPdfPage(currentPdfPage);
   }
 
   function jumpPdfPage() {
     var val = parseInt(document.getElementById('pdfPageNum').value);
-    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
+    if (isNaN(val) || val < 1 || val > totalPdfPages) return;
     recordCurrentPageLog();
-    window.currentPdfPage = val;
-    window.currentPageStartTime = new Date();
-    renderPdfPage(window.currentPdfPage);
+    currentPdfPage = val;
+    currentPageStartTime = new Date();
+    renderPdfPage(currentPdfPage);
   }
 
   async function closeMediaPresentation() {
-    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    if (presentationTimerInterval) clearInterval(presentationTimerInterval);
 
     recordCurrentPageLog();
 
     var now = new Date();
-    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
+    var totalDurationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
     var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
 
-    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+    if (!globalIsMediaPreviewMode && totalDurationSec >= 5 && currentActiveMedia && targetVisitId) {
       var crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
       var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
@@ -919,9 +946,9 @@
 
       var logPayload = {
         Visit_ID: targetVisitId,
-        Media_ID: window.currentActiveMedia.Media_ID,
+        Media_ID: currentActiveMedia.Media_ID,
         Duration_Seconds: durationToSave,
-        Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(),
+        Whenopend: presentationStartTime ? presentationStartTime.toISOString() : new Date().toISOString(),
         Whoupdated: whoUpdated
       };
 
@@ -931,8 +958,8 @@
         if (!logRes.error && logRes.data && logRes.data.length > 0) {
           var createdLogId = logRes.data[0].Log_ID;
 
-          if (window.pageLogsBuffer.length > 0) {
-            var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
+          if (pageLogsBuffer.length > 0) {
+            var pagePayloads = pageLogsBuffer.map(function(pLog) {
               return {
                 Log_ID: createdLogId,
                 Page_Number: pLog.Page_Number,
@@ -952,7 +979,7 @@
         console.error("❌ Close Media Catch error:", err);
       }
     } else {
-        if (window.globalIsMediaPreviewMode) console.log("👁️ Preview Mode: No logs recorded.");
+        if (globalIsMediaPreviewMode) console.log("👁️ Preview Mode: No logs recorded.");
         else if (totalDurationSec < 5) console.log("⏳ Duration < 5s: Log ignored.");
     }
 
@@ -961,9 +988,9 @@
     if (modal) modal.hide();
 
     document.getElementById('mediaModalBody').innerHTML = '';
-    window.currentActiveMedia = null;
-    window.presentationStartTime = null;
-    window.pdfDocInstance = null;
+    currentActiveMedia = null;
+    presentationStartTime = null;
+    pdfDocInstance = null;
   }
 
   function getDoctorNameByLang(docObj, defaultId) {
@@ -1121,12 +1148,12 @@
         };
     });
 
-    if (window.globalCalendarInstance) {
-        window.globalCalendarInstance.removeAllEvents();
-        window.globalCalendarInstance.addEventSource(events);
-        window.globalCalendarInstance.render();
+    if (globalCalendarInstance) {
+        globalCalendarInstance.removeAllEvents();
+        globalCalendarInstance.addEventSource(events);
+        globalCalendarInstance.render();
     } else {
-        window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+        globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
                 left: 'prev,next today',
@@ -1143,7 +1170,7 @@
             eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
             displayEventTime: true
         });
-        window.globalCalendarInstance.render();
+        globalCalendarInstance.render();
     }
   }
 
@@ -1155,9 +1182,9 @@
     var btn = document.getElementById('btnMicDoc');
     var icon = document.getElementById('micDocIcon');
 
-    if (window.docRecognition) {
-      window.docRecognition.stop();
-      window.docRecognition = null;
+    if (docRecognition) {
+      docRecognition.stop();
+      docRecognition = null;
       if (btn && icon) {
         btn.classList.remove('mic-active');
         icon.classList.remove('fa-fade');
@@ -1166,22 +1193,22 @@
     }
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    window.docRecognition = new SpeechRecognition();
-    window.docRecognition.lang = 'th-TH';
-    window.docRecognition.continuous = false;
+    docRecognition = new SpeechRecognition();
+    docRecognition.lang = 'th-TH';
+    docRecognition.continuous = false;
 
     if (btn && icon) {
       btn.classList.add('mic-active');
       icon.classList.add('fa-fade');
     }
 
-    window.docRecognition.onresult = function(event) {
+    docRecognition.onresult = function(event) {
       var spokenText = event.results[0][0].transcript.trim().toLowerCase();
       
-      if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-        window.tomSelectDocInstance.focus();
-        window.tomSelectDocInstance.setTextboxValue(spokenText);
-        var options = window.tomSelectDocInstance.options;
+      if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+        tomSelectDocInstance.focus();
+        tomSelectDocInstance.setTextboxValue(spokenText);
+        var options = tomSelectDocInstance.options;
         var matchedId = null;
         for (var id in options) {
           var text = (options[id].text || '').toLowerCase();
@@ -1191,23 +1218,23 @@
           }
         }
         if (matchedId) {
-          window.tomSelectDocInstance.setValue(matchedId);
-          window.tomSelectDocInstance.setTextboxValue('');
-          window.tomSelectDocInstance.blur();
+          tomSelectDocInstance.setValue(matchedId);
+          tomSelectDocInstance.setTextboxValue('');
+          tomSelectDocInstance.blur();
         }
       }
       stopDocDictation();
     };
 
-    window.docRecognition.onerror = stopDocDictation;
-    window.docRecognition.onend = stopDocDictation;
-    window.docRecognition.start();
+    docRecognition.onerror = stopDocDictation;
+    docRecognition.onend = stopDocDictation;
+    docRecognition.start();
   }
 
   function stopDocDictation() {
-    if (window.docRecognition) {
-      window.docRecognition.stop();
-      window.docRecognition = null;
+    if (docRecognition) {
+      docRecognition.stop();
+      docRecognition = null;
     }
     var btn = document.getElementById('btnMicDoc');
     var icon = document.getElementById('micDocIcon');
@@ -1224,25 +1251,25 @@
 
     var btn = document.getElementById(btnId);
 
-    if (window.textRecognition && window.currentDictTargetId === targetInputId) {
+    if (textRecognition && currentDictTargetId === targetInputId) {
       stopTextDictation();
       return;
     }
 
-    if (window.textRecognition) stopTextDictation();
+    if (textRecognition) stopTextDictation();
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    window.textRecognition = new SpeechRecognition();
-    window.textRecognition.lang = 'th-TH';
-    window.textRecognition.continuous = true;
-    window.textRecognition.interimResults = false;
+    textRecognition = new SpeechRecognition();
+    textRecognition.lang = 'th-TH';
+    textRecognition.continuous = true;
+    textRecognition.interimResults = false;
 
-    window.currentDictTargetId = targetInputId;
-    window.currentDictBtnId = btnId;
+    currentDictTargetId = targetInputId;
+    currentDictBtnId = btnId;
 
     if (btn) btn.classList.add('mic-active');
 
-    window.textRecognition.onresult = function(event) {
+    textRecognition.onresult = function(event) {
       var spokenText = event.results[event.results.length - 1][0].transcript.trim();
       var inputEl = document.getElementById(targetInputId);
       if (inputEl && spokenText) {
@@ -1252,22 +1279,22 @@
       }
     };
 
-    window.textRecognition.onerror = stopTextDictation;
-    window.textRecognition.onend = stopTextDictation;
-    window.textRecognition.start();
+    textRecognition.onerror = stopTextDictation;
+    textRecognition.onend = stopTextDictation;
+    textRecognition.start();
   }
 
   function stopTextDictation() {
-    if (window.textRecognition) {
-      window.textRecognition.stop();
-      window.textRecognition = null;
+    if (textRecognition) {
+      textRecognition.stop();
+      textRecognition = null;
     }
-    if (window.currentDictBtnId) {
-      var btn = document.getElementById(window.currentDictBtnId);
+    if (currentDictBtnId) {
+      var btn = document.getElementById(currentDictBtnId);
       if (btn) btn.classList.remove('mic-active');
     }
-    window.currentDictTargetId = null;
-    window.currentDictBtnId = null;
+    currentDictTargetId = null;
+    currentDictBtnId = null;
   }
 
   function toggleSpeechSearch(inputId, btnId, iconId) {
@@ -1275,22 +1302,22 @@
       return showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
     }
 
-    if (window.searchRecognition && window.currentSearchInputId === inputId) {
+    if (searchRecognition && currentSearchInputId === inputId) {
       stopSearchDictation();
       return;
     }
 
-    if (window.searchRecognition) stopSearchDictation();
+    if (searchRecognition) stopSearchDictation();
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    window.searchRecognition = new SpeechRecognition();
-    window.searchRecognition.lang = 'th-TH';
-    window.searchRecognition.continuous = false;
-    window.searchRecognition.interimResults = false;
+    searchRecognition = new SpeechRecognition();
+    searchRecognition.lang = 'th-TH';
+    searchRecognition.continuous = false;
+    searchRecognition.interimResults = false;
 
-    window.currentSearchInputId = inputId;
-    window.currentSearchBtnId = btnId;
-    window.currentSearchIconId = iconId;
+    currentSearchInputId = inputId;
+    currentSearchBtnId = btnId;
+    currentSearchIconId = iconId;
 
     var btn = document.getElementById(btnId);
     var icon = document.getElementById(iconId);
@@ -1300,7 +1327,7 @@
       icon.classList.add('fa-fade');
     }
 
-    window.searchRecognition.onresult = function(event) {
+    searchRecognition.onresult = function(event) {
       var spokenText = event.results[0][0].transcript.trim();
       var inputEl = document.getElementById(inputId);
       if (inputEl && spokenText) {
@@ -1310,27 +1337,27 @@
       stopSearchDictation();
     };
 
-    window.searchRecognition.onerror = stopSearchDictation;
-    window.searchRecognition.onend = stopSearchDictation;
-    window.searchRecognition.start();
+    searchRecognition.onerror = stopSearchDictation;
+    searchRecognition.onend = stopSearchDictation;
+    searchRecognition.start();
   }
 
   function stopSearchDictation() {
-    if (window.searchRecognition) {
-      window.searchRecognition.stop();
-      window.searchRecognition = null;
+    if (searchRecognition) {
+      searchRecognition.stop();
+      searchRecognition = null;
     }
-    if (window.currentSearchBtnId && window.currentSearchIconId) {
-      var btn = document.getElementById(window.currentSearchBtnId);
-      var icon = document.getElementById(window.currentSearchIconId);
+    if (currentSearchBtnId && currentSearchIconId) {
+      var btn = document.getElementById(currentSearchBtnId);
+      var icon = document.getElementById(currentSearchIconId);
       if (btn && icon) {
         btn.classList.remove('mic-active');
         icon.classList.remove('fa-fade');
       }
     }
-    window.currentSearchInputId = null;
-    window.currentSearchBtnId = null;
-    window.currentSearchIconId = null;
+    currentSearchInputId = null;
+    currentSearchBtnId = null;
+    currentSearchIconId = null;
   }
 
   function renderPaginationControls(totalPages) {
@@ -1384,20 +1411,10 @@
       return allData;
   }
 
-  window.openAddVisitModal = function(fromDocId, presetDate) {
-    if (!fromDocId) sessionStorage.removeItem('returnToDocId');
-    openAddVisitView(presetDate);
-  };
-
-  window.openEditVisitModal = function(visitId, fromDocId) {
-    if (!fromDocId) sessionStorage.removeItem('returnToDocId');
-    openEditVisitView(visitId);
-  };
-
   function clearVisitFilters() {
-      if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
-      if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
-      if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.clear(true);
+      if (tomSelectRepInstance) tomSelectRepInstance.clear(true);
+      if (tomSelectTerInstance) tomSelectTerInstance.clear(true);
+      if (tomSelectStatusInstance) tomSelectStatusInstance.clear(true);
       
       var clearTs = function(id) {
           var el = document.getElementById(id);
@@ -1603,7 +1620,7 @@
 
           if (typeof TomSelect !== 'undefined') {
               if (statusSelect.tomselect) statusSelect.tomselect.destroy();
-              window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
+              tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
                   create: false,
                   placeholder: optAllStatus,
                   dropdownParent: 'body',
@@ -1762,7 +1779,7 @@
             if (docSelect.tomselect) docSelect.tomselect.destroy();
             
             var docPlaceholder = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
-            window.tomSelectDocInstance = new TomSelect('#visitDocId', { 
+            tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
                 searchField: ["text", "name_en", "name_th"],
                 sortField: { field: "text", direction: "asc" }, 
@@ -1806,7 +1823,7 @@
             if (purposeSelect.tomselect) purposeSelect.tomselect.destroy();
             
             var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
-            window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
+            tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
                 create: false, 
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: purPlaceholder,
@@ -1818,7 +1835,7 @@
       var returnToDocId = sessionStorage.getItem('returnToDocId');
       if (returnToDocId) {
         setTimeout(function() {
-          if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(returnToDocId);
+          if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.setValue(returnToDocId);
           else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
         }, 200); 
       }
@@ -1980,7 +1997,7 @@
     var appLang = getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
-      window.tomSelectRepInstance = new TomSelect('#filterVisitRep', {
+      tomSelectRepInstance = new TomSelect('#filterVisitRep', {
         maxItems: null,
         plugins: ['remove_button'],
         create: false,
@@ -1990,7 +2007,7 @@
       });
 
       if (terSelect.tomselect) terSelect.tomselect.destroy();
-      window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
+      tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
         maxItems: null,
         plugins: ['remove_button'],
         create: false,
@@ -2032,7 +2049,7 @@
         var appLang = getCurrentAppLang();
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
         
-        window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
+        tomSelectProdInstance = new TomSelect('#visitProductId', { 
             plugins: ['remove_button'], 
             create: false, 
             sortField: { field: "text", direction: "asc" }, 
@@ -2117,10 +2134,10 @@
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
         
-        if (window.tomSelectStatusInstance && f.status !== undefined) window.tomSelectStatusInstance.setValue(f.status, true);
+        if (tomSelectStatusInstance && f.status !== undefined) tomSelectStatusInstance.setValue(f.status, true);
         
-        if (window.tomSelectRepInstance && f.rep) window.tomSelectRepInstance.setValue(f.rep, true);
-        if (window.tomSelectTerInstance && f.territory) window.tomSelectTerInstance.setValue(f.territory, true);
+        if (tomSelectRepInstance && f.rep) tomSelectRepInstance.setValue(f.rep, true);
+        if (tomSelectTerInstance && f.territory) tomSelectTerInstance.setValue(f.territory, true);
         if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
 
         currentPage = f.page || 1;
@@ -2150,14 +2167,14 @@
   function filterVisits(resetPage) {
     if (resetPage === undefined) resetPage = true;
     
-    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
+    var selectedReps = tomSelectRepInstance ? tomSelectRepInstance.getValue() : [];
     if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
-    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
+    var selectedTers = tomSelectTerInstance ? tomSelectTerInstance.getValue() : [];
     if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
     var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '');
+    var statusTerm = tomSelectStatusInstance ? tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '');
     var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -2441,19 +2458,19 @@
     var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
     var formView = document.getElementById('visitFormView');
 
-    if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-      if (isEditable) window.tomSelectDocInstance.enable();
-      else window.tomSelectDocInstance.disable();
+    if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+      if (isEditable) tomSelectDocInstance.enable();
+      else tomSelectDocInstance.disable();
     }
     
-    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
-      if (isEditable) window.tomSelectProdInstance.enable();
-      else window.tomSelectProdInstance.disable();
+    if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
+      if (isEditable) tomSelectProdInstance.enable();
+      else tomSelectProdInstance.disable();
     }
     
-    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
-      if (isEditable) window.tomSelectPurposeInstance.enable();
-      else window.tomSelectPurposeInstance.disable();
+    if (typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) {
+      if (isEditable) tomSelectPurposeInstance.enable();
+      else tomSelectPurposeInstance.disable();
     }
 
     if (formView) {
@@ -2487,14 +2504,14 @@
 
     initUserInfo(); 
 
-    if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-      window.tomSelectDocInstance.clear();
-      window.tomSelectDocInstance.enable(); 
+    if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+      tomSelectDocInstance.clear();
+      tomSelectDocInstance.enable(); 
     }
     
-    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
-      window.tomSelectPurposeInstance.clear();
-      window.tomSelectPurposeInstance.enable(); 
+    if (typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) {
+      tomSelectPurposeInstance.clear();
+      tomSelectPurposeInstance.enable(); 
     }
 
     await renderFormProductDropdown();
@@ -2502,9 +2519,9 @@
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       setTimeout(function() {
-        if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(returnToDocId);
-          window.tomSelectDocInstance.disable(); 
+        if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+          tomSelectDocInstance.setValue(returnToDocId);
+          tomSelectDocInstance.disable(); 
         }
       }, 200); 
     }
@@ -2512,7 +2529,7 @@
     toggleVisitFormEditable(true);
     if (returnToDocId) {
       setTimeout(function() {
-        if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
+        if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.disable();
       }, 250);
     }
 
@@ -2560,8 +2577,8 @@
     window.updateFormUserInfo(targetRepObj, v.Territory_ID);
 
     setTimeout(function() {
-      if (v.Doc_ID && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(v.Doc_ID);
+      if (v.Doc_ID && typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+          tomSelectDocInstance.setValue(v.Doc_ID);
       }
     }, 100);
 
@@ -2569,8 +2586,8 @@
     var visitProds = globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     
     setTimeout(function() {
-      if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) {
-          window.tomSelectProdInstance.setValue(visitProds);
+      if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance && visitProds.length > 0) {
+          tomSelectProdInstance.setValue(visitProds);
       }
       loadProductMedia();
     }, 150);
@@ -2580,8 +2597,8 @@
     document.getElementById('visitEndTime').value = formatTimeString(v.End_Time);
 
     setTimeout(function() {
-      if (v.Purpose && typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
-          window.tomSelectPurposeInstance.setValue(v.Purpose);
+      if (v.Purpose && typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) {
+          tomSelectPurposeInstance.setValue(v.Purpose);
       }
     }, 100);
 
@@ -2622,8 +2639,8 @@
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
         btn.dataset.mode = 'save';
         
-        if (sessionStorage.getItem('returnToDocId') && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-           window.tomSelectDocInstance.disable();
+        if (sessionStorage.getItem('returnToDocId') && typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) {
+           tomSelectDocInstance.disable();
         }
       } else {
         toggleVisitFormEditable(false);
@@ -2685,13 +2702,13 @@
       return;
     }
 
-    var docVal = (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) ? window.tomSelectDocInstance.getValue() : '';
+    var docVal = (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) ? tomSelectDocInstance.getValue() : '';
     var dateInput = document.getElementById('visitDate');
-    var purposeVal = (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) ? window.tomSelectPurposeInstance.getValue() : '';
+    var purposeVal = (typeof tomSelectPurposeInstance !== 'undefined' && tomSelectPurposeInstance) ? tomSelectPurposeInstance.getValue() : '';
 
     var selectedProducts = [];
-    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
-        var val = window.tomSelectProdInstance.getValue();
+    if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
+        var val = tomSelectProdInstance.getValue();
         selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
     }
     selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
@@ -2779,37 +2796,63 @@
     }
   }
 
-  // 🌟 บังคับประกาศฟังก์ชันเข้าสู่ Global Scope ทั้งหมดแบบแข็งแกร่งที่สุด
+  // 🌟 ผูกฟังก์ชันทั้งหมดเข้ากับ window object (จำเป็นมากสำหรับระบบ loadComponent)
   window.generateUUID = generateUUID;
-  window.openAddVisitView = openAddVisitView;
-  window.openEditVisitView = openEditVisitView;
-  window.toggleDocDictation = toggleDocDictation;
-  window.toggleTextDictation = toggleTextDictation;
-  window.toggleSpeechSearch = toggleSpeechSearch;
-  window.filterVisits = filterVisits;
-  window.renderVisitTable = renderVisitTable;
-  window.renderPaginationControls = renderPaginationControls;
-  window.handleFilterChange = handleFilterChange;
-  window.clearVisitFilters = clearVisitFilters;
-  window.sortVisits = sortVisits;
-  window.changeRowsPerPage = changeRowsPerPage;
-  window.goToPage = goToPage;
-  window.cancelVisitForm = cancelVisitForm;
-  window.handleSaveVisit = handleSaveVisit;
+  window.showToast = showToast;
+  window.debouncedFilterVisits = debouncedFilterVisits;
+  window.saveFormDraft = saveFormDraft;
+  window.restoreFormDraft = restoreFormDraft;
+  window.clearFormDraft = clearFormDraft;
+  window.safeTranslate = safeTranslate;
+  window.getCurrentAppLang = getCurrentAppLang;
+  window.formatTimeString = formatTimeString;
   window.setQuickTime = setQuickTime;
-  window.getDoctorNameByLang = getDoctorNameByLang;
-  window.getHospitalNameFromDocOrVisit = getHospitalNameFromDocOrVisit;
+  window.applySearchHighlight = applySearchHighlight;
+  window.checkMyDraftsReminder = checkMyDraftsReminder;
+  window.fetchDetailingMedia = fetchDetailingMedia;
   window.loadProductMedia = loadProductMedia;
   window.openMediaPresentation = openMediaPresentation;
-  window.closeMediaPresentation = closeMediaPresentation;
-  window.formatTimeString = formatTimeString;
   window.renderPdfPage = renderPdfPage;
+  window.recordCurrentPageLog = recordCurrentPageLog;
   window.prevPdfPage = prevPdfPage;
   window.nextPdfPage = nextPdfPage;
   window.jumpPdfPage = jumpPdfPage;
-  window.loadDropdowns = loadDropdowns;
-  window.updateFormUserInfo = updateFormUserInfo;
-  window.debouncedFilterVisits = debouncedFilterVisits;
+  window.closeMediaPresentation = closeMediaPresentation;
+  window.getDoctorNameByLang = getDoctorNameByLang;
+  window.getHospitalNameFromDocOrVisit = getHospitalNameFromDocOrVisit;
   window.toggleMainView = toggleMainView;
   window.renderCalendarView = renderCalendarView;
+  window.toggleDocDictation = toggleDocDictation;
+  window.stopDocDictation = stopDocDictation;
+  window.toggleTextDictation = toggleTextDictation;
+  window.stopTextDictation = stopTextDictation;
+  window.toggleSpeechSearch = toggleSpeechSearch;
+  window.stopSearchDictation = stopSearchDictation;
+  window.fetchAllRecords = fetchAllRecords;
+  window.openAddVisitModal = openAddVisitModal;
+  window.openEditVisitModal = openEditVisitModal;
+  window.clearVisitFilters = clearVisitFilters;
+  window.returnToDoctorProfile = returnToDoctorProfile;
+  window.cancelVisitForm = cancelVisitForm;
+  window.updateFormUserInfo = updateFormUserInfo;
+  window.initUserInfo = initUserInfo;
+  window.switchVisitView = switchVisitView;
+  window.loadDropdowns = loadDropdowns;
+  window.setupFiltersDropdowns = setupFiltersDropdowns;
+  window.renderFormProductDropdown = renderFormProductDropdown;
+  window.handleFilterChange = handleFilterChange;
+  window.sortVisits = sortVisits;
+  window.loadVisits = loadVisits;
+  window.filterVisits = filterVisits;
+  window.updateStatCards = updateStatCards;
+  window.changeRowsPerPage = changeRowsPerPage;
+  window.goToPage = goToPage;
+  window.renderVisitTable = renderVisitTable;
+  window.renderPaginationControls = renderPaginationControls;
+  window.toggleVisitFormEditable = toggleVisitFormEditable;
+  window.openAddVisitView = openAddVisitView;
+  window.openEditVisitView = openEditVisitView;
+  window.requestUnlockVisit = requestUnlockVisit;
+  window.handleSaveVisit = handleSaveVisit;
+
 </script>
