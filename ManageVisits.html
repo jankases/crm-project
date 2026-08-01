@@ -11,11 +11,11 @@
     border-radius: 12px; 
   }
 
-  /* 🎯 1. บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% ตัวหนาขึ้น */
+  /* 🎯 บังคับสีช่องกรอกข้อมูลปกติ และ Textarea ให้อ่านชัด 100% ตัวหนาขึ้น */
   .form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
     background-color: #f1f5f9 !important; 
     color: #0f172a !important; 
-    -webkit-text-fill-color: #0f172a !important; /* บังคับ Safari/iOS ห้ามดรอปสี */
+    -webkit-text-fill-color: #0f172a !important; 
     cursor: not-allowed; 
     opacity: 1 !important; 
     font-weight: 600 !important;
@@ -86,10 +86,10 @@
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
 
-  /* 🎯 2. ทะลวง Opacity ของ TomSelect อย่างเด็ดขาด (ล้างความโปร่งใส 50% ของ Default CSS) */
+  /* 🎯 ทะลวง Opacity ของ TomSelect ที่ทำสีจาง 50% ให้กลับมา 100% และเข้มขึ้น */
   .ts-wrapper.disabled { opacity: 1 !important; }
   .ts-wrapper.disabled .ts-control { 
-    opacity: 1 !important; /* <--- ตัวการคือตรงนี้ครับ บังคับให้ทึบ 100% */
+    opacity: 1 !important; 
     background-color: #f1f5f9 !important; 
   }
   .ts-wrapper.disabled.single .ts-control > .item { 
@@ -98,7 +98,7 @@
     font-weight: 600 !important; 
   }
   .ts-wrapper.disabled.multi .ts-control > .item { 
-    background-color: #cbd5e1 !important; /* ให้พื้นหลังเข้มขึ้นนิดนึงจะได้ตัดกับตัวอักษร */
+    background-color: #cbd5e1 !important; 
     border-color: #94a3b8 !important; 
     color: #0f172a !important; 
     -webkit-text-fill-color: #0f172a !important; 
@@ -138,7 +138,6 @@
     to { transform: translateX(0); opacity: 1; }
   }
 
-  /* 🎨 Scroll Box สำหรับโซน e-Detailing */
   #detailingMediaSection {
     margin-top: 10px;
     position: relative;
@@ -168,7 +167,6 @@
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
   }
 
-  /* 📄 PDF Canvas Container */
   #pdfCanvasContainer {
     width: 100%;
     height: calc(100vh - 60px);
@@ -197,7 +195,6 @@
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
-  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List View) ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -470,7 +467,8 @@
               <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus">
+                <!-- 🎯 สั่งโหลด Media ใหม่ถ้ามีการเปลี่ยนสถานะ -->
+                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
                 </select>
@@ -617,6 +615,9 @@
   var totalPdfPages = 1;
   var currentPageStartTime = null;
   var pageLogsBuffer = [];
+  
+  // 🎯 ตัวแปรเก็บสถานะการเปิดสื่อว่าเป็นแค่ Preview (ไม่บันทึก) หรือ Present (บันทึก)
+  var globalIsMediaPreviewMode = false;
 
   async function fetchDetailingMedia() {
     try {
@@ -634,6 +635,37 @@
     var section = document.getElementById('detailingMediaSection');
     var headerEl = document.getElementById('detailingMediaHeader');
     if (!container || !section) return;
+
+    // 🎯 ดึงสถานะปัจจุบันของ Visit (ถ้าส่งแล้วให้เป็น Preview โหมด)
+    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
+    var isSubmitted = (visitStatus === 'Submitted');
+
+    // 🎯 ดึงข้อมูล User ปัจจุบันเพื่อเช็คความเป็นเจ้าของ
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    var isOwner = true; // สมมติให้เป็นเจ้าของก่อน (สำหรับกรณี Add New)
+    
+    if (currentVisitId && globalVisits && globalVisits.length > 0) {
+        var v = globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+        if (v) {
+            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+            if (myRepId && creatorRepId) {
+                isOwner = (myRepId === creatorRepId);
+            } else if (myEmail && creatorWho) {
+                isOwner = (myEmail === creatorWho);
+            } else {
+                isOwner = false;
+            }
+        }
+    }
+
+    // 🎯 ตัดสินใจโหมดการแสดงผล
+    var isPreviewMode = isSubmitted || !isOwner;
 
     var selectedProducts = [];
     if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) {
@@ -680,6 +712,11 @@
     }
 
     var html = '';
+    // 🎯 ปรับแต่งสีและปุ่มตามโหมด Preview หรือ Present
+    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-primary';
+    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
+    var btnText = isPreviewMode ? 'Preview' : 'Present';
+
     matchedMedia.forEach(function(m) {
       var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
       var typeText = m.Type || 'PDF';
@@ -693,8 +730,8 @@
               '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="btn btn-primary btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="openMediaPresentation(\'' + m.Media_ID + '\')">' +
-            '<i class="fa-solid fa-display me-1"></i> Present' +
+          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
           '</button>' +
         '</div>';
     });
@@ -702,17 +739,9 @@
     container.innerHTML = html;
   }
 
-  function generateUUID() {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-    }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-  }
+  async function openMediaPresentation(mediaId, isPreview) {
+    globalIsMediaPreviewMode = isPreview || false; // เก็บสถานะโหมด
 
-  async function openMediaPresentation(mediaId) {
     var media = globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
     if (!media) return alert("❌ ไม่พบไฟล์สื่อการนำเสนอนี้");
 
@@ -727,8 +756,10 @@
     currentPdfPage = 1;
     currentPageStartTime = new Date();
 
+    // 🎯 เพิ่มวงเล็บ [Preview Only] ท้ายชื่อเรื่องให้สังเกตง่าย
+    var titleSuffix = globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
     document.getElementById('mediaModalTitle').innerHTML = 
-      '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title;
+      '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
 
     var modalBody = document.getElementById('mediaModalBody');
     var pdfControls = document.getElementById('pdfControls');
@@ -796,13 +827,15 @@
     if (currentPageStartTime) {
       var now = new Date();
       var durationSec = Math.round((now - currentPageStartTime) / 1000);
-      var durationToSave = durationSec > 0 ? durationSec : 1;
       
-      pageLogsBuffer.push({
-        Page_Number: currentPdfPage,
-        Duration_Second: durationToSave,
-        Whenopend: currentPageStartTime.toISOString()
-      });
+      // 🎯 กฎข้อ 3: ต้องเปิดดูสไลด์หน้านั้นทิ้งไว้อย่างน้อย 5 วินาที ถึงจะจัดเก็บ
+      if (durationSec >= 5) {
+          pageLogsBuffer.push({
+            Page_Number: currentPdfPage,
+            Duration_Second: durationSec,
+            Whenopend: currentPageStartTime.toISOString()
+          });
+      }
     }
   }
 
@@ -842,7 +875,8 @@
     var totalDurationSec = presentationStartTime ? Math.round((now - presentationStartTime) / 1000) : 0;
     var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
 
-    if (currentActiveMedia && targetVisitId) {
+    // 🎯 กฎข้อ 1, 2, 3: บันทึกเมื่อ "ไม่ใช้ Preview" และ "ดูนานกว่า 5 วินาที"
+    if (!globalIsMediaPreviewMode && totalDurationSec >= 5 && currentActiveMedia && targetVisitId) {
       var crmUser = null;
       try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
       var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
@@ -860,9 +894,7 @@
       try {
         var logRes = await supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
         
-        if (logRes.error) {
-          console.error("❌ Insert Visit_Detailing_Logs error:", logRes.error.message);
-        } else if (logRes.data && logRes.data.length > 0) {
+        if (!logRes.error && logRes.data && logRes.data.length > 0) {
           var createdLogId = logRes.data[0].Log_ID;
 
           if (pageLogsBuffer.length > 0) {
@@ -885,6 +917,9 @@
       } catch(err) {
         console.error("❌ Close Media Catch error:", err);
       }
+    } else {
+        if (globalIsMediaPreviewMode) console.log("👁️ Preview Mode: No logs recorded.");
+        else if (totalDurationSec < 5) console.log("⏳ Duration < 5s: Log ignored (assumed accidental click).");
     }
 
     var modalEl = document.getElementById('mediaPresentationModal');
@@ -992,7 +1027,6 @@
     return '-';
   }
 
-  // 🌟 ระบบไมค์ค้นหาหมอ
   var docRecognition = null;
   function toggleDocDictation() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1064,7 +1098,6 @@
     }
   }
 
-  // 🌟 ระบบไมค์สั่งงานสำหรับช่องข้อความ
   var textRecognition = null;
   var currentDictTargetId = null;
   var currentDictBtnId = null;
