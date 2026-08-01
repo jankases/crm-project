@@ -1129,7 +1129,6 @@
     }
   };
 
-  // 🎯 8. ฟังก์ชันแสดงปฏิทิน + ระบบดึงวันหยุดนักขัตฤกษ์ไทยจากฐานข้อมูล (Dynamic & Sync)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1156,7 +1155,6 @@
             id: v.Visit_ID,
             title: title,
             start: startStr,
-            // 🚫 ถอด end ออกไปเลย เพื่อไม่ให้ปฏิทินตีความเวลาผิดจนวาดยาวข้ามวัน
             allDay: (!v.Start_Time), 
             backgroundColor: bgColor,
             borderColor: bgColor,
@@ -1166,7 +1164,6 @@
         };
     });
 
-    // 🎯 สร้าง Array วันหยุดจาก Cache ของฐานข้อมูลโดยตรง
     var holidayEvents = [];
     if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
         var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
@@ -1181,10 +1178,10 @@
             holidayEvents = holidayData.map(function(h) {
                 return {
                     id: 'hol_' + h.Index_ID,
-                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), // 🌟 Value1 เก็บ Description ของวันหยุด
-                    start: h.Value,                         // 🌟 Value เก็บ Date ของวันหยุด
+                    title: '🇹🇭 ' + (h.Value1 || 'Holiday'), 
+                    start: h.Value,                         
                     allDay: true,
-                    backgroundColor: '#ef4444',             // 🌟 สีแดง สำหรับวันหยุด
+                    backgroundColor: '#ef4444',             
                     borderColor: '#ef4444',
                     textColor: '#ffffff',
                     display: 'block',
@@ -1194,7 +1191,6 @@
         }
     }
 
-    // 🎯 รวมคิวงานกับวันหยุดเข้าด้วยกัน แล้วให้ FullCalendar วาดทีเดียว
     var allEvents = visitEvents.concat(holidayEvents);
 
     if (window.globalCalendarInstance) {
@@ -1212,7 +1208,7 @@
             events: allEvents,
             eventClick: function(info) {
                 if (info.event.extendedProps.isHoliday) {
-                    return; // กดวันหยุด ไม่ต้องเปิดหน้าฟอร์มแก้ไข
+                    return; 
                 }
                 window.openEditVisitView(info.event.id);
             },
@@ -1528,7 +1524,6 @@
     } else window.switchVisitView('visitListView');
   };
 
-  // 🎯 1. ดักจับการทำงานเมื่อเปิดหน้า ManageVisits ให้โหลดข้อมูล
   setTimeout(async function() { 
     try {
       await window.loadDropdowns(); 
@@ -1553,11 +1548,10 @@
           window.toggleMainView(window.VisitManagerCache.currentMainView || 'list');
       }
 
-      // 🎯 2. สั่งดักการคลิกปุ่มสลับภาษา EN/TH ข้างบนสุดของจอ
       var updateLangUI = function() {
           setTimeout(function() {
-              window.loadDropdowns(false); // โหลด Dropdown Purpose ใหม่
-              window.renderVisitTable();   // วาดตารางใหม่ให้ภาษาตรง
+              window.loadDropdowns(false); 
+              window.renderVisitTable();   
           }, 150);
       };
       var btnEN = document.getElementById('btnLangEN');
@@ -1666,6 +1660,12 @@
 
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
+    
+    // 🎯 [FIX] ดึงค่าที่กำลังเลือกอยู่เดิมเก็บไว้ก่อนจะทำลาย Dropdown ทิ้งตอนสลับภาษา
+    var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
+    var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '';
+    var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
+
     try {
       var appLang = window.getCurrentAppLang();
       
@@ -1702,6 +1702,8 @@
                   dropdownParent: 'body',
                   onChange: function() { window.filterVisits(); }
               });
+              // 🎯 [FIX] คืนค่า Filter Status กลับเข้าช่อง
+              if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
           }
       }
 
@@ -1864,6 +1866,8 @@
                 dropdownParent: 'body',
                 dataAttr: 'data'
             });
+            // 🎯 [FIX] คืนค่าหมอที่เคยเลือกไว้
+            if (oldDocVal) window.tomSelectDocInstance.setValue(oldDocVal, true);
         }
       }
 
@@ -1881,13 +1885,12 @@
 
         var purposeHtml = '<option value=""></option>';
         
-        // 🎯 3. โหลดตัวเลือก Purpose โดยเช็คภาษาที่เลือกอยู่
         if (purposeType) {
           var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
           purposeItems.forEach(function(i) { 
             var textTh = i.Value || '';
             var textEn = i.Value1 || i.Value || '';
-            var displayVal = (appLang === 'en') ? textEn : textTh; // โชว์ตามภาษาที่กด
+            var displayVal = (appLang === 'en') ? textEn : textTh; 
             purposeHtml += '<option value="' + textTh + '" data-th="' + textTh + '" data-en="' + textEn + '">' + displayVal + '</option>'; 
           });
         } else {
@@ -1905,12 +1908,14 @@
             var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
             window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
                 create: false, 
-                searchField: ["text", "th", "en"], // ให้ค้นหาได้ทั้งภาษาไทยและอังกฤษ
+                searchField: ["text", "th", "en"], 
                 sortField: { field: "text", direction: "asc" }, 
                 placeholder: purPlaceholder,
                 dropdownParent: 'body',
-                dataAttr: 'data' // เพื่อให้มันอ่านค่า data-th และ data-en
+                dataAttr: 'data' 
             });
+            // 🎯 [FIX] คืนค่า Purpose ที่เคยเลือกไว้
+            if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
         }
       }
 
@@ -1947,6 +1952,12 @@
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
+
+    // 🎯 [FIX] เก็บค่า Filter ที่เลือกไว้
+    var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
+    if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
+    var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
+    if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
     var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
@@ -2087,6 +2098,8 @@
         dropdownParent: 'body',
         onChange: function() { window.handleFilterChange('rep'); }
       });
+      // 🎯 [FIX] คืนค่า Rep Filter
+      if (oldRepVal.length > 0) window.tomSelectRepInstance.setValue(oldRepVal, true);
 
       if (terSelect.tomselect) terSelect.tomselect.destroy();
       window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
@@ -2097,6 +2110,8 @@
         dropdownParent: 'body',
         onChange: function() { window.handleFilterChange('territory'); }
       });
+      // 🎯 [FIX] คืนค่า Territory Filter
+      if (oldTerVal.length > 0) window.tomSelectTerInstance.setValue(oldTerVal, true);
     }
 
     window.renderFormProductDropdown(crmUser);
@@ -2105,6 +2120,13 @@
   window.renderFormProductDropdown = async function(targetRepUser) {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
+
+    // 🎯 [FIX] เก็บค่า Product เดิมไว้
+    var oldProdVal = [];
+    if (window.tomSelectProdInstance) {
+        var pv = window.tomSelectProdInstance.getValue();
+        oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
+    }
 
     var allProds = (window.globalProductsList && window.globalProductsList.length > 0) 
       ? window.globalProductsList 
@@ -2141,6 +2163,9 @@
               window.loadProductMedia();
             }
         });
+
+        // 🎯 [FIX] คืนค่า Product ที่เลือกไว้กลับไป
+        if (oldProdVal.length > 0) window.tomSelectProdInstance.setValue(oldProdVal, true);
     }
   };
 
