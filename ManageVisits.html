@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
+    min-height: 44px;
     border-radius: 12px; 
   }
   .form-control:disabled, .form-select:disabled { 
@@ -257,16 +257,16 @@
 
       </div>
 
-      <!-- Advanced Filters (User + Territory) -->
+      <!-- Advanced Filters (User + Territory) -> 🎯 ใส่ attribute multiple สั่งเลือกได้หลายค่า -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User / Sales Rep</label>
-            <select class="form-select shadow-none" id="filterVisitRep" onchange="handleFilterChange('rep')"></select>
+            <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="handleFilterChange('rep')"></select>
           </div>
           <div class="col-sm-12 col-md-6">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_territory">Territory</label>
-            <select class="form-select shadow-none" id="filterVisitTerritory" onchange="handleFilterChange('territory')"></select>
+            <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="handleFilterChange('territory')"></select>
           </div>
         </div>
       </div>
@@ -337,7 +337,6 @@
           </div>
         </div>
 
-        <!-- 🎯 Grid 2 คอลัมน์สำหรับ iPad แนวนอน / ซ้อน 1 คอลัมน์บน iPad แนวตั้ง -->
         <div class="row g-4 align-items-stretch">
           
           <!-- ฝั่งซ้าย: Visit Information -->
@@ -411,7 +410,6 @@
               <div class="d-flex flex-column flex-grow-1">
                 <h5 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h5>
 
-                <!-- 🎯 ช่อง Details ยืดอัตโนมัติตามพื้นที่ว่างฝั่งซ้าย -->
                 <div class="mb-3 d-flex flex-column flex-grow-1">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
@@ -537,7 +535,6 @@
     }
   }
 
-  // 🎯 Escape HTML เพื่อป้องกันแท็กพังหลุดลอยเวลามีคำค้นหา
   function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -1189,7 +1186,7 @@
       isLoaded: false, dropdownsLoaded: false, visits: [], visitProducts: [], allDoctors: [], assignedDoctors: [],
       allHospitals: [], assignedHospitals: [], products: [], territories: [], users: [], teams: [], bus: [], teamProdLinks: [],
       assignments: [], indexTypes: [], indexes: [], pendingUnlocks: [],
-      filters: { smartSearch: '', startDate: '', endDate: '', status: '', rep: '', territory: '', page: 1, rows: 20, sortCol: 'date', sortAsc: false }
+      filters: { smartSearch: '', startDate: '', endDate: '', status: '', rep: [], territory: [], page: 1, rows: 20, sortCol: 'date', sortAsc: false }
   };
 
   var globalVisits = [], globalFilteredVisits = [], globalVisitProducts = [], globalAllDoctors = [], globalAssignedDoctors = [];
@@ -1198,6 +1195,8 @@
   
   var tomSelectDocInstance = null;
   var tomSelectProdInstance = null; 
+  var tomSelectRepInstance = null;
+  var tomSelectTerInstance = null;
 
   var currentSortCol = 'date';
   var currentSortAsc = false; 
@@ -1215,6 +1214,9 @@
   };
 
   function clearVisitFilters() {
+      if (tomSelectRepInstance) tomSelectRepInstance.clear();
+      if (tomSelectTerInstance) tomSelectTerInstance.clear();
+      
       var clearTs = function(id) {
           var el = document.getElementById(id);
           if (el && el.tomselect) el.tomselect.clear();
@@ -1224,8 +1226,6 @@
       clearTs('filterStartDate');
       clearTs('filterEndDate');
       clearTs('filterVisitStatus');
-      clearTs('filterVisitRep');
-      clearTs('filterVisitTerritory');
       if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
       
       filterVisits();
@@ -1442,7 +1442,6 @@
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
-        // 🎯 [จุดแก้ไข] ดึงข้อความแปลภาษาที่ถูกต้องจากระบบ ให้สลับ TH / EN ตามปุ่มกด
         var docDefaultText = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
         docSelect.innerHTML = '<option value="" data-i18n="opt_select_doc_default">' + docDefaultText + '</option>';
         
@@ -1463,7 +1462,6 @@
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
             
-            // 🎯 [จุดแก้ไข] อัปเดต Placeholder ของ TomSelect ดร็อปดาวน์แพทย์ตามภาษาปัจจุบัน
             var docPlaceholder = safeTranslate('opt_select_doc_default', '-- Search/Select Doctor --');
             tomSelectDocInstance = new TomSelect('#visitDocId', { 
                 create: false, 
@@ -1523,6 +1521,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   }
 
+  // 🎯 [ปรับปรุง] สร้าง Multi-select TomSelect สำหรับตัวกรอง Rep และ Territory
   function setupFiltersDropdowns(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
@@ -1607,16 +1606,37 @@
         if(id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
-    var repHtml = '<option value="">' + safeTranslate('opt_all_users', '- ทั้งหมด -') + '</option>';
+    var repHtml = '';
     uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
     repSelect.innerHTML = repHtml;
 
     window.fullAllowedTerritories = isGlobalViewer ? globalTerritoryList : globalTerritoryList.filter(function(t) { return allowedTerIds.indexOf(String(t.Territory_ID)) !== -1; });
     if (window.fullAllowedTerritories.length === 0) window.fullAllowedTerritories = globalTerritoryList;
 
-    var tHtml = '<option value="">' + safeTranslate('opt_all_territories', '- ทั้งหมด -') + '</option>';
+    var tHtml = '';
     window.fullAllowedTerritories.forEach(function(t) { tHtml += '<option value="' + t.Territory_ID + '">' + t.Territory + '</option>'; });
     terSelect.innerHTML = tHtml;
+
+    // 🎯 สั่งเปลี่ยนให้ทั้ง Rep และ Territory กลายเป็น Multi-select TomSelect
+    if (typeof TomSelect !== 'undefined') {
+      if (repSelect.tomselect) repSelect.tomselect.destroy();
+      tomSelectRepInstance = new TomSelect('#filterVisitRep', {
+        plugins: ['remove_button'],
+        create: false,
+        placeholder: safeTranslate('opt_all_users', '- พนักงานทั้งหมด -'),
+        dropdownParent: 'body',
+        onChange: function() { handleFilterChange('rep'); }
+      });
+
+      if (terSelect.tomselect) terSelect.tomselect.destroy();
+      tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
+        plugins: ['remove_button'],
+        create: false,
+        placeholder: safeTranslate('opt_all_territories', '- เขตพื้นที่ทั้งหมด -'),
+        dropdownParent: 'body',
+        onChange: function() { handleFilterChange('territory'); }
+      });
+    }
 
     renderFormProductDropdown(crmUser);
   }
@@ -1716,71 +1736,6 @@
   }
 
   function handleFilterChange(source) {
-    var repSelect = document.getElementById('filterVisitRep');
-    var terSelect = document.getElementById('filterVisitTerritory');
-    if (!repSelect || !terSelect) return;
-
-    var repVal = repSelect.value;
-    var terVal = terSelect.value;
-
-    if (source === 'rep') {
-        var validTers = window.fullAllowedTerritories || [];
-        if (repVal !== "") {
-            var selectedRep = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === repVal; });
-            if (selectedRep) {
-                var rTeam = String(selectedRep.Team_ID || selectedRep.Team || '');
-                var rTer = String(selectedRep.Territory_ID || selectedRep.Territory || selectedRep.territoryId || '');
-                validTers = (window.fullAllowedTerritories || []).filter(function(t) {
-                    var tId = String(t.Territory_ID);
-                    var tTeam = String(t.Team_ID);
-                    return tId === rTer || (rTeam && rTeam !== 'undefined' && tTeam === rTeam) || window.myIsGlobalViewer;
-                });
-                if (validTers.length === 0) validTers = window.fullAllowedTerritories;
-            }
-        }
-        
-        var currentTerVal = terSelect.value;
-        var tHtml = '<option value="">' + safeTranslate('opt_all_territories', '- ทั้งหมด -') + '</option>';
-        validTers.forEach(function(t) { tHtml += '<option value="' + t.Territory_ID + '">' + t.Territory + '</option>'; });
-        terSelect.innerHTML = tHtml;
-        
-        if (validTers.some(function(t) { return String(t.Territory_ID) === currentTerVal; })) {
-            terSelect.value = currentTerVal;
-        } else {
-            terSelect.value = "";
-        }
-    }
-
-    if (source === 'territory') {
-        var validReps = window.fullAllowedUsers || [];
-        if (terVal !== "") {
-            var selectedTer = (window.fullAllowedTerritories || []).find(function(t) { return String(t.Territory_ID) === terVal; });
-            if (selectedTer) {
-                var tTeam = String(selectedTer.Team_ID || '');
-                validReps = (window.fullAllowedUsers || []).filter(function(u) {
-                    var uTeam = String(u.Team_ID || u.Team || '');
-                    var uTer = String(u.Territory_ID || u.Territory || u.territoryId || '');
-                    return uTer === terVal || (tTeam && tTeam !== 'undefined' && uTeam === tTeam) || window.myIsGlobalViewer;
-                });
-                if (validReps.length === 0) validReps = window.fullAllowedUsers;
-            }
-        }
-        
-        var currentRepVal = repSelect.value;
-        var repHtml = '<option value="">' + safeTranslate('opt_all_users', '- ทั้งหมด -') + '</option>';
-        var uniqueUsersMap = new Map();
-        validReps.forEach(function(u) { var id = String(u.Rep_ID || u.User_ID || u.id); if(id && id !== 'undefined') uniqueUsersMap.set(id, u); });
-        uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
-        
-        repSelect.innerHTML = repHtml;
-        
-        if (validReps.some(function(r) { return String(r.Rep_ID || r.User_ID || r.id) === currentRepVal; })) {
-            repSelect.value = currentRepVal;
-        } else {
-            repSelect.value = "";
-        }
-    }
-
     filterVisits();
   }
 
@@ -1852,8 +1807,8 @@
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
         if (document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status || '';
-        if (document.getElementById('filterVisitRep')) document.getElementById('filterVisitRep').value = f.rep || '';
-        if (document.getElementById('filterVisitTerritory')) document.getElementById('filterVisitTerritory').value = f.territory || '';
+        if (tomSelectRepInstance && f.rep) tomSelectRepInstance.setValue(f.rep);
+        if (tomSelectTerInstance && f.territory) tomSelectTerInstance.setValue(f.territory);
         if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
 
         currentPage = f.page || 1;
@@ -1880,15 +1835,17 @@
     checkMyDraftsReminder(myDraftsCount);
   }
 
+  // 🎯 [ปรับปรุง] รองรับ Multi-select ของ Rep และ Territory
   function filterVisits(resetPage) {
     if (resetPage === undefined) resetPage = true;
-    var repSelect = document.getElementById('filterVisitRep');
-    var terSelect = document.getElementById('filterVisitTerritory');
-    var repTerm = repSelect ? repSelect.value : '';
-    var terTerm = terSelect ? terSelect.value : '';
     
-    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+    var selectedReps = tomSelectRepInstance ? tomSelectRepInstance.getValue() : [];
+    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
+    var selectedTers = tomSelectTerInstance ? tomSelectTerInstance.getValue() : [];
+    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+
+    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
     var statusTerm = document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '';
     var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
@@ -1897,7 +1854,7 @@
 
     window.VisitManagerCache.filters = {
         smartSearch: smartSearchKey, startDate: startDateTerm, endDate: endDateTerm,
-        status: statusTerm, rep: repTerm, territory: terTerm,
+        status: statusTerm, rep: selectedReps, territory: selectedTers,
         page: currentPage, rows: rowsPerPage, sortCol: currentSortCol, sortAsc: currentSortAsc
     };
 
@@ -1965,24 +1922,24 @@
           }
       }
 
-      var matchRep = (repTerm === "");
-      if (repTerm !== "") {
-          var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === repTerm; });
-          var selId = repTerm;
-          var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
-          var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
-          
+      // 🎯 กรองพนักงานแบบหลายค่า
+      var matchRep = (selectedReps.length === 0);
+      if (selectedReps.length > 0) {
           var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
           var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
 
-          if (rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm)) {
-              matchRep = true;
-          }
+          matchRep = selectedReps.some(function(selId) {
+            var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === selId; });
+            var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
+            var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
+            return rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm);
+          });
       }
 
-      var matchTer = (terTerm === "");
-      if (terTerm !== "") {
-          matchTer = (String(v.Territory_ID || v.territory_id) === String(terTerm));
+      // 🎯 กรองเขตพื้นที่แบบหลายค่า
+      var matchTer = (selectedTers.length === 0);
+      if (selectedTers.length > 0) {
+          matchTer = selectedTers.indexOf(String(v.Territory_ID || v.territory_id)) !== -1;
       }
 
       var matchStatus = (statusTerm === "");
