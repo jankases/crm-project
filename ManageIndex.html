@@ -52,6 +52,10 @@
   /* 🎯 Pagination Custom Styles */
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+
+  /* 🎯 Sortable Header */
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { color: #0d6efd !important; }
 </style>
 
 <div class="container-fluid p-0" style="max-width: 1100px; margin: 0 auto;">
@@ -144,12 +148,21 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.95rem;">
+            <!-- 🎯 ปรับปรุงส่วน Header ใส่ Class Sort และแยกข้อความใส่ Span -->
             <thead class="table-custom-header">
               <tr>
-                <th id="thCategory" class="text-start">Category</th>
-                <th id="thValue">Value</th>
-                <th id="thValue1" class="d-none">Value 1</th>
-                <th id="thValue2" class="d-none">Value 2</th>
+                <th id="thCategory" class="text-start sortable-th" onclick="window.sortIndexes('category')">
+                  <span id="lblThCategory">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
+                </th>
+                <th id="thValue" class="sortable-th" onclick="window.sortIndexes('value')">
+                  <span id="lblThValue">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
+                </th>
+                <th id="thValue1" class="d-none sortable-th" onclick="window.sortIndexes('value1')">
+                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
+                </th>
+                <th id="thValue2" class="d-none sortable-th" onclick="window.sortIndexes('value2')">
+                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
+                </th>
                 <th style="width: 100px;">Action</th>
               </tr>
             </thead>
@@ -260,6 +273,10 @@
   window.globalIndexes = [];
   window.globalFilteredIndexes = []; 
   
+  // 🎯 ตัวแปรเก็บสถานะการ Sort
+  window.indexSortCol = 'value';
+  window.indexSortAsc = true; 
+
   window.indexCurrentPage = 1;       
   window.indexRowsPerPage = 10;      
   
@@ -468,7 +485,7 @@
     finally { btn.disabled = false; btn.innerHTML = "Save"; }
   };
 
-  // ================= 🎯 ส่วนจัดการ Index Value (Dynamic Logic) =================
+  // ================= 🎯 ส่วนจัดการ Index Value (Dynamic Logic + Sorting) =================
 
   window.populateIndexTypeDropdowns = function() {
     let opts = '<option value="">- Select Category -</option>';
@@ -486,48 +503,40 @@
     filterEl.value = currentFilter;
   };
 
+  // 🎯 ฟังก์ชันจัดการการกด Sort
+  window.sortIndexes = function(col) {
+    if (window.indexSortCol === col) {
+      window.indexSortAsc = !window.indexSortAsc;
+    } else {
+      window.indexSortCol = col;
+      window.indexSortAsc = true;
+    }
+
+    // อัปเดตไอคอนบนหัวตาราง
+    const cols = ['category', 'value', 'value1', 'value2'];
+    cols.forEach(c => {
+      const icon = document.getElementById('icon-sort-' + c);
+      if (icon) {
+        if (c === window.indexSortCol) {
+          icon.className = window.indexSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    window.indexCurrentPage = 1; // กลับไปหน้าแรกเสมอเมื่อจัดเรียงใหม่
+    window.renderIndexTable();
+  };
+
   window.filterIndexValues = function() {
     const typeTerm = document.getElementById('filterIndexType').value;
-    let selectedTypeName = "";
-    if (typeTerm) {
-       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeTerm);
-       if (tObj) selectedTypeName = tObj.Name.toLowerCase();
-    }
-
-    const thValue = document.getElementById('thValue');
-    const thValue1 = document.getElementById('thValue1');
-    const thValue2 = document.getElementById('thValue2');
-
-    // 🎯 ควบคุมการแสดงผลหัวตาราง
-    if (selectedTypeName === 'province') {
-        thValue.innerText = "Province";
-        thValue1.innerText = "Zone";
-        thValue1.classList.remove('d-none');
-        thValue2.classList.add('d-none');
-    } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
-        thValue.innerText = "Date";        
-        thValue1.innerText = "Description"; 
-        thValue1.classList.remove('d-none');
-        thValue2.classList.add('d-none');   
-    } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title') { // 🌟 เพิ่ม title ให้ทำเหมือน purpose
-        thValue.innerText = "Value (TH)";    
-        thValue1.innerText = "Value (EN)";   
-        thValue1.classList.remove('d-none'); 
-        thValue2.classList.add('d-none');   
-    } else {
-        thValue.innerText = "Value";
-        thValue1.classList.add('d-none');
-        thValue2.classList.add('d-none');
-    }
-
-    const filtered = window.globalIndexes.filter(i => {
+    
+    window.globalFilteredIndexes = window.globalIndexes.filter(i => {
       return (typeTerm === "") || (i.IndexType_ID === typeTerm);
     });
 
-    // ดึงค่ามาพักไว้ในตัวแปร Global เพื่อส่งต่อให้ระบบแบ่งหน้า
-    window.globalFilteredIndexes = filtered;
     window.indexCurrentPage = 1; 
-
     window.renderIndexTable();
   };
 
@@ -539,8 +548,35 @@
        if (tObj) selectedTypeName = tObj.Name.toLowerCase();
     }
 
+    // อ้างอิง th และ span ขัางใน (เพื่อให้เปลี่ยนชื่อได้โดยไม่ทับไอคอน Sort)
     const thValue1 = document.getElementById('thValue1');
     const thValue2 = document.getElementById('thValue2');
+    
+    const lblThValue = document.getElementById('lblThValue');
+    const lblThValue1 = document.getElementById('lblThValue1');
+    const lblThValue2 = document.getElementById('lblThValue2');
+
+    // 🎯 ควบคุมการแสดงผลข้อความหัวตาราง
+    if (selectedTypeName === 'province') {
+        lblThValue.innerText = "Province";
+        lblThValue1.innerText = "Zone";
+        thValue1.classList.remove('d-none');
+        thValue2.classList.add('d-none');
+    } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
+        lblThValue.innerText = "Date";        
+        lblThValue1.innerText = "Description"; 
+        thValue1.classList.remove('d-none');
+        thValue2.classList.add('d-none');   
+    } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title') { 
+        lblThValue.innerText = "Value (TH)";    
+        lblThValue1.innerText = "Value (EN)";   
+        thValue1.classList.remove('d-none'); 
+        thValue2.classList.add('d-none');   
+    } else {
+        lblThValue.innerText = "Value";
+        thValue1.classList.add('d-none');
+        thValue2.classList.add('d-none');
+    }
 
     const tbody = document.getElementById('indexTableBody');
     tbody.innerHTML = '';
@@ -553,6 +589,31 @@
     }
 
     if(paginationContainer) paginationContainer.classList.remove('d-none');
+
+    // 🎯 ทำการ Sort ข้อมูลก่อน
+    window.globalFilteredIndexes.sort((a, b) => {
+        let valA = '', valB = '';
+        
+        if (window.indexSortCol === 'category') {
+            const tA = window.globalIndexTypes.find(t => t.IndexType_ID === a.IndexType_ID);
+            const tB = window.globalIndexTypes.find(t => t.IndexType_ID === b.IndexType_ID);
+            valA = (tA ? tA.Name : '').toLowerCase();
+            valB = (tB ? tB.Name : '').toLowerCase();
+        } else if (window.indexSortCol === 'value') {
+            valA = (a.Value || '').toLowerCase();
+            valB = (b.Value || '').toLowerCase();
+        } else if (window.indexSortCol === 'value1') {
+            valA = (a.Value1 || '').toLowerCase();
+            valB = (b.Value1 || '').toLowerCase();
+        } else if (window.indexSortCol === 'value2') {
+            valA = (a.Value2 || '').toLowerCase();
+            valB = (b.Value2 || '').toLowerCase();
+        }
+
+        if (valA < valB) return window.indexSortAsc ? -1 : 1;
+        if (valA > valB) return window.indexSortAsc ? 1 : -1;
+        return 0;
+    });
 
     const totalItems = window.globalFilteredIndexes.length;
     const totalPages = Math.ceil(totalItems / window.indexRowsPerPage);
@@ -700,7 +761,7 @@
           grpVal1.classList.remove('d-none');
           grpVal2.classList.add('d-none'); 
       } 
-      else if (typeName === 'purpose' || typeName === 'title') { // 🌟 เพิ่ม title ให้ทำงานเหมือน purpose
+      else if (typeName === 'purpose' || typeName === 'title') { 
           lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
           
           lblVal1.innerHTML = 'Value (EN)'; 
@@ -755,7 +816,7 @@
 
     if (typeName === 'province') {
         val1 = document.getElementById('modalIndexValue1_select').value;
-    } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'purpose' || typeName === 'title') { // 🌟 เพิ่ม title ให้เก็บค่า Val1 ด้วย
+    } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'purpose' || typeName === 'title') { 
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
         val2 = null; 
     } else {
