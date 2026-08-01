@@ -10,10 +10,14 @@
     min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
+
+  /* 🎯 ปรับสีตัวอักษรตอน View (Disabled) ให้อ่านง่ายและชัดเจนขึ้น */
   .form-control:disabled, .form-select:disabled { 
     background-color: #f8fafc !important; 
+    color: #334155 !important; 
+    -webkit-text-fill-color: #334155 !important; /* บังคับสีไม่ให้จางบน Safari/iOS */
     cursor: not-allowed; 
-    opacity: 1; 
+    opacity: 1 !important; 
   }
 
   .visit-filter-group {
@@ -80,6 +84,11 @@
 
   .disabled-ts .ts-control input::placeholder { color: transparent !important; }
   .disabled-ts .ts-control input { opacity: 0 !important; }
+
+  /* 🎯 บังคับสี TomSelect ตอนที่โดน Disable ให้อ่านง่าย */
+  .ts-wrapper.disabled .ts-control { background-color: #f8fafc !important; }
+  .ts-wrapper.disabled.single .ts-control > .item { color: #334155 !important; }
+  .ts-wrapper.disabled.multi .ts-control > .item { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; color: #334155 !important; }
 
   .filter-placeholder-text { color: #6c757d !important; }
   .filter-placeholder-text option { color: #212529 !important; }
@@ -580,6 +589,9 @@
     }
   }
 
+  // -------------------------------------------------------------
+  // 🎬 e-Detailing & Page-Level Analytics Logic
+  // -------------------------------------------------------------
   var globalAllMediaList = [];
   var currentActiveMedia = null;
   var presentationStartTime = null;
@@ -1524,6 +1536,7 @@
           window.VisitManagerCache.products = results[1] || [];
           window.VisitManagerCache.territories = globalTerritoryListLocal;
           window.VisitManagerCache.teams = globalTeamListLocal;
+          window.VisitManagerCache.bus = globalBuListLocal || [];
           window.VisitManagerCache.teamProdLinks = results[6] || [];
           window.VisitManagerCache.indexTypes = (results[7] && results[7].data) ? results[7].data : [];
           window.VisitManagerCache.indexes = (results[8] && results[8].data) ? results[8].data : [];
@@ -1657,8 +1670,6 @@
     var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1 || (!rawScope);
     var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
     var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
-    
-    // 🎯 ถ้าไม่ใช่ Admin, ไม่ใช่ BU, ไม่ใช่ Manager แปลว่าเป็น Sales ทั่วไป
     var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
     var myAllowedTeamIds = [];
@@ -1691,12 +1702,10 @@
                 myAllowedTeamIds.push(rawScope); 
             }
         } else if (isSales) {
-            // 🎯 Sales เห็นแค่เขตของตัวเองเท่านั้น
             var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim() : rawScope;
             if (userTerrId) myAllowedTerIds.push(userTerrId);
         }
 
-        // กวาดชื่อ Users เข้ามารวมในสิทธิ์ (เฉพาะถ้าระดับสูงกว่า Sales)
         globalUsersList.forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id).trim();
             var uteam = String(u.Team_ID || u.Team || '').trim();
@@ -1711,7 +1720,6 @@
             }
         });
         
-        // 🎯 ดึง Manager/Sales ที่ทำ Visit ในพื้นที่ที่รับผิดชอบเข้ามารวม (Aggressive Mapping)
         if (!isSales) {
             globalVisits.forEach(function(v) {
                 var vTer = String(v.Territory_ID || '').trim();
@@ -1723,19 +1731,17 @@
         }
     }
 
-    // เซฟลง Global ไว้ให้ filterVisits นำไปใช้งานต่อ
     window.myIsSalesRole = isSales;
     window.myAllowedTeamIds = myAllowedTeamIds;
     window.myAllowedTerIds = myAllowedTerIds;
     window.myAllowedRepIds = myAllowedRepIds;
     window.myAllowedEmails = myAllowedEmails;
 
-    // 🎯 1. ใส่ข้อมูลให้ Dropdown พนักงาน
     var uniqueUsersMap = new Map();
     var fullAllowedUsers = isGlobalViewer ? globalUsersList : globalUsersList.filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id);
         if (isSales) {
-            return uid === uRepId; // 🎯 Sales เห็นเฉพาะตัวเอง
+            return uid === uRepId;
         }
         return myAllowedRepIds.indexOf(uid) !== -1;
     });
@@ -1754,7 +1760,6 @@
     uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
     repSelect.innerHTML = repHtml;
 
-    // 🎯 2. ใส่ข้อมูลให้ Dropdown Area/Team
     var terMap = new Map();
     
     if (isGlobalViewer || isBuHead || isManager) {
@@ -1785,7 +1790,6 @@
     });
     terSelect.innerHTML = tHtml;
 
-    // สร้าง TomSelect
     var appLang = getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
