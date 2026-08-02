@@ -312,6 +312,18 @@
 
     <!-- 🎯 Zone 2: มุมมองปฏิทิน (Calendar View) -->
     <div id="visitCalendarZone" class="card p-4 border-0 shadow-sm visit-card d-none">
+      
+      <!-- 🌟 เพิ่ม Calendar Legend (คำอธิบายสี) แปะไว้บนปฏิทิน -->
+      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted">Submitted Visit</span></div>
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending">Pending Draft</span></div>
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #64748b; border-radius: 50%; margin-right: 6px;"></span><span id="legUnlock">Pending Unlock</span></div>
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; margin-right: 6px;"></span><span id="legHoliday">Public Holiday</span></div>
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #8b5cf6; border-radius: 50%; margin-right: 6px;"></span><span id="legCompany">Company Event</span></div>
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #0ea5e9; border-radius: 50%; margin-right: 6px;"></span><span id="legTotAppr">TOT (Approved)</span></div>
+        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #94a3b8; border-radius: 50%; margin-right: 6px;"></span><span id="legTotPend">TOT (Pending)</span></div>
+      </div>
+
       <div id="calendar"></div>
     </div>
 
@@ -2082,6 +2094,15 @@
 
       var lblCoachSub = document.getElementById('lblCoachingSubText');
       if (lblCoachSub) lblCoachSub.innerText = appLang === 'th' ? 'มีหัวหน้า/ผู้จัดการเข้าร่วมปฏิบัติงาน' : 'Accompanied by Manager/Supervisor';
+
+      // 🌟 สลับภาษาสำหรับ Calendar Legend (คำอธิบายสี)
+      var legSub = document.getElementById('legSubmitted'); if(legSub) legSub.innerText = appLang === 'th' ? 'ส่งบันทึกแล้ว' : 'Submitted Visit';
+      var legPend = document.getElementById('legPending'); if(legPend) legPend.innerText = appLang === 'th' ? 'ฉบับร่าง (รอส่ง)' : 'Pending Draft';
+      var legUnl = document.getElementById('legUnlock'); if(legUnl) legUnl.innerText = appLang === 'th' ? 'รอปลดล็อก' : 'Pending Unlock';
+      var legHol = document.getElementById('legHoliday'); if(legHol) legHol.innerText = appLang === 'th' ? 'วันหยุดราชการ' : 'Public Holiday';
+      var legCom = document.getElementById('legCompany'); if(legCom) legCom.innerText = appLang === 'th' ? 'กิจกรรมบริษัท' : 'Company Event';
+      var legTotA = document.getElementById('legTotAppr'); if(legTotA) legTotA.innerText = appLang === 'th' ? 'TOT (อนุมัติแล้ว)' : 'TOT (Approved)';
+      var legTotP = document.getElementById('legTotPend'); if(legTotP) legTotP.innerText = appLang === 'th' ? 'TOT (รออนุมัติ)' : 'TOT (Pending)';
 
       var statusSelect = document.getElementById('filterVisitStatus');
       if (statusSelect) {
