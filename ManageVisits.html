@@ -59,7 +59,7 @@
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
   .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  input:checked + .slider { background-color: #4f46e5; } /* 🌟 สีน้ำเงินม่วงสำหรับ Coaching */
+  input:checked + .slider { background-color: #4f46e5; } /* 🌟 เปลี่ยนสีฟ้าเป็นสีน้ำเงินม่วง (Indigo) สำหรับ Coaching */
   input:focus + .slider { box-shadow: 0 0 1px #4f46e5; }
   input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
@@ -164,7 +164,7 @@
         <p class="text-muted small mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
-      <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+      <div class="d-flex gap-2 align-items-center">
         <!-- 🎯 View Toggle Switch -->
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
@@ -176,7 +176,7 @@
         </button>
 
         <!-- 🌟 เพิ่มปุ่ม Add TOT (Time Off Territory) -->
-        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2 ms-1" onclick="window.openAddTotModal()">
+        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
 
@@ -247,7 +247,7 @@
           </select>
         </div>
 
-        <!-- 🌟 แก๊งปุ่ม Export และ Filter (ย้ายมารวมกันตรงนี้) -->
+        <!-- 🌟 แก๊งปุ่ม Export และจัดการ Filter -->
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-1 justify-content-end">
           <button class="btn btn-success border rounded-pill flex-grow-1 shadow-sm text-white px-0" type="button" onclick="window.exportVisitsCSV()" title="Export to CSV">
             <i class="fa-solid fa-file-csv"></i>
@@ -289,11 +289,12 @@
               <th class="py-3 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
-              <!-- 🌟 เพิ่มคอลัมน์ Action สำหรับปุ่ม Duplicate -->
+              <!-- 🌟 คอลัมน์ Action สำหรับปุ่ม Duplicate -->
               <th class="py-3 text-center" style="width: 60px;">Action</th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
+            <!-- 🌟 ปรับ colspan เป็น 7 -->
             <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
@@ -1909,6 +1910,22 @@
             '</li>';
 
     ul.innerHTML = html;
+  };
+
+  window.fetchAllRecords = async function(tableName, queryModifier) {
+      var allData = [];
+      var start = 0;
+      var step = 1000;
+      while (true) {
+          var query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
+          if (queryModifier) query = queryModifier(query);
+          var res = await query;
+          if (res.error) throw res.error;
+          allData = allData.concat(res.data || []);
+          if (!res.data || res.data.length < step) break;
+          start += step;
+      }
+      return allData;
   };
 
   window.openAddVisitModal = function(fromDocId, presetDate) {
