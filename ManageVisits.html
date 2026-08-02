@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
+    min-height: 44px; 
     border-radius: 12px; 
   }
 
@@ -53,6 +53,15 @@
   .badge-soft-success { background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #d1fae5 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
+
+  /* 🌟 CSS สำหรับ Toggle Switch */
+  .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
+  .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  input:checked + .slider { background-color: #0ea5e9; } /* สีฟ้าสำหรับ Coaching */
+  input:focus + .slider { box-shadow: 0 0 1px #0ea5e9; }
+  input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
@@ -166,7 +175,6 @@
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
-        <!-- 🌟 เพิ่มปุ่ม Add TOT (Time Off Territory) -->
         <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
@@ -410,7 +418,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm flex-grow-1" id="visitDetails" style="min-height: 160px; resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm flex-grow-1" id="visitDetails" style="min-height: 120px; resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -420,7 +428,7 @@
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="3" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
@@ -432,12 +440,24 @@
                   </div>
                   <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
                 </div>
+
+                <!-- 🌟 เพิ่มส่วน Coaching Call (สวิตช์เปิด-ปิด) -->
+                <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
+                  <div>
+                    <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i>Joint Visit / Coaching</label>
+                    <div class="text-muted small">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
+                  </div>
+                  <label class="switch mb-0">
+                    <input type="checkbox" id="visitIsCoaching">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
               </div>
 
               <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <!-- 🎯 สั่งโหลด Media ใหม่ถ้ามีการเปลี่ยนสถานะ -->
                 <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="window.loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
@@ -589,6 +609,16 @@
   window.pageLogsBuffer = [];
   window.globalIsMediaPreviewMode = false;
 
+  window.filterDebounceTimer = null;
+  window.docRecognition = null;
+  window.textRecognition = null;
+  window.searchRecognition = null;
+  window.currentDictTargetId = null;
+  window.currentDictBtnId = null;
+  window.currentSearchInputId = null;
+  window.currentSearchBtnId = null;
+  window.currentSearchIconId = null;
+
   window.generateUUID = function() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
           return crypto.randomUUID();
@@ -628,6 +658,7 @@
       }, 300); 
   };
 
+  // 🌟 เก็บสถานะ Coaching ลง Draft
   window.saveFormDraft = function() {
       var visitId = document.getElementById('visitId').value || 'NEW';
       var draftData = {
@@ -640,12 +671,14 @@
           details: document.getElementById('visitDetails').value,
           insight: document.getElementById('visitInsight').value,
           nextAction: document.getElementById('visitNextAction').value,
+          isCoaching: document.getElementById('visitIsCoaching').checked,
           status: document.getElementById('visitStatus').value,
           timestamp: Date.now()
       };
       localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
   };
 
+  // 🌟 กู้คืนสถานะ Coaching จาก Draft
   window.restoreFormDraft = function(visitId) {
       var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
       if (draftStr) {
@@ -668,6 +701,7 @@
               if (draft.details) document.getElementById('visitDetails').value = draft.details;
               if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
               if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+              if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
               if (draft.status) document.getElementById('visitStatus').value = draft.status;
               
               if (!document.getElementById('visitId').value) {
@@ -1216,14 +1250,13 @@
     }
   };
 
-  // 🎯 2. ฟังก์ชันวาดปฏิทิน (เพิ่ม Company Events เป็นสีม่วง)
+  // 🎯 ปฏิทินแสดงผล Coaching Icon
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
     
     var appLang = window.getCurrentAppLang(); 
 
-    // ---- Event 1: Visit Logs ----
     var visitEvents = window.globalFilteredVisits.map(function(v) {
         var docObj = window.globalAllDoctors.find(function(d) {
             return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
@@ -1245,16 +1278,20 @@
         var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
         var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
         
-        var baseTitle = timePrefix + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        // 🌟 เพิ่มไอคอน Coaching ถ้า Is_Coaching เป็น true
+        var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
+        var baseTitle = timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
         var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
         var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
+        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(มีการ Coaching)');
 
         var isPending = (v.Status === 'Pending');
         var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
         
-        var bgColor = '#10b981'; // Submitted
+        var bgColor = '#10b981'; 
         if (isPendingUnlock) bgColor = '#64748b'; 
-        else if (isPending) bgColor = '#f59e0b'; // Pending
+        else if (isPending) bgColor = '#f59e0b'; 
         
         return {
             id: v.Visit_ID,
@@ -1269,14 +1306,10 @@
         };
     });
 
-    // ---- Event 2: Public Holidays ----
     var holidayEvents = [];
-    // ---- Event 4: Company Events (NEW 🌟) ----
     var companyEvents = []; 
 
     if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
-        
-        // 🟥 ส่วนวันหยุดนักขัตฤกษ์
         var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
             return t.Name.toLowerCase() === 'public holiday' || t.Name.toLowerCase() === 'holiday';
         });
@@ -1303,7 +1336,6 @@
             });
         }
 
-        // 🟪 ส่วนวันหยุดพิเศษ/กิจกรรมบริษัท
         var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
             return t.Name.toLowerCase() === 'company event' || t.Name.toLowerCase() === 'corporate holiday';
         });
@@ -1321,7 +1353,7 @@
                     title: cTitle, 
                     start: c.Value ? c.Value.split('T')[0] : '', 
                     allDay: true,
-                    backgroundColor: '#8b5cf6', // 🌟 สีม่วงพาสเทล ดูแตกต่างจากวันหยุด
+                    backgroundColor: '#8b5cf6', 
                     borderColor: '#8b5cf6',
                     textColor: '#ffffff',
                     display: 'block',
@@ -1331,7 +1363,6 @@
         }
     }
 
-    // ---- Event 3: TOT Logs (ลางาน/ประชุมของบุคคล) ----
     var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
         var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
         var displayType = t.TOT_Type || 'Time Off';
@@ -1369,7 +1400,6 @@
         return ev;
     });
 
-    // 🎯 รวม Event ทั้ง 4 ประเภท
     var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
 
     if (window.globalCalendarInstance) {
@@ -1408,7 +1438,6 @@
     }
   };
 
-  // 🎯 3. ฟังก์ชันระบบ TOT (Time Off Territory)
   window.populateTotTypes = function() {
       var select = document.getElementById('totType');
       if(!select) return;
@@ -1429,7 +1458,6 @@
               html += '<option value="'+textTh+'">'+display+'</option>';
           });
       } else {
-          // Fallback ถ้ายังไม่ได้ตั้ง Master Data
           html += '<option value="Annual Leave">Annual Leave (ลาพักร้อน)</option>' +
                   '<option value="Sick Leave">Sick Leave (ลาป่วย)</option>' +
                   '<option value="Internal Meeting">Internal Meeting (ประชุมภายใน)</option>' +
@@ -1445,7 +1473,7 @@
       document.getElementById('totStartTime').value = '';
       document.getElementById('totEndTime').value = '';
       document.getElementById('totRemark').value = '';
-      document.getElementById('totStatus').value = 'Approved'; // ค่าเริ่มต้น
+      document.getElementById('totStatus').value = 'Approved'; 
       
       window.populateTotTypes();
 
@@ -1542,8 +1570,6 @@
           window.showToast("Error: " + err.message, "error");
       }
   };
-
-  // ----------------------------------------------------
 
   window.toggleDocDictation = function() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -2115,8 +2141,7 @@
                       var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
                       terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
-                      var terrs3 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === rawScope; });
-                      terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      myAllowedTeamIds.push(rawScope); 
                   }
               } else {
                   var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
@@ -2910,6 +2935,10 @@
       });
 
       var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
+      // 🌟 แปะ Badge Coaching ในตารางให้ด้วย (ถ้ามี)
+      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>Coaching</span>' : '';
+      var docWithBadge = docNameShow + coachingBadge;
+
       var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
       
       var purposeShow = v.Purpose || '-';
@@ -2923,7 +2952,7 @@
           }
       }
 
-      var highlightedDoc = window.applySearchHighlight(docNameShow, smartSearchVal);
+      var highlightedDoc = window.applySearchHighlight(docWithBadge, smartSearchVal); // ใช้ docWithBadge ที่รวมคำว่า Coaching แล้ว
       var highlightedHosp = window.applySearchHighlight(hospNameShow, smartSearchVal);
       var highlightedPurpose = window.applySearchHighlight(purposeShow, smartSearchVal);
 
@@ -2946,7 +2975,7 @@
             dateShow +
           '</a>' +
         '</td>' +
-        '<td class="fw-bold text-dark">' + highlightedDoc + '</td>' +
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + // ปรับชิดซ้ายนิดนึง จะได้สวย
         '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
         '<td>' + prodBadges + '</td>' +
         '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
@@ -2958,7 +2987,8 @@
   };
 
   window.toggleVisitFormEditable = function(isEditable) {
-    var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus'];
+    // 🌟 เพิ่ม visitIsCoaching ในการจัดการสิทธิ์ด้วย
+    var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
     var formView = document.getElementById('visitFormView');
 
     if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
@@ -3004,6 +3034,7 @@
     document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
+    document.getElementById('visitIsCoaching').checked = false; // 🌟 Reset ค่า Coaching
 
     window.initUserInfo(); 
 
@@ -3109,6 +3140,8 @@
     document.getElementById('visitInsight').value = v.Insight || ''; 
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
+    // 🌟 ติ๊กปุ่ม Coaching จากฐานข้อมูล
+    document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
     setTimeout(function() { window.restoreFormDraft(visitId); }, 500);
 
@@ -3254,6 +3287,7 @@
       Details: document.getElementById('visitDetails').value.trim(),
       Insight: document.getElementById('visitInsight').value.trim(), 
       Next_Action: document.getElementById('visitNextAction').value.trim(),
+      Is_Coaching: document.getElementById('visitIsCoaching').checked, // 🌟 ส่งค่า Coaching ลง Database
       Status: document.getElementById('visitStatus').value,
       Whoupdated: whoUpdated,
       Whenupdated: new Date().toISOString()
