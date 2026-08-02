@@ -54,12 +54,12 @@
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
-  /* 🌟 CSS สำหรับ Toggle Switch (Coaching) */
+  /* 🌟 CSS สำหรับ Toggle Switch */
   .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
   .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  input:checked + .slider { background-color: #4f46e5; } /* 🌟 สีน้ำเงินม่วง (Indigo) */
+  input:checked + .slider { background-color: #4f46e5; } /* 🌟 แก้เป็นสีน้ำเงินม่วง */
   input:focus + .slider { box-shadow: 0 0 1px #4f46e5; }
   input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
@@ -164,7 +164,7 @@
         <p class="text-muted small mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
-      <div class="d-flex gap-2 align-items-center">
+      <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
         <!-- 🎯 View Toggle Switch -->
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
@@ -175,7 +175,6 @@
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
-        <!-- 🌟 เพิ่มปุ่ม Add TOT (Time Off Territory) -->
         <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
@@ -289,12 +288,11 @@
               <th class="py-3 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
-              <!-- 🌟 คอลัมน์ Action สำหรับปุ่ม Duplicate -->
+              <!-- 🌟 เพิ่มคอลัมน์ Action สำหรับปุ่ม Duplicate -->
               <th class="py-3 text-center" style="width: 60px;">Action</th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <!-- 🌟 ปรับ colspan เป็น 7 -->
             <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
@@ -319,18 +317,6 @@
 
     <!-- 🎯 Zone 2: มุมมองปฏิทิน (Calendar View) -->
     <div id="visitCalendarZone" class="card p-4 border-0 shadow-sm visit-card d-none">
-      
-      <!-- 🌟 เพิ่ม Calendar Legend (คำอธิบายสี) แปะไว้บนปฏิทิน -->
-      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted">Submitted Visit</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending">Pending Draft</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #64748b; border-radius: 50%; margin-right: 6px;"></span><span id="legUnlock">Pending Unlock</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; margin-right: 6px;"></span><span id="legHoliday">Public Holiday</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #8b5cf6; border-radius: 50%; margin-right: 6px;"></span><span id="legCompany">Company Event</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #0ea5e9; border-radius: 50%; margin-right: 6px;"></span><span id="legTotAppr">TOT (Approved)</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #94a3b8; border-radius: 50%; margin-right: 6px;"></span><span id="legTotPend">TOT (Pending)</span></div>
-      </div>
-
       <div id="calendar"></div>
     </div>
 
@@ -461,7 +447,7 @@
                   <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
                 </div>
 
-                <!-- 🌟 เพิ่มส่วน Coaching Call -->
+                <!-- 🌟 เพิ่มส่วน Coaching Call (เพิ่ม ID เพื่อรองรับ 2 ภาษา) -->
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
                   <div>
                     <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText">Joint Visit / Coaching</span></label>
@@ -671,7 +657,7 @@
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
   };
 
-  // 🌟 ฟังก์ชัน: Export CSV
+  // 🌟 1. ฟังก์ชัน: Export CSV
   window.exportVisitsCSV = function() {
       var data = window.globalFilteredVisits;
       if (!data || data.length === 0) return window.showToast("No data to export", "warning");
@@ -712,7 +698,7 @@
       window.showToast("Export CSV เรียบร้อยแล้ว", "success");
   };
 
-  // 🌟 ฟังก์ชัน: Duplicate / Copy Visit
+  // 🌟 2. ฟังก์ชัน: Duplicate / Copy Visit
   window.duplicateVisit = async function(visitId) {
       var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
       if (!v) return;
@@ -883,7 +869,7 @@
     return safeText;
   };
 
-  // 🌟 ฟังก์ชัน: แจ้งเตือน Draft (เตือนครั้งเดียวต่อ Session)
+  // 🌟 3. ฟังก์ชัน: แจ้งเตือน Draft (เตือนครั้งเดียวต่อ Session)
   window.checkMyDraftsReminder = function(myDraftCount) {
     var toastContainer = document.getElementById('draftToastContainer');
     if (!toastContainer) return;
@@ -1310,6 +1296,22 @@
     }
 
     return '-';
+  };
+
+  // 🌟 ฟังก์ชัน: สลับหน้าจอ (นี่คือฟังก์ชันที่หายไปแล้วใส่กลับมาให้ครับ)
+  window.switchVisitView = function(viewId) {
+    var views = ['visitListView', 'visitFormView'];
+    views.forEach(function(v) { 
+      var el = document.getElementById(v); 
+      if(el) el.classList.add('d-none'); 
+    });
+    var target = document.getElementById(viewId); 
+    if(target) target.classList.remove('d-none');
+    window.scrollTo(0, 0);
+
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+      setLanguage(currentLang);
+    }
   };
 
   window.toggleMainView = function(viewName) {
@@ -1912,22 +1914,6 @@
     ul.innerHTML = html;
   };
 
-  window.fetchAllRecords = async function(tableName, queryModifier) {
-      var allData = [];
-      var start = 0;
-      var step = 1000;
-      while (true) {
-          var query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
-          if (queryModifier) query = queryModifier(query);
-          var res = await query;
-          if (res.error) throw res.error;
-          allData = allData.concat(res.data || []);
-          if (!res.data || res.data.length < step) break;
-          start += step;
-      }
-      return allData;
-  };
-
   window.openAddVisitModal = function(fromDocId, presetDate) {
     if (!fromDocId) sessionStorage.removeItem('returnToDocId');
     window.openAddVisitView(presetDate);
@@ -2151,17 +2137,17 @@
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
           var promises = [
-            window.fetchAllRecords('Doctors').catch(e=>[]),
-            window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }).catch(e=>[]), 
-            window.fetchAllRecords('Territory').catch(e=>[]),
-            window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }).catch(e=>[]),
-            window.fetchAllRecords('Team').catch(e=>[]),            
-            window.fetchAllRecords('BU').catch(e=>[]),            
-            window.fetchAllRecords('Products_Team').catch(e=>[]),   
-            window.fetchAllRecords('IndexType').catch(e=>[]),
-            window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }).catch(e=>[]),
-            window.fetchAllRecords('Rep_Users').catch(e=>[]),
-            window.fetchAllRecords('Assignment').catch(e=>[])
+            window.fetchAllRecords('Doctors'),
+            window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+            window.fetchAllRecords('Territory'),
+            window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+            window.fetchAllRecords('Team'),            
+            window.fetchAllRecords('BU'),            
+            window.fetchAllRecords('Products_Team'),   
+            window.fetchAllRecords('IndexType'),
+            window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }),
+            window.fetchAllRecords('Rep_Users'),
+            window.fetchAllRecords('Assignment')
           ];
           var results = await Promise.all(promises);
 
@@ -2628,18 +2614,21 @@
 
         try {
           var promises = [
-            window.fetchAllRecords('Visit_Logs').catch(e=>[]),
-            window.fetchAllRecords('Visit_Products').catch(e=>[]),
-            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending').then(res=>res.data||[]).catch(e=>[]),
-            window.fetchAllRecords('Hospitals').catch(e=>[]),
-            window.fetchAllRecords('TOT_Logs').catch(e=>[])
+            window.fetchAllRecords('Visit_Logs'),
+            window.fetchAllRecords('Visit_Products'),
+            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
+            window.fetchAllRecords('Hospitals'),
+            window.fetchAllRecords('TOT_Logs') 
           ];
           var results = await Promise.all(promises);
 
           window.VisitManagerCache.visits = results[0] || [];
           window.VisitManagerCache.visitProducts = results[1] || []; 
-          window.VisitManagerCache.pendingUnlocks = results[2] || [];
-          if (results[3] && results[3].length > 0) window.VisitManagerCache.allHospitals = results[3];
+          window.VisitManagerCache.pendingUnlocks = (results[2] && results[2].data) ? results[2].data.map(function(d) { return d.Ref_ID; }) : [];
+          if (results[3] && results[3].length > 0) {
+            window.VisitManagerCache.allHospitals = results[3];
+            window.globalAllHospitals = results[3];
+          }
           window.VisitManagerCache.totLogs = results[4] || []; 
           
           window.VisitManagerCache.isLoaded = true;
@@ -2660,10 +2649,13 @@
 
     if (window.VisitManagerCache.filters) {
         var f = window.VisitManagerCache.filters;
+        
         if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
         if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
         if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
+        
         if (window.tomSelectStatusInstance && f.status !== undefined) window.tomSelectStatusInstance.setValue(f.status, true);
+        
         if (window.tomSelectRepInstance && f.rep) window.tomSelectRepInstance.setValue(f.rep, true);
         if (window.tomSelectTerInstance && f.territory) window.tomSelectTerInstance.setValue(f.territory, true);
         if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
@@ -2721,27 +2713,30 @@
     var allowedTeams = window.myAllowedTeamIds || [];
     var allowedEmails = window.myAllowedEmails || [];
 
+    // Filter Visit Logs
     var filtered = window.globalVisits.filter(function(v) {
       var hasSecurityAccess = false;
-
-      var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-      var rawRepId = String(v.Rep_ID || v.rep_id || '').trim().toLowerCase();
-      var vTerrId = String(v.Territory_ID || v.territory_id || '').trim().toLowerCase();
-      
-      var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-      var rawScope = cu ? String(cu.BU_ID || cu.Team_ID || cu.team_id || cu.Territory_ID || cu.territory_id || '').trim().toLowerCase() : '';
-      var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim().toLowerCase() : '';
-      var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
-
-      var isMyOwnVisit = (uRepId && rawRepId === uRepId) || (uEmail && rawWho === uEmail);
 
       if (window.myIsGlobalViewer) {
           hasSecurityAccess = true;
       } else {
+          var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+          var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
+          var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
+          
+          var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+          var rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : '';
+          var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
+          var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
+
           if (window.myIsSalesRole) {
-              if (isMyOwnVisit) hasSecurityAccess = true;
+              if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasSecurityAccess = true;
           } else {
-              if (allowedReps.indexOf(rawRepId) !== -1 || allowedTers.indexOf(vTerrId) !== -1 || allowedTeams.indexOf(vTerrId) !== -1 || (rawScope && vTerrId === rawScope) || (rawWho && allowedEmails.indexOf(rawWho) !== -1)) {
+              if (allowedReps.indexOf(rawRepId) !== -1 || 
+                  allowedTers.indexOf(vTerrId) !== -1 || 
+                  allowedTeams.indexOf(vTerrId) !== -1 || 
+                  vTerrId === rawScope ||
+                  allowedEmails.indexOf(rawWho) !== -1) {
                   hasSecurityAccess = true;
               }
           }
@@ -2749,7 +2744,7 @@
 
       if (!hasSecurityAccess) return false;
 
-      if (!window.myIsGlobalViewer && !isMyOwnVisit && ['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) === -1) {
+      if (!window.myIsGlobalViewer && ['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) === -1) {
           var isDocAssigned = window.globalAssignedDoctors.some(function(d) {
             return String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase();
           });
@@ -2759,56 +2754,82 @@
       if (searchKeywords.length > 0) {
         var docObj = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
         var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
+        
         var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
+
         var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
-        var prodNames = visitProds.map(function(vp) { var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product.toLowerCase() : ''; }).join(' ');
+        var prodNames = visitProds.map(function(vp) {
+          var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
+          return p ? p.Product.toLowerCase() : '';
+        }).join(' ');
+
         var rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + (v.Purpose || '') + ' ' + (v.Details || '');
+
         var matchSmart = searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; });
         if (!matchSmart) return false;
       }
 
       var matchDate = true;
       if (startDateTerm || endDateTerm) {
-          var vDate = new Date(v.Visit_Date); vDate.setHours(0, 0, 0, 0); 
-          if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-          if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
+          var vDate = new Date(v.Visit_Date);
+          vDate.setHours(0, 0, 0, 0); 
+          
+          if (startDateTerm) {
+              var sDate = new Date(startDateTerm);
+              sDate.setHours(0, 0, 0, 0);
+              if (vDate < sDate) matchDate = false;
+          }
+          if (endDateTerm) {
+              var eDate = new Date(endDateTerm);
+              eDate.setHours(23, 59, 59, 999);
+              if (vDate > eDate) matchDate = false;
+          }
       }
 
       var matchRep = (selectedReps.length === 0);
       if (selectedReps.length > 0) {
+          var rawWhoFilt = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+          var rawRepIdFilt = String(v.Rep_ID || v.rep_id || '').trim();
+
           matchRep = selectedReps.some(function(selId) {
             var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === selId; });
             var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
             var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
-            return rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm);
+            return rawRepIdFilt === selId || (selEm && rawWhoFilt === selEm) || (selNm && rawWhoFilt === selNm);
           });
       }
 
       var matchTer = (selectedTers.length === 0);
       if (selectedTers.length > 0) {
-          var cUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === rawRepId; });
+          var vTerFilter = String(v.Territory_ID || v.territory_id || '').trim();
+          var vRepFiltId = String(v.Rep_ID || v.rep_id || '').trim();
+          var cUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === vRepFiltId; });
           var vTeamFilt = cUser ? String(cUser.Team_ID || cUser.team_id || cUser.Team || '').trim() : '';
-          matchTer = selectedTers.indexOf(vTerrId) !== -1 || (vTeamFilt && selectedTers.indexOf(vTeamFilt) !== -1);
+
+          matchTer = selectedTers.indexOf(vTerFilter) !== -1 || (vTeamFilt && selectedTers.indexOf(vTeamFilt) !== -1);
       }
 
       var matchStatus = (statusTerm === "");
-      if (statusTerm !== "") matchStatus = (v.Status === statusTerm);
+      if (statusTerm !== "") {
+          matchStatus = (v.Status === statusTerm);
+      }
 
       return matchDate && matchRep && matchTer && matchStatus;
     });
 
+    // 🌟 Filter สำหรับ TOT Logs ด้วย
     window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
         var hasAccess = false;
         var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-        var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim().toLowerCase() : '';
+        var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
         var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
         
         if (window.myIsGlobalViewer) hasAccess = true;
         else {
-             var rawRepId = String(tot.Rep_ID || '').trim().toLowerCase();
+             var rawRepId = String(tot.Rep_ID || '').trim();
              var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
              if (window.myIsSalesRole) {
-                 if ((uRepId && rawRepId === uRepId) || (uEmail && rawWho === uEmail)) hasAccess = true;
+                 if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasAccess = true;
              } else {
                  if (allowedReps.indexOf(rawRepId) !== -1 || allowedEmails.indexOf(rawWho) !== -1) hasAccess = true;
              }
@@ -2817,30 +2838,62 @@
 
         var matchDate = true;
         if (startDateTerm || endDateTerm) {
-            var vDate = new Date(tot.Start_Date); vDate.setHours(0, 0, 0, 0); 
-            if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-            if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
+            var vDate = new Date(tot.Start_Date);
+            vDate.setHours(0, 0, 0, 0); 
+            if (startDateTerm) {
+                var sDate = new Date(startDateTerm);
+                sDate.setHours(0, 0, 0, 0);
+                if (vDate < sDate) matchDate = false;
+            }
+            if (endDateTerm) {
+                var eDate = new Date(endDateTerm);
+                eDate.setHours(23, 59, 59, 999);
+                if (vDate > eDate) matchDate = false;
+            }
         }
         
         var matchRep = (selectedReps.length === 0);
-        if (selectedReps.length > 0) matchRep = selectedReps.indexOf(String(tot.Rep_ID || '').trim()) !== -1;
+        if (selectedReps.length > 0) {
+            var rawRepIdFilt = String(tot.Rep_ID || '').trim();
+            matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1;
+        }
 
         return matchDate && matchRep;
     });
 
     filtered.sort(function(a, b) {
       var valA = '', valB = '';
-      if (window.currentSortCol === 'date') { valA = a.Visit_Date || ''; valB = b.Visit_Date || ''; } 
+
+      if (window.currentSortCol === 'date') {
+        valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
+      } 
       else if (window.currentSortCol === 'doctor') {
-        var docA = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(a.Doc_ID); }); valA = window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
-        var docB = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(b.Doc_ID); }); valB = window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
+        var docA = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
+        valA = window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
+        var docB = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
+        valB = window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
       } 
       else if (window.currentSortCol === 'hospital') {
-        var docA = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(a.Doc_ID); }); valA = window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
-        var docB = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(b.Doc_ID); }); valB = window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
+        var docA = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
+        valA = window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
+        
+        var docB = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
+        valB = window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
       } 
-      else if (window.currentSortCol === 'purpose') { valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase(); } 
-      else if (window.currentSortCol === 'status') { valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase(); }
+      else if (window.currentSortCol === 'products') {
+        valA = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(a.Visit_ID); }).map(function(vp) {
+          var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
+        }).join(',').toLowerCase();
+        valB = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(b.Visit_ID); }).map(function(vp) {
+          var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
+        }).join(',').toLowerCase();
+      } 
+      else if (window.currentSortCol === 'purpose') {
+        valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase();
+      } 
+      else if (window.currentSortCol === 'status') {
+        valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase();
+      }
 
       if (valA < valB) return window.currentSortAsc ? -1 : 1;
       if (valA > valB) return window.currentSortAsc ? 1 : -1;
@@ -2848,19 +2901,14 @@
     });
 
     window.globalFilteredVisits = filtered;
+
     window.updateStatCards(window.globalFilteredVisits);
+
     window.renderVisitTable();
-    if (window.VisitManagerCache.currentMainView === 'calendar') window.renderCalendarView();
-  };
-
-  window.updateStatCards = function(filteredVisits) {
-    var total = filteredVisits.length;
-    var pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
-    var submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
-
-    if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
-    if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
-    if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
+    
+    if (window.VisitManagerCache.currentMainView === 'calendar') {
+        window.renderCalendarView();
+    }
   };
 
   window.changeRowsPerPage = function() {
@@ -2880,6 +2928,7 @@
     window.renderVisitTable();
   };
 
+  // 🌟 ฟังก์ชัน: อัปเดตตารางให้แสดงปุ่ม Duplicate และเปลี่ยนสี Coaching
   window.renderVisitTable = function() {
     var tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -2901,10 +2950,13 @@
 
     var startIndex = (window.currentPage - 1) * window.rowsPerPage;
     var endIndex = Math.min(startIndex + window.rowsPerPage, totalItems);
+    
     document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
 
     var paginatedData = data.slice(startIndex, endIndex);
+
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    
     var appLang = window.getCurrentAppLang(); 
 
     paginatedData.forEach(function(v) {
@@ -2925,9 +2977,9 @@
 
       var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
       
-      // 🌟 ใช้สีน้ำเงินม่วง (#4f46e5) และไอคอน fa-user-tie สำหรับ Badge Coaching
+      // 🌟 ใช้สี #4f46e5 และไอคอนหัวหน้า (fa-user-tie)
       var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
-      var coachingBadge = v.Is_Coaching ? '<br><span class="badge text-white mt-1 shadow-sm" style="background-color: #4f46e5; font-size:0.65rem;"><i class="fa-solid fa-user-tie me-1"></i>' + coachingBadgeText + '</span>' : '';
+      var coachingBadge = v.Is_Coaching ? '<br><span class="badge text-white mt-1 shadow-sm" style="background-color: #4f46e5; font-size:0.65rem;"><i class="fa-solid fa-user-tie me-1"></i> ' + coachingBadgeText + '</span>' : '';
       var docWithBadge = docNameShow + coachingBadge;
 
       var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
@@ -2937,7 +2989,9 @@
           var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
           if (pType) {
               var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
-              if (pIdx && pIdx.Value1) { purposeShow = pIdx.Value1; }
+              if (pIdx && pIdx.Value1) {
+                  purposeShow = pIdx.Value1;
+              }
           }
       }
 
@@ -2954,11 +3008,15 @@
             var highlightedProdName = window.applySearchHighlight(pName, smartSearchVal);
             prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
         });
-      } else { prodBadges = '<span class="text-muted small">-</span>'; }
+      } else {
+        prodBadges = '<span class="text-muted small">-</span>';
+      }
 
       tbody.innerHTML += '<tr>' +
         '<td class="text-center fw-bold">' +
-          '<a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' + dateShow + '</a>' +
+          '<a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' +
+            dateShow +
+          '</a>' +
         '</td>' +
         '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
         '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
@@ -2968,6 +3026,7 @@
         '<td class="text-center"><button class="btn btn-sm btn-light text-primary border rounded-pill shadow-xs px-2" onclick="window.duplicateVisit(\'' + v.Visit_ID + '\')" title="Duplicate / Copy"><i class="fa-solid fa-copy"></i></button></td>' +
       '</tr>';
     });
+
     window.renderPaginationControls(totalPages);
   };
 
@@ -2976,16 +3035,23 @@
     var formView = document.getElementById('visitFormView');
 
     if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-      if (isEditable) window.tomSelectDocInstance.enable(); else window.tomSelectDocInstance.disable();
+      if (isEditable) window.tomSelectDocInstance.enable();
+      else window.tomSelectDocInstance.disable();
     }
+    
     if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
-      if (isEditable) window.tomSelectProdInstance.enable(); else window.tomSelectProdInstance.disable();
+      if (isEditable) window.tomSelectProdInstance.enable();
+      else window.tomSelectProdInstance.disable();
     }
+    
     if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
-      if (isEditable) window.tomSelectPurposeInstance.enable(); else window.tomSelectPurposeInstance.disable();
+      if (isEditable) window.tomSelectPurposeInstance.enable();
+      else window.tomSelectPurposeInstance.disable();
     }
+
     if (formView) {
-      if(isEditable) formView.classList.remove('disabled-ts'); else formView.classList.add('disabled-ts');
+      if(isEditable) formView.classList.remove('disabled-ts');
+      else formView.classList.add('disabled-ts');
     }
 
     fields.forEach(function(id) {
@@ -3015,8 +3081,15 @@
 
     window.initUserInfo(); 
 
-    if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) { window.tomSelectDocInstance.clear(); window.tomSelectDocInstance.enable(); }
-    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) { window.tomSelectPurposeInstance.clear(); window.tomSelectPurposeInstance.enable(); }
+    if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
+      window.tomSelectDocInstance.clear();
+      window.tomSelectDocInstance.enable(); 
+    }
+    
+    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
+      window.tomSelectPurposeInstance.clear();
+      window.tomSelectPurposeInstance.enable(); 
+    }
 
     await window.renderFormProductDropdown();
 
@@ -3024,13 +3097,18 @@
     if (returnToDocId) {
       setTimeout(function() {
         if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(returnToDocId); window.tomSelectDocInstance.disable(); 
+          window.tomSelectDocInstance.setValue(returnToDocId);
+          window.tomSelectDocInstance.disable(); 
         }
       }, 200); 
     }
 
     window.toggleVisitFormEditable(true);
-    if (returnToDocId) { setTimeout(function() { if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable(); }, 250); }
+    if (returnToDocId) {
+      setTimeout(function() {
+        if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
+      }, 250);
+    }
 
     setTimeout(function() { window.restoreFormDraft('NEW'); }, 500);
 
@@ -3076,14 +3154,18 @@
     window.updateFormUserInfo(targetRepObj, v.Territory_ID);
 
     setTimeout(function() {
-      if (v.Doc_ID && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
+      if (v.Doc_ID && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
+          window.tomSelectDocInstance.setValue(v.Doc_ID);
+      }
     }, 100);
 
     await window.renderFormProductDropdown(targetRepObj);
     var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     
     setTimeout(function() {
-      if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
+      if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) {
+          window.tomSelectProdInstance.setValue(visitProds);
+      }
       window.loadProductMedia();
     }, 150);
 
@@ -3092,7 +3174,9 @@
     document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
 
     setTimeout(function() {
-      if (v.Purpose && typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(v.Purpose);
+      if (v.Purpose && typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
+          window.tomSelectPurposeInstance.setValue(v.Purpose);
+      }
     }, 100);
 
     document.getElementById('visitDetails').value = v.Details || '';
@@ -3132,7 +3216,10 @@
         btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
         btn.dataset.mode = 'save';
-        if (sessionStorage.getItem('returnToDocId') && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
+        
+        if (sessionStorage.getItem('returnToDocId') && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
+           window.tomSelectDocInstance.disable();
+        }
       } else {
         window.toggleVisitFormEditable(false);
         btn.disabled = true;
