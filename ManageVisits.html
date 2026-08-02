@@ -720,14 +720,11 @@
     return str;
   };
 
-  // 🎯 1. ฟังก์ชันแปลงวันที่ให้เป็นรูปแบบตาม OS (Auto-format) อัตโนมัติ
   window.formatDateToLocal = function(dateStr) {
       if (!dateStr) return '-';
       var d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
       
-      // 🌟 ใช้ toLocaleDateString() เพื่อให้ Browser/OS จัดการ Format อัตโนมัติ
-      // (ถ้าเครื่องไทยก็โชว์ พ.ศ. ให้เอง ถ้าเครื่อง US ก็โชว์ ค.ศ. ให้เอง ตาม Native เลยครับ)
       return d.toLocaleDateString(); 
   };
 
@@ -1219,7 +1216,7 @@
     }
   };
 
-  // 🎯 2. ฟังก์ชันวาดปฏิทิน (เพิ่ม TOT Events ลงไป)
+  // 🎯 2. ฟังก์ชันวาดปฏิทิน (เพิ่ม Company Events เป็นสีม่วง)
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1274,7 +1271,12 @@
 
     // ---- Event 2: Public Holidays ----
     var holidayEvents = [];
+    // ---- Event 4: Company Events (NEW 🌟) ----
+    var companyEvents = []; 
+
     if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+        
+        // 🟥 ส่วนวันหยุดนักขัตฤกษ์
         var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
             return t.Name.toLowerCase() === 'public holiday' || t.Name.toLowerCase() === 'holiday';
         });
@@ -1300,9 +1302,36 @@
                 };
             });
         }
+
+        // 🟪 ส่วนวันหยุดพิเศษ/กิจกรรมบริษัท
+        var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name.toLowerCase() === 'company event' || t.Name.toLowerCase() === 'corporate holiday';
+        });
+
+        if (companyEventType) {
+            var companyData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === companyEventType.IndexType_ID;
+            });
+
+            companyEvents = companyData.map(function(c) {
+                var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
+                
+                return {
+                    id: 'ce_' + c.Index_ID,
+                    title: cTitle, 
+                    start: c.Value ? c.Value.split('T')[0] : '', 
+                    allDay: true,
+                    backgroundColor: '#8b5cf6', // 🌟 สีม่วงพาสเทล ดูแตกต่างจากวันหยุด
+                    borderColor: '#8b5cf6',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: cTitle }
+                };
+            });
+        }
     }
 
-    // ---- Event 3: TOT Logs (ลางาน/ประชุม) ----
+    // ---- Event 3: TOT Logs (ลางาน/ประชุมของบุคคล) ----
     var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
         var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
         var displayType = t.TOT_Type || 'Time Off';
@@ -1317,7 +1346,7 @@
         var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
         var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
 
-        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; // สีฟ้าอนุมัติ สีเทารอ
+        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
 
         var ev = {
             id: 'tot_' + t.TOT_ID,
@@ -1331,18 +1360,17 @@
             extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
         };
 
-        // ลาหลายวัน (วาดกล่องให้ยาวถึงวันจบ)
         if (t.End_Date && t.End_Date !== t.Start_Date) {
             var eDate = new Date(t.End_Date);
-            eDate.setDate(eDate.getDate() + 1); // FullCalendar ต้องบวก 1 วันเพื่อให้ครอบคลุมวันสุดท้าย
+            eDate.setDate(eDate.getDate() + 1); 
             ev.end = eDate.toISOString().split('T')[0];
         }
 
         return ev;
     });
 
-    // 🎯 วาดรวมกันทั้งหมด
-    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents);
+    // 🎯 รวม Event ทั้ง 4 ประเภท
+    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
 
     if (window.globalCalendarInstance) {
         window.globalCalendarInstance.removeAllEvents();
@@ -2502,7 +2530,6 @@
     window.filterVisits(false); 
   };
 
-  // 🎯 4. โหลดข้อมูลรวมทั้ง Visit_Logs และ TOT_Logs จากฐานข้อมูล
   window.loadVisits = async function(forceReload) {
     var tbody = document.getElementById('visitTableBody');
     window.VisitManagerCache = window.VisitManagerCache || {};
