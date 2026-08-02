@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px; 
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
 
@@ -175,6 +175,7 @@
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
+        <!-- 🌟 เพิ่มปุ่ม Add TOT (Time Off Territory) -->
         <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
@@ -441,11 +442,11 @@
                   <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
                 </div>
 
-                <!-- 🌟 เพิ่มส่วน Coaching Call (สวิตช์เปิด-ปิด) -->
+                <!-- 🌟 เพิ่มส่วน Coaching Call (เพิ่ม ID เพื่อรองรับ 2 ภาษา) -->
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
                   <div>
-                    <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i>Joint Visit / Coaching</label>
-                    <div class="text-muted small">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
+                    <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText">Joint Visit / Coaching</span></label>
+                    <div class="text-muted small" id="lblCoachingSubText">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
                   </div>
                   <label class="switch mb-0">
                     <input type="checkbox" id="visitIsCoaching">
@@ -658,7 +659,6 @@
       }, 300); 
   };
 
-  // 🌟 เก็บสถานะ Coaching ลง Draft
   window.saveFormDraft = function() {
       var visitId = document.getElementById('visitId').value || 'NEW';
       var draftData = {
@@ -678,7 +678,6 @@
       localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
   };
 
-  // 🌟 กู้คืนสถานะ Coaching จาก Draft
   window.restoreFormDraft = function(visitId) {
       var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
       if (draftStr) {
@@ -1250,7 +1249,6 @@
     }
   };
 
-  // 🎯 ปฏิทินแสดงผล Coaching Icon
   window.renderCalendarView = function() {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -1276,15 +1274,18 @@
         }
 
         var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
+        if (dateOnly.indexOf('/') !== -1) {
+             var vParts = dateOnly.split('/');
+             if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
+        }
+
         var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
-        
-        // 🌟 เพิ่มไอคอน Coaching ถ้า Is_Coaching เป็น true
         var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
         var baseTitle = timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
         
         var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
         var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
-        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(มีการ Coaching)');
+        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
 
         var isPending = (v.Status === 'Pending');
         var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
@@ -1311,7 +1312,7 @@
 
     if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
         var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
-            return t.Name.toLowerCase() === 'public holiday' || t.Name.toLowerCase() === 'holiday';
+            return t.Name && (t.Name.trim().toLowerCase() === 'public holiday' || t.Name.trim().toLowerCase() === 'holiday');
         });
 
         if (holidayType) {
@@ -1322,10 +1323,19 @@
             holidayEvents = holidayData.map(function(h) {
                 var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
                 
+                var hDate = '';
+                if (h.Value) {
+                    hDate = h.Value.split('T')[0];
+                    if (hDate.indexOf('/') !== -1) {
+                         var dParts = hDate.split('/');
+                         if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0];
+                    }
+                }
+
                 return {
                     id: 'hol_' + h.Index_ID,
                     title: holidayTitle, 
-                    start: h.Value ? h.Value.split('T')[0] : '', 
+                    start: hDate, 
                     allDay: true,
                     backgroundColor: '#ef4444',             
                     borderColor: '#ef4444',
@@ -1337,7 +1347,7 @@
         }
 
         var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
-            return t.Name.toLowerCase() === 'company event' || t.Name.toLowerCase() === 'corporate holiday';
+            return t.Name && (t.Name.trim().toLowerCase() === 'company event' || t.Name.trim().toLowerCase() === 'corporate holiday');
         });
 
         if (companyEventType) {
@@ -1348,12 +1358,21 @@
             companyEvents = companyData.map(function(c) {
                 var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
                 
+                var cDate = '';
+                if (c.Value) {
+                    cDate = c.Value.split('T')[0];
+                    if (cDate.indexOf('/') !== -1) {
+                         var dParts2 = cDate.split('/');
+                         if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0];
+                    }
+                }
+
                 return {
                     id: 'ce_' + c.Index_ID,
                     title: cTitle, 
-                    start: c.Value ? c.Value.split('T')[0] : '', 
+                    start: cDate, 
                     allDay: true,
-                    backgroundColor: '#8b5cf6', 
+                    backgroundColor: '#8b5cf6',
                     borderColor: '#8b5cf6',
                     textColor: '#ffffff',
                     display: 'block',
@@ -1373,16 +1392,35 @@
         }
 
         var baseTitle = timePrefix + '[TOT] ' + displayType;
-        
         var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
         var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
-
         var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+
+        var startDate = '';
+        if (t.Start_Date) {
+            startDate = t.Start_Date.split('T')[0];
+            if (startDate.indexOf('/') !== -1) {
+                var p1 = startDate.split('/');
+                if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0];
+            }
+        }
+
+        var endDateStr = '';
+        if (t.End_Date && t.End_Date !== t.Start_Date) {
+            endDateStr = t.End_Date.split('T')[0];
+            if (endDateStr.indexOf('/') !== -1) {
+                var p2 = endDateStr.split('/');
+                if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0];
+            }
+            var eDate = new Date(endDateStr);
+            eDate.setDate(eDate.getDate() + 1); 
+            endDateStr = eDate.toISOString().split('T')[0];
+        }
 
         var ev = {
             id: 'tot_' + t.TOT_ID,
             title: baseTitle,
-            start: t.Start_Date ? t.Start_Date.split('T')[0] : '',
+            start: startDate,
             allDay: true, 
             backgroundColor: bgColor,
             borderColor: bgColor,
@@ -1391,12 +1429,7 @@
             extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
         };
 
-        if (t.End_Date && t.End_Date !== t.Start_Date) {
-            var eDate = new Date(t.End_Date);
-            eDate.setDate(eDate.getDate() + 1); 
-            ev.end = eDate.toISOString().split('T')[0];
-        }
-
+        if (endDateStr) ev.end = endDateStr;
         return ev;
     });
 
@@ -1445,7 +1478,7 @@
       var appLang = window.getCurrentAppLang();
       var types = window.VisitManagerCache.indexTypes || [];
       var indexes = window.VisitManagerCache.indexes || [];
-      var tType = types.find(t => t.Name.toLowerCase() === 'tot type' || t.Name.toLowerCase() === 'tot');
+      var tType = types.find(t => t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'));
       
       var html = '<option value="">-- ' + (appLang === 'en' ? 'Select Type' : 'เลือกประเภท') + ' --</option>';
       
@@ -2043,6 +2076,13 @@
           lblArea.innerText = appLang === 'th' ? 'พื้นที่ / ทีม (Area)' : 'Area / Team';
       }
 
+      // 🌟 สลับภาษาข้อความสำหรับ Coaching Toggle
+      var lblCoachMain = document.getElementById('lblCoachingMainText');
+      if (lblCoachMain) lblCoachMain.innerText = appLang === 'th' ? 'ออกเยี่ยมร่วม / โค้ชชิ่ง (Coaching)' : 'Joint Visit / Coaching';
+
+      var lblCoachSub = document.getElementById('lblCoachingSubText');
+      if (lblCoachSub) lblCoachSub.innerText = appLang === 'th' ? 'มีหัวหน้า/ผู้จัดการเข้าร่วมปฏิบัติงาน' : 'Accompanied by Manager/Supervisor';
+
       var statusSelect = document.getElementById('filterVisitStatus');
       if (statusSelect) {
           var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
@@ -2089,13 +2129,13 @@
           var promises = [
             window.fetchAllRecords('Doctors'),
             window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
-            supabaseClient.from('Territory').select('*'),
+            window.fetchAllRecords('Territory'),
             window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
-            supabaseClient.from('Team').select('*'),            
-            supabaseClient.from('BU').select('*'),            
+            window.fetchAllRecords('Team'),            
+            window.fetchAllRecords('BU'),            
             window.fetchAllRecords('Products_Team'),   
-            supabaseClient.from('IndexType').select('*'),
-            supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
+            window.fetchAllRecords('IndexType'),
+            window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }),
             window.fetchAllRecords('Rep_Users'),
             window.fetchAllRecords('Assignment')
           ];
@@ -2104,9 +2144,9 @@
           var allDoctors = results[0] || [];
           var allHospitals = results[3] || [];
           var allAssignments = results[10] || [];
-          var globalTerritoryListLocal = (results[2] && results[2].data) ? results[2].data : [];
-          var globalTeamListLocal = (results[4] && results[4].data) ? results[4].data : [];
-          var globalBuListLocal = (results[5] && results[5].data) ? results[5].data : [];
+          var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : ((results[2] && results[2].data) ? results[2].data : []);
+          var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : ((results[4] && results[4].data) ? results[4].data : []);
+          var globalBuListLocal = Array.isArray(results[5]) ? results[5] : ((results[5] && results[5].data) ? results[5].data : []);
 
           window.VisitManagerCache.assignments = allAssignments;
           window.VisitManagerCache.allHospitals = allHospitals;
@@ -2180,8 +2220,8 @@
           window.VisitManagerCache.teams = globalTeamListLocal;
           window.VisitManagerCache.bus = globalBuListLocal || [];
           window.VisitManagerCache.teamProdLinks = results[6] || [];
-          window.VisitManagerCache.indexTypes = (results[7] && results[7].data) ? results[7].data : [];
-          window.VisitManagerCache.indexes = (results[8] && results[8].data) ? results[8].data : [];
+          window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
+          window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
           window.VisitManagerCache.users = results[9] || [];
           window.VisitManagerCache.dropdownsLoaded = true;
       }
@@ -2240,8 +2280,8 @@
         var indexes = window.VisitManagerCache.indexes;
         var purposeType = types.find(function(t) { 
           return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || 
-                 t.Name.toLowerCase() === 'purpose' || 
-                 t.Name.toLowerCase() === 'callpurpose'; 
+                 (t.Name && t.Name.trim().toLowerCase() === 'purpose') || 
+                 (t.Name && t.Name.trim().toLowerCase() === 'callpurpose'); 
         });
 
         var purposeHtml = '<option value=""></option>';
@@ -2935,15 +2975,17 @@
       });
 
       var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
-      // 🌟 แปะ Badge Coaching ในตารางให้ด้วย (ถ้ามี)
-      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>Coaching</span>' : '';
+      
+      // 🌟 ใช้ภาษาที่ถูกต้องสำหรับ Badge Coaching ในตาราง
+      var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
+      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
       var docWithBadge = docNameShow + coachingBadge;
 
       var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
       
       var purposeShow = v.Purpose || '-';
       if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
-          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
+          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
           if (pType) {
               var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
               if (pIdx && pIdx.Value1) {
@@ -2952,7 +2994,7 @@
           }
       }
 
-      var highlightedDoc = window.applySearchHighlight(docWithBadge, smartSearchVal); // ใช้ docWithBadge ที่รวมคำว่า Coaching แล้ว
+      var highlightedDoc = window.applySearchHighlight(docWithBadge, smartSearchVal); 
       var highlightedHosp = window.applySearchHighlight(hospNameShow, smartSearchVal);
       var highlightedPurpose = window.applySearchHighlight(purposeShow, smartSearchVal);
 
@@ -2975,7 +3017,7 @@
             dateShow +
           '</a>' +
         '</td>' +
-        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + // ปรับชิดซ้ายนิดนึง จะได้สวย
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
         '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
         '<td>' + prodBadges + '</td>' +
         '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
@@ -2987,7 +3029,6 @@
   };
 
   window.toggleVisitFormEditable = function(isEditable) {
-    // 🌟 เพิ่ม visitIsCoaching ในการจัดการสิทธิ์ด้วย
     var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
     var formView = document.getElementById('visitFormView');
 
@@ -3034,7 +3075,7 @@
     document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
-    document.getElementById('visitIsCoaching').checked = false; // 🌟 Reset ค่า Coaching
+    document.getElementById('visitIsCoaching').checked = false; 
 
     window.initUserInfo(); 
 
@@ -3140,7 +3181,6 @@
     document.getElementById('visitInsight').value = v.Insight || ''; 
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
-    // 🌟 ติ๊กปุ่ม Coaching จากฐานข้อมูล
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
     setTimeout(function() { window.restoreFormDraft(visitId); }, 500);
@@ -3287,7 +3327,7 @@
       Details: document.getElementById('visitDetails').value.trim(),
       Insight: document.getElementById('visitInsight').value.trim(), 
       Next_Action: document.getElementById('visitNextAction').value.trim(),
-      Is_Coaching: document.getElementById('visitIsCoaching').checked, // 🌟 ส่งค่า Coaching ลง Database
+      Is_Coaching: document.getElementById('visitIsCoaching').checked, 
       Status: document.getElementById('visitStatus').value,
       Whoupdated: whoUpdated,
       Whenupdated: new Date().toISOString()
