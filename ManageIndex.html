@@ -562,13 +562,13 @@
         lblThValue1.innerText = "Zone";
         thValue1.classList.remove('d-none');
         thValue2.classList.add('d-none');
-    } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday') {
+    // 🎯 เพิ่มการดักจับ Company Event
+    } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday' || selectedTypeName === 'company event' || selectedTypeName === 'corporate holiday') {
         lblThValue.innerText = "Date";        
         lblThValue1.innerText = "Description (TH)"; 
         lblThValue2.innerText = "Description (EN)"; 
         thValue1.classList.remove('d-none');
         thValue2.classList.remove('d-none');        
-    // 🎯 เพิ่มการรองรับ TOT Type แบบ 2 ภาษาตรงนี้
     } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title' || selectedTypeName === 'tot type' || selectedTypeName === 'tottype') { 
         lblThValue.innerText = "Value (TH)";    
         lblThValue1.innerText = "Value (EN)";   
@@ -753,7 +753,8 @@
               if (prefillVal1) selectVal1.value = prefillVal1;
           }
       } 
-      else if (typeName === 'public holiday' || typeName === 'holiday') {
+      // 🎯 ดักจับ Company Event ใน Modal Form
+      else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
           lblVal.innerHTML = 'Date <span class="text-danger">*</span>'; 
           inputValMain.type = 'date'; 
           
@@ -768,7 +769,6 @@
           grpVal1.classList.remove('d-none');
           grpVal2.classList.remove('d-none');     
       } 
-      // 🎯 เปิดใช้งานรองรับ 2 ภาษาใน Modal สำหรับ TOT Type
       else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') { 
           lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
           
@@ -824,10 +824,10 @@
 
     if (typeName === 'province') {
         val1 = document.getElementById('modalIndexValue1_select').value;
-    } else if (typeName === 'public holiday' || typeName === 'holiday') {
+    // 🎯 ตอนกด Save บันทึก Company Event ลง Data
+    } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
         val2 = document.getElementById('modalIndexValue2').value.trim(); 
-    // 🎯 ดึงค่า Value (EN) บันทึกลงใน Value1
     } else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') {
         val1 = document.getElementById('modalIndexValue1_input').value.trim();
         val2 = null;
@@ -842,8 +842,8 @@
 
     const isDuplicate = window.globalIndexes.some(i => i.IndexType_ID === typeId && i.Value.toLowerCase() === val.toLowerCase() && i.Index_ID !== id);
     if (isDuplicate) {
-        if (typeName === 'public holiday' || typeName === 'holiday') {
-            return alert(`❌ Cannot save! A holiday on the date "${val}" already exists.`);
+        if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
+            return alert(`❌ Cannot save! An event on the date "${val}" already exists.`);
         }
         return alert(`❌ Cannot save! The value "${val}" already exists.`);
     }
