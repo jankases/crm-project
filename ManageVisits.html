@@ -7,7 +7,7 @@
   }
   
   .form-control, .form-select { 
-    min-height: 44px;
+    min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
     border-radius: 12px; 
   }
 
@@ -54,14 +54,14 @@
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
-  /* 🌟 CSS สำหรับ Toggle Switch (สี Indigo สำหรับ Coaching) */
+  /* 🌟 CSS สำหรับ Toggle Switch (เปลี่ยนสี Coaching เป็น Indigo) */
   .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
   .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   input:checked + .slider { background-color: #4f46e5; } 
   input:focus + .slider { box-shadow: 0 0 1px #4f46e5; }
-  input:checked + .slider:before { -webkit-transform: translateX(22px); transform: translateX(22px); }
+  input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
   .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
   @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
@@ -69,7 +69,9 @@
   .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
   .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
   .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
+  
   .ts-wrapper.single .ts-control > .item[data-value=""] { color: #6c757d !important; font-weight: 400 !important; }
+
   .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
 
   .ts-wrapper.disabled { opacity: 1 !important; }
@@ -109,9 +111,24 @@
   #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
   #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
+  /* 🎯 สไตล์เพิ่มเติมสำหรับ Calendar */
   #calendar { min-height: 600px; font-family: inherit; }
-  .fc-event { cursor: pointer; border: none !important; padding: 3px 6px !important; border-radius: 6px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 3px !important; color: #ffffff !important; }
-  .fc-event-main { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; }
+  .fc-event { 
+      cursor: pointer; 
+      border: none !important; 
+      padding: 3px 6px !important; 
+      border-radius: 6px !important; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+      margin-bottom: 3px !important; 
+      color: #ffffff !important; 
+  }
+  .fc-event-main {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+  }
   .fc-daygrid-event-dot { display: none !important; }
   .fc-event-title { font-weight: 600; font-size: 0.8rem; }
   .fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
@@ -130,6 +147,7 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 </script>
+
 <!-- 📚 โหลด FullCalendar Library สำหรับระบบปฏิทิน -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
@@ -138,6 +156,7 @@
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
+  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List & Calendar View) ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -146,12 +165,13 @@
       </div>
       
       <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+        <!-- 🎯 View Toggle Switch -->
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
-        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.loadVisits(true)" title="Refresh Data">
+        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
@@ -226,7 +246,7 @@
           </select>
         </div>
 
-        <!-- 🌟 แก๊งปุ่ม Export และจัดการ Filter -->
+        <!-- 🌟 แก๊งปุ่ม Export และ Filter -->
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-1 justify-content-end">
           <button class="btn btn-success border rounded-pill flex-grow-1 shadow-sm text-white px-0" type="button" onclick="window.exportVisitsCSV()" title="Export to CSV">
             <i class="fa-solid fa-file-csv"></i>
@@ -241,6 +261,7 @@
 
       </div>
 
+      <!-- Advanced Filters (User + Territory) -->
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
@@ -267,10 +288,12 @@
               <th class="py-3 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+              <!-- 🌟 คอลัมน์ Action สำหรับปุ่ม Duplicate -->
               <th class="py-3 text-center" style="width: 60px;">Action</th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
+            <!-- 🌟 ปรับ colspan เป็น 7 -->
             <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
@@ -295,6 +318,8 @@
 
     <!-- 🎯 Zone 2: มุมมองปฏิทิน (Calendar View) -->
     <div id="visitCalendarZone" class="card p-4 border-0 shadow-sm visit-card d-none">
+      
+      <!-- 🌟 Calendar Legend (คำอธิบายสี) แปะไว้บนปฏิทิน -->
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted">Submitted Visit</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending">Pending Draft</span></div>
@@ -304,8 +329,10 @@
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #0ea5e9; border-radius: 50%; margin-right: 6px;"></span><span id="legTotAppr">TOT (Approved)</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #94a3b8; border-radius: 50%; margin-right: 6px;"></span><span id="legTotPend">TOT (Pending)</span></div>
       </div>
+
       <div id="calendar"></div>
     </div>
+
   </div>
 
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View - iPad Optimized) ================= -->
@@ -319,6 +346,7 @@
 
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card">
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="d-flex flex-column">
+        
         <input type="hidden" id="visitId">
 
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
@@ -356,6 +384,7 @@
                   <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="window.loadProductMedia()"></select>
                 </div>
 
+                <!-- 🎬 e-Detailing Section -->
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
                   <label class="form-label fw-bold text-primary mb-2 d-flex justify-content-between align-items-center" id="detailingMediaHeader">
                     <span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">e-Detailing / Presentation</span></span>
@@ -432,6 +461,7 @@
                   <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
                 </div>
 
+                <!-- 🌟 เพิ่มส่วน Coaching Call -->
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
                   <div>
                     <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText">Joint Visit / Coaching</span></label>
@@ -475,11 +505,13 @@
     <div class="modal-content">
       <div class="modal-header bg-dark text-white py-2 px-3">
         <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
+        
         <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
           <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
           <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="window.jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
           <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
         </div>
+
         <div class="d-flex align-items-center gap-3">
           <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
           <button type="button" class="btn-close btn-close-white" onclick="window.closeMediaPresentation()"></button>
@@ -501,10 +533,12 @@
       <form onsubmit="window.handleSaveTot(event)">
         <div class="modal-body p-4">
           <input type="hidden" id="totId">
+          
           <div class="mb-3">
             <label class="form-label fw-bold text-dark small">TOT Type <span class="text-danger">*</span></label>
             <select class="form-select shadow-sm" id="totType" required></select>
           </div>
+
           <div class="row mb-3 g-2">
             <div class="col-6">
               <label class="form-label fw-bold text-dark small">Start Date <span class="text-danger">*</span></label>
@@ -515,6 +549,7 @@
               <input type="date" class="form-control shadow-sm" id="totEndDate">
             </div>
           </div>
+
           <div class="row mb-3 g-2">
             <div class="col-6">
               <label class="form-label fw-bold text-dark small">Start Time</label>
@@ -525,10 +560,12 @@
               <input type="time" class="form-control shadow-sm" id="totEndTime">
             </div>
           </div>
+
           <div class="mb-3">
             <label class="form-label fw-bold text-dark small">Remark (เหตุผล/รายละเอียด)</label>
             <textarea class="form-control shadow-sm" id="totRemark" rows="2" style="resize: none;"></textarea>
           </div>
+
           <div class="mb-2">
             <label class="form-label fw-bold text-dark small">Status</label>
             <select class="form-select shadow-sm fw-bold" id="totStatus">
@@ -536,6 +573,7 @@
               <option value="Pending" class="text-warning">⏳ Pending</option>
             </select>
           </div>
+
         </div>
         <div class="modal-footer border-0 pt-0 d-flex justify-content-between gap-2">
           <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
@@ -1608,9 +1646,6 @@
     } catch(e) {}
   };
 
-  // ==========================================
-  // 4. DATA LOADING AND DROPDOWNS
-  // ==========================================
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
     var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
@@ -1988,51 +2023,6 @@
     }
   };
 
-  window.renderFormProductDropdown = async function(targetRepUser) {
-    var formProdSelect = document.getElementById('visitProductId');
-    if (!formProdSelect) return;
-
-    var oldProdVal = [];
-    if (window.tomSelectProdInstance) {
-        var pv = window.tomSelectProdInstance.getValue();
-        oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
-    }
-
-    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) 
-      ? window.globalProductsList : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
-
-    if (!allProds || allProds.length === 0) {
-      try {
-        var res = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
-        if (res.data && res.data.length > 0) {
-          allProds = res.data;
-          window.globalProductsList = res.data;
-        }
-      } catch(e) {}
-    }
-
-    var allowedProducts = allProds;
-    var fHtml = '';
-    allowedProducts.forEach(function(p) { fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; });
-    formProdSelect.innerHTML = fHtml;
-
-    if (typeof TomSelect !== 'undefined') {
-        if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
-        
-        var appLang = window.getCurrentAppLang();
-        var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
-        
-        window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
-            plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
-            onChange: function() { window.loadProductMedia(); }
-        });
-
-        if (oldProdVal.length > 0) {
-            setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
-        }
-    }
-  };
-
   window.loadVisits = async function(forceReload) {
     var tbody = document.getElementById('visitTableBody');
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -2105,315 +2095,6 @@
     window.checkMyDraftsReminder(myDraftsCount);
   };
 
-  window.filterVisits = function(resetPage) {
-    if (resetPage === undefined) resetPage = true;
-    
-    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
-    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
-
-    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
-    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
-
-    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '');
-    var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-    var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
-
-    if (resetPage) window.currentPage = 1;
-
-    window.VisitManagerCache.filters = {
-        smartSearch: smartSearchKey, startDate: startDateTerm, endDate: endDateTerm,
-        status: statusTerm, rep: selectedReps, territory: selectedTers,
-        page: window.currentPage, rows: window.rowsPerPage, sortCol: window.currentSortCol, sortAsc: window.currentSortAsc
-    };
-
-    var searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(function(k) { return k !== ''; }) : [];
-
-    var allowedReps = window.myAllowedRepIds || [];
-    var allowedTers = window.myAllowedTerIds || [];
-    var allowedTeams = window.myAllowedTeamIds || [];
-    var allowedEmails = window.myAllowedEmails || [];
-
-    var filtered = window.globalVisits.filter(function(v) {
-      var hasSecurityAccess = false;
-
-      var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-      var rawRepId = String(v.Rep_ID || v.rep_id || '').trim().toLowerCase();
-      var vTerrId = String(v.Territory_ID || v.territory_id || '').trim().toLowerCase();
-      
-      var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-      var rawScope = cu ? String(cu.BU_ID || cu.Team_ID || cu.team_id || cu.Territory_ID || cu.territory_id || '').trim().toLowerCase() : '';
-      var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim().toLowerCase() : '';
-      var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
-
-      var isMyOwnVisit = (uRepId && rawRepId === uRepId) || (uEmail && rawWho === uEmail);
-
-      if (window.myIsGlobalViewer) {
-          hasSecurityAccess = true;
-      } else {
-          if (window.myIsSalesRole) {
-              if (isMyOwnVisit) hasSecurityAccess = true;
-          } else {
-              if (allowedReps.indexOf(rawRepId) !== -1 || allowedTers.indexOf(vTerrId) !== -1 || allowedTeams.indexOf(vTerrId) !== -1 || (rawScope && vTerrId === rawScope) || (rawWho && allowedEmails.indexOf(rawWho) !== -1)) {
-                  hasSecurityAccess = true;
-              }
-          }
-      }
-
-      if (!hasSecurityAccess) return false;
-
-      if (!window.myIsGlobalViewer && !isMyOwnVisit && ['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) === -1) {
-          var isDocAssigned = window.globalAssignedDoctors.some(function(d) {
-            return String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase();
-          });
-          if (!isDocAssigned) return false; 
-      }
-
-      if (searchKeywords.length > 0) {
-        var docObj = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
-        var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
-        var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
-        var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
-        var prodNames = visitProds.map(function(vp) { var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product.toLowerCase() : ''; }).join(' ');
-        var rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + (v.Purpose || '') + ' ' + (v.Details || '');
-        var matchSmart = searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; });
-        if (!matchSmart) return false;
-      }
-
-      var matchDate = true;
-      if (startDateTerm || endDateTerm) {
-          var vDate = new Date(v.Visit_Date); vDate.setHours(0, 0, 0, 0); 
-          if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-          if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
-      }
-
-      var matchRep = (selectedReps.length === 0);
-      if (selectedReps.length > 0) {
-          matchRep = selectedReps.some(function(selId) {
-            var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === selId; });
-            var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
-            var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
-            return rawRepId === selId || (selEm && rawWho === selEm) || (selNm && rawWho === selNm);
-          });
-      }
-
-      var matchTer = (selectedTers.length === 0);
-      if (selectedTers.length > 0) {
-          var cUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === rawRepId; });
-          var vTeamFilt = cUser ? String(cUser.Team_ID || cUser.team_id || cUser.Team || '').trim() : '';
-          matchTer = selectedTers.indexOf(vTerrId) !== -1 || (vTeamFilt && selectedTers.indexOf(vTeamFilt) !== -1);
-      }
-
-      var matchStatus = (statusTerm === "");
-      if (statusTerm !== "") matchStatus = (v.Status === statusTerm);
-
-      return matchDate && matchRep && matchTer && matchStatus;
-    });
-
-    window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
-        var hasAccess = false;
-        var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-        var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim().toLowerCase() : '';
-        var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
-        
-        if (window.myIsGlobalViewer) hasAccess = true;
-        else {
-             var rawRepId = String(tot.Rep_ID || '').trim().toLowerCase();
-             var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-             if (window.myIsSalesRole) {
-                 if ((uRepId && rawRepId === uRepId) || (uEmail && rawWho === uEmail)) hasAccess = true;
-             } else {
-                 if (allowedReps.indexOf(rawRepId) !== -1 || allowedEmails.indexOf(rawWho) !== -1) hasAccess = true;
-             }
-        }
-        if(!hasAccess) return false;
-
-        var matchDate = true;
-        if (startDateTerm || endDateTerm) {
-            var vDate = new Date(tot.Start_Date); vDate.setHours(0, 0, 0, 0); 
-            if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-            if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
-        }
-        
-        var matchRep = (selectedReps.length === 0);
-        if (selectedReps.length > 0) matchRep = selectedReps.indexOf(String(tot.Rep_ID || '').trim()) !== -1;
-
-        return matchDate && matchRep;
-    });
-
-    filtered.sort(function(a, b) {
-      var valA = '', valB = '';
-      if (window.currentSortCol === 'date') { valA = a.Visit_Date || ''; valB = b.Visit_Date || ''; } 
-      else if (window.currentSortCol === 'doctor') {
-        var docA = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(a.Doc_ID); }); valA = window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
-        var docB = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(b.Doc_ID); }); valB = window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
-      } 
-      else if (window.currentSortCol === 'hospital') {
-        var docA = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(a.Doc_ID); }); valA = window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
-        var docB = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(b.Doc_ID); }); valB = window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
-      } 
-      else if (window.currentSortCol === 'purpose') { valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase(); } 
-      else if (window.currentSortCol === 'status') { valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase(); }
-
-      if (valA < valB) return window.currentSortAsc ? -1 : 1;
-      if (valA > valB) return window.currentSortAsc ? 1 : -1;
-      return 0;
-    });
-
-    window.globalFilteredVisits = filtered;
-    window.updateStatCards(window.globalFilteredVisits);
-    window.renderVisitTable();
-    if (window.VisitManagerCache.currentMainView === 'calendar') window.renderCalendarView();
-  };
-
-  // ==========================================
-  // 5. FORM AND API FUNCTIONS
-  // ==========================================
-  window.openAddVisitView = async function(presetDate) {
-    var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-
-    document.getElementById('visitForm').reset();
-    document.getElementById('visitId').value = '';
-    document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">Add New Visit</span>';
-    
-    document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
-    document.getElementById('visitStatus').value = 'Pending';
-    document.getElementById('visitInsight').value = ''; 
-    if(document.getElementById('visitIsCoaching')) document.getElementById('visitIsCoaching').checked = false; 
-
-    window.initUserInfo(); 
-
-    if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) { window.tomSelectDocInstance.clear(); window.tomSelectDocInstance.enable(); }
-    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) { window.tomSelectPurposeInstance.clear(); window.tomSelectPurposeInstance.enable(); }
-
-    await window.renderFormProductDropdown();
-
-    var returnToDocId = sessionStorage.getItem('returnToDocId');
-    if (returnToDocId) {
-      setTimeout(function() {
-        if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(returnToDocId); window.tomSelectDocInstance.disable(); 
-        }
-      }, 200); 
-    }
-
-    window.toggleVisitFormEditable(true);
-    if (returnToDocId) { setTimeout(function() { if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable(); }, 250); }
-
-    setTimeout(function() { window.restoreFormDraft('NEW'); }, 500);
-
-    var btn = document.getElementById('saveVisitBtn');
-    btn.dataset.mode = 'save';
-    btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-    btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
-    btn.disabled = false;
-
-    window.switchVisitView('visitFormView');
-  };
-
-  window.openEditVisitView = async function(visitId) {
-    var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-
-    var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
-    if (!v) return;
-
-    var crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
-
-    var isAdmin = (myRole === 'admin');
-    var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
-    var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-
-    var isCreator = false;
-    if (myRepId && creatorRepId && myRepId === creatorRepId) isCreator = true;
-    if (myEmail && creatorWho && myEmail === creatorWho) isCreator = true;
-
-    var canEdit = (isAdmin || isCreator);
-
-    document.getElementById('visitId').value = v.Visit_ID;
-    document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
-    
-    var targetRepObj = null;
-    if (window.globalUsersList && window.globalUsersList.length > 0) {
-        targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-    }
-    window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-
-    setTimeout(function() {
-      if (v.Doc_ID && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
-    }, 100);
-
-    await window.renderFormProductDropdown(targetRepObj);
-    var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
-    
-    setTimeout(function() {
-      if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
-      window.loadProductMedia();
-    }, 150);
-
-    document.getElementById('visitDate').value = v.Visit_Date || '';
-    document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
-    document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
-
-    setTimeout(function() {
-      if (v.Purpose && typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(v.Purpose);
-    }, 100);
-
-    document.getElementById('visitDetails').value = v.Details || '';
-    document.getElementById('visitInsight').value = v.Insight || ''; 
-    document.getElementById('visitNextAction').value = v.Next_Action || '';
-    document.getElementById('visitStatus').value = v.Status || 'Pending';
-    if(document.getElementById('visitIsCoaching')) document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
-
-    setTimeout(function() { window.restoreFormDraft(visitId); }, 500);
-
-    var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
-    var btn = document.getElementById('saveVisitBtn');
-
-    if (isPendingUnlock) {
-      window.toggleVisitFormEditable(false);
-      btn.disabled = true;
-      btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
-      btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock';
-      btn.dataset.mode = 'disabled';
-    } else if (v.Status === 'Submitted') {
-      window.toggleVisitFormEditable(false);
-      if (canEdit) {
-        btn.disabled = false;
-        btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
-        btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
-        btn.dataset.mode = 'request_unlock';
-      } else {
-        btn.disabled = true;
-        btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
-        btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Locked (Read-Only)';
-        btn.dataset.mode = 'disabled';
-      }
-    } else {
-      if (canEdit) {
-        window.toggleVisitFormEditable(true);
-        btn.disabled = false;
-        btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-        btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
-        btn.dataset.mode = 'save';
-        if (sessionStorage.getItem('returnToDocId') && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
-      } else {
-        window.toggleVisitFormEditable(false);
-        btn.disabled = true;
-        btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
-        btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)';
-        btn.dataset.mode = 'disabled';
-      }
-    }
-
-    window.switchVisitView('visitFormView');
-  };
-
   window.requestUnlockVisit = async function(visitId) {
     var btn = document.getElementById('saveVisitBtn');
     btn.disabled = true;
@@ -2451,114 +2132,8 @@
     }
   };
 
-  window.handleSaveVisit = async function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('saveVisitBtn');
-    var mode = btn.dataset.mode;
-
-    if (mode === 'disabled') return;
-    if (mode === 'request_unlock') {
-      window.requestUnlockVisit(document.getElementById('visitId').value);
-      return;
-    }
-
-    var docVal = (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) ? window.tomSelectDocInstance.getValue() : '';
-    var dateInput = document.getElementById('visitDate');
-    var purposeVal = (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) ? window.tomSelectPurposeInstance.getValue() : '';
-
-    var selectedProducts = [];
-    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
-        var val = window.tomSelectProdInstance.getValue();
-        selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
-    }
-    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
-
-    var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
-    validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
-
-    var missingFields = [];
-    if (!docVal) missingFields.push("• ชื่อแพทย์ (Doctor)");
-    if (selectedProducts.length === 0) missingFields.push("• ผลิตภัณฑ์ (Products)");
-    if (!dateInput || !dateInput.value) missingFields.push("• วันที่ (Date)");
-    if (!purposeVal) missingFields.push("• วัตถุประสงค์ (Purpose)");
-
-    if (missingFields.length > 0) {
-      window.showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
-      return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...';
-
-    var crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-    var repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
-    var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
-
-    var existingVisitId = document.getElementById('visitId').value;
-    var targetVisitId = existingVisitId || window.generateUUID();
-    
-    var payload = {
-      Visit_ID: targetVisitId,
-      Rep_ID: repId,
-      Territory_ID: territoryId,
-      Doc_ID: docVal,
-      Visit_Date: dateInput.value,
-      Start_Time: document.getElementById('visitStartTime').value || null,
-      End_Time: document.getElementById('visitEndTime').value || null,
-      Purpose: purposeVal,
-      Details: document.getElementById('visitDetails').value.trim(),
-      Insight: document.getElementById('visitInsight').value.trim(), 
-      Next_Action: document.getElementById('visitNextAction').value.trim(),
-      Is_Coaching: document.getElementById('visitIsCoaching') ? document.getElementById('visitIsCoaching').checked : false, 
-      Status: document.getElementById('visitStatus').value,
-      Whoupdated: whoUpdated,
-      Whenupdated: new Date().toISOString()
-    };
-
-    try {
-      if (existingVisitId) {
-        var updRes = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
-        if (updRes.error) throw new Error("Update Visit_Logs error: " + updRes.error.message);
-
-        var delRes = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
-        if (delRes.error) throw new Error("Delete old Visit_Products error: " + delRes.error.message);
-
-      } else {
-        var insRes = await supabaseClient.from('Visit_Logs').insert([payload]);
-        if (insRes.error) throw new Error("Insert Visit_Logs error: " + insRes.error.message);
-      }
-
-      if (selectedProducts.length > 0) {
-          var vpPayload = selectedProducts.map(function(p) { return { Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }; });
-          var vpRes = await supabaseClient.from('Visit_Products').insert(vpPayload);
-          if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
-      }
-
-      window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-      window.clearFormDraft(existingVisitId || 'NEW');
-
-      var returnDocId = sessionStorage.getItem('returnToDocId');
-      if (returnDocId) {
-        sessionStorage.removeItem('returnToDocId');
-        window.returnToDoctorProfile(returnDocId); 
-      } else {
-        window.switchVisitView('visitListView');
-        await window.loadVisits(true); 
-      }
-
-    } catch(err) {
-      console.error("Save Visit Error:", err);
-      window.showToast("Failed to save data. Reason: " + err.message, "error");
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = "💾 Save";
-    }
-  };
-
   // ==========================================
-  // 6. INITIALIZATION & EVENT LISTENERS
+  // 5. INITIALIZATION & EVENT LISTENERS
   // ==========================================
   setTimeout(async function() { 
     try {
