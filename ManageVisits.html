@@ -54,12 +54,12 @@
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
   .badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
-  /* 🌟 CSS สำหรับ Toggle Switch (เปลี่ยนสี Coaching เป็น Indigo) */
+  /* 🌟 CSS สำหรับ Toggle Switch */
   .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
   .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  input:checked + .slider { background-color: #4f46e5; } 
+  input:checked + .slider { background-color: #4f46e5; } /* 🌟 เปลี่ยนสีฟ้าเป็นสีน้ำเงินม่วง (Indigo) สำหรับ Coaching */
   input:focus + .slider { box-shadow: 0 0 1px #4f46e5; }
   input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
@@ -164,7 +164,7 @@
         <p class="text-muted small mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
-      <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+      <div class="d-flex gap-2 align-items-center">
         <!-- 🎯 View Toggle Switch -->
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
@@ -175,7 +175,8 @@
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
-        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2 ms-1" onclick="window.openAddTotModal()">
+        <!-- 🌟 เพิ่มปุ่ม Add TOT (Time Off Territory) -->
+        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
 
@@ -246,7 +247,7 @@
           </select>
         </div>
 
-        <!-- 🌟 แก๊งปุ่ม Export และ Filter -->
+        <!-- 🌟 แก๊งปุ่ม Export และจัดการ Filter -->
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-1 justify-content-end">
           <button class="btn btn-success border rounded-pill flex-grow-1 shadow-sm text-white px-0" type="button" onclick="window.exportVisitsCSV()" title="Export to CSV">
             <i class="fa-solid fa-file-csv"></i>
@@ -288,12 +289,11 @@
               <th class="py-3 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
               <th class="py-3 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
-              <!-- 🌟 คอลัมน์ Action สำหรับปุ่ม Duplicate -->
+              <!-- 🌟 เพิ่มคอลัมน์ Action สำหรับปุ่ม Duplicate -->
               <th class="py-3 text-center" style="width: 60px;">Action</th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <!-- 🌟 ปรับ colspan เป็น 7 -->
             <tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
           </tbody>
         </table>
@@ -319,7 +319,7 @@
     <!-- 🎯 Zone 2: มุมมองปฏิทิน (Calendar View) -->
     <div id="visitCalendarZone" class="card p-4 border-0 shadow-sm visit-card d-none">
       
-      <!-- 🌟 Calendar Legend (คำอธิบายสี) แปะไว้บนปฏิทิน -->
+      <!-- 🌟 เพิ่ม Calendar Legend (คำอธิบายสี) แปะไว้บนปฏิทิน -->
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted">Submitted Visit</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending">Pending Draft</span></div>
@@ -346,7 +346,6 @@
 
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card">
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="d-flex flex-column">
-        
         <input type="hidden" id="visitId">
 
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
@@ -461,7 +460,7 @@
                   <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
                 </div>
 
-                <!-- 🌟 เพิ่มส่วน Coaching Call -->
+                <!-- 🌟 เพิ่มส่วน Coaching Call (เพิ่ม ID เพื่อรองรับ 2 ภาษา) -->
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
                   <div>
                     <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText">Joint Visit / Coaching</span></label>
@@ -522,7 +521,7 @@
   </div>
 </div>
 
-<!-- 🏖️ TOT Modal -->
+<!-- 🏖️ TOT Modal (Time Off Territory) -->
 <div class="modal fade" id="totModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg visit-card">
@@ -588,9 +587,6 @@
 </div>
 
 <script>
-  // ==========================================
-  // 1. GLOBAL VARIABLES
-  // ==========================================
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalTotLogs = [];
@@ -642,11 +638,10 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // ==========================================
-  // 2. CORE UTILITIES (MUST BE DECLARED FIRST)
-  // ==========================================
   window.generateUUID = function() {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) { return crypto.randomUUID(); }
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID();
+      }
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
@@ -675,21 +670,167 @@
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
   };
 
+  // 🌟 ฟังก์ชัน Export CSV โฉมใหม่
+  window.exportVisitsCSV = function() {
+      var data = window.globalFilteredVisits;
+      if (!data || data.length === 0) return window.showToast("No data to export", "warning");
+
+      var csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+      csvContent += "Visit Date,Doctor,Hospital,Products,Purpose,Status,Coaching,Start Time,End Time,Details,Insight,Next Action\r\n";
+
+      data.forEach(function(v) {
+          var docObj = window.globalAllDoctors.find(function(d) { return String(d.Doc_ID) === String(v.Doc_ID); });
+          var docName = window.getDoctorNameByLang(docObj, v.Doc_ID).replace(/,/g, ' '); 
+          var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).replace(/,/g, ' ');
+          
+          var prods = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) {
+              var p = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
+              return p ? p.Product : '';
+          }).join(' | ').replace(/,/g, '');
+
+          var purpose = (v.Purpose || '').replace(/,/g, ' ');
+          var status = v.Status || '';
+          var coaching = v.Is_Coaching ? 'Yes' : 'No';
+          var startTime = v.Start_Time || '';
+          var endTime = v.End_Time || '';
+          var details = (v.Details || '').replace(/,/g, ' ').replace(/\n/g, ' ');
+          var insight = (v.Insight || '').replace(/,/g, ' ').replace(/\n/g, ' ');
+          var nextAction = (v.Next_Action || '').replace(/,/g, ' ').replace(/\n/g, ' ');
+
+          var row = [v.Visit_Date, docName, hospName, prods, purpose, status, coaching, startTime, endTime, details, insight, nextAction];
+          csvContent += row.join(",") + "\r\n";
+      });
+
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "Visit_Logs_Export.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.showToast("Export CSV เรียบร้อยแล้ว", "success");
+  };
+
+  // 🌟 ฟังก์ชันคัดลอก (Duplicate) Visit
+  window.duplicateVisit = async function(visitId) {
+      var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
+      if (!v) return;
+
+      await window.openAddVisitView();
+
+      setTimeout(function() {
+          if (window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
+          var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
+          if (window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(visitProds);
+          if (window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(v.Purpose);
+          
+          document.getElementById('visitDetails').value = v.Details || '';
+          document.getElementById('visitInsight').value = v.Insight || '';
+          document.getElementById('visitNextAction').value = v.Next_Action || '';
+          if(document.getElementById('visitIsCoaching')) document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
+          
+          window.showToast("📋 คัดลอกข้อมูลสำเร็จ กรุณาตรวจสอบวันที่และเวลาอีกครั้งก่อนกดบันทึก", "success");
+      }, 400);
+  };
+
+  window.debouncedFilterVisits = function() {
+      if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
+      window.filterDebounceTimer = setTimeout(function() {
+          window.filterVisits();
+      }, 300); 
+  };
+
+  window.saveFormDraft = function() {
+      var visitId = document.getElementById('visitId').value || 'NEW';
+      var draftData = {
+          docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
+          productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
+          purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
+          date: document.getElementById('visitDate').value,
+          startTime: document.getElementById('visitStartTime').value,
+          endTime: document.getElementById('visitEndTime').value,
+          details: document.getElementById('visitDetails').value,
+          insight: document.getElementById('visitInsight').value,
+          nextAction: document.getElementById('visitNextAction').value,
+          isCoaching: document.getElementById('visitIsCoaching') ? document.getElementById('visitIsCoaching').checked : false,
+          status: document.getElementById('visitStatus').value,
+          timestamp: Date.now()
+      };
+      localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
+  };
+
+  window.restoreFormDraft = function(visitId) {
+      var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
+      if (draftStr) {
+          try {
+              var draft = JSON.parse(draftStr);
+              if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
+                  window.clearFormDraft(visitId);
+                  return false;
+              }
+
+              setTimeout(function() {
+                  if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
+                  if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
+                  if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
+              }, 200);
+
+              if (draft.date) document.getElementById('visitDate').value = draft.date;
+              if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
+              if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
+              if (draft.details) document.getElementById('visitDetails').value = draft.details;
+              if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
+              if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+              if (draft.isCoaching !== undefined && document.getElementById('visitIsCoaching')) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
+              if (draft.status) document.getElementById('visitStatus').value = draft.status;
+              
+              if (!document.getElementById('visitId').value) {
+                  window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              }
+              return true;
+          } catch(e) { console.error(e); }
+      }
+      return false;
+  };
+
+  window.clearFormDraft = function(visitId) {
+      localStorage.removeItem('visitDraft_' + (visitId || 'NEW'));
+  };
+
+  setTimeout(function() {
+      var form = document.getElementById('visitForm');
+      if (form) {
+          form.addEventListener('input', window.saveFormDraft);
+          form.addEventListener('change', window.saveFormDraft);
+      }
+      if(document.getElementById('totModal')) {
+          window.totModalInstance = new bootstrap.Modal(document.getElementById('totModal'));
+      }
+  }, 1000);
+
   window.safeTranslate = function(key, fallbackText) {
-    if (typeof t === 'function') { var res = t(key); if (res && res !== key) return res; }
+    if (typeof t === 'function') {
+      var res = t(key);
+      if (res && res !== key) return res;
+    }
     return fallbackText;
   };
 
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
-    if (btnEN && btnEN.classList.contains('btn-primary')) return 'en';
+    if (btnEN && btnEN.classList.contains('btn-primary')) {
+      return 'en';
+    }
     return 'th';
   };
 
   window.formatTimeString = function(timeStr) {
     if (!timeStr) return '';
     var str = String(timeStr).trim();
-    if (str.indexOf(':') !== -1) { var parts = str.split(':'); return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0'); }
+    if (str.indexOf(':') !== -1) {
+      var parts = str.split(':');
+      return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0');
+    }
     return str;
   };
 
@@ -697,109 +838,384 @@
       if (!dateStr) return '-';
       var d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
+      
       return d.toLocaleDateString(); 
+  };
+
+  window.setQuickTime = function(type, addMinutes) {
+    var now = new Date();
+    if (type === 'start') {
+      var hours = String(now.getHours()).padStart(2, '0');
+      var minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('visitStartTime').value = hours + ':' + minutes;
+    } else if (type === 'end') {
+      var startVal = document.getElementById('visitStartTime').value;
+      var baseDate = new Date();
+      if (startVal) {
+        var parts = startVal.split(':');
+        baseDate.setHours(parseInt(parts[0]), parseInt(parts[1]), 0);
+      }
+      baseDate.setMinutes(baseDate.getMinutes() + addMinutes);
+      var endHours = String(baseDate.getHours()).padStart(2, '0');
+      var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
+      document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
+    }
+    window.saveFormDraft();
   };
 
   window.applySearchHighlight = function(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
+    
     var div = document.createElement('div');
     div.innerText = text;
     var safeText = div.innerHTML;
+
     var keywords = searchKeyword.trim().toLowerCase().split(' ').filter(function(k) { return k !== ''; });
+
     keywords.forEach(function(kw) {
       if (!kw) return;
       var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![^<]*>)', 'gi');
       safeText = safeText.replace(regex, '<mark class="highlight-text">$1</mark>');
     });
+
     return safeText;
   };
 
-  window.fetchAllRecords = async function(tableName, queryModifier) {
-      var allData = [];
-      var start = 0;
-      var step = 1000;
-      while (true) {
-          var query = supabaseClient.from(tableName).select('*').range(start, start + step - 1);
-          if (queryModifier) query = queryModifier(query);
-          var res = await query;
-          if (res.error) throw res.error;
-          allData = allData.concat(res.data || []);
-          if (!res.data || res.data.length < step) break;
-          start += step;
-      }
-      return allData;
-  };
+  // 🌟 แจ้งเตือน Draft ให้โชว์แค่ครั้งเดียว
+  window.checkMyDraftsReminder = function(myDraftCount) {
+    var toastContainer = document.getElementById('draftToastContainer');
+    if (!toastContainer) return;
+    
+    if (sessionStorage.getItem('draftReminderShown') === 'true') return;
 
-  window.getDoctorNameByLang = function(docObj, defaultId) {
-    if (!docObj) return defaultId || '-';
-    var lang = window.getCurrentAppLang();
-    if (lang === 'en') {
-      return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
+    if (myDraftCount > 0) {
+      toastContainer.innerHTML = 
+        '<div class="draft-toast" id="myDraftToast">' +
+          '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
+          '<div>' +
+            '<div class="fw-bold text-dark small">มีฉบับร่างค้างยืนยัน</div>' +
+            '<div class="text-secondary" style="font-size: 0.82rem;">คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง</div>' +
+          '</div>' +
+          '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
+        '</div>';
+        
+      sessionStorage.setItem('draftReminderShown', 'true');
+
+      setTimeout(function() {
+        var t = document.getElementById('myDraftToast');
+        if (t) t.remove();
+      }, 7000);
     } else {
-      var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
-      if (docObj.Doc_Name_TH && !hasQuestionMarks) return docObj.Doc_Name_TH;
-      return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
+      toastContainer.innerHTML = '';
     }
   };
 
-  window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
-    var lang = window.getCurrentAppLang();
-    var targetPrimaryHospId = null;
+  window.fetchDetailingMedia = async function() {
+    try {
+      var res = await supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
+      if (!res.error && res.data) {
+        window.globalAllMediaList = res.data;
+      }
+    } catch(e) {
+      console.error("Fetch Detailing Media Error:", e);
+    }
+  };
 
-    if (docObj) {
-      if (docObj.Workplaces_JSON || docObj.workplacesJson) {
-        try {
-          var workplaces = typeof docObj.Workplaces_JSON === 'string' 
-            ? JSON.parse(docObj.Workplaces_JSON) 
-            : (docObj.Workplaces_JSON || JSON.parse(docObj.workplacesJson || '[]'));
+  window.loadProductMedia = async function() {
+    var container = document.getElementById('mediaListContainer');
+    var section = document.getElementById('detailingMediaSection');
+    var headerEl = document.getElementById('detailingMediaHeader');
+    if (!container || !section) return;
 
-          if (Array.isArray(workplaces) && workplaces.length > 0) {
-            var primaryItem = workplaces.find(function(w) { return w.isPrimary === true || w.isPrimary === 'true' || w.type === 'Primary' || w.Type === 'Primary'; });
-            if (!primaryItem) primaryItem = workplaces[0];
-            targetPrimaryHospId = primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id;
-            
-            if (lang === 'en') {
-              var directEn = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
-              if (directEn && directEn !== '-') return directEn;
+    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
+    var isSubmitted = (visitStatus === 'Submitted');
+
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    var isOwner = true; 
+    
+    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
+        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+        if (v) {
+            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+            if (myRepId && creatorRepId) {
+                isOwner = (myRepId === creatorRepId);
+            } else if (myEmail && creatorWho) {
+                isOwner = (myEmail === creatorWho);
             } else {
-              var directTh = primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As;
-              if (directTh && directTh !== '-') return directTh;
+                isOwner = false;
+            }
+        }
+    }
+
+    var isPreviewMode = isSubmitted || !isOwner;
+
+    var selectedProducts = [];
+    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
+      var val = window.tomSelectProdInstance.getValue();
+      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    } else {
+      var pSelect = document.getElementById('visitProductId');
+      if (pSelect) {
+        selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
+      }
+    }
+
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
+
+    if (selectedProducts.length === 0) {
+      section.classList.add('d-none');
+      container.innerHTML = '';
+      return;
+    }
+
+    if (window.globalAllMediaList.length === 0) {
+      await window.fetchDetailingMedia();
+    }
+
+    var matchedMedia = window.globalAllMediaList.filter(function(m) {
+      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
+    });
+
+    if (matchedMedia.length === 0) {
+      section.classList.add('d-none');
+      container.innerHTML = '';
+      return;
+    }
+
+    section.classList.remove('d-none');
+    
+    var titleText = window.safeTranslate('sec_edetailing', 'e-Detailing / Presentation');
+    var unitText = window.safeTranslate('unit_items', 'items');
+
+    if (headerEl) {
+      headerEl.innerHTML = 
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">' + titleText + '</span></span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
+    }
+
+    var html = '';
+    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-primary';
+    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
+    var btnText = isPreviewMode ? 'Preview' : 'Present';
+
+    matchedMedia.forEach(function(m) {
+      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
+      var typeText = m.Type || 'PDF';
+      
+      html += 
+        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs">' +
+          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
+            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
+            '<div class="text-truncate">' +
+              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
+          '</button>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+  };
+
+  window.openMediaPresentation = async function(mediaId, isPreview) {
+    window.globalIsMediaPreviewMode = isPreview || false;
+
+    var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    if (!media) return window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error");
+
+    var visitIdInput = document.getElementById('visitId');
+    if (visitIdInput && !visitIdInput.value) {
+      visitIdInput.value = window.generateUUID();
+    }
+
+    window.currentActiveMedia = media;
+    window.presentationStartTime = new Date();
+    window.pageLogsBuffer = [];
+    window.currentPdfPage = 1;
+    window.currentPageStartTime = new Date();
+
+    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+    document.getElementById('mediaModalTitle').innerHTML = 
+      '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
+
+    var modalBody = document.getElementById('mediaModalBody');
+    var pdfControls = document.getElementById('pdfControls');
+
+    if (media.Type === 'Video') {
+      if (pdfControls) pdfControls.classList.add('d-none');
+      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
+    } else {
+      if (pdfControls) pdfControls.classList.remove('d-none');
+      modalBody.innerHTML = 
+        '<div id="pdfCanvasContainer">' +
+          '<canvas id="pdfRenderCanvas"></canvas>' +
+        '</div>';
+
+      try {
+        var loadingTask = pdfjsLib.getDocument(media.File_URL);
+        window.pdfDocInstance = await loadingTask.promise;
+        window.totalPdfPages = window.pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
+        document.getElementById('pdfPageNum').value = 1;
+        window.renderPdfPage(1);
+      } catch(e) {
+        console.error("PDF.js Load Error:", e);
+        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      }
+    }
+
+    var secondsElapsed = 0;
+    document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
+    
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.presentationTimerInterval = setInterval(function() {
+      secondsElapsed++;
+      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      var s = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
+    }, 1000);
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  };
+
+  window.renderPdfPage = async function(num) {
+    if (!window.pdfDocInstance) return;
+    try {
+      var page = await window.pdfDocInstance.getPage(num);
+      var canvas = document.getElementById('pdfRenderCanvas');
+      if (!canvas) return;
+
+      var context = canvas.getContext('2d');
+      var viewport = page.getViewport({ scale: 1.5 });
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      var renderContext = { canvasContext: context, viewport: viewport };
+      await page.render(renderContext).promise;
+    } catch(e) {
+      console.error("Render Page Error:", e);
+    }
+  };
+
+  window.recordCurrentPageLog = function() {
+    if (window.currentPageStartTime) {
+      var now = new Date();
+      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
+      if (durationSec >= 5) {
+          window.pageLogsBuffer.push({
+            Page_Number: window.currentPdfPage,
+            Duration_Second: durationSec,
+            Whenopend: window.currentPageStartTime.toISOString()
+          });
+      }
+    }
+  };
+
+  window.prevPdfPage = function() {
+    if (window.currentPdfPage <= 1) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage--;
+    window.currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.nextPdfPage = function() {
+    if (window.currentPdfPage >= window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage++;
+    window.currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.jumpPdfPage = function() {
+    var val = parseInt(document.getElementById('pdfPageNum').value);
+    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage = val;
+    window.currentPageStartTime = new Date();
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.closeMediaPresentation = async function() {
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+
+    window.recordCurrentPageLog();
+
+    var now = new Date();
+    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
+    var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
+
+    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+      var crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+
+      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
+
+      var logPayload = {
+        Visit_ID: targetVisitId,
+        Media_ID: window.currentActiveMedia.Media_ID,
+        Duration_Seconds: durationToSave,
+        Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(),
+        Whoupdated: whoUpdated
+      };
+
+      try {
+        var logRes = await supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+        
+        if (!logRes.error && logRes.data && logRes.data.length > 0) {
+          var createdLogId = logRes.data[0].Log_ID;
+
+          if (window.pageLogsBuffer.length > 0) {
+            var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
+              return {
+                Log_ID: createdLogId,
+                Page_Number: pLog.Page_Number,
+                Duration_Seconds: pLog.Duration_Second,
+                Whenopend: pLog.Whenopend,
+                Whoupdated: whoUpdated
+              };
+            });
+
+            var pageRes = await supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+            if (pageRes.error) {
+              console.error("❌ Insert Visit_Detailing_Pages error:", pageRes.error.message);
             }
           }
-        } catch (e) { console.error("Parse Workplaces_JSON error:", e); }
-      }
-      if (!targetPrimaryHospId) targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
-      if (targetPrimaryHospId) {
-        var hospList = (window.globalAllHospitals && window.globalAllHospitals.length > 0) ? window.globalAllHospitals : (window.VisitManagerCache ? window.VisitManagerCache.allHospitals : []);
-        var hospObj = hospList.find(function(h) { return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); });
-        if (hospObj) {
-          if (lang === 'en') return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
-          else return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
         }
-        if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) return targetPrimaryHospId;
+      } catch(err) {
+        console.error("❌ Close Media Catch error:", err);
       }
+    } else {
+        if (window.globalIsMediaPreviewMode) console.log("👁️ Preview Mode: No logs recorded.");
+        else if (totalDurationSec < 5) console.log("⏳ Duration < 5s: Log ignored.");
+    }
 
-      if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
-        var docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
-        var matchedAssign = window.VisitManagerCache.assignments.find(function(a) { return String(a.Account_ID || a.Doc_ID) === docIdStr && (a.Type === 'Doctor' || a.Type === 'Workplace'); });
-        if (matchedAssign) {
-          var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
-          var hospObj2 = (window.globalAllHospitals || []).find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
-          if (hospObj2) return (lang === 'en') ? (hospObj2.Hospital || hospObj2.Known_As) : (hospObj2.Known_As || hospObj2.Hospital);
-        }
-      }
-    }
-    if (visitObj) {
-      var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
-      if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
-    }
-    return '-';
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    document.getElementById('mediaModalBody').innerHTML = '';
+    window.currentActiveMedia = null;
+    window.presentationStartTime = null;
+    window.pdfDocInstance = null;
   };
 
-  // ==========================================
-  // 3. UI RENDERING & DATA FILTERS
-  // ==========================================
   window.switchVisitView = function(viewId) {
     var views = ['visitListView', 'visitFormView'];
     views.forEach(function(v) { 
@@ -809,7 +1225,10 @@
     var target = document.getElementById(viewId); 
     if(target) target.classList.remove('d-none');
     window.scrollTo(0, 0);
-    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') setLanguage(currentLang);
+
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+      setLanguage(currentLang);
+    }
   };
 
   window.toggleMainView = function(viewName) {
@@ -822,12 +1241,15 @@
     if (viewName === 'calendar') {
         btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
         btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        
         listZone.classList.add('d-none');
         calZone.classList.remove('d-none');
+        
         window.renderCalendarView();
     } else {
         btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
         btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        
         calZone.classList.add('d-none');
         listZone.classList.remove('d-none');
     }
@@ -878,6 +1300,7 @@
     ul.innerHTML = html;
   };
 
+  // 🌟 ตารางที่มีปุ่ม Duplicate และ Coaching สีม่วงน้ำเงิน
   window.renderVisitTable = function() {
     var tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
@@ -899,10 +1322,13 @@
 
     var startIndex = (window.currentPage - 1) * window.rowsPerPage;
     var endIndex = Math.min(startIndex + window.rowsPerPage, totalItems);
+    
     document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
 
     var paginatedData = data.slice(startIndex, endIndex);
+
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    
     var appLang = window.getCurrentAppLang(); 
 
     paginatedData.forEach(function(v) {
@@ -923,7 +1349,7 @@
 
       var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
       
-      // 🌟 Badge Coaching สีม่วงน้ำเงิน (#4f46e5) + ไอคอน fa-user-tie
+      // 🌟 Badge Coaching (#4f46e5) + fa-user-tie
       var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
       var coachingBadge = v.Is_Coaching ? '<br><span class="badge text-white mt-1 shadow-sm" style="background-color: #4f46e5; font-size:0.65rem;"><i class="fa-solid fa-user-tie me-1"></i> ' + coachingBadgeText + '</span>' : '';
       var docWithBadge = docNameShow + coachingBadge;
@@ -935,7 +1361,9 @@
           var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
           if (pType) {
               var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
-              if (pIdx && pIdx.Value1) { purposeShow = pIdx.Value1; }
+              if (pIdx && pIdx.Value1) {
+                  purposeShow = pIdx.Value1;
+              }
           }
       }
 
@@ -952,9 +1380,10 @@
             var highlightedProdName = window.applySearchHighlight(pName, smartSearchVal);
             prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
         });
-      } else { prodBadges = '<span class="text-muted small">-</span>'; }
+      } else {
+        prodBadges = '<span class="text-muted small">-</span>';
+      }
 
-      // 🌟 ปุ่ม Duplicate (Action Column)
       tbody.innerHTML += '<tr>' +
         '<td class="text-center fw-bold">' +
           '<a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' + dateShow + '</a>' +
@@ -1044,6 +1473,7 @@
 
             holidayEvents = holidayData.map(function(h) {
                 var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
+                
                 var hDate = '';
                 if (h.Value) {
                     hDate = h.Value.split('T')[0];
@@ -1052,6 +1482,7 @@
                          if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0];
                     }
                 }
+
                 return {
                     id: 'hol_' + h.Index_ID,
                     title: holidayTitle, 
@@ -1077,6 +1508,7 @@
 
             companyEvents = companyData.map(function(c) {
                 var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
+                
                 var cDate = '';
                 if (c.Value) {
                     cDate = c.Value.split('T')[0];
@@ -1085,6 +1517,7 @@
                          if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0];
                     }
                 }
+
                 return {
                     id: 'ce_' + c.Index_ID,
                     title: cTitle, 
@@ -1103,6 +1536,7 @@
     var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
         var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
         var displayType = t.TOT_Type || 'Time Off';
+        
         if (appLang === 'en' && window.VisitManagerCache.indexes) {
             var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
             if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
@@ -1145,6 +1579,7 @@
             display: 'block',
             extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
         };
+
         if (endDateStr) ev.end = endDateStr;
         return ev;
     });
@@ -1169,7 +1604,9 @@
                 info.el.setAttribute('title', tooltipMsg);
             },
             eventClick: function(info) {
-                if (info.event.extendedProps.isHoliday) return; 
+                if (info.event.extendedProps.isHoliday) {
+                    return; 
+                }
                 if (info.event.extendedProps.isTot) {
                     window.openEditTotModal(info.event.extendedProps.totId);
                     return;
@@ -1648,6 +2085,7 @@
 
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
+    
     var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
     var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '';
     var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1663,10 +2101,14 @@
       var formOptSubmitted = document.getElementById('formOptSubmitted'); if(formOptSubmitted) formOptSubmitted.innerText = appLang === 'th' ? '✅ ส่งบันทึก (Submitted)' : '✅ Submitted';
 
       var lblArea = document.getElementById('lblFilterTerritory');
-      if(lblArea) { lblArea.removeAttribute('data-i18n'); lblArea.innerText = appLang === 'th' ? 'พื้นที่ / ทีม (Area)' : 'Area / Team'; }
+      if(lblArea) {
+          lblArea.removeAttribute('data-i18n');
+          lblArea.innerText = appLang === 'th' ? 'พื้นที่ / ทีม (Area)' : 'Area / Team';
+      }
 
       var lblCoachMain = document.getElementById('lblCoachingMainText');
       if (lblCoachMain) lblCoachMain.innerText = appLang === 'th' ? 'ออกเยี่ยมร่วม / โค้ชชิ่ง (Coaching)' : 'Joint Visit / Coaching';
+
       var lblCoachSub = document.getElementById('lblCoachingSubText');
       if (lblCoachSub) lblCoachSub.innerText = appLang === 'th' ? 'มีหัวหน้า/ผู้จัดการเข้าร่วมปฏิบัติงาน' : 'Accompanied by Manager/Supervisor';
 
@@ -1684,23 +2126,38 @@
           var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
           var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
 
-          statusSelect.innerHTML = '<option value="">' + optAllStatus + '</option><option value="Pending">' + optStatusPending + '</option><option value="Submitted">' + optStatusSubmitted + '</option>';
+          statusSelect.innerHTML = 
+              '<option value="">' + optAllStatus + '</option>' +
+              '<option value="Pending">' + optStatusPending + '</option>' +
+              '<option value="Submitted">' + optStatusSubmitted + '</option>';
 
           if (typeof TomSelect !== 'undefined') {
               if (statusSelect.tomselect) statusSelect.tomselect.destroy();
-              window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', { allowEmptyOption: true, create: false, placeholder: optAllStatus, dropdownParent: 'body', onChange: function() { window.filterVisits(); } });
+              window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
+                  allowEmptyOption: true,
+                  create: false,
+                  placeholder: optAllStatus,
+                  dropdownParent: 'body',
+                  onChange: function() { window.filterVisits(); }
+              });
               if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
           }
       }
 
-      var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      var crmUser = null; 
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
       window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
       var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
       window.myIsGlobalViewer = false;
-      if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) window.myIsGlobalViewer = true;
+      if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) {
+          window.myIsGlobalViewer = true;
+      }
       var globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-      if (globalRoles.indexOf(window.globalCurrentUserRole.toUpperCase()) !== -1) window.myIsGlobalViewer = true;
+      if (globalRoles.indexOf(window.globalCurrentUserRole.toUpperCase()) !== -1) {
+          window.myIsGlobalViewer = true;
+      }
       var isGlobalViewer = window.myIsGlobalViewer;
 
       window.VisitManagerCache = window.VisitManagerCache || {};
@@ -1724,39 +2181,52 @@
           var allDoctors = results[0] || [];
           var allHospitals = results[3] || [];
           var allAssignments = results[10] || [];
-          var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : [];
-          var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : [];
-          var globalBuListLocal = Array.isArray(results[5]) ? results[5] : [];
+          var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : ((results[2] && results[2].data) ? results[2].data : []);
+          var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : ((results[4] && results[4].data) ? results[4].data : []);
+          var globalBuListLocal = Array.isArray(results[5]) ? results[5] : ((results[5] && results[5].data) ? results[5].data : []);
 
           window.VisitManagerCache.assignments = allAssignments;
           window.VisitManagerCache.allHospitals = allHospitals;
           window.VisitManagerCache.bus = globalBuListLocal || [];
 
           var allowedTerIds = [];
+
           if (isGlobalViewer) {
               window.VisitManagerCache.assignedDoctors = allDoctors;
               window.VisitManagerCache.assignedHospitals = allHospitals;
           } else {
               if (window.globalCurrentUserRole === 'BU Head' || window.globalCurrentUserRole === 'BU') {
-                  var matchedBu = globalBuListLocal.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
+                  var matchedBu = globalBuListLocal.find(function(b) {
+                    return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope;
+                  });
                   var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-                  var matchedTeams = globalTeamListLocal.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope); });
+
+                  var matchedTeams = globalTeamListLocal.filter(function(t) {
+                    return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope);
+                  });
                   var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
-                  var terrs = globalTerritoryListLocal.filter(function(ter) { return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId; });
+
+                  var terrs = globalTerritoryListLocal.filter(function(ter) {
+                    return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId;
+                  });
                   terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
+
               } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
+                      myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                       var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
                       terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
                   } else if (rawScope) {
-                      var terrs3 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === rawScope; });
-                      terrs3.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                      myAllowedTeamIds.push(rawScope); 
                   }
               } else {
                   var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
-                  if (matchedTerr) allowedTerIds.push(String(matchedTerr.Territory_ID));
-                  else if (rawScope) allowedTerIds.push(rawScope);
+                  if (matchedTerr) {
+                      allowedTerIds.push(String(matchedTerr.Territory_ID));
+                  } else if (rawScope) {
+                      allowedTerIds.push(rawScope);
+                  }
               }
 
               var myAssignments = allAssignments.filter(function(a) { return allowedTerIds.indexOf(String(a.Territory_ID || a.Territory)) !== -1; });
@@ -1764,14 +2234,20 @@
               var explicitHospIds = myAssignments.filter(function(a) { return a.Type === 'Hospital'; }).map(function(a) { return String(a.Account_ID); });
 
               if (['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) !== -1) {
-                  window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1 || allowedTerIds.indexOf(String(d.Territory_ID || d.territory_id)) !== -1; });
-                  if (window.VisitManagerCache.assignedDoctors.length === 0) window.VisitManagerCache.assignedDoctors = allDoctors;
+                  window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
+                      return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1 ||
+                             allowedTerIds.indexOf(String(d.Territory_ID || d.territory_id)) !== -1;
+                  });
+                  if (window.VisitManagerCache.assignedDoctors.length === 0) {
+                      window.VisitManagerCache.assignedDoctors = allDoctors;
+                  }
               } else {
                   window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1; });
               }
 
               var implicitHospIds = window.VisitManagerCache.assignedDoctors.map(function(d) { return String(d.Hospital_ID || d.hospital_id); });
               var allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
+
               window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { return allAllowedHospIds.indexOf(String(h.Hospital_ID || h.id)) !== -1; });
           }
 
@@ -1781,8 +2257,8 @@
           window.VisitManagerCache.teams = globalTeamListLocal;
           window.VisitManagerCache.bus = globalBuListLocal || [];
           window.VisitManagerCache.teamProdLinks = results[6] || [];
-          window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : [];
-          window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : [];
+          window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
+          window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
           window.VisitManagerCache.users = results[9] || [];
           window.VisitManagerCache.dropdownsLoaded = true;
       }
@@ -1799,11 +2275,13 @@
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
         docSelect.innerHTML = '<option value=""></option>';
+        
         var activeAssignedDocs = window.globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
         activeAssignedDocs.forEach(function(d) {
           var nameEN = d.Doc_Name || d.doc_name || '';
           var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
           var displayText = nameEN + (nameTH ? ' (' + nameTH + ')' : '');
+
           var opt = document.createElement('option'); 
           opt.value = d.Doc_ID || d.doc_id || d.id; 
           opt.textContent = displayText; 
@@ -1814,9 +2292,20 @@
 
         if (typeof TomSelect !== 'undefined') {
             if (docSelect.tomselect) docSelect.tomselect.destroy();
+            
             var docPlaceholder = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
-            window.tomSelectDocInstance = new TomSelect('#visitDocId', { create: false, searchField: ["text", "name_en", "name_th"], sortField: { field: "text", direction: "asc" }, placeholder: docPlaceholder, maxOptions: null, dropdownParent: 'body', dataAttr: 'data' });
-            if (oldDocVal) setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
+            window.tomSelectDocInstance = new TomSelect('#visitDocId', { 
+                create: false, 
+                searchField: ["text", "name_en", "name_th"],
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: docPlaceholder,
+                maxOptions: null, 
+                dropdownParent: 'body',
+                dataAttr: 'data'
+            });
+            if (oldDocVal) {
+                setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
+            }
         }
       }
 
@@ -1826,7 +2315,12 @@
       if (purposeSelect) { 
         var types = window.VisitManagerCache.indexTypes; 
         var indexes = window.VisitManagerCache.indexes;
-        var purposeType = types.find(function(t) { return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || (t.Name && t.Name.trim().toLowerCase() === 'purpose') || (t.Name && t.Name.trim().toLowerCase() === 'callpurpose'); });
+        var purposeType = types.find(function(t) { 
+          return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || 
+                 (t.Name && t.Name.trim().toLowerCase() === 'purpose') || 
+                 (t.Name && t.Name.trim().toLowerCase() === 'callpurpose'); 
+        });
+
         var purposeHtml = '<option value=""></option>';
         
         if (purposeType) {
@@ -1838,15 +2332,29 @@
             purposeHtml += '<option value="' + textTh + '" data-th="' + textTh + '" data-en="' + textEn + '">' + displayVal + '</option>'; 
           });
         } else {
-          purposeHtml += '<option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option><option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option><option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option><option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option><option value="อื่นๆ">อื่นๆ</option>';
+          purposeHtml += '<option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>' +
+                         '<option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>' +
+                         '<option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>' +
+                         '<option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>' +
+                         '<option value="อื่นๆ">อื่นๆ</option>';
         }
         purposeSelect.innerHTML = purposeHtml;
 
         if (typeof TomSelect !== 'undefined') {
             if (purposeSelect.tomselect) purposeSelect.tomselect.destroy();
+            
             var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
-            window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { create: false, searchField: ["text", "th", "en"], sortField: { field: "text", direction: "asc" }, placeholder: purPlaceholder, dropdownParent: 'body', dataAttr: 'data' });
-            if (oldPurpVal) setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
+            window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
+                create: false, 
+                searchField: ["text", "th", "en"], 
+                sortField: { field: "text", direction: "asc" }, 
+                placeholder: purPlaceholder,
+                dropdownParent: 'body',
+                dataAttr: 'data' 
+            });
+            if (oldPurpVal) {
+                setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
+            }
         }
       }
 
@@ -1867,10 +2375,14 @@
                   var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
                   window.updateFormUserInfo(targetRepObj, v.Territory_ID);
               }
-          } else { window.initUserInfo(); }
+          } else {
+              window.initUserInfo();
+          }
       }
 
-      if (filterGroup) filterGroup.classList.add('ready');
+      if (filterGroup) {
+        filterGroup.classList.add('ready');
+      }
 
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   };
@@ -1963,7 +2475,9 @@
     var uniqueUsersMap = new Map();
     var fullAllowedUsers = isGlobalViewer ? window.globalUsersList : window.globalUsersList.filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id);
-        if (isSales) { return uid === uRepId; }
+        if (isSales) {
+            return uid === uRepId;
+        }
         return myAllowedRepIds.indexOf(uid) !== -1;
     });
     
@@ -1982,6 +2496,7 @@
     repSelect.innerHTML = repHtml;
 
     var terMap = new Map();
+    
     if (isGlobalViewer || isBuHead || isManager) {
         window.globalTeamList.forEach(function(t) {
             var tid = String(t.Team_ID);
@@ -1991,6 +2506,7 @@
             }
         });
     }
+    
     window.globalTerritoryList.forEach(function(t) {
         var tid = String(t.Territory_ID);
         var tnm = String(t.Territory);
@@ -2004,22 +2520,88 @@
     }
 
     var tHtml = '';
-    terMap.forEach(function(text, id) { tHtml += '<option value="' + id + '">' + text + '</option>'; });
+    terMap.forEach(function(text, id) { 
+        tHtml += '<option value="' + id + '">' + text + '</option>'; 
+    });
     terSelect.innerHTML = tHtml;
 
     var appLang = window.getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
       window.tomSelectRepInstance = new TomSelect('#filterVisitRep', {
-        maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', dropdownParent: 'body', onChange: function() { window.handleFilterChange('rep'); }
+        maxItems: null,
+        plugins: ['remove_button'],
+        create: false,
+        placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -',
+        dropdownParent: 'body',
+        onChange: function() { window.handleFilterChange('rep'); }
       });
       if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
 
       if (terSelect.tomselect) terSelect.tomselect.destroy();
       window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', {
-        maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', dropdownParent: 'body', onChange: function() { window.handleFilterChange('territory'); }
+        maxItems: null,
+        plugins: ['remove_button'],
+        create: false,
+        placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -',
+        dropdownParent: 'body',
+        onChange: function() { window.handleFilterChange('territory'); }
       });
       if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
+    }
+
+    window.renderFormProductDropdown(crmUser);
+  };
+
+  window.renderFormProductDropdown = async function(targetRepUser) {
+    var formProdSelect = document.getElementById('visitProductId');
+    if (!formProdSelect) return;
+
+    var oldProdVal = [];
+    if (window.tomSelectProdInstance) {
+        var pv = window.tomSelectProdInstance.getValue();
+        oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
+    }
+
+    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) 
+      ? window.globalProductsList 
+      : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
+
+    if (!allProds || allProds.length === 0) {
+      try {
+        var res = await supabaseClient.from('Products').select('*').order('Product', { ascending: true });
+        if (res.data && res.data.length > 0) {
+          allProds = res.data;
+          window.globalProductsList = res.data;
+        }
+      } catch(e) {}
+    }
+
+    var allowedProducts = allProds;
+    var fHtml = '';
+    allowedProducts.forEach(function(p) { fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; });
+    formProdSelect.innerHTML = fHtml;
+
+    if (typeof TomSelect !== 'undefined') {
+        if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
+        
+        var appLang = window.getCurrentAppLang();
+        var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
+        
+        window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
+            plugins: ['remove_button'], 
+            create: false, 
+            sortField: { field: "text", direction: "asc" }, 
+            placeholder: prodPlaceholder, 
+            dropdownParent: 'body',
+            onChange: function() {
+              window.loadProductMedia();
+            }
+        });
+
+        if (oldProdVal.length > 0) {
+            setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
+        }
     }
   };
 
@@ -2028,7 +2610,7 @@
     window.VisitManagerCache = window.VisitManagerCache || {};
 
     if (forceReload || !window.VisitManagerCache.isLoaded) {
-        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5">Loading data (Bypassing limit)... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
 
         try {
           var promises = [
@@ -2045,6 +2627,7 @@
           window.VisitManagerCache.pendingUnlocks = results[2].map(function(d) { return d.Ref_ID; });
           if (results[3] && results[3].length > 0) window.VisitManagerCache.allHospitals = results[3];
           window.VisitManagerCache.totLogs = results[4] || []; 
+          
           window.VisitManagerCache.isLoaded = true;
 
         } catch(err) { 
@@ -2132,9 +2715,113 @@
     }
   };
 
-  // ==========================================
-  // 5. INITIALIZATION & EVENT LISTENERS
-  // ==========================================
+  window.handleSaveVisit = async function(e) {
+    e.preventDefault();
+    var btn = document.getElementById('saveVisitBtn');
+    var mode = btn.dataset.mode;
+
+    if (mode === 'disabled') return;
+    if (mode === 'request_unlock') {
+      window.requestUnlockVisit(document.getElementById('visitId').value);
+      return;
+    }
+
+    var docVal = (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) ? window.tomSelectDocInstance.getValue() : '';
+    var dateInput = document.getElementById('visitDate');
+    var purposeVal = (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) ? window.tomSelectPurposeInstance.getValue() : '';
+
+    var selectedProducts = [];
+    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
+        var val = window.tomSelectProdInstance.getValue();
+        selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    }
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
+
+    var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
+    validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+
+    var missingFields = [];
+    if (!docVal) missingFields.push("• ชื่อแพทย์ (Doctor)");
+    if (selectedProducts.length === 0) missingFields.push("• ผลิตภัณฑ์ (Products)");
+    if (!dateInput || !dateInput.value) missingFields.push("• วันที่ (Date)");
+    if (!purposeVal) missingFields.push("• วัตถุประสงค์ (Purpose)");
+
+    if (missingFields.length > 0) {
+      window.showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...';
+
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+    var repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
+    var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
+
+    var existingVisitId = document.getElementById('visitId').value;
+    var targetVisitId = existingVisitId || window.generateUUID();
+    
+    var payload = {
+      Visit_ID: targetVisitId,
+      Rep_ID: repId,
+      Territory_ID: territoryId,
+      Doc_ID: docVal,
+      Visit_Date: dateInput.value,
+      Start_Time: document.getElementById('visitStartTime').value || null,
+      End_Time: document.getElementById('visitEndTime').value || null,
+      Purpose: purposeVal,
+      Details: document.getElementById('visitDetails').value.trim(),
+      Insight: document.getElementById('visitInsight').value.trim(), 
+      Next_Action: document.getElementById('visitNextAction').value.trim(),
+      Is_Coaching: document.getElementById('visitIsCoaching') ? document.getElementById('visitIsCoaching').checked : false, 
+      Status: document.getElementById('visitStatus').value,
+      Whoupdated: whoUpdated,
+      Whenupdated: new Date().toISOString()
+    };
+
+    try {
+      if (existingVisitId) {
+        var updRes = await supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
+        if (updRes.error) throw new Error("Update Visit_Logs error: " + updRes.error.message);
+
+        var delRes = await supabaseClient.from('Visit_Products').delete().eq('Visit_ID', existingVisitId);
+        if (delRes.error) throw new Error("Delete old Visit_Products error: " + delRes.error.message);
+
+      } else {
+        var insRes = await supabaseClient.from('Visit_Logs').insert([payload]);
+        if (insRes.error) throw new Error("Insert Visit_Logs error: " + insRes.error.message);
+      }
+
+      if (selectedProducts.length > 0) {
+          var vpPayload = selectedProducts.map(function(p) { return { Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }; });
+          var vpRes = await supabaseClient.from('Visit_Products').insert(vpPayload);
+          if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
+      }
+
+      window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+      window.clearFormDraft(existingVisitId || 'NEW');
+
+      var returnDocId = sessionStorage.getItem('returnToDocId');
+      if (returnDocId) {
+        sessionStorage.removeItem('returnToDocId');
+        window.returnToDoctorProfile(returnDocId); 
+      } else {
+        window.switchVisitView('visitListView');
+        await window.loadVisits(true); 
+      }
+
+    } catch(err) {
+      console.error("Save Visit Error:", err);
+      window.showToast("Failed to save data. Reason: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "💾 Save";
+    }
+  };
+
+  // 🌟 INITIALIZE SYSTEM
   setTimeout(async function() { 
     try {
       await window.loadDropdowns(); 
