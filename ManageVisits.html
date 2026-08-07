@@ -164,6 +164,7 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
+          <!-- 🌟 เรียกผ่าน window. -->
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
@@ -565,7 +566,7 @@
 
 <script>
   // ==========================================
-  // 1. GLOBAL VARIABLES
+  // 1. GLOBAL STATE VARIABLES
   // ==========================================
   window.globalVisits = [];
   window.globalFilteredVisits = [];
@@ -619,8 +620,9 @@
   window.currentSearchIconId = null;
 
   // ==========================================
-  // 2. HELPER & UTILITY FUNCTIONS
+  // 2. EXPLICIT WINDOW BINDING FOR ALL FUNCTIONS
   // ==========================================
+  
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
@@ -1538,9 +1540,6 @@
     window.renderVisitTable();
   };
 
-  // ==========================================
-  // 3. CORE SYSTEM FUNCTIONS
-  // ==========================================
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
     
