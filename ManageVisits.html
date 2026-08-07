@@ -164,7 +164,6 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
-          <!-- 🌟 เรียกผ่าน window. -->
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
@@ -631,41 +630,6 @@
     return 'th';
   };
 
-  // 🌟 ฟังก์ชันพิเศษสำหรับดัดหลัง TomSelect ให้รับค่าแม้จะถูก Disabled
-  window.setTomSelectValue = function(instance, value, forceText) {
-      if (!instance) return;
-      var wasDisabled = instance.isDisabled;
-      
-      if (wasDisabled) instance.enable(); 
-      
-      if (Array.isArray(value)) {
-          value.forEach(function(v) {
-              if (v && !instance.options[v]) {
-                  var pName = v;
-                  if (window.globalProductsList) {
-                      var pObj = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(v); });
-                      if (pObj) pName = pObj.Product;
-                  }
-                  instance.addOption({value: v, text: pName});
-              }
-          });
-      } else if (value && !instance.options[value]) {
-          instance.addOption({value: value, text: forceText || value});
-      }
-
-      instance.setValue(value, true); 
-      instance.refreshItems(); 
-      
-      if (forceText && !Array.isArray(value)) {
-          var item = instance.control.querySelector('.item');
-          if (item) item.innerText = forceText;
-      }
-      
-      if (wasDisabled) {
-          instance.disable(); 
-      }
-  };
-
   window.updatePurposeDisplayLang = function() {
     if (!window.tomSelectPurposeInstance) return;
     
@@ -673,24 +637,35 @@
     if (!visitId) return;
 
     var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
-    if (!v || !v.Purpose) return;
+    var currentVal = v ? v.Purpose : window.tomSelectPurposeInstance.getValue();
+    if (!currentVal) return;
 
     var appLang = window.getCurrentAppLang();
-    var displayPurpose = v.Purpose; 
+    var displayPurpose = currentVal; 
 
-    if (appLang === 'en' && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+    if (window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
         var pType = window.VisitManagerCache.indexTypes.find(function(t) { 
             return t.Name && (t.Name.trim().toLowerCase() === 'purpose' || t.Name.trim().toLowerCase() === 'callpurpose'); 
         });
         if (pType) {
             var pIdx = window.VisitManagerCache.indexes.find(function(idx) { 
-                return String(idx.IndexType_ID) === String(pType.IndexType_ID) && (String(idx.Value) === String(v.Purpose) || String(idx.Value1) === String(v.Purpose)); 
+                return String(idx.IndexType_ID) === String(pType.IndexType_ID) && (String(idx.Value) === String(currentVal) || String(idx.Value1) === String(currentVal)); 
             });
-            if (pIdx && pIdx.Value1) displayPurpose = pIdx.Value1;
+            if (pIdx) {
+                displayPurpose = (appLang === 'en' && pIdx.Value1) ? pIdx.Value1 : pIdx.Value;
+            }
         }
     }
 
-    window.setTomSelectValue(window.tomSelectPurposeInstance, v.Purpose, displayPurpose);
+    var wasDisabled = window.tomSelectPurposeInstance.isDisabled;
+    if (wasDisabled) window.tomSelectPurposeInstance.enable(); 
+    
+    window.tomSelectPurposeInstance.setValue(currentVal, true); 
+    
+    var item = window.tomSelectPurposeInstance.control.querySelector('.item');
+    if (item) item.innerText = displayPurpose;
+    
+    if (wasDisabled) window.tomSelectPurposeInstance.disable(); 
   };
 
   window.toggleMainView = function(viewName) {
@@ -747,10 +722,14 @@
                   return false;
               }
 
-              if (draft.docId && window.tomSelectDocInstance) window.setTomSelectValue(window.tomSelectDocInstance, draft.docId);
-              if (draft.productId && window.tomSelectProdInstance) window.setTomSelectValue(window.tomSelectProdInstance, draft.productId);
+              if (draft.docId && window.tomSelectDocInstance) {
+                  window.tomSelectDocInstance.setValue(draft.docId, true);
+              }
+              if (draft.productId && window.tomSelectProdInstance) {
+                  window.tomSelectProdInstance.setValue(draft.productId, true);
+              }
               if (draft.purpose && window.tomSelectPurposeInstance) {
-                  window.setTomSelectValue(window.tomSelectPurposeInstance, draft.purpose);
+                  window.tomSelectPurposeInstance.setValue(draft.purpose, true);
                   window.updatePurposeDisplayLang(); 
               }
 
@@ -1739,17 +1718,27 @@
               window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { return allAllowedHospIds.indexOf(String(h.Hospital_ID || h.id)) !== -1; });
           }
 
-          // 🌟 ฟื้นคืนชีพตัวแปรข้อมูลระดับ Global ไม่ให้ข้อมูลหมอ/สินค้าในตารางหาย!
-          window.globalAllDoctors = window.VisitManagerCache.allDoctors || []; 
-          window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors || [];
-          window.globalAllHospitals = window.VisitManagerCache.allHospitals || []; 
-          window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals || [];
-          window.globalProductsList = window.VisitManagerCache.products || []; 
-          window.globalTerritoryList = window.VisitManagerCache.territories || [];
-          window.globalUsersList = window.VisitManagerCache.users || []; 
-          window.globalTeamList = window.VisitManagerCache.teams || [];
+          window.VisitManagerCache.allDoctors = allDoctors;
+          window.VisitManagerCache.products = results[1] || [];
+          window.VisitManagerCache.territories = globalTerritoryListLocal;
+          window.VisitManagerCache.teams = globalTeamListLocal;
+          window.VisitManagerCache.bus = globalBuListLocal || [];
+          window.VisitManagerCache.teamProdLinks = results[6] || [];
+          window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
+          window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
+          window.VisitManagerCache.users = results[9] || [];
           window.VisitManagerCache.dropdownsLoaded = true;
       }
+
+      // 🌟 ย้ำความชัวร์ ดึงข้อมูลลง Global Variables ทันที
+      window.globalAllDoctors = window.VisitManagerCache.allDoctors || []; 
+      window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors || [];
+      window.globalAllHospitals = window.VisitManagerCache.allHospitals || []; 
+      window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals || [];
+      window.globalProductsList = window.VisitManagerCache.products || []; 
+      window.globalTerritoryList = window.VisitManagerCache.territories || [];
+      window.globalUsersList = window.VisitManagerCache.users || []; 
+      window.globalTeamList = window.VisitManagerCache.teams || [];
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
@@ -1826,27 +1815,11 @@
         }
       }
 
-      var formView = document.getElementById('visitFormView');
-      if (formView && !formView.classList.contains('d-none')) {
-          var visitId = document.getElementById('visitId').value;
-          if (visitId && visitId !== 'NEW') {
-              var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
-              if (v) {
-                  var targetRepObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                  window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-              }
-          } else {
-              window.initUserInfo();
-          }
-      }
-
       if (filterGroup) {
         filterGroup.classList.add('ready');
       }
 
-    } catch (err) { 
-      console.error("Error loading dropdowns:", err.message); 
-    }
+    } catch (err) { console.error("Error loading dropdowns:", err.message); }
   };
 
   window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
@@ -2089,10 +2062,10 @@
         }
     }
 
-    window.globalVisits = window.VisitManagerCache.visits;
-    window.globalTotLogs = window.VisitManagerCache.totLogs;
-    window.globalVisitProducts = window.VisitManagerCache.visitProducts;
-    window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
+    window.globalVisits = window.VisitManagerCache.visits || [];
+    window.globalTotLogs = window.VisitManagerCache.totLogs || [];
+    window.globalVisitProducts = window.VisitManagerCache.visitProducts || [];
+    window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
     if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) {
       window.globalAllHospitals = window.VisitManagerCache.allHospitals;
     }
@@ -2357,59 +2330,6 @@
     }
   };
 
-  window.handleFilterChange = function(source) {
-    window.filterVisits();
-  };
-
-  window.clearVisitFilters = function() {
-      if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
-      if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
-      if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.clear(true);
-      
-      var clearTs = function(id) {
-          var el = document.getElementById(id);
-          if (el && el.tomselect) el.tomselect.clear();
-          else if (el) el.value = '';
-      };
-      
-      clearTs('filterStartDate');
-      clearTs('filterEndDate');
-      clearTs('filterVisitStatus');
-      
-      var stEl = document.getElementById('filterVisitStatus');
-      if (stEl) {
-          stEl.value = '';
-          stEl.classList.add('filter-placeholder-text');
-      }
-
-      if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
-      
-      window.filterVisits();
-  };
-
-  window.sortVisits = function(col) {
-    if (window.currentSortCol === col) {
-      window.currentSortAsc = !window.currentSortAsc; 
-    } else {
-      window.currentSortCol = col;
-      window.currentSortAsc = true; 
-    }
-
-    var cols = ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'];
-    cols.forEach(function(c) {
-      var icon = document.getElementById('icon-sort-' + c);
-      if (icon) {
-        if (c === window.currentSortCol) {
-          icon.className = window.currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
-        } else {
-          icon.className = 'fa-solid fa-sort text-muted ms-1';
-        }
-      }
-    });
-
-    window.filterVisits(false); 
-  };
-
   window.openEditVisitView = async function(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2442,7 +2362,7 @@
     }
     window.updateFormUserInfo(targetRepObj, v.Territory_ID);
 
-    window.toggleVisitFormEditable(true); // ปลดล็อกฟอร์มให้ใส่ข้อมูลได้
+    window.toggleVisitFormEditable(true);
 
     if (v.Doc_ID && window.tomSelectDocInstance) {
         window.setTomSelectValue(window.tomSelectDocInstance, v.Doc_ID);
@@ -2474,13 +2394,13 @@
     var btn = document.getElementById('saveVisitBtn');
 
     if (isPendingUnlock) {
-      window.toggleVisitFormEditable(false); // ล็อกแบบถาวร
+      window.toggleVisitFormEditable(false);
       btn.disabled = true;
       btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
       btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock';
       btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
-      window.toggleVisitFormEditable(false); // ล็อกแบบถาวร
+      window.toggleVisitFormEditable(false);
       if (canEdit) {
         btn.disabled = false;
         btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
@@ -2494,16 +2414,13 @@
       }
     } else {
       if (canEdit) {
-        window.toggleVisitFormEditable(true); // เปิดให้แก้
+        window.toggleVisitFormEditable(true);
         btn.disabled = false;
         btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
         btn.dataset.mode = 'save';
-        if (sessionStorage.getItem('returnToDocId') && window.tomSelectDocInstance) {
-           window.tomSelectDocInstance.disable();
-        }
       } else {
-        window.toggleVisitFormEditable(false); // ล็อกแบบถาวร
+        window.toggleVisitFormEditable(false);
         btn.disabled = true;
         btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)';
@@ -2547,7 +2464,7 @@
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       if (window.tomSelectDocInstance) {
-        window.tomSelectDocInstance.setValue(returnToDocId);
+        window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId);
         window.tomSelectDocInstance.disable(); 
       }
     }
@@ -3294,7 +3211,7 @@
           window.toggleMainView(window.VisitManagerCache ? window.VisitManagerCache.currentMainView || 'list' : 'list');
       }
 
-      // 🌟 ดักจับการสลับภาษาแบบคลีนๆ โดยใช้วิธีโหลดฟอร์มซ้ำแทนการใช้ Timeout เปล่าๆ
+      // 🌟 ดักจับการสลับภาษาแบบคลีนๆ โดยใช้วิธีเรียกฟังก์ชันอัปเดตฟอร์มซ้ำโดยตรง ไม่ต้องรอ Timeout
       var updateLangUI = function() {
           var formView = document.getElementById('visitFormView');
           var isFormOpen = formView && !formView.classList.contains('d-none');
@@ -3304,22 +3221,21 @@
               window.saveFormDraft();
           }
 
-          setTimeout(function() {
-              window.loadDropdowns(false).then(() => {
-                  if (isFormOpen) {
-                      if (currentVisitId && currentVisitId !== 'NEW') {
-                          window.openEditVisitView(currentVisitId); 
-                      } else {
-                          window.restoreFormDraft('NEW');
-                          window.updatePurposeDisplayLang();
-                      }
+          window.loadDropdowns(false).then(() => {
+              if (isFormOpen) {
+                  if (currentVisitId && currentVisitId !== 'NEW') {
+                      window.openEditVisitView(currentVisitId); 
+                  } else {
+                      window.restoreFormDraft('NEW');
+                      window.updatePurposeDisplayLang();
                   }
-              }); 
-              window.renderVisitTable();
-              if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-                  window.renderCalendarView(); 
-              }   
-          }, 50);
+              }
+          }); 
+          
+          window.renderVisitTable();
+          if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+              window.renderCalendarView(); 
+          }   
       };
       
       var btnEN = document.getElementById('btnLangEN');
