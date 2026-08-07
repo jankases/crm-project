@@ -164,6 +164,7 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
+          <!-- 🌟 เรียกผ่าน window. -->
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
@@ -564,7 +565,9 @@
 </div>
 
 <script>
-  // 🌟 1. GLOBAL STATE VARIABLES
+  // ==========================================
+  // 1. GLOBAL STATE VARIABLES
+  // ==========================================
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalTotLogs = [];
@@ -616,7 +619,9 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // 🌟 2. EXPLICIT WINDOW BINDING FOR ALL FUNCTIONS (แก้ปัญหา is not defined)
+  // ==========================================
+  // 2. EXPLICIT WINDOW BINDING FOR ALL FUNCTIONS
+  // ==========================================
   
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
@@ -1772,7 +1777,8 @@
         }
       }
 
-      window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
+      // 🌟 ใส่ AWAIT เพื่อบังคับให้ Dropdown Products ปั้นเสร็จก่อนไปทำต่อ
+      await window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
       var purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
@@ -1852,7 +1858,7 @@
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
   };
 
-  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+  window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
@@ -2015,7 +2021,8 @@
       if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
     }
 
-    window.renderFormProductDropdown(crmUser);
+    // 🌟 ใส่ AWAIT เพื่อบังคับให้รอ
+    await window.renderFormProductDropdown(crmUser);
   };
 
   window.renderFormProductDropdown = async function(targetRepUser) {
@@ -2065,7 +2072,8 @@
         });
 
         if (oldProdVal.length > 0) {
-            setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
+            // 🌟 แก้ไขตรงนี้ให้ใช้ window.setTomSelectValue แทน .setValue ป้องกันปัญหาตอนฟอร์มติด Read-Only
+            setTimeout(() => window.setTomSelectValue(window.tomSelectProdInstance, oldProdVal), 50);
         }
     }
   };
@@ -2468,7 +2476,8 @@
     
     setTimeout(function() {
       if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) {
-          window.tomSelectProdInstance.setValue(visitProds);
+          // 🌟 ให้ใช้ setTomSelectValue เหมือนตอนเปลี่ยนภาษา
+          window.setTomSelectValue(window.tomSelectProdInstance, visitProds);
       }
       window.loadProductMedia();
     }, 150);
@@ -2477,7 +2486,6 @@
     document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
     document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
 
-    // 🌟 ดึงข้อมูล Purpose และแปลภาษาให้ถูกต้อง
     setTimeout(function() {
       if (v.Purpose) {
           window.updatePurposeDisplayLang();
@@ -3335,6 +3343,7 @@
                   var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : 'NEW';
                   if (formView && !formView.classList.contains('d-none')) {
                       window.restoreFormDraft(currentVisitId);
+                      // บังคับอัปเดตภาษาข้อความ Purpose ที่เปิดค้างอยู่
                       window.updatePurposeDisplayLang();
                   }
               }); 
