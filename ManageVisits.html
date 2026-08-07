@@ -564,245 +564,69 @@
 </div>
 
 <script>
-  // 🌟 1. ALL HELPER & STAT FUNCTIONS ON TOP FOR WINDOW BINDING
-  window.updateStatCards = function updateStatCards(filteredVisits) {
-    var total = filteredVisits ? filteredVisits.length : 0;
-    var pending = filteredVisits ? filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length : 0;
-    var submitted = filteredVisits ? filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length : 0;
+  // 1. STATE VARIABLES
+  window.globalVisits = [];
+  window.globalFilteredVisits = [];
+  window.globalTotLogs = [];
+  window.globalFilteredTotLogs = [];
+  window.globalVisitProducts = [];
+  window.globalAllDoctors = [];
+  window.globalAssignedDoctors = [];
+  window.globalAllHospitals = [];
+  window.globalAssignedHospitals = [];
+  window.globalProductsList = [];
+  window.globalTerritoryList = [];
+  window.globalUsersList = [];
+  window.globalTeamList = [];
+  window.globalPendingUnlockVisits = [];
+  window.globalCurrentUserRole = '';
+  
+  window.tomSelectDocInstance = null;
+  window.tomSelectProdInstance = null; 
+  window.tomSelectPurposeInstance = null; 
+  window.tomSelectRepInstance = null;
+  window.tomSelectTerInstance = null;
+  window.tomSelectStatusInstance = null;
+  window.globalCalendarInstance = null; 
+  window.totModalInstance = null;
 
-    if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
-    if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
-    if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
-  };
+  window.currentSortCol = 'date';
+  window.currentSortAsc = false; 
+  window.currentPage = 1;
+  window.rowsPerPage = 20;
 
-  window.getCurrentAppLang = function getCurrentAppLang() {
+  window.globalAllMediaList = [];
+  window.currentActiveMedia = null;
+  window.presentationStartTime = null;
+  window.presentationTimerInterval = null;
+  window.pdfDocInstance = null;
+  window.currentPdfPage = 1;
+  window.totalPdfPages = 1;
+  window.currentPageStartTime = null;
+  window.pageLogsBuffer = [];
+  window.globalIsMediaPreviewMode = false;
+
+  window.filterDebounceTimer = null;
+  window.docRecognition = null;
+  window.textRecognition = null;
+  window.searchRecognition = null;
+  window.currentDictTargetId = null;
+  window.currentDictBtnId = null;
+  window.currentSearchInputId = null;
+  window.currentSearchBtnId = null;
+  window.currentSearchIconId = null;
+
+
+  // 2. FUNCTION DECLARATIONS (Hoisted by Javascript)
+  function getCurrentAppLang() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
       return 'en';
     }
     return 'th';
-  };
+  }
 
-  window.updatePurposeDisplayLang = function updatePurposeDisplayLang() {
-    var visitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-    if (!visitId) return;
-
-    var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
-    if (!v || !v.Purpose) return;
-
-    var appLang = window.getCurrentAppLang();
-    var displayPurpose = v.Purpose; // ภาษาไทยตั้งต้น
-
-    if (appLang === 'en' && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
-        var pType = window.VisitManagerCache.indexTypes.find(function(t) { 
-            return t.Name && (t.Name.trim().toLowerCase() === 'purpose' || t.Name.trim().toLowerCase() === 'callpurpose'); 
-        });
-        if (pType) {
-            var pIdx = window.VisitManagerCache.indexes.find(function(idx) { 
-                return idx.IndexType_ID === pType.IndexType_ID && (idx.Value === v.Purpose || idx.Value1 === v.Purpose); 
-            });
-            if (pIdx && pIdx.Value1) displayPurpose = pIdx.Value1;
-        }
-    }
-
-    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
-        window.tomSelectPurposeInstance.setValue(v.Purpose, true);
-        var controlEl = window.tomSelectPurposeInstance.control.querySelector('.item');
-        if (controlEl) controlEl.innerText = displayPurpose;
-    } else {
-        var pEl = document.getElementById('visitPurpose');
-        if (pEl) pEl.value = displayPurpose;
-    }
-  };
-
-  window.toggleMainView = function toggleMainView(viewName) {
-    window.VisitManagerCache = window.VisitManagerCache || {};
-    window.VisitManagerCache.currentMainView = viewName;
-    var btnList = document.getElementById('btnToggleList');
-    var btnCal = document.getElementById('btnToggleCal');
-    var listZone = document.getElementById('visitListZone');
-    var calZone = document.getElementById('visitCalendarZone');
-
-    if (viewName === 'calendar') {
-        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
-        if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
-        
-        if (listZone) listZone.classList.add('d-none');
-        if (calZone) calZone.classList.remove('d-none');
-        
-        window.renderCalendarView();
-    } else {
-        if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
-        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
-        
-        if (calZone) calZone.classList.add('d-none');
-        if (listZone) listZone.classList.remove('d-none');
-    }
-  };
-
-  window.saveFormDraft = function saveFormDraft() {
-      var visitId = document.getElementById('visitId').value || 'NEW';
-      var draftData = {
-          docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
-          productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
-          purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
-          date: document.getElementById('visitDate').value,
-          startTime: document.getElementById('visitStartTime').value,
-          endTime: document.getElementById('visitEndTime').value,
-          details: document.getElementById('visitDetails').value,
-          insight: document.getElementById('visitInsight').value,
-          nextAction: document.getElementById('visitNextAction').value,
-          isCoaching: document.getElementById('visitIsCoaching').checked,
-          status: document.getElementById('visitStatus').value,
-          timestamp: Date.now()
-      };
-      localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
-  };
-
-  window.restoreFormDraft = function restoreFormDraft(visitId) {
-      var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
-      if (draftStr) {
-          try {
-              var draft = JSON.parse(draftStr);
-              if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
-                  window.clearFormDraft(visitId);
-                  return false;
-              }
-
-              setTimeout(function() {
-                  if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
-                  if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
-                  if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
-              }, 200);
-
-              if (draft.date) document.getElementById('visitDate').value = draft.date;
-              if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
-              if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
-              if (draft.details) document.getElementById('visitDetails').value = draft.details;
-              if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
-              if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
-              if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
-              if (draft.status) document.getElementById('visitStatus').value = draft.status;
-              
-              if (!document.getElementById('visitId').value) {
-                  window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
-              }
-              return true;
-          } catch(e) { console.error(e); }
-      }
-      return false;
-  };
-
-  window.clearFormDraft = function clearFormDraft(visitId) {
-      localStorage.removeItem('visitDraft_' + (visitId || 'NEW'));
-  };
-
-  window.loadProductMedia = async function loadProductMedia() {
-    var container = document.getElementById('mediaListContainer');
-    var section = document.getElementById('detailingMediaSection');
-    var headerEl = document.getElementById('detailingMediaHeader');
-    if (!container || !section) return;
-
-    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
-    var isSubmitted = (visitStatus === 'Submitted');
-
-    var crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
-
-    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-    var isOwner = true; 
-    
-    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
-        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
-        if (v) {
-            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
-            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-            if (myRepId && creatorRepId) {
-                isOwner = (myRepId === creatorRepId);
-            } else if (myEmail && creatorWho) {
-                isOwner = (myEmail === creatorWho);
-            } else {
-                isOwner = false;
-            }
-        }
-    }
-
-    var isPreviewMode = isSubmitted || !isOwner;
-
-    var selectedProducts = [];
-    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
-      var val = window.tomSelectProdInstance.getValue();
-      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
-    } else {
-      var pSelect = document.getElementById('visitProductId');
-      if (pSelect) {
-        selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
-      }
-    }
-
-    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
-
-    if (selectedProducts.length === 0) {
-      section.classList.add('d-none');
-      container.innerHTML = '';
-      return;
-    }
-
-    if (window.globalAllMediaList.length === 0) {
-      await window.fetchDetailingMedia();
-    }
-
-    var matchedMedia = (window.globalAllMediaList || []).filter(function(m) {
-      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
-    });
-
-    if (matchedMedia.length === 0) {
-      section.classList.add('d-none');
-      container.innerHTML = '';
-      return;
-    }
-
-    section.classList.remove('d-none');
-    
-    var titleText = window.safeTranslate('sec_edetailing', 'e-Detailing / Presentation');
-    var unitText = window.safeTranslate('unit_items', 'items');
-
-    if (headerEl) {
-      headerEl.innerHTML = 
-        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">' + titleText + '</span></span>' +
-        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
-    }
-
-    var html = '';
-    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-primary';
-    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
-    var btnText = isPreviewMode ? 'Preview' : 'Present';
-
-    matchedMedia.forEach(function(m) {
-      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
-      var typeText = m.Type || 'PDF';
-      
-      html += 
-        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs">' +
-          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
-            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
-            '<div class="text-truncate">' +
-              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
-              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
-            '</div>' +
-          '</div>' +
-          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
-            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
-          '</button>' +
-        '</div>';
-    });
-
-    container.innerHTML = html;
-  };
-
-  window.checkMyDraftsReminder = function checkMyDraftsReminder(myDraftCount) {
+  function checkMyDraftsReminder(myDraftCount) {
     var toastContainer = document.getElementById('draftToastContainer');
     if (!toastContainer) return;
 
@@ -824,16 +648,16 @@
     } else {
       toastContainer.innerHTML = '';
     }
-  };
+  }
 
-  window.formatDateToLocal = function formatDateToLocal(dateStr) {
+  function formatDateToLocal(dateStr) {
       if (!dateStr) return '-';
       var d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString(); 
-  };
+  }
 
-  window.formatTimeString = function formatTimeString(timeStr) {
+  function formatTimeString(timeStr) {
     if (!timeStr) return '';
     var str = String(timeStr).trim();
     if (str.indexOf(':') !== -1) {
@@ -841,9 +665,9 @@
       return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0');
     }
     return str;
-  };
+  }
 
-  window.applySearchHighlight = function applySearchHighlight(text, searchKeyword) {
+  function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
     
@@ -860,11 +684,11 @@
     });
 
     return safeText;
-  };
+  }
 
-  window.getDoctorNameByLang = function getDoctorNameByLang(docObj, defaultId) {
+  function getDoctorNameByLang(docObj, defaultId) {
     if (!docObj) return defaultId || '-';
-    var lang = window.getCurrentAppLang();
+    var lang = getCurrentAppLang();
     if (lang === 'en') {
       return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
     } else {
@@ -872,10 +696,10 @@
       if (docObj.Doc_Name_TH && !hasQuestionMarks) return docObj.Doc_Name_TH;
       return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
     }
-  };
+  }
 
-  window.getHospitalNameFromDocOrVisit = function getHospitalNameFromDocOrVisit(docObj, visitObj) {
-    var lang = window.getCurrentAppLang();
+  function getHospitalNameFromDocOrVisit(docObj, visitObj) {
+    var lang = getCurrentAppLang();
     var targetPrimaryHospId = null;
 
     if (docObj) {
@@ -947,10 +771,10 @@
     }
 
     return '-';
-  };
+  }
 
-  window.updateFormUserInfo = function updateFormUserInfo(repObj, fallbackTerrId) {
-    var appLang = window.getCurrentAppLang();
+  function updateFormUserInfo(repObj, fallbackTerrId) {
+    var appLang = getCurrentAppLang();
     var repNameShow = '-';
     var locNameShow = '-';
     var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory'; 
@@ -1018,16 +842,16 @@
         terLabelEl.removeAttribute('data-i18n');
         terLabelEl.innerText = labelText;
     }
-  };
+  }
 
-  window.initUserInfo = function initUserInfo() {
+  function initUserInfo() {
     try {
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      window.updateFormUserInfo(crmUser, null);
+      updateFormUserInfo(crmUser, null);
     } catch(e) {}
-  };
+  }
 
-  window.fetchAllRecords = async function fetchAllRecords(tableName, queryModifier) {
+  async function fetchAllRecords(tableName, queryModifier) {
       var allData = [];
       var start = 0;
       var step = 1000;
@@ -1041,9 +865,9 @@
           start += step;
       }
       return allData;
-  };
+  }
 
-  window.fetchDetailingMedia = async function fetchDetailingMedia() {
+  async function fetchDetailingMedia() {
     try {
       var res = await supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
       if (!res.error && res.data) {
@@ -1052,17 +876,17 @@
     } catch(e) {
       console.error("Fetch Detailing Media Error:", e);
     }
-  };
+  }
 
-  window.generateUUID = function generateUUID() {
+  function generateUUID() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
       });
-  };
+  }
 
-  window.showToast = function showToast(message, type = 'success') {
+  function showToast(message, type = 'success') {
     var container = document.getElementById('toastContainer');
     if (!container) return;
     var icon = type === 'success' ? 'fa-check-circle text-success' : (type === 'error' ? 'fa-circle-xmark text-danger' : 'fa-circle-exclamation text-warning');
@@ -1082,18 +906,18 @@
     var toast = new bootstrap.Toast(toastEl, { delay: type === 'error' ? 5000 : 3000 });
     toast.show();
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
-  };
+  }
 
-  window.cancelVisitForm = function cancelVisitForm() {
-    window.clearFormDraft(document.getElementById('visitId').value || 'NEW');
+  function cancelVisitForm() {
+    clearFormDraft(document.getElementById('visitId').value || 'NEW');
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      window.returnToDoctorProfile(returnDocId); 
-    } else window.switchVisitView('visitListView');
-  };
+      returnToDoctorProfile(returnDocId); 
+    } else switchVisitView('visitListView');
+  }
 
-  window.switchVisitView = function switchVisitView(viewId) {
+  function switchVisitView(viewId) {
     var views = ['visitListView', 'visitFormView'];
     views.forEach(function(v) { 
       var el = document.getElementById(v); 
@@ -1106,676 +930,923 @@
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
       setLanguage(currentLang);
     }
-  };
+  }
 
-  window.safeTranslate = function safeTranslate(key, fallbackText) {
+  function safeTranslate(key, fallbackText) {
     if (typeof t === 'function') {
       var res = t(key);
       if (res && res !== key) return res;
     }
     return fallbackText;
-  };
+  }
 
-  // Global State Variables
-  window.globalVisits = [];
-  window.globalFilteredVisits = [];
-  window.globalTotLogs = [];
-  window.globalFilteredTotLogs = [];
-  window.globalVisitProducts = [];
-  window.globalAllDoctors = [];
-  window.globalAssignedDoctors = [];
-  window.globalAllHospitals = [];
-  window.globalAssignedHospitals = [];
-  window.globalProductsList = [];
-  window.globalTerritoryList = [];
-  window.globalUsersList = [];
-  window.globalTeamList = [];
-  window.globalPendingUnlockVisits = [];
-  window.globalCurrentUserRole = '';
-  
-  window.tomSelectDocInstance = null;
-  window.tomSelectProdInstance = null; 
-  window.tomSelectPurposeInstance = null; 
-  window.tomSelectRepInstance = null;
-  window.tomSelectTerInstance = null;
-  window.tomSelectStatusInstance = null;
-  window.globalCalendarInstance = null; 
-  window.totModalInstance = null;
+  function updatePurposeDisplayLang() {
+    var visitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    if (!visitId) return;
 
-  window.currentSortCol = 'date';
-  window.currentSortAsc = false; 
-  window.currentPage = 1;
-  window.rowsPerPage = 20;
+    var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
+    if (!v || !v.Purpose) return;
 
-  window.globalAllMediaList = [];
-  window.currentActiveMedia = null;
-  window.presentationStartTime = null;
-  window.presentationTimerInterval = null;
-  window.pdfDocInstance = null;
-  window.currentPdfPage = 1;
-  window.totalPdfPages = 1;
-  window.currentPageStartTime = null;
-  window.pageLogsBuffer = [];
-  window.globalIsMediaPreviewMode = false;
+    var appLang = getCurrentAppLang();
+    var displayPurpose = v.Purpose; 
 
-  window.filterDebounceTimer = null;
-  window.docRecognition = null;
-  window.textRecognition = null;
-  window.searchRecognition = null;
-  window.currentDictTargetId = null;
-  window.currentDictBtnId = null;
-  window.currentSearchInputId = null;
-  window.currentSearchBtnId = null;
-  window.currentSearchIconId = null;
-
-  // 2. MAIN SYSTEM FUNCTIONS
-  window.loadDropdowns = async function loadDropdowns(forceReload) {
-    var filterGroup = document.getElementById('visitFilterZoneGroup');
-    
-    var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
-    var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '';
-    var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
-
-    try {
-      var appLang = window.getCurrentAppLang();
-      
-      var btnQuickNow = document.getElementById('btnQuickNow'); if(btnQuickNow) btnQuickNow.innerText = appLang === 'th' ? '[ตอนนี้]' : '[Now]';
-      var btnQuick30 = document.getElementById('btnQuick30'); if(btnQuick30) btnQuick30.innerText = appLang === 'th' ? '[+30ม.]' : '[+30m]';
-      var btnQuick60 = document.getElementById('btnQuick60'); if(btnQuick60) btnQuick60.innerText = appLang === 'th' ? '[+1ชม.]' : '[+1h]';
-
-      var formOptPending = document.getElementById('formOptPending'); if(formOptPending) formOptPending.innerText = appLang === 'th' ? '⏳ ฉบับร่าง (Pending)' : '⏳ Pending (Draft)';
-      var formOptSubmitted = document.getElementById('formOptSubmitted'); if(formOptSubmitted) formOptSubmitted.innerText = appLang === 'th' ? '✅ ส่งบันทึก (Submitted)' : '✅ Submitted';
-
-      var lblArea = document.getElementById('lblFilterTerritory');
-      if(lblArea) {
-          lblArea.removeAttribute('data-i18n');
-          lblArea.innerText = appLang === 'th' ? 'พื้นที่ / ทีม (Area)' : 'Area / Team';
-      }
-
-      var lblCoachMain = document.getElementById('lblCoachingMainText');
-      if (lblCoachMain) lblCoachMain.innerText = appLang === 'th' ? 'ออกเยี่ยมร่วม / โค้ชชิ่ง (Coaching)' : 'Joint Visit / Coaching';
-
-      var lblCoachSub = document.getElementById('lblCoachingSubText');
-      if (lblCoachSub) lblCoachSub.innerText = appLang === 'th' ? 'มีหัวหน้า/ผู้จัดการเข้าร่วมปฏิบัติงาน' : 'Accompanied by Manager/Supervisor';
-
-      var legSub = document.getElementById('legSubmitted'); if(legSub) legSub.innerText = appLang === 'th' ? 'ส่งบันทึกแล้ว' : 'Submitted Visit';
-      var legPend = document.getElementById('legPending'); if(legPend) legPend.innerText = appLang === 'th' ? 'ฉบับร่าง (รอส่ง)' : 'Pending Draft';
-      var legUnl = document.getElementById('legUnlock'); if(legUnl) legUnl.innerText = appLang === 'th' ? 'รอปลดล็อก' : 'Pending Unlock';
-      var legHol = document.getElementById('legHoliday'); if(legHol) legHol.innerText = appLang === 'th' ? 'วันหยุดราชการ' : 'Public Holiday';
-      var legCom = document.getElementById('legCompany'); if(legCom) legCom.innerText = appLang === 'th' ? 'กิจกรรมบริษัท' : 'Company Event';
-      var legTotA = document.getElementById('legTotAppr'); if(legTotA) legTotA.innerText = appLang === 'th' ? 'TOT (อนุมัติแล้ว)' : 'TOT (Approved)';
-      var legTotP = document.getElementById('legTotPend'); if(legTotP) legTotP.innerText = appLang === 'th' ? 'TOT (รออนุมัติ)' : 'TOT (Pending)';
-
-      var statusSelect = document.getElementById('filterVisitStatus');
-      if (statusSelect) {
-          var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
-          var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
-          var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
-
-          statusSelect.innerHTML = 
-              '<option value="">' + optAllStatus + '</option>' +
-              '<option value="Pending">' + optStatusPending + '</option>' +
-              '<option value="Submitted">' + optStatusSubmitted + '</option>';
-
-          if (typeof TomSelect !== 'undefined') {
-              if (statusSelect.tomselect) statusSelect.tomselect.destroy();
-              window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
-                  allowEmptyOption: true,
-                  create: false,
-                  placeholder: optAllStatus,
-                  dropdownParent: 'body',
-                  onChange: function() { window.filterVisits(); }
-              });
-              if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
-          }
-      }
-
-      var crmUser = null; 
-      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-
-      window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-      var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
-
-      window.myIsGlobalViewer = false;
-      if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) {
-          window.myIsGlobalViewer = true;
-      }
-      var globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-      if (globalRoles.indexOf(window.globalCurrentUserRole.toUpperCase()) !== -1) {
-          window.myIsGlobalViewer = true;
-      }
-      var isGlobalViewer = window.myIsGlobalViewer;
-
-      window.VisitManagerCache = window.VisitManagerCache || {};
-
-      if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-          var promises = [
-            window.fetchAllRecords('Doctors'),
-            window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
-            window.fetchAllRecords('Territory'),
-            window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
-            window.fetchAllRecords('Team'),            
-            window.fetchAllRecords('BU'),            
-            window.fetchAllRecords('Products_Team'),   
-            window.fetchAllRecords('IndexType'),
-            window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }),
-            window.fetchAllRecords('Rep_Users'),
-            window.fetchAllRecords('Assignment')
-          ];
-          var results = await Promise.all(promises);
-
-          var allDoctors = results[0] || [];
-          var allHospitals = results[3] || [];
-          var allAssignments = results[10] || [];
-          var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : ((results[2] && results[2].data) ? results[2].data : []);
-          var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : ((results[4] && results[4].data) ? results[4].data : []);
-          var globalBuListLocal = Array.isArray(results[5]) ? results[5] : ((results[5] && results[5].data) ? results[5].data : []);
-
-          window.VisitManagerCache.assignments = allAssignments;
-          window.VisitManagerCache.allHospitals = allHospitals;
-          window.VisitManagerCache.bus = globalBuListLocal || [];
-
-          var allowedTerIds = [];
-
-          if (isGlobalViewer) {
-              window.VisitManagerCache.assignedDoctors = allDoctors;
-              window.VisitManagerCache.assignedHospitals = allHospitals;
-          } else {
-              if (window.globalCurrentUserRole === 'BU Head' || window.globalCurrentUserRole === 'BU') {
-                  var matchedBu = globalBuListLocal.find(function(b) {
-                    return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope;
-                  });
-                  var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-
-                  var matchedTeams = globalTeamListLocal.filter(function(t) {
-                    return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope);
-                  });
-                  var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
-
-                  var terrs = globalTerritoryListLocal.filter(function(ter) {
-                    return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId;
-                  });
-                  terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
-
-              } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
-                  var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
-                  if (matchedTeam) {
-                      myAllowedTeamIds.push(String(matchedTeam.Team_ID));
-                      var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                      terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
-                  } else if (rawScope) {
-                      myAllowedTeamIds.push(rawScope); 
-                  }
-              } else {
-                  var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
-                  if (matchedTerr) {
-                      allowedTerIds.push(String(matchedTerr.Territory_ID));
-                  } else if (rawScope) {
-                      allowedTerIds.push(rawScope);
-                  }
-              }
-
-              var myAssignments = allAssignments.filter(function(a) { return allowedTerIds.indexOf(String(a.Territory_ID || a.Territory)) !== -1; });
-              var allowedDocIds = myAssignments.filter(function(a) { return a.Type === 'Doctor'; }).map(function(a) { return String(a.Account_ID); });
-              var explicitHospIds = myAssignments.filter(function(a) { return a.Type === 'Hospital'; }).map(function(a) { return String(a.Account_ID); });
-
-              if (['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) !== -1) {
-                  window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
-                      return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1 ||
-                             allowedTerIds.indexOf(String(d.Territory_ID || d.territory_id)) !== -1;
-                  });
-                  if (window.VisitManagerCache.assignedDoctors.length === 0) {
-                      window.VisitManagerCache.assignedDoctors = allDoctors;
-                  }
-              } else {
-                  window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1; });
-              }
-
-              var implicitHospIds = window.VisitManagerCache.assignedDoctors.map(function(d) { return String(d.Hospital_ID || d.hospital_id); });
-              var allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
-
-              window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { return allAllowedHospIds.indexOf(String(h.Hospital_ID || h.id)) !== -1; });
-          }
-
-          window.VisitManagerCache.allDoctors = allDoctors;
-          window.VisitManagerCache.products = results[1] || [];
-          window.VisitManagerCache.territories = globalTerritoryListLocal;
-          window.VisitManagerCache.teams = globalTeamListLocal;
-          window.VisitManagerCache.bus = globalBuListLocal || [];
-          window.VisitManagerCache.teamProdLinks = results[6] || [];
-          window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
-          window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
-          window.VisitManagerCache.users = results[9] || [];
-          window.VisitManagerCache.dropdownsLoaded = true;
-      }
-
-      window.globalAllDoctors = window.VisitManagerCache.allDoctors; 
-      window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors;
-      window.globalAllHospitals = window.VisitManagerCache.allHospitals; 
-      window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals;
-      window.globalProductsList = window.VisitManagerCache.products; 
-      window.globalTerritoryList = window.VisitManagerCache.territories;
-      window.globalUsersList = window.VisitManagerCache.users; 
-      window.globalTeamList = window.VisitManagerCache.teams;
-
-      var docSelect = document.getElementById('visitDocId');
-      if (docSelect) { 
-        docSelect.innerHTML = '<option value=""></option>';
-        
-        var activeAssignedDocs = (window.globalAssignedDoctors || []).filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
-        activeAssignedDocs.forEach(function(d) {
-          var nameEN = d.Doc_Name || d.doc_name || '';
-          var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
-          var displayText = nameEN + (nameTH ? ' (' + nameTH + ')' : '');
-
-          var opt = document.createElement('option'); 
-          opt.value = d.Doc_ID || d.doc_id || d.id; 
-          opt.textContent = displayText; 
-          opt.setAttribute('data-name-en', nameEN);
-          opt.setAttribute('data-name-th', nameTH);
-          docSelect.appendChild(opt);
+    if (appLang === 'en' && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+        var pType = window.VisitManagerCache.indexTypes.find(function(t) { 
+            return t.Name && (t.Name.trim().toLowerCase() === 'purpose' || t.Name.trim().toLowerCase() === 'callpurpose'); 
         });
-
-        if (typeof TomSelect !== 'undefined') {
-            if (docSelect.tomselect) docSelect.tomselect.destroy();
-            
-            var docPlaceholder = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
-            window.tomSelectDocInstance = new TomSelect('#visitDocId', { 
-                create: false, 
-                searchField: ["text", "name_en", "name_th"],
-                sortField: { field: "text", direction: "asc" }, 
-                placeholder: docPlaceholder,
-                maxOptions: null, 
-                dropdownParent: 'body',
-                dataAttr: 'data'
+        if (pType) {
+            var pIdx = window.VisitManagerCache.indexes.find(function(idx) { 
+                return idx.IndexType_ID === pType.IndexType_ID && (idx.Value === v.Purpose || idx.Value1 === v.Purpose); 
             });
-            if (oldDocVal) {
-                setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
-            }
+            if (pIdx && pIdx.Value1) displayPurpose = pIdx.Value1;
         }
-      }
+    }
 
-      window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
+    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
+        window.tomSelectPurposeInstance.setValue(v.Purpose, true);
+        var controlEl = window.tomSelectPurposeInstance.control.querySelector('.item');
+        if (controlEl) controlEl.innerText = displayPurpose;
+    } else {
+        var pEl = document.getElementById('visitPurpose');
+        if (pEl) pEl.value = displayPurpose;
+    }
+  }
 
-      var purposeSelect = document.getElementById('visitPurpose');
-      if (purposeSelect) { 
-        var types = window.VisitManagerCache.indexTypes || []; 
-        var indexes = window.VisitManagerCache.indexes || [];
-        var purposeType = types.find(function(t) { 
-          return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || 
-                 (t.Name && t.Name.trim().toLowerCase() === 'purpose') || 
-                 (t.Name && t.Name.trim().toLowerCase() === 'callpurpose'); 
-        });
-
-        var purposeHtml = '<option value=""></option>';
-        
-        if (purposeType) {
-          var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
-          purposeItems.forEach(function(i) { 
-            var textTh = i.Value || '';
-            var textEn = i.Value1 || i.Value || '';
-            var displayVal = (appLang === 'en') ? textEn : textTh; 
-            purposeHtml += '<option value="' + textTh + '" data-th="' + textTh + '" data-en="' + textEn + '">' + displayVal + '</option>'; 
-          });
-        } else {
-          purposeHtml += '<option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>' +
-                         '<option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>' +
-                         '<option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>' +
-                         '<option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>' +
-                         '<option value="อื่นๆ">อื่นๆ</option>';
-        }
-        purposeSelect.innerHTML = purposeHtml;
-
-        if (typeof TomSelect !== 'undefined') {
-            if (purposeSelect.tomselect) purposeSelect.tomselect.destroy();
-            
-            var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
-            window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
-                create: false, 
-                searchField: ["text", "th", "en"], 
-                sortField: { field: "text", direction: "asc" }, 
-                placeholder: purPlaceholder,
-                dropdownParent: 'body',
-                dataAttr: 'data' 
-            });
-            if (oldPurpVal) {
-                setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
-            }
-        }
-      }
-
-      var returnToDocId = sessionStorage.getItem('returnToDocId');
-      if (returnToDocId) {
-        setTimeout(function() {
-          if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(returnToDocId);
-          else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
-        }, 200); 
-      }
-
-      var formView = document.getElementById('visitFormView');
-      if (formView && !formView.classList.contains('d-none')) {
-          var visitId = document.getElementById('visitId').value;
-          if (visitId) {
-              var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
-              if (v) {
-                  var targetRepObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                  window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-              }
-          } else {
-              window.initUserInfo();
-          }
-      }
-
-      if (filterGroup) {
-        filterGroup.classList.add('ready');
-      }
-
-    } catch (err) { console.error("Error loading dropdowns:", err.message); }
-  };
-
-  window.loadVisits = async function loadVisits(forceReload) {
-    var tbody = document.getElementById('visitTableBody');
+  function toggleMainView(viewName) {
     window.VisitManagerCache = window.VisitManagerCache || {};
+    window.VisitManagerCache.currentMainView = viewName;
+    var btnList = document.getElementById('btnToggleList');
+    var btnCal = document.getElementById('btnToggleCal');
+    var listZone = document.getElementById('visitListZone');
+    var calZone = document.getElementById('visitCalendarZone');
 
-    if (forceReload || !window.VisitManagerCache.isLoaded) {
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
-
-        try {
-          var promises = [
-            window.fetchAllRecords('Visit_Logs'),
-            window.fetchAllRecords('Visit_Products'),
-            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-            window.fetchAllRecords('Hospitals'),
-            window.fetchAllRecords('TOT_Logs') 
-          ];
-          var results = await Promise.all(promises);
-
-          window.VisitManagerCache.visits = results[0] || [];
-          window.VisitManagerCache.visitProducts = results[1] || []; 
-          window.VisitManagerCache.pendingUnlocks = (results[2] && results[2].data) ? results[2].data.map(function(d) { return d.Ref_ID; }) : [];
-          if (results[3] && results[3].length > 0) {
-            window.VisitManagerCache.allHospitals = results[3];
-            window.globalAllHospitals = results[3];
-          }
-          window.VisitManagerCache.totLogs = results[4] || []; 
-          
-          window.VisitManagerCache.isLoaded = true;
-
-        } catch(err) { 
-          if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>'; 
-          return;
-        }
-    }
-
-    window.globalVisits = window.VisitManagerCache.visits;
-    window.globalTotLogs = window.VisitManagerCache.totLogs;
-    window.globalVisitProducts = window.VisitManagerCache.visitProducts;
-    window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
-    if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) {
-      window.globalAllHospitals = window.VisitManagerCache.allHospitals;
-    }
-
-    if (window.VisitManagerCache.filters) {
-        var f = window.VisitManagerCache.filters;
+    if (viewName === 'calendar') {
+        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
         
-        if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
-        if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
-        if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
+        if (listZone) listZone.classList.add('d-none');
+        if (calZone) calZone.classList.remove('d-none');
         
-        if (window.tomSelectStatusInstance && f.status !== undefined) window.tomSelectStatusInstance.setValue(f.status, true);
-        if (window.tomSelectRepInstance && f.rep) window.tomSelectRepInstance.setValue(f.rep, true);
-        if (window.tomSelectTerInstance && f.territory) window.tomSelectTerInstance.setValue(f.territory, true);
-        if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
-
-        window.currentPage = f.page || 1;
-        window.rowsPerPage = f.rows || 20;
-        window.currentSortCol = f.sortCol || 'date';
-        window.currentSortAsc = f.sortAsc !== undefined ? f.sortAsc : false;
+        renderCalendarView();
+    } else {
+        if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        
+        if (calZone) calZone.classList.add('d-none');
+        if (listZone) listZone.classList.remove('d-none');
     }
+  }
 
-    window.filterVisits(false);
+  function saveFormDraft() {
+      var visitId = document.getElementById('visitId').value || 'NEW';
+      var draftData = {
+          docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
+          productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
+          purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
+          date: document.getElementById('visitDate').value,
+          startTime: document.getElementById('visitStartTime').value,
+          endTime: document.getElementById('visitEndTime').value,
+          details: document.getElementById('visitDetails').value,
+          insight: document.getElementById('visitInsight').value,
+          nextAction: document.getElementById('visitNextAction').value,
+          isCoaching: document.getElementById('visitIsCoaching').checked,
+          status: document.getElementById('visitStatus').value,
+          timestamp: Date.now()
+      };
+      localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
+  }
+
+  function restoreFormDraft(visitId) {
+      var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
+      if (draftStr) {
+          try {
+              var draft = JSON.parse(draftStr);
+              if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
+                  clearFormDraft(visitId);
+                  return false;
+              }
+
+              setTimeout(function() {
+                  if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
+                  if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
+                  if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
+              }, 200);
+
+              if (draft.date) document.getElementById('visitDate').value = draft.date;
+              if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
+              if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
+              if (draft.details) document.getElementById('visitDetails').value = draft.details;
+              if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
+              if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+              if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
+              if (draft.status) document.getElementById('visitStatus').value = draft.status;
+              
+              if (!document.getElementById('visitId').value) {
+                  showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              }
+              return true;
+          } catch(e) { console.error(e); }
+      }
+      return false;
+  }
+
+  function clearFormDraft(visitId) {
+      localStorage.removeItem('visitDraft_' + (visitId || 'NEW'));
+  }
+
+  async function loadProductMedia() {
+    var container = document.getElementById('mediaListContainer');
+    var section = document.getElementById('detailingMediaSection');
+    var headerEl = document.getElementById('detailingMediaHeader');
+    if (!container || !section) return;
+
+    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
+    var isSubmitted = (visitStatus === 'Submitted');
 
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
 
-    var myDraftsCount = (window.globalVisits || []).filter(function(v) {
-      var isPending = (v.Status === 'Pending');
-      var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
-      var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-      var isMine = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
-      return isPending && isMine;
-    }).length;
-
-    window.checkMyDraftsReminder(myDraftsCount);
-  };
-
-  window.filterVisits = function filterVisits(resetPage) {
-    if (resetPage === undefined) resetPage = true;
+    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    var isOwner = true; 
     
-    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
-    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
+    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
+        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+        if (v) {
+            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+            if (myRepId && creatorRepId) {
+                isOwner = (myRepId === creatorRepId);
+            } else if (myEmail && creatorWho) {
+                isOwner = (myEmail === creatorWho);
+            } else {
+                isOwner = false;
+            }
+        }
+    }
 
-    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
-    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+    var isPreviewMode = isSubmitted || !isOwner;
 
-    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '');
-    var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-    var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+    var selectedProducts = [];
+    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
+      var val = window.tomSelectProdInstance.getValue();
+      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    } else {
+      var pSelect = document.getElementById('visitProductId');
+      if (pSelect) {
+        selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
+      }
+    }
 
-    if (resetPage) window.currentPage = 1;
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
 
-    window.VisitManagerCache = window.VisitManagerCache || {};
-    window.VisitManagerCache.filters = {
-        smartSearch: smartSearchKey, startDate: startDateTerm, endDate: endDateTerm,
-        status: statusTerm, rep: selectedReps, territory: selectedTers,
-        page: window.currentPage, rows: window.rowsPerPage, sortCol: window.currentSortCol, sortAsc: window.currentSortAsc
-    };
+    if (selectedProducts.length === 0) {
+      section.classList.add('d-none');
+      container.innerHTML = '';
+      return;
+    }
 
-    var searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(function(k) { return k !== ''; }) : [];
+    if (window.globalAllMediaList.length === 0) {
+      await fetchDetailingMedia();
+    }
 
-    var allowedReps = window.myAllowedRepIds || [];
-    var allowedTers = window.myAllowedTerIds || [];
-    var allowedTeams = window.myAllowedTeamIds || [];
-    var allowedEmails = window.myAllowedEmails || [];
+    var matchedMedia = (window.globalAllMediaList || []).filter(function(m) {
+      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
+    });
 
-    var filtered = (window.globalVisits || []).filter(function(v) {
-      var hasSecurityAccess = false;
+    if (matchedMedia.length === 0) {
+      section.classList.add('d-none');
+      container.innerHTML = '';
+      return;
+    }
 
-      if (window.myIsGlobalViewer) {
-          hasSecurityAccess = true;
+    section.classList.remove('d-none');
+    
+    var titleText = safeTranslate('sec_edetailing', 'e-Detailing / Presentation');
+    var unitText = safeTranslate('unit_items', 'items');
+
+    if (headerEl) {
+      headerEl.innerHTML = 
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span data-i18n="sec_edetailing">' + titleText + '</span></span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
+    }
+
+    var html = '';
+    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-primary';
+    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
+    var btnText = isPreviewMode ? 'Preview' : 'Present';
+
+    matchedMedia.forEach(function(m) {
+      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
+      var typeText = m.Type || 'PDF';
+      
+      html += 
+        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs">' +
+          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
+            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
+            '<div class="text-truncate">' +
+              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
+          '</button>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function renderCalendarView() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+    
+    var appLang = getCurrentAppLang(); 
+
+    var visitEvents = (window.globalFilteredVisits || []).map(function(v) {
+        var docObj = (window.globalAllDoctors || []).find(function(d) {
+            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
+        });
+        var docName = getDoctorNameByLang(docObj, v.Doc_ID);
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v);
+        
+        var purposeShow = v.Purpose || '-';
+        if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+            var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
+            if (pType) {
+                var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+                if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
+            }
+        }
+
+        var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
+        if (dateOnly.indexOf('/') !== -1) {
+             var vParts = dateOnly.split('/');
+             if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
+        }
+
+        var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
+        var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
+        var baseTitle = timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
+        var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
+        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
+
+        var isPending = (v.Status === 'Pending');
+        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+        
+        var bgColor = '#10b981'; 
+        if (isPendingUnlock) bgColor = '#64748b'; 
+        else if (isPending) bgColor = '#f59e0b'; 
+        
+        return {
+            id: v.Visit_ID,
+            title: baseTitle, 
+            start: dateOnly, 
+            allDay: true,    
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff', 
+            display: 'block',     
+            extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
+        };
+    });
+
+    var holidayEvents = [];
+    var companyEvents = []; 
+
+    if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+        var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name && (t.Name.trim().toLowerCase() === 'public holiday' || t.Name.trim().toLowerCase() === 'holiday');
+        });
+
+        if (holidayType) {
+            var holidayData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === holidayType.IndexType_ID;
+            });
+
+            holidayEvents = holidayData.map(function(h) {
+                var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
+                var hDate = '';
+                if (h.Value) {
+                    hDate = h.Value.split('T')[0];
+                    if (hDate.indexOf('/') !== -1) {
+                         var dParts = hDate.split('/');
+                         if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0];
+                    }
+                }
+
+                return {
+                    id: 'hol_' + h.Index_ID,
+                    title: holidayTitle, 
+                    start: hDate, 
+                    allDay: true,
+                    backgroundColor: '#ef4444',             
+                    borderColor: '#ef4444',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: holidayTitle }
+                };
+            });
+        }
+
+        var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name && (t.Name.trim().toLowerCase() === 'company event' || t.Name.trim().toLowerCase() === 'corporate holiday');
+        });
+
+        if (companyEventType) {
+            var companyData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === companyEventType.IndexType_ID;
+            });
+
+            companyEvents = companyData.map(function(c) {
+                var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
+                var cDate = '';
+                if (c.Value) {
+                    cDate = c.Value.split('T')[0];
+                    if (cDate.indexOf('/') !== -1) {
+                         var dParts2 = cDate.split('/');
+                         if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0];
+                    }
+                }
+
+                return {
+                    id: 'ce_' + c.Index_ID,
+                    title: cTitle, 
+                    start: cDate, 
+                    allDay: true,
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#8b5cf6',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: cTitle }
+                };
+            });
+        }
+    }
+
+    var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
+        var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+        var displayType = t.TOT_Type || 'Time Off';
+        
+        if (appLang === 'en' && window.VisitManagerCache.indexes) {
+            var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+            if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+        }
+
+        var baseTitle = timePrefix + '[TOT] ' + displayType;
+        var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
+        var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
+        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+
+        var startDate = '';
+        if (t.Start_Date) {
+            startDate = t.Start_Date.split('T')[0];
+            if (startDate.indexOf('/') !== -1) {
+                var p1 = startDate.split('/');
+                if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0];
+            }
+        }
+
+        var endDateStr = '';
+        if (t.End_Date && t.End_Date !== t.Start_Date) {
+            endDateStr = t.End_Date.split('T')[0];
+            if (endDateStr.indexOf('/') !== -1) {
+                var p2 = endDateStr.split('/');
+                if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0];
+            }
+            var eDate = new Date(endDateStr);
+            eDate.setDate(eDate.getDate() + 1); 
+            endDateStr = eDate.toISOString().split('T')[0];
+        }
+
+        var ev = {
+            id: 'tot_' + t.TOT_ID,
+            title: baseTitle,
+            start: startDate,
+            allDay: true, 
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff',
+            display: 'block',
+            extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
+        };
+
+        if (endDateStr) ev.end = endDateStr;
+        return ev;
+    });
+
+    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
+
+    if (window.globalCalendarInstance) {
+        window.globalCalendarInstance.removeAllEvents();
+        window.globalCalendarInstance.addEventSource(allEvents);
+        window.globalCalendarInstance.render();
+    } else {
+        window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: allEvents,
+            eventDidMount: function(info) {
+                var tooltipMsg = info.event.extendedProps.fullTooltip || info.event.title;
+                info.el.setAttribute('title', tooltipMsg);
+            },
+            eventClick: function(info) {
+                if (info.event.extendedProps.isHoliday) return; 
+                if (info.event.extendedProps.isTot) {
+                    openEditTotModal(info.event.extendedProps.totId);
+                    return;
+                }
+                openEditVisitView(info.event.id);
+            },
+            dateClick: function(info) {
+                openAddVisitView(info.dateStr); 
+            },
+            displayEventTime: false 
+        });
+        window.globalCalendarInstance.render();
+    }
+  }
+
+  function renderVisitTable() {
+    var tbody = document.getElementById('visitTableBody');
+    if (!tbody) return; 
+
+    tbody.innerHTML = '';
+    var data = window.globalFilteredVisits || [];
+
+    if (!Array.isArray(data) || data.length === 0) {
+        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
+        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No visit records found for the selected period.</td></tr>';
+    }
+
+    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
+
+    var totalItems = data.length;
+    var totalPages = Math.ceil(totalItems / window.rowsPerPage);
+    if (window.currentPage > totalPages) window.currentPage = totalPages;
+    if (window.currentPage < 1) window.currentPage = 1;
+
+    var startIndex = (window.currentPage - 1) * window.rowsPerPage;
+    var endIndex = Math.min(startIndex + window.rowsPerPage, totalItems);
+    
+    if (document.getElementById('visitPageInfo')) document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
+
+    var paginatedData = data.slice(startIndex, endIndex);
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    var appLang = getCurrentAppLang(); 
+
+    paginatedData.forEach(function(v) {
+      var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+      var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
+      var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+
+      if (isPendingUnlock) {
+        badgeClass = 'badge-soft-secondary';
+        statusShow = '⏳ Pending Unlock';
+      }
+
+      var dateShow = formatDateToLocal(v.Visit_Date);
+
+      var docObj = (window.globalAllDoctors || []).find(function(d) {
+        return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
+      });
+
+      var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
+      var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
+      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
+      var docWithBadge = docNameShow + coachingBadge;
+
+      var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
+      
+      var purposeShow = v.Purpose || '-';
+      if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
+          if (pType) {
+              var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+              if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
+          }
+      }
+
+      var highlightedDoc = applySearchHighlight(docWithBadge, smartSearchVal); 
+      var highlightedHosp = applySearchHighlight(hospNameShow, smartSearchVal);
+      var highlightedPurpose = applySearchHighlight(purposeShow, smartSearchVal);
+
+      var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
+      var prodBadges = '';
+      if (visitProds.length > 0) {
+        visitProds.forEach(function(pid) {
+            var pObj = (window.globalProductsList || []).find(function(p) { return String(p.Product_ID) === pid; });
+            var pName = pObj ? pObj.Product : pid;
+            var highlightedProdName = applySearchHighlight(pName, smartSearchVal);
+            prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
+        });
       } else {
-          var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-          var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
-          var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
-          
-          var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-          var rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : '';
-          var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
-          var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
+        prodBadges = '<span class="text-muted small">-</span>';
+      }
 
-          if (window.myIsSalesRole) {
-              if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasSecurityAccess = true;
-          } else {
-              if (allowedReps.indexOf(rawRepId) !== -1 || 
-                  allowedTers.indexOf(vTerrId) !== -1 || 
-                  allowedTeams.indexOf(vTerrId) !== -1 || 
-                  vTerrId === rawScope ||
-                  allowedEmails.indexOf(rawWho) !== -1) {
-                  hasSecurityAccess = true;
+      tbody.innerHTML += '<tr>' +
+        '<td class="text-center fw-bold">' +
+          '<a href="#" class="table-visit-link" onclick="openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' +
+            dateShow +
+          '</a>' +
+        '</td>' +
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
+        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
+        '<td>' + prodBadges + '</td>' +
+        '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+        '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+      '</tr>';
+    });
+
+    renderPaginationControls(totalPages);
+  }
+
+  function renderPaginationControls(totalPages) {
+    var ul = document.getElementById('visitPagination');
+    if (!ul) return;
+    var html = '';
+
+    html += '<li class="page-item ' + (window.currentPage === 1 ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (window.currentPage - 1) + '); return false;">&laquo; Prev</a>' +
+            '</li>';
+
+    var startPage = Math.max(1, window.currentPage - 2);
+    var endPage = Math.min(totalPages, window.currentPage + 2);
+
+    if (startPage > 1) {
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>';
+        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+    }
+
+    for (var i = startPage; i <= endPage; i++) {
+        html += '<li class="page-item ' + (window.currentPage === i ? 'active' : '') + '">' +
+                  '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a>' +
+                '</li>';
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+    }
+
+    html += '<li class="page-item ' + (window.currentPage === totalPages ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (window.currentPage + 1) + '); return false;">Next &raquo;</a>' +
+            '</li>';
+
+    ul.innerHTML = html;
+  }
+
+  function updateStatCards(filteredVisits) {
+    var total = filteredVisits.length;
+    var pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
+    var submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
+
+    if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
+    if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
+    if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
+  }
+
+  function changeRowsPerPage() {
+    var selectEl = document.getElementById('visitRowsPerPage');
+    window.rowsPerPage = parseInt(selectEl.value);
+    window.currentPage = 1;
+    if (window.VisitManagerCache && window.VisitManagerCache.filters) {
+      window.VisitManagerCache.filters.rows = window.rowsPerPage;
+      window.VisitManagerCache.filters.page = 1;
+    }
+    renderVisitTable();
+  }
+
+  function goToPage(page) {
+    var totalPages = Math.ceil((window.globalFilteredVisits || []).length / window.rowsPerPage);
+    if (page < 1 || page > totalPages) return;
+    window.currentPage = page;
+    if (window.VisitManagerCache && window.VisitManagerCache.filters) {
+      window.VisitManagerCache.filters.page = page;
+    }
+    renderVisitTable();
+  }
+
+  async function loadDropdowns(forceReload) {
+    return new Promise(async (resolve, reject) => {
+      var filterGroup = document.getElementById('visitFilterZoneGroup');
+      
+      var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
+      var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '';
+      var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
+
+      try {
+        var appLang = getCurrentAppLang();
+        
+        var btnQuickNow = document.getElementById('btnQuickNow'); if(btnQuickNow) btnQuickNow.innerText = appLang === 'th' ? '[ตอนนี้]' : '[Now]';
+        var btnQuick30 = document.getElementById('btnQuick30'); if(btnQuick30) btnQuick30.innerText = appLang === 'th' ? '[+30ม.]' : '[+30m]';
+        var btnQuick60 = document.getElementById('btnQuick60'); if(btnQuick60) btnQuick60.innerText = appLang === 'th' ? '[+1ชม.]' : '[+1h]';
+
+        var formOptPending = document.getElementById('formOptPending'); if(formOptPending) formOptPending.innerText = appLang === 'th' ? '⏳ ฉบับร่าง (Pending)' : '⏳ Pending (Draft)';
+        var formOptSubmitted = document.getElementById('formOptSubmitted'); if(formOptSubmitted) formOptSubmitted.innerText = appLang === 'th' ? '✅ ส่งบันทึก (Submitted)' : '✅ Submitted';
+
+        var lblArea = document.getElementById('lblFilterTerritory');
+        if(lblArea) {
+            lblArea.removeAttribute('data-i18n');
+            lblArea.innerText = appLang === 'th' ? 'พื้นที่ / ทีม (Area)' : 'Area / Team';
+        }
+
+        var lblCoachMain = document.getElementById('lblCoachingMainText');
+        if (lblCoachMain) lblCoachMain.innerText = appLang === 'th' ? 'ออกเยี่ยมร่วม / โค้ชชิ่ง (Coaching)' : 'Joint Visit / Coaching';
+
+        var lblCoachSub = document.getElementById('lblCoachingSubText');
+        if (lblCoachSub) lblCoachSub.innerText = appLang === 'th' ? 'มีหัวหน้า/ผู้จัดการเข้าร่วมปฏิบัติงาน' : 'Accompanied by Manager/Supervisor';
+
+        var legSub = document.getElementById('legSubmitted'); if(legSub) legSub.innerText = appLang === 'th' ? 'ส่งบันทึกแล้ว' : 'Submitted Visit';
+        var legPend = document.getElementById('legPending'); if(legPend) legPend.innerText = appLang === 'th' ? 'ฉบับร่าง (รอส่ง)' : 'Pending Draft';
+        var legUnl = document.getElementById('legUnlock'); if(legUnl) legUnl.innerText = appLang === 'th' ? 'รอปลดล็อก' : 'Pending Unlock';
+        var legHol = document.getElementById('legHoliday'); if(legHol) legHol.innerText = appLang === 'th' ? 'วันหยุดราชการ' : 'Public Holiday';
+        var legCom = document.getElementById('legCompany'); if(legCom) legCom.innerText = appLang === 'th' ? 'กิจกรรมบริษัท' : 'Company Event';
+        var legTotA = document.getElementById('legTotAppr'); if(legTotA) legTotA.innerText = appLang === 'th' ? 'TOT (อนุมัติแล้ว)' : 'TOT (Approved)';
+        var legTotP = document.getElementById('legTotPend'); if(legTotP) legTotP.innerText = appLang === 'th' ? 'TOT (รออนุมัติ)' : 'TOT (Pending)';
+
+        var statusSelect = document.getElementById('filterVisitStatus');
+        if (statusSelect) {
+            var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
+            var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
+            var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
+
+            statusSelect.innerHTML = 
+                '<option value="">' + optAllStatus + '</option>' +
+                '<option value="Pending">' + optStatusPending + '</option>' +
+                '<option value="Submitted">' + optStatusSubmitted + '</option>';
+
+            if (typeof TomSelect !== 'undefined') {
+                if (statusSelect.tomselect) statusSelect.tomselect.destroy();
+                window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
+                    allowEmptyOption: true,
+                    create: false,
+                    placeholder: optAllStatus,
+                    dropdownParent: 'body',
+                    onChange: function() { filterVisits(); }
+                });
+                if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
+            }
+        }
+
+        var crmUser = null; 
+        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+        window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+        var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+
+        window.myIsGlobalViewer = false;
+        if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0) {
+            window.myIsGlobalViewer = true;
+        }
+        var globalRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+        if (globalRoles.indexOf(window.globalCurrentUserRole.toUpperCase()) !== -1) {
+            window.myIsGlobalViewer = true;
+        }
+        var isGlobalViewer = window.myIsGlobalViewer;
+
+        window.VisitManagerCache = window.VisitManagerCache || {};
+
+        if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
+            var promises = [
+              fetchAllRecords('Doctors'),
+              fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+              fetchAllRecords('Territory'),
+              fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+              fetchAllRecords('Team'),            
+              fetchAllRecords('BU'),            
+              fetchAllRecords('Products_Team'),   
+              fetchAllRecords('IndexType'),
+              fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }),
+              fetchAllRecords('Rep_Users'),
+              fetchAllRecords('Assignment')
+            ];
+            var results = await Promise.all(promises);
+
+            var allDoctors = results[0] || [];
+            var allHospitals = results[3] || [];
+            var allAssignments = results[10] || [];
+            var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : ((results[2] && results[2].data) ? results[2].data : []);
+            var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : ((results[4] && results[4].data) ? results[4].data : []);
+            var globalBuListLocal = Array.isArray(results[5]) ? results[5] : ((results[5] && results[5].data) ? results[5].data : []);
+
+            window.VisitManagerCache.assignments = allAssignments;
+            window.VisitManagerCache.allHospitals = allHospitals;
+            window.VisitManagerCache.bus = globalBuListLocal || [];
+
+            var allowedTerIds = [];
+
+            if (isGlobalViewer) {
+                window.VisitManagerCache.assignedDoctors = allDoctors;
+                window.VisitManagerCache.assignedHospitals = allHospitals;
+            } else {
+                if (window.globalCurrentUserRole === 'BU Head' || window.globalCurrentUserRole === 'BU') {
+                    var matchedBu = globalBuListLocal.find(function(b) {
+                      return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope;
+                    });
+                    var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+
+                    var matchedTeams = globalTeamListLocal.filter(function(t) {
+                      return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope);
+                    });
+                    var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
+
+                    var terrs = globalTerritoryListLocal.filter(function(ter) {
+                      return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId;
+                    });
+                    terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
+
+                } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
+                    var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
+                    if (matchedTeam) {
+                        myAllowedTeamIds.push(String(matchedTeam.Team_ID));
+                        var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
+                        terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                    } else if (rawScope) {
+                        myAllowedTeamIds.push(rawScope); 
+                    }
+                } else {
+                    var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
+                    if (matchedTerr) {
+                        allowedTerIds.push(String(matchedTerr.Territory_ID));
+                    } else if (rawScope) {
+                        allowedTerIds.push(rawScope);
+                    }
+                }
+
+                var myAssignments = allAssignments.filter(function(a) { return allowedTerIds.indexOf(String(a.Territory_ID || a.Territory)) !== -1; });
+                var allowedDocIds = myAssignments.filter(function(a) { return a.Type === 'Doctor'; }).map(function(a) { return String(a.Account_ID); });
+                var explicitHospIds = myAssignments.filter(function(a) { return a.Type === 'Hospital'; }).map(function(a) { return String(a.Account_ID); });
+
+                if (['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) !== -1) {
+                    window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
+                        return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1 ||
+                               allowedTerIds.indexOf(String(d.Territory_ID || d.territory_id)) !== -1;
+                    });
+                    if (window.VisitManagerCache.assignedDoctors.length === 0) {
+                        window.VisitManagerCache.assignedDoctors = allDoctors;
+                    }
+                } else {
+                    window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIds.indexOf(String(d.Doc_ID || d.doc_id || d.id)) !== -1; });
+                }
+
+                var implicitHospIds = window.VisitManagerCache.assignedDoctors.map(function(d) { return String(d.Hospital_ID || d.hospital_id); });
+                var allAllowedHospIds = [...new Set([...explicitHospIds, ...implicitHospIds])];
+
+                window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { return allAllowedHospIds.indexOf(String(h.Hospital_ID || h.id)) !== -1; });
+            }
+
+            window.VisitManagerCache.allDoctors = allDoctors;
+            window.VisitManagerCache.products = results[1] || [];
+            window.VisitManagerCache.territories = globalTerritoryListLocal;
+            window.VisitManagerCache.teams = globalTeamListLocal;
+            window.VisitManagerCache.bus = globalBuListLocal || [];
+            window.VisitManagerCache.teamProdLinks = results[6] || [];
+            window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
+            window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
+            window.VisitManagerCache.users = results[9] || [];
+            window.VisitManagerCache.dropdownsLoaded = true;
+        }
+
+        window.globalAllDoctors = window.VisitManagerCache.allDoctors; 
+        window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors;
+        window.globalAllHospitals = window.VisitManagerCache.allHospitals; 
+        window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals;
+        window.globalProductsList = window.VisitManagerCache.products; 
+        window.globalTerritoryList = window.VisitManagerCache.territories;
+        window.globalUsersList = window.VisitManagerCache.users; 
+        window.globalTeamList = window.VisitManagerCache.teams;
+
+        var docSelect = document.getElementById('visitDocId');
+        if (docSelect) { 
+          docSelect.innerHTML = '<option value=""></option>';
+          
+          var activeAssignedDocs = (window.globalAssignedDoctors || []).filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
+          activeAssignedDocs.forEach(function(d) {
+            var nameEN = d.Doc_Name || d.doc_name || '';
+            var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
+            var displayText = nameEN + (nameTH ? ' (' + nameTH + ')' : '');
+
+            var opt = document.createElement('option'); 
+            opt.value = d.Doc_ID || d.doc_id || d.id; 
+            opt.textContent = displayText; 
+            opt.setAttribute('data-name-en', nameEN);
+            opt.setAttribute('data-name-th', nameTH);
+            docSelect.appendChild(opt);
+          });
+
+          if (typeof TomSelect !== 'undefined') {
+              if (docSelect.tomselect) docSelect.tomselect.destroy();
+              
+              var docPlaceholder = appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --';
+              window.tomSelectDocInstance = new TomSelect('#visitDocId', { 
+                  create: false, 
+                  searchField: ["text", "name_en", "name_th"],
+                  sortField: { field: "text", direction: "asc" }, 
+                  placeholder: docPlaceholder,
+                  maxOptions: null, 
+                  dropdownParent: 'body',
+                  dataAttr: 'data'
+              });
+              if (oldDocVal) {
+                  setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
               }
           }
-      }
+        }
 
-      if (!hasSecurityAccess) return false;
+        setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-      if (!window.myIsGlobalViewer && ['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) === -1) {
-          var isDocAssigned = (window.globalAssignedDoctors || []).some(function(d) {
-            return String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase();
+        var purposeSelect = document.getElementById('visitPurpose');
+        if (purposeSelect) { 
+          var types = window.VisitManagerCache.indexTypes || []; 
+          var indexes = window.VisitManagerCache.indexes || [];
+          var purposeType = types.find(function(t) { 
+            return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || 
+                   (t.Name && t.Name.trim().toLowerCase() === 'purpose') || 
+                   (t.Name && t.Name.trim().toLowerCase() === 'callpurpose'); 
           });
-          if (!isDocAssigned) return false; 
-      }
 
-      if (searchKeywords.length > 0) {
-        var docObj = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
-        var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
-        
-        var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
-
-        var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
-        var prodNames = visitProds.map(function(vp) {
-          var p = (window.globalProductsList || []).find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
-          return p ? p.Product.toLowerCase() : '';
-        }).join(' ');
-
-        var rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + (v.Purpose || '') + ' ' + (v.Details || '');
-
-        var matchSmart = searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; });
-        if (!matchSmart) return false;
-      }
-
-      var matchDate = true;
-      if (startDateTerm || endDateTerm) {
-          var vDate = new Date(v.Visit_Date);
-          vDate.setHours(0, 0, 0, 0); 
+          var purposeHtml = '<option value=""></option>';
           
-          if (startDateTerm) {
-              var sDate = new Date(startDateTerm);
-              sDate.setHours(0, 0, 0, 0);
-              if (vDate < sDate) matchDate = false;
+          if (purposeType) {
+            var purposeItems = indexes.filter(function(i) { return i.IndexType_ID === purposeType.IndexType_ID; });
+            purposeItems.forEach(function(i) { 
+              var textTh = i.Value || '';
+              var textEn = i.Value1 || i.Value || '';
+              var displayVal = (appLang === 'en') ? textEn : textTh; 
+              purposeHtml += '<option value="' + textTh + '" data-th="' + textTh + '" data-en="' + textEn + '">' + displayVal + '</option>'; 
+            });
+          } else {
+            purposeHtml += '<option value="นำเสนอผลิตภัณฑ์ใหม่">นำเสนอผลิตภัณฑ์ใหม่</option>' +
+                           '<option value="ติดตามผลการใช้งาน">ติดตามผลการใช้งาน</option>' +
+                           '<option value="ส่งมอบเอกสาร/งานวิจัย">ส่งมอบเอกสาร/งานวิจัย</option>' +
+                           '<option value="สร้างความสัมพันธ์">สร้างความสัมพันธ์</option>' +
+                           '<option value="อื่นๆ">อื่นๆ</option>';
           }
-          if (endDateTerm) {
-              var eDate = new Date(endDateTerm);
-              eDate.setHours(23, 59, 59, 999);
-              if (vDate > eDate) matchDate = false;
+          purposeSelect.innerHTML = purposeHtml;
+
+          if (typeof TomSelect !== 'undefined') {
+              if (purposeSelect.tomselect) purposeSelect.tomselect.destroy();
+              
+              var purPlaceholder = appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --';
+              window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
+                  create: false, 
+                  searchField: ["text", "th", "en"], 
+                  sortField: { field: "text", direction: "asc" }, 
+                  placeholder: purPlaceholder,
+                  dropdownParent: 'body',
+                  dataAttr: 'data' 
+              });
+              if (oldPurpVal) {
+                  setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
+              }
           }
-      }
-
-      var matchRep = (selectedReps.length === 0);
-      if (selectedReps.length > 0) {
-          var rawWhoFilt = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-          var rawRepIdFilt = String(v.Rep_ID || v.rep_id || '').trim();
-
-          matchRep = selectedReps.some(function(selId) {
-            var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === selId; });
-            var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
-            var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
-            return rawRepIdFilt === selId || (selEm && rawWhoFilt === selEm) || (selNm && rawWhoFilt === selNm);
-          });
-      }
-
-      var matchTer = (selectedTers.length === 0);
-      if (selectedTers.length > 0) {
-          var vTerFilter = String(v.Territory_ID || v.territory_id || '').trim();
-          var vRepFiltId = String(v.Rep_ID || v.rep_id || '').trim();
-          var cUser = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === vRepFiltId; });
-          var vTeamFilt = cUser ? String(cUser.Team_ID || cUser.team_id || cUser.Team || '').trim() : '';
-
-          matchTer = selectedTers.indexOf(vTerFilter) !== -1 || (vTeamFilt && selectedTers.indexOf(vTeamFilt) !== -1);
-      }
-
-      var matchStatus = (statusTerm === "");
-      if (statusTerm !== "") {
-          matchStatus = (v.Status === statusTerm);
-      }
-
-      return matchDate && matchRep && matchTer && matchStatus;
-    });
-
-    window.globalFilteredTotLogs = (window.globalTotLogs || []).filter(function(tot) {
-        var hasAccess = false;
-        var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-        var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
-        var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
-        
-        if (window.myIsGlobalViewer) hasAccess = true;
-        else {
-             var rawRepId = String(tot.Rep_ID || '').trim();
-             var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-             if (window.myIsSalesRole) {
-                 if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasAccess = true;
-             } else {
-                 if (allowedReps.indexOf(rawRepId) !== -1 || allowedEmails.indexOf(rawWho) !== -1) hasAccess = true;
-             }
         }
-        if(!hasAccess) return false;
 
-        var matchDate = true;
-        if (startDateTerm || endDateTerm) {
-            var vDate = new Date(tot.Start_Date);
-            vDate.setHours(0, 0, 0, 0); 
-            if (startDateTerm) {
-                var sDate = new Date(startDateTerm);
-                sDate.setHours(0, 0, 0, 0);
-                if (vDate < sDate) matchDate = false;
-            }
-            if (endDateTerm) {
-                var eDate = new Date(endDateTerm);
-                eDate.setHours(23, 59, 59, 999);
-                if (vDate > eDate) matchDate = false;
+        var returnToDocId = sessionStorage.getItem('returnToDocId');
+        if (returnToDocId) {
+          setTimeout(function() {
+            if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(returnToDocId);
+            else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
+          }, 200); 
+        }
+
+        var formView = document.getElementById('visitFormView');
+        if (formView && !formView.classList.contains('d-none')) {
+            var visitId = document.getElementById('visitId').value;
+            if (visitId) {
+                var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
+                if (v) {
+                    var targetRepObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
+                    updateFormUserInfo(targetRepObj, v.Territory_ID);
+                }
+            } else {
+                initUserInfo();
             }
         }
-        
-        var matchRep = (selectedReps.length === 0);
-        if (selectedReps.length > 0) {
-            var rawRepIdFilt = String(tot.Rep_ID || '').trim();
-            matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1;
+
+        if (filterGroup) {
+          filterGroup.classList.add('ready');
         }
 
-        return matchDate && matchRep;
-    });
+        resolve();
 
-    filtered.sort(function(a, b) {
-      var valA = '', valB = '';
-
-      if (window.currentSortCol === 'date') {
-        valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
-      } 
-      else if (window.currentSortCol === 'doctor') {
-        var docA = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
-        valA = window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
-        var docB = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
-        valB = window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
-      } 
-      else if (window.currentSortCol === 'hospital') {
-        var docA = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
-        valA = window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
-        
-        var docB = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
-        valB = window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
-      } 
-      else if (window.currentSortCol === 'products') {
-        valA = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(a.Visit_ID); }).map(function(vp) {
-          var p = (window.globalProductsList || []).find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
-        }).join(',').toLowerCase();
-        valB = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(b.Visit_ID); }).map(function(vp) {
-          var p = (window.globalProductsList || []).find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
-        }).join(',').toLowerCase();
-      } 
-      else if (window.currentSortCol === 'purpose') {
-        valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase();
-      } 
-      else if (window.currentSortCol === 'status') {
-        valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase();
+      } catch (err) { 
+        console.error("Error loading dropdowns:", err.message); 
+        reject(err);
       }
-
-      if (valA < valB) return window.currentSortAsc ? -1 : 1;
-      if (valA > valB) return window.currentSortAsc ? 1 : -1;
-      return 0;
     });
+  }
 
-    window.globalFilteredVisits = filtered;
-    window.updateStatCards(window.globalFilteredVisits);
-    window.renderVisitTable();
-    
-    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-        window.renderCalendarView();
-    }
-  };
-
-  window.setupFiltersDropdowns = function setupFiltersDropdowns(crmUser, productsTeamList) {
+  function setupFiltersDropdowns(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
@@ -1913,7 +1984,7 @@
     });
     terSelect.innerHTML = tHtml;
 
-    var appLang = window.getCurrentAppLang();
+    var appLang = getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
       window.tomSelectRepInstance = new TomSelect('#filterVisitRep', {
@@ -1922,7 +1993,7 @@
         create: false,
         placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -',
         dropdownParent: 'body',
-        onChange: function() { window.handleFilterChange('rep'); }
+        onChange: function() { handleFilterChange('rep'); }
       });
       if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
 
@@ -1933,15 +2004,15 @@
         create: false,
         placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -',
         dropdownParent: 'body',
-        onChange: function() { window.handleFilterChange('territory'); }
+        onChange: function() { handleFilterChange('territory'); }
       });
       if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
     }
 
-    window.renderFormProductDropdown(crmUser);
-  };
+    renderFormProductDropdown(crmUser);
+  }
 
-  window.renderFormProductDropdown = async function renderFormProductDropdown(targetRepUser) {
+  async function renderFormProductDropdown(targetRepUser) {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
@@ -1973,7 +2044,7 @@
     if (typeof TomSelect !== 'undefined') {
         if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
         
-        var appLang = window.getCurrentAppLang();
+        var appLang = getCurrentAppLang();
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
         
         window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
@@ -1983,7 +2054,7 @@
             placeholder: prodPlaceholder, 
             dropdownParent: 'body',
             onChange: function() {
-              window.loadProductMedia();
+              loadProductMedia();
             }
         });
 
@@ -1991,9 +2062,342 @@
             setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
         }
     }
-  };
+  }
 
-  window.openEditVisitView = async function openEditVisitView(visitId) {
+  function handleFilterChange(source) {
+    filterVisits();
+  }
+  window.handleFilterChange = handleFilterChange;
+
+  function sortVisits(col) {
+    if (window.currentSortCol === col) {
+      window.currentSortAsc = !window.currentSortAsc; 
+    } else {
+      window.currentSortCol = col;
+      window.currentSortAsc = true; 
+    }
+
+    var cols = ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'];
+    cols.forEach(function(c) {
+      var icon = document.getElementById('icon-sort-' + c);
+      if (icon) {
+        if (c === window.currentSortCol) {
+          icon.className = window.currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    filterVisits(false); 
+  }
+  window.sortVisits = sortVisits;
+
+  async function loadVisits(forceReload) {
+    var tbody = document.getElementById('visitTableBody');
+    window.VisitManagerCache = window.VisitManagerCache || {};
+
+    if (forceReload || !window.VisitManagerCache.isLoaded) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+
+        try {
+          var promises = [
+            fetchAllRecords('Visit_Logs'),
+            fetchAllRecords('Visit_Products'),
+            supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
+            fetchAllRecords('Hospitals'),
+            fetchAllRecords('TOT_Logs') 
+          ];
+          var results = await Promise.all(promises);
+
+          window.VisitManagerCache.visits = results[0] || [];
+          window.VisitManagerCache.visitProducts = results[1] || []; 
+          window.VisitManagerCache.pendingUnlocks = (results[2] && results[2].data) ? results[2].data.map(function(d) { return d.Ref_ID; }) : [];
+          if (results[3] && results[3].length > 0) {
+            window.VisitManagerCache.allHospitals = results[3];
+            window.globalAllHospitals = results[3];
+          }
+          window.VisitManagerCache.totLogs = results[4] || []; 
+          
+          window.VisitManagerCache.isLoaded = true;
+
+        } catch(err) { 
+          if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>'; 
+          return;
+        }
+    }
+
+    window.globalVisits = window.VisitManagerCache.visits;
+    window.globalTotLogs = window.VisitManagerCache.totLogs;
+    window.globalVisitProducts = window.VisitManagerCache.visitProducts;
+    window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
+    if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) {
+      window.globalAllHospitals = window.VisitManagerCache.allHospitals;
+    }
+
+    if (window.VisitManagerCache.filters) {
+        var f = window.VisitManagerCache.filters;
+        
+        if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = f.smartSearch || '';
+        if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = f.startDate || '';
+        if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = f.endDate || '';
+        
+        if (window.tomSelectStatusInstance && f.status !== undefined) window.tomSelectStatusInstance.setValue(f.status, true);
+        if (window.tomSelectRepInstance && f.rep) window.tomSelectRepInstance.setValue(f.rep, true);
+        if (window.tomSelectTerInstance && f.territory) window.tomSelectTerInstance.setValue(f.territory, true);
+        if (document.getElementById('visitRowsPerPage')) document.getElementById('visitRowsPerPage').value = f.rows || 20;
+
+        window.currentPage = f.page || 1;
+        window.rowsPerPage = f.rows || 20;
+        window.currentSortCol = f.sortCol || 'date';
+        window.currentSortAsc = f.sortAsc !== undefined ? f.sortAsc : false;
+    }
+
+    filterVisits(false);
+
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var myDraftsCount = (window.globalVisits || []).filter(function(v) {
+      var isPending = (v.Status === 'Pending');
+      var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+      var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+      var isMine = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
+      return isPending && isMine;
+    }).length;
+
+    checkMyDraftsReminder(myDraftsCount);
+  }
+  window.loadVisits = loadVisits;
+
+  function filterVisits(resetPage) {
+    if (resetPage === undefined) resetPage = true;
+    
+    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
+    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
+
+    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
+    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+
+    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '');
+    var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
+    var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+
+    if (resetPage) window.currentPage = 1;
+
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    window.VisitManagerCache.filters = {
+        smartSearch: smartSearchKey, startDate: startDateTerm, endDate: endDateTerm,
+        status: statusTerm, rep: selectedReps, territory: selectedTers,
+        page: window.currentPage, rows: window.rowsPerPage, sortCol: window.currentSortCol, sortAsc: window.currentSortAsc
+    };
+
+    var searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(function(k) { return k !== ''; }) : [];
+
+    var allowedReps = window.myAllowedRepIds || [];
+    var allowedTers = window.myAllowedTerIds || [];
+    var allowedTeams = window.myAllowedTeamIds || [];
+    var allowedEmails = window.myAllowedEmails || [];
+
+    var filtered = (window.globalVisits || []).filter(function(v) {
+      var hasSecurityAccess = false;
+
+      if (window.myIsGlobalViewer) {
+          hasSecurityAccess = true;
+      } else {
+          var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+          var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
+          var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
+          
+          var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+          var rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : '';
+          var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
+          var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
+
+          if (window.myIsSalesRole) {
+              if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasSecurityAccess = true;
+          } else {
+              if (allowedReps.indexOf(rawRepId) !== -1 || 
+                  allowedTers.indexOf(vTerrId) !== -1 || 
+                  allowedTeams.indexOf(vTerrId) !== -1 || 
+                  vTerrId === rawScope ||
+                  allowedEmails.indexOf(rawWho) !== -1) {
+                  hasSecurityAccess = true;
+              }
+          }
+      }
+
+      if (!hasSecurityAccess) return false;
+
+      if (!window.myIsGlobalViewer && ['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) === -1) {
+          var isDocAssigned = (window.globalAssignedDoctors || []).some(function(d) {
+            return String(d.Doc_ID || d.doc_id || d.id).trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id).trim().toLowerCase();
+          });
+          if (!isDocAssigned) return false; 
+      }
+
+      if (searchKeywords.length > 0) {
+        var docObj = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
+        var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
+        
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
+
+        var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
+        var prodNames = visitProds.map(function(vp) {
+          var p = (window.globalProductsList || []).find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); });
+          return p ? p.Product.toLowerCase() : '';
+        }).join(' ');
+
+        var rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + (v.Purpose || '') + ' ' + (v.Details || '');
+
+        var matchSmart = searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; });
+        if (!matchSmart) return false;
+      }
+
+      var matchDate = true;
+      if (startDateTerm || endDateTerm) {
+          var vDate = new Date(v.Visit_Date);
+          vDate.setHours(0, 0, 0, 0); 
+          
+          if (startDateTerm) {
+              var sDate = new Date(startDateTerm);
+              sDate.setHours(0, 0, 0, 0);
+              if (vDate < sDate) matchDate = false;
+          }
+          if (endDateTerm) {
+              var eDate = new Date(endDateTerm);
+              eDate.setHours(23, 59, 59, 999);
+              if (vDate > eDate) matchDate = false;
+          }
+      }
+
+      var matchRep = (selectedReps.length === 0);
+      if (selectedReps.length > 0) {
+          var rawWhoFilt = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+          var rawRepIdFilt = String(v.Rep_ID || v.rep_id || '').trim();
+
+          matchRep = selectedReps.some(function(selId) {
+            var selUser = (window.fullAllowedUsers || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === selId; });
+            var selEm = selUser ? String(selUser.Email).toLowerCase() : '';
+            var selNm = selUser ? String(selUser.Rep_Name || selUser.Name).toLowerCase() : '';
+            return rawRepIdFilt === selId || (selEm && rawWhoFilt === selEm) || (selNm && rawWhoFilt === selNm);
+          });
+      }
+
+      var matchTer = (selectedTers.length === 0);
+      if (selectedTers.length > 0) {
+          var vTerFilter = String(v.Territory_ID || v.territory_id || '').trim();
+          var vRepFiltId = String(v.Rep_ID || v.rep_id || '').trim();
+          var cUser = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === vRepFiltId; });
+          var vTeamFilt = cUser ? String(cUser.Team_ID || cUser.team_id || cUser.Team || '').trim() : '';
+
+          matchTer = selectedTers.indexOf(vTerFilter) !== -1 || (vTeamFilt && selectedTers.indexOf(vTeamFilt) !== -1);
+      }
+
+      var matchStatus = (statusTerm === "");
+      if (statusTerm !== "") {
+          matchStatus = (v.Status === statusTerm);
+      }
+
+      return matchDate && matchRep && matchTer && matchStatus;
+    });
+
+    window.globalFilteredTotLogs = (window.globalTotLogs || []).filter(function(tot) {
+        var hasAccess = false;
+        var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+        var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : '';
+        var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
+        
+        if (window.myIsGlobalViewer) hasAccess = true;
+        else {
+             var rawRepId = String(tot.Rep_ID || '').trim();
+             var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
+             if (window.myIsSalesRole) {
+                 if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasAccess = true;
+             } else {
+                 if (allowedReps.indexOf(rawRepId) !== -1 || allowedEmails.indexOf(rawWho) !== -1) hasAccess = true;
+             }
+        }
+        if(!hasAccess) return false;
+
+        var matchDate = true;
+        if (startDateTerm || endDateTerm) {
+            var vDate = new Date(tot.Start_Date);
+            vDate.setHours(0, 0, 0, 0); 
+            if (startDateTerm) {
+                var sDate = new Date(startDateTerm);
+                sDate.setHours(0, 0, 0, 0);
+                if (vDate < sDate) matchDate = false;
+            }
+            if (endDateTerm) {
+                var eDate = new Date(endDateTerm);
+                eDate.setHours(23, 59, 59, 999);
+                if (vDate > eDate) matchDate = false;
+            }
+        }
+        
+        var matchRep = (selectedReps.length === 0);
+        if (selectedReps.length > 0) {
+            var rawRepIdFilt = String(tot.Rep_ID || '').trim();
+            matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1;
+        }
+
+        return matchDate && matchRep;
+    });
+
+    filtered.sort(function(a, b) {
+      var valA = '', valB = '';
+
+      if (window.currentSortCol === 'date') {
+        valA = a.Visit_Date || ''; valB = b.Visit_Date || '';
+      } 
+      else if (window.currentSortCol === 'doctor') {
+        var docA = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
+        valA = getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
+        var docB = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
+        valB = getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
+      } 
+      else if (window.currentSortCol === 'hospital') {
+        var docA = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
+        valA = getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
+        
+        var docB = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
+        valB = getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
+      } 
+      else if (window.currentSortCol === 'products') {
+        valA = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(a.Visit_ID); }).map(function(vp) {
+          var p = (window.globalProductsList || []).find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
+        }).join(',').toLowerCase();
+        valB = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(b.Visit_ID); }).map(function(vp) {
+          var p = (window.globalProductsList || []).find(function(px) { return String(px.Product_ID) === String(vp.Product_ID); }); return p ? p.Product : '';
+        }).join(',').toLowerCase();
+      } 
+      else if (window.currentSortCol === 'purpose') {
+        valA = (a.Purpose || '').toLowerCase(); valB = (b.Purpose || '').toLowerCase();
+      } 
+      else if (window.currentSortCol === 'status') {
+        valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase();
+      }
+
+      if (valA < valB) return window.currentSortAsc ? -1 : 1;
+      if (valA > valB) return window.currentSortAsc ? 1 : -1;
+      return 0;
+    });
+
+    window.globalFilteredVisits = filtered;
+    updateStatCards(window.globalFilteredVisits);
+    renderVisitTable();
+    
+    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+        renderCalendarView();
+    }
+  }
+  window.filterVisits = filterVisits;
+
+  async function openEditVisitView(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2023,7 +2427,7 @@
     if (window.globalUsersList && window.globalUsersList.length > 0) {
         targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
     }
-    window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+    updateFormUserInfo(targetRepObj, v.Territory_ID);
 
     setTimeout(function() {
       if (v.Doc_ID && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
@@ -2031,24 +2435,23 @@
       }
     }, 100);
 
-    await window.renderFormProductDropdown(targetRepObj);
+    await renderFormProductDropdown(targetRepObj);
     var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     
     setTimeout(function() {
       if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) {
           window.tomSelectProdInstance.setValue(visitProds);
       }
-      window.loadProductMedia();
+      loadProductMedia();
     }, 150);
 
     document.getElementById('visitDate').value = v.Visit_Date || '';
-    document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
-    document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
+    document.getElementById('visitStartTime').value = formatTimeString(v.Start_Time);
+    document.getElementById('visitEndTime').value = formatTimeString(v.End_Time);
 
-    // 🌟 ปรับแก้ไขส่วนวัตถุประสงค์ (Purpose) ให้สลับภาษาแสดงผลรองรับ TH/EN
     setTimeout(function() {
       if (v.Purpose) {
-          window.updatePurposeDisplayLang();
+          updatePurposeDisplayLang();
       }
     }, 100);
 
@@ -2058,19 +2461,19 @@
     document.getElementById('visitStatus').value = v.Status || 'Pending';
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
-    setTimeout(function() { window.restoreFormDraft(visitId); }, 500);
+    setTimeout(function() { restoreFormDraft(visitId); }, 500);
 
     var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
     var btn = document.getElementById('saveVisitBtn');
 
     if (isPendingUnlock) {
-      window.toggleVisitFormEditable(false);
+      toggleVisitFormEditable(false);
       btn.disabled = true;
       btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
       btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock';
       btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
-      window.toggleVisitFormEditable(false);
+      toggleVisitFormEditable(false);
       if (canEdit) {
         btn.disabled = false;
         btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
@@ -2084,7 +2487,7 @@
       }
     } else {
       if (canEdit) {
-        window.toggleVisitFormEditable(true);
+        toggleVisitFormEditable(true);
         btn.disabled = false;
         btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
@@ -2094,7 +2497,7 @@
            window.tomSelectDocInstance.disable();
         }
       } else {
-        window.toggleVisitFormEditable(false);
+        toggleVisitFormEditable(false);
         btn.disabled = true;
         btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)';
@@ -2102,10 +2505,11 @@
       }
     }
 
-    window.switchVisitView('visitFormView');
-  };
+    switchVisitView('visitFormView');
+  }
+  window.openEditVisitView = openEditVisitView;
 
-  window.openAddVisitView = async function openAddVisitView(presetDate) {
+  async function openAddVisitView(presetDate) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2118,7 +2522,7 @@
     document.getElementById('visitInsight').value = ''; 
     document.getElementById('visitIsCoaching').checked = false; 
 
-    window.initUserInfo(); 
+    initUserInfo(); 
 
     if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
       window.tomSelectDocInstance.clear();
@@ -2130,7 +2534,7 @@
       window.tomSelectPurposeInstance.enable(); 
     }
 
-    await window.renderFormProductDropdown();
+    await renderFormProductDropdown();
 
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
@@ -2142,14 +2546,14 @@
       }, 200); 
     }
 
-    window.toggleVisitFormEditable(true);
+    toggleVisitFormEditable(true);
     if (returnToDocId) {
       setTimeout(function() {
         if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
       }, 250);
     }
 
-    setTimeout(function() { window.restoreFormDraft('NEW'); }, 500);
+    setTimeout(function() { restoreFormDraft('NEW'); }, 500);
 
     var btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
@@ -2157,17 +2561,18 @@
     btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
     btn.disabled = false;
 
-    window.switchVisitView('visitFormView');
-  };
+    switchVisitView('visitFormView');
+  }
+  window.openAddVisitView = openAddVisitView;
 
-  window.handleSaveVisit = async function handleSaveVisit(e) {
+  async function handleSaveVisit(e) {
     e.preventDefault();
     var btn = document.getElementById('saveVisitBtn');
     var mode = btn.dataset.mode;
 
     if (mode === 'disabled') return;
     if (mode === 'request_unlock') {
-      window.requestUnlockVisit(document.getElementById('visitId').value);
+      requestUnlockVisit(document.getElementById('visitId').value);
       return;
     }
 
@@ -2192,7 +2597,7 @@
     if (!purposeVal) missingFields.push("• วัตถุประสงค์ (Purpose)");
 
     if (missingFields.length > 0) {
-      window.showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
+      showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
       return;
     }
 
@@ -2206,7 +2611,7 @@
     var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
 
     var existingVisitId = document.getElementById('visitId').value;
-    var targetVisitId = existingVisitId || window.generateUUID();
+    var targetVisitId = existingVisitId || generateUUID();
     
     var payload = {
       Visit_ID: targetVisitId,
@@ -2245,28 +2650,29 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
-      window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-      window.clearFormDraft(existingVisitId || 'NEW');
+      showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+      clearFormDraft(existingVisitId || 'NEW');
 
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        window.returnToDoctorProfile(returnDocId); 
+        returnToDoctorProfile(returnDocId); 
       } else {
-        window.switchVisitView('visitListView');
-        await window.loadVisits(true); 
+        switchVisitView('visitListView');
+        await loadVisits(true); 
       }
 
     } catch(err) {
       console.error("Save Visit Error:", err);
-      window.showToast("Failed to save data. Reason: " + err.message, "error");
+      showToast("Failed to save data. Reason: " + err.message, "error");
     } finally {
       btn.disabled = false;
       btn.innerHTML = "💾 Save";
     }
-  };
+  }
+  window.handleSaveVisit = handleSaveVisit;
 
-  window.requestUnlockVisit = async function requestUnlockVisit(visitId) {
+  async function requestUnlockVisit(visitId) {
     var btn = document.getElementById('saveVisitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...';
@@ -2286,24 +2692,25 @@
     try {
       var res = await supabaseClient.from('DCR').insert([payload]);
       if (res.error) throw res.error;
-      window.showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
+      showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
       
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        window.returnToDoctorProfile(returnDocId); 
+        returnToDoctorProfile(returnDocId); 
       } else {
-        window.switchVisitView('visitListView');
-        await window.loadVisits(true); 
+        switchVisitView('visitListView');
+        await loadVisits(true); 
       }
     } catch(err) {
-      window.showToast("❌ Error: " + err.message, "error");
+      showToast("❌ Error: " + err.message, "error");
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
     }
-  };
+  }
+  window.requestUnlockVisit = requestUnlockVisit;
 
-  window.toggleVisitFormEditable = function toggleVisitFormEditable(isEditable) {
+  function toggleVisitFormEditable(isEditable) {
     var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
     var formView = document.getElementById('visitFormView');
 
@@ -2337,148 +2744,16 @@
       var btn = document.getElementById(id);
       if (btn) btn.disabled = !isEditable;
     });
-  };
-
-  window.openAddTotModal = function openAddTotModal() {
-      document.getElementById('totId').value = '';
-      document.getElementById('totStartDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('totEndDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('totStartTime').value = '';
-      document.getElementById('totEndTime').value = '';
-      document.getElementById('totRemark').value = '';
-      document.getElementById('totStatus').value = 'Approved'; 
-      
-      window.populateTotTypes();
-
-      var btnDelete = document.getElementById('btnDeleteTot');
-      if(btnDelete) btnDelete.classList.add('d-none');
-
-      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
-      
-      if(window.totModalInstance) window.totModalInstance.show();
-  };
-
-  window.openEditTotModal = function openEditTotModal(id) {
-      var tot = (window.globalTotLogs || []).find(function(t) { return t.TOT_ID === id; });
-      if(!tot) return;
-
-      document.getElementById('totId').value = tot.TOT_ID;
-      document.getElementById('totStartDate').value = tot.Start_Date || '';
-      document.getElementById('totEndDate').value = tot.End_Date || '';
-      document.getElementById('totStartTime').value = window.formatTimeString(tot.Start_Time);
-      document.getElementById('totEndTime').value = window.formatTimeString(tot.End_Time);
-      document.getElementById('totRemark').value = tot.Remark || '';
-      document.getElementById('totStatus').value = tot.Status || 'Approved';
-
-      window.populateTotTypes();
-      setTimeout(function() { document.getElementById('totType').value = tot.TOT_Type; }, 50);
-
-      var btnDelete = document.getElementById('btnDeleteTot');
-      if(btnDelete) btnDelete.classList.remove('d-none');
-
-      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
-
-      if(window.totModalInstance) window.totModalInstance.show();
-  };
-
-  window.populateTotTypes = function populateTotTypes() {
-      var select = document.getElementById('totType');
-      if(!select) return;
-
-      var appLang = window.getCurrentAppLang();
-      var types = (window.VisitManagerCache ? window.VisitManagerCache.indexTypes : []) || [];
-      var indexes = (window.VisitManagerCache ? window.VisitManagerCache.indexes : []) || [];
-      var tType = types.find(t => t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'));
-      
-      var html = '<option value="">-- ' + (appLang === 'en' ? 'Select Type' : 'เลือกประเภท') + ' --</option>';
-      
-      if (tType) {
-          var items = indexes.filter(i => i.IndexType_ID === tType.IndexType_ID);
-          items.forEach(i => {
-              var textTh = i.Value || '';
-              var textEn = i.Value1 || i.Value || '';
-              var display = appLang === 'en' ? textEn : textTh;
-              html += '<option value="'+textTh+'">'+display+'</option>';
-          });
-      } else {
-          html += '<option value="Annual Leave">Annual Leave (ลาพักร้อน)</option>' +
-                  '<option value="Sick Leave">Sick Leave (ลาป่วย)</option>' +
-                  '<option value="Internal Meeting">Internal Meeting (ประชุมภายใน)</option>' +
-                  '<option value="Training">Training (อบรม)</option>';
-      }
-      select.innerHTML = html;
-  };
-
-  window.handleSaveTot = async function handleSaveTot(e) {
-      e.preventDefault();
-      var btn = document.getElementById('saveTotBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-
-      var id = document.getElementById('totId').value;
-      var crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
-      var repId = crmUser.Rep_ID || crmUser.id || null;
-      var whoUpdated = crmUser.Email || crmUser.Rep_Name || 'Unknown';
-      
-      var payload = {
-          Rep_ID: repId,
-          TOT_Type: document.getElementById('totType').value,
-          Start_Date: document.getElementById('totStartDate').value,
-          End_Date: document.getElementById('totEndDate').value || document.getElementById('totStartDate').value,
-          Start_Time: document.getElementById('totStartTime').value || null,
-          End_Time: document.getElementById('totEndTime').value || null,
-          Remark: document.getElementById('totRemark').value,
-          Status: document.getElementById('totStatus').value,
-          Whoupdated: whoUpdated,
-          Whenupdated: new Date().toISOString()
-      };
-
-      try {
-          if(id) {
-              var {error} = await supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id);
-              if(error) throw error;
-          } else {
-              payload.TOT_ID = window.generateUUID();
-              var {error} = await supabaseClient.from('TOT_Logs').insert([payload]);
-              if(error) throw error;
-          }
-          window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
-          if(window.totModalInstance) window.totModalInstance.hide();
-          await window.loadVisits(true);
-      } catch(err) {
-          window.showToast("Error: " + err.message, "error");
-      } finally {
-          btn.disabled = false;
-          btn.innerHTML = '💾 Save';
-      }
-  };
-
-  window.deleteTot = async function deleteTot() {
-      var id = document.getElementById('totId').value;
-      if(!id) return;
-
-      var appLang = window.getCurrentAppLang();
-      var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
-      if (!confirm(confirmMsg)) return;
-
-      try {
-          var {error} = await supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
-          if (error) throw error;
-          window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
-          if(window.totModalInstance) window.totModalInstance.hide();
-          await window.loadVisits(true);
-      } catch(err) {
-          window.showToast("Error: " + err.message, "error");
-      }
-  };
+  }
+  window.toggleVisitFormEditable = toggleVisitFormEditable;
 
   // INITIALIZE SYSTEM STARTUP
   setTimeout(async function() { 
     try {
-      await window.loadDropdowns(); 
-      window.initUserInfo(); 
-      await window.loadVisits(); 
-      await window.fetchDetailingMedia();
+      await loadDropdowns(); 
+      initUserInfo(); 
+      await loadVisits(); 
+      await fetchDetailingMedia();
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
       }
@@ -2492,29 +2767,28 @@
       var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
       if (isSales && window.VisitManagerCache.currentMainView === 'list') {
-          window.toggleMainView('calendar');
+          toggleMainView('calendar');
       } else {
-          window.toggleMainView(window.VisitManagerCache.currentMainView || 'list');
+          toggleMainView(window.VisitManagerCache.currentMainView || 'list');
       }
 
       var updateLangUI = function() {
           var formView = document.getElementById('visitFormView');
           if (formView && !formView.classList.contains('d-none')) {
-              window.saveFormDraft();
+              saveFormDraft();
           }
 
           setTimeout(function() {
-              window.loadDropdowns(false).then(() => {
+              loadDropdowns(false).then(() => {
                   var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : 'NEW';
                   if (formView && !formView.classList.contains('d-none')) {
-                      window.restoreFormDraft(currentVisitId);
-                      // 🌟 สั่งบังคับเปลี่ยนภาษา Purpose ทุกครั้งเวลากดสลับปุ่ม EN/TH
-                      window.updatePurposeDisplayLang();
+                      restoreFormDraft(currentVisitId);
+                      updatePurposeDisplayLang();
                   }
               }); 
-              window.renderVisitTable();
+              renderVisitTable();
               if (window.VisitManagerCache.currentMainView === 'calendar') {
-                  window.renderCalendarView(); 
+                  renderCalendarView(); 
               }   
           }, 150);
       };
