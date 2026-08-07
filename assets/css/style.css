@@ -1,1 +1,145 @@
+/* =========================================
+   CRM System - Global Stylesheet
+   ========================================= */
 
+.visit-card { 
+  border-radius: 20px !important; 
+  border: 1px solid #eef2f6 !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;
+  background: #ffffff;
+}
+
+.form-control, .form-select { 
+  min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
+  border-radius: 12px; 
+}
+
+/* ล็อกสีและสไตล์เมื่อฟอร์มเป็น Read-Only */
+.form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
+  background-color: #f1f5f9 !important; 
+  color: #0f172a !important; 
+  -webkit-text-fill-color: #0f172a !important; 
+  cursor: not-allowed; 
+  opacity: 1 !important; 
+  font-weight: 600 !important;
+}
+
+.visit-filter-group { opacity: 0 !important; transition: opacity 0.3s ease-in-out; }
+.visit-filter-group.ready { opacity: 1 !important; }
+
+/* ซ่อน Select แบบ Multi ดั้งเดิมเวลา TomSelect ทำงาน */
+select.form-select[multiple]:not(.tomselected) { display: none !important; }
+
+.btn-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+.btn-primary:hover { background-color: #0b5ed7 !important; border-color: #0a58ca !important; }
+
+.table-custom-header {
+  background-color: #f8fafc !important;
+  color: #64748b !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* กล่องตัวเลขสถิติ */
+.stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px 20px;
+  border: 1px solid #eef2f6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+.stat-card .stat-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ป้ายสถานะต่างๆ */
+.badge-soft-pending { background-color: #fffbeb !important; color: #b45309 !important; border: 1px solid #fef3c7 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
+.badge-soft-success { background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #d1fae5 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
+.badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
+.badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
+
+/* ปุ่ม Switch เปิด-ปิด */
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+input:checked + .slider { background-color: #0ea5e9; }
+input:focus + .slider { box-shadow: 0 0 1px #0ea5e9; }
+input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
+
+/* สไตล์ไมโครโฟนตอนอัดเสียง */
+.mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
+@keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+
+/* ปรับแต่ง TomSelect ให้เข้ากับ Bootstrap */
+.ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
+.ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
+.ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
+.ts-wrapper.single .ts-control > .item[data-value=""] { color: #6c757d !important; font-weight: 400 !important; }
+.ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
+.ts-wrapper.disabled { opacity: 1 !important; }
+.ts-wrapper.disabled .ts-control { opacity: 1 !important; background-color: #f1f5f9 !important; }
+.ts-wrapper.disabled.single .ts-control > .item { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; font-weight: 600 !important; }
+.ts-wrapper.disabled.multi .ts-control > .item { background-color: #cbd5e1 !important; border-color: #94a3b8 !important; color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; font-weight: 600 !important; }
+.filter-placeholder-text { color: #6c757d !important; }
+.filter-placeholder-text option { color: #212529 !important; }
+
+.sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+.sortable-th:hover { color: #0d6efd; }
+
+.custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+.custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+
+mark.highlight-text { background-color: #fef08a !important; color: #854d0e !important; padding: 0 3px; border-radius: 4px; font-weight: 700; }
+.quick-time-btn { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+
+.draft-toast {
+  position: fixed; top: 80px; right: 20px; z-index: 9999; background: #ffffff;
+  border-left: 4px solid #f59e0b; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  padding: 12px 18px; display: flex; align-items: center; gap: 12px;
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+#detailingMediaSection { margin-top: 10px; position: relative; z-index: 1; }
+#mediaListContainer { max-height: 200px; overflow-y: auto; padding-right: 4px; }
+#mediaListContainer::-webkit-scrollbar { width: 5px; }
+#mediaListContainer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+#mediaListContainer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+#mediaListContainer::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.media-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; background: #ffffff; transition: all 0.2s ease; }
+.media-card:hover { border-color: #0d6efd; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08); }
+
+#pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
+#pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+/* ปฏิทิน */
+#calendar { min-height: 600px; font-family: inherit; }
+.fc-event { 
+    cursor: pointer; 
+    border: none !important; 
+    padding: 3px 6px !important; 
+    border-radius: 6px !important; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    margin-bottom: 3px !important; 
+    color: #ffffff !important; 
+}
+.fc-event-main {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+.fc-daygrid-event-dot { display: none !important; }
+.fc-event-title { font-weight: 600; font-size: 0.8rem; }
+.fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
+.fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; }
+.fc-daygrid-day-number:hover { color: #0d6efd; }
+.fc-col-header-cell { background-color: #f8fafc; color: #64748b; padding: 10px 0 !important; }
+.fc .fc-button-primary { background-color: #ffffff; border-color: #cbd5e1; color: #334155; font-weight: 600; text-transform: capitalize; }
+.fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
+.fc-toolbar-title { font-weight: 700 !important; color: #1e293b; font-size: 1.25rem !important; }
