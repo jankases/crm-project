@@ -564,13 +564,37 @@
 </div>
 
 <script>
-  // 1. UTILITY FUNCTIONS DECLARED FIRST (แก้ปัญหา Hoisting / Undefined ทั้งหมด)
+  // 1. ALL HELPER & UTILITY FUNCTIONS DECLARED ON TOP (แก้ปัญหา Undefined ทั้งหมด)
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
       return 'en';
     }
     return 'th';
+  };
+
+  window.checkMyDraftsReminder = function(myDraftCount) {
+    var toastContainer = document.getElementById('draftToastContainer');
+    if (!toastContainer) return;
+
+    if (myDraftCount > 0) {
+      toastContainer.innerHTML = 
+        '<div class="draft-toast" id="myDraftToast">' +
+          '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
+          '<div>' +
+            '<div class="fw-bold text-dark small">มีฉบับร่างค้างยืนยัน</div>' +
+            '<div class="text-secondary" style="font-size: 0.82rem;">คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง</div>' +
+          '</div>' +
+          '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
+        '</div>';
+
+      setTimeout(function() {
+        var t = document.getElementById('myDraftToast');
+        if (t) t.remove();
+      }, 7000);
+    } else {
+      toastContainer.innerHTML = '';
+    }
   };
 
   window.formatDateToLocal = function(dateStr) {
