@@ -564,65 +564,136 @@
 </div>
 
 <script>
-  // Global State Variables
-  window.globalVisits = [];
-  window.globalFilteredVisits = [];
-  window.globalTotLogs = [];
-  window.globalFilteredTotLogs = [];
-  window.globalVisitProducts = [];
-  window.globalAllDoctors = [];
-  window.globalAssignedDoctors = [];
-  window.globalAllHospitals = [];
-  window.globalAssignedHospitals = [];
-  window.globalProductsList = [];
-  window.globalTerritoryList = [];
-  window.globalUsersList = [];
-  window.globalTeamList = [];
-  window.globalPendingUnlockVisits = [];
-  window.globalCurrentUserRole = '';
-  
-  window.tomSelectDocInstance = null;
-  window.tomSelectProdInstance = null; 
-  window.tomSelectPurposeInstance = null; 
-  window.tomSelectRepInstance = null;
-  window.tomSelectTerInstance = null;
-  window.tomSelectStatusInstance = null;
-  window.globalCalendarInstance = null; 
-  window.totModalInstance = null;
-
-  window.currentSortCol = 'date';
-  window.currentSortAsc = false; 
-  window.currentPage = 1;
-  window.rowsPerPage = 20;
-
-  window.globalAllMediaList = [];
-  window.currentActiveMedia = null;
-  window.presentationStartTime = null;
-  window.presentationTimerInterval = null;
-  window.pdfDocInstance = null;
-  window.currentPdfPage = 1;
-  window.totalPdfPages = 1;
-  window.currentPageStartTime = null;
-  window.pageLogsBuffer = [];
-  window.globalIsMediaPreviewMode = false;
-
-  window.filterDebounceTimer = null;
-  window.docRecognition = null;
-  window.textRecognition = null;
-  window.searchRecognition = null;
-  window.currentDictTargetId = null;
-  window.currentDictBtnId = null;
-  window.currentSearchInputId = null;
-  window.currentSearchBtnId = null;
-  window.currentSearchIconId = null;
-
-  // 1. UTILITY FUNCTIONS DECLARED FIRST (แก้ปัญหา Undefined)
+  // 1. UTILITY FUNCTIONS DECLARED FIRST (แก้ปัญหา Hoisting / Undefined ทั้งหมด)
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
       return 'en';
     }
     return 'th';
+  };
+
+  window.formatDateToLocal = function(dateStr) {
+      if (!dateStr) return '-';
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString(); 
+  };
+
+  window.formatTimeString = function(timeStr) {
+    if (!timeStr) return '';
+    var str = String(timeStr).trim();
+    if (str.indexOf(':') !== -1) {
+      var parts = str.split(':');
+      return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0');
+    }
+    return str;
+  };
+
+  window.applySearchHighlight = function(text, searchKeyword) {
+    if (!text) return '-';
+    if (!searchKeyword || searchKeyword.trim() === '') return text;
+    
+    var div = document.createElement('div');
+    div.innerText = text;
+    var safeText = div.innerHTML;
+
+    var keywords = searchKeyword.trim().toLowerCase().split(' ').filter(function(k) { return k !== ''; });
+
+    keywords.forEach(function(kw) {
+      if (!kw) return;
+      var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![^<]*>)', 'gi');
+      safeText = safeText.replace(regex, '<mark class="highlight-text">$1</mark>');
+    });
+
+    return safeText;
+  };
+
+  window.getDoctorNameByLang = function(docObj, defaultId) {
+    if (!docObj) return defaultId || '-';
+    var lang = window.getCurrentAppLang();
+    if (lang === 'en') {
+      return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
+    } else {
+      var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
+      if (docObj.Doc_Name_TH && !hasQuestionMarks) return docObj.Doc_Name_TH;
+      return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
+    }
+  };
+
+  window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
+    var lang = window.getCurrentAppLang();
+    var targetPrimaryHospId = null;
+
+    if (docObj) {
+      if (docObj.Workplaces_JSON || docObj.workplacesJson) {
+        try {
+          var workplaces = typeof docObj.Workplaces_JSON === 'string' 
+            ? JSON.parse(docObj.Workplaces_JSON) 
+            : (docObj.Workplaces_JSON || JSON.parse(docObj.workplacesJson || '[]'));
+
+          if (Array.isArray(workplaces) && workplaces.length > 0) {
+            var primaryItem = workplaces.find(function(w) { 
+              return w.isPrimary === true || w.isPrimary === 'true' || w.type === 'Primary' || w.Type === 'Primary'; 
+            });
+            if (!primaryItem) primaryItem = workplaces[0];
+
+            targetPrimaryHospId = primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id;
+            
+            if (lang === 'en') {
+              var directEn = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
+              if (directEn && directEn !== '-') return directEn;
+            } else {
+              var directTh = primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As;
+              if (directTh && directTh !== '-') return directTh;
+            }
+          }
+        } catch (e) {
+          console.error("Parse Workplaces_JSON error:", e);
+        }
+      }
+
+      if (!targetPrimaryHospId) targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
+
+      if (targetPrimaryHospId) {
+        var hospList = (window.globalAllHospitals && window.globalAllHospitals.length > 0) 
+          ? window.globalAllHospitals 
+          : (window.VisitManagerCache ? window.VisitManagerCache.allHospitals : []);
+
+        var hospObj = (hospList || []).find(function(h) { 
+          return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
+        });
+
+        if (hospObj) {
+          if (lang === 'en') return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
+          else return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
+        }
+        if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
+          return targetPrimaryHospId;
+        }
+      }
+
+      if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
+        var docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
+        var matchedAssign = window.VisitManagerCache.assignments.find(function(a) {
+          return String(a.Account_ID || a.Doc_ID) === docIdStr && (a.Type === 'Doctor' || a.Type === 'Workplace');
+        });
+        if (matchedAssign) {
+          var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
+          var hospObj2 = (window.globalAllHospitals || []).find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
+          if (hospObj2) {
+            return (lang === 'en') ? (hospObj2.Hospital || hospObj2.Known_As) : (hospObj2.Known_As || hospObj2.Hospital);
+          }
+        }
+      }
+    }
+
+    if (visitObj) {
+      var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
+      if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
+    }
+
+    return '-';
   };
 
   window.updateFormUserInfo = function(repObj, fallbackTerrId) {
@@ -748,6 +819,58 @@
     toast.show();
     toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
   };
+
+  // Global State Variables
+  window.globalVisits = [];
+  window.globalFilteredVisits = [];
+  window.globalTotLogs = [];
+  window.globalFilteredTotLogs = [];
+  window.globalVisitProducts = [];
+  window.globalAllDoctors = [];
+  window.globalAssignedDoctors = [];
+  window.globalAllHospitals = [];
+  window.globalAssignedHospitals = [];
+  window.globalProductsList = [];
+  window.globalTerritoryList = [];
+  window.globalUsersList = [];
+  window.globalTeamList = [];
+  window.globalPendingUnlockVisits = [];
+  window.globalCurrentUserRole = '';
+  
+  window.tomSelectDocInstance = null;
+  window.tomSelectProdInstance = null; 
+  window.tomSelectPurposeInstance = null; 
+  window.tomSelectRepInstance = null;
+  window.tomSelectTerInstance = null;
+  window.tomSelectStatusInstance = null;
+  window.globalCalendarInstance = null; 
+  window.totModalInstance = null;
+
+  window.currentSortCol = 'date';
+  window.currentSortAsc = false; 
+  window.currentPage = 1;
+  window.rowsPerPage = 20;
+
+  window.globalAllMediaList = [];
+  window.currentActiveMedia = null;
+  window.presentationStartTime = null;
+  window.presentationTimerInterval = null;
+  window.pdfDocInstance = null;
+  window.currentPdfPage = 1;
+  window.totalPdfPages = 1;
+  window.currentPageStartTime = null;
+  window.pageLogsBuffer = [];
+  window.globalIsMediaPreviewMode = false;
+
+  window.filterDebounceTimer = null;
+  window.docRecognition = null;
+  window.textRecognition = null;
+  window.searchRecognition = null;
+  window.currentDictTargetId = null;
+  window.currentDictBtnId = null;
+  window.currentSearchInputId = null;
+  window.currentSearchBtnId = null;
+  window.currentSearchIconId = null;
 
   // 2. MAIN SYSTEM FUNCTIONS
   window.loadDropdowns = async function(forceReload) {
@@ -1571,334 +1694,6 @@
         if (oldProdVal.length > 0) {
             setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
         }
-    }
-  };
-
-  window.getDoctorNameByLang = function(docObj, defaultId) {
-    if (!docObj) return defaultId || '-';
-    var lang = window.getCurrentAppLang();
-    if (lang === 'en') {
-      return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
-    } else {
-      var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
-      if (docObj.Doc_Name_TH && !hasQuestionMarks) return docObj.Doc_Name_TH;
-      return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
-    }
-  };
-
-  window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
-    var lang = window.getCurrentAppLang();
-    var targetPrimaryHospId = null;
-
-    if (docObj) {
-      if (docObj.Workplaces_JSON || docObj.workplacesJson) {
-        try {
-          var workplaces = typeof docObj.Workplaces_JSON === 'string' 
-            ? JSON.parse(docObj.Workplaces_JSON) 
-            : (docObj.Workplaces_JSON || JSON.parse(docObj.workplacesJson || '[]'));
-
-          if (Array.isArray(workplaces) && workplaces.length > 0) {
-            var primaryItem = workplaces.find(function(w) { 
-              return w.isPrimary === true || w.isPrimary === 'true' || w.type === 'Primary' || w.Type === 'Primary'; 
-            });
-            if (!primaryItem) primaryItem = workplaces[0];
-
-            targetPrimaryHospId = primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id;
-            
-            if (lang === 'en') {
-              var directEn = primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital;
-              if (directEn && directEn !== '-') return directEn;
-            } else {
-              var directTh = primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As;
-              if (directTh && directTh !== '-') return directTh;
-            }
-          }
-        } catch (e) {
-          console.error("Parse Workplaces_JSON error:", e);
-        }
-      }
-
-      if (!targetPrimaryHospId) targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
-
-      if (targetPrimaryHospId) {
-        var hospList = (window.globalAllHospitals && window.globalAllHospitals.length > 0) 
-          ? window.globalAllHospitals 
-          : (window.VisitManagerCache ? window.VisitManagerCache.allHospitals : []);
-
-        var hospObj = (hospList || []).find(function(h) { 
-          return String(h.Hospital_ID || h.id || h.Hospital).trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
-        });
-
-        if (hospObj) {
-          if (lang === 'en') return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As;
-          else return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital;
-        }
-        if (typeof targetPrimaryHospId === 'string' && targetPrimaryHospId.length > 2 && targetPrimaryHospId.indexOf('-') === -1) {
-          return targetPrimaryHospId;
-        }
-      }
-
-      if (window.VisitManagerCache && window.VisitManagerCache.assignments) {
-        var docIdStr = String(docObj.Doc_ID || docObj.doc_id || docObj.id);
-        var matchedAssign = window.VisitManagerCache.assignments.find(function(a) {
-          return String(a.Account_ID || a.Doc_ID) === docIdStr && (a.Type === 'Doctor' || a.Type === 'Workplace');
-        });
-        if (matchedAssign) {
-          var assignHospId = matchedAssign.Hospital_ID || matchedAssign.Workplace_ID;
-          var hospObj2 = (window.globalAllHospitals || []).find(function(h) { return String(h.Hospital_ID || h.id) === String(assignHospId); });
-          if (hospObj2) {
-            return (lang === 'en') ? (hospObj2.Hospital || hospObj2.Known_As) : (hospObj2.Known_As || hospObj2.Hospital);
-          }
-        }
-      }
-    }
-
-    if (visitObj) {
-      var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
-      if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
-    }
-
-    return '-';
-  };
-
-  window.toggleMainView = function(viewName) {
-    window.VisitManagerCache = window.VisitManagerCache || {};
-    window.VisitManagerCache.currentMainView = viewName;
-    var btnList = document.getElementById('btnToggleList');
-    var btnCal = document.getElementById('btnToggleCal');
-    var listZone = document.getElementById('visitListZone');
-    var calZone = document.getElementById('visitCalendarZone');
-
-    if (viewName === 'calendar') {
-        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
-        if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
-        
-        if (listZone) listZone.classList.add('d-none');
-        if (calZone) calZone.classList.remove('d-none');
-        
-        window.renderCalendarView();
-    } else {
-        if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
-        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
-        
-        if (calZone) calZone.classList.add('d-none');
-        if (listZone) listZone.classList.remove('d-none');
-    }
-  };
-
-  window.renderCalendarView = function() {
-    var calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
-    
-    var appLang = window.getCurrentAppLang(); 
-
-    var visitEvents = (window.globalFilteredVisits || []).map(function(v) {
-        var docObj = (window.globalAllDoctors || []).find(function(d) {
-            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
-        });
-        var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
-        var hospName = window.getHospitalNameFromDocOrVisit(docObj, v);
-        
-        var purposeShow = v.Purpose || '-';
-        if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
-            var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
-            if (pType) {
-                var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
-                if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
-            }
-        }
-
-        var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
-        if (dateOnly.indexOf('/') !== -1) {
-             var vParts = dateOnly.split('/');
-             if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
-        }
-
-        var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
-        var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
-        var baseTitle = timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
-        
-        var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
-        var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
-        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
-
-        var isPending = (v.Status === 'Pending');
-        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
-        
-        var bgColor = '#10b981'; 
-        if (isPendingUnlock) bgColor = '#64748b'; 
-        else if (isPending) bgColor = '#f59e0b'; 
-        
-        return {
-            id: v.Visit_ID,
-            title: baseTitle, 
-            start: dateOnly, 
-            allDay: true,    
-            backgroundColor: bgColor,
-            borderColor: bgColor,
-            textColor: '#ffffff', 
-            display: 'block',     
-            extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
-        };
-    });
-
-    var holidayEvents = [];
-    var companyEvents = []; 
-
-    if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
-        var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
-            return t.Name && (t.Name.trim().toLowerCase() === 'public holiday' || t.Name.trim().toLowerCase() === 'holiday');
-        });
-
-        if (holidayType) {
-            var holidayData = window.VisitManagerCache.indexes.filter(function(i) {
-                return i.IndexType_ID === holidayType.IndexType_ID;
-            });
-
-            holidayEvents = holidayData.map(function(h) {
-                var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
-                var hDate = '';
-                if (h.Value) {
-                    hDate = h.Value.split('T')[0];
-                    if (hDate.indexOf('/') !== -1) {
-                         var dParts = hDate.split('/');
-                         if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0];
-                    }
-                }
-
-                return {
-                    id: 'hol_' + h.Index_ID,
-                    title: holidayTitle, 
-                    start: hDate, 
-                    allDay: true,
-                    backgroundColor: '#ef4444',             
-                    borderColor: '#ef4444',
-                    textColor: '#ffffff',
-                    display: 'block',
-                    extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: holidayTitle }
-                };
-            });
-        }
-
-        var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
-            return t.Name && (t.Name.trim().toLowerCase() === 'company event' || t.Name.trim().toLowerCase() === 'corporate holiday');
-        });
-
-        if (companyEventType) {
-            var companyData = window.VisitManagerCache.indexes.filter(function(i) {
-                return i.IndexType_ID === companyEventType.IndexType_ID;
-            });
-
-            companyEvents = companyData.map(function(c) {
-                var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
-                var cDate = '';
-                if (c.Value) {
-                    cDate = c.Value.split('T')[0];
-                    if (cDate.indexOf('/') !== -1) {
-                         var dParts2 = cDate.split('/');
-                         if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0];
-                    }
-                }
-
-                return {
-                    id: 'ce_' + c.Index_ID,
-                    title: cTitle, 
-                    start: cDate, 
-                    allDay: true,
-                    backgroundColor: '#8b5cf6',
-                    borderColor: '#8b5cf6',
-                    textColor: '#ffffff',
-                    display: 'block',
-                    extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: cTitle }
-                };
-            });
-        }
-    }
-
-    var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
-        var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
-        var displayType = t.TOT_Type || 'Time Off';
-        
-        if (appLang === 'en' && window.VisitManagerCache.indexes) {
-            var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
-            if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
-        }
-
-        var baseTitle = timePrefix + '[TOT] ' + displayType;
-        var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
-        var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
-        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
-
-        var startDate = '';
-        if (t.Start_Date) {
-            startDate = t.Start_Date.split('T')[0];
-            if (startDate.indexOf('/') !== -1) {
-                var p1 = startDate.split('/');
-                if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0];
-            }
-        }
-
-        var endDateStr = '';
-        if (t.End_Date && t.End_Date !== t.Start_Date) {
-            endDateStr = t.End_Date.split('T')[0];
-            if (endDateStr.indexOf('/') !== -1) {
-                var p2 = endDateStr.split('/');
-                if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0];
-            }
-            var eDate = new Date(endDateStr);
-            eDate.setDate(eDate.getDate() + 1); 
-            endDateStr = eDate.toISOString().split('T')[0];
-        }
-
-        var ev = {
-            id: 'tot_' + t.TOT_ID,
-            title: baseTitle,
-            start: startDate,
-            allDay: true, 
-            backgroundColor: bgColor,
-            borderColor: bgColor,
-            textColor: '#ffffff',
-            display: 'block',
-            extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
-        };
-
-        if (endDateStr) ev.end = endDateStr;
-        return ev;
-    });
-
-    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
-
-    if (window.globalCalendarInstance) {
-        window.globalCalendarInstance.removeAllEvents();
-        window.globalCalendarInstance.addEventSource(allEvents);
-        window.globalCalendarInstance.render();
-    } else {
-        window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            events: allEvents,
-            eventDidMount: function(info) {
-                var tooltipMsg = info.event.extendedProps.fullTooltip || info.event.title;
-                info.el.setAttribute('title', tooltipMsg);
-            },
-            eventClick: function(info) {
-                if (info.event.extendedProps.isHoliday) return; 
-                if (info.event.extendedProps.isTot) {
-                    window.openEditTotModal(info.event.extendedProps.totId);
-                    return;
-                }
-                window.openEditVisitView(info.event.id);
-            },
-            dateClick: function(info) {
-                window.openAddVisitView(info.dateStr); 
-            },
-            displayEventTime: false 
-        });
-        window.globalCalendarInstance.render();
     }
   };
 
