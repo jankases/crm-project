@@ -564,7 +564,7 @@
 </div>
 
 <script>
-  // 1. ALL HELPER / UTILITY / API FUNCTIONS DECLARED ON TOP (แก้ปัญหา Undefined ทั้งหมด)
+  // 1. ALL HELPER / UTILITY / API / VIEW RENDER FUNCTIONS DECLARED ON TOP (แก้ปัญหา Undefined ทั้งหมด)
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
@@ -823,6 +823,341 @@
     } catch(e) {
       console.error("Fetch Detailing Media Error:", e);
     }
+  };
+
+  window.toggleMainView = function(viewName) {
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    window.VisitManagerCache.currentMainView = viewName;
+    var btnList = document.getElementById('btnToggleList');
+    var btnCal = document.getElementById('btnToggleCal');
+    var listZone = document.getElementById('visitListZone');
+    var calZone = document.getElementById('visitCalendarZone');
+
+    if (viewName === 'calendar') {
+        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        
+        if (listZone) listZone.classList.add('d-none');
+        if (calZone) calZone.classList.remove('d-none');
+        
+        window.renderCalendarView();
+    } else {
+        if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        
+        if (calZone) calZone.classList.add('d-none');
+        if (listZone) listZone.classList.remove('d-none');
+    }
+  };
+
+  window.renderCalendarView = function() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+    
+    var appLang = window.getCurrentAppLang(); 
+
+    var visitEvents = (window.globalFilteredVisits || []).map(function(v) {
+        var docObj = (window.globalAllDoctors || []).find(function(d) {
+            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
+        });
+        var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
+        var hospName = window.getHospitalNameFromDocOrVisit(docObj, v);
+        
+        var purposeShow = v.Purpose || '-';
+        if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+            var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
+            if (pType) {
+                var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+                if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
+            }
+        }
+
+        var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
+        if (dateOnly.indexOf('/') !== -1) {
+             var vParts = dateOnly.split('/');
+             if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
+        }
+
+        var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
+        var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
+        var baseTitle = timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
+        var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
+        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
+
+        var isPending = (v.Status === 'Pending');
+        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+        
+        var bgColor = '#10b981'; 
+        if (isPendingUnlock) bgColor = '#64748b'; 
+        else if (isPending) bgColor = '#f59e0b'; 
+        
+        return {
+            id: v.Visit_ID,
+            title: baseTitle, 
+            start: dateOnly, 
+            allDay: true,    
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff', 
+            display: 'block',     
+            extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
+        };
+    });
+
+    var holidayEvents = [];
+    var companyEvents = []; 
+
+    if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+        var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name && (t.Name.trim().toLowerCase() === 'public holiday' || t.Name.trim().toLowerCase() === 'holiday');
+        });
+
+        if (holidayType) {
+            var holidayData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === holidayType.IndexType_ID;
+            });
+
+            holidayEvents = holidayData.map(function(h) {
+                var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
+                var hDate = '';
+                if (h.Value) {
+                    hDate = h.Value.split('T')[0];
+                    if (hDate.indexOf('/') !== -1) {
+                         var dParts = hDate.split('/');
+                         if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0];
+                    }
+                }
+
+                return {
+                    id: 'hol_' + h.Index_ID,
+                    title: holidayTitle, 
+                    start: hDate, 
+                    allDay: true,
+                    backgroundColor: '#ef4444',             
+                    borderColor: '#ef4444',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: holidayTitle }
+                };
+            });
+        }
+
+        var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name && (t.Name.trim().toLowerCase() === 'company event' || t.Name.trim().toLowerCase() === 'corporate holiday');
+        });
+
+        if (companyEventType) {
+            var companyData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === companyEventType.IndexType_ID;
+            });
+
+            companyEvents = companyData.map(function(c) {
+                var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
+                var cDate = '';
+                if (c.Value) {
+                    cDate = c.Value.split('T')[0];
+                    if (cDate.indexOf('/') !== -1) {
+                         var dParts2 = cDate.split('/');
+                         if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0];
+                    }
+                }
+
+                return {
+                    id: 'ce_' + c.Index_ID,
+                    title: cTitle, 
+                    start: cDate, 
+                    allDay: true,
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#8b5cf6',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: cTitle }
+                };
+            });
+        }
+    }
+
+    var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
+        var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+        var displayType = t.TOT_Type || 'Time Off';
+        
+        if (appLang === 'en' && window.VisitManagerCache.indexes) {
+            var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+            if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+        }
+
+        var baseTitle = timePrefix + '[TOT] ' + displayType;
+        var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
+        var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
+        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+
+        var startDate = '';
+        if (t.Start_Date) {
+            startDate = t.Start_Date.split('T')[0];
+            if (startDate.indexOf('/') !== -1) {
+                var p1 = startDate.split('/');
+                if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0];
+            }
+        }
+
+        var endDateStr = '';
+        if (t.End_Date && t.End_Date !== t.Start_Date) {
+            endDateStr = t.End_Date.split('T')[0];
+            if (endDateStr.indexOf('/') !== -1) {
+                var p2 = endDateStr.split('/');
+                if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0];
+            }
+            var eDate = new Date(endDateStr);
+            eDate.setDate(eDate.getDate() + 1); 
+            endDateStr = eDate.toISOString().split('T')[0];
+        }
+
+        var ev = {
+            id: 'tot_' + t.TOT_ID,
+            title: baseTitle,
+            start: startDate,
+            allDay: true, 
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff',
+            display: 'block',
+            extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
+        };
+
+        if (endDateStr) ev.end = endDateStr;
+        return ev;
+    });
+
+    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
+
+    if (window.globalCalendarInstance) {
+        window.globalCalendarInstance.removeAllEvents();
+        window.globalCalendarInstance.addEventSource(allEvents);
+        window.globalCalendarInstance.render();
+    } else {
+        window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: allEvents,
+            eventDidMount: function(info) {
+                var tooltipMsg = info.event.extendedProps.fullTooltip || info.event.title;
+                info.el.setAttribute('title', tooltipMsg);
+            },
+            eventClick: function(info) {
+                if (info.event.extendedProps.isHoliday) return; 
+                if (info.event.extendedProps.isTot) {
+                    window.openEditTotModal(info.event.extendedProps.totId);
+                    return;
+                }
+                window.openEditVisitView(info.event.id);
+            },
+            dateClick: function(info) {
+                window.openAddVisitView(info.dateStr); 
+            },
+            displayEventTime: false 
+        });
+        window.globalCalendarInstance.render();
+    }
+  };
+
+  window.renderVisitTable = function() {
+    var tbody = document.getElementById('visitTableBody');
+    if (!tbody) return; 
+
+    tbody.innerHTML = '';
+    var data = window.globalFilteredVisits || [];
+
+    if (!Array.isArray(data) || data.length === 0) {
+        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
+        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No visit records found for the selected period.</td></tr>';
+    }
+
+    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
+
+    var totalItems = data.length;
+    var totalPages = Math.ceil(totalItems / window.rowsPerPage);
+    if (window.currentPage > totalPages) window.currentPage = totalPages;
+    if (window.currentPage < 1) window.currentPage = 1;
+
+    var startIndex = (window.currentPage - 1) * window.rowsPerPage;
+    var endIndex = Math.min(startIndex + window.rowsPerPage, totalItems);
+    
+    if (document.getElementById('visitPageInfo')) document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
+
+    var paginatedData = data.slice(startIndex, endIndex);
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    var appLang = window.getCurrentAppLang(); 
+
+    paginatedData.forEach(function(v) {
+      var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+      var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
+      var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+
+      if (isPendingUnlock) {
+        badgeClass = 'badge-soft-secondary';
+        statusShow = '⏳ Pending Unlock';
+      }
+
+      var dateShow = window.formatDateToLocal(v.Visit_Date);
+
+      var docObj = (window.globalAllDoctors || []).find(function(d) {
+        return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
+      });
+
+      var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
+      var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
+      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
+      var docWithBadge = docNameShow + coachingBadge;
+
+      var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
+      
+      var purposeShow = v.Purpose || '-';
+      if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
+          if (pType) {
+              var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+              if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
+          }
+      }
+
+      var highlightedDoc = window.applySearchHighlight(docWithBadge, smartSearchVal); 
+      var highlightedHosp = window.applySearchHighlight(hospNameShow, smartSearchVal);
+      var highlightedPurpose = window.applySearchHighlight(purposeShow, smartSearchVal);
+
+      var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
+      var prodBadges = '';
+      if (visitProds.length > 0) {
+        visitProds.forEach(function(pid) {
+            var pObj = (window.globalProductsList || []).find(function(p) { return String(p.Product_ID) === pid; });
+            var pName = pObj ? pObj.Product : pid;
+            var highlightedProdName = window.applySearchHighlight(pName, smartSearchVal);
+            prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
+        });
+      } else {
+        prodBadges = '<span class="text-muted small">-</span>';
+      }
+
+      tbody.innerHTML += '<tr>' +
+        '<td class="text-center fw-bold">' +
+          '<a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' +
+            dateShow +
+          '</a>' +
+        '</td>' +
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
+        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
+        '<td>' + prodBadges + '</td>' +
+        '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+        '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+      '</tr>';
+    });
+
+    window.renderPaginationControls(totalPages);
   };
 
   window.generateUUID = function() {
@@ -1559,7 +1894,7 @@
             if (matchedTeam) {
                 myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                 var terrs = (window.globalTerritoryList || []).filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                terrs.forEach(function(t) { myAllowedTerIds.push(String(t.Territory_ID)); });
+                terrs.forEach(function(ter) { myAllowedTerIds.push(String(ter.Territory_ID)); });
             } else if (rawScope) {
                 myAllowedTeamIds.push(rawScope); 
             }
