@@ -4,7 +4,7 @@
     border: 1px solid #eef2f6 !important;
     box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;
     background: #ffffff;
-  } 
+  }
   
   .form-control, .form-select { 
     min-height: 44px; /* ขนาดเหมาะกับ Touch Screen บน iPad */
@@ -164,7 +164,6 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
-          <!-- 🌟 เรียกผ่าน window. -->
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
@@ -565,9 +564,7 @@
 </div>
 
 <script>
-  // ==========================================
-  // 1. GLOBAL STATE VARIABLES
-  // ==========================================
+  // 🌟 1. GLOBAL STATE VARIABLES
   window.globalVisits = [];
   window.globalFilteredVisits = [];
   window.globalTotLogs = [];
@@ -619,9 +616,7 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // ==========================================
-  // 2. EXPLICIT WINDOW BINDING FOR ALL FUNCTIONS
-  // ==========================================
+  // 🌟 2. EXPLICIT WINDOW BINDING FOR ALL FUNCTIONS (แก้ปัญหา is not defined)
   
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
@@ -631,49 +626,47 @@
     return 'th';
   };
 
-  // 🌟 ฟังก์ชันดัดหลัง TomSelect เพื่อบังคับใส่ค่าตอนมันเป็นโหมด Read-Only
   window.setTomSelectValue = function(instance, value, forceText) {
       if (!instance) return;
       var wasDisabled = instance.isDisabled;
       
-      if (wasDisabled) instance.enable(); // ปลดล็อกชั่วคราว
+      if (wasDisabled) instance.enable(); 
       
-      instance.setValue(value, true); // ใส่ค่า
+      instance.setValue(value, true); 
       
       if (forceText) {
-          // บังคับเปลี่ยนข้อความ UI ให้ตรงกับภาษาทันที
           var item = instance.control.querySelector('.item');
           if (item) item.innerText = forceText;
       }
       
-      if (wasDisabled) instance.disable(); // ล็อกกลับตามเดิม
+      if (wasDisabled) instance.disable(); 
   };
 
   window.updatePurposeDisplayLang = function() {
     if (!window.tomSelectPurposeInstance) return;
     
     var visitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-    var currentVal = window.tomSelectPurposeInstance.getValue();
-    if (!currentVal) return;
+    if (!visitId) return;
+
+    var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
+    if (!v || !v.Purpose) return;
 
     var appLang = window.getCurrentAppLang();
-    var displayPurpose = currentVal; 
+    var displayPurpose = v.Purpose; 
 
-    if (window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+    if (appLang === 'en' && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
         var pType = window.VisitManagerCache.indexTypes.find(function(t) { 
             return t.Name && (t.Name.trim().toLowerCase() === 'purpose' || t.Name.trim().toLowerCase() === 'callpurpose'); 
         });
         if (pType) {
             var pIdx = window.VisitManagerCache.indexes.find(function(idx) { 
-                return idx.IndexType_ID === pType.IndexType_ID && (idx.Value === currentVal || idx.Value1 === currentVal); 
+                return String(idx.IndexType_ID) === String(pType.IndexType_ID) && (String(idx.Value) === String(v.Purpose) || String(idx.Value1) === String(v.Purpose)); 
             });
-            if (pIdx) {
-                displayPurpose = (appLang === 'en' && pIdx.Value1) ? pIdx.Value1 : pIdx.Value;
-            }
+            if (pIdx && pIdx.Value1) displayPurpose = pIdx.Value1;
         }
     }
 
-    window.setTomSelectValue(window.tomSelectPurposeInstance, currentVal, displayPurpose);
+    window.setTomSelectValue(window.tomSelectPurposeInstance, v.Purpose, displayPurpose);
   };
 
   window.toggleMainView = function(viewName) {
@@ -735,7 +728,7 @@
                   if (draft.productId && window.tomSelectProdInstance) window.setTomSelectValue(window.tomSelectProdInstance, draft.productId);
                   if (draft.purpose && window.tomSelectPurposeInstance) {
                       window.setTomSelectValue(window.tomSelectPurposeInstance, draft.purpose);
-                      window.updatePurposeDisplayLang(); // อัปเดตภาษาตามอีกที
+                      window.updatePurposeDisplayLang(); 
                   }
               }, 200);
 
@@ -1556,7 +1549,6 @@
     window.renderVisitTable();
   };
 
-  // 2. MAIN SYSTEM FUNCTIONS
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
     
@@ -1800,7 +1792,6 @@
             var textTh = i.Value || '';
             var textEn = i.Value1 || i.Value || '';
             var displayVal = (appLang === 'en') ? textEn : textTh; 
-            // 🌟 ให้ Option เป็นข้อมูลดิบ และไม่มี Data Attribute ขยะ
             purposeHtml += '<option value="' + textTh + '">' + displayVal + '</option>'; 
           });
         } else {
@@ -1824,7 +1815,6 @@
                 dropdownParent: 'body'
             });
             if (oldPurpVal) {
-                // 🌟 หากมีค่าเก่า ให้ใช้ setTomSelectValue ในการใส่ค่าและอัปเดต UI ทันที
                 setTimeout(() => {
                     window.setTomSelectValue(window.tomSelectPurposeInstance, oldPurpVal);
                     window.updatePurposeDisplayLang();
@@ -1859,9 +1849,7 @@
         filterGroup.classList.add('ready');
       }
 
-    } catch (err) { 
-      console.error("Error loading dropdowns:", err.message); 
-    }
+    } catch (err) { console.error("Error loading dropdowns:", err.message); }
   };
 
   window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
@@ -2384,6 +2372,59 @@
     }
   };
 
+  window.handleFilterChange = function(source) {
+    window.filterVisits();
+  };
+
+  window.clearVisitFilters = function() {
+      if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
+      if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
+      if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.clear(true);
+      
+      var clearTs = function(id) {
+          var el = document.getElementById(id);
+          if (el && el.tomselect) el.tomselect.clear();
+          else if (el) el.value = '';
+      };
+      
+      clearTs('filterStartDate');
+      clearTs('filterEndDate');
+      clearTs('filterVisitStatus');
+      
+      var stEl = document.getElementById('filterVisitStatus');
+      if (stEl) {
+          stEl.value = '';
+          stEl.classList.add('filter-placeholder-text');
+      }
+
+      if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
+      
+      window.filterVisits();
+  };
+
+  window.sortVisits = function(col) {
+    if (window.currentSortCol === col) {
+      window.currentSortAsc = !window.currentSortAsc; 
+    } else {
+      window.currentSortCol = col;
+      window.currentSortAsc = true; 
+    }
+
+    var cols = ['date', 'doctor', 'hospital', 'products', 'purpose', 'status'];
+    cols.forEach(function(c) {
+      var icon = document.getElementById('icon-sort-' + c);
+      if (icon) {
+        if (c === window.currentSortCol) {
+          icon.className = window.currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    window.filterVisits(false); 
+  };
+
   window.openEditVisitView = async function(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2657,6 +2698,605 @@
     }
   };
 
+  window.requestUnlockVisit = async function(visitId) {
+    var btn = document.getElementById('saveVisitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...';
+
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+
+    var payload = {
+      Action: 'Unlock Visit',
+      Ref_ID: visitId,
+      Requested_Data: JSON.stringify({ Status: 'Pending' }),
+      Status: 'Pending',
+      Whoupdated: whoUpdated
+    };
+
+    try {
+      var res = await supabaseClient.from('DCR').insert([payload]);
+      if (res.error) throw res.error;
+      window.showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
+      
+      var returnDocId = sessionStorage.getItem('returnToDocId');
+      if (returnDocId) {
+        sessionStorage.removeItem('returnToDocId');
+        window.returnToDoctorProfile(returnDocId); 
+      } else {
+        window.switchVisitView('visitListView');
+        await window.loadVisits(true); 
+      }
+    } catch(err) {
+      window.showToast("❌ Error: " + err.message, "error");
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
+    }
+  };
+
+  window.toggleVisitFormEditable = function(isEditable) {
+    var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
+    var formView = document.getElementById('visitFormView');
+
+    if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
+      if (isEditable) window.tomSelectDocInstance.enable();
+      else window.tomSelectDocInstance.disable();
+    }
+    
+    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
+      if (isEditable) window.tomSelectProdInstance.enable();
+      else window.tomSelectProdInstance.disable();
+    }
+    
+    if (typeof window.tomSelectPurposeInstance !== 'undefined' && window.tomSelectPurposeInstance) {
+      if (isEditable) window.tomSelectPurposeInstance.enable();
+      else window.tomSelectPurposeInstance.disable();
+    }
+
+    if (formView) {
+      if(isEditable) formView.classList.remove('disabled-ts');
+      else formView.classList.add('disabled-ts');
+    }
+
+    fields.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.disabled = !isEditable;
+    });
+
+    var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'];
+    btns.forEach(function(id) {
+      var btn = document.getElementById(id);
+      if (btn) btn.disabled = !isEditable;
+    });
+  };
+
+  window.openAddTotModal = function() {
+      document.getElementById('totId').value = '';
+      document.getElementById('totStartDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('totEndDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('totStartTime').value = '';
+      document.getElementById('totEndTime').value = '';
+      document.getElementById('totRemark').value = '';
+      document.getElementById('totStatus').value = 'Approved'; 
+      
+      window.populateTotTypes();
+
+      var btnDelete = document.getElementById('btnDeleteTot');
+      if(btnDelete) btnDelete.classList.add('d-none');
+
+      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
+      
+      if(window.totModalInstance) window.totModalInstance.show();
+  };
+
+  window.openEditTotModal = function(id) {
+      var tot = (window.globalTotLogs || []).find(function(t) { return t.TOT_ID === id; });
+      if(!tot) return;
+
+      document.getElementById('totId').value = tot.TOT_ID;
+      document.getElementById('totStartDate').value = tot.Start_Date || '';
+      document.getElementById('totEndDate').value = tot.End_Date || '';
+      document.getElementById('totStartTime').value = window.formatTimeString(tot.Start_Time);
+      document.getElementById('totEndTime').value = window.formatTimeString(tot.End_Time);
+      document.getElementById('totRemark').value = tot.Remark || '';
+      document.getElementById('totStatus').value = tot.Status || 'Approved';
+
+      window.populateTotTypes();
+      setTimeout(function() { document.getElementById('totType').value = tot.TOT_Type; }, 50);
+
+      var btnDelete = document.getElementById('btnDeleteTot');
+      if(btnDelete) btnDelete.classList.remove('d-none');
+
+      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
+
+      if(window.totModalInstance) window.totModalInstance.show();
+  };
+
+  window.populateTotTypes = function() {
+      var select = document.getElementById('totType');
+      if(!select) return;
+
+      var appLang = window.getCurrentAppLang();
+      var types = (window.VisitManagerCache ? window.VisitManagerCache.indexTypes : []) || [];
+      var indexes = (window.VisitManagerCache ? window.VisitManagerCache.indexes : []) || [];
+      var tType = types.find(t => t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'));
+      
+      var html = '<option value="">-- ' + (appLang === 'en' ? 'Select Type' : 'เลือกประเภท') + ' --</option>';
+      
+      if (tType) {
+          var items = indexes.filter(i => i.IndexType_ID === tType.IndexType_ID);
+          items.forEach(i => {
+              var textTh = i.Value || '';
+              var textEn = i.Value1 || i.Value || '';
+              var display = appLang === 'en' ? textEn : textTh;
+              html += '<option value="'+textTh+'">'+display+'</option>';
+          });
+      } else {
+          html += '<option value="Annual Leave">Annual Leave (ลาพักร้อน)</option>' +
+                  '<option value="Sick Leave">Sick Leave (ลาป่วย)</option>' +
+                  '<option value="Internal Meeting">Internal Meeting (ประชุมภายใน)</option>' +
+                  '<option value="Training">Training (อบรม)</option>';
+      }
+      select.innerHTML = html;
+  };
+
+  window.handleSaveTot = async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('saveTotBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+      var id = document.getElementById('totId').value;
+      var crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
+      var repId = crmUser.Rep_ID || crmUser.id || null;
+      var whoUpdated = crmUser.Email || crmUser.Rep_Name || 'Unknown';
+      
+      var payload = {
+          Rep_ID: repId,
+          TOT_Type: document.getElementById('totType').value,
+          Start_Date: document.getElementById('totStartDate').value,
+          End_Date: document.getElementById('totEndDate').value || document.getElementById('totStartDate').value,
+          Start_Time: document.getElementById('totStartTime').value || null,
+          End_Time: document.getElementById('totEndTime').value || null,
+          Remark: document.getElementById('totRemark').value,
+          Status: document.getElementById('totStatus').value,
+          Whoupdated: whoUpdated,
+          Whenupdated: new Date().toISOString()
+      };
+
+      try {
+          if(id) {
+              var {error} = await supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id);
+              if(error) throw error;
+          } else {
+              payload.TOT_ID = window.generateUUID();
+              var {error} = await supabaseClient.from('TOT_Logs').insert([payload]);
+              if(error) throw error;
+          }
+          window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
+          if(window.totModalInstance) window.totModalInstance.hide();
+          await window.loadVisits(true);
+      } catch(err) {
+          window.showToast("Error: " + err.message, "error");
+      } finally {
+          btn.disabled = false;
+          btn.innerHTML = '💾 Save';
+      }
+  };
+
+  window.deleteTot = async function() {
+      var id = document.getElementById('totId').value;
+      if(!id) return;
+
+      var appLang = window.getCurrentAppLang();
+      var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
+      if (!confirm(confirmMsg)) return;
+
+      try {
+          var {error} = await supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
+          if (error) throw error;
+          window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
+          if(window.totModalInstance) window.totModalInstance.hide();
+          await window.loadVisits(true);
+      } catch(err) {
+          window.showToast("Error: " + err.message, "error");
+      }
+  };
+
+  window.toggleDocDictation = function() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return window.showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
+    }
+
+    var btn = document.getElementById('btnMicDoc');
+    var icon = document.getElementById('micDocIcon');
+
+    if (window.docRecognition) {
+      window.docRecognition.stop();
+      window.docRecognition = null;
+      if (btn && icon) {
+        btn.classList.remove('mic-active');
+        icon.classList.remove('fa-fade');
+      }
+      return;
+    }
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.docRecognition = new SpeechRecognition();
+    window.docRecognition.lang = 'th-TH';
+    window.docRecognition.continuous = false;
+
+    if (btn && icon) {
+      btn.classList.add('mic-active');
+      icon.classList.add('fa-fade');
+    }
+
+    window.docRecognition.onresult = function(event) {
+      var spokenText = event.results[0][0].transcript.trim().toLowerCase();
+      
+      if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
+        window.tomSelectDocInstance.focus();
+        window.tomSelectDocInstance.setTextboxValue(spokenText);
+        var options = window.tomSelectDocInstance.options;
+        var matchedId = null;
+        for (var id in options) {
+          var text = (options[id].text || '').toLowerCase();
+          if (text.indexOf(spokenText) !== -1) {
+            matchedId = id;
+            break;
+          }
+        }
+        if (matchedId) {
+          window.tomSelectDocInstance.setValue(matchedId);
+          window.tomSelectDocInstance.setTextboxValue('');
+          window.tomSelectDocInstance.blur();
+        }
+      }
+      window.stopDocDictation();
+    };
+
+    window.docRecognition.onerror = window.stopDocDictation;
+    window.docRecognition.onend = window.stopDocDictation;
+    window.docRecognition.start();
+  };
+
+  window.stopDocDictation = function() {
+    if (window.docRecognition) {
+      window.docRecognition.stop();
+      window.docRecognition = null;
+    }
+    var btn = document.getElementById('btnMicDoc');
+    var icon = document.getElementById('micDocIcon');
+    if (btn && icon) {
+      btn.classList.remove('mic-active');
+      icon.classList.remove('fa-fade');
+    }
+  };
+
+  window.toggleTextDictation = function(targetInputId, btnId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return window.showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
+    }
+
+    var btn = document.getElementById(btnId);
+
+    if (window.textRecognition && window.currentDictTargetId === targetInputId) {
+      window.stopTextDictation();
+      return;
+    }
+
+    if (window.textRecognition) window.stopTextDictation();
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.textRecognition = new SpeechRecognition();
+    window.textRecognition.lang = 'th-TH';
+    window.textRecognition.continuous = true;
+    window.textRecognition.interimResults = false;
+
+    window.currentDictTargetId = targetInputId;
+    window.currentDictBtnId = btnId;
+
+    if (btn) btn.classList.add('mic-active');
+
+    window.textRecognition.onresult = function(event) {
+      var spokenText = event.results[event.results.length - 1][0].transcript.trim();
+      var inputEl = document.getElementById(targetInputId);
+      if (inputEl && spokenText) {
+        var currentVal = inputEl.value;
+        inputEl.value = currentVal ? (currentVal + ' ' + spokenText) : spokenText;
+        window.saveFormDraft(); 
+      }
+    };
+
+    window.textRecognition.onerror = window.stopTextDictation;
+    window.textRecognition.onend = window.stopTextDictation;
+    window.textRecognition.start();
+  };
+
+  window.stopTextDictation = function() {
+    if (window.textRecognition) {
+      window.textRecognition.stop();
+      window.textRecognition = null;
+    }
+    if (window.currentDictBtnId) {
+      var btn = document.getElementById(window.currentDictBtnId);
+      if (btn) btn.classList.remove('mic-active');
+    }
+    window.currentDictTargetId = null;
+    window.currentDictBtnId = null;
+  };
+
+  window.toggleSpeechSearch = function(inputId, btnId, iconId) {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      return window.showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
+    }
+
+    if (window.searchRecognition && window.currentSearchInputId === inputId) {
+      window.stopSearchDictation();
+      return;
+    }
+
+    if (window.searchRecognition) window.stopSearchDictation();
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.searchRecognition = new SpeechRecognition();
+    window.searchRecognition.lang = 'th-TH';
+    window.searchRecognition.continuous = false;
+    window.searchRecognition.interimResults = false;
+
+    window.currentSearchInputId = inputId;
+    window.currentSearchBtnId = btnId;
+    window.currentSearchIconId = iconId;
+
+    var btn = document.getElementById(btnId);
+    var icon = document.getElementById(iconId);
+
+    if (btn && icon) {
+      btn.classList.add('mic-active');
+      icon.classList.add('fa-fade');
+    }
+
+    window.searchRecognition.onresult = function(event) {
+      var spokenText = event.results[0][0].transcript.trim();
+      var inputEl = document.getElementById(inputId);
+      if (inputEl && spokenText) {
+          inputEl.value = spokenText;
+          window.debouncedFilterVisits();
+      }
+      window.stopSearchDictation();
+    };
+
+    window.searchRecognition.onerror = window.stopSearchDictation;
+    window.searchRecognition.onend = window.stopSearchDictation;
+    window.searchRecognition.start();
+  };
+
+  window.stopSearchDictation = function() {
+    if (window.searchRecognition) {
+      window.searchRecognition.stop();
+      window.searchRecognition = null;
+    }
+    if (window.currentSearchBtnId && window.currentSearchIconId) {
+      var btn = document.getElementById(window.currentSearchBtnId);
+      var icon = document.getElementById(window.currentSearchIconId);
+      if (btn && icon) {
+        btn.classList.remove('mic-active');
+        icon.classList.remove('fa-fade');
+      }
+    }
+    window.currentSearchInputId = null;
+    window.currentSearchBtnId = null;
+    window.currentSearchIconId = null;
+  };
+
+  window.setQuickTime = function(type, addMinutes) {
+    var now = new Date();
+    if (type === 'start') {
+      var hours = String(now.getHours()).padStart(2, '0');
+      var minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('visitStartTime').value = hours + ':' + minutes;
+    } else if (type === 'end') {
+      var startVal = document.getElementById('visitStartTime').value;
+      var baseDate = new Date();
+      if (startVal) {
+        var parts = startVal.split(':');
+        baseDate.setHours(parseInt(parts[0]), parseInt(parts[1]), 0);
+      }
+      baseDate.setMinutes(baseDate.getMinutes() + addMinutes);
+      var endHours = String(baseDate.getHours()).padStart(2, '0');
+      var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
+      document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
+    }
+    window.saveFormDraft();
+  };
+
+  window.openMediaPresentation = async function(mediaId, isPreview) {
+    window.globalIsMediaPreviewMode = isPreview || false;
+
+    var media = (window.globalAllMediaList || []).find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    if (!media) return window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error");
+
+    var visitIdInput = document.getElementById('visitId');
+    if (visitIdInput && !visitIdInput.value) {
+      visitIdInput.value = window.generateUUID();
+    }
+
+    window.currentActiveMedia = media;
+    window.presentationStartTime = new Date();
+    window.pageLogsBuffer = [];
+    window.currentPdfPage = 1;
+    window.currentPageStartTime = new Date();
+
+    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+    document.getElementById('mediaModalTitle').innerHTML = 
+      '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
+
+    var modalBody = document.getElementById('mediaModalBody');
+    var pdfControls = document.getElementById('pdfControls');
+
+    if (media.Type === 'Video') {
+      if (pdfControls) pdfControls.classList.add('d-none');
+      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
+    } else {
+      if (pdfControls) pdfControls.classList.remove('d-none');
+      modalBody.innerHTML = 
+        '<div id="pdfCanvasContainer">' +
+          '<canvas id="pdfRenderCanvas"></canvas>' +
+        '</div>';
+
+      try {
+        var loadingTask = pdfjsLib.getDocument(media.File_URL);
+        window.pdfDocInstance = await loadingTask.promise;
+        window.totalPdfPages = window.pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
+        document.getElementById('pdfPageNum').value = 1;
+        window.renderPdfPage(1);
+      } catch(e) {
+        console.error("PDF.js Load Error:", e);
+        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      }
+    }
+
+    var secondsElapsed = 0;
+    document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
+    
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.presentationTimerInterval = setInterval(function() {
+      secondsElapsed++;
+      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      var s = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
+    }, 1000);
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  };
+
+  window.renderPdfPage = async function(num) {
+    if (!window.pdfDocInstance) return;
+    try {
+      var page = await window.pdfDocInstance.getPage(num);
+      var canvas = document.getElementById('pdfRenderCanvas');
+      if (!canvas) return;
+
+      var context = canvas.getContext('2d');
+      var viewport = page.getViewport({ scale: 1.5 });
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      var renderContext = { canvasContext: context, viewport: viewport };
+      await page.render(renderContext).promise;
+    } catch(e) {
+      console.error("Render Page Error:", e);
+    }
+  };
+
+  window.recordCurrentPageLog = function() {
+    if (window.currentPageStartTime) {
+      var now = new Date();
+      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
+      if (durationSec >= 5) {
+          window.pageLogsBuffer.push({
+            Page_Number: window.currentPdfPage,
+            Duration_Second: durationSec,
+            Whenopend: window.currentPageStartTime.toISOString()
+          });
+      }
+    }
+  };
+
+  window.prevPdfPage = function() {
+    if (window.currentPdfPage <= 1) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage--;
+    window.currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.nextPdfPage = function() {
+    if (window.currentPdfPage >= window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage++;
+    window.currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.jumpPdfPage = function() {
+    var val = parseInt(document.getElementById('pdfPageNum').value);
+    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage = val;
+    window.currentPageStartTime = new Date();
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.closeMediaPresentation = async function() {
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+
+    window.recordCurrentPageLog();
+
+    var now = new Date();
+    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
+    var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
+
+    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+      var crmUser = null;
+      try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+
+      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
+
+      var logPayload = {
+        Visit_ID: targetVisitId,
+        Media_ID: window.currentActiveMedia.Media_ID,
+        Duration_Seconds: durationToSave,
+        Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(),
+        Whoupdated: whoUpdated
+      };
+
+      try {
+        var logRes = await supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+        
+        if (!logRes.error && logRes.data && logRes.data.length > 0) {
+          var createdLogId = logRes.data[0].Log_ID;
+
+          if (window.pageLogsBuffer.length > 0) {
+            var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
+              return {
+                Log_ID: createdLogId,
+                Page_Number: pLog.Page_Number,
+                Duration_Seconds: pLog.Duration_Second,
+                Whenopend: pLog.Whenopend,
+                Whoupdated: whoUpdated
+              };
+            });
+
+            var pageRes = await supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+            if (pageRes.error) {
+              console.error("❌ Insert Visit_Detailing_Pages error:", pageRes.error.message);
+            }
+          }
+        }
+      } catch(err) {
+        console.error("❌ Close Media Catch error:", err);
+      }
+    }
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    document.getElementById('mediaModalBody').innerHTML = '';
+    window.currentActiveMedia = null;
+    window.presentationStartTime = null;
+    window.pdfDocInstance = null;
+  };
+
   // INITIALIZE SYSTEM STARTUP
   setTimeout(async function() { 
     try {
@@ -2695,7 +3335,6 @@
                   var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : 'NEW';
                   if (formView && !formView.classList.contains('d-none')) {
                       window.restoreFormDraft(currentVisitId);
-                      // บังคับอัปเดตภาษาข้อความ Purpose ที่เปิดค้างอยู่
                       window.updatePurposeDisplayLang();
                   }
               }); 
