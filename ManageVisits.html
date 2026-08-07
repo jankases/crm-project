@@ -164,19 +164,19 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
-          <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
-          <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
+          <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
+          <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
-        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
+        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
-        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
+        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
 
-        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2 ms-1" onclick="window.openAddVisitView()">
+        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2 ms-1" onclick="openAddVisitView()">
           <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
@@ -220,8 +220,8 @@
         <div class="col-12 col-lg-5">
           <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
-            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="debouncedFilterVisits()">
+            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
               <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
             </button>
           </div>
@@ -229,14 +229,14 @@
 
         <div class="col-12 col-sm-6 col-lg-3">
           <div class="input-group input-group-sm border rounded-pill px-2 py-1 bg-white">
-            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()" style="font-size: 0.85rem;">
+            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="filterVisits()" style="font-size: 0.85rem;">
             <span class="align-self-center text-muted">-</span>
-            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="window.filterVisits()" style="font-size: 0.85rem;">
+            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="filterVisits()" style="font-size: 0.85rem;">
           </div>
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2">
-          <select class="form-select border rounded-pill shadow-none filter-placeholder-text" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();" style="font-weight: 500; font-size: 0.9rem;">
+          <select class="form-select border rounded-pill shadow-none filter-placeholder-text" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); filterVisits();" style="font-weight: 500; font-size: 0.9rem;">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
             <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
@@ -247,7 +247,7 @@
           <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
             <i class="fa-solid fa-sliders"></i>
           </button>
-          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" onclick="clearVisitFilters()" title="Clear All Filters">
             <i class="fa-solid fa-eraser"></i>
           </button>
         </div>
@@ -259,11 +259,11 @@
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
             <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User / Sales Rep</label>
-            <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
+            <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="handleFilterChange('rep')"></select>
           </div>
           <div class="col-sm-12 col-md-6">
             <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory">Area / Team</label>
-            <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('territory')"></select>
+            <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="handleFilterChange('territory')"></select>
           </div>
         </div>
       </div>
@@ -275,12 +275,12 @@
         <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
             <tr>
-              <th class="py-3 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-              <th class="py-3 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-              <th class="py-3 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-              <th class="py-3 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-              <th class="py-3 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-              <th class="py-3 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+              <th class="py-3 sortable-th" onclick="sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
@@ -292,7 +292,7 @@
       <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-          <select class="form-select form-select-sm shadow-sm" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
+          <select class="form-select form-select-sm shadow-sm" id="visitRowsPerPage" onchange="changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
             <option value="10">10</option>
             <option value="20" selected>20</option>
             <option value="50">50</option>
@@ -326,14 +326,14 @@
   <!-- 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="window.cancelVisitForm()">
+      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
     </div>
 
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card">
-      <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="d-flex flex-column">
+      <form id="visitForm" onsubmit="handleSaveVisit(event)" novalidate class="d-flex flex-column">
         <input type="hidden" id="visitId">
 
         <div class="p-3 rounded-4 mb-4 border bg-light shadow-xs">
@@ -360,7 +360,7 @@
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                   <div class="input-group shadow-sm" style="border-radius: 12px;">
                     <select class="form-select bg-white" id="visitDocId" required></select>
-                    <button class="btn btn-outline-danger bg-white border-start-0 px-3" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Search">
+                    <button class="btn btn-outline-danger bg-white border-start-0 px-3" type="button" id="btnMicDoc" onclick="toggleDocDictation()" title="Voice Search">
                       <i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i>
                     </button>
                   </div>
@@ -368,7 +368,7 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="window.loadProductMedia()"></select>
+                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="loadProductMedia()"></select>
                 </div>
 
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
@@ -392,7 +392,7 @@
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_start_time">Start Time</label>
-                      <button type="button" class="btn btn-outline-primary quick-time-btn" id="btnQuickNow" onclick="window.setQuickTime('start', 0)">[ตอนนี้]</button>
+                      <button type="button" class="btn btn-outline-primary quick-time-btn" id="btnQuickNow" onclick="setQuickTime('start', 0)">[ตอนนี้]</button>
                     </div>
                     <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
                   </div>
@@ -400,8 +400,8 @@
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_end_time">End Time</label>
                       <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick30" onclick="window.setQuickTime('end', 30)">[+30ม.]</button>
-                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick60" onclick="window.setQuickTime('end', 60)">[+1ชม.]</button>
+                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick30" onclick="setQuickTime('end', 30)">[+30ม.]</button>
+                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick60" onclick="setQuickTime('end', 60)">[+1ชม.]</button>
                       </div>
                     </div>
                     <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
@@ -420,7 +420,7 @@
                 <div class="mb-3 d-flex flex-column flex-grow-1">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicDetails" onclick="toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
@@ -430,7 +430,7 @@
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_insight">Insight</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicInsight" onclick="toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
@@ -440,7 +440,7 @@
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_next_action">Next Action</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicNextAction" onclick="toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
@@ -463,7 +463,7 @@
               <!-- Status -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="window.loadProductMedia()">
+                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
                 </select>
@@ -475,7 +475,7 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
         </div>
       </form>
@@ -491,13 +491,13 @@
       <div class="modal-header bg-dark text-white py-2 px-3">
         <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
         <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
-          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
-          <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="window.jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
-          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
+          <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
+          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
         </div>
         <div class="d-flex align-items-center gap-3">
           <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
-          <button type="button" class="btn-close btn-close-white" onclick="window.closeMediaPresentation()"></button>
+          <button type="button" class="btn-close btn-close-white" onclick="closeMediaPresentation()"></button>
         </div>
       </div>
       <div class="modal-body p-0 bg-black" id="mediaModalBody"></div>
@@ -512,7 +512,7 @@
         <h5 class="modal-title fw-bold text-info" id="totModalTitle"><i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT (Time Off Territory)</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form onsubmit="window.handleSaveTot(event)">
+      <form onsubmit="handleSaveTot(event)">
         <div class="modal-body p-4">
           <input type="hidden" id="totId">
           <div class="mb-3">
@@ -552,7 +552,7 @@
           </div>
         </div>
         <div class="modal-footer border-0 pt-0 d-flex justify-content-between gap-2">
-          <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
+          <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-4 d-none" id="btnDeleteTot" onclick="deleteTot()">Delete</button>
           <div class="d-flex gap-2 ms-auto">
               <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal">Cancel</button>
               <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" id="saveTotBtn">💾 Save</button>
@@ -616,16 +616,17 @@
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 
-  // 1. ALL HELPER & UTILITY FUNCTIONS DECLARED ON TOP (แก้ปัญหา Undefined ทั้งหมด)
-  window.getCurrentAppLang = function() {
+  // 🌟 FUNCTION DECLARATIONS (Function Hoisting สำหรับทั้งระบบ)
+  function getCurrentAppLang() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
       return 'en';
     }
     return 'th';
-  };
+  }
+  window.getCurrentAppLang = getCurrentAppLang;
 
-  window.checkMyDraftsReminder = function(myDraftCount) {
+  function checkMyDraftsReminder(myDraftCount) {
     var toastContainer = document.getElementById('draftToastContainer');
     if (!toastContainer) return;
 
@@ -647,16 +648,18 @@
     } else {
       toastContainer.innerHTML = '';
     }
-  };
+  }
+  window.checkMyDraftsReminder = checkMyDraftsReminder;
 
-  window.formatDateToLocal = function(dateStr) {
+  function formatDateToLocal(dateStr) {
       if (!dateStr) return '-';
       var d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString(); 
-  };
+  }
+  window.formatDateToLocal = formatDateToLocal;
 
-  window.formatTimeString = function(timeStr) {
+  function formatTimeString(timeStr) {
     if (!timeStr) return '';
     var str = String(timeStr).trim();
     if (str.indexOf(':') !== -1) {
@@ -664,9 +667,10 @@
       return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0');
     }
     return str;
-  };
+  }
+  window.formatTimeString = formatTimeString;
 
-  window.applySearchHighlight = function(text, searchKeyword) {
+  function applySearchHighlight(text, searchKeyword) {
     if (!text) return '-';
     if (!searchKeyword || searchKeyword.trim() === '') return text;
     
@@ -683,11 +687,12 @@
     });
 
     return safeText;
-  };
+  }
+  window.applySearchHighlight = applySearchHighlight;
 
-  window.getDoctorNameByLang = function(docObj, defaultId) {
+  function getDoctorNameByLang(docObj, defaultId) {
     if (!docObj) return defaultId || '-';
-    var lang = window.getCurrentAppLang();
+    var lang = getCurrentAppLang();
     if (lang === 'en') {
       return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
     } else {
@@ -695,10 +700,11 @@
       if (docObj.Doc_Name_TH && !hasQuestionMarks) return docObj.Doc_Name_TH;
       return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
     }
-  };
+  }
+  window.getDoctorNameByLang = getDoctorNameByLang;
 
-  window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
-    var lang = window.getCurrentAppLang();
+  function getHospitalNameFromDocOrVisit(docObj, visitObj) {
+    var lang = getCurrentAppLang();
     var targetPrimaryHospId = null;
 
     if (docObj) {
@@ -770,10 +776,11 @@
     }
 
     return '-';
-  };
+  }
+  window.getHospitalNameFromDocOrVisit = getHospitalNameFromDocOrVisit;
 
-  window.updateFormUserInfo = function(repObj, fallbackTerrId) {
-    var appLang = window.getCurrentAppLang();
+  function updateFormUserInfo(repObj, fallbackTerrId) {
+    var appLang = getCurrentAppLang();
     var repNameShow = '-';
     var locNameShow = '-';
     var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory'; 
@@ -841,16 +848,18 @@
         terLabelEl.removeAttribute('data-i18n');
         terLabelEl.innerText = labelText;
     }
-  };
+  }
+  window.updateFormUserInfo = updateFormUserInfo;
 
-  window.initUserInfo = function() {
+  function initUserInfo() {
     try {
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      window.updateFormUserInfo(crmUser, null);
+      updateFormUserInfo(crmUser, null);
     } catch(e) {}
-  };
+  }
+  window.initUserInfo = initUserInfo;
 
-  window.fetchAllRecords = async function(tableName, queryModifier) {
+  async function fetchAllRecords(tableName, queryModifier) {
       var allData = [];
       var start = 0;
       var step = 1000;
@@ -864,9 +873,10 @@
           start += step;
       }
       return allData;
-  };
+  }
+  window.fetchAllRecords = fetchAllRecords;
 
-  window.fetchDetailingMedia = async function() {
+  async function fetchDetailingMedia() {
     try {
       var res = await supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
       if (!res.error && res.data) {
@@ -875,40 +885,384 @@
     } catch(e) {
       console.error("Fetch Detailing Media Error:", e);
     }
-  };
+  }
+  window.fetchDetailingMedia = fetchDetailingMedia;
 
-  window.generateUUID = function() {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
+  function toggleMainView(viewName) {
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    window.VisitManagerCache.currentMainView = viewName;
+    var btnList = document.getElementById('btnToggleList');
+    var btnCal = document.getElementById('btnToggleCal');
+    var listZone = document.getElementById('visitListZone');
+    var calZone = document.getElementById('visitCalendarZone');
+
+    if (viewName === 'calendar') {
+        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        
+        if (listZone) listZone.classList.add('d-none');
+        if (calZone) calZone.classList.remove('d-none');
+        
+        renderCalendarView();
+    } else {
+        if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        
+        if (calZone) calZone.classList.add('d-none');
+        if (listZone) listZone.classList.remove('d-none');
+    }
+  }
+  window.toggleMainView = toggleMainView;
+
+  function renderCalendarView() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+    
+    var appLang = getCurrentAppLang(); 
+
+    var visitEvents = (window.globalFilteredVisits || []).map(function(v) {
+        var docObj = (window.globalAllDoctors || []).find(function(d) {
+            return String(d.Doc_ID || d.id).trim().toLowerCase() === String(v.Doc_ID).trim().toLowerCase();
+        });
+        var docName = getDoctorNameByLang(docObj, v.Doc_ID);
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v);
+        
+        var purposeShow = v.Purpose || '-';
+        if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+            var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name.toLowerCase() === 'purpose'; });
+            if (pType) {
+                var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+                if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
+            }
+        }
+
+        var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
+        if (dateOnly.indexOf('/') !== -1) {
+             var vParts = dateOnly.split('/');
+             if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
+        }
+
+        var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
+        var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
+        var baseTitle = timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        
+        var tooltipLabel = appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ';
+        var fullTooltipText = baseTitle + '\n' + tooltipLabel + purposeShow;
+        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
+
+        var isPending = (v.Status === 'Pending');
+        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+        
+        var bgColor = '#10b981'; 
+        if (isPendingUnlock) bgColor = '#64748b'; 
+        else if (isPending) bgColor = '#f59e0b'; 
+        
+        return {
+            id: v.Visit_ID,
+            title: baseTitle, 
+            start: dateOnly, 
+            allDay: true,    
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff', 
+            display: 'block',     
+            extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
+        };
+    });
+
+    var holidayEvents = [];
+    var companyEvents = []; 
+
+    if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+        var holidayType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name && (t.Name.trim().toLowerCase() === 'public holiday' || t.Name.trim().toLowerCase() === 'holiday');
+        });
+
+        if (holidayType) {
+            var holidayData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === holidayType.IndexType_ID;
+            });
+
+            holidayEvents = holidayData.map(function(h) {
+                var holidayTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || 'Holiday');
+                var hDate = '';
+                if (h.Value) {
+                    hDate = h.Value.split('T')[0];
+                    if (hDate.indexOf('/') !== -1) {
+                         var dParts = hDate.split('/');
+                         if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0];
+                    }
+                }
+
+                return {
+                    id: 'hol_' + h.Index_ID,
+                    title: holidayTitle, 
+                    start: hDate, 
+                    allDay: true,
+                    backgroundColor: '#ef4444',             
+                    borderColor: '#ef4444',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: holidayTitle }
+                };
+            });
+        }
+
+        var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) {
+            return t.Name && (t.Name.trim().toLowerCase() === 'company event' || t.Name.trim().toLowerCase() === 'corporate holiday');
+        });
+
+        if (companyEventType) {
+            var companyData = window.VisitManagerCache.indexes.filter(function(i) {
+                return i.IndexType_ID === companyEventType.IndexType_ID;
+            });
+
+            companyEvents = companyData.map(function(c) {
+                var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || 'Company Event');
+                var cDate = '';
+                if (c.Value) {
+                    cDate = c.Value.split('T')[0];
+                    if (cDate.indexOf('/') !== -1) {
+                         var dParts2 = cDate.split('/');
+                         if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0];
+                    }
+                }
+
+                return {
+                    id: 'ce_' + c.Index_ID,
+                    title: cTitle, 
+                    start: cDate, 
+                    allDay: true,
+                    backgroundColor: '#8b5cf6',
+                    borderColor: '#8b5cf6',
+                    textColor: '#ffffff',
+                    display: 'block',
+                    extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: cTitle }
+                };
+            });
+        }
+    }
+
+    var totEvents = (window.globalFilteredTotLogs || []).map(function(t) {
+        var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+        var displayType = t.TOT_Type || 'Time Off';
+        
+        if (appLang === 'en' && window.VisitManagerCache.indexes) {
+            var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+            if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+        }
+
+        var baseTitle = timePrefix + '[TOT] ' + displayType;
+        var ttLabel = appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ';
+        var fullTooltipText = baseTitle + (t.Remark ? '\n' + ttLabel + t.Remark : '');
+        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+
+        var startDate = '';
+        if (t.Start_Date) {
+            startDate = t.Start_Date.split('T')[0];
+            if (startDate.indexOf('/') !== -1) {
+                var p1 = startDate.split('/');
+                if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0];
+            }
+        }
+
+        var endDateStr = '';
+        if (t.End_Date && t.End_Date !== t.Start_Date) {
+            endDateStr = t.End_Date.split('T')[0];
+            if (endDateStr.indexOf('/') !== -1) {
+                var p2 = endDateStr.split('/');
+                if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0];
+            }
+            var eDate = new Date(endDateStr);
+            eDate.setDate(eDate.getDate() + 1); 
+            endDateStr = eDate.toISOString().split('T')[0];
+        }
+
+        var ev = {
+            id: 'tot_' + t.TOT_ID,
+            title: baseTitle,
+            start: startDate,
+            allDay: true, 
+            backgroundColor: bgColor,
+            borderColor: bgColor,
+            textColor: '#ffffff',
+            display: 'block',
+            extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
+        };
+
+        if (endDateStr) ev.end = endDateStr;
+        return ev;
+    });
+
+    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
+
+    if (window.globalCalendarInstance) {
+        window.globalCalendarInstance.removeAllEvents();
+        window.globalCalendarInstance.addEventSource(allEvents);
+        window.globalCalendarInstance.render();
+    } else {
+        window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: allEvents,
+            eventDidMount: function(info) {
+                var tooltipMsg = info.event.extendedProps.fullTooltip || info.event.title;
+                info.el.setAttribute('title', tooltipMsg);
+            },
+            eventClick: function(info) {
+                if (info.event.extendedProps.isHoliday) return; 
+                if (info.event.extendedProps.isTot) {
+                    openEditTotModal(info.event.extendedProps.totId);
+                    return;
+                }
+                openEditVisitView(info.event.id);
+            },
+            dateClick: function(info) {
+                openAddVisitView(info.dateStr); 
+            },
+            displayEventTime: false 
+        });
+        window.globalCalendarInstance.render();
+    }
+  }
+  window.renderCalendarView = renderCalendarView;
+
+  function renderVisitTable() {
+    var tbody = document.getElementById('visitTableBody');
+    if (!tbody) return; 
+
+    tbody.innerHTML = '';
+    var data = window.globalFilteredVisits || [];
+
+    if (!Array.isArray(data) || data.length === 0) {
+        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
+        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No visit records found for the selected period.</td></tr>';
+    }
+
+    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
+
+    var totalItems = data.length;
+    var totalPages = Math.ceil(totalItems / window.rowsPerPage);
+    if (window.currentPage > totalPages) window.currentPage = totalPages;
+    if (window.currentPage < 1) window.currentPage = 1;
+
+    var startIndex = (window.currentPage - 1) * window.rowsPerPage;
+    var endIndex = Math.min(startIndex + window.rowsPerPage, totalItems);
+    
+    if (document.getElementById('visitPageInfo')) document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
+
+    var paginatedData = data.slice(startIndex, endIndex);
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    var appLang = getCurrentAppLang(); 
+
+    paginatedData.forEach(function(v) {
+      var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+      var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
+      var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
+
+      if (isPendingUnlock) {
+        badgeClass = 'badge-soft-secondary';
+        statusShow = '⏳ Pending Unlock';
+      }
+
+      var dateShow = formatDateToLocal(v.Visit_Date);
+
+      var docObj = (window.globalAllDoctors || []).find(function(d) {
+        return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
       });
-  };
 
-  window.showToast = function(message, type = 'success') {
-    var container = document.getElementById('toastContainer');
-    if (!container) return;
-    var icon = type === 'success' ? 'fa-check-circle text-success' : (type === 'error' ? 'fa-circle-xmark text-danger' : 'fa-circle-exclamation text-warning');
-    var toastId = 'toast_' + Date.now();
-    var toastHtml = 
-      '<div id="' + toastId + '" class="toast align-items-center bg-white border-0 shadow-sm mb-2" role="alert" aria-live="assertive" aria-atomic="true">' +
-        '<div class="d-flex p-2">' +
-          '<div class="toast-body d-flex align-items-center fw-bold text-dark">' +
-            '<i class="fa-solid ' + icon + ' fs-4 me-3"></i> ' +
-            '<span style="white-space: pre-line;">' + message + '</span>' +
-          '</div>' +
-          '<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
-        '</div>' +
-      '</div>';
-    container.insertAdjacentHTML('beforeend', toastHtml);
-    var toastEl = document.getElementById(toastId);
-    var toast = new bootstrap.Toast(toastEl, { delay: type === 'error' ? 5000 : 3000 });
-    toast.show();
-    toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
-  };
+      var docNameShow = getDoctorNameByLang(docObj, v.Doc_ID);
+      var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
+      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
+      var docWithBadge = docNameShow + coachingBadge;
 
-  // 2. MAIN SYSTEM FUNCTIONS
-  window.loadDropdowns = async function(forceReload) {
+      var hospNameShow = getHospitalNameFromDocOrVisit(docObj, v);
+      
+      var purposeShow = v.Purpose || '-';
+      if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
+          if (pType) {
+              var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
+              if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
+          }
+      }
+
+      var highlightedDoc = applySearchHighlight(docWithBadge, smartSearchVal); 
+      var highlightedHosp = applySearchHighlight(hospNameShow, smartSearchVal);
+      var highlightedPurpose = applySearchHighlight(purposeShow, smartSearchVal);
+
+      var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
+      var prodBadges = '';
+      if (visitProds.length > 0) {
+        visitProds.forEach(function(pid) {
+            var pObj = (window.globalProductsList || []).find(function(p) { return String(p.Product_ID) === pid; });
+            var pName = pObj ? pObj.Product : pid;
+            var highlightedProdName = applySearchHighlight(pName, smartSearchVal);
+            prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
+        });
+      } else {
+        prodBadges = '<span class="text-muted small">-</span>';
+      }
+
+      tbody.innerHTML += '<tr>' +
+        '<td class="text-center fw-bold">' +
+          '<a href="#" class="table-visit-link" onclick="openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' +
+            dateShow +
+          '</a>' +
+        '</td>' +
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
+        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
+        '<td>' + prodBadges + '</td>' +
+        '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+        '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+      '</tr>';
+    });
+
+    renderPaginationControls(totalPages);
+  }
+  window.renderVisitTable = renderVisitTable;
+
+  function renderPaginationControls(totalPages) {
+    var ul = document.getElementById('visitPagination');
+    if (!ul) return;
+    var html = '';
+
+    html += '<li class="page-item ' + (window.currentPage === 1 ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (window.currentPage - 1) + '); return false;">&laquo; Prev</a>' +
+            '</li>';
+
+    var startPage = Math.max(1, window.currentPage - 2);
+    var endPage = Math.min(totalPages, window.currentPage + 2);
+
+    if (startPage > 1) {
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(1); return false;">1</a></li>';
+        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+    }
+
+    for (var i = startPage; i <= endPage; i++) {
+        html += '<li class="page-item ' + (window.currentPage === i ? 'active' : '') + '">' +
+                  '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a>' +
+                '</li>';
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+    }
+
+    html += '<li class="page-item ' + (window.currentPage === totalPages ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="goToPage(' + (window.currentPage + 1) + '); return false;">Next &raquo;</a>' +
+            '</li>';
+
+    ul.innerHTML = html;
+  }
+  window.renderPaginationControls = renderPaginationControls;
+
+  async function loadDropdowns(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
     
     var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
@@ -916,7 +1270,7 @@
     var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
 
     try {
-      var appLang = window.getCurrentAppLang();
+      var appLang = getCurrentAppLang();
       
       var btnQuickNow = document.getElementById('btnQuickNow'); if(btnQuickNow) btnQuickNow.innerText = appLang === 'th' ? '[ตอนนี้]' : '[Now]';
       var btnQuick30 = document.getElementById('btnQuick30'); if(btnQuick30) btnQuick30.innerText = appLang === 'th' ? '[+30ม.]' : '[+30m]';
@@ -963,7 +1317,7 @@
                   create: false,
                   placeholder: optAllStatus,
                   dropdownParent: 'body',
-                  onChange: function() { window.filterVisits(); }
+                  onChange: function() { filterVisits(); }
               });
               if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
           }
@@ -989,17 +1343,17 @@
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
           var promises = [
-            window.fetchAllRecords('Doctors'),
-            window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
-            window.fetchAllRecords('Territory'),
-            window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
-            window.fetchAllRecords('Team'),            
-            window.fetchAllRecords('BU'),            
-            window.fetchAllRecords('Products_Team'),   
-            window.fetchAllRecords('IndexType'),
-            window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }),
-            window.fetchAllRecords('Rep_Users'),
-            window.fetchAllRecords('Assignment')
+            fetchAllRecords('Doctors'),
+            fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+            fetchAllRecords('Territory'),
+            fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+            fetchAllRecords('Team'),            
+            fetchAllRecords('BU'),            
+            fetchAllRecords('Products_Team'),   
+            fetchAllRecords('IndexType'),
+            fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }),
+            fetchAllRecords('Rep_Users'),
+            fetchAllRecords('Assignment')
           ];
           var results = await Promise.all(promises);
 
@@ -1134,7 +1488,7 @@
         }
       }
 
-      window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
+      setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
       var purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
@@ -1198,10 +1552,10 @@
               var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
               if (v) {
                   var targetRepObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                  window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+                  updateFormUserInfo(targetRepObj, v.Territory_ID);
               }
           } else {
-              window.initUserInfo();
+              initUserInfo();
           }
       }
 
@@ -1210,9 +1564,10 @@
       }
 
     } catch (err) { console.error("Error loading dropdowns:", err.message); }
-  };
+  }
+  window.loadDropdowns = loadDropdowns;
 
-  window.loadVisits = async function(forceReload) {
+  async function loadVisits(forceReload) {
     var tbody = document.getElementById('visitTableBody');
     window.VisitManagerCache = window.VisitManagerCache || {};
 
@@ -1221,11 +1576,11 @@
 
         try {
           var promises = [
-            window.fetchAllRecords('Visit_Logs'),
-            window.fetchAllRecords('Visit_Products'),
+            fetchAllRecords('Visit_Logs'),
+            fetchAllRecords('Visit_Products'),
             supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-            window.fetchAllRecords('Hospitals'),
-            window.fetchAllRecords('TOT_Logs') 
+            fetchAllRecords('Hospitals'),
+            fetchAllRecords('TOT_Logs') 
           ];
           var results = await Promise.all(promises);
 
@@ -1272,7 +1627,7 @@
         window.currentSortAsc = f.sortAsc !== undefined ? f.sortAsc : false;
     }
 
-    window.filterVisits(false);
+    filterVisits(false);
 
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -1287,10 +1642,11 @@
       return isPending && isMine;
     }).length;
 
-    window.checkMyDraftsReminder(myDraftsCount);
-  };
+    checkMyDraftsReminder(myDraftsCount);
+  }
+  window.loadVisits = loadVisits;
 
-  window.filterVisits = function(resetPage) {
+  function filterVisits(resetPage) {
     if (resetPage === undefined) resetPage = true;
     
     var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
@@ -1361,7 +1717,7 @@
         var docObj = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase(); });
         var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
         
-        var hospName = window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
+        var hospName = getHospitalNameFromDocOrVisit(docObj, v).toLowerCase();
 
         var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); });
         var prodNames = visitProds.map(function(vp) {
@@ -1474,16 +1830,16 @@
       } 
       else if (window.currentSortCol === 'doctor') {
         var docA = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
-        valA = window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
+        valA = getDoctorNameByLang(docA, a.Doc_ID).toLowerCase();
         var docB = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
-        valB = window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
+        valB = getDoctorNameByLang(docB, b.Doc_ID).toLowerCase();
       } 
       else if (window.currentSortCol === 'hospital') {
         var docA = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase(); });
-        valA = window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
+        valA = getHospitalNameFromDocOrVisit(docA, a).toLowerCase();
         
         var docB = (window.globalAllDoctors || []).find(function(d) { return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase(); });
-        valB = window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
+        valB = getHospitalNameFromDocOrVisit(docB, b).toLowerCase();
       } 
       else if (window.currentSortCol === 'products') {
         valA = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(a.Visit_ID); }).map(function(vp) {
@@ -1506,15 +1862,16 @@
     });
 
     window.globalFilteredVisits = filtered;
-    window.updateStatCards(window.globalFilteredVisits);
-    window.renderVisitTable();
+    updateStatCards(window.globalFilteredVisits);
+    renderVisitTable();
     
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-        window.renderCalendarView();
+        renderCalendarView();
     }
-  };
+  }
+  window.filterVisits = filterVisits;
 
-  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+  function setupFiltersDropdowns(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
     if (!repSelect || !terSelect) return;
@@ -1559,7 +1916,7 @@
             if (matchedTeam) {
                 myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                 var terrs = (window.globalTerritoryList || []).filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                terrs.forEach(function(ter) { myAllowedTerIds.push(String(ter.Territory_ID)); });
+                terrs.forEach(function(t) { myAllowedTerIds.push(String(t.Territory_ID)); });
             } else if (rawScope) {
                 myAllowedTeamIds.push(rawScope); 
             }
@@ -1652,7 +2009,7 @@
     });
     terSelect.innerHTML = tHtml;
 
-    var appLang = window.getCurrentAppLang();
+    var appLang = getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       if (repSelect.tomselect) repSelect.tomselect.destroy();
       window.tomSelectRepInstance = new TomSelect('#filterVisitRep', {
@@ -1661,7 +2018,7 @@
         create: false,
         placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -',
         dropdownParent: 'body',
-        onChange: function() { window.handleFilterChange('rep'); }
+        onChange: function() { handleFilterChange('rep'); }
       });
       if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
 
@@ -1672,15 +2029,16 @@
         create: false,
         placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -',
         dropdownParent: 'body',
-        onChange: function() { window.handleFilterChange('territory'); }
+        onChange: function() { handleFilterChange('territory'); }
       });
       if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
     }
 
-    window.renderFormProductDropdown(crmUser);
-  };
+    renderFormProductDropdown(crmUser);
+  }
+  window.setupFiltersDropdowns = setupFiltersDropdowns;
 
-  window.renderFormProductDropdown = async function(targetRepUser) {
+  async function renderFormProductDropdown(targetRepUser) {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
@@ -1712,7 +2070,7 @@
     if (typeof TomSelect !== 'undefined') {
         if (formProdSelect.tomselect) formProdSelect.tomselect.destroy();
         
-        var appLang = window.getCurrentAppLang();
+        var appLang = getCurrentAppLang();
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
         
         window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
@@ -1722,7 +2080,7 @@
             placeholder: prodPlaceholder, 
             dropdownParent: 'body',
             onChange: function() {
-              window.loadProductMedia();
+              loadProductMedia();
             }
         });
 
@@ -1730,138 +2088,10 @@
             setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
         }
     }
-  };
+  }
+  window.renderFormProductDropdown = renderFormProductDropdown;
 
-  window.renderVisitTable = function() {
-    var tbody = document.getElementById('visitTableBody');
-    if (!tbody) return; 
-
-    tbody.innerHTML = '';
-    var data = window.globalFilteredVisits || [];
-
-    if (!Array.isArray(data) || data.length === 0) {
-        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
-        return tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No visit records found for the selected period.</td></tr>';
-    }
-
-    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
-
-    var totalItems = data.length;
-    var totalPages = Math.ceil(totalItems / window.rowsPerPage);
-    if (window.currentPage > totalPages) window.currentPage = totalPages;
-    if (window.currentPage < 1) window.currentPage = 1;
-
-    var startIndex = (window.currentPage - 1) * window.rowsPerPage;
-    var endIndex = Math.min(startIndex + window.rowsPerPage, totalItems);
-    
-    if (document.getElementById('visitPageInfo')) document.getElementById('visitPageInfo').innerText = 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries';
-
-    var paginatedData = data.slice(startIndex, endIndex);
-    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
-    var appLang = window.getCurrentAppLang(); 
-
-    paginatedData.forEach(function(v) {
-      var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
-      var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
-      var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
-
-      if (isPendingUnlock) {
-        badgeClass = 'badge-soft-secondary';
-        statusShow = '⏳ Pending Unlock';
-      }
-
-      var dateShow = window.formatDateToLocal(v.Visit_Date);
-
-      var docObj = (window.globalAllDoctors || []).find(function(d) {
-        return String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase() === String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
-      });
-
-      var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
-      var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
-      var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
-      var docWithBadge = docNameShow + coachingBadge;
-
-      var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
-      
-      var purposeShow = v.Purpose || '-';
-      if (appLang === 'en' && v.Purpose && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
-          var pType = window.VisitManagerCache.indexTypes.find(function(t) { return t.Name && t.Name.trim().toLowerCase() === 'purpose'; });
-          if (pType) {
-              var pIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.IndexType_ID === pType.IndexType_ID && idx.Value === v.Purpose; });
-              if (pIdx && pIdx.Value1) purposeShow = pIdx.Value1;
-          }
-      }
-
-      var highlightedDoc = window.applySearchHighlight(docWithBadge, smartSearchVal); 
-      var highlightedHosp = window.applySearchHighlight(hospNameShow, smartSearchVal);
-      var highlightedPurpose = window.applySearchHighlight(purposeShow, smartSearchVal);
-
-      var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(v.Visit_ID); }).map(function(vp) { return String(vp.Product_ID); });
-      var prodBadges = '';
-      if (visitProds.length > 0) {
-        visitProds.forEach(function(pid) {
-            var pObj = (window.globalProductsList || []).find(function(p) { return String(p.Product_ID) === pid; });
-            var pName = pObj ? pObj.Product : pid;
-            var highlightedProdName = window.applySearchHighlight(pName, smartSearchVal);
-            prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + highlightedProdName + '</span>';
-        });
-      } else {
-        prodBadges = '<span class="text-muted small">-</span>';
-      }
-
-      tbody.innerHTML += '<tr>' +
-        '<td class="text-center fw-bold">' +
-          '<a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;" title="Click to view details">' +
-            dateShow +
-          '</a>' +
-        '</td>' +
-        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
-        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
-        '<td>' + prodBadges + '</td>' +
-        '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-        '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-      '</tr>';
-    });
-
-    window.renderPaginationControls(totalPages);
-  };
-
-  window.renderPaginationControls = function(totalPages) {
-    var ul = document.getElementById('visitPagination');
-    if (!ul) return;
-    var html = '';
-
-    html += '<li class="page-item ' + (window.currentPage === 1 ? 'disabled' : '') + '">' +
-              '<a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + (window.currentPage - 1) + '); return false;">&laquo; Prev</a>' +
-            '</li>';
-
-    var startPage = Math.max(1, window.currentPage - 2);
-    var endPage = Math.min(totalPages, window.currentPage + 2);
-
-    if (startPage > 1) {
-        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(1); return false;">1</a></li>';
-        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-    }
-
-    for (var i = startPage; i <= endPage; i++) {
-        html += '<li class="page-item ' + (window.currentPage === i ? 'active' : '') + '">' +
-                  '<a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + i + '); return false;">' + i + '</a>' +
-                '</li>';
-    }
-
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
-    }
-
-    html += '<li class="page-item ' + (window.currentPage === totalPages ? 'disabled' : '') + '">' +
-              '<a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + (window.currentPage + 1) + '); return false;">Next &raquo;</a>' +
-            '</li>';
-
-    ul.innerHTML = html;
-  };
-
-  window.updateStatCards = function(filteredVisits) {
+  function updateStatCards(filteredVisits) {
     var total = filteredVisits.length;
     var pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
     var submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
@@ -1869,9 +2099,10 @@
     if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
     if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
     if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
-  };
+  }
+  window.updateStatCards = updateStatCards;
 
-  window.changeRowsPerPage = function() {
+  function changeRowsPerPage() {
     var selectEl = document.getElementById('visitRowsPerPage');
     window.rowsPerPage = parseInt(selectEl.value);
     window.currentPage = 1;
@@ -1879,20 +2110,22 @@
       window.VisitManagerCache.filters.rows = window.rowsPerPage;
       window.VisitManagerCache.filters.page = 1;
     }
-    window.renderVisitTable();
-  };
+    renderVisitTable();
+  }
+  window.changeRowsPerPage = changeRowsPerPage;
 
-  window.goToPage = function(page) {
+  function goToPage(page) {
     var totalPages = Math.ceil((window.globalFilteredVisits || []).length / window.rowsPerPage);
     if (page < 1 || page > totalPages) return;
     window.currentPage = page;
     if (window.VisitManagerCache && window.VisitManagerCache.filters) {
       window.VisitManagerCache.filters.page = page;
     }
-    window.renderVisitTable();
-  };
+    renderVisitTable();
+  }
+  window.goToPage = goToPage;
 
-  window.switchVisitView = function(viewId) {
+  function switchVisitView(viewId) {
     var views = ['visitListView', 'visitFormView'];
     views.forEach(function(v) { 
       var el = document.getElementById(v); 
@@ -1905,18 +2138,20 @@
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
       setLanguage(currentLang);
     }
-  };
+  }
+  window.switchVisitView = switchVisitView;
 
-  window.cancelVisitForm = function() {
-    window.clearFormDraft(document.getElementById('visitId').value || 'NEW');
+  function cancelVisitForm() {
+    clearFormDraft(document.getElementById('visitId').value || 'NEW');
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      window.returnToDoctorProfile(returnDocId); 
-    } else window.switchVisitView('visitListView');
-  };
+      returnToDoctorProfile(returnDocId); 
+    } else switchVisitView('visitListView');
+  }
+  window.cancelVisitForm = cancelVisitForm;
 
-  window.openEditVisitView = async function(visitId) {
+  async function openEditVisitView(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -1946,7 +2181,7 @@
     if (window.globalUsersList && window.globalUsersList.length > 0) {
         targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
     }
-    window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+    updateFormUserInfo(targetRepObj, v.Territory_ID);
 
     setTimeout(function() {
       if (v.Doc_ID && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
@@ -1954,24 +2189,24 @@
       }
     }, 100);
 
-    await window.renderFormProductDropdown(targetRepObj);
+    await renderFormProductDropdown(targetRepObj);
     var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     
     setTimeout(function() {
       if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance && visitProds.length > 0) {
           window.tomSelectProdInstance.setValue(visitProds);
       }
-      window.loadProductMedia();
+      loadProductMedia();
     }, 150);
 
     document.getElementById('visitDate').value = v.Visit_Date || '';
-    document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
-    document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
+    document.getElementById('visitStartTime').value = formatTimeString(v.Start_Time);
+    document.getElementById('visitEndTime').value = formatTimeString(v.End_Time);
 
     // 🌟 ปรับแก้ไขส่วนวัตถุประสงค์ (Purpose) ให้สลับภาษาแสดงผลรองรับ TH/EN 
     setTimeout(function() {
       if (v.Purpose) {
-          var appLang = window.getCurrentAppLang();
+          var appLang = getCurrentAppLang();
           var displayPurpose = v.Purpose; // ค่าภาษาไทยตั้งต้น
 
           if (appLang === 'en' && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
@@ -2003,19 +2238,19 @@
     document.getElementById('visitStatus').value = v.Status || 'Pending';
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
-    setTimeout(function() { window.restoreFormDraft(visitId); }, 500);
+    setTimeout(function() { restoreFormDraft(visitId); }, 500);
 
     var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
     var btn = document.getElementById('saveVisitBtn');
 
     if (isPendingUnlock) {
-      window.toggleVisitFormEditable(false);
+      toggleVisitFormEditable(false);
       btn.disabled = true;
       btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
       btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock';
       btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
-      window.toggleVisitFormEditable(false);
+      toggleVisitFormEditable(false);
       if (canEdit) {
         btn.disabled = false;
         btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
@@ -2029,7 +2264,7 @@
       }
     } else {
       if (canEdit) {
-        window.toggleVisitFormEditable(true);
+        toggleVisitFormEditable(true);
         btn.disabled = false;
         btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
@@ -2039,7 +2274,7 @@
            window.tomSelectDocInstance.disable();
         }
       } else {
-        window.toggleVisitFormEditable(false);
+        toggleVisitFormEditable(false);
         btn.disabled = true;
         btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)';
@@ -2047,10 +2282,11 @@
       }
     }
 
-    window.switchVisitView('visitFormView');
-  };
+    switchVisitView('visitFormView');
+  }
+  window.openEditVisitView = openEditVisitView;
 
-  window.openAddVisitView = async function(presetDate) {
+  async function openAddVisitView(presetDate) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2063,7 +2299,7 @@
     document.getElementById('visitInsight').value = ''; 
     document.getElementById('visitIsCoaching').checked = false; 
 
-    window.initUserInfo(); 
+    initUserInfo(); 
 
     if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
       window.tomSelectDocInstance.clear();
@@ -2075,7 +2311,7 @@
       window.tomSelectPurposeInstance.enable(); 
     }
 
-    await window.renderFormProductDropdown();
+    await renderFormProductDropdown();
 
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
@@ -2087,14 +2323,14 @@
       }, 200); 
     }
 
-    window.toggleVisitFormEditable(true);
+    toggleVisitFormEditable(true);
     if (returnToDocId) {
       setTimeout(function() {
         if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
       }, 250);
     }
 
-    setTimeout(function() { window.restoreFormDraft('NEW'); }, 500);
+    setTimeout(function() { restoreFormDraft('NEW'); }, 500);
 
     var btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save';
@@ -2102,17 +2338,18 @@
     btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
     btn.disabled = false;
 
-    window.switchVisitView('visitFormView');
-  };
+    switchVisitView('visitFormView');
+  }
+  window.openAddVisitView = openAddVisitView;
 
-  window.handleSaveVisit = async function(e) {
+  async function handleSaveVisit(e) {
     e.preventDefault();
     var btn = document.getElementById('saveVisitBtn');
     var mode = btn.dataset.mode;
 
     if (mode === 'disabled') return;
     if (mode === 'request_unlock') {
-      window.requestUnlockVisit(document.getElementById('visitId').value);
+      requestUnlockVisit(document.getElementById('visitId').value);
       return;
     }
 
@@ -2137,7 +2374,7 @@
     if (!purposeVal) missingFields.push("• วัตถุประสงค์ (Purpose)");
 
     if (missingFields.length > 0) {
-      window.showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
+      showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
       return;
     }
 
@@ -2151,7 +2388,7 @@
     var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
 
     var existingVisitId = document.getElementById('visitId').value;
-    var targetVisitId = existingVisitId || window.generateUUID();
+    var targetVisitId = existingVisitId || generateUUID();
     
     var payload = {
       Visit_ID: targetVisitId,
@@ -2190,28 +2427,29 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
-      window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-      window.clearFormDraft(existingVisitId || 'NEW');
+      showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+      clearFormDraft(existingVisitId || 'NEW');
 
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        window.returnToDoctorProfile(returnDocId); 
+        returnToDoctorProfile(returnDocId); 
       } else {
-        window.switchVisitView('visitListView');
-        await window.loadVisits(true); 
+        switchVisitView('visitListView');
+        await loadVisits(true); 
       }
 
     } catch(err) {
       console.error("Save Visit Error:", err);
-      window.showToast("Failed to save data. Reason: " + err.message, "error");
+      showToast("Failed to save data. Reason: " + err.message, "error");
     } finally {
       btn.disabled = false;
       btn.innerHTML = "💾 Save";
     }
-  };
+  }
+  window.handleSaveVisit = handleSaveVisit;
 
-  window.requestUnlockVisit = async function(visitId) {
+  async function requestUnlockVisit(visitId) {
     var btn = document.getElementById('saveVisitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...';
@@ -2231,24 +2469,25 @@
     try {
       var res = await supabaseClient.from('DCR').insert([payload]);
       if (res.error) throw res.error;
-      window.showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
+      showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
       
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        window.returnToDoctorProfile(returnDocId); 
+        returnToDoctorProfile(returnDocId); 
       } else {
-        window.switchVisitView('visitListView');
-        await window.loadVisits(true); 
+        switchVisitView('visitListView');
+        await loadVisits(true); 
       }
     } catch(err) {
-      window.showToast("❌ Error: " + err.message, "error");
+      showToast("❌ Error: " + err.message, "error");
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
     }
-  };
+  }
+  window.requestUnlockVisit = requestUnlockVisit;
 
-  window.toggleVisitFormEditable = function(isEditable) {
+  function toggleVisitFormEditable(isEditable) {
     var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
     var formView = document.getElementById('visitFormView');
 
@@ -2282,9 +2521,10 @@
       var btn = document.getElementById(id);
       if (btn) btn.disabled = !isEditable;
     });
-  };
+  }
+  window.toggleVisitFormEditable = toggleVisitFormEditable;
 
-  window.openAddTotModal = function() {
+  function openAddTotModal() {
       document.getElementById('totId').value = '';
       document.getElementById('totStartDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('totEndDate').value = new Date().toISOString().split('T')[0];
@@ -2293,7 +2533,7 @@
       document.getElementById('totRemark').value = '';
       document.getElementById('totStatus').value = 'Approved'; 
       
-      window.populateTotTypes();
+      populateTotTypes();
 
       var btnDelete = document.getElementById('btnDeleteTot');
       if(btnDelete) btnDelete.classList.add('d-none');
@@ -2301,21 +2541,22 @@
       document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
       
       if(window.totModalInstance) window.totModalInstance.show();
-  };
+  }
+  window.openAddTotModal = openAddTotModal;
 
-  window.openEditTotModal = function(id) {
+  function openEditTotModal(id) {
       var tot = (window.globalTotLogs || []).find(function(t) { return t.TOT_ID === id; });
       if(!tot) return;
 
       document.getElementById('totId').value = tot.TOT_ID;
       document.getElementById('totStartDate').value = tot.Start_Date || '';
       document.getElementById('totEndDate').value = tot.End_Date || '';
-      document.getElementById('totStartTime').value = window.formatTimeString(tot.Start_Time);
-      document.getElementById('totEndTime').value = window.formatTimeString(tot.End_Time);
+      document.getElementById('totStartTime').value = formatTimeString(tot.Start_Time);
+      document.getElementById('totEndTime').value = formatTimeString(tot.End_Time);
       document.getElementById('totRemark').value = tot.Remark || '';
       document.getElementById('totStatus').value = tot.Status || 'Approved';
 
-      window.populateTotTypes();
+      populateTotTypes();
       setTimeout(function() { document.getElementById('totType').value = tot.TOT_Type; }, 50);
 
       var btnDelete = document.getElementById('btnDeleteTot');
@@ -2324,13 +2565,14 @@
       document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
 
       if(window.totModalInstance) window.totModalInstance.show();
-  };
+  }
+  window.openEditTotModal = openEditTotModal;
 
-  window.populateTotTypes = function() {
+  function populateTotTypes() {
       var select = document.getElementById('totType');
       if(!select) return;
 
-      var appLang = window.getCurrentAppLang();
+      var appLang = getCurrentAppLang();
       var types = (window.VisitManagerCache ? window.VisitManagerCache.indexTypes : []) || [];
       var indexes = (window.VisitManagerCache ? window.VisitManagerCache.indexes : []) || [];
       var tType = types.find(t => t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'));
@@ -2352,9 +2594,10 @@
                   '<option value="Training">Training (อบรม)</option>';
       }
       select.innerHTML = html;
-  };
+  }
+  window.populateTotTypes = populateTotTypes;
 
-  window.handleSaveTot = async function(e) {
+  async function handleSaveTot(e) {
       e.preventDefault();
       var btn = document.getElementById('saveTotBtn');
       btn.disabled = true;
@@ -2383,47 +2626,49 @@
               var {error} = await supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id);
               if(error) throw error;
           } else {
-              payload.TOT_ID = window.generateUUID();
+              payload.TOT_ID = generateUUID();
               var {error} = await supabaseClient.from('TOT_Logs').insert([payload]);
               if(error) throw error;
           }
-          window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
+          showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
           if(window.totModalInstance) window.totModalInstance.hide();
-          await window.loadVisits(true);
+          await loadVisits(true);
       } catch(err) {
-          window.showToast("Error: " + err.message, "error");
+          showToast("Error: " + err.message, "error");
       } finally {
           btn.disabled = false;
           btn.innerHTML = '💾 Save';
       }
-  };
+  }
+  window.handleSaveTot = handleSaveTot;
 
-  window.deleteTot = async function() {
+  async function deleteTot() {
       var id = document.getElementById('totId').value;
       if(!id) return;
 
-      var appLang = window.getCurrentAppLang();
+      var appLang = getCurrentAppLang();
       var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
       if (!confirm(confirmMsg)) return;
 
       try {
           var {error} = await supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
           if (error) throw error;
-          window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
+          showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
           if(window.totModalInstance) window.totModalInstance.hide();
-          await window.loadVisits(true);
+          await loadVisits(true);
       } catch(err) {
-          window.showToast("Error: " + err.message, "error");
+          showToast("Error: " + err.message, "error");
       }
-  };
+  }
+  window.deleteTot = deleteTot;
 
   // INITIALIZE SYSTEM STARTUP
   setTimeout(async function() { 
     try {
-      await window.loadDropdowns(); 
-      window.initUserInfo(); 
-      await window.loadVisits(); 
-      await window.fetchDetailingMedia();
+      await loadDropdowns(); 
+      initUserInfo(); 
+      await loadVisits(); 
+      await fetchDetailingMedia();
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
       }
@@ -2437,27 +2682,27 @@
       var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
       if (isSales && window.VisitManagerCache.currentMainView === 'list') {
-          window.toggleMainView('calendar');
+          toggleMainView('calendar');
       } else {
-          window.toggleMainView(window.VisitManagerCache.currentMainView || 'list');
+          toggleMainView(window.VisitManagerCache.currentMainView || 'list');
       }
 
       var updateLangUI = function() {
           var formView = document.getElementById('visitFormView');
           if (formView && !formView.classList.contains('d-none')) {
-              window.saveFormDraft();
+              saveFormDraft();
           }
 
           setTimeout(function() {
-              window.loadDropdowns(false).then(() => {
+              loadDropdowns(false).then(() => {
                   var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : 'NEW';
                   if (formView && !formView.classList.contains('d-none')) {
-                      window.restoreFormDraft(currentVisitId);
+                      restoreFormDraft(currentVisitId);
                   }
               }); 
-              window.renderVisitTable();
+              renderVisitTable();
               if (window.VisitManagerCache.currentMainView === 'calendar') {
-                  window.renderCalendarView(); 
+                  renderCalendarView(); 
               }   
           }, 150);
       };
