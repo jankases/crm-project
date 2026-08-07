@@ -105,14 +105,12 @@
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   
   <!-- 🌟 ดึงไฟล์แปลภาษาที่เราแยกไว้เข้ามาใช้งาน -->
+  <script src="assets/js/config.js"></script>
   <script src="assets/js/utils.js"></script>
   <script src="assets/js/i18n.js"></script>
 
   <script>
-    const SUPABASE_URL = 'https://trrfwszgscftnybhhsor.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_SyOGO6gN7DGYmj0ltcvokg_y3WOtZdH'; 
-    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
-
+ 
     window.addEventListener('load', async () => {
       await loadLoginComponent();
       checkSession();
