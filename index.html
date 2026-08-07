@@ -142,23 +142,23 @@
 
     async function loadComponent(page) {
       let url = '';
-      
+       
       switch(page) {
-        case 'dashboard': url = 'Dashboard.html'; break;
-        case 'visit': url = 'ManageVisits.html'; break;
-        case 'doctor': url = 'ManageDoctors.html'; break;
-        case 'hospital': url = 'ManageHospitals.html'; break;
-        case 'organization': url = 'ManageOrganization.html'; break; 
-        case 'target': url = 'ManageTarget.html'; break;
-        case 'matrix': url = 'ManageMatrix.html'; break; 
-        case 'assignment': url = 'ManageAssignment.html'; break;
-        case 'indexData': url = 'ManageIndex.html'; break;
-        case 'dcr': url = 'ManageDCR.html'; break;
-        case 'media': url = 'ManageMedia.html'; break;
-        case 'user': url = 'ManageUsers.html'; break;
+        case 'dashboard': url = 'pages/Dashboard.html'; break;
+        case 'visit': url = 'pages/ManageVisits.html'; break;
+        case 'doctor': url = 'pages/ManageDoctors.html'; break;
+        case 'hospital': url = 'pages/ManageHospitals.html'; break;
+        case 'organization': url = 'pages/ManageOrganization.html'; break; 
+        case 'target': url = 'pages/ManageTarget.html'; break;
+        case 'matrix': url = 'pages/ManageMatrix.html'; break; 
+        case 'assignment': url = 'pages/ManageAssignment.html'; break;
+        case 'indexData': url = 'pages/ManageIndex.html'; break;
+        case 'dcr': url = 'pages/ManageDCR.html'; break;
+        case 'media': url = 'pages/ManageMedia.html'; break;
+        case 'user': url = 'pages/ManageUsers.html'; break;
         default: 
           page = 'visit'; 
-          url = 'ManageVisits.html'; 
+          url = 'pages/ManageVisits.html'; 
       }
 
       const menuItems = document.querySelectorAll('.nav-menu-item');
