@@ -164,6 +164,7 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
+          <!-- 🌟 เรียกผ่าน window. -->
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
@@ -630,6 +631,41 @@
     return 'th';
   };
 
+  // 🌟 ฟังก์ชันพิเศษสำหรับแก้อาการ TomSelect ไม่จำค่าตอน Read-Only
+  window.setTomSelectValue = function(instance, value, forceText) {
+      if (!instance) return;
+      var wasDisabled = instance.isDisabled;
+      
+      if (wasDisabled) instance.enable(); 
+      
+      if (Array.isArray(value)) {
+          value.forEach(function(v) {
+              if (v && !instance.options[v]) {
+                  var pName = v;
+                  if (window.globalProductsList) {
+                      var pObj = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(v); });
+                      if (pObj) pName = pObj.Product;
+                  }
+                  instance.addOption({value: v, text: pName});
+              }
+          });
+      } else if (value && !instance.options[value]) {
+          instance.addOption({value: value, text: forceText || value});
+      }
+
+      instance.setValue(value, true); 
+      instance.refreshItems(); 
+      
+      if (forceText && !Array.isArray(value)) {
+          var item = instance.control.querySelector('.item');
+          if (item) item.innerText = forceText;
+      }
+      
+      if (wasDisabled) {
+          setTimeout(function() { instance.disable(); }, 50); 
+      }
+  };
+
   window.updatePurposeDisplayLang = function() {
     if (!window.tomSelectPurposeInstance) return;
     
@@ -637,28 +673,24 @@
     if (!visitId) return;
 
     var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
-    var currentVal = v ? v.Purpose : window.tomSelectPurposeInstance.getValue();
-    if (!currentVal) return;
+    if (!v || !v.Purpose) return;
 
     var appLang = window.getCurrentAppLang();
-    var displayPurpose = currentVal; 
+    var displayPurpose = v.Purpose; 
 
-    if (window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
+    if (appLang === 'en' && window.VisitManagerCache && window.VisitManagerCache.indexes && window.VisitManagerCache.indexTypes) {
         var pType = window.VisitManagerCache.indexTypes.find(function(t) { 
             return t.Name && (t.Name.trim().toLowerCase() === 'purpose' || t.Name.trim().toLowerCase() === 'callpurpose'); 
         });
         if (pType) {
             var pIdx = window.VisitManagerCache.indexes.find(function(idx) { 
-                return String(idx.IndexType_ID) === String(pType.IndexType_ID) && (String(idx.Value) === String(currentVal) || String(idx.Value1) === String(currentVal)); 
+                return String(idx.IndexType_ID) === String(pType.IndexType_ID) && (String(idx.Value) === String(v.Purpose) || String(idx.Value1) === String(v.Purpose)); 
             });
-            if (pIdx) {
-                displayPurpose = (appLang === 'en' && pIdx.Value1) ? pIdx.Value1 : pIdx.Value;
-            }
+            if (pIdx && pIdx.Value1) displayPurpose = pIdx.Value1;
         }
     }
 
-    var item = window.tomSelectPurposeInstance.control.querySelector('.item');
-    if (item) item.innerText = displayPurpose;
+    window.setTomSelectValue(window.tomSelectPurposeInstance, v.Purpose, displayPurpose);
   };
 
   window.toggleMainView = function(viewName) {
@@ -715,16 +747,14 @@
                   return false;
               }
 
-              if (draft.docId && window.tomSelectDocInstance) {
-                  window.tomSelectDocInstance.setValue(draft.docId, true);
-              }
-              if (draft.productId && window.tomSelectProdInstance) {
-                  window.tomSelectProdInstance.setValue(draft.productId, true);
-              }
-              if (draft.purpose && window.tomSelectPurposeInstance) {
-                  window.tomSelectPurposeInstance.setValue(draft.purpose, true);
-                  window.updatePurposeDisplayLang(); 
-              }
+              setTimeout(function() {
+                  if (draft.docId && window.tomSelectDocInstance) window.setTomSelectValue(window.tomSelectDocInstance, draft.docId);
+                  if (draft.productId && window.tomSelectProdInstance) window.setTomSelectValue(window.tomSelectProdInstance, draft.productId);
+                  if (draft.purpose && window.tomSelectPurposeInstance) {
+                      window.setTomSelectValue(window.tomSelectPurposeInstance, draft.purpose);
+                      window.updatePurposeDisplayLang(); 
+                  }
+              }, 200);
 
               if (draft.date) document.getElementById('visitDate').value = draft.date;
               if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
@@ -2363,7 +2393,7 @@
     window.filterVisits(false); 
   };
 
-  window.openEditVisitView = async function(visitId) {
+  window.openEditVisitView = function(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2395,19 +2425,17 @@
     }
     window.updateFormUserInfo(targetRepObj, v.Territory_ID);
 
-    window.toggleVisitFormEditable(true);
+    window.toggleVisitFormEditable(true); // ปลดล็อกฟอร์มก่อนยัดค่า
 
     if (v.Doc_ID && window.tomSelectDocInstance) {
         window.tomSelectDocInstance.setValue(v.Doc_ID, true);
     }
 
-    await window.renderFormProductDropdown();
-    
     var visitProds = (window.globalVisitProducts || []).filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
-    
     if (window.tomSelectProdInstance && visitProds.length > 0) {
         window.tomSelectProdInstance.setValue(visitProds, true);
     }
+    window.loadProductMedia();
 
     document.getElementById('visitDate').value = v.Visit_Date || '';
     document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2415,7 +2443,6 @@
 
     if (v.Purpose && window.tomSelectPurposeInstance) {
         window.tomSelectPurposeInstance.setValue(v.Purpose, true);
-        window.updatePurposeDisplayLang();
     }
 
     document.getElementById('visitDetails').value = v.Details || '';
@@ -2423,6 +2450,9 @@
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
+
+    // 🌟 ดึงข้อมูล Purpose และแปลภาษาให้ถูกต้อง
+    window.updatePurposeDisplayLang();
 
     var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
     var btn = document.getElementById('saveVisitBtn');
@@ -2453,7 +2483,10 @@
         btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>';
         btn.dataset.mode = 'save';
-        if (window.tomSelectDocInstance) window.tomSelectDocInstance.disable();
+        
+        if (sessionStorage.getItem('returnToDocId') && typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) {
+           window.tomSelectDocInstance.disable();
+        }
       } else {
         window.toggleVisitFormEditable(false);
         btn.disabled = true;
@@ -2463,7 +2496,6 @@
       }
     }
 
-    window.loadProductMedia();
     window.switchVisitView('visitFormView');
   };
 
@@ -2491,15 +2523,18 @@
       window.tomSelectPurposeInstance.clear();
       window.tomSelectPurposeInstance.enable(); 
     }
-
-    await window.renderFormProductDropdown();
+    
+    if (typeof window.tomSelectProdInstance !== 'undefined' && window.tomSelectProdInstance) {
+      window.tomSelectProdInstance.clear();
+      window.tomSelectProdInstance.enable(); 
+    }
 
     window.toggleVisitFormEditable(true);
 
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
       if (window.tomSelectDocInstance) {
-        window.tomSelectDocInstance.setValue(returnToDocId, true);
+        window.tomSelectDocInstance.setValue(returnToDocId);
         window.tomSelectDocInstance.disable(); 
       }
     }
@@ -3246,7 +3281,7 @@
           window.toggleMainView(window.VisitManagerCache ? window.VisitManagerCache.currentMainView || 'list' : 'list');
       }
 
-      // 🌟 ดักจับการสลับภาษาแบบคลีนๆ โดยใช้ฟังก์ชันโหลดฟอร์มซ้ำแทนการใช้ Timeout
+      // 🌟 ดักจับการสลับภาษาแบบคลีนๆ โดยใช้เปิดฟอร์มแก้ไขซ้ำถ้าเปิดอยู่
       var updateLangUI = function() {
           var formView = document.getElementById('visitFormView');
           var isFormOpen = formView && !formView.classList.contains('d-none');
@@ -3260,7 +3295,7 @@
               window.loadDropdowns(false).then(() => {
                   if (isFormOpen) {
                       if (currentVisitId && currentVisitId !== 'NEW') {
-                          window.openEditVisitView(currentVisitId);
+                          window.openEditVisitView(currentVisitId); // โหลดค่าทั้งหมดรวมถึง Product อย่างถูกต้อง
                       } else {
                           window.restoreFormDraft('NEW');
                           window.updatePurposeDisplayLang();
