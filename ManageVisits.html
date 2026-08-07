@@ -164,7 +164,6 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
-          <!-- 🌟 เรียกผ่าน window. -->
           <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
@@ -631,7 +630,6 @@
     return 'th';
   };
 
-  // 🌟 ฟังก์ชันพิเศษสำหรับดัดหลัง TomSelect ให้รับค่าแม้จะถูก Disabled
   window.setTomSelectValue = function(instance, value, forceText) {
       if (!instance) return;
       var wasDisabled = instance.isDisabled;
@@ -654,7 +652,6 @@
       }
 
       instance.setValue(value, true); 
-      instance.refreshItems(); 
       
       if (forceText && !Array.isArray(value)) {
           var item = instance.control.querySelector('.item');
@@ -747,14 +744,16 @@
                   return false;
               }
 
-              setTimeout(function() {
-                  if (draft.docId && window.tomSelectDocInstance) window.setTomSelectValue(window.tomSelectDocInstance, draft.docId);
-                  if (draft.productId && window.tomSelectProdInstance) window.setTomSelectValue(window.tomSelectProdInstance, draft.productId);
-                  if (draft.purpose && window.tomSelectPurposeInstance) {
-                      window.setTomSelectValue(window.tomSelectPurposeInstance, draft.purpose);
-                      window.updatePurposeDisplayLang(); 
-                  }
-              }, 200);
+              if (draft.docId && window.tomSelectDocInstance) {
+                  window.setTomSelectValue(window.tomSelectDocInstance, draft.docId);
+              }
+              if (draft.productId && window.tomSelectProdInstance) {
+                  window.setTomSelectValue(window.tomSelectProdInstance, draft.productId);
+              }
+              if (draft.purpose && window.tomSelectPurposeInstance) {
+                  window.setTomSelectValue(window.tomSelectPurposeInstance, draft.purpose);
+                  window.updatePurposeDisplayLang(); 
+              }
 
               if (draft.date) document.getElementById('visitDate').value = draft.date;
               if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
@@ -1201,6 +1200,11 @@
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
     
+    // 🛑 GUARD CLAUSE ป้องกัน index.html สั่ง render ตอนข้อมูลยังมาไม่ครบ
+    if (!window.VisitManagerCache || !window.VisitManagerCache.isLoaded || !window.globalAllDoctors || window.globalAllDoctors.length === 0) {
+        return;
+    }
+
     var appLang = window.getCurrentAppLang(); 
 
     var visitEvents = (window.globalFilteredVisits || []).map(function(v) {
@@ -1416,6 +1420,11 @@
   window.renderVisitTable = function() {
     var tbody = document.getElementById('visitTableBody');
     if (!tbody) return; 
+
+    // 🛑 GUARD CLAUSE ป้องกัน index.html สั่ง render ตอนข้อมูลยังมาไม่ครบ
+    if (!window.VisitManagerCache || !window.VisitManagerCache.isLoaded || !window.globalAllDoctors || window.globalAllDoctors.length === 0) {
+        return;
+    }
 
     tbody.innerHTML = '';
     var data = window.globalFilteredVisits || [];
@@ -1741,16 +1750,26 @@
               window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { return allAllowedHospIds.indexOf(String(h.Hospital_ID || h.id)) !== -1; });
           }
 
-          window.globalAllDoctors = window.VisitManagerCache.allDoctors || []; 
-          window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors || [];
-          window.globalAllHospitals = window.VisitManagerCache.allHospitals || []; 
-          window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals || [];
-          window.globalProductsList = window.VisitManagerCache.products || []; 
-          window.globalTerritoryList = window.VisitManagerCache.territories || [];
-          window.globalUsersList = window.VisitManagerCache.users || []; 
-          window.globalTeamList = window.VisitManagerCache.teams || [];
+          window.VisitManagerCache.allDoctors = allDoctors;
+          window.VisitManagerCache.products = results[1] || [];
+          window.VisitManagerCache.territories = globalTerritoryListLocal;
+          window.VisitManagerCache.teams = globalTeamListLocal;
+          window.VisitManagerCache.bus = globalBuListLocal || [];
+          window.VisitManagerCache.teamProdLinks = results[6] || [];
+          window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
+          window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
+          window.VisitManagerCache.users = results[9] || [];
           window.VisitManagerCache.dropdownsLoaded = true;
       }
+
+      window.globalAllDoctors = window.VisitManagerCache.allDoctors || []; 
+      window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors || [];
+      window.globalAllHospitals = window.VisitManagerCache.allHospitals || []; 
+      window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals || [];
+      window.globalProductsList = window.VisitManagerCache.products || []; 
+      window.globalTerritoryList = window.VisitManagerCache.territories || [];
+      window.globalUsersList = window.VisitManagerCache.users || []; 
+      window.globalTeamList = window.VisitManagerCache.teams || [];
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
@@ -1827,12 +1846,6 @@
                 placeholder: purPlaceholder,
                 dropdownParent: 'body'
             });
-            if (oldPurpVal) {
-                setTimeout(() => {
-                    window.setTomSelectValue(window.tomSelectPurposeInstance, oldPurpVal);
-                    window.updatePurposeDisplayLang();
-                }, 150);
-            }
         }
       }
 
@@ -1847,7 +1860,7 @@
       var formView = document.getElementById('visitFormView');
       if (formView && !formView.classList.contains('d-none')) {
           var visitId = document.getElementById('visitId').value;
-          if (visitId) {
+          if (visitId && visitId !== 'NEW') {
               var v = (window.globalVisits || []).find(function(x) { return String(x.Visit_ID) === String(visitId); });
               if (v) {
                   var targetRepObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
@@ -1862,7 +1875,9 @@
         filterGroup.classList.add('ready');
       }
 
-    } catch (err) { console.error("Error loading dropdowns:", err.message); }
+    } catch (err) { 
+      console.error("Error loading dropdowns:", err.message); 
+    }
   };
 
   window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
@@ -2105,10 +2120,10 @@
         }
     }
 
-    window.globalVisits = window.VisitManagerCache.visits;
-    window.globalTotLogs = window.VisitManagerCache.totLogs;
-    window.globalVisitProducts = window.VisitManagerCache.visitProducts;
-    window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks;
+    window.globalVisits = window.VisitManagerCache.visits || [];
+    window.globalTotLogs = window.VisitManagerCache.totLogs || [];
+    window.globalVisitProducts = window.VisitManagerCache.visitProducts || [];
+    window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
     if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) {
       window.globalAllHospitals = window.VisitManagerCache.allHospitals;
     }
@@ -3284,11 +3299,15 @@
   // INITIALIZE SYSTEM STARTUP
   setTimeout(async function() { 
     try {
-      await window.loadDropdowns(); 
-      window.initUserInfo(); 
-      await window.loadVisits(); 
-      await window.fetchDetailingMedia();
       
+      // 🛑 Guard Clause : ป้องกันตาราง Render มั่วซั่วหากข้อมูลหลักยังมาไม่ครบ
+      if (!window.VisitManagerCache || !window.VisitManagerCache.isLoaded) {
+          await window.loadDropdowns(); 
+          window.initUserInfo(); 
+          await window.loadVisits(); 
+          await window.fetchDetailingMedia();
+      }
+
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
       }
@@ -3307,8 +3326,8 @@
           window.toggleMainView(window.VisitManagerCache ? window.VisitManagerCache.currentMainView || 'list' : 'list');
       }
 
-      // 🌟 ดักจับการสลับภาษาแบบคลีนๆ โดยใช้เปิดฟอร์มแก้ไขซ้ำถ้าเปิดอยู่
-      var updateLangUI = function() {
+      // 🌟 รับสัญญาณกระจาย (Broadcast Event) จากหน้า index.html
+      window.updateLangUI = function() {
           var formView = document.getElementById('visitFormView');
           var isFormOpen = formView && !formView.classList.contains('d-none');
           var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
@@ -3317,28 +3336,26 @@
               window.saveFormDraft();
           }
 
-          setTimeout(function() {
-              window.loadDropdowns(false).then(() => {
-                  if (isFormOpen) {
-                      if (currentVisitId && currentVisitId !== 'NEW') {
-                          window.openEditVisitView(currentVisitId); // โหลดค่าทั้งหมดรวมถึง Product อย่างถูกต้อง
-                      } else {
-                          window.restoreFormDraft('NEW');
-                          window.updatePurposeDisplayLang();
-                      }
+          window.loadDropdowns(false).then(() => {
+              if (isFormOpen) {
+                  if (currentVisitId && currentVisitId !== 'NEW') {
+                      window.openEditVisitView(currentVisitId); 
+                  } else {
+                      window.restoreFormDraft('NEW');
+                      window.updatePurposeDisplayLang();
                   }
-              }); 
-              window.renderVisitTable();
-              if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-                  window.renderCalendarView(); 
-              }   
-          }, 50);
+              }
+          }); 
+          
+          window.renderVisitTable();
+          if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+              window.renderCalendarView(); 
+          }   
       };
       
-      var btnEN = document.getElementById('btnLangEN');
-      var btnTH = document.getElementById('btnLangTH');
-      if (btnEN) btnEN.addEventListener('click', updateLangUI);
-      if (btnTH) btnTH.addEventListener('click', updateLangUI);
+      // ป้องกันการผูก Event ซ้ำซ้อนตอนโหลดหน้าจอไปๆ มาๆ
+      window.removeEventListener('appLanguageChanged', window.updateLangUI);
+      window.addEventListener('appLanguageChanged', window.updateLangUI);
 
     } catch(err) {
       console.error("Init Visits Failed:", err);
