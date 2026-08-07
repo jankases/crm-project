@@ -372,16 +372,6 @@
         }
       }
 
-      var savedDocVal = (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) 
-        ? tomSelectDocInstance.getValue() 
-        : (document.getElementById('visitDocId') ? document.getElementById('visitDocId').value : '');
-        
-      var savedProdVal = (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) 
-        ? tomSelectProdInstance.getValue() 
-        : '';
-        
-      var savedPurposeVal = document.getElementById('visitPurpose') ? document.getElementById('visitPurpose').value : '';
-
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
@@ -395,29 +385,9 @@
         }
       });
 
-      if (window.renderVisitTable) {
-        window.renderVisitTable();
-      }
-      
-      if (window.loadDropdowns) {
-        window.loadDropdowns(false).then(() => {
-          setTimeout(() => {
-            if (savedDocVal) {
-              if (typeof tomSelectDocInstance !== 'undefined' && tomSelectDocInstance) tomSelectDocInstance.setValue(savedDocVal);
-              else if (document.getElementById('visitDocId')) document.getElementById('visitDocId').value = savedDocVal;
-            }
-            if (savedProdVal && savedProdVal.length > 0) {
-              if (typeof tomSelectProdInstance !== 'undefined' && tomSelectProdInstance) tomSelectProdInstance.setValue(savedProdVal);
-            }
-            if (savedPurposeVal && document.getElementById('visitPurpose')) {
-              document.getElementById('visitPurpose').value = savedPurposeVal;
-            }
-            if (window.loadProductMedia) {
-              window.loadProductMedia();
-            }
-          }, 100);
-        });
-      }
+      // 🌟 กระจายสัญญาณ (Broadcast Event) ออกไปแจ้งเตือนไฟล์ลูกๆ ให้รู้ว่าภาษาเปลี่ยนแล้ว!
+      // จะไม่ก้าวก่ายเรียกฟังก์ชันของไฟล์ ManageVisits ตรงๆ เพื่อหลีกเลี่ยง Error อีกต่อไป
+      window.dispatchEvent(new CustomEvent('appLanguageChanged', { detail: lang }));
     }
 
     function t(key) {
