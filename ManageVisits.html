@@ -564,7 +564,7 @@
 </div>
 
 <script>
-  // 1. HELPER / UTILITY FUNCTIONS (ย้ายขึ้นบนสุดแก้ปัญหา Undefined 100%)
+  // 1. ALL HELPER / UTILITY / API FUNCTIONS DECLARED ON TOP (แก้ปัญหา Undefined ทั้งหมด)
   window.getCurrentAppLang = function() {
     var btnEN = document.getElementById('btnLangEN');
     if (btnEN && btnEN.classList.contains('btn-primary')) {
@@ -812,6 +812,17 @@
           start += step;
       }
       return allData;
+  };
+
+  window.fetchDetailingMedia = async function() {
+    try {
+      var res = await supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
+      if (!res.error && res.data) {
+        window.globalAllMediaList = res.data;
+      }
+    } catch(e) {
+      console.error("Fetch Detailing Media Error:", e);
+    }
   };
 
   window.generateUUID = function() {
