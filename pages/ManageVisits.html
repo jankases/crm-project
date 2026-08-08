@@ -1075,6 +1075,256 @@
   };
 
   // ==========================================
+  // 🎬 5. MEDIA & PRESENTATION FUNCTIONS (ส่วนที่หายไป)
+  // ==========================================
+  window.fetchDetailingMedia = async function() {
+    try {
+      var res = await window.supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
+      if (!res.error && res.data) { window.globalAllMediaList = res.data; }
+    } catch(e) {}
+  };
+
+  window.loadProductMedia = async function() {
+    var container = document.getElementById('mediaListContainer');
+    var section = document.getElementById('detailingMediaSection');
+    var headerEl = document.getElementById('detailingMediaHeader');
+    if (!container || !section) return;
+
+    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
+    var isSubmitted = (visitStatus === 'Submitted');
+
+    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    var isOwner = true; 
+    
+    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
+        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+        if (v) {
+            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+            if (myRepId && creatorRepId) { isOwner = (myRepId === creatorRepId); } 
+            else if (myEmail && creatorWho) { isOwner = (myEmail === creatorWho); } 
+            else { isOwner = false; }
+        }
+    }
+
+    var isPreviewMode = isSubmitted || !isOwner;
+    var selectedProducts = [];
+    if (window.tomSelectProdInstance) {
+      var val = window.tomSelectProdInstance.getValue();
+      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    } else {
+      var pSelect = document.getElementById('visitProductId');
+      if (pSelect) selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
+    }
+
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
+    if (selectedProducts.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
+    if (window.globalAllMediaList.length === 0) await window.fetchDetailingMedia();
+
+    var matchedMedia = window.globalAllMediaList.filter(function(m) {
+      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
+    });
+
+    if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
+    section.classList.remove('d-none');
+    var titleText = window.getCurrentAppLang() === 'en' ? 'e-Detailing / Presentation' : 'สื่อการนำเสนอ (e-Detailing)';
+    var unitText = window.getCurrentAppLang() === 'en' ? 'items' : 'เล่ม';
+
+    if (headerEl) {
+      headerEl.innerHTML = 
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span>' + titleText + '</span></span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
+    }
+
+    var html = '';
+    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-premium-primary';
+    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
+    var btnText = isPreviewMode ? 'Preview' : 'Present';
+
+    matchedMedia.forEach(function(m) {
+      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
+      var typeText = m.Type || 'PDF';
+      html += 
+        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs mt-2">' +
+          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
+            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
+            '<div class="text-truncate">' +
+              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
+          '</button>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  };
+
+  window.openMediaPresentation = async function(mediaId, isPreview) {
+    window.globalIsMediaPreviewMode = isPreview || false;
+    var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    if (!media) return window.showToast ? window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error") : alert("Error loading media");
+
+    var visitIdInput = document.getElementById('visitId');
+    if (visitIdInput && !visitIdInput.value && typeof window.generateUUID === 'function') visitIdInput.value = window.generateUUID();
+
+    window.currentActiveMedia = media;
+    window.presentationStartTime = new Date();
+    window.pageLogsBuffer = [];
+    window.currentPdfPage = 1;
+    window.currentPageStartTime = new Date();
+
+    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+    document.getElementById('mediaModalTitle').innerHTML = '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
+
+    var modalBody = document.getElementById('mediaModalBody');
+    var pdfControls = document.getElementById('pdfControls');
+
+    if (media.Type === 'Video') {
+      if (pdfControls) pdfControls.classList.add('d-none');
+      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
+    } else {
+      if (pdfControls) pdfControls.classList.remove('d-none');
+      modalBody.innerHTML = '<div id="pdfCanvasContainer"><canvas id="pdfRenderCanvas"></canvas></div>';
+
+      try {
+        var loadingTask = pdfjsLib.getDocument(media.File_URL);
+        window.pdfDocInstance = await loadingTask.promise;
+        window.totalPdfPages = window.pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
+        document.getElementById('pdfPageNum').value = 1;
+        if (typeof window.renderPdfPage === 'function') window.renderPdfPage(1);
+      } catch(e) {
+        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      }
+    }
+
+    var secondsElapsed = 0;
+    var timerBadge = document.getElementById('mediaTimerBadge');
+    if (timerBadge) timerBadge.innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.presentationTimerInterval = setInterval(function() {
+      secondsElapsed++;
+      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      var s = String(secondsElapsed % 60).padStart(2, '0');
+      if (timerBadge) timerBadge.innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
+    }, 1000);
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+  };
+
+  window.renderPdfPage = async function(num) {
+    if (!window.pdfDocInstance) return;
+    try {
+      var page = await window.pdfDocInstance.getPage(num);
+      var canvas = document.getElementById('pdfRenderCanvas');
+      if (!canvas) return;
+      var context = canvas.getContext('2d');
+      var viewport = page.getViewport({ scale: 1.5 });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      var renderContext = { canvasContext: context, viewport: viewport };
+      await page.render(renderContext).promise;
+    } catch(e) {}
+  };
+
+  window.recordCurrentPageLog = function() {
+    if (window.currentPageStartTime) {
+      var now = new Date();
+      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
+      if (durationSec >= 5) {
+          window.pageLogsBuffer.push({ Page_Number: window.currentPdfPage, Duration_Second: durationSec, Whenopend: window.currentPageStartTime.toISOString() });
+      }
+    }
+  };
+
+  window.prevPdfPage = function() {
+    if (window.currentPdfPage <= 1) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage--;
+    window.currentPageStartTime = new Date();
+    var pNumEl = document.getElementById('pdfPageNum');
+    if (pNumEl) pNumEl.value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.nextPdfPage = function() {
+    if (window.currentPdfPage >= window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage++;
+    window.currentPageStartTime = new Date();
+    var pNumEl = document.getElementById('pdfPageNum');
+    if (pNumEl) pNumEl.value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.jumpPdfPage = function() {
+    var pNumEl = document.getElementById('pdfPageNum');
+    if (!pNumEl) return;
+    var val = parseInt(pNumEl.value);
+    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage = val;
+    window.currentPageStartTime = new Date();
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.closeMediaPresentation = async function() {
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.recordCurrentPageLog();
+    var now = new Date();
+    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
+    var visitIdEl = document.getElementById('visitId');
+    var targetVisitId = visitIdEl ? visitIdEl.value : null;
+
+    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+      var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
+
+      var logPayload = { Visit_ID: targetVisitId, Media_ID: window.currentActiveMedia.Media_ID, Duration_Seconds: durationToSave, Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(), Whoupdated: whoUpdated };
+
+      try {
+        if (window.supabaseClient) {
+            var logRes = await window.supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+            if (!logRes.error && logRes.data && logRes.data.length > 0) {
+              var createdLogId = logRes.data[0].Log_ID;
+              if (window.pageLogsBuffer.length > 0) {
+                var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
+                  return { Log_ID: createdLogId, Page_Number: pLog.Page_Number, Duration_Seconds: pLog.Duration_Second, Whenopend: pLog.Whenopend, Whoupdated: whoUpdated };
+                });
+                await window.supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+              }
+            }
+        }
+      } catch(err) {}
+    }
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+
+    var mBody = document.getElementById('mediaModalBody');
+    if (mBody) mBody.innerHTML = '';
+    window.currentActiveMedia = null;
+    window.presentationStartTime = null;
+    window.pdfDocInstance = null;
+  };
+
+  // ==========================================
   // 📥 5. DATA LOADING & FILTERING
   // ==========================================
   window.loadDropdowns = async function(forceReload) {
