@@ -1838,6 +1838,40 @@
   };
 
   // ==========================================
+  // 🔙 ฟังก์ชันปุ่มย้อนกลับและยกเลิก (ที่ขาดหายไป)
+  // ==========================================
+  window.cancelVisitForm = function() {
+    if (typeof window.clearFormDraft === 'function') {
+        window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
+    }
+    var returnDocId = sessionStorage.getItem('returnToDocId');
+    if (returnDocId) {
+      sessionStorage.removeItem('returnToDocId');
+      if (typeof window.returnToDoctorProfile === 'function') {
+          window.returnToDoctorProfile(returnDocId); 
+      }
+    } else {
+      if (typeof window.switchVisitView === 'function') {
+          window.switchVisitView('visitListView');
+      }
+    }
+  };
+
+  window.returnToDoctorProfile = function(docId) {
+    if (typeof window.loadComponent === 'function') window.loadComponent('doctor');
+    var attempts = 0;
+    var checkReady = setInterval(function() {
+      attempts++;
+      if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
+        clearInterval(checkReady); 
+        window.openViewDoctorProfile(docId, '#tab-doc-history'); 
+      } else if (attempts > 50) {
+        clearInterval(checkReady);
+      }
+    }, 100);
+  };
+
+  // ==========================================
   // ⛱️ 9. ฟังก์ชันจัดการ TOT Modal (Time Off Territory)
   // ==========================================
   window.initTotModal = function() {
