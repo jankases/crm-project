@@ -20,18 +20,18 @@
   /* ==========================================
    ✨ HIGH-END PREMIUM BUTTON STYLES
    ========================================== */
-  /* Utility Classes สำหรับบังคับมุมมนทรง Squircle */
+
   .premium-radius { border-radius: 10px !important; }
   .premium-radius-lg { border-radius: 12px !important; }
 
-  /* 1. ปุ่มหลัก (Primary CTA) */
+  /* 1. ปุ่มหลัก (Primary CTA: Add New Visit) */
   .btn-premium-primary {
     background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     font-size: 0.885rem !important;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     border-radius: 10px !important; 
     padding: 8px 18px !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
@@ -39,6 +39,7 @@
                 inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
+
   .btn-premium-primary:hover {
     background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
     transform: translateY(-1px) !important;
@@ -47,12 +48,13 @@
                 inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
     color: #ffffff !important;
   }
+
   .btn-premium-primary:active {
     transform: translateY(0) !important;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
   }
 
-  /* 2. ปุ่มรอง (Secondary CTA) */
+  /* 2. ปุ่มรอง (Secondary CTA: Add TOT) */
   .btn-premium-secondary {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -65,7 +67,11 @@
                 inset 0 1px 0 rgba(255, 255, 255, 1) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
-  .btn-premium-secondary i { color: #0284c7 !important; }
+
+  .btn-premium-secondary i {
+    color: #0284c7 !important; 
+  }
+
   .btn-premium-secondary:hover {
     background: #f8fafc !important;
     border-color: #cbd5e1 !important;
@@ -74,7 +80,7 @@
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06) !important;
   }
 
-  /* 3. ปุ่มไอคอนอย่างเดียว (Icon Only) */
+  /* 3. ปุ่มไอคอนอย่างเดียว (Refresh) */
   .btn-premium-icon {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -89,6 +95,7 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
+
   .btn-premium-icon:hover {
     background: #f8fafc !important;
     color: #1e293b !important;
@@ -113,7 +120,7 @@
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
-  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
+  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List & Calendar View) ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -128,16 +135,21 @@
           <button class="btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
+        <!-- ปุ่ม Refresh -->
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate"></i>
         </button>
 
+        <!-- ปุ่ม Add TOT -->
         <button type="button" class="btn btn-premium-secondary" onclick="window.openAddTotModal()">
-          <i class="fa-solid fa-umbrella-beach me-1.5"></i> <span data-i18n="btn_add_tot">Add TOT</span>
+          <i class="fa-solid fa-umbrella-beach me-1.5"></i>
+          <span data-i18n="btn_add_tot">Add TOT</span>
         </button>
 
+        <!-- ปุ่ม Add New Visit -->
         <button type="button" class="btn btn-premium-primary" onclick="window.openAddVisitView()">
-          <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
+          <i class="fa-solid fa-plus me-1.5"></i>
+          <span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
@@ -524,6 +536,7 @@
     </div>
   </div>
 </div>
+
 <script>
   // ==========================================
   // 1. GLOBAL STATE VARIABLES
@@ -775,7 +788,336 @@
   };
 
   // ==========================================
-  // 📊 4. VIEW & UI RENDERERS
+  // 💾 4. DRAFT & NOTIFICATION FUNCTIONS
+  // ==========================================
+  window.saveFormDraft = function() {
+      var visitId = document.getElementById('visitId').value || 'NEW';
+      var draftData = {
+          docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
+          productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
+          purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
+          date: document.getElementById('visitDate').value,
+          startTime: document.getElementById('visitStartTime').value,
+          endTime: document.getElementById('visitEndTime').value,
+          details: document.getElementById('visitDetails').value,
+          insight: document.getElementById('visitInsight').value,
+          nextAction: document.getElementById('visitNextAction').value,
+          isCoaching: document.getElementById('visitIsCoaching').checked,
+          status: document.getElementById('visitStatus').value,
+          timestamp: Date.now()
+      };
+      localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
+  };
+
+  window.restoreFormDraft = function(visitId) {
+      var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
+      if (draftStr) {
+          try {
+              var draft = JSON.parse(draftStr);
+              if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
+                  window.clearFormDraft(visitId);
+                  return false;
+              }
+              setTimeout(function() {
+                  if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
+                  if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
+                  if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
+              }, 200);
+
+              if (draft.date) document.getElementById('visitDate').value = draft.date;
+              if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
+              if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
+              if (draft.details) document.getElementById('visitDetails').value = draft.details;
+              if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
+              if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+              if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
+              if (draft.status) document.getElementById('visitStatus').value = draft.status;
+              
+              if (!document.getElementById('visitId').value && window.showToast) {
+                  window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              }
+              return true;
+          } catch(e) {}
+      }
+      return false;
+  };
+
+  window.clearFormDraft = function(visitId) { localStorage.removeItem('visitDraft_' + (visitId || 'NEW')); };
+
+  window.checkMyDraftsReminder = function(myDraftCount) {
+    var toastContainer = document.getElementById('draftToastContainer');
+    if (!toastContainer) return;
+    if (myDraftCount > 0) {
+      toastContainer.innerHTML = 
+        '<div class="draft-toast" id="myDraftToast">' +
+          '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
+          '<div>' +
+            '<div class="fw-bold text-dark small">มีฉบับร่างค้างยืนยัน</div>' +
+            '<div class="text-secondary" style="font-size: 0.82rem;">คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง</div>' +
+          '</div>' +
+          '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
+        '</div>';
+      setTimeout(function() { var t = document.getElementById('myDraftToast'); if (t) t.remove(); }, 7000);
+    } else {
+      toastContainer.innerHTML = '';
+    }
+  };
+
+  // ==========================================
+  // 🎬 5. MEDIA & PRESENTATION FUNCTIONS
+  // ==========================================
+  window.fetchDetailingMedia = async function() {
+    try {
+      var res = await window.supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
+      if (!res.error && res.data) { window.globalAllMediaList = res.data; }
+    } catch(e) {}
+  };
+
+  window.loadProductMedia = async function() {
+    var container = document.getElementById('mediaListContainer');
+    var section = document.getElementById('detailingMediaSection');
+    var headerEl = document.getElementById('detailingMediaHeader');
+    if (!container || !section) return;
+
+    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
+    var isSubmitted = (visitStatus === 'Submitted');
+
+    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    var isOwner = true; 
+    
+    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
+        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+        if (v) {
+            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+            if (myRepId && creatorRepId) { isOwner = (myRepId === creatorRepId); } 
+            else if (myEmail && creatorWho) { isOwner = (myEmail === creatorWho); } 
+            else { isOwner = false; }
+        }
+    }
+
+    var isPreviewMode = isSubmitted || !isOwner;
+    var selectedProducts = [];
+    if (window.tomSelectProdInstance) {
+      var val = window.tomSelectProdInstance.getValue();
+      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    } else {
+      var pSelect = document.getElementById('visitProductId');
+      if (pSelect) selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
+    }
+
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
+    if (selectedProducts.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
+    if (window.globalAllMediaList.length === 0) {
+        if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
+    }
+
+    var matchedMedia = window.globalAllMediaList.filter(function(m) {
+      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
+    });
+
+    if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
+    section.classList.remove('d-none');
+    var titleText = window.getCurrentAppLang() === 'en' ? 'e-Detailing / Presentation' : 'สื่อการนำเสนอ (e-Detailing)';
+    var unitText = window.getCurrentAppLang() === 'en' ? 'items' : 'เล่ม';
+
+    if (headerEl) {
+      headerEl.innerHTML = 
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span>' + titleText + '</span></span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
+    }
+
+    var html = '';
+    // 🌟 ดึงคลาสปุ่มพรีเมียมมาใช้
+    var btnClass = isPreviewMode ? 'btn-premium-secondary' : 'btn-premium-primary';
+    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
+    var btnText = isPreviewMode ? 'Preview' : 'Present';
+
+    matchedMedia.forEach(function(m) {
+      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
+      var typeText = m.Type || 'PDF';
+      html += 
+        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs mt-2">' +
+          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
+            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
+            '<div class="text-truncate">' +
+              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn ' + btnClass + ' btn-sm" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
+          '</button>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  };
+
+  window.openMediaPresentation = async function(mediaId, isPreview) {
+    window.globalIsMediaPreviewMode = isPreview || false;
+    var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    if (!media) return window.showToast ? window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error") : alert("Error loading media");
+
+    var visitIdInput = document.getElementById('visitId');
+    if (visitIdInput && !visitIdInput.value && typeof window.generateUUID === 'function') visitIdInput.value = window.generateUUID();
+
+    window.currentActiveMedia = media;
+    window.presentationStartTime = new Date();
+    window.pageLogsBuffer = [];
+    window.currentPdfPage = 1;
+    window.currentPageStartTime = new Date();
+
+    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+    document.getElementById('mediaModalTitle').innerHTML = '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
+
+    var modalBody = document.getElementById('mediaModalBody');
+    var pdfControls = document.getElementById('pdfControls');
+
+    if (media.Type === 'Video') {
+      if (pdfControls) pdfControls.classList.add('d-none');
+      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
+    } else {
+      if (pdfControls) pdfControls.classList.remove('d-none');
+      modalBody.innerHTML = '<div id="pdfCanvasContainer"><canvas id="pdfRenderCanvas"></canvas></div>';
+
+      try {
+        var loadingTask = pdfjsLib.getDocument(media.File_URL);
+        window.pdfDocInstance = await loadingTask.promise;
+        window.totalPdfPages = window.pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
+        document.getElementById('pdfPageNum').value = 1;
+        if (typeof window.renderPdfPage === 'function') window.renderPdfPage(1);
+      } catch(e) {
+        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      }
+    }
+
+    var secondsElapsed = 0;
+    var timerBadge = document.getElementById('mediaTimerBadge');
+    if (timerBadge) timerBadge.innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.presentationTimerInterval = setInterval(function() {
+      secondsElapsed++;
+      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      var s = String(secondsElapsed % 60).padStart(2, '0');
+      if (timerBadge) timerBadge.innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
+    }, 1000);
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+  };
+
+  window.renderPdfPage = async function(num) {
+    if (!window.pdfDocInstance) return;
+    try {
+      var page = await window.pdfDocInstance.getPage(num);
+      var canvas = document.getElementById('pdfRenderCanvas');
+      if (!canvas) return;
+      var context = canvas.getContext('2d');
+      var viewport = page.getViewport({ scale: 1.5 });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      var renderContext = { canvasContext: context, viewport: viewport };
+      await page.render(renderContext).promise;
+    } catch(e) {}
+  };
+
+  window.recordCurrentPageLog = function() {
+    if (window.currentPageStartTime) {
+      var now = new Date();
+      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
+      if (durationSec >= 5) {
+          window.pageLogsBuffer.push({ Page_Number: window.currentPdfPage, Duration_Second: durationSec, Whenopend: window.currentPageStartTime.toISOString() });
+      }
+    }
+  };
+
+  window.prevPdfPage = function() {
+    if (window.currentPdfPage <= 1) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage--;
+    window.currentPageStartTime = new Date();
+    var pNumEl = document.getElementById('pdfPageNum');
+    if (pNumEl) pNumEl.value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.nextPdfPage = function() {
+    if (window.currentPdfPage >= window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage++;
+    window.currentPageStartTime = new Date();
+    var pNumEl = document.getElementById('pdfPageNum');
+    if (pNumEl) pNumEl.value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.jumpPdfPage = function() {
+    var pNumEl = document.getElementById('pdfPageNum');
+    if (!pNumEl) return;
+    var val = parseInt(pNumEl.value);
+    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage = val;
+    window.currentPageStartTime = new Date();
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.closeMediaPresentation = async function() {
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.recordCurrentPageLog();
+    var now = new Date();
+    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
+    var visitIdEl = document.getElementById('visitId');
+    var targetVisitId = visitIdEl ? visitIdEl.value : null;
+
+    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+      var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
+
+      var logPayload = { Visit_ID: targetVisitId, Media_ID: window.currentActiveMedia.Media_ID, Duration_Seconds: durationToSave, Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(), Whoupdated: whoUpdated };
+
+      try {
+        if (window.supabaseClient) {
+            var logRes = await window.supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+            if (!logRes.error && logRes.data && logRes.data.length > 0) {
+              var createdLogId = logRes.data[0].Log_ID;
+              if (window.pageLogsBuffer.length > 0) {
+                var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
+                  return { Log_ID: createdLogId, Page_Number: pLog.Page_Number, Duration_Seconds: pLog.Duration_Second, Whenopend: pLog.Whenopend, Whoupdated: whoUpdated };
+                });
+                await window.supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+              }
+            }
+        }
+      } catch(err) {}
+    }
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+
+    var mBody = document.getElementById('mediaModalBody');
+    if (mBody) mBody.innerHTML = '';
+    window.currentActiveMedia = null;
+    window.presentationStartTime = null;
+    window.pdfDocInstance = null;
+  };
+
+  // ==========================================
+  // 📊 6. VIEW & UI RENDERERS (ตาราง และ ปฏิทิน)
   // ==========================================
   window.toggleMainView = function(viewName) {
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -786,14 +1128,14 @@
     var calZone = document.getElementById('visitCalendarZone');
 
     if (viewName === 'calendar') {
-        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
-        if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+        if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
         if (listZone) listZone.classList.add('d-none');
         if (calZone) calZone.classList.remove('d-none');
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
     } else {
-        if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
-        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+        if (btnList) btnList.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
+        if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
         if (calZone) calZone.classList.add('d-none');
         if (listZone) listZone.classList.remove('d-none');
     }
@@ -1064,257 +1406,7 @@
   };
 
   // ==========================================
-  // 🎬 5. MEDIA & PRESENTATION FUNCTIONS (ส่วนที่หายไป)
-  // ==========================================
-  window.fetchDetailingMedia = async function() {
-    try {
-      var res = await window.supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
-      if (!res.error && res.data) { window.globalAllMediaList = res.data; }
-    } catch(e) {}
-  };
-
-  window.loadProductMedia = async function() {
-    var container = document.getElementById('mediaListContainer');
-    var section = document.getElementById('detailingMediaSection');
-    var headerEl = document.getElementById('detailingMediaHeader');
-    if (!container || !section) return;
-
-    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
-    var isSubmitted = (visitStatus === 'Submitted');
-
-    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
-
-    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-    var isOwner = true; 
-    
-    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
-        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
-        if (v) {
-            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
-            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-            if (myRepId && creatorRepId) { isOwner = (myRepId === creatorRepId); } 
-            else if (myEmail && creatorWho) { isOwner = (myEmail === creatorWho); } 
-            else { isOwner = false; }
-        }
-    }
-
-    var isPreviewMode = isSubmitted || !isOwner;
-    var selectedProducts = [];
-    if (window.tomSelectProdInstance) {
-      var val = window.tomSelectProdInstance.getValue();
-      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
-    } else {
-      var pSelect = document.getElementById('visitProductId');
-      if (pSelect) selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
-    }
-
-    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
-    if (selectedProducts.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
-
-    if (window.globalAllMediaList.length === 0) await window.fetchDetailingMedia();
-
-    var matchedMedia = window.globalAllMediaList.filter(function(m) {
-      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
-    });
-
-    if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
-
-    section.classList.remove('d-none');
-    var titleText = window.getCurrentAppLang() === 'en' ? 'e-Detailing / Presentation' : 'สื่อการนำเสนอ (e-Detailing)';
-    var unitText = window.getCurrentAppLang() === 'en' ? 'items' : 'เล่ม';
-
-    if (headerEl) {
-      headerEl.innerHTML = 
-        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span>' + titleText + '</span></span>' +
-        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
-    }
-
-    var html = '';
-    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-premium-primary';
-    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
-    var btnText = isPreviewMode ? 'Preview' : 'Present';
-
-    matchedMedia.forEach(function(m) {
-      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
-      var typeText = m.Type || 'PDF';
-      html += 
-        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs mt-2">' +
-          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
-            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
-            '<div class="text-truncate">' +
-              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
-              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
-            '</div>' +
-          '</div>' +
-          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
-            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
-          '</button>' +
-        '</div>';
-    });
-    container.innerHTML = html;
-  };
-
-  window.openMediaPresentation = async function(mediaId, isPreview) {
-    window.globalIsMediaPreviewMode = isPreview || false;
-    var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
-    if (!media) return window.showToast ? window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error") : alert("Error loading media");
-
-    var visitIdInput = document.getElementById('visitId');
-    if (visitIdInput && !visitIdInput.value && typeof window.generateUUID === 'function') visitIdInput.value = window.generateUUID();
-
-    window.currentActiveMedia = media;
-    window.presentationStartTime = new Date();
-    window.pageLogsBuffer = [];
-    window.currentPdfPage = 1;
-    window.currentPageStartTime = new Date();
-
-    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
-    document.getElementById('mediaModalTitle').innerHTML = '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
-
-    var modalBody = document.getElementById('mediaModalBody');
-    var pdfControls = document.getElementById('pdfControls');
-
-    if (media.Type === 'Video') {
-      if (pdfControls) pdfControls.classList.add('d-none');
-      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
-    } else {
-      if (pdfControls) pdfControls.classList.remove('d-none');
-      modalBody.innerHTML = '<div id="pdfCanvasContainer"><canvas id="pdfRenderCanvas"></canvas></div>';
-
-      try {
-        var loadingTask = pdfjsLib.getDocument(media.File_URL);
-        window.pdfDocInstance = await loadingTask.promise;
-        window.totalPdfPages = window.pdfDocInstance.numPages;
-        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
-        document.getElementById('pdfPageNum').value = 1;
-        if (typeof window.renderPdfPage === 'function') window.renderPdfPage(1);
-      } catch(e) {
-        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
-      }
-    }
-
-    var secondsElapsed = 0;
-    var timerBadge = document.getElementById('mediaTimerBadge');
-    if (timerBadge) timerBadge.innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
-    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
-    window.presentationTimerInterval = setInterval(function() {
-      secondsElapsed++;
-      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
-      var s = String(secondsElapsed % 60).padStart(2, '0');
-      if (timerBadge) timerBadge.innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
-    }, 1000);
-
-    var modalEl = document.getElementById('mediaPresentationModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        var modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-  };
-
-  window.renderPdfPage = async function(num) {
-    if (!window.pdfDocInstance) return;
-    try {
-      var page = await window.pdfDocInstance.getPage(num);
-      var canvas = document.getElementById('pdfRenderCanvas');
-      if (!canvas) return;
-      var context = canvas.getContext('2d');
-      var viewport = page.getViewport({ scale: 1.5 });
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-      var renderContext = { canvasContext: context, viewport: viewport };
-      await page.render(renderContext).promise;
-    } catch(e) {}
-  };
-
-  window.recordCurrentPageLog = function() {
-    if (window.currentPageStartTime) {
-      var now = new Date();
-      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
-      if (durationSec >= 5) {
-          window.pageLogsBuffer.push({ Page_Number: window.currentPdfPage, Duration_Second: durationSec, Whenopend: window.currentPageStartTime.toISOString() });
-      }
-    }
-  };
-
-  window.prevPdfPage = function() {
-    if (window.currentPdfPage <= 1) return;
-    window.recordCurrentPageLog();
-    window.currentPdfPage--;
-    window.currentPageStartTime = new Date();
-    var pNumEl = document.getElementById('pdfPageNum');
-    if (pNumEl) pNumEl.value = window.currentPdfPage;
-    window.renderPdfPage(window.currentPdfPage);
-  };
-
-  window.nextPdfPage = function() {
-    if (window.currentPdfPage >= window.totalPdfPages) return;
-    window.recordCurrentPageLog();
-    window.currentPdfPage++;
-    window.currentPageStartTime = new Date();
-    var pNumEl = document.getElementById('pdfPageNum');
-    if (pNumEl) pNumEl.value = window.currentPdfPage;
-    window.renderPdfPage(window.currentPdfPage);
-  };
-
-  window.jumpPdfPage = function() {
-    var pNumEl = document.getElementById('pdfPageNum');
-    if (!pNumEl) return;
-    var val = parseInt(pNumEl.value);
-    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
-    window.recordCurrentPageLog();
-    window.currentPdfPage = val;
-    window.currentPageStartTime = new Date();
-    window.renderPdfPage(window.currentPdfPage);
-  };
-
-  window.closeMediaPresentation = async function() {
-    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
-    window.recordCurrentPageLog();
-    var now = new Date();
-    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
-    var visitIdEl = document.getElementById('visitId');
-    var targetVisitId = visitIdEl ? visitIdEl.value : null;
-
-    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
-      var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
-
-      var logPayload = { Visit_ID: targetVisitId, Media_ID: window.currentActiveMedia.Media_ID, Duration_Seconds: durationToSave, Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(), Whoupdated: whoUpdated };
-
-      try {
-        if (window.supabaseClient) {
-            var logRes = await window.supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
-            if (!logRes.error && logRes.data && logRes.data.length > 0) {
-              var createdLogId = logRes.data[0].Log_ID;
-              if (window.pageLogsBuffer.length > 0) {
-                var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
-                  return { Log_ID: createdLogId, Page_Number: pLog.Page_Number, Duration_Seconds: pLog.Duration_Second, Whenopend: pLog.Whenopend, Whoupdated: whoUpdated };
-                });
-                await window.supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
-              }
-            }
-        }
-      } catch(err) {}
-    }
-
-    var modalEl = document.getElementById('mediaPresentationModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        var modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
-    }
-
-    var mBody = document.getElementById('mediaModalBody');
-    if (mBody) mBody.innerHTML = '';
-    window.currentActiveMedia = null;
-    window.presentationStartTime = null;
-    window.pdfDocInstance = null;
-  };
-
-  // ==========================================
-  // 📥 5. DATA LOADING & FILTERING
+  // 📥 7. DATA LOADING & FILTERING
   // ==========================================
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
@@ -1482,8 +1574,7 @@
             purposeItems.forEach(function(i) {
                 var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
                 purposeData.push({
-                    value: i.Index_ID, // 🌟 ใช้ Index_ID (UUID) เป็น value หลัก
-                    text: (appLang === 'en') ? valEN : valTH, searchEn: valEN, searchTh: valTH
+                    value: i.Index_ID, text: (appLang === 'en') ? valEN : valTH, searchEn: valEN, searchTh: valTH
                 });
             });
         }
@@ -1575,7 +1666,6 @@
             var uter = String(u.Territory_ID || u.Territory || '').trim(); var uem = String(u.Email || u.email || '').toLowerCase().trim();
             if (!isSales) {
                 if (myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTerIds.indexOf(uter) !== -1 || myAllowedTeamIds.indexOf(uter) !== -1) {
-                    // 🌟 ป้องกันไม่ให้ Admin หลุดเข้ามาอยู่ในรายชื่อลูกทีมของ Manager
                     var targetRole = String(u.Role || u.role || '').toUpperCase();
                     var targetIsAdmin = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(targetRole) !== -1;
                     if (!targetIsAdmin) {
@@ -1861,7 +1951,6 @@
         if (window.myIsGlobalViewer) hasAccess = true;
         else {
              var rawRepId = String(tot.Rep_ID || '').trim(); var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-             // 🌟 เช็กสิทธิ์เหมือนฝั่ง Visit
              if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1)) hasAccess = true;
         }
         if(!hasAccess) return false;
@@ -1927,7 +2016,6 @@
     if (formView) { if(isEditable) formView.classList.remove('disabled-ts'); else formView.classList.add('disabled-ts'); }
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.disabled = !isEditable; });
     
-    // 🌟 ปิดปุ่มตั้งเวลาด่วน [Now], [+30m], [+1h] ด้วย เพื่อไม่ให้แก้ไขเวลาได้ตอน Read-Only
     var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction', 'btnQuickNow', 'btnQuick30', 'btnQuick60'];
     btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
   };
@@ -1988,25 +2076,25 @@
 
     if (isPendingUnlock) {
       if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
-      btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
+      btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 premium-radius py-2 shadow-sm';
       btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock'; btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
       if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
       if (canEdit) {
-        btn.disabled = false; btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.disabled = false; btn.className = 'btn btn-warning text-dark fw-bold px-5 premium-radius py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock'; btn.dataset.mode = 'request_unlock';
       } else {
-        btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 premium-radius py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Locked (Read-Only)'; btn.dataset.mode = 'disabled';
       }
     } else {
       if (canEdit) {
         if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
-        btn.disabled = false; btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.disabled = false; btn.className = 'btn btn-premium-primary';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.dataset.mode = 'save';
       } else {
         if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
-        btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 premium-radius py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)'; btn.dataset.mode = 'disabled';
       }
     }
@@ -2029,7 +2117,6 @@
 
     if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
 
-    // 🌟 สั่ง Clear ค่าเก่าออกให้หมดทุกช่อง รวมถึง Products ด้วย
     if (window.tomSelectDocInstance) { window.tomSelectDocInstance.clear(); window.tomSelectDocInstance.enable(); }
     if (window.tomSelectPurposeInstance) { window.tomSelectPurposeInstance.clear(); window.tomSelectPurposeInstance.enable(); }
     if (window.tomSelectProdInstance) { window.tomSelectProdInstance.clear(); window.tomSelectProdInstance.enable(); }
@@ -2049,7 +2136,7 @@
 
     var btn = document.getElementById('saveVisitBtn');
     if (btn) {
-        btn.dataset.mode = 'save'; btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.dataset.mode = 'save'; btn.className = 'btn btn-premium-primary';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.disabled = false;
     }
 
@@ -2170,9 +2257,6 @@
     }
   };
 
-  // ==========================================
-  // 🔙 ฟังก์ชันปุ่มย้อนกลับและยกเลิก (ที่ขาดหายไป)
-  // ==========================================
   window.cancelVisitForm = function() {
     if (typeof window.clearFormDraft === 'function') {
         window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
