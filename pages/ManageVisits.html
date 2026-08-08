@@ -1232,7 +1232,14 @@
       var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
       var docWithBadge = docNameShow + coachingBadge;
       var hospNameShow = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
-      
+      // 📍 สร้างปุ่มลิงก์เปิด Google Maps ถ้ามีพิกัด Check-in
+      var mapBtnHtml = '';
+      if (v.CheckIn_Lat && v.CheckIn_Long) {
+        var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
+        mapBtnHtml = ' <a href="' + googleMapUrl + '" target="_blank" class="btn btn-sm btn-light text-danger border shadow-xs ms-1 px-1.5 py-0.5 premium-radius" style="font-size:0.7rem;" title="เปิดแผนที่ Google Maps">' +
+                       '<i class="fa-solid fa-location-dot"></i>' +
+                     '</a>';
+      }
       var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-'; 
 
       var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
@@ -1252,8 +1259,8 @@
 
       htmlBuffer += '<tr>' +
         '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="if(typeof window.openEditVisitView === \'function\') window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
-        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' +  
+        '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + mapBtnHtml + '</small></td>' +
         '<td>' + prodBadges + '</td>' +
         '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
         '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
