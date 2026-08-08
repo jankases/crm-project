@@ -347,3 +347,61 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
   cursor: not-allowed !important;
 }
+
+/* ==========================================
+     ✨ PREMIUM TABLE ELEMENTS (Badges & Links)
+     ========================================== */
+     
+  /* ลิงก์วันที่ในตาราง */
+  .table-visit-link {
+    color: #2563eb !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  .table-visit-link:hover {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 4px;
+  }
+
+  /* ปรับทรง ป้าย Status ทั้งหมด ให้คมคายขึ้น (Squircle + Border) */
+  .badge-soft-success {
+    background-color: #ecfdf5 !important;
+    color: #059669 !important;
+    border: 1px solid #a7f3d0 !important;
+    border-radius: 6px !important; /* เปลี่ยนจาก Pill เป็น Squircle */
+    padding: 5px 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+  }
+
+  .badge-soft-pending {
+    background-color: #fffbeb !important;
+    color: #d97706 !important;
+    border: 1px solid #fde68a !important;
+    border-radius: 6px !important;
+    padding: 5px 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+  }
+
+  .badge-soft-secondary {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 5px 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+  }
+
+  /* ปรับป้าย Product ให้เข้าชุดกัน */
+  .badge-soft-product {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    font-weight: 500 !important;
+  }
