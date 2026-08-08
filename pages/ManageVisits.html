@@ -250,7 +250,7 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="if(window.loadProductMedia) window.loadProductMedia()"></select>
+                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                 </div>
 
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
@@ -274,7 +274,7 @@
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_start_time">Start Time</label>
-                      <button type="button" class="btn btn-outline-primary quick-time-btn" id="btnQuickNow" onclick="window.setQuickTime('start', 0)">[ตอนนี้]</button>
+                      <button type="button" class="btn btn-outline-primary quick-time-btn" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[ตอนนี้]</button>
                     </div>
                     <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
                   </div>
@@ -282,8 +282,8 @@
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_end_time">End Time</label>
                       <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick30" onclick="window.setQuickTime('end', 30)">[+30ม.]</button>
-                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick60" onclick="window.setQuickTime('end', 60)">[+1ชม.]</button>
+                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30ม.]</button>
+                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick60" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 60)">[+1ชม.]</button>
                       </div>
                     </div>
                     <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
@@ -345,7 +345,7 @@
               <!-- Status ชิดขอบล่างพอดี -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="if(window.loadProductMedia) window.loadProductMedia()">
+                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
                 </select>
@@ -445,6 +445,7 @@
     </div>
   </div>
 </div>
+
 <script>
   // ==========================================
   // 1. GLOBAL STATE VARIABLES
@@ -468,7 +469,7 @@
   window.filterDebounceTimer = null; window.docRecognition = null; window.textRecognition = null; window.searchRecognition = null;
 
   // ==========================================
-  // 🚀 2. ระบบดัชนี (Dictionary Index) ป้องกัน CPU ค้าง
+  // 🚀 2. ระบบดัชนี (Dictionary Index)
   // ==========================================
   window._docIndex = {}; window._prodIndex = {}; window._visitProdIndex = {}; window._userIndex = {}; window._purposeIndex = {}; 
 
@@ -614,7 +615,7 @@
     return '-';
   };
 
-  // 🌟 ฟังก์ชันที่ขาดไปจนทำให้ Error ครับ
+  // 🌟 นำกลับมาแล้วครับ! ฟังก์ชันอัปเดตข้อมูลพนักงานในฟอร์ม
   window.updateFormUserInfo = function(repObj, fallbackTerrId) {
     var appLang = window.getCurrentAppLang();
     var repNameShow = '-';
@@ -666,22 +667,27 @@
     }
   };
 
-  // 🌟 ฟังก์ชันที่ขาดไปจนทำให้ Error ครับ
+  // 🌟 นำกลับมาแล้วครับ! ฟังก์ชันเริ่มต้นข้อมูลพนักงาน
   window.initUserInfo = function() {
     try {
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      window.updateFormUserInfo(crmUser, null);
+      if (typeof window.updateFormUserInfo === 'function') {
+          window.updateFormUserInfo(crmUser, null);
+      }
     } catch(e) {}
   };
 
+  // 🌟 นำกลับมาแล้วครับ! ฟังก์ชันตั้งเวลาด่วน [Now] [+30m] [+1h]
   window.setQuickTime = function(type, addMinutes) {
     var now = new Date();
     if (type === 'start') {
       var hours = String(now.getHours()).padStart(2, '0');
       var minutes = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('visitStartTime').value = hours + ':' + minutes;
+      var elStart = document.getElementById('visitStartTime');
+      if (elStart) elStart.value = hours + ':' + minutes;
     } else if (type === 'end') {
-      var startVal = document.getElementById('visitStartTime').value;
+      var elStartVal = document.getElementById('visitStartTime');
+      var startVal = elStartVal ? elStartVal.value : '';
       var baseDate = new Date();
       if (startVal) {
         var parts = startVal.split(':');
@@ -690,7 +696,8 @@
       baseDate.setMinutes(baseDate.getMinutes() + addMinutes);
       var endHours = String(baseDate.getHours()).padStart(2, '0');
       var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
-      document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
+      var elEnd = document.getElementById('visitEndTime');
+      if (elEnd) elEnd.value = endHours + ':' + endMinutes;
     }
     if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
   };
@@ -711,7 +718,7 @@
         if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
         if (listZone) listZone.classList.add('d-none');
         if (calZone) calZone.classList.remove('d-none');
-        window.renderCalendarView();
+        if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
     } else {
         if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
         if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
@@ -746,7 +753,7 @@
       window.VisitManagerCache.filters.rows = window.rowsPerPage;
       window.VisitManagerCache.filters.page = 1;
     }
-    window.renderVisitTable();
+    if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
   };
 
   window.goToPage = function(page) {
@@ -755,7 +762,7 @@
     if (page < 1 || page > totalPages) return;
     window.currentPage = page;
     if (window.VisitManagerCache && window.VisitManagerCache.filters) window.VisitManagerCache.filters.page = page;
-    window.renderVisitTable();
+    if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
   };
 
   window.renderPaginationControls = function(totalPages) {
@@ -821,18 +828,18 @@
       var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
       if (isPendingUnlock) { badgeClass = 'badge-soft-secondary'; statusShow = '⏳ Pending Unlock'; }
 
-      var dateShow = (window.formatDateToLocal) ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
+      var dateShow = (typeof window.formatDateToLocal === 'function') ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
 
       var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
-      var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
+      var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, v.Doc_ID) : '-';
       var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
       var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
       var docWithBadge = docNameShow + coachingBadge;
-      var hospNameShow = docObj ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
+      var hospNameShow = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
       
-      var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); // 🌟 ใช้ Purpose_ID
+      var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-'; 
 
-      var applyHighlight = window.applySearchHighlight || function(t) { return t; };
+      var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
       var highlightedDoc = applyHighlight(docWithBadge, smartSearchVal); 
       var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
       var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
@@ -848,7 +855,7 @@
       } else prodBadges = '<span class="text-muted small">-</span>';
 
       htmlBuffer += '<tr>' +
-        '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+        '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="if(typeof window.openEditVisitView === \'function\') window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
         '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' + 
         '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + '</small></td>' +
         '<td>' + prodBadges + '</td>' +
@@ -858,7 +865,7 @@
     });
 
     tbody.innerHTML = htmlBuffer;
-    window.renderPaginationControls(totalPages);
+    if (typeof window.renderPaginationControls === 'function') window.renderPaginationControls(totalPages);
   };
 
   window.renderCalendarView = function() {
@@ -870,9 +877,9 @@
 
     var visitEvents = window.globalFilteredVisits.map(function(v) {
         var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
-        var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
-        var hospName = (docObj) ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
-        var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); // 🌟 ใช้ Purpose_ID
+        var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, v.Doc_ID) : '-';
+        var hospName = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
+        var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-'; 
 
         var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
         if (dateOnly.indexOf('/') !== -1) {
@@ -970,10 +977,15 @@
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
         eventClick: function(info) {
             if (info.event.extendedProps.isHoliday) return; 
-            if (info.event.extendedProps.isTot) return window.openEditTotModal(info.event.extendedProps.totId);
-            window.openEditVisitView(info.event.id);
+            if (info.event.extendedProps.isTot) {
+                if (typeof window.openEditTotModal === 'function') window.openEditTotModal(info.event.extendedProps.totId);
+                return;
+            }
+            if (typeof window.openEditVisitView === 'function') window.openEditVisitView(info.event.id);
         },
-        dateClick: function(info) { window.openAddVisitView(info.dateStr); },
+        dateClick: function(info) { 
+            if (typeof window.openAddVisitView === 'function') window.openAddVisitView(info.dateStr); 
+        },
         displayEventTime: false 
     });
     window.globalCalendarInstance.render();
@@ -1006,7 +1018,7 @@
           statusSelect.innerHTML = '<option value="">' + optAllStatus + '</option><option value="Pending">' + optStatusPending + '</option><option value="Submitted">' + optStatusSubmitted + '</option>';
           if (typeof TomSelect !== 'undefined') {
               window.safeDestroyTs(window.tomSelectStatusInstance);
-              window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', { allowEmptyOption: true, create: false, placeholder: optAllStatus, dropdownParent: 'body', onChange: function() { window.filterVisits(); } });
+              window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', { allowEmptyOption: true, create: false, placeholder: optAllStatus, dropdownParent: 'body', onChange: function() { if (typeof window.filterVisits === 'function') window.filterVisits(); } });
               if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
           }
       }
@@ -1022,17 +1034,17 @@
 
       if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
           var promises = [
-            (window.fetchAllRecords ? window.fetchAllRecords('Doctors') : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }) : []), 
-            (window.fetchAllRecords ? window.fetchAllRecords('Territory') : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }) : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Team') : []),            
-            (window.fetchAllRecords ? window.fetchAllRecords('BU') : []),            
-            (window.fetchAllRecords ? window.fetchAllRecords('Products_Team') : []),   
-            (window.fetchAllRecords ? window.fetchAllRecords('IndexType') : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }) : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Rep_Users') : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Assignment') : [])
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Doctors') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }) : []), 
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Territory') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }) : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Team') : []),            
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('BU') : []),            
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Products_Team') : []),   
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('IndexType') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }) : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Rep_Users') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Assignment') : [])
           ];
           var results = await Promise.all(promises);
 
@@ -1099,7 +1111,7 @@
       window.globalProductsList = window.VisitManagerCache.products || []; window.globalTerritoryList = window.VisitManagerCache.territories || [];
       window.globalUsersList = window.VisitManagerCache.users || []; window.globalTeamList = window.VisitManagerCache.teams || [];
 
-      window.buildDataIndexes(); 
+      if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
       var docSelect = document.getElementById('visitDocId');
       if (docSelect) { 
@@ -1122,8 +1134,9 @@
         }
       }
 
-      window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
+      if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
+      // 🌟 สร้าง Dropdown วัตถุประสงค์โดยอิงจาก "Index_ID" เป็นแกนหลัก 100%
       var purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
         var types = window.VisitManagerCache.indexTypes || []; var indexes = window.VisitManagerCache.indexes || [];
@@ -1135,7 +1148,8 @@
             purposeItems.forEach(function(i) {
                 var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
                 purposeData.push({
-                    value: i.Index_ID, text: (appLang === 'en') ? valEN : valTH, searchEn: valEN, searchTh: valTH
+                    value: i.Index_ID, // 🌟 ใช้ Index_ID (UUID) เป็น value หลัก
+                    text: (appLang === 'en') ? valEN : valTH, searchEn: valEN, searchTh: valTH
                 });
             });
         }
@@ -1166,9 +1180,11 @@
               var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
               if (v) {
                   var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                  if (window.updateFormUserInfo) window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+                  if (typeof window.updateFormUserInfo === 'function') window.updateFormUserInfo(targetRepObj, v.Territory_ID);
               }
-          } else if (window.initUserInfo) window.initUserInfo();
+          } else {
+              if (typeof window.initUserInfo === 'function') window.initUserInfo();
+          }
       }
 
       var filterGroup = document.getElementById('visitFilterZoneGroup');
@@ -1287,11 +1303,11 @@
     var appLang = window.getCurrentAppLang();
     if (typeof TomSelect !== 'undefined') {
       window.safeDestroyTs(window.tomSelectRepInstance);
-      window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', dropdownParent: 'body', onChange: function() { window.handleFilterChange('rep'); } });
+      window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', dropdownParent: 'body', onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } });
       if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
 
       window.safeDestroyTs(window.tomSelectTerInstance);
-      window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', dropdownParent: 'body', onChange: function() { window.handleFilterChange('territory'); } });
+      window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', dropdownParent: 'body', onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } });
       if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
     }
   };
@@ -1324,13 +1340,13 @@
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
         window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
             plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
-            onChange: function() { if (window.loadProductMedia) window.loadProductMedia(); }
+            onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
         });
         if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
     }
   };
 
-  window.handleFilterChange = function(source) { window.filterVisits(); };
+  window.handleFilterChange = function(source) { if (typeof window.filterVisits === 'function') window.filterVisits(); };
 
   window.clearVisitFilters = function() {
       if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
@@ -1343,7 +1359,7 @@
       var stEl = document.getElementById('filterVisitStatus');
       if (stEl) { stEl.value = ''; stEl.classList.add('filter-placeholder-text'); }
       if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
-      window.filterVisits();
+      if (typeof window.filterVisits === 'function') window.filterVisits();
   };
 
   window.sortVisits = function(col) {
@@ -1354,7 +1370,7 @@
       var icon = document.getElementById('icon-sort-' + c);
       if (icon) icon.className = (c === window.currentSortCol) ? (window.currentSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1') : 'fa-solid fa-sort text-muted ms-1';
     });
-    window.filterVisits(false); 
+    if (typeof window.filterVisits === 'function') window.filterVisits(false); 
   };
 
   window.loadVisits = async function(forceReload) {
@@ -1365,11 +1381,11 @@
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
         try {
           var promises = [
-            (window.fetchAllRecords ? window.fetchAllRecords('Visit_Logs') : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('Visit_Products') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Visit_Logs') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Visit_Products') : []),
             window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-            (window.fetchAllRecords ? window.fetchAllRecords('Hospitals') : []),
-            (window.fetchAllRecords ? window.fetchAllRecords('TOT_Logs') : []) 
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Hospitals') : []),
+            (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []) 
           ];
           var results = await Promise.all(promises);
 
@@ -1391,7 +1407,7 @@
     window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
     if (window.VisitManagerCache.allHospitals && window.VisitManagerCache.allHospitals.length > 0) window.globalAllHospitals = window.VisitManagerCache.allHospitals;
 
-    window.buildDataIndexes();
+    if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
 
     if (window.VisitManagerCache.filters) {
         var f = window.VisitManagerCache.filters;
@@ -1409,7 +1425,7 @@
         window.currentSortAsc = f.sortAsc !== undefined ? f.sortAsc : false;
     }
 
-    window.filterVisits(false);
+    if (typeof window.filterVisits === 'function') window.filterVisits(false);
 
     var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
@@ -1422,12 +1438,12 @@
       return isPending && ((myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho));
     }).length;
 
-    if (window.checkMyDraftsReminder) window.checkMyDraftsReminder(myDraftsCount);
+    if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
   };
 
   window.debouncedFilterVisits = function() {
       if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
-      window.filterDebounceTimer = setTimeout(function() { window.filterVisits(); }, 300); 
+      window.filterDebounceTimer = setTimeout(function() { if (typeof window.filterVisits === 'function') window.filterVisits(); }, 300); 
   };
 
   window.filterVisits = function(resetPage) {
@@ -1470,11 +1486,11 @@
         var docIdStr = String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
         var docObj = window._docIndex[docIdStr];
         var docName = docObj ? (docObj.Doc_Name + ' ' + (docObj.Doc_Name_TH || '')).toLowerCase() : '';
-        var hospName = (window.getHospitalNameFromDocOrVisit && docObj) ? window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase() : '';
+        var hospName = (typeof window.getHospitalNameFromDocOrVisit === 'function' && docObj) ? window.getHospitalNameFromDocOrVisit(docObj, v).toLowerCase() : '';
         var vProds = window._visitProdIndex[String(v.Visit_ID).trim().toLowerCase()] || [];
         var prodNames = vProds.map(function(vp) { var p = window._prodIndex[String(vp.Product_ID).trim().toLowerCase()]; return p ? p.Product.toLowerCase() : ''; }).join(' ');
 
-        var purposeShow = window.getPurposeText(v.Purpose_ID).toLowerCase();
+        var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID).toLowerCase() : '';
         var rowFullText = docName + ' ' + hospName + ' ' + prodNames + ' ' + purposeShow + ' ' + (v.Details || '').toLowerCase();
         if (!searchKeywords.every(function(key) { return rowFullText.indexOf(key) !== -1; })) return false;
       }
@@ -1537,19 +1553,20 @@
       var valA = '', valB = '';
       if (window.currentSortCol === 'date') { valA = a.Visit_Date || ''; valB = b.Visit_Date || ''; } 
       else if (window.currentSortCol === 'doctor') {
-        var docA = window._docIndex[String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase()]; valA = window.getDoctorNameByLang ? window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase() : '';
-        var docB = window._docIndex[String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase()]; valB = window.getDoctorNameByLang ? window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase() : '';
+        var docA = window._docIndex[String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase()]; valA = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docA, a.Doc_ID).toLowerCase() : '';
+        var docB = window._docIndex[String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase()]; valB = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docB, b.Doc_ID).toLowerCase() : '';
       } 
       else if (window.currentSortCol === 'hospital') {
-        var docA = window._docIndex[String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase()]; valA = (window.getHospitalNameFromDocOrVisit && docA) ? window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase() : '';
-        var docB = window._docIndex[String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase()]; valB = (window.getHospitalNameFromDocOrVisit && docB) ? window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase() : '';
+        var docA = window._docIndex[String(a.Doc_ID || a.doc_id || a.id || '').trim().toLowerCase()]; valA = (typeof window.getHospitalNameFromDocOrVisit === 'function' && docA) ? window.getHospitalNameFromDocOrVisit(docA, a).toLowerCase() : '';
+        var docB = window._docIndex[String(b.Doc_ID || b.doc_id || b.id || '').trim().toLowerCase()]; valB = (typeof window.getHospitalNameFromDocOrVisit === 'function' && docB) ? window.getHospitalNameFromDocOrVisit(docB, b).toLowerCase() : '';
       } 
       else if (window.currentSortCol === 'products') {
         var pA = window._visitProdIndex[String(a.Visit_ID).trim().toLowerCase()] || []; valA = pA.map(function(vp) { var p = window._prodIndex[String(vp.Product_ID).trim().toLowerCase()]; return p ? p.Product.toLowerCase() : ''; }).join(',');
         var pB = window._visitProdIndex[String(b.Visit_ID).trim().toLowerCase()] || []; valB = pB.map(function(vp) { var p = window._prodIndex[String(vp.Product_ID).trim().toLowerCase()]; return p ? p.Product.toLowerCase() : ''; }).join(',');
       } 
       else if (window.currentSortCol === 'purpose') {
-        valA = window.getPurposeText(a.Purpose_ID).toLowerCase(); valB = window.getPurposeText(b.Purpose_ID).toLowerCase();
+        valA = (typeof window.getPurposeText === 'function') ? window.getPurposeText(a.Purpose_ID).toLowerCase() : ''; 
+        valB = (typeof window.getPurposeText === 'function') ? window.getPurposeText(b.Purpose_ID).toLowerCase() : '';
       } 
       else if (window.currentSortCol === 'status') { valA = (a.Status || '').toLowerCase(); valB = (b.Status || '').toLowerCase(); }
 
@@ -1560,10 +1577,10 @@
 
     window.globalFilteredVisits = filtered;
 
-    if (window.updateStatCards) window.updateStatCards(window.globalFilteredVisits);
-    if (window.renderVisitTable) window.renderVisitTable();
+    if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalFilteredVisits);
+    if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-        if (window.renderCalendarView) window.renderCalendarView();
+        if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
     }
   };
 
@@ -1595,25 +1612,25 @@
     document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
     
     var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-    if (window.updateFormUserInfo) window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-    if (window.toggleVisitFormEditable) window.toggleVisitFormEditable(true); 
+    if (typeof window.updateFormUserInfo === 'function') window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+    if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true); 
 
     if (v.Doc_ID && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
 
-    if (window.renderFormProductDropdown) await window.renderFormProductDropdown(); 
+    if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
     var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
     if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
 
     document.getElementById('visitDate').value = v.Visit_Date || '';
     
-    if (window.formatTimeString) {
+    if (typeof window.formatTimeString === 'function') {
         document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
         document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
     }
 
     if (v.Purpose_ID && window.tomSelectPurposeInstance) {
         window.tomSelectPurposeInstance.setValue(v.Purpose_ID);
-        if (window.updatePurposeDisplayLang) window.updatePurposeDisplayLang();
+        if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
     }
 
     document.getElementById('visitDetails').value = v.Details || '';
@@ -1626,11 +1643,11 @@
     var btn = document.getElementById('saveVisitBtn');
 
     if (isPendingUnlock) {
-      if (window.toggleVisitFormEditable) window.toggleVisitFormEditable(false);
+      if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
       btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
       btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock'; btn.dataset.mode = 'disabled';
     } else if (v.Status === 'Submitted') {
-      if (window.toggleVisitFormEditable) window.toggleVisitFormEditable(false);
+      if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
       if (canEdit) {
         btn.disabled = false; btn.className = 'btn btn-warning text-dark fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock'; btn.dataset.mode = 'request_unlock';
@@ -1640,18 +1657,18 @@
       }
     } else {
       if (canEdit) {
-        if (window.toggleVisitFormEditable) window.toggleVisitFormEditable(true);
+        if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
         btn.disabled = false; btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.dataset.mode = 'save';
       } else {
-        if (window.toggleVisitFormEditable) window.toggleVisitFormEditable(false);
+        if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
         btn.disabled = true; btn.className = 'btn btn-secondary fw-bold px-5 rounded-pill py-2 shadow-sm';
         btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)'; btn.dataset.mode = 'disabled';
       }
     }
 
-    if (window.loadProductMedia) window.loadProductMedia();
-    if (window.switchVisitView) window.switchVisitView('visitFormView');
+    if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
+    if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   };
 
   window.openAddVisitView = async function(presetDate) {
@@ -1666,26 +1683,29 @@
     document.getElementById('visitInsight').value = ''; 
     document.getElementById('visitIsCoaching').checked = false; 
 
-    if (window.initUserInfo) window.initUserInfo(); 
+    if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
 
     if (window.tomSelectDocInstance) { window.tomSelectDocInstance.clear(); window.tomSelectDocInstance.enable(); }
     if (window.tomSelectPurposeInstance) { window.tomSelectPurposeInstance.clear(); window.tomSelectPurposeInstance.enable(); }
 
-    if (window.renderFormProductDropdown) await window.renderFormProductDropdown();
-    if (window.toggleVisitFormEditable) window.toggleVisitFormEditable(true);
+    if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown();
+    if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
 
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
-      if (window.tomSelectDocInstance) { window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId); window.tomSelectDocInstance.disable(); }
+      if (window.tomSelectDocInstance) {
+        if (typeof window.setTomSelectValue === 'function') window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId);
+        window.tomSelectDocInstance.disable(); 
+      }
     }
 
-    if (window.restoreFormDraft) window.restoreFormDraft('NEW');
+    if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
 
     var btn = document.getElementById('saveVisitBtn');
     btn.dataset.mode = 'save'; btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
     btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.disabled = false;
 
-    if (window.switchVisitView) window.switchVisitView('visitFormView');
+    if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   };
 
   window.handleSaveVisit = async function(e) {
@@ -1694,7 +1714,7 @@
     var mode = btn.dataset.mode;
 
     if (mode === 'disabled') return;
-    if (mode === 'request_unlock') { window.requestUnlockVisit(document.getElementById('visitId').value); return; }
+    if (mode === 'request_unlock') { if (typeof window.requestUnlockVisit === 'function') window.requestUnlockVisit(document.getElementById('visitId').value); return; }
 
     var docVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
     var dateInput = document.getElementById('visitDate');
@@ -1729,7 +1749,7 @@
     var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
 
     var existingVisitId = document.getElementById('visitId').value;
-    var targetVisitId = existingVisitId || (window.generateUUID ? window.generateUUID() : Date.now().toString());
+    var targetVisitId = existingVisitId || (typeof window.generateUUID === 'function' ? window.generateUUID() : Date.now().toString());
     
     var payload = {
       Visit_ID: targetVisitId, Rep_ID: repId, Territory_ID: territoryId, Doc_ID: docVal,
@@ -1757,15 +1777,15 @@
       }
 
       if (window.showToast) window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-      if (window.clearFormDraft) window.clearFormDraft(existingVisitId || 'NEW');
+      if (typeof window.clearFormDraft === 'function') window.clearFormDraft(existingVisitId || 'NEW');
 
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        if (window.returnToDoctorProfile) window.returnToDoctorProfile(returnDocId); 
+        if (typeof window.returnToDoctorProfile === 'function') window.returnToDoctorProfile(returnDocId); 
       } else {
-        if (window.switchVisitView) window.switchVisitView('visitListView');
-        if (window.loadVisits) await window.loadVisits(true); 
+        if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+        if (typeof window.loadVisits === 'function') await window.loadVisits(true); 
       }
     } catch(err) {
       if (window.showToast) window.showToast("Failed to save data. Reason: " + err.message, "error");
@@ -1791,14 +1811,31 @@
       var returnDocId = sessionStorage.getItem('returnToDocId');
       if (returnDocId) {
         sessionStorage.removeItem('returnToDocId');
-        if (window.returnToDoctorProfile) window.returnToDoctorProfile(returnDocId); 
+        if (typeof window.returnToDoctorProfile === 'function') window.returnToDoctorProfile(returnDocId); 
       } else {
-        if (window.switchVisitView) window.switchVisitView('visitListView');
-        if (window.loadVisits) await window.loadVisits(true); 
+        if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+        if (typeof window.loadVisits === 'function') await window.loadVisits(true); 
       }
     } catch(err) {
       if (window.showToast) window.showToast("❌ Error: " + err.message, "error");
       btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
+    }
+  };
+
+  window.cancelVisitForm = function() {
+    if (typeof window.clearFormDraft === 'function') {
+        window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
+    }
+    var returnDocId = sessionStorage.getItem('returnToDocId');
+    if (returnDocId) {
+      sessionStorage.removeItem('returnToDocId');
+      if (typeof window.returnToDoctorProfile === 'function') {
+          window.returnToDoctorProfile(returnDocId); 
+      }
+    } else {
+      if (typeof window.switchVisitView === 'function') {
+          window.switchVisitView('visitListView');
+      }
     }
   };
 
@@ -1813,46 +1850,51 @@
   };
 
   window.openAddTotModal = function() {
-      document.getElementById('totId').value = '';
-      document.getElementById('totStartDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('totEndDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('totStartTime').value = '';
-      document.getElementById('totEndTime').value = '';
-      document.getElementById('totRemark').value = '';
-      document.getElementById('totStatus').value = 'Approved'; 
+      var elId = document.getElementById('totId'); if(elId) elId.value = '';
+      var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = new Date().toISOString().split('T')[0];
+      var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = new Date().toISOString().split('T')[0];
+      var elSt = document.getElementById('totStartTime'); if(elSt) elSt.value = '';
+      var elEt = document.getElementById('totEndTime'); if(elEt) elEt.value = '';
+      var elRm = document.getElementById('totRemark'); if(elRm) elRm.value = '';
+      var elSts = document.getElementById('totStatus'); if(elSts) elSts.value = 'Approved'; 
       
-      if (window.populateTotTypes) window.populateTotTypes();
+      if (typeof window.populateTotTypes === 'function') window.populateTotTypes();
 
       var btnDelete = document.getElementById('btnDeleteTot');
       if(btnDelete) btnDelete.classList.add('d-none');
 
-      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
+      var titleEl = document.getElementById('totModalTitle');
+      if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
       
       window.initTotModal();
       if(window.totModalInstance) window.totModalInstance.show();
   };
 
   window.openEditTotModal = function(id) {
-      var tot = window.globalTotLogs.find(function(t) { return t.TOT_ID === id; });
+      var tot = (window.globalTotLogs || []).find(function(t) { return t.TOT_ID === id; });
       if(!tot) return;
 
-      document.getElementById('totId').value = tot.TOT_ID;
-      document.getElementById('totStartDate').value = tot.Start_Date || '';
-      document.getElementById('totEndDate').value = tot.End_Date || '';
-      if (window.formatTimeString) {
-          document.getElementById('totStartTime').value = window.formatTimeString(tot.Start_Time);
-          document.getElementById('totEndTime').value = window.formatTimeString(tot.End_Time);
+      var elId = document.getElementById('totId'); if(elId) elId.value = tot.TOT_ID;
+      var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = tot.Start_Date || '';
+      var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = tot.End_Date || '';
+      if (typeof window.formatTimeString === 'function') {
+          var elSt = document.getElementById('totStartTime'); if(elSt) elSt.value = window.formatTimeString(tot.Start_Time);
+          var elEt = document.getElementById('totEndTime'); if(elEt) elEt.value = window.formatTimeString(tot.End_Time);
       }
-      document.getElementById('totRemark').value = tot.Remark || '';
-      document.getElementById('totStatus').value = tot.Status || 'Approved';
+      var elRm = document.getElementById('totRemark'); if(elRm) elRm.value = tot.Remark || '';
+      var elSts = document.getElementById('totStatus'); if(elSts) elSts.value = tot.Status || 'Approved';
 
-      if (window.populateTotTypes) window.populateTotTypes();
-      setTimeout(function() { document.getElementById('totType').value = tot.TOT_Type; }, 50);
+      if (typeof window.populateTotTypes === 'function') window.populateTotTypes();
+      setTimeout(function() { 
+          var tType = document.getElementById('totType');
+          if(tType) tType.value = tot.TOT_Type; 
+      }, 50);
 
       var btnDelete = document.getElementById('btnDeleteTot');
       if(btnDelete) btnDelete.classList.remove('d-none');
 
-      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
+      var titleEl = document.getElementById('totModalTitle');
+      if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
       
       window.initTotModal();
       if(window.totModalInstance) window.totModalInstance.show();
@@ -1863,14 +1905,14 @@
       if(!select) return;
 
       var appLang = window.getCurrentAppLang();
-      var types = window.VisitManagerCache.indexTypes || [];
-      var indexes = window.VisitManagerCache.indexes || [];
-      var tType = types.find(t => t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'));
+      var types = (window.VisitManagerCache && window.VisitManagerCache.indexTypes) ? window.VisitManagerCache.indexTypes : [];
+      var indexes = (window.VisitManagerCache && window.VisitManagerCache.indexes) ? window.VisitManagerCache.indexes : [];
+      var tType = types.find(function(t) { return t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'); });
       
       var html = '<option value="">-- ' + (appLang === 'en' ? 'Select Type' : 'เลือกประเภท') + ' --</option>';
       if (tType) {
-          var items = indexes.filter(i => i.IndexType_ID === tType.IndexType_ID);
-          items.forEach(i => {
+          var items = indexes.filter(function(i) { return i.IndexType_ID === tType.IndexType_ID; });
+          items.forEach(function(i) {
               var textTh = i.Value || '';
               var textEn = i.Value1 || i.Value || '';
               html += '<option value="'+textTh+'">'+ (appLang === 'en' ? textEn : textTh) +'</option>';
@@ -1884,19 +1926,33 @@
   window.handleSaveTot = async function(e) {
       e.preventDefault();
       var btn = document.getElementById('saveTotBtn');
-      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+      if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
 
-      var id = document.getElementById('totId').value;
-      var crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
-      var repId = crmUser.Rep_ID || crmUser.id || null;
-      var whoUpdated = crmUser.Email || crmUser.Rep_Name || 'Unknown';
+      var idEl = document.getElementById('totId');
+      var id = idEl ? idEl.value : '';
+      var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err){}
+      var repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || 'Unknown') : 'Unknown';
       
+      var typeEl = document.getElementById('totType');
+      var sdEl = document.getElementById('totStartDate');
+      var edEl = document.getElementById('totEndDate');
+      var stEl = document.getElementById('totStartTime');
+      var etEl = document.getElementById('totEndTime');
+      var rmEl = document.getElementById('totRemark');
+      var stsEl = document.getElementById('totStatus');
+
       var payload = {
-          Rep_ID: repId, TOT_Type: document.getElementById('totType').value, Start_Date: document.getElementById('totStartDate').value,
-          End_Date: document.getElementById('totEndDate').value || document.getElementById('totStartDate').value,
-          Start_Time: document.getElementById('totStartTime').value || null, End_Time: document.getElementById('totEndTime').value || null,
-          Remark: document.getElementById('totRemark').value, Status: document.getElementById('totStatus').value,
-          Whoupdated: whoUpdated, Whenupdated: new Date().toISOString()
+          Rep_ID: repId, 
+          TOT_Type: typeEl ? typeEl.value : '', 
+          Start_Date: sdEl ? sdEl.value : '',
+          End_Date: (edEl && edEl.value) ? edEl.value : (sdEl ? sdEl.value : ''),
+          Start_Time: (stEl && stEl.value) ? stEl.value : null, 
+          End_Time: (etEl && etEl.value) ? etEl.value : null,
+          Remark: rmEl ? rmEl.value : '', 
+          Status: stsEl ? stsEl.value : 'Approved',
+          Whoupdated: whoUpdated, 
+          Whenupdated: new Date().toISOString()
       };
 
       try {
@@ -1904,22 +1960,23 @@
               var {error} = await window.supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id);
               if(error) throw error;
           } else {
-              payload.TOT_ID = window.generateUUID ? window.generateUUID() : Date.now().toString();
+              payload.TOT_ID = (typeof window.generateUUID === 'function') ? window.generateUUID() : Date.now().toString();
               var {error} = await window.supabaseClient.from('TOT_Logs').insert([payload]);
               if(error) throw error;
           }
           if (window.showToast) window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
           if(window.totModalInstance) window.totModalInstance.hide();
-          if (window.loadVisits) await window.loadVisits(true);
+          if (typeof window.loadVisits === 'function') await window.loadVisits(true);
       } catch(err) {
           if (window.showToast) window.showToast("Error: " + err.message, "error");
       } finally {
-          btn.disabled = false; btn.innerHTML = '💾 Save';
+          if(btn) { btn.disabled = false; btn.innerHTML = '💾 Save'; }
       }
   };
 
   window.deleteTot = async function() {
-      var id = document.getElementById('totId').value;
+      var idEl = document.getElementById('totId');
+      var id = idEl ? idEl.value : '';
       if(!id) return;
       var appLang = window.getCurrentAppLang();
       var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
@@ -1930,7 +1987,7 @@
           if (error) throw error;
           if (window.showToast) window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
           if(window.totModalInstance) window.totModalInstance.hide();
-          if (window.loadVisits) await window.loadVisits(true);
+          if (typeof window.loadVisits === 'function') await window.loadVisits(true);
       } catch(err) {
           if (window.showToast) window.showToast("Error: " + err.message, "error");
       }
@@ -1969,7 +2026,7 @@
           window.tomSelectDocInstance.setValue(matchedId); window.tomSelectDocInstance.setTextboxValue(''); window.tomSelectDocInstance.blur();
         }
       }
-      if (window.stopDocDictation) window.stopDocDictation();
+      if (typeof window.stopDocDictation === 'function') window.stopDocDictation();
     };
     window.docRecognition.onerror = window.stopDocDictation; window.docRecognition.onend = window.stopDocDictation; window.docRecognition.start();
   };
@@ -1987,10 +2044,11 @@
     var btn = document.getElementById(btnId);
 
     if (window.textRecognition && window.currentDictTargetId === targetInputId) {
-      if (window.stopTextDictation) window.stopTextDictation();
+      if (typeof window.stopTextDictation === 'function') window.stopTextDictation();
       return;
     }
-    if (window.textRecognition && window.stopTextDictation) window.stopTextDictation();
+
+    if (window.textRecognition && typeof window.stopTextDictation === 'function') window.stopTextDictation();
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     window.textRecognition = new SpeechRecognition(); window.textRecognition.lang = 'th-TH'; window.textRecognition.continuous = true; window.textRecognition.interimResults = false;
@@ -2003,7 +2061,7 @@
       var inputEl = document.getElementById(targetInputId);
       if (inputEl && spokenText) {
         var currentVal = inputEl.value; inputEl.value = currentVal ? (currentVal + ' ' + spokenText) : spokenText;
-        if (window.saveFormDraft) window.saveFormDraft(); 
+        if (typeof window.saveFormDraft === 'function') window.saveFormDraft(); 
       }
     };
     window.textRecognition.onerror = window.stopTextDictation; window.textRecognition.onend = window.stopTextDictation; window.textRecognition.start();
@@ -2021,10 +2079,10 @@
     }
 
     if (window.searchRecognition && window.currentSearchInputId === inputId) {
-      if (window.stopSearchDictation) window.stopSearchDictation();
+      if (typeof window.stopSearchDictation === 'function') window.stopSearchDictation();
       return;
     }
-    if (window.searchRecognition) window.stopSearchDictation();
+    if (window.searchRecognition && typeof window.stopSearchDictation === 'function') window.stopSearchDictation();
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     window.searchRecognition = new SpeechRecognition(); window.searchRecognition.lang = 'th-TH'; window.searchRecognition.continuous = false; window.searchRecognition.interimResults = false;
@@ -2039,9 +2097,9 @@
       var inputEl = document.getElementById(inputId);
       if (inputEl && spokenText) {
           inputEl.value = spokenText;
-          if (window.debouncedFilterVisits) window.debouncedFilterVisits();
+          if (typeof window.debouncedFilterVisits === 'function') window.debouncedFilterVisits();
       }
-      if (window.stopSearchDictation) window.stopSearchDictation();
+      if (typeof window.stopSearchDictation === 'function') window.stopSearchDictation();
     };
 
     window.searchRecognition.onerror = window.stopSearchDictation; window.searchRecognition.onend = window.stopSearchDictation; window.searchRecognition.start();
@@ -2062,28 +2120,29 @@
   window.updateLangUI = function() {
       var formView = document.getElementById('visitFormView');
       var isFormOpen = formView && !formView.classList.contains('d-none');
-      var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+      var visitIdEl = document.getElementById('visitId');
+      var currentVisitId = visitIdEl ? visitIdEl.value : '';
 
       if (isFormOpen && (!currentVisitId || currentVisitId === 'NEW')) {
-          if (window.saveFormDraft) window.saveFormDraft();
+          if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
       }
 
-      if (window.loadDropdowns) {
+      if (typeof window.loadDropdowns === 'function') {
           window.loadDropdowns(false).then(() => {
               if (isFormOpen) {
                   if (currentVisitId && currentVisitId !== 'NEW') {
-                      if (window.openEditVisitView) window.openEditVisitView(currentVisitId); 
+                      if (typeof window.openEditVisitView === 'function') window.openEditVisitView(currentVisitId); 
                   } else {
-                      if (window.restoreFormDraft) window.restoreFormDraft('NEW');
-                      if (window.updatePurposeDisplayLang) window.updatePurposeDisplayLang();
+                      if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
+                      if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
                   }
               }
           });
       } 
       
-      if (window.renderVisitTable) window.renderVisitTable();
+      if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-          if (window.renderCalendarView) window.renderCalendarView(); 
+          if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
       }   
   };
 
@@ -2097,10 +2156,10 @@
   setTimeout(async function() { 
     try {
       if (!window.VisitManagerCache || !window.VisitManagerCache.isLoaded) {
-          if (window.loadDropdowns) await window.loadDropdowns(); 
-          if (window.initUserInfo) window.initUserInfo(); 
-          if (window.loadVisits) await window.loadVisits(); 
-          if (window.fetchDetailingMedia) await window.fetchDetailingMedia();
+          if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(); 
+          if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+          if (typeof window.loadVisits === 'function') await window.loadVisits(); 
+          if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
       }
 
       if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
@@ -2116,9 +2175,9 @@
       var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
       if (isSales && window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'list') {
-          if (window.toggleMainView) window.toggleMainView('calendar');
+          if (typeof window.toggleMainView === 'function') window.toggleMainView('calendar');
       } else {
-          if (window.toggleMainView) window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
+          if (typeof window.toggleMainView === 'function') window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
       }
 
     } catch(err) {
