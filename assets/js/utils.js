@@ -72,3 +72,24 @@ window.applySearchHighlight = function(text, searchKeyword) {
 
   return safeText;
 };
+// =========================================
+// 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว
+// =========================================
+window.fetchAllRecords = async function(tableName, queryModifier) {
+    var allData = [];
+    var start = 0;
+    var step = 1000;
+    while (true) {
+        // ใช้ window.supabaseClient ที่ถูกประกาศไว้ใน config.js
+        var query = window.supabaseClient.from(tableName).select('*').range(start, start + step - 1);
+        if (queryModifier) query = queryModifier(query);
+        
+        var res = await query;
+        if (res.error) throw res.error;
+        
+        allData = allData.concat(res.data || []);
+        if (!res.data || res.data.length < step) break;
+        start += step;
+    }
+    return allData;
+};
