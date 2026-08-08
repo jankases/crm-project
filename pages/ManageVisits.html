@@ -2047,6 +2047,34 @@
         if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
     }
 
+    // 📍 ดึงพิกัดเก่ามาโชว์ในฟอร์มแก้ไข (ถ้ามี)
+    var latInput = document.getElementById('visitLat');
+    var lngInput = document.getElementById('visitLng');
+    var btnGps = document.getElementById('btnGpsCheckin');
+    var timeWrapper = document.getElementById('locationTimeWrapper');
+    var timeText = document.getElementById('visitCheckinTimeText');
+
+    if (v.CheckIn_Lat && v.CheckIn_Long) {
+      if (latInput) latInput.value = v.CheckIn_Lat;
+      if (lngInput) lngInput.value = v.CheckIn_Long;
+      if (timeWrapper) timeWrapper.classList.remove('d-none');
+      if (timeText && v.CheckIn_Time) {
+        var cTime = new Date(v.CheckIn_Time);
+        timeText.innerText = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
+      }
+      if (btnGps) {
+        btnGps.className = 'btn btn-sm btn-success px-3 premium-radius text-white fw-bold';
+        btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> Checked-in';
+      }
+    } else {
+      if (latInput) latInput.value = '';
+      if (lngInput) lngInput.value = '';
+      if (timeWrapper) timeWrapper.classList.add('d-none');
+      if (btnGps) {
+        btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
+        btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
+      }
+    }
     document.getElementById('visitDetails').value = v.Details || '';
     document.getElementById('visitInsight').value = v.Insight || ''; 
     document.getElementById('visitNextAction').value = v.Next_Action || '';
@@ -2106,6 +2134,17 @@
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
     document.getElementById('visitIsCoaching').checked = false; 
+
+    // 📍 ล้างค่า GPS เก่าออกเวลากดสร้างใหม่
+    if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
+    if (document.getElementById('visitLng')) document.getElementById('visitLng').value = '';
+    if (document.getElementById('locationTimeWrapper')) document.getElementById('locationTimeWrapper').classList.add('d-none');
+    var btnGps = document.getElementById('btnGpsCheckin');
+    if (btnGps) {
+      btnGps.disabled = false;
+      btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
+      btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
+    }
 
     if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
 
@@ -2177,13 +2216,22 @@
 
     var existingVisitId = document.getElementById('visitId').value;
     var targetVisitId = existingVisitId || (typeof window.generateUUID === 'function' ? window.generateUUID() : Date.now().toString());
-    
+     
+    // ดึงค่าพิกัดจากหน้าฟอร์ม
+    var latVal = document.getElementById('visitLat') ? document.getElementById('visitLat').value : null;
+    var lngVal = document.getElementById('visitLng') ? document.getElementById('visitLng').value : null;
+
     var payload = {
       Visit_ID: targetVisitId, Rep_ID: repId, Territory_ID: territoryId, Doc_ID: docVal,
       Visit_Date: dateInput.value, Start_Time: document.getElementById('visitStartTime').value || null, End_Time: document.getElementById('visitEndTime').value || null,
       Purpose_ID: purposeVal, Details: document.getElementById('visitDetails').value.trim(), Insight: document.getElementById('visitInsight').value.trim(), 
       Next_Action: document.getElementById('visitNextAction').value.trim(), Is_Coaching: document.getElementById('visitIsCoaching').checked, 
-      Status: document.getElementById('visitStatus').value, Whoupdated: whoUpdated, Whenupdated: new Date().toISOString()
+      Status: document.getElementById('visitStatus').value, Whoupdated: whoUpdated, Whenupdated: new Date().toISOString(),
+      
+      // 📍 บันทึกพิกัด GPS ลง Supabase
+      CheckIn_Lat: latVal ? parseFloat(latVal) : null,
+      CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
+      CheckIn_Time: latVal ? new Date().toISOString() : null
     };
 
     try {
