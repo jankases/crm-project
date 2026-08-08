@@ -20,87 +20,81 @@
   /* ==========================================
    ✨ HIGH-END PREMIUM BUTTON STYLES
    ========================================== */
+  /* Utility Classes สำหรับบังคับมุมมนทรง Squircle */
+  .premium-radius { border-radius: 10px !important; }
+  .premium-radius-lg { border-radius: 12px !important; }
 
-/* 1. ปุ่มหลัก (Primary CTA: Add New Visit) */
-.btn-premium-primary {
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  font-size: 0.88.5rem !important;
-  letter-spacing: 0.2px;
-  border-radius: 10px !important; /* เปลี่ยนจากมนกลมเป็น 10px */
-  padding: 8px 18px !important;
-  /* มิติเงา 3 ชั้น: เงาตกกระทบ + เงานุ่ม + แสงขอบบน */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
-              0 4px 12px rgba(37, 99, 235, 0.28),
-              inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
+  /* 1. ปุ่มหลัก (Primary CTA) */
+  .btn-premium-primary {
+    background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.885rem !important;
+    letter-spacing: 0.3px;
+    border-radius: 10px !important; 
+    padding: 8px 18px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
+                0 4px 12px rgba(37, 99, 235, 0.28),
+                inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .btn-premium-primary:hover {
+    background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
+                0 6px 16px rgba(37, 99, 235, 0.38),
+                inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    color: #ffffff !important;
+  }
+  .btn-premium-primary:active {
+    transform: translateY(0) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  }
 
-.btn-premium-primary:hover {
-  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
-              0 6px 16px rgba(37, 99, 235, 0.38),
-              inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
-  color: #ffffff !important;
-}
+  /* 2. ปุ่มรอง (Secondary CTA) */
+  .btn-premium-secondary {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #334155 !important;
+    font-weight: 600 !important;
+    font-size: 0.885rem !important;
+    border-radius: 10px !important;
+    padding: 8px 16px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .btn-premium-secondary i { color: #0284c7 !important; }
+  .btn-premium-secondary:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06) !important;
+  }
 
-.btn-premium-primary:active {
-  transform: translateY(0) !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* 2. ปุ่มรอง (Secondary CTA: Add TOT) */
-.btn-premium-secondary {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  color: #334155 !important;
-  font-weight: 600 !important;
-  font-size: 0.885rem !important;
-  border-radius: 10px !important;
-  padding: 8px 16px !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
-              inset 0 1px 0 rgba(255, 255, 255, 1) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.btn-premium-secondary i {
-  color: #0284c7 !important; /* ไอคอนสีฟ้าเข้มสุขุมขึ้น ไม่จี๊ดจ๊าด */
-}
-
-.btn-premium-secondary:hover {
-  background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06) !important;
-}
-
-/* 3. ปุ่มไอคอนอย่างเดียว (Refresh) */
-.btn-premium-icon {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  color: #64748b !important;
-  border-radius: 10px !important;
-  width: 38px;
-  height: 38px;
-  padding: 0 !important;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.btn-premium-icon:hover {
-  background: #f8fafc !important;
-  color: #1e293b !important;
-  border-color: #cbd5e1 !important;
-  transform: translateY(-1px) !important;
-}
-  
+  /* 3. ปุ่มไอคอนอย่างเดียว (Icon Only) */
+  .btn-premium-icon {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+    border-radius: 10px !important;
+    width: 38px;
+    height: 38px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .btn-premium-icon:hover {
+    background: #f8fafc !important;
+    color: #1e293b !important;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-1px) !important;
+  }
 </style>
 
 <!-- 📚 โหลด PDF.js -->
@@ -119,7 +113,7 @@
 
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
-  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม (List & Calendar View) ================= -->
+  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
@@ -129,27 +123,22 @@
       
       <div class="d-flex gap-2 align-items-center">
         <!-- 🎯 View Toggle Switch -->
-        <div class="btn-group shadow-xs bg-white rounded-pill p-1 border me-2">
-          <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
-          <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
+        <div class="btn-group shadow-xs bg-white p-1 border me-2 premium-radius-lg">
+          <button class="btn btn-sm btn-premium-primary px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
+          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
-        <!-- ปุ่ม Refresh -->
-  <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
-    <i class="fa-solid fa-arrows-rotate"></i>
-  </button>
+        <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </button>
 
-  <!-- ปุ่ม Add TOT -->
-  <button type="button" class="btn btn-premium-secondary" onclick="window.openAddTotModal()">
-    <i class="fa-solid fa-umbrella-beach me-1.5"></i>
-    <span data-i18n="btn_add_tot">Add TOT</span>
-  </button>
+        <button type="button" class="btn btn-premium-secondary" onclick="window.openAddTotModal()">
+          <i class="fa-solid fa-umbrella-beach me-1.5"></i> <span data-i18n="btn_add_tot">Add TOT</span>
+        </button>
 
-  <!-- ปุ่ม Add New Visit -->
-  <button type="button" class="btn btn-premium-primary" onclick="window.openAddVisitView()">
-    <i class="fa-solid fa-plus me-1.5"></i>
-    <span data-i18n="btn_add_visit">Add New Visit</span>
-  </button>
+        <button type="button" class="btn btn-premium-primary" onclick="window.openAddVisitView()">
+          <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
+        </button>
       </div>
     </div>
 
@@ -189,7 +178,7 @@
       <div class="row g-2 align-items-center">
         
         <div class="col-12 col-lg-5">
-          <div class="input-group border rounded-pill bg-white shadow-xs overflow-hidden">
+          <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
             <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
@@ -199,7 +188,7 @@
         </div>
 
         <div class="col-12 col-sm-6 col-lg-3">
-          <div class="input-group input-group-sm border rounded-pill px-2 py-1 bg-white">
+          <div class="input-group input-group-sm border px-2 py-1 bg-white premium-radius-lg">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()" style="font-size: 0.85rem;">
             <span class="align-self-center text-muted">-</span>
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="window.filterVisits()" style="font-size: 0.85rem;">
@@ -207,7 +196,7 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2">
-          <select class="form-select border rounded-pill shadow-none filter-placeholder-text" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();" style="font-weight: 500; font-size: 0.9rem;">
+          <select class="form-select border shadow-none filter-placeholder-text premium-radius-lg" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();" style="font-weight: 500; font-size: 0.9rem;">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
             <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
@@ -215,10 +204,10 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
-          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
+          <button class="btn btn-light border w-50 shadow-sm text-secondary premium-radius" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
             <i class="fa-solid fa-sliders"></i>
           </button>
-          <button class="btn btn-light border rounded-pill w-50 shadow-sm text-secondary" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+          <button class="btn btn-light border w-50 shadow-sm text-secondary premium-radius" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
             <i class="fa-solid fa-eraser"></i>
           </button>
         </div>
@@ -263,7 +252,7 @@
       <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-          <select class="form-select form-select-sm shadow-sm" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
+          <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
             <option value="10">10</option>
             <option value="20" selected>20</option>
             <option value="50">50</option>
@@ -299,7 +288,7 @@
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-light border fw-bold me-3 rounded-pill px-3 shadow-sm" onclick="window.cancelVisitForm()">
+      <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
@@ -332,7 +321,7 @@
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                   <div class="input-group shadow-sm" style="border-radius: 12px;">
                     <select class="form-select bg-white" id="visitDocId" required></select>
-                    <button class="btn btn-outline-danger bg-white border-start-0 px-3" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Search">
+                    <button class="btn btn-outline-danger bg-white border-start-0 px-3" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Search" style="border-top-right-radius: 12px; border-bottom-right-radius: 12px;">
                       <i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i>
                     </button>
                   </div>
@@ -340,7 +329,7 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-sm" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
+                  <select class="form-select bg-white shadow-sm premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                 </div>
 
                 <div class="mb-3 border rounded-3 p-3 bg-light d-none" id="detailingMediaSection">
@@ -352,31 +341,31 @@
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-sm" id="visitPurpose" required></select>
+                  <select class="form-select bg-white shadow-sm premium-radius" id="visitPurpose" required></select>
                 </div>
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-                  <input type="date" class="form-control bg-white shadow-sm" id="visitDate" required>
+                  <input type="date" class="form-control bg-white shadow-sm premium-radius" id="visitDate" required>
                 </div>
 
                 <div class="row g-2 mb-2">
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_start_time">Start Time</label>
-                      <button type="button" class="btn btn-outline-primary quick-time-btn" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[ตอนนี้]</button>
+                      <button type="button" class="btn btn-outline-primary btn-sm quick-time-btn premium-radius" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[ตอนนี้]</button>
                     </div>
-                    <input type="time" class="form-control bg-white shadow-sm" id="visitStartTime">
+                    <input type="time" class="form-control bg-white shadow-sm premium-radius" id="visitStartTime">
                   </div>
                   <div class="col-6">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_end_time">End Time</label>
                       <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30ม.]</button>
-                        <button type="button" class="btn btn-outline-secondary quick-time-btn" id="btnQuick60" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 60)">[+1ชม.]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn premium-radius" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30ม.]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm quick-time-btn premium-radius" id="btnQuick60" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 60)">[+1ชม.]</button>
                       </div>
                     </div>
-                    <input type="time" class="form-control bg-white shadow-sm" id="visitEndTime">
+                    <input type="time" class="form-control bg-white shadow-sm premium-radius" id="visitEndTime">
                   </div>
                 </div>
               </div>
@@ -392,31 +381,31 @@
                 <div class="mb-3 d-flex flex-column flex-grow-1">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_details">Details</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold premium-radius px-3 py-1" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm flex-grow-1" id="visitDetails" style="min-height: 120px; resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm flex-grow-1 premium-radius" id="visitDetails" style="min-height: 120px; resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_insight">Insight</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold premium-radius px-3 py-1" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <textarea class="form-control bg-white shadow-sm" id="visitInsight" rows="2" style="resize: none;"></textarea>
+                  <textarea class="form-control bg-white shadow-sm premium-radius" id="visitInsight" rows="2" style="resize: none;"></textarea>
                 </div>
 
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold text-dark mb-0" data-i18n="lbl_next_action">Next Action</label>
-                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 py-1" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold premium-radius px-3 py-1" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
                   </div>
-                  <input type="text" class="form-control bg-white shadow-sm" id="visitNextAction">
+                  <input type="text" class="form-control bg-white shadow-sm premium-radius" id="visitNextAction">
                 </div>
 
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
@@ -432,10 +421,10 @@
 
               </div>
 
-              <!-- Status ชิดขอบล่างพอดี -->
+              <!-- Status -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
-                <select class="form-select bg-white shadow-sm border-primary fw-bold" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
+                <select class="form-select bg-white shadow-sm border-primary fw-bold premium-radius-lg" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                   <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending (Draft)</option>
                   <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
                 </select>
@@ -447,8 +436,8 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-light border fw-bold px-4 rounded-pill py-2" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
+          <button type="button" class="btn btn-premium-secondary" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-premium-primary" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
         </div>
       </form>
     </div>
@@ -463,12 +452,12 @@
       <div class="modal-header bg-dark text-white py-2 px-3">
         <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
         <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
-          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
+          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
           <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="window.jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
-          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="window.nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
         </div>
         <div class="d-flex align-items-center gap-3">
-          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
+          <span class="badge bg-warning text-dark px-3 py-2 premium-radius fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
           <button type="button" class="btn-close btn-close-white" onclick="window.closeMediaPresentation()"></button>
         </div>
       </div>
@@ -490,45 +479,45 @@
           <input type="hidden" id="totId">
           <div class="mb-3">
             <label class="form-label fw-bold text-dark small">TOT Type <span class="text-danger">*</span></label>
-            <select class="form-select shadow-sm" id="totType" required></select>
+            <select class="form-select shadow-sm premium-radius" id="totType" required></select>
           </div>
           <div class="row mb-3 g-2">
             <div class="col-6">
               <label class="form-label fw-bold text-dark small">Start Date <span class="text-danger">*</span></label>
-              <input type="date" class="form-control shadow-sm" id="totStartDate" required>
+              <input type="date" class="form-control shadow-sm premium-radius" id="totStartDate" required>
             </div>
             <div class="col-6">
               <label class="form-label fw-bold text-dark small">End Date</label>
-              <input type="date" class="form-control shadow-sm" id="totEndDate">
+              <input type="date" class="form-control shadow-sm premium-radius" id="totEndDate">
             </div>
           </div>
           <div class="row mb-3 g-2">
             <div class="col-6">
               <label class="form-label fw-bold text-dark small">Start Time</label>
-              <input type="time" class="form-control shadow-sm" id="totStartTime">
+              <input type="time" class="form-control shadow-sm premium-radius" id="totStartTime">
             </div>
             <div class="col-6">
               <label class="form-label fw-bold text-dark small">End Time</label>
-              <input type="time" class="form-control shadow-sm" id="totEndTime">
+              <input type="time" class="form-control shadow-sm premium-radius" id="totEndTime">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold text-dark small">Remark (เหตุผล/รายละเอียด)</label>
-            <textarea class="form-control shadow-sm" id="totRemark" rows="2" style="resize: none;"></textarea>
+            <textarea class="form-control shadow-sm premium-radius" id="totRemark" rows="2" style="resize: none;"></textarea>
           </div>
           <div class="mb-2">
             <label class="form-label fw-bold text-dark small">Status</label>
-            <select class="form-select shadow-sm fw-bold" id="totStatus">
+            <select class="form-select shadow-sm fw-bold premium-radius" id="totStatus">
               <option value="Approved" class="text-success">✅ Approved</option>
               <option value="Pending" class="text-warning">⏳ Pending</option>
             </select>
           </div>
         </div>
         <div class="modal-footer border-0 pt-0 d-flex justify-content-between gap-2">
-          <button type="button" class="btn btn-outline-danger fw-bold rounded-pill px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
+          <button type="button" class="btn btn-outline-danger fw-bold premium-radius px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
           <div class="d-flex gap-2 ms-auto">
-              <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" id="saveTotBtn">💾 Save</button>
+              <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-premium-primary" id="saveTotBtn">💾 Save</button>
           </div>
         </div>
       </form>
