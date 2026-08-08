@@ -1,1 +1,586 @@
+<style>
+  .org-nav-pills .nav-link { color: #6c757d; font-weight: 600; border-radius: 10px; margin-right: 5px; padding: 10px 20px; transition: all 0.3s ease; }
+  .org-nav-pills .nav-link:hover { background-color: #f8f9fa; color: #0d6efd; }
+  .org-nav-pills .nav-link.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3); transform: translateY(-2px); }
+  .hub-card { border-radius: 15px; border: 1px solid #e9ecef; transition: transform 0.2s; height: 100%;}
+  .hub-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+  .hub-icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+</style>
 
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h3 class="text-primary fw-bold mb-1"><i class="fa-solid fa-sitemap me-2"></i>Organization Structure</h3>
+      <p class="text-muted mb-0">Management hub for Teams, Products, Territories, and Business Units (BU)</p>
+    </div>
+  </div>
+
+  <!-- 🌟 Navigation Tabs -->
+  <div class="bg-white p-2 rounded-4 shadow-sm mb-4 d-inline-block border">
+    <ul class="nav nav-pills org-nav-pills" id="orgTabs" role="tablist">
+      <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-teams" type="button"><i class="fa-solid fa-users me-2"></i>Teams Hub</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-products" type="button"><i class="fa-solid fa-box-open me-2"></i>Products</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-territory" type="button"><i class="fa-solid fa-map-location-dot me-2"></i>Territory</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bu" type="button"><i class="fa-solid fa-building me-2"></i>Business Unit (BU)</button></li>
+    </ul>
+  </div>
+
+  <div class="tab-content" id="orgTabsContent">
+    
+    <!-- ==================== TAB 1: TEAMS HUB ==================== -->
+    <div class="tab-pane fade show active" id="tab-teams" role="tabpanel">
+      <!-- 1.1 List View -->
+      <div id="teamListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-dark mb-0">All Teams</h5>
+            <button class="btn btn-primary fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('teamAddView', 'team')"><i class="fa-solid fa-plus me-2"></i>Add New Team</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle text-center">
+              <thead class="table-light"><tr><th>Team Name</th><th>Business Unit (BU)</th><th>Territories Count</th><th>Products Count</th><th>Action</th></tr></thead>
+              <tbody id="hubTeamTableBody"><tr><td colspan="5" class="py-4">Loading data...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 Add View -->
+      <div id="teamAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('teamListView', 'team')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-primary fw-bold mb-0">👥 Add New Team</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddTeam(event)">
+            <div class="mb-3">
+              <label class="form-label fw-medium">Team Name</label>
+              <input type="text" class="form-control" id="addTeamName" required placeholder="e.g. LUNG1">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">Business Unit (BU)</label>
+              <select class="form-select" id="addTeamBuId" required></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill">Save New Team</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 1.3 Hub Profile View -->
+      <div id="teamHubProfile" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('teamListView', 'team')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-primary fw-bold mb-0">🛠️ Manage Team: <span id="hubTeamName" class="text-dark"></span></h4>
+        </div>
+
+        <div class="row g-4">
+          <!-- Box 1: BU -->
+          <div class="col-md-4">
+            <div class="card p-4 bg-white shadow-sm hub-card">
+              <div class="d-flex align-items-center mb-3">
+                <div class="hub-icon-box bg-primary text-white me-3"><i class="fa-solid fa-building"></i></div>
+                <h6 class="fw-bold mb-0 text-secondary">Business Unit (BU)</h6>
+              </div>
+              <select class="form-select border-primary fw-bold text-primary mb-3" id="hubBuSelect"></select>
+              <button class="btn btn-primary btn-sm w-100 fw-bold rounded-pill mt-auto" onclick="updateTeamBU()">Save New BU</button>
+            </div>
+          </div>
+          <!-- Box 2: Products -->
+          <div class="col-md-4">
+            <div class="card p-4 bg-white shadow-sm hub-card">
+              <div class="d-flex align-items-center mb-3">
+                <div class="hub-icon-box bg-success text-white me-3"><i class="fa-solid fa-box-open"></i></div>
+                <h6 class="fw-bold mb-0 text-secondary">Assigned Products</h6>
+              </div>
+              <ul class="list-group list-group-flush mb-3" id="hubProductList" style="max-height: 150px; overflow-y: auto;"></ul>
+              <div class="mt-auto d-flex gap-2">
+                <select class="form-select form-select-sm" id="hubAddProductSelect"></select>
+                <button class="btn btn-success btn-sm fw-bold rounded-pill px-3" onclick="addProductToTeam()"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+          <!-- Box 3: Territory -->
+          <div class="col-md-4">
+            <div class="card p-4 bg-white shadow-sm hub-card">
+              <div class="d-flex align-items-center mb-3">
+                <div class="hub-icon-box bg-warning text-dark me-3"><i class="fa-solid fa-map-location-dot"></i></div>
+                <h6 class="fw-bold mb-0 text-secondary">Assigned Territories</h6>
+              </div>
+              <ul class="list-group list-group-flush mb-3" id="hubTerritoryList" style="max-height: 150px; overflow-y: auto;"></ul>
+              <div class="mt-auto d-flex gap-2">
+                <select class="form-select form-select-sm" id="hubAddTerritorySelect"></select>
+                <button class="btn btn-warning text-dark btn-sm fw-bold rounded-pill px-3" onclick="addTerritoryToTeam()"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: PRODUCTS ==================== -->
+    <div class="tab-pane fade" id="tab-products" role="tabpanel">
+      <!-- 2.1 List View -->
+      <div id="productListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-success mb-0"><i class="fa-solid fa-box-open me-2"></i>Products Management</h5>
+            <button class="btn btn-success fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('productAddView', 'product')"><i class="fa-solid fa-plus me-2"></i>Add New Product</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-dark"><tr><th>Product Name</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="productTableBody"><tr><td colspan="3">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.2 Add View -->
+      <div id="productAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('productListView', 'product')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-success fw-bold mb-0">📦 Add New Product</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddProduct(event)">
+            <div class="mb-3">
+              <label class="form-label fw-medium">Product Name</label>
+              <input type="text" class="form-control" id="addProductName" required>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-success fw-bold px-4 rounded-pill">Save Product</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2.3 Edit View -->
+      <div id="productEditView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('productListView', 'product')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-success fw-bold mb-0">✏️ Edit Product</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleEditProduct(event)">
+            <input type="hidden" id="editProductId">
+            <div class="mb-3"><label class="form-label fw-medium">Product Name</label><input type="text" class="form-control" id="editProductName" required></div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">Status</label>
+              <select class="form-select" id="editProductStatus" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-success fw-bold px-4 rounded-pill">Save Changes</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: TERRITORY ==================== -->
+    <div class="tab-pane fade" id="tab-territory" role="tabpanel">
+      <!-- 3.1 List View -->
+      <div id="territoryListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-warning text-dark mb-0"><i class="fa-solid fa-map-location-dot me-2"></i>Territory Management</h5>
+            <button class="btn btn-warning text-dark fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('territoryAddView', 'territory')"><i class="fa-solid fa-plus me-2"></i>Add New Territory</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-dark"><tr><th>Territory Name</th><th>Team Assigned</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="territoryTableBody"><tr><td colspan="4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.2 Add View -->
+      <div id="territoryAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('territoryListView', 'territory')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-warning text-dark fw-bold mb-0">🗺️ Add New Territory</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddTerritory(event)">
+            <div class="mb-3">
+              <label class="form-label fw-medium">Territory Name</label>
+              <input type="text" class="form-control" id="addTerritoryName" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">Assign to Team (Optional)</label>
+              <select class="form-select" id="addTerritoryTeamId"><option value="">- Unassigned -</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-warning text-dark fw-bold px-4 rounded-pill">Save Territory</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 3.3 Edit View -->
+      <div id="territoryEditView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('territoryListView', 'territory')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-warning text-dark fw-bold mb-0">✏️ Edit Territory</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleEditTerritory(event)">
+            <input type="hidden" id="editTerritoryId">
+            <div class="mb-3"><label class="form-label fw-medium">Territory Name</label><input type="text" class="form-control" id="editTerritoryName" required></div>
+            <div class="mb-3"><label class="form-label fw-medium">Assigned Team</label><select class="form-select" id="editTerritoryTeamId"><option value="">- Unassigned -</option></select></div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">Status</label>
+              <select class="form-select" id="editTerritoryStatus" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-warning text-dark fw-bold px-4 rounded-pill">Save Changes</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: BU ==================== -->
+    <div class="tab-pane fade" id="tab-bu" role="tabpanel">
+      <!-- 4.1 List View -->
+      <div id="buListView">
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-secondary mb-0"><i class="fa-solid fa-building me-2"></i>Business Unit Management</h5>
+            <button class="btn btn-secondary fw-bold px-4 rounded-pill shadow-sm" onclick="switchView('buAddView', 'bu')"><i class="fa-solid fa-plus me-2"></i>Add New BU</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-dark"><tr><th>BU Name</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="buTableBody"><tr><td colspan="3">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.2 Add View -->
+      <div id="buAddView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('buListView', 'bu')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-secondary fw-bold mb-0">🏢 Add New BU</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleAddBU(event)">
+            <div class="mb-3"><label class="form-label fw-medium">BU Name</label><input type="text" class="form-control" id="addBuName" required></div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-secondary fw-bold px-4 rounded-pill">Save BU</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 4.3 Edit View -->
+      <div id="buEditView" class="d-none">
+        <div class="d-flex align-items-center mb-4">
+          <button class="btn btn-light border fw-bold me-3 rounded-pill" onclick="switchView('buListView', 'bu')"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
+          <h4 class="text-secondary fw-bold mb-0">✏️ Edit BU</h4>
+        </div>
+        <div class="card p-4 border-0 shadow-sm" style="border-radius: 15px;">
+          <form onsubmit="handleEditBU(event)">
+            <input type="hidden" id="editBuId">
+            <div class="mb-3"><label class="form-label fw-medium">BU Name</label><input type="text" class="form-control" id="editBuName" required></div>
+            <div class="mb-3">
+              <label class="form-label fw-medium">Status</label>
+              <select class="form-select" id="editBuStatus" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+            </div>
+            <div class="text-end mt-4"><button type="submit" class="btn btn-secondary fw-bold px-4 rounded-pill">Save Changes</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var globalBUs = [];
+  var globalTeams = [];
+  var globalTerritories = [];
+  var globalProducts = [];
+  var globalProductTeams = [];
+  var currentHubTeamId = "";
+
+  setTimeout(async function() { 
+    await loadAllOrgData(); 
+  }, 300);
+
+  function switchView(targetViewId, module) {
+    const views = {
+      'team': ['teamListView', 'teamAddView', 'teamHubProfile'],
+      'product': ['productListView', 'productAddView', 'productEditView'],
+      'territory': ['territoryListView', 'territoryAddView', 'territoryEditView'],
+      'bu': ['buListView', 'buAddView', 'buEditView']
+    };
+    views[module].forEach(v => document.getElementById(v).classList.add('d-none'));
+    document.getElementById(targetViewId).classList.remove('d-none');
+    
+    if(targetViewId.includes('List')) {
+      if(module==='team') document.getElementById('addTeamName').value = '';
+      if(module==='product') document.getElementById('addProductName').value = '';
+      if(module==='territory') document.getElementById('addTerritoryName').value = '';
+      if(module==='bu') document.getElementById('addBuName').value = '';
+    }
+  }
+
+  // ================= 1. Load All Data =================
+  async function loadAllOrgData() {
+    try {
+      const [buRes, teamRes, terrRes, prodRes, ptRes] = await Promise.all([
+        supabaseClient.from('BU').select('*').order('BU', { ascending: true }),
+        supabaseClient.from('Team').select('*').order('Team', { ascending: true }),
+        supabaseClient.from('Territory').select('*').order('Territory', { ascending: true }),
+        supabaseClient.from('Products').select('*').order('Product', { ascending: true }),
+        supabaseClient.from('Products_Team').select('*')
+      ]);
+
+      globalBUs = buRes.data || [];
+      globalTeams = teamRes.data || [];
+      globalTerritories = terrRes.data || [];
+      globalProducts = prodRes.data || [];
+      globalProductTeams = ptRes.data || [];
+
+      renderTeamsHub();
+      renderMasterTables();
+      populateDropdowns();
+
+    } catch (err) {
+      console.error("Error loading Org Data:", err.message);
+    }
+  }
+
+  function populateDropdowns() {
+    let buOptions = '<option value="">- Select BU -</option>';
+    globalBUs.filter(b => b.Status === 'Active').forEach(b => { buOptions += `<option value="${b.BU_ID}">${b.BU}</option>`; });
+    document.getElementById('addTeamBuId').innerHTML = buOptions;
+
+    let teamOptions = '<option value="">- Unassigned / None -</option>';
+    globalTeams.filter(t => t.Status === 'Active').forEach(t => { teamOptions += `<option value="${t.Team_ID}">${t.Team}</option>`; });
+    document.getElementById('addTerritoryTeamId').innerHTML = teamOptions;
+    document.getElementById('editTerritoryTeamId').innerHTML = teamOptions;
+  }
+
+  function getUserEmail() {
+    let email = "System";
+    try { const u = JSON.parse(sessionStorage.getItem('crmUser')); if(u && u.Email) email = u.Email; } catch(e){}
+    return email;
+  }
+
+  // ================= 2. TEAMS HUB LOGIC =================
+  function renderTeamsHub() {
+    const tbody = document.getElementById('hubTeamTableBody');
+    tbody.innerHTML = '';
+    if (globalTeams.length === 0) return tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-muted">No data available</td></tr>';
+
+    globalTeams.forEach(t => {
+      const buName = (globalBUs.find(b => b.BU_ID === t.BU_ID) || {}).BU || '-';
+      const terrCount = globalTerritories.filter(tr => tr.Team_ID === t.Team_ID).length;
+      const prodCount = globalProductTeams.filter(pt => pt.Team_ID === t.Team_ID).length;
+
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-bold text-primary">${t.Team}</td>
+          <td><span class="badge bg-secondary">${buName}</span></td>
+          <td class="text-muted fw-medium">${terrCount} territories</td>
+          <td class="text-muted fw-medium">${prodCount} products</td>
+          <td><button class="btn btn-sm btn-dark px-3 rounded-pill shadow-sm" onclick="openTeamHub('${t.Team_ID}')">Manage Team <i class="fa-solid fa-arrow-right ms-1"></i></button></td>
+        </tr>`;
+    });
+  }
+
+  async function handleAddTeam(e) {
+    e.preventDefault();
+    const payload = { Team: document.getElementById('addTeamName').value.trim(), BU_ID: document.getElementById('addTeamBuId').value, Status: 'Active', Whoupdated: getUserEmail() };
+    try {
+      const { error } = await supabaseClient.from('Team').insert([payload]);
+      if (error) throw error;
+      switchView('teamListView', 'team');
+      await loadAllOrgData();
+      alert("✅ Team created successfully!");
+    } catch(err) { alert("❌ Failed to create team: " + err.message); }
+  }
+
+  function openTeamHub(teamId) {
+    currentHubTeamId = teamId;
+    const t = globalTeams.find(x => x.Team_ID === teamId);
+    if (!t) return;
+    document.getElementById('hubTeamName').innerText = t.Team;
+
+    // BU Dropdown
+    let buHtml = '<option value="">- Unassigned -</option>';
+    globalBUs.filter(b => b.Status === 'Active').forEach(b => {
+      buHtml += `<option value="${b.BU_ID}" ${b.BU_ID === t.BU_ID ? 'selected' : ''}>${b.BU}</option>`;
+    });
+    document.getElementById('hubBuSelect').innerHTML = buHtml;
+
+    // Team Products List
+    const myProdTeams = globalProductTeams.filter(pt => pt.Team_ID === teamId);
+    let prodHtml = '';
+    myProdTeams.forEach(pt => {
+      const pInfo = globalProducts.find(p => p.Product_ID === pt.Product_ID);
+      if (pInfo) {
+        prodHtml += `<li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1"><span class="fw-medium text-dark"><i class="fa-solid fa-check text-success me-2"></i>${pInfo.Product}</span><button class="btn btn-sm btn-outline-danger border-0" onclick="removeProductFromTeam('${pt.Product_ID}')"><i class="fa-solid fa-trash"></i></button></li>`;
+      }
+    });
+    document.getElementById('hubProductList').innerHTML = prodHtml || '<li class="list-group-item text-muted border-0 px-0 text-center small">No products</li>';
+
+    // Team Territories List
+    const myTerrs = globalTerritories.filter(tr => tr.Team_ID === teamId);
+    let terrHtml = '';
+    myTerrs.forEach(tr => {
+      terrHtml += `<li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-1"><span class="fw-medium text-dark"><i class="fa-solid fa-location-dot text-warning me-2"></i>${tr.Territory}</span><button class="btn btn-sm btn-outline-danger border-0" onclick="removeTerritoryFromTeam('${tr.Territory_ID}')"><i class="fa-solid fa-trash"></i></button></li>`;
+    });
+    document.getElementById('hubTerritoryList').innerHTML = terrHtml || '<li class="list-group-item text-muted border-0 px-0 text-center small">No territories</li>';
+
+    // Add Product Dropdown
+    let addProdHtml = '<option value="">- Add Product -</option>';
+    globalProducts.filter(p => p.Status === 'Active' && !myProdTeams.some(pt => pt.Product_ID === p.Product_ID)).forEach(p => {
+      addProdHtml += `<option value="${p.Product_ID}">${p.Product}</option>`;
+    });
+    document.getElementById('hubAddProductSelect').innerHTML = addProdHtml;
+
+    // Add Territory Dropdown
+    let addTerrHtml = '<option value="">- Add Territory -</option>';
+    globalTerritories.filter(tr => tr.Status === 'Active' && tr.Team_ID !== teamId).forEach(tr => {
+      addTerrHtml += `<option value="${tr.Territory_ID}">${tr.Territory}</option>`;
+    });
+    document.getElementById('hubAddTerritorySelect').innerHTML = addTerrHtml;
+
+    switchView('teamHubProfile', 'team');
+  }
+
+  async function updateTeamBU() {
+    const newBuId = document.getElementById('hubBuSelect').value;
+    try {
+      const { error } = await supabaseClient.from('Team').update({ BU_ID: newBuId, Whoupdated: getUserEmail() }).eq('Team_ID', currentHubTeamId);
+      if (error) throw error;
+      await loadAllOrgData();
+      alert('✅ BU updated successfully!');
+    } catch(err) { alert("❌ Update failed: " + err.message); }
+  }
+
+  async function addProductToTeam() {
+    const pId = document.getElementById('hubAddProductSelect').value;
+    if(!pId) return;
+    try {
+      const { error } = await supabaseClient.from('Products_Team').insert([{ Product_ID: pId, Team_ID: currentHubTeamId, Status: 'Active', Whoupdated: getUserEmail() }]);
+      if (error) throw error;
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ Failed to add product: " + err.message); }
+  }
+
+  async function removeProductFromTeam(productId) {
+    if(!confirm("Remove this product from the team?")) return;
+    try {
+      await supabaseClient.from('Products_Team').delete().eq('Product_ID', productId).eq('Team_ID', currentHubTeamId);
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ Removal failed"); }
+  }
+
+  async function addTerritoryToTeam() {
+    const tId = document.getElementById('hubAddTerritorySelect').value;
+    if(!tId) return;
+    try {
+      const { error } = await supabaseClient.from('Territory').update({ Team_ID: currentHubTeamId, Whoupdated: getUserEmail() }).eq('Territory_ID', tId);
+      if (error) throw error;
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ Failed to add territory: " + err.message); }
+  }
+
+  async function removeTerritoryFromTeam(territoryId) {
+    if(!confirm("Remove this territory from the team?")) return;
+    try {
+      await supabaseClient.from('Territory').update({ Team_ID: null }).eq('Territory_ID', territoryId);
+      await loadAllOrgData(); openTeamHub(currentHubTeamId);
+    } catch(err) { alert("❌ Removal failed"); }
+  }
+
+  // ================= 3. CRUD MASTER TABLES =================
+  function renderMasterTables() {
+    // 3.1 Products
+    let pBody = '';
+    globalProducts.forEach(p => {
+      const badge = p.Status === 'Active' ? 'bg-success' : 'bg-danger';
+      pBody += `<tr><td class="fw-bold">${p.Product}</td><td><span class="badge ${badge}">${p.Status}</span></td>
+                <td><button class="btn btn-sm btn-outline-success" onclick="openEditProduct('${p.Product_ID}')">Edit</button></td></tr>`;
+    });
+    document.getElementById('productTableBody').innerHTML = pBody || '<tr><td colspan="3">No data available</td></tr>';
+
+    // 3.2 Territory
+    let tBody = '';
+    globalTerritories.forEach(t => {
+      const badge = t.Status === 'Active' ? 'bg-success' : 'bg-danger';
+      const teamObj = globalTeams.find(tm => tm.Team_ID === t.Team_ID);
+      const teamStr = teamObj ? teamObj.Team : '<span class="text-danger small">Unassigned</span>';
+      tBody += `<tr><td class="fw-bold">${t.Territory}</td><td>${teamStr}</td><td><span class="badge ${badge}">${t.Status}</span></td>
+                <td><button class="btn btn-sm btn-outline-warning text-dark" onclick="openEditTerritory('${t.Territory_ID}')">Edit</button></td></tr>`;
+    });
+    document.getElementById('territoryTableBody').innerHTML = tBody || '<tr><td colspan="4">No data available</td></tr>';
+
+    // 3.3 BU
+    let bBody = '';
+    globalBUs.forEach(b => {
+      const badge = b.Status === 'Active' ? 'bg-success' : 'bg-danger';
+      bBody += `<tr><td class="fw-bold">${b.BU}</td><td><span class="badge ${badge}">${b.Status}</span></td>
+                <td><button class="btn btn-sm btn-outline-secondary" onclick="openEditBU('${b.BU_ID}')">Edit</button></td></tr>`;
+    });
+    document.getElementById('buTableBody').innerHTML = bBody || '<tr><td colspan="3">No data available</td></tr>';
+  }
+
+  // ==== Products CRUD ====
+  async function handleAddProduct(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('Products').insert([{ Product: document.getElementById('addProductName').value.trim(), Status: 'Active', Whoupdated: getUserEmail() }]);
+      switchView('productListView', 'product'); await loadAllOrgData();
+    } catch(err) { alert("❌ Error: " + err.message); }
+  }
+  function openEditProduct(id) {
+    const p = globalProducts.find(x => x.Product_ID === id);
+    if(p) { document.getElementById('editProductId').value = p.Product_ID; document.getElementById('editProductName').value = p.Product; document.getElementById('editProductStatus').value = p.Status; switchView('productEditView', 'product'); }
+  }
+  async function handleEditProduct(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('Products').update({ Product: document.getElementById('editProductName').value.trim(), Status: document.getElementById('editProductStatus').value, Whoupdated: getUserEmail() }).eq('Product_ID', document.getElementById('editProductId').value);
+      switchView('productListView', 'product'); await loadAllOrgData();
+    } catch(err) { alert("❌ Error: " + err.message); }
+  }
+
+  // ==== Territory CRUD ====
+  async function handleAddTerritory(e) {
+    e.preventDefault();
+    const tId = document.getElementById('addTerritoryTeamId').value;
+    try {
+      await supabaseClient.from('Territory').insert([{ Territory: document.getElementById('addTerritoryName').value.trim(), Team_ID: tId || null, Status: 'Active', Whoupdated: getUserEmail() }]);
+      switchView('territoryListView', 'territory'); await loadAllOrgData();
+    } catch(err) { alert("❌ Error: " + err.message); }
+  }
+  function openEditTerritory(id) {
+    const t = globalTerritories.find(x => x.Territory_ID === id);
+    if(t) { document.getElementById('editTerritoryId').value = t.Territory_ID; document.getElementById('editTerritoryName').value = t.Territory; document.getElementById('editTerritoryTeamId').value = t.Team_ID || ""; document.getElementById('editTerritoryStatus').value = t.Status; switchView('territoryEditView', 'territory'); }
+  }
+  async function handleEditTerritory(e) {
+    e.preventDefault();
+    const tId = document.getElementById('editTerritoryTeamId').value;
+    try {
+      await supabaseClient.from('Territory').update({ Territory: document.getElementById('editTerritoryName').value.trim(), Team_ID: tId || null, Status: document.getElementById('editTerritoryStatus').value, Whoupdated: getUserEmail() }).eq('Territory_ID', document.getElementById('editTerritoryId').value);
+      switchView('territoryListView', 'territory'); await loadAllOrgData();
+    } catch(err) { alert("❌ Error: " + err.message); }
+  }
+
+  // ==== BU CRUD ====
+  async function handleAddBU(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('BU').insert([{ BU: document.getElementById('addBuName').value.trim(), Status: 'Active', Whoupdated: getUserEmail() }]);
+      switchView('buListView', 'bu'); await loadAllOrgData();
+    } catch(err) { alert("❌ Error: " + err.message); }
+  }
+  function openEditBU(id) {
+    const b = globalBUs.find(x => x.BU_ID === id);
+    if(b) { document.getElementById('editBuId').value = b.BU_ID; document.getElementById('editBuName').value = b.BU; document.getElementById('editBuStatus').value = b.Status; switchView('buEditView', 'bu'); }
+  }
+  async function handleEditBU(e) {
+    e.preventDefault();
+    try {
+      await supabaseClient.from('BU').update({ BU: document.getElementById('editBuName').value.trim(), Status: document.getElementById('editBuStatus').value, Whoupdated: getUserEmail() }).eq('BU_ID', document.getElementById('editBuId').value);
+      switchView('buListView', 'bu'); await loadAllOrgData();
+    } catch(err) { alert("❌ Error: " + err.message); }
+  }
+</script>
