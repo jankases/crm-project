@@ -445,7 +445,6 @@
     </div>
   </div>
 </div>
-
 <script>
   // ==========================================
   // 1. GLOBAL STATE VARIABLES
@@ -616,7 +615,318 @@
   };
 
   // ==========================================
-  // 📊 4. VIEW & UI RENDERERS
+  // 💾 4. DRAFT & NOTIFICATION FUNCTIONS
+  // ==========================================
+  window.saveFormDraft = function() {
+      var visitId = document.getElementById('visitId').value || 'NEW';
+      var draftData = {
+          docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
+          productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
+          purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
+          date: document.getElementById('visitDate').value,
+          startTime: document.getElementById('visitStartTime').value,
+          endTime: document.getElementById('visitEndTime').value,
+          details: document.getElementById('visitDetails').value,
+          insight: document.getElementById('visitInsight').value,
+          nextAction: document.getElementById('visitNextAction').value,
+          isCoaching: document.getElementById('visitIsCoaching').checked,
+          status: document.getElementById('visitStatus').value,
+          timestamp: Date.now()
+      };
+      localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
+  };
+
+  window.restoreFormDraft = function(visitId) {
+      var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
+      if (draftStr) {
+          try {
+              var draft = JSON.parse(draftStr);
+              if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
+                  window.clearFormDraft(visitId);
+                  return false;
+              }
+              setTimeout(function() {
+                  if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
+                  if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
+                  if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
+              }, 200);
+
+              if (draft.date) document.getElementById('visitDate').value = draft.date;
+              if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
+              if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
+              if (draft.details) document.getElementById('visitDetails').value = draft.details;
+              if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
+              if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+              if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
+              if (draft.status) document.getElementById('visitStatus').value = draft.status;
+              
+              if (!document.getElementById('visitId').value && window.showToast) {
+                  window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+              }
+              return true;
+          } catch(e) {}
+      }
+      return false;
+  };
+
+  window.clearFormDraft = function(visitId) { localStorage.removeItem('visitDraft_' + (visitId || 'NEW')); };
+
+  window.checkMyDraftsReminder = function(myDraftCount) {
+    var toastContainer = document.getElementById('draftToastContainer');
+    if (!toastContainer) return;
+    if (myDraftCount > 0) {
+      toastContainer.innerHTML = 
+        '<div class="draft-toast" id="myDraftToast">' +
+          '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
+          '<div>' +
+            '<div class="fw-bold text-dark small">มีฉบับร่างค้างยืนยัน</div>' +
+            '<div class="text-secondary" style="font-size: 0.82rem;">คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง</div>' +
+          '</div>' +
+          '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
+        '</div>';
+      setTimeout(function() { var t = document.getElementById('myDraftToast'); if (t) t.remove(); }, 7000);
+    } else {
+      toastContainer.innerHTML = '';
+    }
+  };
+
+  // ==========================================
+  // 🎬 5. MEDIA & PRESENTATION FUNCTIONS
+  // ==========================================
+  window.fetchDetailingMedia = async function() {
+    try {
+      var res = await window.supabaseClient.from('Detailing_Media').select('*').eq('Status', true);
+      if (!res.error && res.data) { window.globalAllMediaList = res.data; }
+    } catch(e) {}
+  };
+
+  window.loadProductMedia = function() {
+    var container = document.getElementById('mediaListContainer');
+    var section = document.getElementById('detailingMediaSection');
+    var headerEl = document.getElementById('detailingMediaHeader');
+    if (!container || !section) return;
+
+    var visitStatus = document.getElementById('visitStatus') ? document.getElementById('visitStatus').value : 'Pending';
+    var isSubmitted = (visitStatus === 'Submitted');
+
+    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+
+    var currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+    var isOwner = true; 
+    
+    if (currentVisitId && window.globalVisits && window.globalVisits.length > 0) {
+        var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+        if (v) {
+            var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
+            var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+            if (myRepId && creatorRepId) { isOwner = (myRepId === creatorRepId); } 
+            else if (myEmail && creatorWho) { isOwner = (myEmail === creatorWho); } 
+            else { isOwner = false; }
+        }
+    }
+
+    var isPreviewMode = isSubmitted || !isOwner;
+    var selectedProducts = [];
+    if (window.tomSelectProdInstance) {
+      var val = window.tomSelectProdInstance.getValue();
+      selectedProducts = Array.isArray(val) ? val : (val ? [val] : []);
+    } else {
+      var pSelect = document.getElementById('visitProductId');
+      if (pSelect) selectedProducts = Array.from(pSelect.selectedOptions).map(function(o) { return o.value; });
+    }
+
+    selectedProducts = selectedProducts.filter(function(p) { return p.trim() !== ""; });
+    if (selectedProducts.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
+    var matchedMedia = window.globalAllMediaList.filter(function(m) {
+      return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
+    });
+
+    if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
+    section.classList.remove('d-none');
+    var titleText = window.getCurrentAppLang() === 'en' ? 'e-Detailing / Presentation' : 'สื่อการนำเสนอ (e-Detailing)';
+    var unitText = window.getCurrentAppLang() === 'en' ? 'items' : 'เล่ม';
+
+    if (headerEl) {
+      headerEl.innerHTML = 
+        '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span>' + titleText + '</span></span>' +
+        '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
+    }
+
+    var html = '';
+    var btnClass = isPreviewMode ? 'btn-secondary' : 'btn-primary';
+    var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
+    var btnText = isPreviewMode ? 'Preview' : 'Present';
+
+    matchedMedia.forEach(function(m) {
+      var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
+      var typeText = m.Type || 'PDF';
+      html += 
+        '<div class="media-card d-flex justify-content-between align-items-center shadow-xs">' +
+          '<div class="d-flex align-items-center me-2 overflow-hidden">' +
+            '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
+            '<div class="text-truncate">' +
+              '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
+              '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="btn ' + btnClass + ' btn-sm fw-bold rounded-pill px-3 shadow-xs" style="font-size: 0.78rem;" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+            '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
+          '</button>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  };
+
+  window.openMediaPresentation = async function(mediaId, isPreview) {
+    window.globalIsMediaPreviewMode = isPreview || false;
+    var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
+    if (!media) return window.showToast ? window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error") : alert("Error loading media");
+
+    var visitIdInput = document.getElementById('visitId');
+    if (visitIdInput && !visitIdInput.value && window.generateUUID) visitIdInput.value = window.generateUUID();
+
+    window.currentActiveMedia = media;
+    window.presentationStartTime = new Date();
+    window.pageLogsBuffer = [];
+    window.currentPdfPage = 1;
+    window.currentPageStartTime = new Date();
+
+    var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+    document.getElementById('mediaModalTitle').innerHTML = '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
+
+    var modalBody = document.getElementById('mediaModalBody');
+    var pdfControls = document.getElementById('pdfControls');
+
+    if (media.Type === 'Video') {
+      if (pdfControls) pdfControls.classList.add('d-none');
+      modalBody.innerHTML = '<video src="' + media.File_URL + '" controls autoplay style="width:100%; max-height:100vh; object-fit:contain;"></video>';
+    } else {
+      if (pdfControls) pdfControls.classList.remove('d-none');
+      modalBody.innerHTML = '<div id="pdfCanvasContainer"><canvas id="pdfRenderCanvas"></canvas></div>';
+
+      try {
+        var loadingTask = pdfjsLib.getDocument(media.File_URL);
+        window.pdfDocInstance = await loadingTask.promise;
+        window.totalPdfPages = window.pdfDocInstance.numPages;
+        document.getElementById('pdfTotalPages').innerText = window.totalPdfPages;
+        document.getElementById('pdfPageNum').value = 1;
+        window.renderPdfPage(1);
+      } catch(e) {
+        modalBody.innerHTML = '<iframe src="' + media.File_URL + '#toolbar=0" style="width:100%; height:100vh; border:none;"></iframe>';
+      }
+    }
+
+    var secondsElapsed = 0;
+    document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>00:00';
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.presentationTimerInterval = setInterval(function() {
+      secondsElapsed++;
+      var m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      var s = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('mediaTimerBadge').innerHTML = '<i class="fa-solid fa-stopwatch me-1"></i>' + m + ':' + s;
+    }, 1000);
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  };
+
+  window.renderPdfPage = async function(num) {
+    if (!window.pdfDocInstance) return;
+    try {
+      var page = await window.pdfDocInstance.getPage(num);
+      var canvas = document.getElementById('pdfRenderCanvas');
+      if (!canvas) return;
+      var context = canvas.getContext('2d');
+      var viewport = page.getViewport({ scale: 1.5 });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      var renderContext = { canvasContext: context, viewport: viewport };
+      await page.render(renderContext).promise;
+    } catch(e) {}
+  };
+
+  window.recordCurrentPageLog = function() {
+    if (window.currentPageStartTime) {
+      var now = new Date();
+      var durationSec = Math.round((now - window.currentPageStartTime) / 1000);
+      if (durationSec >= 5) {
+          window.pageLogsBuffer.push({ Page_Number: window.currentPdfPage, Duration_Second: durationSec, Whenopend: window.currentPageStartTime.toISOString() });
+      }
+    }
+  };
+
+  window.prevPdfPage = function() {
+    if (window.currentPdfPage <= 1) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage--;
+    window.currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.nextPdfPage = function() {
+    if (window.currentPdfPage >= window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage++;
+    window.currentPageStartTime = new Date();
+    document.getElementById('pdfPageNum').value = window.currentPdfPage;
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.jumpPdfPage = function() {
+    var val = parseInt(document.getElementById('pdfPageNum').value);
+    if (isNaN(val) || val < 1 || val > window.totalPdfPages) return;
+    window.recordCurrentPageLog();
+    window.currentPdfPage = val;
+    window.currentPageStartTime = new Date();
+    window.renderPdfPage(window.currentPdfPage);
+  };
+
+  window.closeMediaPresentation = async function() {
+    if (window.presentationTimerInterval) clearInterval(window.presentationTimerInterval);
+    window.recordCurrentPageLog();
+    var now = new Date();
+    var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
+    var targetVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : null;
+
+    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+      var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+      var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+      var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
+
+      var logPayload = { Visit_ID: targetVisitId, Media_ID: window.currentActiveMedia.Media_ID, Duration_Seconds: durationToSave, Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(), Whoupdated: whoUpdated };
+
+      try {
+        var logRes = await window.supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+        if (!logRes.error && logRes.data && logRes.data.length > 0) {
+          var createdLogId = logRes.data[0].Log_ID;
+          if (window.pageLogsBuffer.length > 0) {
+            var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
+              return { Log_ID: createdLogId, Page_Number: pLog.Page_Number, Duration_Seconds: pLog.Duration_Second, Whenopend: pLog.Whenopend, Whoupdated: whoUpdated };
+            });
+            await window.supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+          }
+        }
+      } catch(err) {}
+    }
+
+    var modalEl = document.getElementById('mediaPresentationModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    document.getElementById('mediaModalBody').innerHTML = '';
+    window.currentActiveMedia = null;
+    window.presentationStartTime = null;
+    window.pdfDocInstance = null;
+  };
+
+  // ==========================================
+  // 📊 6. VIEW & UI RENDERERS (ตาราง และ ปฏิทิน)
   // ==========================================
   window.toggleMainView = function(viewName) {
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -900,7 +1210,7 @@
   };
 
   // ==========================================
-  // 📥 5. DATA LOADING & FILTERING
+  // 📥 7. DATA LOADING & FILTERING
   // ==========================================
   window.loadDropdowns = async function(forceReload) {
     var filterGroup = document.getElementById('visitFilterZoneGroup');
@@ -1042,8 +1352,6 @@
         }
       }
 
-      window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
-
       // 🌟 สร้าง Dropdown วัตถุประสงค์โดยอิงจาก "Index_ID" เป็นแกนหลัก 100%
       var purposeSelect = document.getElementById('visitPurpose');
       if (purposeSelect) { 
@@ -1088,9 +1396,9 @@
               var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
               if (v) {
                   var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                  window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+                  if (window.updateFormUserInfo) window.updateFormUserInfo(targetRepObj, v.Territory_ID);
               }
-          } else window.initUserInfo();
+          } else if (window.initUserInfo) window.initUserInfo();
       }
 
       var filterGroup = document.getElementById('visitFilterZoneGroup');
@@ -1246,7 +1554,7 @@
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
         window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
             plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
-            onChange: function() { window.loadProductMedia(); }
+            onChange: function() { if (window.loadProductMedia) window.loadProductMedia(); }
         });
         if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
     }
@@ -1345,6 +1653,11 @@
     }).length;
 
     if (window.checkMyDraftsReminder) window.checkMyDraftsReminder(myDraftsCount);
+  };
+
+  window.debouncedFilterVisits = function() {
+      if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
+      window.filterDebounceTimer = setTimeout(function() { window.filterVisits(); }, 300); 
   };
 
   window.filterVisits = function(resetPage) {
@@ -1485,42 +1798,8 @@
   };
 
   // ==========================================
-  // 📝 6. ฟังก์ชันจัดการหน้าฟอร์ม (Form Functions)
+  // 📝 8. FORM FUNCTIONS (แก้ไข, เพิ่ม, บันทึก)
   // ==========================================
-  window.cancelVisitForm = function() {
-    window.clearFormDraft(document.getElementById('visitId').value || 'NEW');
-    var returnDocId = sessionStorage.getItem('returnToDocId');
-    if (returnDocId) {
-      sessionStorage.removeItem('returnToDocId');
-      if (window.returnToDoctorProfile) window.returnToDoctorProfile(returnDocId); 
-    } else window.switchVisitView('visitListView');
-  };
-
-  window.returnToDoctorProfile = function(docId) {
-    if (typeof window.loadComponent === 'function') window.loadComponent('doctor');
-    var attempts = 0;
-    var checkReady = setInterval(function() {
-      attempts++;
-      if (typeof window.openViewDoctorProfile === 'function' && window.globalDoctors && window.globalDoctors.length > 0) {
-        clearInterval(checkReady); window.openViewDoctorProfile(docId, '#tab-doc-history'); 
-      } else if (attempts > 50) clearInterval(checkReady);
-    }, 100);
-  };
-
-  window.toggleVisitFormEditable = function(isEditable) {
-    var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
-    var formView = document.getElementById('visitFormView');
-
-    if (window.tomSelectDocInstance) { if (isEditable) window.tomSelectDocInstance.enable(); else window.tomSelectDocInstance.disable(); }
-    if (window.tomSelectProdInstance) { if (isEditable) window.tomSelectProdInstance.enable(); else window.tomSelectProdInstance.disable(); }
-    if (window.tomSelectPurposeInstance) { if (isEditable) window.tomSelectPurposeInstance.enable(); else window.tomSelectPurposeInstance.disable(); }
-
-    if (formView) { if(isEditable) formView.classList.remove('disabled-ts'); else formView.classList.add('disabled-ts'); }
-    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.disabled = !isEditable; });
-    var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction'];
-    btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
-  };
-
   window.openEditVisitView = async function(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -1556,7 +1835,6 @@
     if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
 
     document.getElementById('visitDate').value = v.Visit_Date || '';
-    
     if (window.formatTimeString) {
         document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
         document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
@@ -1627,10 +1905,7 @@
 
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
-      if (window.tomSelectDocInstance) {
-        window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId);
-        window.tomSelectDocInstance.disable(); 
-      }
+      if (window.tomSelectDocInstance) { window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId); window.tomSelectDocInstance.disable(); }
     }
 
     if (window.restoreFormDraft) window.restoreFormDraft('NEW');
@@ -1728,170 +2003,8 @@
     }
   };
 
-  window.requestUnlockVisit = async function(visitId) {
-    var btn = document.getElementById('saveVisitBtn');
-    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...';
-
-    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-
-    var payload = { Action: 'Unlock Visit', Ref_ID: visitId, Requested_Data: JSON.stringify({ Status: 'Pending' }), Status: 'Pending', Whoupdated: whoUpdated };
-
-    try {
-      var res = await window.supabaseClient.from('DCR').insert([payload]);
-      if (res.error) throw res.error;
-      if (window.showToast) window.showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
-      
-      var returnDocId = sessionStorage.getItem('returnToDocId');
-      if (returnDocId) {
-        sessionStorage.removeItem('returnToDocId');
-        if (window.returnToDoctorProfile) window.returnToDoctorProfile(returnDocId); 
-      } else {
-        if (window.switchVisitView) window.switchVisitView('visitListView');
-        if (window.loadVisits) await window.loadVisits(true); 
-      }
-    } catch(err) {
-      if (window.showToast) window.showToast("❌ Error: " + err.message, "error");
-      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
-    }
-  };
-
   // ==========================================
-  // ⛱️ 7. ฟังก์ชันจัดการ TOT Modal (Time Off Territory)
-  // ==========================================
-  window.initTotModal = function() {
-      if (!window.totModalInstance) {
-          var el = document.getElementById('totModal');
-          if (el) window.totModalInstance = new bootstrap.Modal(el, { backdrop: 'static' });
-      }
-  };
-
-  window.openAddTotModal = function() {
-      document.getElementById('totId').value = '';
-      document.getElementById('totStartDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('totEndDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('totStartTime').value = '';
-      document.getElementById('totEndTime').value = '';
-      document.getElementById('totRemark').value = '';
-      document.getElementById('totStatus').value = 'Approved'; 
-      
-      if (window.populateTotTypes) window.populateTotTypes();
-
-      var btnDelete = document.getElementById('btnDeleteTot');
-      if(btnDelete) btnDelete.classList.add('d-none');
-
-      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
-      
-      window.initTotModal();
-      if(window.totModalInstance) window.totModalInstance.show();
-  };
-
-  window.openEditTotModal = function(id) {
-      var tot = window.globalTotLogs.find(function(t) { return t.TOT_ID === id; });
-      if(!tot) return;
-
-      document.getElementById('totId').value = tot.TOT_ID;
-      document.getElementById('totStartDate').value = tot.Start_Date || '';
-      document.getElementById('totEndDate').value = tot.End_Date || '';
-      if (window.formatTimeString) {
-          document.getElementById('totStartTime').value = window.formatTimeString(tot.Start_Time);
-          document.getElementById('totEndTime').value = window.formatTimeString(tot.End_Time);
-      }
-      document.getElementById('totRemark').value = tot.Remark || '';
-      document.getElementById('totStatus').value = tot.Status || 'Approved';
-
-      if (window.populateTotTypes) window.populateTotTypes();
-      setTimeout(function() { document.getElementById('totType').value = tot.TOT_Type; }, 50);
-
-      var btnDelete = document.getElementById('btnDeleteTot');
-      if(btnDelete) btnDelete.classList.remove('d-none');
-
-      document.getElementById('totModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
-      
-      window.initTotModal();
-      if(window.totModalInstance) window.totModalInstance.show();
-  };
-
-  window.populateTotTypes = function() {
-      var select = document.getElementById('totType');
-      if(!select) return;
-
-      var appLang = window.getCurrentAppLang();
-      var types = window.VisitManagerCache.indexTypes || [];
-      var indexes = window.VisitManagerCache.indexes || [];
-      var tType = types.find(t => t.Name && (t.Name.trim().toLowerCase() === 'tot type' || t.Name.trim().toLowerCase() === 'tot'));
-      
-      var html = '<option value="">-- ' + (appLang === 'en' ? 'Select Type' : 'เลือกประเภท') + ' --</option>';
-      if (tType) {
-          var items = indexes.filter(i => i.IndexType_ID === tType.IndexType_ID);
-          items.forEach(i => {
-              var textTh = i.Value || '';
-              var textEn = i.Value1 || i.Value || '';
-              html += '<option value="'+textTh+'">'+ (appLang === 'en' ? textEn : textTh) +'</option>';
-          });
-      } else {
-          html += '<option value="Annual Leave">Annual Leave (ลาพักร้อน)</option><option value="Sick Leave">Sick Leave (ลาป่วย)</option><option value="Internal Meeting">Internal Meeting (ประชุมภายใน)</option><option value="Training">Training (อบรม)</option>';
-      }
-      select.innerHTML = html;
-  };
-
-  window.handleSaveTot = async function(e) {
-      e.preventDefault();
-      var btn = document.getElementById('saveTotBtn');
-      btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-
-      var id = document.getElementById('totId').value;
-      var crmUser = JSON.parse(sessionStorage.getItem('crmUser') || '{}');
-      var repId = crmUser.Rep_ID || crmUser.id || null;
-      var whoUpdated = crmUser.Email || crmUser.Rep_Name || 'Unknown';
-      
-      var payload = {
-          Rep_ID: repId, TOT_Type: document.getElementById('totType').value, Start_Date: document.getElementById('totStartDate').value,
-          End_Date: document.getElementById('totEndDate').value || document.getElementById('totStartDate').value,
-          Start_Time: document.getElementById('totStartTime').value || null, End_Time: document.getElementById('totEndTime').value || null,
-          Remark: document.getElementById('totRemark').value, Status: document.getElementById('totStatus').value,
-          Whoupdated: whoUpdated, Whenupdated: new Date().toISOString()
-      };
-
-      try {
-          if(id) {
-              var {error} = await window.supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id);
-              if(error) throw error;
-          } else {
-              payload.TOT_ID = window.generateUUID ? window.generateUUID() : Date.now().toString();
-              var {error} = await window.supabaseClient.from('TOT_Logs').insert([payload]);
-              if(error) throw error;
-          }
-          if (window.showToast) window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
-          if(window.totModalInstance) window.totModalInstance.hide();
-          if (window.loadVisits) await window.loadVisits(true);
-      } catch(err) {
-          if (window.showToast) window.showToast("Error: " + err.message, "error");
-      } finally {
-          btn.disabled = false; btn.innerHTML = '💾 Save';
-      }
-  };
-
-  window.deleteTot = async function() {
-      var id = document.getElementById('totId').value;
-      if(!id) return;
-      var appLang = window.getCurrentAppLang();
-      var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
-      if (!confirm(confirmMsg)) return;
-
-      try {
-          var {error} = await window.supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
-          if (error) throw error;
-          if (window.showToast) window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
-          if(window.totModalInstance) window.totModalInstance.hide();
-          if (window.loadVisits) await window.loadVisits(true);
-      } catch(err) {
-          if (window.showToast) window.showToast("Error: " + err.message, "error");
-      }
-  };
-
-  // ==========================================
-  // 🎤 8. ฟังก์ชันพิมพ์ด้วยเสียง (Voice Dictation)
+  // 🎤 9. ฟังก์ชันพิมพ์ด้วยเสียง (Voice Dictation)
   // ==========================================
   window.toggleDocDictation = function() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -2011,7 +2124,7 @@
   };
 
   // ==========================================
-  // 🔗 9. INITIALIZE & EVENT LISTENERS
+  // 🔗 10. INITIALIZE & EVENT LISTENERS
   // ==========================================
   window.updateLangUI = function() {
       var formView = document.getElementById('visitFormView');
