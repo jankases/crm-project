@@ -1,1 +1,877 @@
+<style>
+  /* ================= 🌟 Master Theme Styles ================= */
+  .visit-card { 
+    border-radius: 20px !important; 
+    border: 1px solid #eef2f6 !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;
+    background: #ffffff;
+  }
+  
+  .form-control, .form-select { 
+    min-height: 44px; 
+    border-radius: 12px; 
+    border: 1px solid #dee2e6;
+  }
+  .form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: #86b7fe;
+  }
 
+  .form-control:disabled, .form-select:disabled, input:disabled { 
+    background-color: #f8fafc !important; 
+    color: #475569 !important; 
+    cursor: not-allowed; 
+    font-weight: 500 !important;
+  }
+
+  .btn-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+  .btn-primary:hover { background-color: #0b5ed7 !important; border-color: #0a58ca !important; }
+
+  .table-custom-header {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0 !important;
+  }
+
+  /* Toggle Switch Switch (UI แบบ iOS) */
+  .switch { position: relative; display: inline-block; width: 54px; height: 30px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
+  .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  input:checked + .slider { background-color: #10b981; }
+  input:focus + .slider { box-shadow: 0 0 1px #10b981; }
+  input:checked + .slider:before { -webkit-transform: translateX(24px); -ms-transform: translateX(24px); transform: translateX(24px); }
+
+  .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; }
+  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+  /* 🎯 Pagination Custom Styles */
+  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+
+  /* 🎯 Sortable Header & Text Wrapping */
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { color: #0d6efd !important; }
+  .desc-wrap { max-width: 250px; white-space: normal; word-wrap: break-word; line-height: 1.4; margin: 0 auto; }
+</style>
+
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="text-dark fw-bold mb-1"><i class="fa-solid fa-cogs me-2 text-primary"></i>System Settings</h3>
+      <p class="text-muted small mb-0">Master Data & Index Configuration</p>
+    </div>
+  </div>
+
+  <!-- ================= 🌟 ส่วนควบคุม Target Call ================= -->
+  <div class="card p-4 border-0 visit-card mb-4" style="border-left: 5px solid #f59e0b !important;">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+      
+      <div class="flex-grow-1">
+        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-bullseye me-2 text-warning"></i>Target Call (Rating) Access</h5>
+        <p class="text-muted small mb-0" style="line-height: 1.6;">
+          Control whether Sales Reps can edit the "Target Call" tab in Doctor Profiles.<br>
+          <span class="text-secondary">- Set <b>Start/End Dates</b> for automatic access.</span><br>
+          <span class="text-secondary">- Or use the <b>Toggle Switch</b> for manual control.</span>
+        </p>
+      </div>
+      
+      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-end justify-content-center justify-content-md-end gap-3 flex-shrink-0">
+        <div class="d-flex gap-2">
+          <div>
+            <label class="form-label text-secondary small fw-bold mb-1">Start Date</label>
+            <input type="date" class="form-control form-control-sm text-secondary shadow-sm px-2" id="ratingStartDate" style="border-radius: 8px; height: 38px;">
+          </div>
+          <div>
+            <label class="form-label text-secondary small fw-bold mb-1">End Date</label>
+            <input type="date" class="form-control form-control-sm text-secondary shadow-sm px-2" id="ratingEndDate" style="border-radius: 8px; height: 38px;">
+          </div>
+        </div>
+        <div class="vr d-none d-md-block mx-1" style="height: 40px; align-self: center;"></div>
+        <div class="text-center" style="min-width: 140px;">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
+          <label class="switch mb-0">
+            <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div>
+          <button class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm text-nowrap" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 38px;">
+            <i class="fa-solid fa-save me-1"></i> Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ================= -->
+    <div class="col-lg-3 d-flex">
+      <div class="card p-4 border-0 visit-card w-100">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+          <h5 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-layer-group me-2 text-secondary"></i>1. Categories</h5>
+          <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 shadow-sm" onclick="window.openAddIndexTypeModal()">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+            <tbody id="indexTypeTableBody">
+              <tr><td class="py-3 text-center text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ส่วนขวา: จัดการ Index (Values) ================= -->
+    <div class="col-lg-9 d-flex">
+      <div class="card p-4 border-0 visit-card w-100">
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2 gap-2">
+          <h5 class="fw-bold text-primary mb-0 fs-6"><i class="fa-solid fa-list-check me-2"></i>2. Index Values</h5>
+          
+          <div class="d-flex align-items-center gap-2">
+            <select class="form-select form-select-sm shadow-sm border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; min-width: 200px;">
+              <option value="">- All Categories -</option>
+            </select>
+            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-sm text-nowrap" onclick="window.openAddIndexModal()">
+              <i class="fa-solid fa-plus me-1"></i>Add Value
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.95rem;">
+            <thead class="table-custom-header">
+              <tr>
+                <th id="thCategory" class="text-start sortable-th" style="width: 15%;" onclick="window.sortIndexes('category')">
+                  <span id="lblThCategory">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
+                </th>
+                <th id="thValue" class="sortable-th" style="width: 20%;" onclick="window.sortIndexes('value')">
+                  <span id="lblThValue">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
+                </th>
+                <th id="thValue1" class="d-none sortable-th" style="width: 28%;" onclick="window.sortIndexes('value1')">
+                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
+                </th>
+                <th id="thValue2" class="d-none sortable-th" style="width: 28%;" onclick="window.sortIndexes('value2')">
+                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
+                </th>
+                <th style="width: 90px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="indexTableBody">
+              <tr><td colspan="5" class="py-4 text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 🎯 Pagination Controls สำหรับ Index Table -->
+        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top d-none">
+          <div class="d-flex align-items-center mb-3 mb-md-0">
+            <label class="text-muted small fw-bold me-2 mb-0">Show rows:</label>
+            <select class="form-select form-select-sm shadow-sm" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 80px; border-radius: 8px;">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-muted small ms-3" id="indexPageInfo">Showing ...</span>
+          </div>
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm custom-pagination mb-0" id="indexPagination"></ul>
+          </nav>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modals ================= -->
+
+  <!-- Modal สำหรับ IndexType -->
+  <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg visit-card">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-dark" id="indexTypeModalTitle">Add Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form onsubmit="window.handleSaveIndexType(event)">
+          <div class="modal-body p-4">
+            <input type="hidden" id="modalIndexTypeId">
+            <div class="mb-2">
+              <label class="form-label fw-bold text-secondary small">Category Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-light" id="modalIndexTypeName" required placeholder="e.g. Zone, Specialty">
+            </div>
+          </div>
+          <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm" id="btnSaveIndexType">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับ Index Value (🎯 ปรับ Layout ให้สวยขึ้นสำหรับ 2 ภาษา) -->
+  <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg visit-card">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary" id="indexModalTitle">Add Value</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form onsubmit="window.handleSaveIndex(event)">
+          <div class="modal-body p-4">
+            <input type="hidden" id="modalIndexId">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-secondary small">Category (IndexType)</label>
+                <select class="form-select bg-light fw-bold text-secondary" id="modalIndexSelectType" disabled></select>
+              </div>
+
+              <!-- ช่อง Value หลัก -->
+              <div class="col-md-6 mb-3" id="groupValue">
+                <label class="form-label fw-bold text-dark small" id="lblValue">Value <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="modalIndexValue" required>
+              </div>
+            </div>
+
+            <div class="row mt-2" id="groupTranslations">
+              <!-- ช่อง Value 1 -->
+              <div class="col-md-6 mb-3 d-none" id="groupValue1">
+                <label class="form-label fw-bold text-dark small" id="lblValue1">Value 1</label>
+                <input type="text" class="form-control" id="modalIndexValue1_input">
+                <select class="form-select d-none" id="modalIndexValue1_select"></select>
+              </div>
+
+              <!-- ช่อง Value 2 -->
+              <div class="col-md-6 mb-3 d-none" id="groupValue2">
+                <label class="form-label fw-bold text-dark small" id="lblValue2">Value 2</label>
+                <input type="text" class="form-control" id="modalIndexValue2">
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" id="btnSaveIndex">💾 Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  window.globalIndexTypes = [];
+  window.globalIndexes = [];
+  window.globalFilteredIndexes = []; 
+  
+  // 🎯 ตัวแปรเก็บสถานะการ Sort
+  window.indexSortCol = 'value';
+  window.indexSortAsc = true; 
+
+  window.indexCurrentPage = 1;       
+  window.indexRowsPerPage = 10;      
+  
+  window.indexTypeModalInstance = null;
+  window.indexModalInstance = null;
+  window.globalSystemSettings = [];
+
+  setTimeout(function() {
+    window.indexTypeModalInstance = new bootstrap.Modal(document.getElementById('indexTypeModal'));
+    window.indexModalInstance = new bootstrap.Modal(document.getElementById('indexModal'));
+    window.loadSystemSettings(); 
+    window.loadAllIndexData();
+  }, 300);
+
+  // ================= 🌟 ส่วนจัดการ System_Settings =================
+  window.loadSystemSettings = async function() {
+    try {
+      const { data, error } = await supabaseClient.from('System_Settings').select('*');
+      if (error) throw error;
+      
+      window.globalSystemSettings = data || [];
+      const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
+      
+      const switchEl = document.getElementById('ratingToggleSwitch');
+      const startEl = document.getElementById('ratingStartDate');
+      const endEl = document.getElementById('ratingEndDate');
+      
+      if (ratingConfig) {
+        startEl.value = ratingConfig.Start || '';
+        endEl.value = ratingConfig.End || '';
+        
+        if (ratingConfig.Status === false) {
+            switchEl.checked = false;
+            document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
+        } else {
+            window.checkCurrentRatingStatus(ratingConfig.Start, ratingConfig.End);
+        }
+      } else {
+        switchEl.checked = false;
+        document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
+      }
+    } catch (err) { console.error("Load Settings Error:", err); }
+  };
+
+  window.checkCurrentRatingStatus = function(startStr, endStr) {
+    const switchEl = document.getElementById('ratingToggleSwitch');
+    const labelEl = document.getElementById('ratingStatusLabel');
+    
+    if (!startStr && !endStr) {
+        switchEl.checked = true; 
+        labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (Manual)</span>';
+        return;
+    }
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    let isWithinRange = true;
+    
+    if (startStr) { const sDate = new Date(startStr); sDate.setHours(0,0,0,0); if (today < sDate) isWithinRange = false; }
+    if (endStr) { const eDate = new Date(endStr); eDate.setHours(23,59,59,999); if (today > eDate) isWithinRange = false; }
+
+    if (isWithinRange) {
+        switchEl.checked = true;
+        labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (In Period)</span>';
+    } else {
+        switchEl.checked = true; 
+        labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Out of Period)</span>';
+    }
+  };
+
+  window.toggleRatingSystem = function() {
+    const switchEl = document.getElementById('ratingToggleSwitch');
+    const labelEl = document.getElementById('ratingStatusLabel');
+    const startEl = document.getElementById('ratingStartDate');
+    const endEl = document.getElementById('ratingEndDate');
+    
+    if (switchEl.checked) {
+        labelEl.innerHTML = '<span class="text-success fw-bold">Enabled (Manual)</span>';
+        window.checkCurrentRatingStatus(startEl.value, endEl.value); 
+    } else {
+        labelEl.innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
+    }
+  };
+
+  window.saveSystemSettings = async function() {
+    const btn = document.getElementById('btnSaveSysSettings');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    const startVal = document.getElementById('ratingStartDate').value;
+    const endVal = document.getElementById('ratingEndDate').value;
+    const isStatusActive = document.getElementById('ratingToggleSwitch').checked; 
+    
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+
+    const payload = {
+        Type: 'Rating', Start: startVal || null, End: endVal || null, Status: isStatusActive,
+        Whoupdated: crmUser ? crmUser.Email : "Unknown", Whenupdated: new Date().toISOString()
+    };
+
+    try {
+        const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
+        if (ratingConfig) {
+            const { error } = await supabaseClient.from('System_Settings').update(payload).eq('Type', 'Rating');
+            if (error) throw error;
+        } else {
+            const { error } = await supabaseClient.from('System_Settings').insert([payload]);
+            if (error) throw error;
+        }
+
+        btn.classList.replace('btn-dark', 'btn-success');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
+        
+        if (!isStatusActive) document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">Disabled (Locked)</span>';
+        else window.checkCurrentRatingStatus(startVal, endVal);
+
+        setTimeout(() => { btn.classList.replace('btn-success', 'btn-dark'); btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save'; btn.disabled = false; }, 2000);
+    } catch (err) {
+        alert("❌ Settings save failed: " + err.message);
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save';
+    }
+  };
+
+  // ================= ส่วนโหลด Index =================
+  window.loadAllIndexData = async function() {
+    try {
+      const [typeRes, idxRes] = await Promise.all([
+        supabaseClient.from('IndexType').select('*').order('Name', { ascending: true }),
+        supabaseClient.from('Index').select('*').order('Value', { ascending: true })
+      ]);
+
+      if (typeRes.error) throw typeRes.error;
+      if (idxRes.error) throw idxRes.error;
+
+      window.globalIndexTypes = typeRes.data || [];
+      window.globalIndexes = idxRes.data || [];
+
+      window.renderIndexTypeTable();
+      window.populateIndexTypeDropdowns();
+      window.filterIndexValues();
+    } catch (err) {
+      alert("❌ Load failed: " + err.message);
+    }
+  };
+
+  // ================= ส่วนจัดการ IndexType =================
+  window.renderIndexTypeTable = function() {
+    const tbody = document.getElementById('indexTypeTableBody');
+    tbody.innerHTML = '';
+    
+    if(!window.globalIndexTypes.length) {
+      tbody.innerHTML = '<tr><td class="text-muted py-4 text-center">No categories found.</td></tr>';
+      return;
+    }
+
+    window.globalIndexTypes.forEach(t => {
+      tbody.innerHTML += `
+        <tr>
+          <td class="text-dark fw-bold text-start ps-3 py-3">
+             <i class="fa-solid fa-folder-open text-primary opacity-50 me-2"></i>${t.Name}
+          </td>
+          <td class="text-end pe-3">
+            <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-secondary" onclick="window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')"><i class="fa-solid fa-pen"></i></button>
+          </td>
+        </tr>`;
+    });
+  };
+
+  window.openAddIndexTypeModal = function() {
+    document.getElementById('modalIndexTypeId').value = "";
+    document.getElementById('modalIndexTypeName').value = "";
+    document.getElementById('indexTypeModalTitle').innerText = "Add Category";
+    window.indexTypeModalInstance.show();
+  };
+
+  window.openEditIndexTypeModal = function(id, name) {
+    document.getElementById('modalIndexTypeId').value = id;
+    document.getElementById('modalIndexTypeName').value = name;
+    document.getElementById('indexTypeModalTitle').innerText = "Edit Category";
+    window.indexTypeModalInstance.show();
+  };
+
+  window.handleSaveIndexType = async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('modalIndexTypeId').value;
+    const name = document.getElementById('modalIndexTypeName').value.trim();
+
+    const isDuplicate = window.globalIndexTypes.some(t => t.Name.toLowerCase() === name.toLowerCase() && t.IndexType_ID !== id);
+    if (isDuplicate) return alert(`❌ Cannot save! The category "${name}" already exists.`);
+
+    const btn = document.getElementById('btnSaveIndexType');
+    btn.disabled = true; btn.innerHTML = "Saving...";
+
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const payload = { Name: name, Whoupdated: crmUser ? crmUser.Email : "Unknown" };
+
+    try {
+      if (id) {
+        const { error } = await supabaseClient.from('IndexType').update(payload).eq('IndexType_ID', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('IndexType').insert([payload]);
+        if (error) throw error;
+      }
+      window.indexTypeModalInstance.hide();
+      window.loadAllIndexData();
+    } catch (err) { alert("❌ Save failed: " + err.message); } 
+    finally { btn.disabled = false; btn.innerHTML = "Save"; }
+  };
+
+  // ================= 🎯 ส่วนจัดการ Index Value =================
+
+  window.populateIndexTypeDropdowns = function() {
+    let opts = '<option value="">- Select Category -</option>';
+    let filterOpts = '<option value="">- All Categories -</option>';
+    
+    window.globalIndexTypes.forEach(t => {
+      opts += `<option value="${t.IndexType_ID}">${t.Name}</option>`;
+      filterOpts += `<option value="${t.IndexType_ID}">${t.Name}</option>`;
+    });
+
+    document.getElementById('modalIndexSelectType').innerHTML = opts;
+    const filterEl = document.getElementById('filterIndexType');
+    const currentFilter = filterEl.value;
+    filterEl.innerHTML = filterOpts;
+    filterEl.value = currentFilter;
+  };
+
+  window.sortIndexes = function(col) {
+    if (window.indexSortCol === col) {
+      window.indexSortAsc = !window.indexSortAsc;
+    } else {
+      window.indexSortCol = col;
+      window.indexSortAsc = true;
+    }
+
+    const cols = ['category', 'value', 'value1', 'value2'];
+    cols.forEach(c => {
+      const icon = document.getElementById('icon-sort-' + c);
+      if (icon) {
+        if (c === window.indexSortCol) {
+          icon.className = window.indexSortAsc ? 'fa-solid fa-sort-up text-primary ms-1' : 'fa-solid fa-sort-down text-primary ms-1';
+        } else {
+          icon.className = 'fa-solid fa-sort text-muted ms-1';
+        }
+      }
+    });
+
+    window.indexCurrentPage = 1; 
+    window.renderIndexTable();
+  };
+
+  window.filterIndexValues = function() {
+    const typeTerm = document.getElementById('filterIndexType').value;
+    
+    window.globalFilteredIndexes = window.globalIndexes.filter(i => {
+      return (typeTerm === "") || (i.IndexType_ID === typeTerm);
+    });
+
+    window.indexCurrentPage = 1; 
+    window.renderIndexTable();
+  };
+
+  window.renderIndexTable = function() {
+    const typeTerm = document.getElementById('filterIndexType').value;
+    let selectedTypeName = "";
+    if (typeTerm) {
+       const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeTerm);
+       if (tObj) selectedTypeName = tObj.Name.toLowerCase();
+    }
+
+    const thValue1 = document.getElementById('thValue1');
+    const thValue2 = document.getElementById('thValue2');
+    
+    const lblThValue = document.getElementById('lblThValue');
+    const lblThValue1 = document.getElementById('lblThValue1');
+    const lblThValue2 = document.getElementById('lblThValue2');
+
+    if (selectedTypeName === 'province') {
+        lblThValue.innerText = "Province";
+        lblThValue1.innerText = "Zone";
+        thValue1.classList.remove('d-none');
+        thValue2.classList.add('d-none');
+    // 🎯 เพิ่มการดักจับ Company Event
+    } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday' || selectedTypeName === 'company event' || selectedTypeName === 'corporate holiday') {
+        lblThValue.innerText = "Date";        
+        lblThValue1.innerText = "Description (TH)"; 
+        lblThValue2.innerText = "Description (EN)"; 
+        thValue1.classList.remove('d-none');
+        thValue2.classList.remove('d-none');        
+    } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title' || selectedTypeName === 'tot type' || selectedTypeName === 'tottype') { 
+        lblThValue.innerText = "Value (TH)";    
+        lblThValue1.innerText = "Value (EN)";   
+        thValue1.classList.remove('d-none'); 
+        thValue2.classList.add('d-none');   
+    } else {
+        lblThValue.innerText = "Value";
+        thValue1.classList.add('d-none');
+        thValue2.classList.add('d-none');
+    }
+
+    const tbody = document.getElementById('indexTableBody');
+    tbody.innerHTML = '';
+    const paginationContainer = document.getElementById('indexPaginationContainer');
+    
+    if(!window.globalFilteredIndexes || window.globalFilteredIndexes.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block opacity-50"></i>No values found. Please add a new value.</td></tr>`;
+      if(paginationContainer) paginationContainer.classList.add('d-none');
+      return;
+    }
+
+    if(paginationContainer) paginationContainer.classList.remove('d-none');
+
+    window.globalFilteredIndexes.sort((a, b) => {
+        let valA = '', valB = '';
+        
+        if (window.indexSortCol === 'category') {
+            const tA = window.globalIndexTypes.find(t => t.IndexType_ID === a.IndexType_ID);
+            const tB = window.globalIndexTypes.find(t => t.IndexType_ID === b.IndexType_ID);
+            valA = (tA ? tA.Name : '').toLowerCase();
+            valB = (tB ? tB.Name : '').toLowerCase();
+        } else if (window.indexSortCol === 'value') {
+            valA = (a.Value || '').toLowerCase();
+            valB = (b.Value || '').toLowerCase();
+        } else if (window.indexSortCol === 'value1') {
+            valA = (a.Value1 || '').toLowerCase();
+            valB = (b.Value1 || '').toLowerCase();
+        } else if (window.indexSortCol === 'value2') {
+            valA = (a.Value2 || '').toLowerCase();
+            valB = (b.Value2 || '').toLowerCase();
+        }
+
+        if (valA < valB) return window.indexSortAsc ? -1 : 1;
+        if (valA > valB) return window.indexSortAsc ? 1 : -1;
+        return 0;
+    });
+
+    const totalItems = window.globalFilteredIndexes.length;
+    const totalPages = Math.ceil(totalItems / window.indexRowsPerPage);
+    if (window.indexCurrentPage > totalPages) window.indexCurrentPage = totalPages;
+    if (window.indexCurrentPage < 1) window.indexCurrentPage = 1;
+
+    const startIndex = (window.indexCurrentPage - 1) * window.indexRowsPerPage;
+    const endIndex = Math.min(startIndex + window.indexRowsPerPage, totalItems);
+    
+    document.getElementById('indexPageInfo').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
+
+    const paginatedData = window.globalFilteredIndexes.slice(startIndex, endIndex);
+
+    paginatedData.forEach(i => {
+      const typeObj = window.globalIndexTypes.find(t => t.IndexType_ID === i.IndexType_ID);
+      const typeName = typeObj ? typeObj.Name : i.IndexType_ID;
+
+      let rowHtml = `<tr><td class="text-start ps-4 text-secondary"><span class="badge badge-soft-secondary">${typeName}</span></td>`;
+      rowHtml += `<td class="fw-bold text-dark">${i.Value || '-'}</td>`;
+
+      if (!thValue1.classList.contains('d-none')) {
+          if (selectedTypeName === 'province') {
+              rowHtml += `<td><span class="badge badge-soft-primary">${i.Value1 || '-'}</span></td>`;
+          } else {
+              rowHtml += `<td><div class="text-muted small desc-wrap">${i.Value1 || '-'}</div></td>`;
+          }
+      }
+      
+      if (!thValue2.classList.contains('d-none')) {
+         rowHtml += `<td><div class="text-muted small desc-wrap">${i.Value2 || '-'}</div></td>`;
+      }
+
+      const safeVal = (i.Value || '').replace(/'/g, "\\'");
+      const safeVal1 = (i.Value1 || '').replace(/'/g, "\\'");
+      const safeVal2 = (i.Value2 || '').replace(/'/g, "\\'");
+
+      rowHtml += `
+          <td>
+            <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-primary" onclick="window.openEditIndexModal('${i.Index_ID}', '${i.IndexType_ID}', '${safeVal}', '${safeVal1}', '${safeVal2}')"><i class="fa-solid fa-pen"></i></button>
+          </td>
+        </tr>`;
+      
+      tbody.innerHTML += rowHtml;
+    });
+
+    window.renderIndexPaginationControls(totalPages);
+  };
+
+  window.changeIndexRowsPerPage = function() {
+    const selectEl = document.getElementById('indexRowsPerPage');
+    window.indexRowsPerPage = parseInt(selectEl.value);
+    window.indexCurrentPage = 1;
+    window.renderIndexTable();
+  };
+
+  window.goToIndexPage = function(page) {
+    const totalPages = Math.ceil(window.globalFilteredIndexes.length / window.indexRowsPerPage);
+    if (page < 1 || page > totalPages) return;
+    window.indexCurrentPage = page;
+    window.renderIndexTable();
+  };
+
+  window.renderIndexPaginationControls = function(totalPages) {
+    const ul = document.getElementById('indexPagination');
+    if (!ul) return;
+    let html = '';
+
+    html += '<li class="page-item ' + (window.indexCurrentPage === 1 ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="window.goToIndexPage(' + (window.indexCurrentPage - 1) + '); return false;">&laquo;</a>' +
+            '</li>';
+
+    let startPage = Math.max(1, window.indexCurrentPage - 2);
+    let endPage = Math.min(totalPages, window.indexCurrentPage + 2);
+
+    if (startPage > 1) {
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="window.goToIndexPage(1); return false;">1</a></li>';
+        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += '<li class="page-item ' + (window.indexCurrentPage === i ? 'active' : '') + '">' +
+                  '<a class="page-link shadow-sm" href="#" onclick="window.goToIndexPage(' + i + '); return false;">' + i + '</a>' +
+                '</li>';
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+        html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="window.goToIndexPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+    }
+
+    html += '<li class="page-item ' + (window.indexCurrentPage === totalPages ? 'disabled' : '') + '">' +
+              '<a class="page-link shadow-sm" href="#" onclick="window.goToIndexPage(' + (window.indexCurrentPage + 1) + '); return false;">&raquo;</a>' +
+            '</li>';
+
+    ul.innerHTML = html;
+  };
+
+  window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
+      const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
+      const typeName = tObj ? tObj.Name.toLowerCase() : "";
+
+      const inputValMain = document.getElementById('modalIndexValue');
+      const lblVal = document.getElementById('lblValue');
+      
+      const grpVal1 = document.getElementById('groupValue1');
+      const lblVal1 = document.getElementById('lblValue1');
+      const inputVal1 = document.getElementById('modalIndexValue1_input');
+      const selectVal1 = document.getElementById('modalIndexValue1_select');
+      
+      const grpVal2 = document.getElementById('groupValue2');
+      const lblVal2 = document.getElementById('lblValue2');
+      const inputVal2 = document.getElementById('modalIndexValue2');
+
+      inputValMain.type = 'text'; 
+      inputVal1.type = 'text';
+      inputVal1.value = prefillVal1 || '';
+      inputVal2.value = prefillVal2 || '';
+      selectVal1.innerHTML = '';
+      selectVal1.value = '';
+
+      if (typeName === 'province') {
+          lblVal.innerHTML = 'Province <span class="text-danger">*</span>';
+          lblVal1.innerHTML = 'Zone';
+          
+          inputVal1.classList.add('d-none');
+          selectVal1.classList.remove('d-none');
+          grpVal1.classList.remove('d-none');
+          grpVal2.classList.add('d-none');
+
+          const zoneType = window.globalIndexTypes.find(t => t.Name.toLowerCase() === 'zone');
+          if (zoneType) {
+              const zones = window.globalIndexes.filter(i => i.IndexType_ID === zoneType.IndexType_ID);
+              let opts = '<option value="">- Select Zone -</option>';
+              zones.forEach(z => { opts += `<option value="${z.Value}">${z.Value}</option>`; });
+              selectVal1.innerHTML = opts;
+              if (prefillVal1) selectVal1.value = prefillVal1;
+          }
+      } 
+      // 🎯 ดักจับ Company Event ใน Modal Form
+      else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
+          lblVal.innerHTML = 'Date <span class="text-danger">*</span>'; 
+          inputValMain.type = 'date'; 
+          
+          lblVal1.innerHTML = 'Description (TH)'; 
+          inputVal1.type = 'text';
+          inputVal1.classList.remove('d-none');
+          selectVal1.classList.add('d-none');
+          
+          lblVal2.innerHTML = 'Description (EN)'; 
+          inputVal2.type = 'text';
+          
+          grpVal1.classList.remove('d-none');
+          grpVal2.classList.remove('d-none');     
+      } 
+      else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') { 
+          lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
+          
+          lblVal1.innerHTML = 'Value (EN)'; 
+          inputVal1.type = 'text';
+          inputVal1.classList.remove('d-none');
+          selectVal1.classList.add('d-none');
+          
+          grpVal1.classList.remove('d-none');
+          grpVal2.classList.add('d-none'); 
+      }
+      else {
+          lblVal.innerHTML = 'Value <span class="text-danger">*</span>';
+          grpVal1.classList.add('d-none');
+          grpVal2.classList.add('d-none');
+      }
+  };
+
+  window.openAddIndexModal = function() {
+    const currentFilterType = document.getElementById('filterIndexType').value;
+    if(!currentFilterType) return alert("❌ Please select a Specific Category from the dropdown first.");
+    
+    document.getElementById('modalIndexId').value = "";
+    document.getElementById('modalIndexSelectType').value = currentFilterType; 
+    document.getElementById('modalIndexValue').value = "";
+    document.getElementById('indexModalTitle').innerHTML = '<i class="fa-solid fa-plus me-2"></i>Add Value';
+    
+    window.setupDynamicModalForm(currentFilterType, '', '');
+    window.indexModalInstance.show();
+  };
+
+  window.openEditIndexModal = function(id, typeId, val, val1, val2) {
+    document.getElementById('modalIndexId').value = id;
+    document.getElementById('modalIndexSelectType').value = typeId;
+    document.getElementById('modalIndexValue').value = val;
+    document.getElementById('indexModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit Value';
+    
+    window.setupDynamicModalForm(typeId, val1, val2);
+    window.indexModalInstance.show();
+  };
+
+  window.handleSaveIndex = async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('modalIndexId').value;
+    const typeId = document.getElementById('modalIndexSelectType').value;
+    const val = document.getElementById('modalIndexValue').value.trim();
+
+    let val1 = null;
+    let val2 = null;
+
+    const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
+    const typeName = tObj ? tObj.Name.toLowerCase() : "";
+
+    if (typeName === 'province') {
+        val1 = document.getElementById('modalIndexValue1_select').value;
+    // 🎯 ตอนกด Save บันทึก Company Event ลง Data
+    } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
+        val1 = document.getElementById('modalIndexValue1_input').value.trim();
+        val2 = document.getElementById('modalIndexValue2').value.trim(); 
+    } else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') {
+        val1 = document.getElementById('modalIndexValue1_input').value.trim();
+        val2 = null;
+    } else {
+        if (!document.getElementById('groupValue1').classList.contains('d-none')) {
+            val1 = document.getElementById('modalIndexValue1_input').value.trim();
+        }
+        if (!document.getElementById('groupValue2').classList.contains('d-none')) {
+            val2 = document.getElementById('modalIndexValue2').value.trim();
+        }
+    }
+
+    const isDuplicate = window.globalIndexes.some(i => i.IndexType_ID === typeId && i.Value.toLowerCase() === val.toLowerCase() && i.Index_ID !== id);
+    if (isDuplicate) {
+        if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
+            return alert(`❌ Cannot save! An event on the date "${val}" already exists.`);
+        }
+        return alert(`❌ Cannot save! The value "${val}" already exists.`);
+    }
+
+    const btn = document.getElementById('btnSaveIndex');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+    let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const payload = {
+      IndexType_ID: typeId,
+      Value: val,
+      Value1: val1,
+      Value2: val2,
+      Whoupdated: crmUser ? crmUser.Email : "Unknown",
+      Whenupdated: new Date().toISOString()
+    };
+
+    try {
+      if (id) {
+        const { error } = await supabaseClient.from('Index').update(payload).eq('Index_ID', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('Index').insert([payload]);
+        if (error) throw error;
+      }
+      window.indexModalInstance.hide();
+      window.loadAllIndexData();
+    } catch (err) { alert("❌ Save failed: " + err.message); } 
+    finally { btn.disabled = false; btn.innerHTML = "💾 Save"; }
+  };
+</script>
