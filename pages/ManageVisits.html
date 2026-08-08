@@ -16,6 +16,91 @@
   
   #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
   #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+  /* ==========================================
+   ✨ HIGH-END PREMIUM BUTTON STYLES
+   ========================================== */
+
+/* 1. ปุ่มหลัก (Primary CTA: Add New Visit) */
+.btn-premium-primary {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.88.5rem !important;
+  letter-spacing: 0.2px;
+  border-radius: 10px !important; /* เปลี่ยนจากมนกลมเป็น 10px */
+  padding: 8px 18px !important;
+  /* มิติเงา 3 ชั้น: เงาตกกระทบ + เงานุ่ม + แสงขอบบน */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
+              0 4px 12px rgba(37, 99, 235, 0.28),
+              inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-primary:hover {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
+              0 6px 16px rgba(37, 99, 235, 0.38),
+              inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+}
+
+.btn-premium-primary:active {
+  transform: translateY(0) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 2. ปุ่มรอง (Secondary CTA: Add TOT) */
+.btn-premium-secondary {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  font-size: 0.885rem !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+              inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-secondary i {
+  color: #0284c7 !important; /* ไอคอนสีฟ้าเข้มสุขุมขึ้น ไม่จี๊ดจ๊าด */
+}
+
+.btn-premium-secondary:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 3. ปุ่มไอคอนอย่างเดียว (Refresh) */
+.btn-premium-icon {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+  border-radius: 10px !important;
+  width: 38px;
+  height: 38px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-icon:hover {
+  background: #f8fafc !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px) !important;
+}
+  
 </style>
 
 <!-- 📚 โหลด PDF.js -->
@@ -49,17 +134,22 @@
           <button class="btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
         </div>
 
-        <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
-          <i class="fa-solid fa-arrows-rotate"></i>
-        </button>
+        <!-- ปุ่ม Refresh -->
+  <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
+    <i class="fa-solid fa-arrows-rotate"></i>
+  </button>
 
-        <button type="button" class="btn btn-outline-info fw-bold shadow-sm rounded-pill px-3 py-2" onclick="window.openAddTotModal()">
-          <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
-        </button>
+  <!-- ปุ่ม Add TOT -->
+  <button type="button" class="btn btn-premium-secondary" onclick="window.openAddTotModal()">
+    <i class="fa-solid fa-umbrella-beach me-1.5"></i>
+    <span data-i18n="btn_add_tot">Add TOT</span>
+  </button>
 
-        <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill px-4 py-2 ms-1" onclick="window.openAddVisitView()">
-          <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_visit">Add New Visit</span>
-        </button>
+  <!-- ปุ่ม Add New Visit -->
+  <button type="button" class="btn btn-premium-primary" onclick="window.openAddVisitView()">
+    <i class="fa-solid fa-plus me-1.5"></i>
+    <span data-i18n="btn_add_visit">Add New Visit</span>
+  </button>
       </div>
     </div>
 
