@@ -616,6 +616,30 @@
   };
 
   // ==========================================
+  // ⏱️ ฟังก์ชันตั้งเวลาด่วน (Quick Time) ที่ขาดหายไป
+  // ==========================================
+  window.setQuickTime = function(type, addMinutes) {
+    var now = new Date();
+    if (type === 'start') {
+      var hours = String(now.getHours()).padStart(2, '0');
+      var minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('visitStartTime').value = hours + ':' + minutes;
+    } else if (type === 'end') {
+      var startVal = document.getElementById('visitStartTime').value;
+      var baseDate = new Date();
+      if (startVal) {
+        var parts = startVal.split(':');
+        baseDate.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0);
+      }
+      baseDate.setMinutes(baseDate.getMinutes() + addMinutes);
+      var endHours = String(baseDate.getHours()).padStart(2, '0');
+      var endMinutes = String(baseDate.getMinutes()).padStart(2, '0');
+      document.getElementById('visitEndTime').value = endHours + ':' + endMinutes;
+    }
+    if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+  };
+
+  // ==========================================
   // 💾 4. DRAFT & NOTIFICATION FUNCTIONS
   // ==========================================
   window.saveFormDraft = function() {
