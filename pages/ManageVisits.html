@@ -445,7 +445,6 @@
     </div>
   </div>
 </div>
-
 <script>
   // ==========================================
   // 1. GLOBAL STATE VARIABLES
@@ -615,6 +614,66 @@
     return '-';
   };
 
+  // 🌟 ฟังก์ชันที่ขาดไปจนทำให้ Error ครับ
+  window.updateFormUserInfo = function(repObj, fallbackTerrId) {
+    var appLang = window.getCurrentAppLang();
+    var repNameShow = '-';
+    var locNameShow = '-';
+    var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory'; 
+
+    if (repObj) {
+        repNameShow = repObj.Rep_Name || repObj.Name || repObj.name || repObj.Email || '-';
+        var role = String(repObj.Role || repObj.role || '').toLowerCase();
+        
+        var userTerr = String(repObj.Territory_ID || repObj.territory_id || repObj.Territory || '').trim();
+        var userTeam = String(repObj.Team_ID || repObj.team_id || repObj.Team || '').trim();
+        var userBU = String(repObj.BU_ID || repObj.bu_id || repObj.BU || '').trim();
+        
+        var genericScope = userBU || userTeam || userTerr;
+        var scopeFromVisit = fallbackTerrId || genericScope;
+
+        if (role.indexOf('manager') !== -1) {
+            labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
+            var targetTeam = userTeam || scopeFromVisit;
+            var tObj = (window.globalTeamList || []).find(function(t) { return String(t.Team_ID) === targetTeam || String(t.Team) === targetTeam; });
+            locNameShow = tObj ? (tObj.Team || tObj.Team_Name || targetTeam) : (targetTeam || '-');
+        } else if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
+            labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
+            var bus = window.VisitManagerCache ? window.VisitManagerCache.bus : [];
+            var targetBu = userBU || scopeFromVisit; 
+            var bObj = (bus || []).find(function(b) { return String(b.BU_ID) === targetBu || String(b.BU) === targetBu || String(b.BU_Name) === targetBu; });
+            locNameShow = bObj ? (bObj.BU || bObj.BU_Name || targetBu) : (targetBu || '-');
+        } else {
+            labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
+            var targetTer = userTerr || scopeFromVisit;
+            var terObj = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === targetTer || String(t.Territory) === targetTer; });
+            locNameShow = terObj ? (terObj.Territory || targetTer) : (targetTer || '-');
+        }
+    } else if (fallbackTerrId) {
+         var terObj = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(fallbackTerrId); });
+         locNameShow = terObj ? terObj.Territory : fallbackTerrId;
+    }
+
+    var repNameEl = document.getElementById('dispSalesRepName');
+    var terNameEl = document.getElementById('dispTerritoryName');
+    var terLabelEl = document.getElementById('dynamicTerritoryLabel');
+
+    if (repNameEl) repNameEl.innerText = repNameShow;
+    if (terNameEl) terNameEl.innerText = locNameShow;
+    if (terLabelEl) {
+        terLabelEl.removeAttribute('data-i18n');
+        terLabelEl.innerText = labelText;
+    }
+  };
+
+  // 🌟 ฟังก์ชันที่ขาดไปจนทำให้ Error ครับ
+  window.initUserInfo = function() {
+    try {
+      var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
+      window.updateFormUserInfo(crmUser, null);
+    } catch(e) {}
+  };
+
   window.setQuickTime = function(type, addMinutes) {
     var now = new Date();
     if (type === 'start') {
@@ -771,7 +830,7 @@
       var docWithBadge = docNameShow + coachingBadge;
       var hospNameShow = docObj ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
       
-      var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose);
+      var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); // 🌟 ใช้ Purpose_ID
 
       var applyHighlight = window.applySearchHighlight || function(t) { return t; };
       var highlightedDoc = applyHighlight(docWithBadge, smartSearchVal); 
@@ -813,7 +872,7 @@
         var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
         var docName = window.getDoctorNameByLang(docObj, v.Doc_ID);
         var hospName = (docObj) ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
-        var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); 
+        var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); // 🌟 ใช้ Purpose_ID
 
         var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
         if (dateOnly.indexOf('/') !== -1) {
@@ -1107,9 +1166,9 @@
               var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
               if (v) {
                   var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                  window.updateFormUserInfo(targetRepObj, v.Territory_ID);
+                  if (window.updateFormUserInfo) window.updateFormUserInfo(targetRepObj, v.Territory_ID);
               }
-          } else window.initUserInfo();
+          } else if (window.initUserInfo) window.initUserInfo();
       }
 
       var filterGroup = document.getElementById('visitFilterZoneGroup');
@@ -1617,10 +1676,7 @@
 
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId) {
-      if (window.tomSelectDocInstance) {
-        window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId);
-        window.tomSelectDocInstance.disable(); 
-      }
+      if (window.tomSelectDocInstance) { window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId); window.tomSelectDocInstance.disable(); }
     }
 
     if (window.restoreFormDraft) window.restoreFormDraft('NEW');
@@ -1715,6 +1771,34 @@
       if (window.showToast) window.showToast("Failed to save data. Reason: " + err.message, "error");
     } finally {
       btn.disabled = false; btn.innerHTML = "💾 Save";
+    }
+  };
+
+  window.requestUnlockVisit = async function(visitId) {
+    var btn = document.getElementById('saveVisitBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Submitting request...';
+
+    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
+
+    var payload = { Action: 'Unlock Visit', Ref_ID: visitId, Requested_Data: JSON.stringify({ Status: 'Pending' }), Status: 'Pending', Whoupdated: whoUpdated };
+
+    try {
+      var res = await window.supabaseClient.from('DCR').insert([payload]);
+      if (res.error) throw res.error;
+      if (window.showToast) window.showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
+      
+      var returnDocId = sessionStorage.getItem('returnToDocId');
+      if (returnDocId) {
+        sessionStorage.removeItem('returnToDocId');
+        if (window.returnToDoctorProfile) window.returnToDoctorProfile(returnDocId); 
+      } else {
+        if (window.switchVisitView) window.switchVisitView('visitListView');
+        if (window.loadVisits) await window.loadVisits(true); 
+      }
+    } catch(err) {
+      if (window.showToast) window.showToast("❌ Error: " + err.message, "error");
+      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
     }
   };
 
