@@ -335,6 +335,33 @@
                     <input type="time" class="form-control bg-white shadow-sm premium-radius" id="visitEndTime">
                   </div>
                 </div>
+                <!-- 📍 ระบบ GPS Check-in -->
+                <div class="mb-3 p-3 bg-light border rounded-3 premium-radius">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i><span data-i18n="lbl_location">GPS Check-in</span></label>
+                    <button type="button" class="btn btn-sm btn-premium-secondary px-3" id="btnGpsCheckin" onclick="window.getLocationCheckin()">
+                      <i class="fa-solid fa-map-pin me-1"></i> Get Location
+                    </button>
+                  </div>
+                  
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <div class="input-group input-group-sm shadow-sm premium-radius">
+                        <span class="input-group-text bg-white text-muted border-end-0">Lat:</span>
+                        <input type="text" class="form-control bg-white border-start-0 text-primary fw-bold" id="visitLat" readonly placeholder="--">
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group input-group-sm shadow-sm premium-radius">
+                        <span class="input-group-text bg-white text-muted border-end-0">Lng:</span>
+                        <input type="text" class="form-control bg-white border-start-0 text-primary fw-bold" id="visitLng" readonly placeholder="--">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-end mt-1 d-none" id="locationTimeWrapper">
+                    <small class="text-success fw-bold"><i class="fa-solid fa-check-circle me-1"></i>Checked-in at: <span id="visitCheckinTimeText"></span></small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2600,4 +2627,54 @@
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
     }
   }, 100);
+
+  // ==========================================
+  // 📍 GPS LOCATION FUNCTIONS
+  // ==========================================
+  window.getLocationCheckin = function() {
+    var btn = document.getElementById('btnGpsCheckin');
+    var latInput = document.getElementById('visitLat');
+    var lngInput = document.getElementById('visitLng');
+    var timeWrapper = document.getElementById('locationTimeWrapper');
+    var timeText = document.getElementById('visitCheckinTimeText');
+
+    if (!navigator.geolocation) {
+      if(window.showToast) window.showToast("เบราว์เซอร์ของคุณไม่รองรับ GPS", "error");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Locating...';
+
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        // ดึงพิกัดสำเร็จ
+        var lat = position.coords.latitude.toFixed(6);
+        var lng = position.coords.longitude.toFixed(6);
+        var now = new Date();
+        var timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        if(latInput) latInput.value = lat;
+        if(lngInput) lngInput.value = lng;
+        if(timeWrapper) timeWrapper.classList.remove('d-none');
+        if(timeText) timeText.innerText = timeString;
+
+        btn.className = 'btn btn-sm btn-success px-3 premium-radius text-white fw-bold';
+        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Checked-in';
+
+        // บันทึกลง Draft อัตโนมัติ
+        if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+        if(window.showToast) window.showToast("ดึงพิกัดตำแหน่งสำเร็จ!", "success");
+      },
+      function(error) {
+        // กรณีเกิด Error (เช่น ผู้ใช้ไม่กดอนุญาต หรือ ปิด GPS ไว้)
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
+        var errorMsg = "ไม่สามารถดึงพิกัดได้";
+        if (error.code === 1) errorMsg = "กรุณากดอนุญาต (Allow) ให้เบราว์เซอร์เข้าถึงตำแหน่ง (Location) ของคุณ";
+        if(window.showToast) window.showToast("⚠️ " + errorMsg, "warning");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 </script>
