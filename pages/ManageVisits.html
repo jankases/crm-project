@@ -1700,8 +1700,10 @@
 
     if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
 
+    // 🌟 สั่ง Clear ค่าเก่าออกให้หมดทุกช่อง รวมถึง Products ด้วย
     if (window.tomSelectDocInstance) { window.tomSelectDocInstance.clear(); window.tomSelectDocInstance.enable(); }
     if (window.tomSelectPurposeInstance) { window.tomSelectPurposeInstance.clear(); window.tomSelectPurposeInstance.enable(); }
+    if (window.tomSelectProdInstance) { window.tomSelectProdInstance.clear(); window.tomSelectProdInstance.enable(); }
 
     if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown();
     if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
@@ -1717,8 +1719,10 @@
     if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
 
     var btn = document.getElementById('saveVisitBtn');
-    btn.dataset.mode = 'save'; btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
-    btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.disabled = false;
+    if (btn) {
+        btn.dataset.mode = 'save'; btn.className = 'btn btn-primary fw-bold px-5 rounded-pill py-2 shadow-sm';
+        btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.disabled = false;
+    }
 
     if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   };
