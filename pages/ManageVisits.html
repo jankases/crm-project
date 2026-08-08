@@ -1233,11 +1233,10 @@
       var docWithBadge = docNameShow + coachingBadge;
       var hospNameShow = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
 
-      // 📍 ดึงพิกัดของโรงพยาบาลจาก docObj (พิกัดหลักของแพทย์/โรงพยาบาล)
+     // 📍 ดึงพิกัดโรงพยาบาลและสร้างป้ายหมุดแบบ Minimal (สลับ 2 ภาษาอัตโนมัติ)
       var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
       var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
 
-      // 📏 คำนวณระยะห่างระหว่าง พิกัดโรงพยาบาล กับ พิกัด Check-in ของเซลส์
       var distanceBadge = '';
       if (v.CheckIn_Lat && v.CheckIn_Long) {
         var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
@@ -1247,22 +1246,25 @@
           
           if (distKm !== null) {
             if (distKm <= 0.5) {
-              // 🟢 In Range (ระยะห่างไม่เกิน 500 เมตร)
-              distanceBadge = '<br><a href="' + googleMapUrl + '" target="_blank" class="badge badge-soft-success text-decoration-none mt-1" style="font-size:0.68rem;" title="เปิดดูบน Google Maps">' +
-                                '<i class="fa-solid fa-circle-check me-1"></i>เช็กอินตรงสถานที่ (< 500m)' +
+              // 🟢 In Range
+              var txtValid = appLang === 'en' ? 'Verified (<500m)' : 'ตรงสถานที่ (<500m)';
+              distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="badge badge-soft-success text-decoration-none ms-1 px-1.5 py-0.5" style="font-size:0.65rem;" title="' + txtValid + '">' +
+                                '<i class="fa-solid fa-circle-check"></i> ' + txtValid +
                               '</a>';
             } else {
-              // 🔴 Out of Range (เกิน 500 เมตร)
-              var distShow = distKm < 1 ? Math.round(distKm * 1000) + ' ม.' : distKm.toFixed(1) + ' กม.';
-              distanceBadge = '<br><a href="' + googleMapUrl + '" target="_blank" class="badge badge-soft-danger text-decoration-none mt-1" style="font-size:0.68rem;" title="เปิดดูบน Google Maps">' +
-                                '<i class="fa-solid fa-triangle-exclamation me-1"></i>ห่างสถานที่ ' + distShow +
+              // 🔴 Out of Range
+              var distShow = distKm < 1 ? Math.round(distKm * 1000) + (appLang === 'en' ? 'm' : ' ม.') : distKm.toFixed(1) + (appLang === 'en' ? 'km' : ' กม.');
+              var txtFar = (appLang === 'en' ? 'Off-site ' : 'ห่าง ') + distShow;
+              distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="badge badge-soft-danger text-decoration-none ms-1 px-1.5 py-0.5" style="font-size:0.65rem;" title="' + txtFar + '">' +
+                                '<i class="fa-solid fa-triangle-exclamation"></i> ' + txtFar +
                               '</a>';
             }
           }
         } else {
-          // กรณีมีพิกัด Check-in แต่โรงพยาบาลยังไม่ได้ปักหมุดพิกัดตั้งต้นไว้
-          distanceBadge = '<br><a href="' + googleMapUrl + '" target="_blank" class="badge badge-soft-secondary text-decoration-none mt-1" style="font-size:0.68rem;">' +
-                            '<i class="fa-solid fa-location-dot me-1"></i>ดูตำแหน่งบนแผนที่' +
+          // ⚪ มี Check-in แต่โรงพยาบาลยังไม่มีพิกัดตั้งต้น (ป้ายจิ๋วแนวนอน)
+          var txtMap = appLang === 'en' ? 'Map' : 'แผนที่';
+          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="badge badge-soft-secondary text-decoration-none ms-1 px-1.5 py-0.5" style="font-size:0.65rem;" title="Google Maps">' +
+                            '<i class="fa-solid fa-location-dot"></i> ' + txtMap +
                           '</a>';
         }
       }
