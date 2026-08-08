@@ -445,7 +445,6 @@
     </div>
   </div>
 </div>
-
 <script>
   // ==========================================
   // 1. GLOBAL STATE VARIABLES
@@ -456,6 +455,8 @@
   window.globalTerritoryList = []; window.globalUsersList = []; window.globalTeamList = [];
   window.globalPendingUnlockVisits = []; window.globalCurrentUserRole = '';
   
+  window.myIsGlobalViewer = false; window.myIsBuHead = false; window.myIsManager = false; window.myIsSalesRole = true;
+
   window.tomSelectDocInstance = null; window.tomSelectProdInstance = null; window.tomSelectPurposeInstance = null; 
   window.tomSelectRepInstance = null; window.tomSelectTerInstance = null; window.tomSelectStatusInstance = null;
   window.globalCalendarInstance = null; window.totModalInstance = null;
@@ -615,7 +616,6 @@
     return '-';
   };
 
-  // 🌟 นำกลับมาแล้วครับ! ฟังก์ชันอัปเดตข้อมูลพนักงานในฟอร์ม
   window.updateFormUserInfo = function(repObj, fallbackTerrId) {
     var appLang = window.getCurrentAppLang();
     var repNameShow = '-';
@@ -661,23 +661,16 @@
 
     if (repNameEl) repNameEl.innerText = repNameShow;
     if (terNameEl) terNameEl.innerText = locNameShow;
-    if (terLabelEl) {
-        terLabelEl.removeAttribute('data-i18n');
-        terLabelEl.innerText = labelText;
-    }
+    if (terLabelEl) { terLabelEl.removeAttribute('data-i18n'); terLabelEl.innerText = labelText; }
   };
 
-  // 🌟 นำกลับมาแล้วครับ! ฟังก์ชันเริ่มต้นข้อมูลพนักงาน
   window.initUserInfo = function() {
     try {
       var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      if (typeof window.updateFormUserInfo === 'function') {
-          window.updateFormUserInfo(crmUser, null);
-      }
+      if (typeof window.updateFormUserInfo === 'function') window.updateFormUserInfo(crmUser, null);
     } catch(e) {}
   };
 
-  // 🌟 นำกลับมาแล้วครับ! ฟังก์ชันตั้งเวลาด่วน [Now] [+30m] [+1h]
   window.setQuickTime = function(type, addMinutes) {
     var now = new Date();
     if (type === 'start') {
@@ -1024,11 +1017,21 @@
       }
 
       var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+      
+      // 🌟 แก้ปัญหาสิทธิ์การมองเห็นข้อมูล (Case Insensitive Checking)
       window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
+      var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
       var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-      window.myIsGlobalViewer = false;
-      if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0 || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(window.globalCurrentUserRole.toUpperCase()) !== -1) window.myIsGlobalViewer = true;
+      window.myIsGlobalViewer = false; window.myIsBuHead = false; window.myIsManager = false; window.myIsSalesRole = true;
+
+      if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0 || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRoleUpper) !== -1) {
+          window.myIsGlobalViewer = true; window.myIsSalesRole = false;
+      } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
+          window.myIsBuHead = true; window.myIsSalesRole = false;
+      } else if (uRoleUpper.indexOf('MANAGER') !== -1) {
+          window.myIsManager = true; window.myIsSalesRole = false;
+      }
       
       window.VisitManagerCache = window.VisitManagerCache || {};
 
@@ -1061,19 +1064,21 @@
           if (window.myIsGlobalViewer) {
               window.VisitManagerCache.assignedDoctors = allDoctors; window.VisitManagerCache.assignedHospitals = allHospitals;
           } else {
-              if (window.globalCurrentUserRole === 'BU Head' || window.globalCurrentUserRole === 'BU') {
+              if (window.myIsBuHead) {
                   var matchedBu = globalBuListLocal.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
                   var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
                   var matchedTeams = globalTeamListLocal.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope); });
                   var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
                   var terrs = globalTerritoryListLocal.filter(function(ter) { return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId; });
                   terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
-              } else if (window.globalCurrentUserRole === 'Manager' || window.globalCurrentUserRole === 'Sales Manager') {
+              } else if (window.myIsManager) {
                   var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                   if (matchedTeam) {
                       window.myAllowedTeamIds = window.myAllowedTeamIds || []; window.myAllowedTeamIds.push(String(matchedTeam.Team_ID));
                       var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
                       terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
+                  } else if (rawScope) {
+                      window.myAllowedTeamIds = window.myAllowedTeamIds || []; window.myAllowedTeamIds.push(rawScope);
                   }
               } else {
                   var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
@@ -1086,7 +1091,7 @@
 
               var allowedDocIdsMap = {}; allowedDocIds.forEach(id => allowedDocIdsMap[id] = true);
 
-              if (['BU Head', 'BU', 'Manager', 'Sales Manager'].indexOf(window.globalCurrentUserRole) !== -1) {
+              if (window.myIsBuHead || window.myIsManager) {
                   window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; });
                   if (window.VisitManagerCache.assignedDoctors.length === 0) window.VisitManagerCache.assignedDoctors = allDoctors;
               } else {
@@ -1200,15 +1205,14 @@
     var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
     var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
-    var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
 
-    var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1 || (!rawScope);
-    var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
-    var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
-    var isSales = !isGlobalViewer && !isBuHead && !isManager;
+    var isGlobalViewer = window.myIsGlobalViewer;
+    var isBuHead = window.myIsBuHead;
+    var isManager = window.myIsManager;
+    var isSales = window.myIsSalesRole;
 
     var myAllowedTeamIds = []; var myAllowedTerIds = []; var myAllowedRepIds = []; var myAllowedEmails = [];
 
@@ -1242,23 +1246,19 @@
             var uter = String(u.Territory_ID || u.Territory || '').trim(); var uem = String(u.Email || u.email || '').toLowerCase().trim();
             if (!isSales) {
                 if (myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTerIds.indexOf(uter) !== -1 || myAllowedTeamIds.indexOf(uter) !== -1) {
-                    if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                    if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+                    // 🌟 ป้องกันไม่ให้ Admin หลุดเข้ามาอยู่ในรายชื่อลูกทีมของ Manager
+                    var targetRole = String(u.Role || u.role || '').toUpperCase();
+                    var targetIsAdmin = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(targetRole) !== -1;
+                    if (!targetIsAdmin) {
+                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+                    }
                 }
             }
         });
-        
-        if (!isSales) {
-            window.globalVisits.forEach(function(v) {
-                var vTer = String(v.Territory_ID || '').trim(); var vRep = String(v.Rep_ID || '').trim();
-                if (vTer && (myAllowedTerIds.indexOf(vTer) !== -1 || myAllowedTeamIds.indexOf(vTer) !== -1)) {
-                    if (vRep && myAllowedRepIds.indexOf(vRep) === -1) myAllowedRepIds.push(vRep);
-                }
-            });
-        }
     }
 
-    window.myIsSalesRole = isSales; window.myAllowedTeamIds = myAllowedTeamIds; window.myAllowedTerIds = myAllowedTerIds;
+    window.myAllowedTeamIds = myAllowedTeamIds; window.myAllowedTerIds = myAllowedTerIds;
     window.myAllowedRepIds = myAllowedRepIds; window.myAllowedEmails = myAllowedEmails;
 
     var uniqueUsersMap = new Map();
@@ -1462,21 +1462,21 @@
     window.VisitManagerCache.filters = { smartSearch: smartSearchKey, startDate: startDateTerm, endDate: endDateTerm, status: statusTerm, rep: selectedReps, territory: selectedTers, page: window.currentPage, rows: window.rowsPerPage, sortCol: window.currentSortCol, sortAsc: window.currentSortAsc };
 
     var searchKeywords = smartSearchKey ? smartSearchKey.split(' ').filter(function(k) { return k !== ''; }) : [];
-    var allowedReps = window.myAllowedRepIds || []; var allowedTers = window.myAllowedTerIds || [];
-    var allowedTeams = window.myAllowedTeamIds || []; var allowedEmails = window.myAllowedEmails || [];
 
     var filtered = window.globalVisits.filter(function(v) {
       var hasSecurityAccess = false;
 
-      if (window.myIsGlobalViewer) { hasSecurityAccess = true; } else {
-          var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim(); var rawRepId = String(v.Rep_ID || v.rep_id || '').trim(); var vTerrId = String(v.Territory_ID || v.territory_id || '').trim();
-          var cu = null; try { cu = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-          var rawScope = cu ? String(cu.BU_ID || cu.Team_ID || '').trim() : ''; var uRepId = cu ? String(cu.Rep_ID || cu.id || cu.User_ID || '').trim() : ''; var uEmail = cu ? String(cu.Email || cu.email || '').toLowerCase().trim() : '';
+      if (window.myIsGlobalViewer) { 
+          hasSecurityAccess = true; 
+      } else {
+          var rawWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim(); 
+          var rawRepId = String(v.Rep_ID || v.rep_id || '').trim();
 
-          if (window.myIsSalesRole) {
-              if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasSecurityAccess = true;
-          } else {
-              if (allowedReps.indexOf(rawRepId) !== -1 || allowedTers.indexOf(vTerrId) !== -1 || allowedTeams.indexOf(vTerrId) !== -1 || vTerrId === rawScope || allowedEmails.indexOf(rawWho) !== -1) hasSecurityAccess = true;
+          // 🌟 เช็กสิทธิ์การมองเห็น (Manager จะเห็นเฉพาะของตัวเองและลูกทีม ห้ามเห็นของ Admin)
+          if (window.myAllowedRepIds.indexOf(rawRepId) !== -1) {
+              hasSecurityAccess = true;
+          } else if (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1) {
+              hasSecurityAccess = true;
           }
       }
 
@@ -1532,8 +1532,8 @@
         if (window.myIsGlobalViewer) hasAccess = true;
         else {
              var rawRepId = String(tot.Rep_ID || '').trim(); var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-             if (window.myIsSalesRole) { if (rawRepId === uRepId || (uEmail && rawWho === uEmail)) hasAccess = true; } 
-             else { if (allowedReps.indexOf(rawRepId) !== -1 || allowedEmails.indexOf(rawWho) !== -1) hasAccess = true; }
+             // 🌟 เช็กสิทธิ์เหมือนฝั่ง Visit
+             if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1)) hasAccess = true;
         }
         if(!hasAccess) return false;
 
@@ -1587,6 +1587,22 @@
   // ==========================================
   // 📝 8. FORM FUNCTIONS (แก้ไข, เพิ่ม, บันทึก)
   // ==========================================
+  window.toggleVisitFormEditable = function(isEditable) {
+    var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
+    var formView = document.getElementById('visitFormView');
+
+    if (window.tomSelectDocInstance) { if (isEditable) window.tomSelectDocInstance.enable(); else window.tomSelectDocInstance.disable(); }
+    if (window.tomSelectProdInstance) { if (isEditable) window.tomSelectProdInstance.enable(); else window.tomSelectProdInstance.disable(); }
+    if (window.tomSelectPurposeInstance) { if (isEditable) window.tomSelectPurposeInstance.enable(); else window.tomSelectPurposeInstance.disable(); }
+
+    if (formView) { if(isEditable) formView.classList.remove('disabled-ts'); else formView.classList.add('disabled-ts'); }
+    fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.disabled = !isEditable; });
+    
+    // 🌟 ปิดปุ่มตั้งเวลาด่วน [Now], [+30m], [+1h] ด้วย เพื่อไม่ให้แก้ไขเวลาได้ตอน Read-Only
+    var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction', 'btnQuickNow', 'btnQuick30', 'btnQuick60'];
+    btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
+  };
+
   window.openEditVisitView = async function(visitId) {
     var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
     fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -1613,8 +1629,7 @@
     
     var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
     if (typeof window.updateFormUserInfo === 'function') window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-    if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true); 
-
+    
     if (v.Doc_ID && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
 
     if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
@@ -1819,23 +1834,6 @@
     } catch(err) {
       if (window.showToast) window.showToast("❌ Error: " + err.message, "error");
       btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
-    }
-  };
-
-  window.cancelVisitForm = function() {
-    if (typeof window.clearFormDraft === 'function') {
-        window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
-    }
-    var returnDocId = sessionStorage.getItem('returnToDocId');
-    if (returnDocId) {
-      sessionStorage.removeItem('returnToDocId');
-      if (typeof window.returnToDoctorProfile === 'function') {
-          window.returnToDoctorProfile(returnDocId); 
-      }
-    } else {
-      if (typeof window.switchVisitView === 'function') {
-          window.switchVisitView('visitListView');
-      }
     }
   };
 
