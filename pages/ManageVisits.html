@@ -2988,37 +2988,41 @@
     container.innerHTML = html;
   };
  
- // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบทั้งหน้า UI และลบไฟล์จริงใน Supabase Storage)
+ // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบหน้า UI + สั่งลบไฟล์จริงใน Supabase Storage)
   window.removeAttachment = async function(index) {
     var targetItem = window.currentAttachments[index];
     if (!targetItem) return;
 
     try {
-      // 1. แกะ Extract ชือนามสกุลไฟล์จริงจาก URL ชัวร์ 100%
-      var rawUrl = targetItem.url;
-      var cleanUrl = rawUrl.split('?')[0]; // ตัด Query string ออก
-      var fileName = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+      // 1. ดึงชื่อไฟล์จาก URL โดยตัด Query String และ Path ออกให้เหลือแค่ชื่อไฟล์
+      var fileUrl = targetItem.url || '';
+      var cleanUrl = fileUrl.split('?')[0];
+      var fileName = cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1);
 
-      // 2. ดึง Supabase Client
+      console.log("Attempting to delete file:", fileName);
+
+      // 2. ดึง Supabase Client ที่ใช้งานในระบบ
       var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
-      
+
       if (sbClient && sbClient.storage && fileName) {
-        // 3. สั่งลบไฟล์ออกจาก Bucket 'visit-attachments'
+        // 3. สั่งลบไฟล์จาก Bucket 'visit-attachments'
         var { data, error } = await sbClient.storage
           .from('visit-attachments')
           .remove([fileName]);
 
         if (error) {
-          console.error("Supabase Storage Delete Error:", error.message);
+          console.error("Supabase Storage Delete Error:", error);
         } else {
-          console.log("Deleted successfully from storage:", fileName);
+          console.log("Successfully deleted from Supabase Storage:", data);
         }
+      } else {
+        console.warn("Supabase Storage Client not found or invalid fileName");
       }
     } catch (err) {
-      console.error("Error during file deletion:", err);
+      console.error("Error inside removeAttachment:", err);
     }
 
-    // 4. ลบออกจาก Array หน้า UI และอัปเดตการแสดงผล
+    // 4. ลบออกจาก UI และอัปเดตการแสดงผล
     window.currentAttachments.splice(index, 1);
     if (typeof window.renderAttachmentPreviews === 'function') {
       window.renderAttachmentPreviews();
