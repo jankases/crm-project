@@ -255,7 +255,7 @@
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-premium-secondary me-3" onclick="window.()">
+      <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
@@ -473,7 +473,7 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-premium-secondary" onclick="window.()" data-i18n="btn_cancel">Cancel</button>
+          <button type="button" class="btn btn-premium-secondary" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-premium-primary" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
         </div>
       </form>
@@ -2469,6 +2469,7 @@
     }
   };
 
+  // 3. ปุ่ม Cancel Visit (ยกเลิกการแก้ไข / เคลียร์ State และ Cleanup รูปขยะ)
   window.cancelVisitForm = async function() {
     if (typeof window.clearFormDraft === 'function') {
       var vInput = document.getElementById('visitId');
