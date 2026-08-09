@@ -381,7 +381,7 @@
                   </div>
                 </div>
 
-                <!-- ✍️ ลายเซ็นแพทย์ ( Doctor Signature ) -->
+                <!-- ✍️ ลายเซ็นแพทย์ (Doctor Signature) -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
@@ -393,9 +393,9 @@
                     </button>
                   </div>
                 
-                  <!-- กล่องแสดงตัวอย่างลายเซ็นที่เซ็นแล้ว / หรือปุ่มกดเพื่อเปิด Popup -->
-                  <div id="sigPreviewBox" class="bg-white border rounded-3 p-2 text-center cursor-pointer shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 100px;" onclick="window.openSignatureModal()">
-                    <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 80px;" alt="Signature Preview" />
+                  <!-- กล่องโชว์พรีวิวรูปภาพลายเซ็น / คลิกเพื่อเปิด Popup เซ็นชื่อ -->
+                  <div id="sigPreviewBox" class="bg-white border rounded-3 p-2 text-center cursor-pointer shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 110px;" onclick="window.openSignatureModal()">
+                    <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 90px;" alt="Signature Preview" />
                     <div id="sigPlaceholder" class="text-muted small">
                       <i class="fa-solid fa-pen-nib me-1 text-primary fs-5 d-block mb-1"></i>
                       <span>คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ (Sign Here)</span>
@@ -3157,6 +3157,26 @@
     if (canvas) {
       canvas.style.pointerEvents = isReadOnly ? 'none' : 'auto';
       canvas.style.backgroundColor = isReadOnly ? '#f8fafc' : '#ffffff';
+    }
+  };
+
+  // ✍️ อัปเดต UI แสดงภาพลายเซ็นบนฟอร์ม
+  window.updateSignaturePreviewUI = function() {
+    var img = document.getElementById('sigPreviewImg');
+    var placeholder = document.getElementById('sigPlaceholder');
+
+    if (window.savedSignatureData && window.savedSignatureData !== 'null') {
+      if (img) { 
+        img.src = window.savedSignatureData; 
+        img.classList.remove('d-none'); 
+      }
+      if (placeholder) placeholder.classList.add('d-none');
+    } else {
+      if (img) { 
+        img.src = ''; 
+        img.classList.add('d-none'); 
+      }
+      if (placeholder) placeholder.classList.remove('d-none');
     }
   };
 </script>
