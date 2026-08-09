@@ -2880,21 +2880,21 @@
     var files = event.target.files;
     if (!files || files.length === 0) return;
 
-    // 🔒 1. ดึง Supabase Client จากระบบ หรือสร้างใหม่ชั่วคราว
-    var sbClient = window.supabase || window.supabaseClient;
-    
-    // ถ้ายังไม่มี Client ให้ดึง URL & Key จาก window.SUPABASE_CONFIG หรือระบบหลักเพื่อสร้างใหม่
-    if ((!sbClient || !sbClient.storage) && typeof supabase !== 'undefined' && supabase.createClient) {
-      var sbUrl = window.SUPABASE_URL || (window.SUPABASE_CONFIG ? window.SUPABASE_CONFIG.url : '');
-      var sbKey = window.SUPABASE_ANON_KEY || (window.SUPABASE_CONFIG ? window.SUPABASE_CONFIG.anonKey : '');
-      if (sbUrl && sbKey) {
-        sbClient = supabase.createClient(sbUrl, sbKey);
-      }
+    // 🔒 ดึง Supabase Client จากทุกช่องทางที่เป็นไปได้ในโปรเจกต์
+    var sbClient = null;
+    if (typeof supabase !== 'undefined' && supabase && supabase.storage) {
+      sbClient = supabase;
+    } else if (window.supabase && window.supabase.storage) {
+      sbClient = window.supabase;
+    } else if (window.supabaseClient && window.supabaseClient.storage) {
+      sbClient = window.supabaseClient;
+    } else if (window.dbClient && window.dbClient.storage) {
+      sbClient = window.dbClient;
     }
 
-    if (!sbClient || !sbClient.storage) {
+    if (!sbClient) {
       if (window.showToast) window.showToast("ไม่พบการเชื่อมต่อ Supabase Storage", "error");
-      console.error("Supabase client or storage is undefined");
+      console.error("Supabase client is not available in scope");
       return;
     }
 
