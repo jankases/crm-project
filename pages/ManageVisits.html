@@ -362,6 +362,47 @@
                     <small class="text-success fw-bold"><i class="fa-solid fa-check-circle me-1"></i>Checked-in at: <span id="visitCheckinTimeText"></span></small>
                   </div>
                 </div>
+                <!-- 📸 1. แนบรูปถ่าย/หลักฐาน (Photo Attachments) -->
+                <div class="mb-3 p-3 bg-light border rounded-3 premium-radius">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold text-dark mb-0">
+                      <i class="fa-solid fa-camera text-primary me-2"></i>
+                      <span data-i18n="lbl_attachments">รูปถ่าย/ไฟล์แนบ (Attachments)</span>
+                    </label>
+                    <label class="btn btn-sm btn-outline-primary px-3 mb-0 border-dashed cursor-pointer">
+                      <i class="fa-solid fa-paperclip me-1"></i> เพิ่มไฟล์/ถ่ายรูป
+                      <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
+                    </label>
+                  </div>
+                  
+                  <!-- รายการรูปภาพ/ไฟล์ที่แนบ -->
+                  <div id="attachmentPreviewContainer" class="d-flex flex-wrap gap-2 mt-2">
+                    <small class="text-muted italic" id="noAttachmentText">ยังไม่มีไฟล์แนบ</small>
+                  </div>
+                </div>
+
+                <!-- ✍️ 2. ลายเซ็นดิจิทัลแพทย์ (E-Signature) -->
+                <div class="mb-3 p-3 bg-light border rounded-3 premium-radius">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold text-dark mb-0">
+                      <i class="fa-solid fa-signature text-success me-2"></i>
+                      <span data-i18n="lbl_signature">ลายเซ็นแพทย์ (Doctor Signature)</span>
+                    </label>
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="window.clearSignature()">
+                      <i class="fa-solid fa-rotate-left me-1"></i> ล้างลายเซ็น
+                    </button>
+                  </div>
+
+                  <div class="position-relative bg-white border rounded-3 shadow-sm overflow-hidden" style="height: 150px;">
+                    <canvas id="signatureCanvas" class="w-100 h-100 cursor-crosshair"></canvas>
+                    <div id="signaturePlaceholder" class="position-absolute top-50 start-50 translate-middle text-muted pointer-events-none style-italic small">
+                      <i class="fa-solid fa-pen-nib me-1"></i> เซ็นชื่อตรงนี้ (ใช้นิ้วหรือปากกา)
+                    </div>
+                  </div>
+                </div>
+
+
+                
               </div>
             </div>
           </div>
@@ -1288,9 +1329,18 @@
         });
       } else prodBadges = '<span class="text-muted small">-</span>';
 
+      // 📸 ไอคอนบอกว่ามีรูปแนบ/ลายเซ็น
+      var evidenceBadges = '';
+      if (v.Attachments) {
+        evidenceBadges += ' <i class="fa-solid fa-paperclip text-muted ms-1" title="Has Attachments"></i>';
+      }
+      if (v.Doctor_Signature) {
+        evidenceBadges += ' <i class="fa-solid fa-signature text-success ms-1" title="Doctor Signed"></i>';
+      }
+
       htmlBuffer += '<tr>' +
         '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="if(typeof window.openEditVisitView === \'function\') window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + '</td>' +  
+        '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + evidenceBadges + '</td>' +
         '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + distanceBadge + '</small></td>' +
         '<td>' + prodBadges + '</td>' +
         '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
@@ -2258,6 +2308,7 @@
     // ดึงค่าพิกัดจากหน้าฟอร์ม
     var latVal = document.getElementById('visitLat') ? document.getElementById('visitLat').value : null;
     var lngVal = document.getElementById('visitLng') ? document.getElementById('visitLng').value : null;
+    var sigData = window.getSignatureDataUrl();
 
     var payload = {
       Visit_ID: targetVisitId, Rep_ID: repId, Territory_ID: territoryId, Doc_ID: docVal,
@@ -2269,7 +2320,9 @@
       // 📍 บันทึกพิกัด GPS ลง Supabase
       CheckIn_Lat: latVal ? parseFloat(latVal) : null,
       CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
-      CheckIn_Time: latVal ? new Date().toISOString() : null
+      CheckIn_Time: latVal ? new Date().toISOString() : null,
+      Attachments: window.currentAttachments.length > 0 ? JSON.stringify(window.currentAttachments) : null,
+      Doctor_Signature: sigData
     };
 
     try {
@@ -2777,5 +2830,157 @@
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // คืนค่าเป็น กิโลเมตร
+  };
+
+  // ==========================================
+  // 📸 1. PHOTO ATTACHMENT HANDLING
+  // ==========================================
+  window.currentAttachments = [];
+
+  window.handleFileUpload = async function(event) {
+    var files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    var container = document.getElementById('attachmentPreviewContainer');
+    var noText = document.getElementById('noAttachmentText');
+    if (noText) noText.classList.add('d-none');
+
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      var fileExt = file.name.split('.').pop();
+      var fileName = 'visit_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.' + fileExt;
+
+      try {
+        // อัปโหลดไปยัง Supabase Storage Bucket 'visit-attachments'
+        var { data, error } = await supabase.storage
+          .from('visit-attachments')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        // ดึง Public URL ของไฟล์
+        var { data: publicUrlData } = supabase.storage
+          .from('visit-attachments')
+          .getPublicUrl(fileName);
+
+        var fileUrl = publicUrlData.publicUrl;
+        window.currentAttachments.push({ name: file.name, url: fileUrl });
+
+        // แสดงพรีวิว
+        window.renderAttachmentPreviews();
+        if (window.showToast) window.showToast("อัปโหลดไฟล์สำเร็จ", "success");
+      } catch (err) {
+        console.error("Upload error:", err);
+        if (window.showToast) window.showToast("อัปโหลดไฟล์ไม่สำเร็จ: " + err.message, "error");
+      }
+    }
+  };
+
+  window.renderAttachmentPreviews = function() {
+    var container = document.getElementById('attachmentPreviewContainer');
+    if (!container) return;
+    
+    if (window.currentAttachments.length === 0) {
+      container.innerHTML = '<small class="text-muted italic" id="noAttachmentText">ยังไม่มีไฟล์แนบ</small>';
+      return;
+    }
+
+    var html = '';
+    window.currentAttachments.forEach(function(item, idx) {
+      var isImg = item.url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+      html += '<div class="position-relative d-inline-block border rounded-3 p-1 bg-white shadow-xs me-1 mb-1" style="width:70px; height:70px;">';
+      if (isImg) {
+        html += '<img src="' + item.url + '" class="w-100 h-100 object-fit-cover rounded-2" onclick="window.open(\'' + item.url + '\', \'_blank\')">';
+      } else {
+        html += '<div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light rounded-2" onclick="window.open(\'' + item.url + '\', \'_blank\')"><i class="fa-solid fa-file-pdf fs-3 text-danger"></i></div>';
+      }
+      html += '<button type="button" class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle p-0 rounded-circle d-flex align-items-center justify-content-center" style="width:18px; height:18px;" onclick="window.removeAttachment(' + idx + ')">&times;</button>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  };
+
+  window.removeAttachment = function(index) {
+    window.currentAttachments.splice(index, 1);
+    window.renderAttachmentPreviews();
+  };
+
+  // ==========================================
+  // ✍️ 2. E-SIGNATURE CANVAS HANDLING
+  // ==========================================
+  var sigCanvas, sigCtx, isDrawing = false;
+
+  window.initSignatureCanvas = function() {
+    sigCanvas = document.getElementById('signatureCanvas');
+    if (!sigCanvas) return;
+    
+    // ตั้งขนาด Canvas ตามขนาดจริงของ Element
+    sigCanvas.width = sigCanvas.offsetWidth;
+    sigCanvas.height = sigCanvas.offsetHeight;
+    sigCtx = sigCanvas.getContext('2d');
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = 'round';
+    sigCtx.strokeStyle = '#1e293b';
+
+    // Touch / Mouse Events
+    sigCanvas.onmousedown = startDrawing;
+    sigCanvas.onmousemove = draw;
+    sigCanvas.onmouseup = stopDrawing;
+
+    sigCanvas.ontouchstart = function(e) {
+      var touch = e.touches[0];
+      var mouseEvent = new MouseEvent("mousedown", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      sigCanvas.dispatchEvent(mouseEvent);
+    };
+    sigCanvas.ontouchend = function() {
+      var mouseEvent = new MouseEvent("mouseup", {});
+      sigCanvas.dispatchEvent(mouseEvent);
+    };
+    sigCanvas.ontouchmove = function(e) {
+      var touch = e.touches[0];
+      var mouseEvent = new MouseEvent("mousemove", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      sigCanvas.dispatchEvent(mouseEvent);
+    };
+  };
+
+  function startDrawing(e) {
+    isDrawing = true;
+    var rect = sigCanvas.getBoundingClientRect();
+    sigCtx.beginPath();
+    sigCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    
+    var placeholder = document.getElementById('signaturePlaceholder');
+    if (placeholder) placeholder.classList.add('d-none');
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    var rect = sigCanvas.getBoundingClientRect();
+    sigCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    sigCtx.stroke();
+  }
+
+  function stopDrawing() {
+    isDrawing = false;
+  }
+
+  window.clearSignature = function() {
+    if (!sigCtx || !sigCanvas) return;
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    var placeholder = document.getElementById('signaturePlaceholder');
+    if (placeholder) placeholder.classList.remove('d-none');
+  };
+
+  window.getSignatureDataUrl = function() {
+    var placeholder = document.getElementById('signaturePlaceholder');
+    // ถ้ายังไม่ได้เซ็น คืนค่า null
+    if (placeholder && !placeholder.classList.contains('d-none')) return null;
+    return sigCanvas ? sigCanvas.toDataURL() : null;
   };
 </script>
