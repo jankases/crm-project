@@ -2135,7 +2135,7 @@
         if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
     }
 
-    // 📍 ดึงพิกัดเก่ามาโชว์ในฟอร์มแก้ไข (ถ้ามี)
+    // 📍 ดึงพิกัด GPS เก่ามาโชว์ในฟอร์มแก้ไข (ถ้ามี)
     var latInput = document.getElementById('visitLat');
     var lngInput = document.getElementById('visitLng');
     var btnGps = document.getElementById('btnGpsCheckin');
@@ -2163,11 +2163,40 @@
         btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
       }
     }
+
     document.getElementById('visitDetails').value = v.Details || '';
     document.getElementById('visitInsight').value = v.Insight || ''; 
     document.getElementById('visitNextAction').value = v.Next_Action || '';
     document.getElementById('visitStatus').value = v.Status || 'Pending';
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
+
+    // 📸 1. ดึงไฟล์แนบ/รูปถ่ายเก่ามาโชว์
+    window.currentAttachments = [];
+    if (v.Attachments) {
+      try {
+        window.currentAttachments = typeof v.Attachments === 'string' ? JSON.parse(v.Attachments) : v.Attachments;
+      } catch (e) { window.currentAttachments = []; }
+    }
+    if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
+
+    // ✍️ 2. ดึงภาพลายเซ็นเก่ามาวาดบน Canvas
+    if (typeof window.initSignatureCanvas === 'function') window.initSignatureCanvas();
+    if (v.Doctor_Signature) {
+      var sigCanvas = document.getElementById('signatureCanvas');
+      var placeholder = document.getElementById('signaturePlaceholder');
+      if (sigCanvas) {
+        var sigCtx = sigCanvas.getContext('2d');
+        var img = new Image();
+        img.onload = function() {
+          sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+          sigCtx.drawImage(img, 0, 0, sigCanvas.width, sigCanvas.height);
+          if (placeholder) placeholder.classList.add('d-none');
+        };
+        img.src = v.Doctor_Signature;
+      }
+    } else {
+      if (typeof window.clearSignature === 'function') window.clearSignature();
+    }
 
     var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
     var btn = document.getElementById('saveVisitBtn');
@@ -2207,6 +2236,15 @@
       }
     }
 
+    // 🔒 3. สั่งสลับสถานะ Read-Only ของฟีเจอร์ใหม่ (ปุ่ม GPS, แนบไฟล์, ลายเซ็น)
+    var isReadOnly = true;
+    if (!isPendingUnlock && v.Status !== 'Submitted' && canEdit) {
+      isReadOnly = false;
+    }
+    if (typeof window.setFormComponentsReadOnly === 'function') {
+      window.setFormComponentsReadOnly(isReadOnly);
+    }
+
     if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
     if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   };
@@ -2222,6 +2260,7 @@
     document.getElementById('visitStatus').value = 'Pending';
     document.getElementById('visitInsight').value = ''; 
     document.getElementById('visitIsCoaching').checked = false; 
+    window.setFormComponentsReadOnly(false);
 
     // 📍 ล้างค่า GPS เก่าออกเวลากดสร้างใหม่
     if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
@@ -2991,5 +3030,39 @@
     // ถ้ายังไม่ได้เซ็น คืนค่า null
     if (placeholder && !placeholder.classList.contains('d-none')) return null;
     return sigCanvas ? sigCanvas.toDataURL() : null;
+  };
+
+  // 🔒 ฟังก์ชันสั่งสลับสถานะ Read-Only ของฟีเจอร์ใหม่
+  window.setFormComponentsReadOnly = function(isReadOnly) {
+    // 1. ปุ่ม GPS Check-in
+    var btnGps = document.getElementById('btnGpsCheckin');
+    if (btnGps) btnGps.disabled = isReadOnly;
+
+    // 2. ปุ่มอัปโหลดไฟล์
+    var fileInput = document.getElementById('visitFileInput');
+    var fileBtnLabel = fileInput ? fileInput.closest('label') : null;
+    if (fileInput) fileInput.disabled = isReadOnly;
+    if (fileBtnLabel) {
+      if (isReadOnly) {
+        fileBtnLabel.classList.add('disabled', 'pe-none', 'opacity-50');
+      } else {
+        fileBtnLabel.classList.remove('disabled', 'pe-none', 'opacity-50');
+      }
+    }
+
+    // 3. ปุ่มลบไฟล์แนบ (ถ้ามีรูปโชว์อยู่)
+    var removeBtns = document.querySelectorAll('#attachmentPreviewContainer button');
+    removeBtns.forEach(function(btn) {
+      btn.style.display = isReadOnly ? 'none' : 'flex';
+    });
+
+    // 4. ปุ่มล้างลายเซ็น & ผ้าใบ Canvas ลายเซ็น
+    var clearSigBtn = document.querySelector('button[onclick*="clearSignature"]');
+    var canvas = document.getElementById('signatureCanvas');
+    if (clearSigBtn) clearSigBtn.style.display = isReadOnly ? 'none' : 'inline-block';
+    if (canvas) {
+      canvas.style.pointerEvents = isReadOnly ? 'none' : 'auto';
+      canvas.style.backgroundColor = isReadOnly ? '#f8fafc' : '#ffffff';
+    }
   };
 </script>
