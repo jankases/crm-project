@@ -2988,9 +2988,32 @@
     container.innerHTML = html;
   };
 
-  window.removeAttachment = function(index) {
+  // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบทั้งใน UI และใน Supabase Storage)
+  window.removeAttachment = async function(index) {
+    var targetItem = window.currentAttachments[index];
+    if (!targetItem) return;
+
+    // 1. ดึงชื่อไฟล์จาก URL (เช่น visit_123456.png)
+    var fileUrl = targetItem.url;
+    var fileName = fileUrl.split('/').pop().split('?')[0];
+
+    // 2. ลบไฟล์ออกจาก Supabase Storage Bucket 'visit-attachments'
+    var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+    if (sbClient && sbClient.storage) {
+      try {
+        await sbClient.storage
+          .from('visit-attachments')
+          .remove([fileName]);
+      } catch (err) {
+        console.error("Storage delete error:", err);
+      }
+    }
+
+    // 3. ลบรายการออกจาก Array หน้า UI และอัปเดตพรีวิว
     window.currentAttachments.splice(index, 1);
-    window.renderAttachmentPreviews();
+    if (typeof window.renderAttachmentPreviews === 'function') {
+      window.renderAttachmentPreviews();
+    }
   };
 
   // ==========================================
