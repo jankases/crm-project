@@ -2905,6 +2905,7 @@
   window.currentAttachments = [];
 
  window.handleFileUpload = async function(event) {
+   if (sbClient) window.supabase = sbClient;
     var files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -2988,41 +2989,50 @@
     container.innerHTML = html;
   };
  
- // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบหน้า UI + สั่งลบไฟล์จริงใน Supabase Storage)
+// 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบทั้ง UI และใน Supabase Storage)
   window.removeAttachment = async function(index) {
     var targetItem = window.currentAttachments[index];
     if (!targetItem) return;
 
     try {
-      // 1. ดึงชื่อไฟล์จาก URL โดยตัด Query String และ Path ออกให้เหลือแค่ชื่อไฟล์
+      // 1. ดึงชื่อไฟล์จาก URL
       var fileUrl = targetItem.url || '';
       var cleanUrl = fileUrl.split('?')[0];
-      var fileName = cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1);
+      var fileName = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
 
       console.log("Attempting to delete file:", fileName);
 
-      // 2. ดึง Supabase Client ที่ใช้งานในระบบ
-      var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+      // 2. ดึง Supabase Client จากช่องทางที่มีอยู่จริง
+      var sbClient = null;
+      if (typeof supabase !== 'undefined' && supabase && supabase.storage) {
+        sbClient = supabase;
+      } else if (window.supabase && window.supabase.storage) {
+        sbClient = window.supabase;
+      } else if (window.supabaseClient && window.supabaseClient.storage) {
+        sbClient = window.supabaseClient;
+      } else if (window.sbClient && window.sbClient.storage) {
+        sbClient = window.sbClient;
+      }
 
+      // 3. สั่งลบไฟล์
       if (sbClient && sbClient.storage && fileName) {
-        // 3. สั่งลบไฟล์จาก Bucket 'visit-attachments'
-        var { data, error } = await sbClient.storage
+        var res = await sbClient.storage
           .from('visit-attachments')
           .remove([fileName]);
 
-        if (error) {
-          console.error("Supabase Storage Delete Error:", error);
+        if (res.error) {
+          console.error("Supabase Storage Delete Error:", res.error.message);
         } else {
-          console.log("Successfully deleted from Supabase Storage:", data);
+          console.log("Successfully deleted from Supabase Storage:", res.data);
         }
       } else {
-        console.warn("Supabase Storage Client not found or invalid fileName");
+        console.error("Supabase Client is still null or missing storage!");
       }
     } catch (err) {
-      console.error("Error inside removeAttachment:", err);
+      console.error("Error during removeAttachment:", err);
     }
 
-    // 4. ลบออกจาก UI และอัปเดตการแสดงผล
+    // 4. ลบออกจาก UI
     window.currentAttachments.splice(index, 1);
     if (typeof window.renderAttachmentPreviews === 'function') {
       window.renderAttachmentPreviews();
