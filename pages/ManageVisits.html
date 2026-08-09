@@ -2987,29 +2987,38 @@
     });
     container.innerHTML = html;
   };
-
-  // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบทั้งใน UI และใน Supabase Storage)
+ 
+ // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบทั้งหน้า UI และลบไฟล์จริงใน Supabase Storage)
   window.removeAttachment = async function(index) {
     var targetItem = window.currentAttachments[index];
     if (!targetItem) return;
 
-    // 1. ดึงชื่อไฟล์จาก URL (เช่น visit_123456.png)
-    var fileUrl = targetItem.url;
-    var fileName = fileUrl.split('/').pop().split('?')[0];
+    try {
+      // 1. แกะ Extract ชือนามสกุลไฟล์จริงจาก URL ชัวร์ 100%
+      var rawUrl = targetItem.url;
+      var cleanUrl = rawUrl.split('?')[0]; // ตัด Query string ออก
+      var fileName = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
 
-    // 2. ลบไฟล์ออกจาก Supabase Storage Bucket 'visit-attachments'
-    var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
-    if (sbClient && sbClient.storage) {
-      try {
-        await sbClient.storage
+      // 2. ดึง Supabase Client
+      var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+      
+      if (sbClient && sbClient.storage && fileName) {
+        // 3. สั่งลบไฟล์ออกจาก Bucket 'visit-attachments'
+        var { data, error } = await sbClient.storage
           .from('visit-attachments')
           .remove([fileName]);
-      } catch (err) {
-        console.error("Storage delete error:", err);
+
+        if (error) {
+          console.error("Supabase Storage Delete Error:", error.message);
+        } else {
+          console.log("Deleted successfully from storage:", fileName);
+        }
       }
+    } catch (err) {
+      console.error("Error during file deletion:", err);
     }
 
-    // 3. ลบรายการออกจาก Array หน้า UI และอัปเดตพรีวิว
+    // 4. ลบออกจาก Array หน้า UI และอัปเดตการแสดงผล
     window.currentAttachments.splice(index, 1);
     if (typeof window.renderAttachmentPreviews === 'function') {
       window.renderAttachmentPreviews();
