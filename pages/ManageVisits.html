@@ -381,22 +381,24 @@
                   </div>
                 </div>
 
-                <!-- ✍️ 2. ลายเซ็นดิจิทัลแพทย์ (E-Signature) -->
+                <!-- ✍️ ลายเซ็นแพทย์ ( Doctor Signature ) -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
                       <i class="fa-solid fa-signature text-success me-2"></i>
-                      <span data-i18n="lbl_signature">ลายเซ็นแพทย์ (Doctor Signature)</span>
+                      <span>ลายเซ็นแพทย์ (Doctor Signature)</span>
                     </label>
-                    <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="window.clearSignature()">
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" id="btnClearSig" onclick="window.clearSignature()">
                       <i class="fa-solid fa-rotate-left me-1"></i> ล้างลายเซ็น
                     </button>
                   </div>
-
-                  <div class="position-relative bg-white border rounded-3 shadow-sm overflow-hidden" style="height: 150px;">
-                    <canvas id="signatureCanvas" class="w-100 h-100 cursor-crosshair"></canvas>
-                    <div id="signaturePlaceholder" class="position-absolute top-50 start-50 translate-middle text-muted pointer-events-none style-italic small">
-                      <i class="fa-solid fa-pen-nib me-1"></i> เซ็นชื่อตรงนี้ (ใช้นิ้วหรือปากกา)
+                
+                  <!-- กล่องแสดงตัวอย่างลายเซ็นที่เซ็นแล้ว / หรือปุ่มกดเพื่อเปิด Popup -->
+                  <div id="sigPreviewBox" class="bg-white border rounded-3 p-2 text-center cursor-pointer shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 100px;" onclick="window.openSignatureModal()">
+                    <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 80px;" alt="Signature Preview" />
+                    <div id="sigPlaceholder" class="text-muted small">
+                      <i class="fa-solid fa-pen-nib me-1 text-primary fs-5 d-block mb-1"></i>
+                      <span>คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ (Sign Here)</span>
                     </div>
                   </div>
                 </div>
@@ -556,6 +558,39 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- 📱 Modal เซ็นชื่อแบบเต็มตา (Signature Modal) -->
+<div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content premium-radius shadow-lg border-0">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="fa-solid fa-signature text-success me-2"></i>ลายเซ็นแพทย์ (Doctor Signature)
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 text-center">
+        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง</p>
+        
+        <div class="position-relative bg-white border border-2 border-primary rounded-3 overflow-hidden shadow-inner mx-auto" style="width: 100%; height: 320px; touch-action: none;">
+          <canvas id="modalSignatureCanvas" class="w-100 h-100" style="cursor: crosshair;"></canvas>
+        </div>
+      </div>
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-danger px-3" onclick="window.clearModalCanvas()">
+          <i class="fa-solid fa-rotate-left me-1"></i> ล้างกระดาน
+        </button>
+        <div>
+          <button type="button" class="btn btn-secondary px-4 me-1" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()">
+            <i class="fa-solid fa-check me-1"></i> ตกลง / บันทึก
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2179,23 +2214,14 @@
     }
     if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
 
-    // ✍️ 2. ดึงภาพลายเซ็นเก่ามาวาดบน Canvas
-    if (typeof window.initSignatureCanvas === 'function') window.initSignatureCanvas();
+    // ✍️ ดึงภาพลายเซ็นเก่ามาใส่ในตัวแปรพรีวิว
     if (v.Doctor_Signature) {
-      var sigCanvas = document.getElementById('signatureCanvas');
-      var placeholder = document.getElementById('signaturePlaceholder');
-      if (sigCanvas) {
-        var sigCtx = sigCanvas.getContext('2d');
-        var img = new Image();
-        img.onload = function() {
-          sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-          sigCtx.drawImage(img, 0, 0, sigCanvas.width, sigCanvas.height);
-          if (placeholder) placeholder.classList.add('d-none');
-        };
-        img.src = v.Doctor_Signature;
-      }
+      window.savedSignatureData = v.Doctor_Signature;
     } else {
-      if (typeof window.clearSignature === 'function') window.clearSignature();
+      window.savedSignatureData = null;
+    }
+    if (typeof window.updateSignaturePreviewUI === 'function') {
+      window.updateSignaturePreviewUI();
     }
 
     var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
@@ -2261,6 +2287,8 @@
     document.getElementById('visitInsight').value = ''; 
     document.getElementById('visitIsCoaching').checked = false; 
     window.setFormComponentsReadOnly(false);
+    window.savedSignatureData = null;
+    if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
     // 📍 ล้างค่า GPS เก่าออกเวลากดสร้างใหม่
     if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
@@ -2966,82 +2994,136 @@
   };
 
   // ==========================================
-  // ✍️ 2. E-SIGNATURE CANVAS HANDLING
+  // ✍️ POPUP E-SIGNATURE HANDLING (แก้ไขระบบวาดใหม่ชัวร์ 100%)
   // ==========================================
-  var sigCanvas, sigCtx, isDrawing = false;
+  var mCanvas, mCtx, isDrawingSig = false;
+  window.savedSignatureData = null; // เก็บ Base64 ลายเซ็น
 
-  window.initSignatureCanvas = function() {
-    sigCanvas = document.getElementById('signatureCanvas');
-    if (!sigCanvas) return;
-    
-    // ตั้งขนาด Canvas ตามขนาดจริงของ Element
-    sigCanvas.width = sigCanvas.offsetWidth;
-    sigCanvas.height = sigCanvas.offsetHeight;
-    sigCtx = sigCanvas.getContext('2d');
-    sigCtx.lineWidth = 2.5;
-    sigCtx.lineCap = 'round';
-    sigCtx.strokeStyle = '#1e293b';
+  // 1. เปิด Modal และปรับขนาด Canvas ให้ตรงเป๊ะ
+  window.openSignatureModal = function() {
+    var btnSig = document.getElementById('btnClearSig');
+    if (btnSig && btnSig.style.display === 'none') return; // Read-Only ไม่ให้เปิด
 
-    // Touch / Mouse Events
-    sigCanvas.onmousedown = startDrawing;
-    sigCanvas.onmousemove = draw;
-    sigCanvas.onmouseup = stopDrawing;
+    var modalEl = document.getElementById('signatureModal');
+    var myModal = new bootstrap.Modal(modalEl);
+    myModal.show();
 
-    sigCanvas.ontouchstart = function(e) {
-      var touch = e.touches[0];
-      var mouseEvent = new MouseEvent("mousedown", {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-      sigCanvas.dispatchEvent(mouseEvent);
-    };
-    sigCanvas.ontouchend = function() {
-      var mouseEvent = new MouseEvent("mouseup", {});
-      sigCanvas.dispatchEvent(mouseEvent);
-    };
-    sigCanvas.ontouchmove = function(e) {
-      var touch = e.touches[0];
-      var mouseEvent = new MouseEvent("mousemove", {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-      sigCanvas.dispatchEvent(mouseEvent);
-    };
+    // รอให้ Modal กางเสร็จก่อนค่อยคำนวณขนาดพิกเซล Canvas
+    modalEl.addEventListener('shown.bs.modal', function () {
+      mCanvas = document.getElementById('modalSignatureCanvas');
+      if (!mCanvas) return;
+      
+      mCanvas.width = mCanvas.offsetWidth;
+      mCanvas.height = mCanvas.offsetHeight;
+      mCtx = mCanvas.getContext('2d');
+      mCtx.lineWidth = 3;
+      mCtx.lineCap = 'round';
+      mCtx.lineJoin = 'round';
+      mCtx.strokeStyle = '#0f172a';
+
+      // วาดลายเซ็นเดิมลงไปถ้าเคยเซ็นไว้แล้ว
+      if (window.savedSignatureData) {
+        var img = new Image();
+        img.onload = function() { mCtx.drawImage(img, 0, 0); };
+        img.src = window.savedSignatureData;
+      } else {
+        mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+      }
+
+      // บินด์ Event สำหรับการวาดทั้ง เมาส์ และ นิ้วสัมผัส (Touch)
+      mCanvas.onmousedown = startDrawingSig;
+      mCanvas.onmousemove = drawSig;
+      mCanvas.onmouseup = stopDrawingSig;
+
+      mCanvas.ontouchstart = function(e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        var rect = mCanvas.getBoundingClientRect();
+        isDrawingSig = true;
+        mCtx.beginPath();
+        mCtx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+      };
+
+      mCanvas.ontouchmove = function(e) {
+        e.preventDefault();
+        if (!isDrawingSig) return;
+        var touch = e.touches[0];
+        var rect = mCanvas.getBoundingClientRect();
+        mCtx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+        mCtx.stroke();
+      };
+
+      mCanvas.ontouchend = function(e) {
+        e.preventDefault();
+        isDrawingSig = false;
+      };
+    }, { once: true });
   };
 
-  function startDrawing(e) {
-    isDrawing = true;
-    var rect = sigCanvas.getBoundingClientRect();
-    sigCtx.beginPath();
-    sigCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  function startDrawingSig(e) {
+    isDrawingSig = true;
+    var rect = mCanvas.getBoundingClientRect();
+    mCtx.beginPath();
+    mCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  }
+
+  function drawSig(e) {
+    if (!isDrawingSig) return;
+    var rect = mCanvas.getBoundingClientRect();
+    mCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    mCtx.stroke();
+  }
+
+  function stopDrawingSig() { isDrawingSig = false; }
+
+  // 2. ล้างหน้าจอเซ็นใน Popup
+  window.clearModalCanvas = function() {
+    if (mCtx && mCanvas) mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+  };
+
+  // 3. กดยืนยันบันทึกจาก Popup นำภาพมาพรีวิวหน้าหลัก
+  window.saveSignatureFromModal = function() {
+    if (!mCanvas) return;
     
-    var placeholder = document.getElementById('signaturePlaceholder');
-    if (placeholder) placeholder.classList.add('d-none');
-  }
+    // ตรวจสอบว่ามีการเซ็นจริงๆ ไหม
+    var blank = document.createElement('canvas');
+    blank.width = mCanvas.width;
+    blank.height = mCanvas.height;
+    if (mCanvas.toDataURL() === blank.toDataURL()) {
+      window.savedSignatureData = null;
+    } else {
+      window.savedSignatureData = mCanvas.toDataURL('image/png');
+    }
 
-  function draw(e) {
-    if (!isDrawing) return;
-    var rect = sigCanvas.getBoundingClientRect();
-    sigCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    sigCtx.stroke();
-  }
+    window.updateSignaturePreviewUI();
+    var modalEl = document.getElementById('signatureModal');
+    var modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+  };
 
-  function stopDrawing() {
-    isDrawing = false;
-  }
+  // 4. อัปเดตหน้าตา UI พรีวิวบนฟอร์ม
+  window.updateSignaturePreviewUI = function() {
+    var img = document.getElementById('sigPreviewImg');
+    var placeholder = document.getElementById('sigPlaceholder');
 
+    if (window.savedSignatureData) {
+      if (img) { img.src = window.savedSignatureData; img.classList.remove('d-none'); }
+      if (placeholder) placeholder.classList.add('d-none');
+    } else {
+      if (img) { img.src = ''; img.classList.add('d-none'); }
+      if (placeholder) placeholder.classList.remove('d-none');
+    }
+  };
+
+  // 5. ปุ่มล้างลายเซ็นหน้าหลัก
   window.clearSignature = function() {
-    if (!sigCtx || !sigCanvas) return;
-    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-    var placeholder = document.getElementById('signaturePlaceholder');
-    if (placeholder) placeholder.classList.remove('d-none');
+    window.savedSignatureData = null;
+    window.updateSignaturePreviewUI();
   };
 
+  // 6. ส่งค่า Base64 ตอนกด Save Visit
   window.getSignatureDataUrl = function() {
-    var placeholder = document.getElementById('signaturePlaceholder');
-    // ถ้ายังไม่ได้เซ็น คืนค่า null
-    if (placeholder && !placeholder.classList.contains('d-none')) return null;
-    return sigCanvas ? sigCanvas.toDataURL() : null;
+    return window.savedSignatureData || null;
   };
 
   // 🔒 ฟังก์ชันสั่งสลับสถานะ Read-Only ของฟีเจอร์ใหม่
