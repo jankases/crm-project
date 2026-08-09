@@ -255,7 +255,7 @@
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม (Form View) ================= -->
   <div id="visitFormView" class="d-none">
     <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
+      <button class="btn btn-premium-secondary me-3" onclick="window.()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
@@ -473,7 +473,7 @@
         </div>
 
         <div class="text-end border-top pt-4 mt-4 d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-premium-secondary" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+          <button type="button" class="btn btn-premium-secondary" onclick="window.()" data-i18n="btn_cancel">Cancel</button>
           <button type="submit" class="btn btn-premium-primary" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
         </div>
       </form>
@@ -2469,7 +2469,7 @@
     }
   };
 
-  wwindow.cancelVisitForm = async function() {
+  window.cancelVisitForm = async function() {
     if (typeof window.clearFormDraft === 'function') {
         window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
     }
@@ -3197,23 +3197,5 @@
     }
   };
 
-  // ✍️ อัปเดต UI แสดงภาพลายเซ็นบนฟอร์ม
-  window.updateSignaturePreviewUI = function() {
-    var img = document.getElementById('sigPreviewImg');
-    var placeholder = document.getElementById('sigPlaceholder');
-
-    if (window.savedSignatureData && window.savedSignatureData !== 'null') {
-      if (img) { 
-        img.src = window.savedSignatureData; 
-        img.classList.remove('d-none'); 
-      }
-      if (placeholder) placeholder.classList.add('d-none');
-    } else {
-      if (img) { 
-        img.src = ''; 
-        img.classList.add('d-none'); 
-      }
-      if (placeholder) placeholder.classList.remove('d-none');
-    }
-  };
+ 
 </script>
