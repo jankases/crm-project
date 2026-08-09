@@ -2470,18 +2470,28 @@
   };
 
   // 3. ปุ่ม Cancel Visit (ยกเลิกการแก้ไข / เคลียร์ State และ Cleanup รูปขยะ)
-  window.cancelVisitForm = async function() {
+ window.cancelVisitForm = async function() {
     if (typeof window.clearFormDraft === 'function') {
       var vInput = document.getElementById('visitId');
       var draftKey = (vInput && vInput.value) ? vInput.value : 'NEW';
       window.clearFormDraft(draftKey);
     }
 
-    // 🧹 ลบรูปภาพใหม่ที่เพิ่งอัปโหลดค้างไว้ใน Session นี้ออกจาก Storage (Cleanup)
+    // 🧹 ลบรูปภาพใหม่ที่เพิ่งอัปโหลดค้างไว้ใน Session นี้ออกจาก Supabase Storage ทันที
     if (window.newlyUploadedFiles && window.newlyUploadedFiles.length > 0) {
-      var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+      var sbClient = null;
+      if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
+      else if (window.supabase && window.supabase.storage) sbClient = window.supabase;
+      else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
+
       if (sbClient && sbClient.storage) {
-        await sbClient.storage.from('visit-attachments').remove(window.newlyUploadedFiles);
+        try {
+          var { data, error } = await sbClient.storage.from('visit-attachments').remove(window.newlyUploadedFiles);
+          if (error) console.error("Cancel cleanup error:", error.message);
+          else console.log("Cleaned up new files on cancel:", window.newlyUploadedFiles);
+        } catch(err) {
+          console.error("Error during cancel cleanup:", err);
+        }
       }
     }
 
@@ -2971,7 +2981,7 @@
         if (!window.newlyUploadedFiles) window.newlyUploadedFiles = [];
 
         window.currentAttachments.push(fileObj);
-        window.newlyUploadedFiles.push(fileName); // 📌 บันทึกชื่อไฟล์ใหม่ไว้ติดตาม
+        window.newlyUploadedFiles.push(fileName); // 📌 จำชื่อไฟล์ใหม่ไว้ลบเมื่อกด Cancel
 
         if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
         if (window.showToast) window.showToast("อัปโหลดไฟล์สำเร็จ", "success");
