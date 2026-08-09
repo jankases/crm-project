@@ -2288,6 +2288,9 @@
     document.getElementById('visitIsCoaching').checked = false; 
     window.setFormComponentsReadOnly(false);
     window.savedSignatureData = null;
+    window.currentAttachments = [];
+    window.newlyUploadedFiles = [];
+    window.pendingDeleteFiles = [];
     if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
     // 📍 ล้างค่า GPS เก่าออกเวลากดสร้างใหม่
@@ -2409,6 +2412,17 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
+      // 🗑️ ประมวลผลลบไฟล์ที่อยู่ใน Queue ลบออกจาก Supabase Storage จริง
+      if (window.pendingDeleteFiles && window.pendingDeleteFiles.length > 0) {
+        var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+        if (sbClient && sbClient.storage) {
+          await sbClient.storage.from('visit-attachments').remove(window.pendingDeleteFiles);
+        }
+      }
+      // เคลียร์ค่า Queue เมื่อบันทึกสำเร็จ
+      window.newlyUploadedFiles = [];
+      window.pendingDeleteFiles = [];
+
       if (window.showToast) window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
       if (typeof window.clearFormDraft === 'function') window.clearFormDraft(existingVisitId || 'NEW');
 
@@ -2455,20 +2469,30 @@
     }
   };
 
-  window.cancelVisitForm = function() {
+  wwindow.cancelVisitForm = async function() {
     if (typeof window.clearFormDraft === 'function') {
         window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
     }
+
+    // 🧹 ลบรูปภาพใหม่ที่เพิ่งอัปโหลดค้างไว้ใน Session นี้ออกจาก Storage (Cleanup)
+    if (window.newlyUploadedFiles && window.newlyUploadedFiles.length > 0) {
+      var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+      if (sbClient && sbClient.storage) {
+        await sbClient.storage.from('visit-attachments').remove(window.newlyUploadedFiles);
+      }
+    }
+
+    // Reset Queue ทั้งหมด
+    window.currentAttachments = [];
+    window.newlyUploadedFiles = [];
+    window.pendingDeleteFiles = [];
+
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
-      if (typeof window.returnToDoctorProfile === 'function') {
-          window.returnToDoctorProfile(returnDocId); 
-      }
+      if (typeof window.returnToDoctorProfile === 'function') window.returnToDoctorProfile(returnDocId); 
     } else {
-      if (typeof window.switchVisitView === 'function') {
-          window.switchVisitView('visitListView');
-      }
+      if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
     }
   };
 
@@ -2902,32 +2926,28 @@
   // ==========================================
   // 📸 1. PHOTO ATTACHMENT HANDLING
   // ==========================================
-  window.currentAttachments = [];
+
+  // 📦 State Variables สำหรับจัดการไฟล์แนบ
+  window.currentAttachments = [];  // รายการไฟล์แนบปัจจุบันที่โชว์บน UI
+  window.newlyUploadedFiles = [];  // ไฟล์ที่เพิ่งอัปโหลดเพิ่มใน session นี้ (รอ cleanup ถ้ายกเลิก)
+  window.pendingDeleteFiles = [];  // ไฟล์เดิมที่ถูกกดลบใน UI (จะลบออกจาก Storage จริงเมื่อ Save)
+
 
  window.handleFileUpload = async function(event) {
-   if (sbClient) window.supabase = sbClient;
     var files = event.target.files;
     if (!files || files.length === 0) return;
 
-    // 🔒 ดึง Supabase Client จากทุกช่องทางที่เป็นไปได้ในโปรเจกต์
     var sbClient = null;
-    if (typeof supabase !== 'undefined' && supabase && supabase.storage) {
-      sbClient = supabase;
-    } else if (window.supabase && window.supabase.storage) {
-      sbClient = window.supabase;
-    } else if (window.supabaseClient && window.supabaseClient.storage) {
-      sbClient = window.supabaseClient;
-    } else if (window.dbClient && window.dbClient.storage) {
-      sbClient = window.dbClient;
-    }
+    if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
+    else if (window.supabase && window.supabase.storage) sbClient = window.supabase;
+    else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
+    else if (window.dbClient && window.dbClient.storage) sbClient = window.dbClient;
 
     if (!sbClient) {
       if (window.showToast) window.showToast("ไม่พบการเชื่อมต่อ Supabase Storage", "error");
-      console.error("Supabase client is not available in scope");
       return;
     }
 
-    var container = document.getElementById('attachmentPreviewContainer');
     var noText = document.getElementById('noAttachmentText');
     if (noText) noText.classList.add('d-none');
 
@@ -2937,26 +2957,20 @@
       var fileName = 'visit_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.' + fileExt;
 
       try {
-        // อัปโหลดไปยัง Supabase Storage Bucket 'visit-attachments'
-        var { data, error } = await sbClient.storage
-          .from('visit-attachments')
-          .upload(fileName, file);
-
+        var { data, error } = await sbClient.storage.from('visit-attachments').upload(fileName, file);
         if (error) throw error;
 
-        // ดึง Public URL ของไฟล์
-        var { data: publicUrlData } = sbClient.storage
-          .from('visit-attachments')
-          .getPublicUrl(fileName);
-
+        var { data: publicUrlData } = sbClient.storage.from('visit-attachments').getPublicUrl(fileName);
         var fileUrl = publicUrlData.publicUrl;
-        if (!window.currentAttachments) window.currentAttachments = [];
-        window.currentAttachments.push({ name: file.name, url: fileUrl });
 
-        // แสดงพรีวิว
-        if (typeof window.renderAttachmentPreviews === 'function') {
-          window.renderAttachmentPreviews();
-        }
+        var fileObj = { name: file.name, url: fileUrl, fileName: fileName };
+        if (!window.currentAttachments) window.currentAttachments = [];
+        if (!window.newlyUploadedFiles) window.newlyUploadedFiles = [];
+
+        window.currentAttachments.push(fileObj);
+        window.newlyUploadedFiles.push(fileName); // 📌 บันทึกชื่อไฟล์ใหม่ไว้ติดตาม
+
+        if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
         if (window.showToast) window.showToast("อัปโหลดไฟล์สำเร็จ", "success");
       } catch (err) {
         console.error("Upload error:", err);
@@ -2989,54 +3003,31 @@
     container.innerHTML = html;
   };
  
-// 🗑️ ลบรูปถ่าย/ไฟล์แนบ (ลบทั้ง UI และใน Supabase Storage)
-  window.removeAttachment = async function(index) {
+// 🗑️ ลบรูปถ่าย/ไฟล์แนบ (สลับเข้า Pending Queue ห้ามลบ Storage ทันที)
+  window.removeAttachment = function(index) {
     var targetItem = window.currentAttachments[index];
     if (!targetItem) return;
 
-    try {
-      // 1. ดึงชื่อไฟล์จาก URL
-      var fileUrl = targetItem.url || '';
-      var cleanUrl = fileUrl.split('?')[0];
-      var fileName = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+    var fileUrl = targetItem.url || '';
+    var cleanUrl = fileUrl.split('?')[0];
+    var fileName = targetItem.fileName || decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
 
-      console.log("Attempting to delete file:", fileName);
+    if (!window.newlyUploadedFiles) window.newlyUploadedFiles = [];
+    if (!window.pendingDeleteFiles) window.pendingDeleteFiles = [];
 
-      // 2. ดึง Supabase Client จากช่องทางที่มีอยู่จริง
-      var sbClient = null;
-      if (typeof supabase !== 'undefined' && supabase && supabase.storage) {
-        sbClient = supabase;
-      } else if (window.supabase && window.supabase.storage) {
-        sbClient = window.supabase;
-      } else if (window.supabaseClient && window.supabaseClient.storage) {
-        sbClient = window.supabaseClient;
-      } else if (window.sbClient && window.sbClient.storage) {
-        sbClient = window.sbClient;
-      }
-
-      // 3. สั่งลบไฟล์
-      if (sbClient && sbClient.storage && fileName) {
-        var res = await sbClient.storage
-          .from('visit-attachments')
-          .remove([fileName]);
-
-        if (res.error) {
-          console.error("Supabase Storage Delete Error:", res.error.message);
-        } else {
-          console.log("Successfully deleted from Supabase Storage:", res.data);
-        }
-      } else {
-        console.error("Supabase Client is still null or missing storage!");
-      }
-    } catch (err) {
-      console.error("Error during removeAttachment:", err);
+    var newIdx = window.newlyUploadedFiles.indexOf(fileName);
+    if (newIdx !== -1) {
+      // กรณี: อัปโหลดรูปใหม่ในรอบนี้ แล้วเปลี่ยนใจกดลบ ให้ลบออกจาก Storage ทันทีได้เลย
+      window.newlyUploadedFiles.splice(newIdx, 1);
+      var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+      if (sbClient && sbClient.storage) sbClient.storage.from('visit-attachments').remove([fileName]);
+    } else {
+      // กรณี: ไฟล์เดิมจาก DB ให้พักไว้ใน pendingDeleteFiles (ลบจริงเมื่อ Save เท่านั้น)
+      window.pendingDeleteFiles.push(fileName);
     }
 
-    // 4. ลบออกจาก UI
     window.currentAttachments.splice(index, 1);
-    if (typeof window.renderAttachmentPreviews === 'function') {
-      window.renderAttachmentPreviews();
-    }
+    if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
   };
 
   // ==========================================
