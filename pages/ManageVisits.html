@@ -2471,7 +2471,9 @@
 
   window.cancelVisitForm = async function() {
     if (typeof window.clearFormDraft === 'function') {
-        window.clearFormDraft(document.getElementById('visitId') ? (document.getElementById('visitId').value || 'NEW') : 'NEW');
+      var vInput = document.getElementById('visitId');
+      var draftKey = (vInput && vInput.value) ? vInput.value : 'NEW';
+      window.clearFormDraft(draftKey);
     }
 
     // 🧹 ลบรูปภาพใหม่ที่เพิ่งอัปโหลดค้างไว้ใน Session นี้ออกจาก Storage (Cleanup)
