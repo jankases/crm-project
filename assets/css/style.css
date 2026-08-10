@@ -1,5 +1,5 @@
 /* =========================================
-   CRM System - Global Stylesheet
+   CRM System - Global Stylesheet (style.css)
    ========================================= */
 
 .visit-card { 
@@ -54,12 +54,6 @@ select.form-select[multiple]:not(.tomselected) { display: none !important; }
   width: 44px; height: 44px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
 }
-
-/* ป้ายสถานะต่างๆ */
-.badge-soft-pending { background-color: #fffbeb !important; color: #b45309 !important; border: 1px solid #fef3c7 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
-.badge-soft-success { background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #d1fae5 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
-.badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; font-weight: 600; padding: 6px 12px; border-radius: 30px; }
-.badge-soft-product { background-color: #f1f5f9 !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-weight: 500; border-radius: 8px; padding: 4px 8px; }
 
 /* ปุ่ม Switch เปิด-ปิด */
 .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
@@ -226,6 +220,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   border-radius: 50px;
   padding: 4px 12px 4px 8px;
 }
+
 /* ==========================================
    ✨ HIGH-END PREMIUM BUTTON STYLES (GLOBAL)
    ========================================== */
@@ -305,7 +300,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   transform: translateY(-1px) !important;
 }
 
-/* 4. ปุ่มแจ้งเตือน/ขอปลดล็อก (Premium Warning) */
+/* ปุ่มแจ้งเตือน/ขอปลดล็อก (Premium Warning) */
 .btn-premium-warning {
   background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -335,7 +330,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* 5. ปุ่มสถานะถูกล็อก/อ่านอย่างเดียว (Premium Locked) */
+/* ปุ่มสถานะถูกล็อก/อ่านอย่างเดียว (Premium Locked) */
 .btn-premium-locked {
   background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -349,91 +344,86 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 }
 
 /* ==========================================
-     ✨ PREMIUM TABLE ELEMENTS (Badges & Links)
-     ========================================== */
-     
-  /* ลิงก์วันที่ในตาราง */
-  .table-visit-link {
-    color: #2563eb !important;
-    text-decoration: none !important;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-  .table-visit-link:hover {
-    color: #1d4ed8 !important;
-    text-decoration: underline !important;
-    text-underline-offset: 4px;
-  }
+   ✨ PREMIUM TABLE ELEMENTS (Badges & Links)
+   ========================================== */
+.table-visit-link {
+  color: #2563eb !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.table-visit-link:hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
 
-  /* ปรับทรง ป้าย Status ทั้งหมด ให้คมคายขึ้น (Squircle + Border) */
-  .badge-soft-success {
-    background-color: #ecfdf5 !important;
-    color: #059669 !important;
-    border: 1px solid #a7f3d0 !important;
-    border-radius: 6px !important; /* เปลี่ยนจาก Pill เป็น Squircle */
-    padding: 5px 10px !important;
-    font-weight: 600 !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
-  }
+.badge-soft-success {
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0 !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+}
 
-  .badge-soft-pending {
-    background-color: #fffbeb !important;
-    color: #d97706 !important;
-    border: 1px solid #fde68a !important;
-    border-radius: 6px !important;
-    padding: 5px 10px !important;
-    font-weight: 600 !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
-  }
+.badge-soft-pending {
+  background-color: #fffbeb !important;
+  color: #d97706 !important;
+  border: 1px solid #fde68a !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+}
 
-  .badge-soft-secondary {
-    background-color: #f8fafc !important;
-    color: #475569 !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 6px !important;
-    padding: 5px 10px !important;
-    font-weight: 600 !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
-  }
+.badge-soft-secondary {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+}
 
-  /* ปรับป้าย Product ให้เข้าชุดกัน */
-  .badge-soft-product {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 6px !important;
-    padding: 4px 8px !important;
-    font-weight: 500 !important;
-  }
+.badge-soft-product {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-weight: 500 !important;
+}
 
 /* ==========================================
-     ✨ PREMIUM HEADER ICON BOX
-     ========================================== */
-  .header-icon-box {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-    color: #ffffff !important;
-    border-radius: 12px !important; /* ทรง Squircle */
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3), 
-                inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
-    margin-right: 12px;
-  }
-  
-  .header-icon-box i {
-    font-size: 1.25rem;
-  }
+   ✨ PREMIUM HEADER ICON BOX
+   ========================================== */
+.header-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3), 
+              inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+  margin-right: 12px;
+}
 
-/* ป้ายเตือนกรณีเช็กอินไกลกว่าระยะกำหนด (Out of Range) */
-  .badge-soft-danger {
-    background-color: #fef2f2 !important;
-    color: #dc2626 !important;
-    border: 1px solid #fecaca !important;
-    border-radius: 6px !important;
-    padding: 4px 8px !important;
-    font-weight: 600 !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
-  }
+.header-icon-box i {
+  font-size: 1.25rem;
+}
+
+.badge-soft-danger {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+}
