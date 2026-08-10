@@ -616,6 +616,9 @@
   window.globalAllMediaList = []; window.currentActiveMedia = null; window.presentationStartTime = null;
   window.presentationTimerInterval = null; window.pdfDocInstance = null; window.currentPdfPage = 1;
   window.totalPdfPages = 1; window.currentPageStartTime = null; window.pageLogsBuffer = []; window.globalIsMediaPreviewMode = false;
+  
+  // 📦 คิวเก็บ Log e-Detailing ชั่วคราว (ยิงลง DB เมื่อกด Save เท่านั้น)
+  window.pendingDetailingLogs = [];
 
   window.filterDebounceTimer = null; window.docRecognition = null; window.textRecognition = null; window.searchRecognition = null;
 
@@ -1135,30 +1138,22 @@
     window.recordCurrentPageLog();
     var now = new Date();
     var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
-    var visitIdEl = document.getElementById('visitId');
-    var targetVisitId = visitIdEl ? visitIdEl.value : null;
 
-    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia && targetVisitId) {
+    // ถ้าไม่ใช่ Preview Mode และดูเกิน 5 วินาที ให้พักข้อมูลไว้ในคิวชั่วคราว (ยังไม่บันทึกลง DB)
+    if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia) {
       var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
       var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
       var durationToSave = totalDurationSec > 0 ? totalDurationSec : 1;
 
-      var logPayload = { Visit_ID: targetVisitId, Media_ID: window.currentActiveMedia.Media_ID, Duration_Seconds: durationToSave, Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(), Whoupdated: whoUpdated };
+      if (!window.pendingDetailingLogs) window.pendingDetailingLogs = [];
 
-      try {
-        if (window.supabaseClient) {
-            var logRes = await window.supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
-            if (!logRes.error && logRes.data && logRes.data.length > 0) {
-              var createdLogId = logRes.data[0].Log_ID;
-              if (window.pageLogsBuffer.length > 0) {
-                var pagePayloads = window.pageLogsBuffer.map(function(pLog) {
-                  return { Log_ID: createdLogId, Page_Number: pLog.Page_Number, Duration_Seconds: pLog.Duration_Second, Whenopend: pLog.Whenopend, Whoupdated: whoUpdated };
-                });
-                await window.supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
-              }
-            }
-        }
-      } catch(err) {}
+      window.pendingDetailingLogs.push({
+        Media_ID: window.currentActiveMedia.Media_ID,
+        Duration_Seconds: durationToSave,
+        Whenopend: window.presentationStartTime ? window.presentationStartTime.toISOString() : new Date().toISOString(),
+        Whoupdated: whoUpdated,
+        Pages: window.pageLogsBuffer ? [...window.pageLogsBuffer] : []
+      });
     }
 
     var modalEl = document.getElementById('mediaPresentationModal');
@@ -1172,6 +1167,7 @@
     window.currentActiveMedia = null;
     window.presentationStartTime = null;
     window.pdfDocInstance = null;
+    window.pageLogsBuffer = [];
   };
 
   // ==========================================
@@ -2209,6 +2205,7 @@
     window.currentAttachments = [];
     window.newlyUploadedFiles = [];
     window.pendingDeleteFiles = [];
+    window.pendingDetailingLogs = []; // เคลียร์คิว e-Detailing ชั่วคราว
 
     if (v.Attachments) {
       try {
@@ -2306,6 +2303,7 @@
     window.currentAttachments = [];
     window.newlyUploadedFiles = [];
     window.pendingDeleteFiles = [];
+    window.pendingDetailingLogs = []; // เคลียร์คิว e-Detailing ชั่วคราว
     if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
     // 📍 ล้างค่า GPS เก่าออกเวลากดสร้างใหม่
@@ -2432,6 +2430,43 @@
           if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
       }
 
+      // 📊 ประมวลผลบันทึก Log e-Detailing จากคิวลงฐานข้อมูล Supabase จริงเมื่อกด Save
+      if (window.pendingDetailingLogs && window.pendingDetailingLogs.length > 0) {
+        for (var dIdx = 0; dIdx < window.pendingDetailingLogs.length; dIdx++) {
+          var itemLog = window.pendingDetailingLogs[dIdx];
+          var logPayload = {
+            Visit_ID: targetVisitId,
+            Media_ID: itemLog.Media_ID,
+            Duration_Seconds: itemLog.Duration_Seconds,
+            Whenopend: itemLog.Whenopend,
+            Whoupdated: itemLog.Whoupdated
+          };
+
+          try {
+            var logRes = await window.supabaseClient.from('Visit_Detailing_Logs').insert([logPayload]).select('Log_ID');
+            if (!logRes.error && logRes.data && logRes.data.length > 0) {
+              var createdLogId = logRes.data[0].Log_ID;
+              if (itemLog.Pages && itemLog.Pages.length > 0) {
+                var pagePayloads = itemLog.Pages.map(function(pLog) {
+                  return {
+                    Log_ID: createdLogId,
+                    Page_Number: pLog.Page_Number,
+                    Duration_Seconds: pLog.Duration_Second,
+                    Whenopend: pLog.Whenopend,
+                    Whoupdated: itemLog.Whoupdated
+                  };
+                });
+                await window.supabaseClient.from('Visit_Detailing_Pages').insert(pagePayloads);
+              }
+            }
+          } catch (detErr) {
+            console.error("Error saving detailing log:", detErr);
+          }
+        }
+      }
+      // เคลียร์คิว e-Detailing เมื่อบันทึกสำเร็จ
+      window.pendingDetailingLogs = [];
+
       // 🗑️ ประมวลผลลบไฟล์ที่อยู่ใน Queue ลบออกจาก Supabase Storage จริง
       if (window.pendingDeleteFiles && window.pendingDeleteFiles.length > 0) {
         var sbClient = null;
@@ -2529,6 +2564,7 @@
     window.currentAttachments = [];
     window.newlyUploadedFiles = [];
     window.pendingDeleteFiles = [];
+    window.pendingDetailingLogs = []; // เคลียร์คิว e-Detailing ชั่วคราว
 
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
