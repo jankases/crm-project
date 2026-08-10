@@ -54,6 +54,7 @@ window.globalIsMediaPreviewMode = false;
 window.pendingDetailingLogs = [];
 
 window.filterDebounceTimer = null; 
+window.isVisitPageReady = false; // ล็อกไม่ให้เผลอโหลดข้อมูลซ้ำซ้อน
 window.docRecognition = null; 
 window.textRecognition = null; 
 window.searchRecognition = null;
@@ -1400,12 +1401,15 @@ window.changeRowsPerPage = function() {
   window.loadVisits(true);
 };
 
+ 
 window.filterVisits = function() {
+  if (!window.isVisitPageReady) return; // 🌟 ล็อกไว้จนกว่าจะตั้งสิทธิ์เสร็จ
   window.currentPage = 1;
   window.loadVisits(true);
 };
 
 window.debouncedFilterVisits = function() {
+  if (!window.isVisitPageReady) return; // 🌟 ล็อกไว้จนกว่าจะตั้งสิทธิ์เสร็จ
   if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
   window.filterDebounceTimer = setTimeout(function() { window.filterVisits(); }, 300);
 };
@@ -2409,8 +2413,10 @@ if (!window._isAppLangListenerAttached) {
 
 window.initVisitPage = async function() {
   try {
-    await window.loadDropdowns(true);
-    await window.loadVisits(true);
+    window.isVisitPageReady = false;  // เริ่มต้นล็อกการดึงข้อมูล
+    await window.loadDropdowns(true); // รอโหลดและคำนวณสิทธิ์ทีม Manager ให้เสร็จ
+    window.isVisitPageReady = true;   // ปลดล็อก!
+    await window.loadVisits(true);    // ดึงข้อมูล Visit ทีเดียวจบ
   } catch (err) {
     console.error("Init Visits Failed:", err);
   }
