@@ -2205,11 +2205,26 @@
     document.getElementById('visitStatus').value = v.Status || 'Pending';
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
-    // 📸 1. ดึงไฟล์แนบ/รูปถ่ายเก่ามาโชว์
+    // 📸 1. ดึงไฟล์แนบ/รูปถ่ายเก่ามาโชว์ (แปลงเป็น Object ที่มี fileName ครบถ้วน)
     window.currentAttachments = [];
+    window.newlyUploadedFiles = [];
+    window.pendingDeleteFiles = [];
+
     if (v.Attachments) {
       try {
-        window.currentAttachments = typeof v.Attachments === 'string' ? JSON.parse(v.Attachments) : v.Attachments;
+        var rawArr = typeof v.Attachments === 'string' ? JSON.parse(v.Attachments) : v.Attachments;
+        if (Array.isArray(rawArr)) {
+          window.currentAttachments = rawArr.map(function(item) {
+            var fileUrl = item.url || item;
+            var cleanUrl = fileUrl.split('?')[0];
+            var fName = item.fileName || decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+            return {
+              name: item.name || fName,
+              url: fileUrl,
+              fileName: fName
+            };
+          });
+        }
       } catch (e) { window.currentAttachments = []; }
     }
     if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
@@ -2380,6 +2395,12 @@
     var lngVal = document.getElementById('visitLng') ? document.getElementById('visitLng').value : null;
     var sigData = window.getSignatureDataUrl();
 
+    // เตรียมข้อมูล Attachments ล่าสุดหลังจากกดลบ/เพิ่ม
+    var attachmentsData = null;
+    if (window.currentAttachments && window.currentAttachments.length > 0) {
+      attachmentsData = JSON.stringify(window.currentAttachments);
+    }
+
     var payload = {
       Visit_ID: targetVisitId, Rep_ID: repId, Territory_ID: territoryId, Doc_ID: docVal,
       Visit_Date: dateInput.value, Start_Time: document.getElementById('visitStartTime').value || null, End_Time: document.getElementById('visitEndTime').value || null,
@@ -2387,13 +2408,13 @@
       Next_Action: document.getElementById('visitNextAction').value.trim(), Is_Coaching: document.getElementById('visitIsCoaching').checked, 
       Status: document.getElementById('visitStatus').value, Whoupdated: whoUpdated, Whenupdated: new Date().toISOString(),
       
-      // 📍 บันทึกพิกัด GPS ลง Supabase
       CheckIn_Lat: latVal ? parseFloat(latVal) : null,
       CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
       CheckIn_Time: latVal ? new Date().toISOString() : null,
-      Attachments: window.currentAttachments.length > 0 ? JSON.stringify(window.currentAttachments) : null,
+      Attachments: attachmentsData, // 📌 ใช้ค่า Attachments ล่าสุดที่ตัดรูปออกแล้ว
       Doctor_Signature: sigData
     };
+     
 
     try {
       if (existingVisitId) {
