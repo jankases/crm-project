@@ -2375,7 +2375,21 @@ window.renderCalendarView = function() {
 // ==========================================
 // 🔗 11. INITIALIZE & EVENT LISTENERS
 // ==========================================
+
+// 🌟 1. ดักจับปุ่มและ Dropdown ไม่ให้แอบรันตอนกำลังโหลดหน้าแรก
+window.handleFilterChange = function(source) { 
+    if (window._isInitializingVisit) return; // ล็อกไว้
+    if (typeof window.filterVisits === 'function') window.filterVisits(); 
+};
+
+window.debouncedFilterVisits = function() {
+    if (window._isInitializingVisit) return; // ล็อกไว้
+    if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
+    window.filterDebounceTimer = setTimeout(function() { if (typeof window.filterVisits === 'function') window.filterVisits(); }, 300); 
+};
+
 window.updateLangUI = function() {
+    if (window._isInitializingVisit) return; // ล็อกไม่ให้เปลี่ยนภาษาดึงข้อมูลซ้อน
     var formView = document.getElementById('visitFormView');
     var isFormOpen = formView && !formView.classList.contains('d-none');
     var visitIdEl = document.getElementById('visitId');
@@ -2412,17 +2426,18 @@ if (!window._isAppLangListenerAttached) {
 }
 
 // 🔒 ตัวแปรป้องกันการแย่งกันโหลด
-window.isVisitPageReady = false;
 window._isInitializingVisit = false;
 
 window.initVisitPage = async function(forceReload) {
-    if (window._isInitializingVisit) return; // ป้องกันการเรียกซ้ำถ้ากำลังโหลดอยู่
+    if (window._isInitializingVisit) return; // ป้องกันรันซ้อน
     window._isInitializingVisit = true;
-    window.isVisitPageReady = false; // ล็อกฟิลเตอร์ไม่ให้ทำงานแทรก
 
     try {
+        // รอโหลดสิทธิ์ทีมและลูกน้องให้เสร็จสมบูรณ์ 100%
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+        
+        // ค่อยโหลดตาราง Visit (ตอนนี้สิทธิ์ลูกน้องมาครบแล้ว จะโชว์ข้อมูลได้ถูกต้อง)
         if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
@@ -2450,12 +2465,12 @@ window.initVisitPage = async function(forceReload) {
         var tbody = document.getElementById('visitTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
     } finally {
-        window.isVisitPageReady = true; // โหลดครบทุกอย่างแล้ว ปลดล็อก!
-        window._isInitializingVisit = false;
+        window._isInitializingVisit = false; // ปลดล็อกทุกอย่างให้ใช้งานได้ปกติ
     }
 };
 
-// 🏁 จุดสตาร์ทเดียวของระบบ (เรียกแค่ครั้งเดียว)
+// 🏁 จุดสตาร์ทเดียวของระบบ
+// 🌟 เปลี่ยนจาก 50ms เป็น 300ms ให้ระบบ Login และเชื่อมต่อฐานข้อมูลตั้งตัวเสร็จก่อน
 setTimeout(function() { 
   window.initVisitPage(true); 
-}, 50);
+}, 300);
