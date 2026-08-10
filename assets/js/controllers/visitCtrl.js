@@ -1158,13 +1158,18 @@ window.loadVisits = async function(forceReload) {
   var tbody = document.getElementById('visitTableBody');
  
   if (tbody) {
+      // 🌐 เช็กภาษาปัจจุบัน
+      var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      var loadingTitle = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+      var loadingDesc = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+
       tbody.innerHTML = 
       '<tr>' +
         '<td colspan="6" class="text-center py-5">' +
           '<div class="d-flex flex-column align-items-center justify-content-center my-4">' +
             '<div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>' +
-            '<h5 class="text-dark fw-bold mb-1">กำลังเตรียมข้อมูล...</h5>' +
-            '<span class="text-muted small">ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ</span>' +
+            '<h5 class="text-dark fw-bold mb-1">' + loadingTitle + '</h5>' +
+            '<span class="text-muted small">' + loadingDesc + '</span>' +
           '</div>' +
         '</td>' +
       '</tr>';
