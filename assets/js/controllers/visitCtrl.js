@@ -1297,8 +1297,8 @@ window.renderVisitTableServerSide = function() {
 
     var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
     var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
-    var coachingBadgeText = appLang === 'en' ? 'Coaching' : 'ออกเยี่ยมร่วม / โค้ชชิ่ง';
-    var coachingBadge = v.Is_Coaching ? '<br><span class="badge bg-info text-white mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-user-group me-1"></i>' + coachingBadgeText + '</span>' : '';
+    var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
+    var coachingBadge = v.Is_Coaching ? ' <i class="fa-solid fa-clipboard-user text-info ms-2" title="' + coachingTooltip + '"></i>' : '';
     var docWithBadge = docNameShow + coachingBadge;
     var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
 
