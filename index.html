@@ -122,8 +122,8 @@
 
     async function loadLoginComponent() {
       try {
-        // ตรวจสอบ Path ของไฟล์ Login ให้ถูกต้อง
-        const response = await fetch('pages/Login.html').catch(() => fetch('Login.html'));
+        // ดึง Login.html จาก Root Directory ตรงๆ
+        const response = await fetch('Login.html');
         if (!response.ok) throw new Error("File Login.html not found");
         const htmlText = await response.text();
         const container = document.getElementById('loginComponent');
