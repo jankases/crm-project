@@ -2373,7 +2373,7 @@ window.renderCalendarView = function() {
 };
 
 // ==========================================
-// 🚀 16. INITIALIZATION
+// 🔗 11. INITIALIZE & EVENT LISTENERS
 // ==========================================
 window.updateLangUI = function() {
     var formView = document.getElementById('visitFormView');
@@ -2398,7 +2398,7 @@ window.updateLangUI = function() {
         });
     } 
     
-    if (typeof window.renderVisitTableServerSide === 'function') window.renderVisitTableServerSide();
+    if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
@@ -2411,17 +2411,51 @@ if (!window._isAppLangListenerAttached) {
     window._isAppLangListenerAttached = true;
 }
 
-window.initVisitPage = async function() {
-  try {
-    window.isVisitPageReady = false;  // เริ่มต้นล็อกการดึงข้อมูล
-    await window.loadDropdowns(true); // รอโหลดและคำนวณสิทธิ์ทีม Manager ให้เสร็จ
-    window.isVisitPageReady = true;   // ปลดล็อก!
-    await window.loadVisits(true);    // ดึงข้อมูล Visit ทีเดียวจบ
-  } catch (err) {
-    console.error("Init Visits Failed:", err);
-  }
+// 🔒 ตัวแปรป้องกันการแย่งกันโหลด
+window.isVisitPageReady = false;
+window._isInitializingVisit = false;
+
+window.initVisitPage = async function(forceReload) {
+    if (window._isInitializingVisit) return; // ป้องกันการเรียกซ้ำถ้ากำลังโหลดอยู่
+    window._isInitializingVisit = true;
+    window.isVisitPageReady = false; // ล็อกฟิลเตอร์ไม่ให้ทำงานแทรก
+
+    try {
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
+        if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+        if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
+        if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
+
+        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+          setLanguage(currentLang);
+        }
+
+        var crmUser = null; 
+        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+        var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
+        var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1;
+        var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
+        var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
+        var isSales = !isGlobalViewer && !isBuHead && !isManager;
+
+        // เลือกหน้าแรกที่จะแสดง (List หรือ Calendar) ตาม Role
+        if (isSales && window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'list') {
+            if (typeof window.toggleMainView === 'function') window.toggleMainView('calendar');
+        } else {
+            if (typeof window.toggleMainView === 'function') window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
+        }
+
+    } catch(err) {
+        console.error("Init Visits Failed:", err);
+        var tbody = document.getElementById('visitTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
+    } finally {
+        window.isVisitPageReady = true; // โหลดครบทุกอย่างแล้ว ปลดล็อก!
+        window._isInitializingVisit = false;
+    }
 };
 
-setTimeout(function() {
-  window.initVisitPage();
+// 🏁 จุดสตาร์ทเดียวของระบบ (เรียกแค่ครั้งเดียว)
+setTimeout(function() { 
+  window.initVisitPage(true); 
 }, 50);
