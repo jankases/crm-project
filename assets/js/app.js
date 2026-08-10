@@ -5,7 +5,7 @@ function checkAuthSession() {
   const user = sessionStorage.getItem('crmUser');
   if (!user) {
     // ถ้าไม่มี Session ให้ส่งกลับหน้า Login
-    window.location.href = '/login.html';
+    window.location.href = '/Login.html';
     return false;
   }
   return JSON.parse(user);
