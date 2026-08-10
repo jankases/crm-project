@@ -128,7 +128,6 @@ window.loadVisits = async function(forceReload) {
   var to = from + limit - 1;
 
   try {
-    var smartSearchKey = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim() : '';
     var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
     var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
@@ -136,31 +135,24 @@ window.loadVisits = async function(forceReload) {
     var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
     if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
-    // สร้าง Supabase Query ดึงเรกคอร์ดตามจาก-ถึง
+    // 1. ดึง Visit_Logs แบบตัด range (ลบ Visit_Products(*) ออกเพื่อไม่ให้ Error)
     var query = window.supabaseClient
       .from('Visit_Logs')
-      .select('*, Visit_Products(*)', { count: 'exact' });
+      .select('*', { count: 'exact' });
 
-    var sortColMap = {
-      'date': 'Visit_Date',
-      'status': 'Status',
-      'purpose': 'Purpose_ID'
-    };
+    var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
 
-    // ใส่ Filters
     if (statusTerm) query = query.eq('Status', statusTerm);
     if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
     if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
 
-    // สิทธิ์การเข้าถึงข้อมูล
     if (!window.myIsGlobalViewer && window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
       query = query.in('Rep_ID', window.myAllowedRepIds);
     }
 
-    // 📌 ดึงเฉพาะแถว index from ถึง to (Server-side Pagination)
     query = query.range(from, to);
 
     var res = await query;
@@ -168,6 +160,15 @@ window.loadVisits = async function(forceReload) {
 
     window.globalVisits = res.data || [];
     window.totalVisitsCount = res.count || 0;
+
+    // 2. ดึงข้อมูล Visit_Products ของแถวที่ดึงมาได้แยกต่างหาก
+    if (window.globalVisits.length > 0) {
+      var visitIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
+      var vpRes = await window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', visitIds);
+      window.globalVisitProducts = vpRes.data || [];
+    } else {
+      window.globalVisitProducts = [];
+    }
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
 
