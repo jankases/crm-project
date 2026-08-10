@@ -2205,7 +2205,7 @@
     document.getElementById('visitStatus').value = v.Status || 'Pending';
     document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
-    // 📸 1. ดึงไฟล์แนบ/รูปถ่ายเก่ามาโชว์ (แปลงเป็น Object ที่มี fileName ครบถ้วน)
+    // 📸 1. ดึงไฟล์แนบ/รูปถ่ายเก่ามาโชว์ (สร้างโครงสร้างที่มี fileName ชัดเจน)
     window.currentAttachments = [];
     window.newlyUploadedFiles = [];
     window.pendingDeleteFiles = [];
@@ -2215,11 +2215,11 @@
         var rawArr = typeof v.Attachments === 'string' ? JSON.parse(v.Attachments) : v.Attachments;
         if (Array.isArray(rawArr)) {
           window.currentAttachments = rawArr.map(function(item) {
-            var fileUrl = item.url || item;
+            var fileUrl = typeof item === 'string' ? item : (item.url || '');
             var cleanUrl = fileUrl.split('?')[0];
-            var fName = item.fileName || decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+            var fName = (typeof item === 'object' && item.fileName) ? item.fileName : decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
             return {
-              name: item.name || fName,
+              name: (typeof item === 'object' && item.name) ? item.name : fName,
               url: fileUrl,
               fileName: fName
             };
@@ -2414,7 +2414,6 @@
       Attachments: attachmentsData, // 📌 ใช้ค่า Attachments ล่าสุดที่ตัดรูปออกแล้ว
       Doctor_Signature: sigData
     };
-     
 
     try {
       if (existingVisitId) {
@@ -2435,9 +2434,19 @@
 
       // 🗑️ ประมวลผลลบไฟล์ที่อยู่ใน Queue ลบออกจาก Supabase Storage จริง
       if (window.pendingDeleteFiles && window.pendingDeleteFiles.length > 0) {
-        var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
+        var sbClient = null;
+        if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
+        else if (window.supabase && window.supabase.storage) sbClient = window.supabase;
+        else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
+
         if (sbClient && sbClient.storage) {
-          await sbClient.storage.from('visit-attachments').remove(window.pendingDeleteFiles);
+          try {
+            var { data, error } = await sbClient.storage.from('visit-attachments').remove(window.pendingDeleteFiles);
+            if (error) console.error("Storage delete error on save:", error.message);
+            else console.log("Successfully deleted pending files from Storage:", data);
+          } catch (err) {
+            console.error("Error deleting pending files:", err);
+          }
         }
       }
       // เคลียร์ค่า Queue เมื่อบันทึกสำเร็จ
@@ -2491,7 +2500,7 @@
   };
 
   // 3. ปุ่ม Cancel Visit (ยกเลิกการแก้ไข / เคลียร์ State และ Cleanup รูปขยะ)
- window.cancelVisitForm = async function() {
+  window.cancelVisitForm = async function() {
     if (typeof window.clearFormDraft === 'function') {
       var vInput = document.getElementById('visitId');
       var draftKey = (vInput && vInput.value) ? vInput.value : 'NEW';
@@ -3036,8 +3045,8 @@
     });
     container.innerHTML = html;
   };
- 
-// 🗑️ ลบรูปถ่าย/ไฟล์แนบ (สลับเข้า Pending Queue ห้ามลบ Storage ทันที)
+
+  // 🗑️ ลบรูปถ่าย/ไฟล์แนบ (สลับเข้า Pending Queue ห้ามลบ Storage ทันที)
   window.removeAttachment = function(index) {
     var targetItem = window.currentAttachments[index];
     if (!targetItem) return;
@@ -3051,13 +3060,15 @@
 
     var newIdx = window.newlyUploadedFiles.indexOf(fileName);
     if (newIdx !== -1) {
-      // กรณี: อัปโหลดรูปใหม่ในรอบนี้ แล้วเปลี่ยนใจกดลบ ให้ลบออกจาก Storage ทันทีได้เลย
+      // กรณี: อัปโหลดรูปใหม่ในรอบนี้ แล้วเปลี่ยนใจกดลบ ให้ลบออกจาก Storage ทันที
       window.newlyUploadedFiles.splice(newIdx, 1);
       var sbClient = typeof supabase !== 'undefined' ? supabase : (window.supabase || window.supabaseClient);
       if (sbClient && sbClient.storage) sbClient.storage.from('visit-attachments').remove([fileName]);
     } else {
       // กรณี: ไฟล์เดิมจาก DB ให้พักไว้ใน pendingDeleteFiles (ลบจริงเมื่อ Save เท่านั้น)
-      window.pendingDeleteFiles.push(fileName);
+      if (fileName && window.pendingDeleteFiles.indexOf(fileName) === -1) {
+        window.pendingDeleteFiles.push(fileName);
+      }
     }
 
     window.currentAttachments.splice(index, 1);
@@ -3230,6 +3241,4 @@
       canvas.style.backgroundColor = isReadOnly ? '#f8fafc' : '#ffffff';
     }
   };
-
- 
 </script>
