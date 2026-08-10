@@ -311,7 +311,6 @@ window.checkMyDraftsReminder = function(myDraftCount) {
   var toastContainer = document.getElementById('draftToastContainer');
   if (!toastContainer) return;
 
-  // เช็กว่า Session นี้เคยแสดงการแจ้งเตือนไปแล้วหรือยัง
   if (sessionStorage.getItem('hasShownDraftReminder') === 'true') {
     toastContainer.innerHTML = '';
     return;
@@ -553,7 +552,6 @@ window.closeMediaPresentation = async function() {
   var now = new Date();
   var totalDurationSec = window.presentationStartTime ? Math.round((now - window.presentationStartTime) / 1000) : 0;
 
-  // ถ้าไม่ใช่ Preview Mode และดูเกิน 5 วินาที ให้พักข้อมูลไว้ในคิวชั่วคราว (ยังไม่บันทึกลง DB)
   if (!window.globalIsMediaPreviewMode && totalDurationSec >= 5 && window.currentActiveMedia) {
     var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
@@ -1604,7 +1602,7 @@ window.openEditVisitView = async function(visitId) {
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
-  window.pendingDetailingLogs = []; // เคลียร์คิว e-Detailing ชั่วคราว
+  window.pendingDetailingLogs = [];
 
   if (v.Attachments) {
     try {
@@ -1701,7 +1699,7 @@ window.openAddVisitView = async function(presetDate) {
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
-  window.pendingDetailingLogs = []; // เคลียร์คิว e-Detailing ชั่วคราว
+  window.pendingDetailingLogs = [];
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
   if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
@@ -1825,7 +1823,6 @@ window.handleSaveVisit = async function(e) {
         if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
     }
 
-    // 📊 บันทึก Log e-Detailing จากคิวลงฐานข้อมูล Supabase จริงเมื่อกด Save
     if (window.pendingDetailingLogs && window.pendingDetailingLogs.length > 0) {
       for (var dIdx = 0; dIdx < window.pendingDetailingLogs.length; dIdx++) {
         var itemLog = window.pendingDetailingLogs[dIdx];
@@ -1861,7 +1858,6 @@ window.handleSaveVisit = async function(e) {
     }
     window.pendingDetailingLogs = [];
 
-    // 🗑️ ประมวลผลลบไฟล์ที่อยู่ใน Queue ลบออกจาก Supabase Storage จริง
     if (window.pendingDeleteFiles && window.pendingDeleteFiles.length > 0) {
       var sbClient = null;
       if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
@@ -1951,11 +1947,10 @@ window.cancelVisitForm = async function() {
     }
   }
 
-  // Reset Queue ทั้งหมด
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
-  window.pendingDetailingLogs = []; // เคลียร์คิว e-Detailing ชั่วคราว
+  window.pendingDetailingLogs = [];
 
   var returnDocId = sessionStorage.getItem('returnToDocId');
   if (returnDocId) {
@@ -2294,39 +2289,52 @@ if (!window._isAppLangListenerAttached) {
     window._isAppLangListenerAttached = true;
 }
 
-setTimeout(async function() { 
+// 📌 ฟังก์ชันบังคับ Initial ข้อมูลใหม่ทุกครั้งที่เข้ามาหน้านี้ (แก้ปัญหา F5 ถึงจะขึ้นข้อมูล)
+window.initVisitPage = async function() {
   try {
-    if (!window.VisitManagerCache || !window.VisitManagerCache.isLoaded) {
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(); 
-        if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-        if (typeof window.loadVisits === 'function') await window.loadVisits(); 
-        if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
+    if (window.VisitManagerCache) {
+      window.VisitManagerCache.dropdownsLoaded = false;
+      window.VisitManagerCache.isLoaded = false;
+    }
+
+    await window.loadDropdowns(true);
+    if (typeof window.initUserInfo === 'function') window.initUserInfo();
+    await window.loadVisits(true);
+
+    if (typeof window.fetchDetailingMedia === 'function') {
+      await window.fetchDetailingMedia();
     }
 
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
       setLanguage(currentLang);
     }
 
-    var crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch (err) {}
+    var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
     var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1;
     var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
     var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
     var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
     if (isSales && window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'list') {
-        if (typeof window.toggleMainView === 'function') window.toggleMainView('calendar');
+      if (typeof window.toggleMainView === 'function') window.toggleMainView('calendar');
     } else {
-        if (typeof window.toggleMainView === 'function') window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
+      if (typeof window.toggleMainView === 'function') {
+        window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
+      }
     }
 
-  } catch(err) {
+  } catch (err) {
     console.error("Init Visits Failed:", err);
     var tbody = document.getElementById('visitTableBody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
   }
-}, 100);
+};
+
+setTimeout(function() {
+  window.initVisitPage();
+}, 50);
 
 // ==========================================
 // 📍 GPS LOCATION FUNCTIONS
