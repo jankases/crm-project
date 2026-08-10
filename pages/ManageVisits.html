@@ -905,10 +905,19 @@
 
   window.clearFormDraft = function(visitId) { localStorage.removeItem('visitDraft_' + (visitId || 'NEW')); };
 
-  window.checkMyDraftsReminder = function(myDraftCount) {
+ window.checkMyDraftsReminder = function(myDraftCount) {
     var toastContainer = document.getElementById('draftToastContainer');
     if (!toastContainer) return;
+
+    // เช็ก Flag จาก sessionStorage (ซึ่ง app.js จะล้างให้เองเมื่อ Logout)
+    if (sessionStorage.getItem('hasShownDraftReminder') === 'true') {
+      toastContainer.innerHTML = '';
+      return;
+    }
+
     if (myDraftCount > 0) {
+      sessionStorage.setItem('hasShownDraftReminder', 'true');
+
       toastContainer.innerHTML = 
         '<div class="draft-toast" id="myDraftToast">' +
           '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
@@ -918,7 +927,11 @@
           '</div>' +
           '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
         '</div>';
-      setTimeout(function() { var t = document.getElementById('myDraftToast'); if (t) t.remove(); }, 7000);
+        
+      setTimeout(function() { 
+        var t = document.getElementById('myDraftToast'); 
+        if (t) t.remove(); 
+      }, 7000);
     } else {
       toastContainer.innerHTML = '';
     }
