@@ -128,31 +128,60 @@ window.loadVisits = async function(forceReload) {
   var to = from + limit - 1;
 
   try {
-    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
-    var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-    var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+    // 1. อ่านข้อมูล User และ Role จาก Session สดใหม่เสมอ
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     
-    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
-    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
-    // 1. ดึง Visit_Logs แบบตัด range (ลบ Visit_Products(*) ออกเพื่อไม่ให้ Error)
+    // 2. กำหนด Flag สิทธิ์
+    var isGlobal = (!rawScope || rawScope.indexOf('ALL') === 0 || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRoleUpper) !== -1);
+    window.myIsGlobalViewer = isGlobal;
+
+    // 3. เริ่มสร้าง Query
     var query = window.supabaseClient
       .from('Visit_Logs')
       .select('*', { count: 'exact' });
 
+    // Ordering
     var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
+
+    // 4. กรองสิทธิ์ความปลอดภัย (Security Check)
+    if (!window.myIsGlobalViewer) {
+      var allowedIds = [];
+      
+      // ดึงสิทธิ์ลูกน้องที่คำนวณไว้ใน setupFiltersDropdowns
+      if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
+        allowedIds = [...window.myAllowedRepIds];
+      }
+      
+      // ใส่ Rep_ID ตัวเองเข้าไปด้วยเสมอ
+      if (myRepId && allowedIds.indexOf(myRepId) === -1) {
+        allowedIds.push(myRepId);
+      }
+
+      if (allowedIds.length > 0) {
+        query = query.in('Rep_ID', allowedIds);
+      }
+    }
+
+    // 5. กรองตาม UI Filters
+    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
+    var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
+    var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
+    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
     if (statusTerm) query = query.eq('Status', statusTerm);
     if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
     if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
 
-    if (!window.myIsGlobalViewer && window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-      query = query.in('Rep_ID', window.myAllowedRepIds);
-    }
-
+    // 6. ตัดแบ่งหน้า (Server-side Range)
     query = query.range(from, to);
 
     var res = await query;
@@ -161,10 +190,10 @@ window.loadVisits = async function(forceReload) {
     window.globalVisits = res.data || [];
     window.totalVisitsCount = res.count || 0;
 
-    // 2. ดึงข้อมูล Visit_Products ของแถวที่ดึงมาได้แยกต่างหาก
+    // 7. ดึงข้อมูล Visit_Products ของแถวที่ได้มา
     if (window.globalVisits.length > 0) {
-      var visitIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
-      var vpRes = await window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', visitIds);
+      var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
+      var vpRes = await window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds);
       window.globalVisitProducts = vpRes.data || [];
     } else {
       window.globalVisitProducts = [];
