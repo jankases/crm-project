@@ -240,7 +240,13 @@
           }
         });
 
+        // 📌 สั่งโหลดหน้า visit และเรียก Init ใหม่เพื่อบังคับดึง Data ล่าสุดตาม Session
         loadComponent('visit');
+        setTimeout(() => {
+          if (typeof window.initVisitPage === 'function') {
+            window.initVisitPage();
+          }
+        }, 100);
 
       } else {
         if (loginScreen) {
