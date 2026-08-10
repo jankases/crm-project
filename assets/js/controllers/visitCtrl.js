@@ -1156,7 +1156,19 @@ window.clearVisitFilters = function() {
 // ==========================================
 window.loadVisits = async function(forceReload) {
   var tbody = document.getElementById('visitTableBody');
-  if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+ 
+  if (tbody) {
+      tbody.innerHTML = 
+      '<tr>' +
+        '<td colspan="6" class="text-center py-5">' +
+          '<div class="d-flex flex-column align-items-center justify-content-center my-4">' +
+            '<div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>' +
+            '<h5 class="text-dark fw-bold mb-1">กำลังเตรียมข้อมูล...</h5>' +
+            '<span class="text-muted small">ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ</span>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+  }
 
   var page = window.currentPage || 1;
   var limit = parseInt(window.rowsPerPage) || 20;
