@@ -2415,22 +2415,19 @@ window.renderCalendarView = function() {
 };
 
 
-
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS (Anti-Flicker Version)
+// 🔗 11. INITIALIZE & EVENT LISTENERS (The Ultimate Fix)
 // ==========================================
 
-// 🌟 สร้างกำแพงล็อก! ป้องกันการโหลด 2 จังหวะ
-window.isInitialLoading = true; 
+window.isInitialLoading = true;
+window._isInitRunning = false; // 🔒 ตัวล็อกป้องกันฟังก์ชันโหลดข้อมูลทำงานซ้อนกัน 2 รอบ
 
 window.handleFilterChange = function(source) { 
-    // 🛑 ถ้ากำลังโหลดหน้าแรก ห้ามรันฟิลเตอร์เด็ดขาด!
     if (window.isInitialLoading) return; 
     if (typeof window.filterVisits === 'function') window.filterVisits(); 
 };
 
 window.debouncedFilterVisits = function() {
-    // 🛑 ถ้ากำลังโหลดหน้าแรก ห้ามรันฟิลเตอร์เด็ดขาด!
     if (window.isInitialLoading) return; 
     if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
     window.filterDebounceTimer = setTimeout(function() { 
@@ -2476,11 +2473,18 @@ if (!window._isAppLangListenerAttached) {
 }
 
 window.initVisitPage = async function(forceReload) {
-    window.isInitialLoading = true; // 🔒 ล็อกกำแพงทันทีที่เริ่มรัน
+    // 🛑 หากฟังก์ชันนี้กำลังรันอยู่ ห้ามรันซ้อนเด็ดขาด! (จุดนี้แหละที่แก้ปัญหาโหลด 2 จังหวะ)
+    if (window._isInitRunning) {
+        console.log("Blocking overlapped initVisitPage call.");
+        return;
+    }
+
+    window._isInitRunning = true; // 🔒 ล็อกประตู
+    window.isInitialLoading = true; // 🔒 ล็อกไม่ให้ปลั๊กอินค้นหาทำงาน
 
     var tbody = document.getElementById('visitTableBody');
 
-    // สาด Loading ทันที ป้องกันหน้าแหว่ง
+    // วาด Spinner ลงไป 1 ครั้งถ้วน
     if (tbody) {
         var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -2489,7 +2493,6 @@ window.initVisitPage = async function(forceReload) {
     }
 
     try {
-        // จัดลำดับการโหลดใหม่: ให้ Dropdowns โหลดให้เสร็จก่อน แล้วค่อยโหลดข้อมูลตาราง
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
         if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
@@ -2503,21 +2506,20 @@ window.initVisitPage = async function(forceReload) {
         if (formView && !formView.classList.contains('d-none')) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
         }
-
     } catch(err) {
         console.error("Init Visits Failed:", err);
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
-        // 🔓 โหลดข้อมูลครบ 100% แล้ว ปลดล็อกกำแพงได้!
         window.isInitialLoading = false; 
+        window._isInitRunning = false; // 🔓 ปลดล็อกประตูให้ทำงานรอบถัดไปได้เมื่อทุกอย่างเสร็จสิ้น
         
-        // 🎯 สั่งวาดตารางแค่ "ครั้งเดียว" ในตอนจบ (จะโชว์ 8 รายการรวดเดียว ไม่มีกระตุก)
+        // สั่งวาดตารางแค่ครั้งเดียวตอนจบ ได้ครบ 8 รายการเลย
         if (typeof window.filterVisits === 'function') window.filterVisits(false);
     }
 };
 
 // ==========================================
-// 👁️ SPA DOM WATCHER (กันโหลดค้างตอนกดเมนู)
+// 👁️ SPA DOM WATCHER (ยามเฝ้าหน้าจอ แก้ปัญหาเมนูค้าง)
 // ==========================================
 if (!window._visitObserverAttached) {
     var visitObserver = new MutationObserver(function(mutations) {
@@ -2537,8 +2539,10 @@ if (!window._visitObserverAttached) {
     window._visitObserverAttached = true;
 }
 
-// เริ่มรันระบบ
-window.initVisitPage(true); 
+// เริ่มรันระบบครั้งแรก (หน่วงเวลาเล็กน้อยเพื่อให้เบราว์เซอร์เตรียมตัว)
+setTimeout(function() {
+    window.initVisitPage(true); 
+}, 50);
 
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
