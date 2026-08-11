@@ -1456,15 +1456,17 @@ window.changeRowsPerPage = function() {
 
  
 window.filterVisits = function() {
-  if (!window.isVisitPageReady) return; // 🌟 ล็อกไว้จนกว่าจะตั้งสิทธิ์เสร็จ
-  window.currentPage = 1;
-  window.loadVisits(true);
+    // 🌟 เปลี่ยนมาใช้ตัวล็อกตัวใหม่ ถ้ากำลังโหลดหน้าแรกอยู่ ห้ามดึงข้อมูลซ้ำ
+    if (window.isInitialLoading) return; 
+    window.currentPage = 1;
+    // 🌟 พอกดเปลี่ยน Filter ต้องบังคับให้วิ่งไปดึงข้อมูลที่ตรงเงื่อนไขจาก DB เสมอ
+    window.loadVisits(true); 
 };
 
 window.debouncedFilterVisits = function() {
-  if (!window.isVisitPageReady) return; // 🌟 ล็อกไว้จนกว่าจะตั้งสิทธิ์เสร็จ
-  if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
-  window.filterDebounceTimer = setTimeout(function() { window.filterVisits(); }, 300);
+    if (window.isInitialLoading) return; 
+    if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
+    window.filterDebounceTimer = setTimeout(function() { window.filterVisits(); }, 300);
 };
 
 window.sortVisits = function(col) {
@@ -2519,10 +2521,7 @@ window.initVisitPage = async function(forceReload) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
         window.isInitialLoading = false; 
-        window._isInitRunning = false; 
-        
-        // วาดตาราง โดยมันจะจำ Filter ล่าสุดเอาไว้ด้วย
-        if (typeof window.filterVisits === 'function') window.filterVisits(false);
+        window._isInitRunning = false;  
     }
 };
 
