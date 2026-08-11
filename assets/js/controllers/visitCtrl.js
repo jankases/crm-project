@@ -2415,15 +2415,23 @@ window.renderCalendarView = function() {
 };
 
 
+
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS (SPA Ultimate Fix)
+// 🔗 11. INITIALIZE & EVENT LISTENERS (Anti-Flicker Version)
 // ==========================================
 
+// 🌟 สร้างกำแพงล็อก! ป้องกันการโหลด 2 จังหวะ
+window.isInitialLoading = true; 
+
 window.handleFilterChange = function(source) { 
+    // 🛑 ถ้ากำลังโหลดหน้าแรก ห้ามรันฟิลเตอร์เด็ดขาด!
+    if (window.isInitialLoading) return; 
     if (typeof window.filterVisits === 'function') window.filterVisits(); 
 };
 
 window.debouncedFilterVisits = function() {
+    // 🛑 ถ้ากำลังโหลดหน้าแรก ห้ามรันฟิลเตอร์เด็ดขาด!
+    if (window.isInitialLoading) return; 
     if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
     window.filterDebounceTimer = setTimeout(function() { 
         if (typeof window.filterVisits === 'function') window.filterVisits(); 
@@ -2431,6 +2439,8 @@ window.debouncedFilterVisits = function() {
 };
 
 window.updateLangUI = function() {
+    if (window.isInitialLoading) return; 
+
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
@@ -2466,19 +2476,22 @@ if (!window._isAppLangListenerAttached) {
 }
 
 window.initVisitPage = async function(forceReload) {
+    window.isInitialLoading = true; // 🔒 ล็อกกำแพงทันทีที่เริ่มรัน
+
     var tbody = document.getElementById('visitTableBody');
 
-    // วาด Spinner วงใหญ่ทับทันที กลบ HTML ดิบที่อาจจะค้างอยู่
+    // สาด Loading ทันที ป้องกันหน้าแหว่ง
     if (tbody) {
         var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังประมวลผลข้อมูล...';
+        var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังตรวจสอบสิทธิ์และดึงข้อมูล...';
         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadTitle + '</h5><span class="text-muted small">' + loadDesc + '</span></div></td></tr>';
     }
 
     try {
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
+        // จัดลำดับการโหลดใหม่: ให้ Dropdowns โหลดให้เสร็จก่อน แล้วค่อยโหลดข้อมูลตาราง
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
         if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
@@ -2495,12 +2508,16 @@ window.initVisitPage = async function(forceReload) {
         console.error("Init Visits Failed:", err);
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
+        // 🔓 โหลดข้อมูลครบ 100% แล้ว ปลดล็อกกำแพงได้!
+        window.isInitialLoading = false; 
+        
+        // 🎯 สั่งวาดตารางแค่ "ครั้งเดียว" ในตอนจบ (จะโชว์ 8 รายการรวดเดียว ไม่มีกระตุก)
         if (typeof window.filterVisits === 'function') window.filterVisits(false);
     }
 };
 
 // ==========================================
-// 👁️ SPA DOM WATCHER (ยามเฝ้าหน้าจอ แก้ปัญหาค้าง 100%)
+// 👁️ SPA DOM WATCHER (กันโหลดค้างตอนกดเมนู)
 // ==========================================
 if (!window._visitObserverAttached) {
     var visitObserver = new MutationObserver(function(mutations) {
@@ -2508,9 +2525,7 @@ if (!window._visitObserverAttached) {
             if (mutation.addedNodes) {
                 mutation.addedNodes.forEach(function(node) {
                     if (node.nodeType === 1) {
-                        // ถ้าพบว่ามีตาราง Visit ถูกแปะลงมาบนจอใหม่ (ผู้ใช้เพิ่งคลิกเมนู)
                         if (node.id === 'visitTableBody' || (node.querySelector && node.querySelector('#visitTableBody'))) {
-                            console.log('🔄 SPA Navigation Detected: Reloading data...');
                             if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
                         }
                     }
@@ -2518,16 +2533,13 @@ if (!window._visitObserverAttached) {
             }
         });
     });
-    
-    // สั่งให้ยามจับตามองการเปลี่ยนแปลงทั้งหน้าจอ
     visitObserver.observe(document.body, { childList: true, subtree: true });
     window._visitObserverAttached = true;
 }
 
-// สั่งรันครั้งแรกสำหรับตอน Login เข้ามาใหม่
+// เริ่มรันระบบ
 window.initVisitPage(true); 
 
-// ผูกฟังก์ชันปุ่ม Refresh
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
     btnRef.onclick = function() { window.initVisitPage(true); };
