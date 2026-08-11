@@ -813,6 +813,7 @@ window.deleteTot = async function() {
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
 window.loadDropdowns = async function(forceReload) {
+  window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1230,6 +1231,7 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
             if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
         }
     }
+  window.isPermissionCalculated = true; // 🚦 เปิดไฟเขียว: คำนวณสิทธิ์เสร็จแล้ว ดึงตารางได้!
 };
 
 window.renderFormProductDropdown = async function() {
@@ -1338,6 +1340,14 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 window.loadVisits = async function(forceReload) {
+
+  // 🚦 บังคับจอดรอ: ถ้าไฟยังไม่เขียว (ยังคำนวณสิทธิ์ไม่เสร็จ) ให้รอสูงสุด 5 วินาที
+    var waitLimit = 0;
+    while (!window.isPermissionCalculated && waitLimit < 50) {
+        await new Promise(r => setTimeout(r, 100));
+        waitLimit++;
+    }
+  
   if (typeof window.loadMasterDataForVisits === 'function') {
         await window.loadMasterDataForVisits();
     }
