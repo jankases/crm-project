@@ -2419,18 +2419,18 @@ window.renderCalendarView = function() {
 // ==========================================
 
 window.handleFilterChange = function(source) { 
-    if (!window.isVisitPageReady) return; 
+    if (window._isInitPhase) return; // 🔒 ล็อกไม่ให้ปลั๊กอินแอบรันตอนกำลังตั้งค่า
     if (typeof window.filterVisits === 'function') window.filterVisits(); 
 };
 
 window.debouncedFilterVisits = function() {
-    if (!window.isVisitPageReady) return; 
+    if (window._isInitPhase) return; 
     if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
     window.filterDebounceTimer = setTimeout(function() { if (typeof window.filterVisits === 'function') window.filterVisits(); }, 300); 
 };
 
 window.updateLangUI = function() {
-    if (!window.isVisitPageReady) return; 
+    if (window._isInitPhase) return; 
     var formView = document.getElementById('visitFormView');
     var isFormOpen = formView && !formView.classList.contains('d-none');
     var visitIdEl = document.getElementById('visitId');
@@ -2466,16 +2466,19 @@ if (!window._isAppLangListenerAttached) {
     window._isAppLangListenerAttached = true;
 }
 
-// 🔓 ปลดล็อกทุกอย่างทันทีเมื่อโหลดไฟล์นี้
-window.isVisitPageReady = false;
-
 window.initVisitPage = async function(forceReload) {
-    window.isVisitPageReady = false; 
+    window._isInitPhase = true; // 🔒 เปิดโหมดล็อกป้องกันโหลด 2 จังหวะ
     
     try {
         var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
         var shouldFetchDB = (forceReload === true || !hasCache);
 
+        // 🌟 FAST RENDER: ถ้ามี Cache อยู่แล้ว ให้วาดตารางโชว์ทันที! (แก้ปัญหาหน้า Loading ค้าง)
+        if (hasCache && !shouldFetchDB) {
+            if (typeof window.filterVisits === 'function') window.filterVisits(false);
+        }
+
+        // โหลดองค์ประกอบอื่นๆ
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
@@ -2493,26 +2496,28 @@ window.initVisitPage = async function(forceReload) {
     } catch(err) {
         console.error("Init Visits Failed:", err);
         var tbody = document.getElementById('visitTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
-        window.isVisitPageReady = true; 
-        if (typeof window.filterVisits === 'function') window.filterVisits(false); 
+        window._isInitPhase = false; // 🔓 ปลดล็อกระบบ
+        if (typeof window.filterVisits === 'function') window.filterVisits(false); // วาดตารางอัปเดตให้สมบูรณ์
     }
 };
 
-// 🚀 สั่งรันทันทีโดยไม่ใช้ setTimeout! (แก้ปัญหาโหลดกระตุก / UI แหว่ง)
-window.initVisitPage(false); 
-
-// 🔄 ผูกปุ่ม Refresh ให้ทำงานได้สมบูรณ์แบบ
-var btnRef = document.getElementById('btnRefreshVisits');
-if (btnRef) {
-    btnRef.onclick = function() {
-        var tbody = document.getElementById('visitTableBody');
-        if (tbody) {
-            var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-            var loadText = currentLang === 'en' ? 'Refreshing Data...' : 'กำลังดึงข้อมูลล่าสุด...';
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2" role="status"></div><h6 class="fw-bold">' + loadText + '</h6></td></tr>';
-        }
-        window.initVisitPage(true); // บังคับดึง DB ใหม่ 100%
-    };
-}
+// 🚀 ใช้ setTimeout 150ms เพื่อให้ Browser วาดหน้า HTML ให้เสร็จก่อน ลดอาการภาพกระตุก
+setTimeout(function() { 
+    window.initVisitPage(false); 
+    
+    // 🔄 ผูกฟังก์ชันให้ปุ่ม Refresh สีฟ้า
+    var btnRef = document.getElementById('btnRefreshVisits');
+    if (btnRef) {
+        btnRef.onclick = function() {
+            var tbody = document.getElementById('visitTableBody');
+            if (tbody) {
+                var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+                var lText = cLang === 'en' ? 'Refreshing Data...' : 'กำลังดึงข้อมูลล่าสุด...';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2" role="status"></div><h6 class="fw-bold text-muted mt-2">' + lText + '</h6></td></tr>';
+            }
+            window.initVisitPage(true); // บังคับดึง DB ใหม่ 100%
+        };
+    }
+}, 150);
