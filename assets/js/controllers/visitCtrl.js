@@ -1174,16 +1174,18 @@ window.clearVisitFilters = function() {
     if (stEl) { stEl.value = ''; stEl.classList.add('filter-placeholder-text'); }
     if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
     if (typeof window.filterVisits === 'function') window.filterVisits();
-};
-
+}; 
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 window.loadVisits = async function(forceReload) {
   var tbody = document.getElementById('visitTableBody');
- 
-  if (tbody) {
-      // 🌐 เช็กภาษาปัจจุบัน
+  
+  // 🌟 1. เช็กก่อนว่ามีข้อมูลเก่าที่เคยโหลดไว้หรือไม่
+  var hasData = (window.globalVisits && window.globalVisits.length > 0);
+
+  // 🌟 2. จะกางหน้า Loading ก็ต่อเมื่อ "ถูกสั่งให้ดึง DB ใหม่" หรือ "ยังไม่มีข้อมูลเลย" เท่านั้น
+  if ((forceReload || !hasData) && tbody) {
       var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       var loadingTitle = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
       var loadingDesc = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
@@ -1200,13 +1202,19 @@ window.loadVisits = async function(forceReload) {
       '</tr>';
   }
 
-  var page = window.currentPage || 1;
-  var limit = parseInt(window.rowsPerPage) || 20;
-  var from = (page - 1) * limit;
-  var to = from + limit - 1;
-
   try {
-    // ✅ คืนชีพ: ดึงข้อมูล DCR และ TOT_Logs สำหรับใช้ร่วมกับ Calendar และระบบ Lock
+    // 🚀 3. หัวใจสำคัญของ Cache! ถ้าไม่โดนบังคับโหลด และมีข้อมูลเก่าอยู่แล้ว ให้วาดตารางเก่าโชว์ทันทีแล้ว "จบการทำงาน" เลิกกวนฐานข้อมูล!
+    if (!forceReload && window.VisitManagerCache && window.VisitManagerCache.isLoaded && hasData) {
+        window.renderVisitTableServerSide();
+        if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
+        if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+            if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
+        }
+        return; // 🛑 เบรกตรงนี้เลย!
+    }
+
+    // --- (ตั้งแต่บรรทัดนี้ลงไปคือโค้ดเดิมที่จะทำงานเฉพาะตอนที่โดนสั่ง forceReload เท่านั้น) ---
+
     if (forceReload || !window.VisitManagerCache.isLoaded) {
         var promises = [
             window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
@@ -1248,6 +1256,11 @@ window.loadVisits = async function(forceReload) {
     if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
 
+    // ✅ คืนชีพเรื่อง Pagination
+    var page = window.currentPage || 1;
+    var limit = parseInt(window.rowsPerPage) || 20;
+    var from = (page - 1) * limit;
+    var to = from + limit - 1;
     query = query.range(from, to);
 
     var res = await query;
@@ -1266,7 +1279,6 @@ window.loadVisits = async function(forceReload) {
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
 
-    // ✅ คืนชีพ: กรอง TOT Logs ลง globalFilteredTotLogs ให้พร้อมสำหรับ Calendar
     window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
         var hasAccess = false;
         if (window.myIsGlobalViewer) hasAccess = true;
@@ -1302,7 +1314,6 @@ window.loadVisits = async function(forceReload) {
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>';
   }
 };
-
 window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
