@@ -1203,7 +1203,7 @@ window.loadVisits = async function(forceReload) {
   }
 
   try {
-    // 🚀 3. หัวใจสำคัญของ Cache! ถ้าไม่โดนบังคับโหลด และมีข้อมูลเก่าอยู่แล้ว ให้วาดตารางเก่าโชว์ทันทีแล้ว "จบการทำงาน" เลิกกวนฐานข้อมูล!
+    // 🚀 3. หัวใจสำคัญของ Cache!
     if (!forceReload && window.VisitManagerCache && window.VisitManagerCache.isLoaded && hasData) {
         window.renderVisitTableServerSide();
         if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
@@ -1212,8 +1212,6 @@ window.loadVisits = async function(forceReload) {
         }
         return; // 🛑 เบรกตรงนี้เลย!
     }
-
-    // --- (ตั้งแต่บรรทัดนี้ลงไปคือโค้ดเดิมที่จะทำงานเฉพาะตอนที่โดนสั่ง forceReload เท่านั้น) ---
 
     if (forceReload || !window.VisitManagerCache.isLoaded) {
         var promises = [
@@ -1245,23 +1243,50 @@ window.loadVisits = async function(forceReload) {
       if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
     }
 
+    // --- เริ่มดึงค่าจากตัวกรองต่างๆ บนหน้าจอ ---
     var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
     var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+    
     var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
     if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
+    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
+    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+
+    // --- ใส่เงื่อนไขให้ฐานข้อมูล (Filters) ---
     if (statusTerm) query = query.eq('Status', statusTerm);
     if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
     if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
-    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
-    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
-    if (selectedTers.length > 0) {
-        query = query.in('Territory_ID', selectedTers);
+    if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
+
+    // 🌟 พระเอกของเรามาแล้ว: ระบบช่องค้นหาอัจฉริยะ (Smart Search)
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+    
+    if (smartSearchVal) {
+        var matchedDocIds = [];
+        // ค้นหาชื่อหมอจากตัวแปร Cache
+        for (var key in window._docIndex) {
+            var doc = window._docIndex[key];
+            var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
+            var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
+            
+            if (dNameEn.indexOf(smartSearchVal) !== -1 || dNameTh.indexOf(smartSearchVal) !== -1) {
+                matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
+            }
+        }
+        
+        // ถ้าเจอชื่อหมอที่ตรงกัน ให้กรองเอาเฉพาะข้อมูลของหมอคนนั้น
+        if (matchedDocIds.length > 0) {
+            query = query.in('Doc_ID', matchedDocIds);
+        } else {
+            // ถ้าพิมพ์มั่วๆ แล้วไม่เจอหมอเลย บังคับให้หา Visit_ID ที่ไม่มีอยู่จริง (ตารางจะได้ว่างเปล่า)
+            query = query.eq('Visit_ID', 'not-found');
+        }
     }
 
-    // ✅ คืนชีพเรื่อง Pagination
+    // ✅ Pagination
     var page = window.currentPage || 1;
     var limit = parseInt(window.rowsPerPage) || 20;
     var from = (page - 1) * limit;
