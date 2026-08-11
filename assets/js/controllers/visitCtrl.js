@@ -2415,41 +2415,100 @@ window.renderCalendarView = function() {
 };
 
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS (Test Version)
+// 🔗 11. INITIALIZE & EVENT LISTENERS (Final Stable Version)
 // ==========================================
 
+window.handleFilterChange = function(source) { 
+    if (typeof window.filterVisits === 'function') window.filterVisits(); 
+};
+
+window.debouncedFilterVisits = function() {
+    if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
+    window.filterDebounceTimer = setTimeout(function() { 
+        if (typeof window.filterVisits === 'function') window.filterVisits(); 
+    }, 300); 
+};
+
+window.updateLangUI = function() {
+    var formView = document.getElementById('visitFormView');
+    if (formView && !formView.classList.contains('d-none')) {
+        var visitIdEl = document.getElementById('visitId');
+        var currentVisitId = visitIdEl ? visitIdEl.value : '';
+        if (!currentVisitId || currentVisitId === 'NEW') {
+            if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+        }
+    }
+    if (typeof window.loadDropdowns === 'function') {
+        window.loadDropdowns(false).then(() => {
+            if (formView && !formView.classList.contains('d-none')) {
+                var vId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+                if (vId && vId !== 'NEW') {
+                    if (typeof window.openEditVisitView === 'function') window.openEditVisitView(vId); 
+                } else {
+                    if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
+                    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
+                }
+            }
+        });
+    } 
+    if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
+    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+        if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
+    }   
+};
+
+if (!window._isAppLangListenerAttached) {
+    window.addEventListener('appLanguageChanged', function() {
+        if (typeof window.updateLangUI === 'function') window.updateLangUI();
+    });
+    window._isAppLangListenerAttached = true;
+}
+
+window.isVisitPageReady = true;
+
 window.initVisitPage = async function(forceReload) {
-    console.log("initVisitPage called with forceReload:", forceReload); // 📝 Log เพื่อตรวจสอบการเรียกใช้งาน
-
     var tbody = document.getElementById('visitTableBody');
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded === true);
+    
+    // ถ้าไม่ได้สั่งบังคับโหลด ให้เช็กว่ามี Cache ไหม
+    var shouldFetch = (forceReload === undefined) ? !hasCache : forceReload;
 
-    // 1. วาด Spinner ทันทีที่เริ่มทำงาน (เพื่อไม่ให้หน้าแหว่ง)
+    // 🌟 วาดหน้า Loading ใหญ่ทับทันทีทุกครั้งที่รัน เพื่อรีเซ็ตหน้าจอไม่ให้แหว่ง
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">Loading Data...</h5><span class="text-muted small">Please wait...</span></div></td></tr>';
+        var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+        var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึง...';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadTitle + '</h5><span class="text-muted small">' + loadDesc + '</span></div></td></tr>';
     }
 
     try {
-        // 2. เรียกฟังก์ชันโหลดข้อมูล (สมมติว่าฟังก์ชันเหล่านี้ทำงานได้ปกติ)
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload);
-        if (typeof window.initUserInfo === 'function') window.initUserInfo();
-        if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload);
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetch); 
+        if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+        if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetch); 
+        if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
-    } catch (err) {
+        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') setLanguage(currentLang);
+        
+        var formView = document.getElementById('visitFormView');
+        if (formView && !formView.classList.contains('d-none')) {
+            if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+        }
+    } catch(err) {
         console.error("Init Visits Failed:", err);
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
-        // 3. หลังจากโหลดเสร็จ (ไม่ว่าจะสำเร็จหรือล้มเหลว) ให้ลองเรียก filterVisits(false) ดู
-        if (typeof window.filterVisits === 'function') window.filterVisits(false);
+        // 🌟 โหลดเสร็จแล้ว วาดตารางเสมอ! (แก้ปัญหาโหลดค้าง)
+        if (typeof window.filterVisits === 'function') window.filterVisits(false); 
     }
 };
 
-// สั่งรัน initVisitPage ทันที
-window.initVisitPage(true); // 📝 ลองบังคับโหลดใหม่เสมอ
+// ใช้ setTimeout 10ms เพื่อเปิดทางให้ Browser นำ HTML ไปวาดลงจอก่อน 
+// ป้องกันอาการกระตุกตอน Login
+setTimeout(function() {
+    window.initVisitPage(false); 
+}, 10);
 
-// ผูกปุ่ม Refresh ให้เรียก initVisitPage(true) เสมอ
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
-    btnRef.onclick = function() {
-        window.initVisitPage(true);
-    };
+    btnRef.onclick = function() { window.initVisitPage(true); };
 }
