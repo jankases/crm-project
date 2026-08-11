@@ -976,14 +976,12 @@ window.loadDropdowns = async function(forceReload) {
 
             var allowedDocIdsMap = {}; allowedDocIds.forEach(id => allowedDocIdsMap[id] = true);
 
-            if (window.myIsBuHead || window.myIsManager) {
-                window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; });
-                if (window.VisitManagerCache.assignedDoctors.length === 0) window.VisitManagerCache.assignedDoctors = allDoctors;
-            } else {
-                // 🌟 แก้ไขแล้ว: ให้ Sales เห็นหมอที่ผูกอยู่กับเขต (Territory_ID) ของตัวเองด้วย!
-                window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
-                    return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; 
-                });
+            
+              // 🌟 ลบ if...else ทิ้งไปเลย แล้วใช้แค่บล็อกนี้ครับ! ทุกตำแหน่งจะใช้มาตรฐานเดียวกันหมด
+            window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
+                return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; 
+            });
+              
             }
 
             var implicitHospIdsMap = {};
@@ -1221,38 +1219,55 @@ window.renderFormProductDropdown = async function() {
     }
 
     // ==========================================
-    // 🌟 2. เริ่มตะแกรงร่อน: กรองข้อมูล Product ตามสิทธิ์ของ Team
+    // 🌟 2. เริ่มตะแกรงร่อน: กรองข้อมูล Product ตามสิทธิ์ของ Team (รองรับทุก Role)
     // ==========================================
     var crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     
-    var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
     var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || '').trim() : '';
-    
     var filteredProds = allProds || []; // ค่าเริ่มต้นคือให้เห็นทั้งหมด
     
-    // บังคับกรองเฉพาะตำแหน่ง Sales / Rep
-    if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-        if (myTeamId) {
-            // ถ้ายังไม่มีข้อมูล Mapping ระหว่าง Team กับ Product ให้ดึงจาก DB
-            // (🚨 หมายเหตุ: แก้ชื่อตาราง 'Team_Products' ให้ตรงกับที่คุณใช้จริงด้วยนะครับ)
-            if (!window.globalTeamProducts || window.globalTeamProducts.length === 0) {
+    // 🎯 กรองทุกคนที่ "ไม่ใช่ Admin/Global Viewer" (Sales, Manager, BU Head โดนกรองหมด)
+    if (!window.myIsGlobalViewer) {
+        
+        // รวบรวม Team ID ที่ยูสเซอร์คนนี้มีสิทธิ์ดูแล (ดึงมาจากที่คำนวณไว้ใน loadDropdowns)
+        var allowedTeamIds = [];
+        if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
+            allowedTeamIds = [...window.myAllowedTeamIds];
+        }
+        // เผื่อเหนียว: เอาทีมของตัวเองใส่เข้าไปด้วยถ้ายังไม่มี
+        if (myTeamId && allowedTeamIds.indexOf(myTeamId) === -1) {
+            allowedTeamIds.push(myTeamId);
+        }
+
+        if (allowedTeamIds.length > 0) {
+            // ดึงข้อมูล Mapping ว่าทีมไหนขายยาอะไร (เช็กจาก Cache ก่อน ถ้าไม่มีค่อยไปดึง DB)
+            var teamProductsMap = (window.VisitManagerCache && window.VisitManagerCache.teamProdLinks) ? window.VisitManagerCache.teamProdLinks : window.globalTeamProducts;
+
+            if (!teamProductsMap || teamProductsMap.length === 0) {
                 try {
-                    var tpRes = await window.supabaseClient.from('Team_Products').select('*');
-                    if (tpRes && tpRes.data) window.globalTeamProducts = tpRes.data;
-                } catch(e) { console.error("Error loading Team-Products mapping", e); }
+                    // 🚨 สังเกตว่าผมใช้ชื่อ Products_Team ตามโค้ด loadDropdowns ของคุณนะครับ
+                    var tpRes = await window.supabaseClient.from('Products_Team').select('*');
+                    if (tpRes && tpRes.data) {
+                        teamProductsMap = tpRes.data;
+                        window.globalTeamProducts = tpRes.data;
+                    }
+                } catch(e) { console.error("Error loading Products_Team mapping", e); }
             }
             
-            // กรองยา เอาเฉพาะที่ได้รับมอบหมาย (Assigned Products)
-            if (window.globalTeamProducts) {
-                var allowedProductIds = window.globalTeamProducts
-                    .filter(function(tp) { return String(tp.Team_ID) === myTeamId; })
+            // กรองยา เอาเฉพาะตัวที่ตรงกับรายชื่อทีมใน allowedTeamIds
+            if (teamProductsMap) {
+                var allowedProductIds = teamProductsMap
+                    .filter(function(tp) { return allowedTeamIds.indexOf(String(tp.Team_ID)) !== -1; })
                     .map(function(tp) { return String(tp.Product_ID); });
                     
                 filteredProds = allProds.filter(function(p) {
                     return allowedProductIds.indexOf(String(p.Product_ID)) !== -1;
                 });
             }
+        } else {
+            // ถ้าพนักงานคนนี้ไม่มีสังกัดทีมเลย และไม่ได้ดูทีมใครเลย ก็ไม่ควรเห็นยาอะไร
+            filteredProds = [];
         }
     }
     // ==========================================
