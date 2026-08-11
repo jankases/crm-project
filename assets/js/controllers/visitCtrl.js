@@ -2420,18 +2420,18 @@ window.renderCalendarView = function() {
 
 // 🌟 1. ดักจับปุ่มและ Dropdown ไม่ให้แอบรันตอนกำลังโหลดหน้าแรก
 window.handleFilterChange = function(source) { 
-    if (window._isInitializingVisit) return; // ล็อกไว้
+    if (!window.isVisitPageReady) return; 
     if (typeof window.filterVisits === 'function') window.filterVisits(); 
 };
 
 window.debouncedFilterVisits = function() {
-    if (window._isInitializingVisit) return; // ล็อกไว้
+    if (!window.isVisitPageReady) return; 
     if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
     window.filterDebounceTimer = setTimeout(function() { if (typeof window.filterVisits === 'function') window.filterVisits(); }, 300); 
 };
 
 window.updateLangUI = function() {
-    if (window._isInitializingVisit) return; // ล็อกไม่ให้เปลี่ยนภาษาดึงข้อมูลซ้อน
+    if (!window.isVisitPageReady) return; 
     var formView = document.getElementById('visitFormView');
     var isFormOpen = formView && !formView.classList.contains('d-none');
     var visitIdEl = document.getElementById('visitId');
@@ -2466,53 +2466,31 @@ if (!window._isAppLangListenerAttached) {
     });
     window._isAppLangListenerAttached = true;
 }
-// 🔒 ตัวแปรป้องกันการแย่งกันโหลด
+
+// 🔓 รีเซ็ตล็อกทุกครั้งที่คลิกเมนูเข้ามาหน้าใหม่ (ป้องกันการโหลดค้าง)
 window.isVisitPageReady = false;
 
 window.initVisitPage = async function(forceReload) {
-    if (window._isInitializingVisit) {
-        if (window._initVisitStartTime && (Date.now() - window._initVisitStartTime > 3000)) {
-            window._isInitializingVisit = false;
-        } else {
-            return;
-        }
-    }
+    window.isVisitPageReady = false; // ปิดการทำงานของฟิลเตอร์ชั่วคราว
     
-    window._isInitializingVisit = true;
-    window._initVisitStartTime = Date.now();
-    window.isVisitPageReady = false; // 🔒 ล็อกไม่ให้ฟิลเตอร์ทำงานแทรก
-
     try {
         var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
-        var actualForceReload = forceReload;
-        
-        if (forceReload === 'auto') {
-            actualForceReload = !hasCache; // ถ้ามีแคชแล้ว ไม่ต้องโหลดฐานข้อมูลใหม่
-        }
+        var shouldFetchDB = (forceReload === true || !hasCache);
 
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(actualForceReload); 
+        // 1. สร้าง Dropdown และ UI (ดึงจาก Cache ถ้ามี)
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-        if (typeof window.loadVisits === 'function') await window.loadVisits(actualForceReload); 
+
+        // 2. ดึงข้อมูล Visit (ถ้ามี Cache แล้วจะข้ามการดึง DB ไปเลย)
+        if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
+        // 3. กำหนดภาษา
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-          setLanguage(currentLang);
+            setLanguage(currentLang);
         }
 
-        var crmUser = null; 
-        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-        var uRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : ''; 
-        var isGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRole) !== -1;
-        var isBuHead = uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1;
-        var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
-        var isSales = !isGlobalViewer && !isBuHead && !isManager;
-
-        if (isSales && window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'list') {
-            if (typeof window.toggleMainView === 'function') window.toggleMainView('calendar');
-        } else {
-            if (typeof window.toggleMainView === 'function') window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
-        }
-
+        // 4. บังคับให้อยู่หน้าหลัก (เผื่อค้างอยู่หน้า Form)
         var formView = document.getElementById('visitFormView');
         if (formView && !formView.classList.contains('d-none')) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
@@ -2521,27 +2499,33 @@ window.initVisitPage = async function(forceReload) {
     } catch(err) {
         console.error("Init Visits Failed:", err);
         var tbody = document.getElementById('visitTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system</td></tr>';
     } finally {
-        window.isVisitPageReady = true; // 🔓 ปลดล็อกระบบให้ทำงานได้ 100%
-        window._isInitializingVisit = false;
-
-        // 🌟 จุดที่แก้ปัญหาโหลดค้าง: เมื่อปลดล็อกเสร็จ ต้องบังคับให้มันเอาข้อมูลมาวาดลงตารางทันที!
-        if (typeof window.filterVisits === 'function') window.filterVisits(false);
+        // 🔓 ปลดล็อกและสั่งวาดตารางทันที
+        window.isVisitPageReady = true; 
+        
+        if (typeof window.filterVisits === 'function') {
+            window.filterVisits(false); // บังคับอัปเดตตารางและสถิติ
+        }
     }
 };
 
-// 🏁 จุดสตาร์ทเดียวของระบบ
-var hasDataCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
-var startDelay = hasDataCache ? 10 : 300; // 🌟 ถ้ามีข้อมูลอยู่แล้ว โหลดตารางขึ้นมาทันที ไม่ต้องรอหน่วงเวลา
-
+// 🏁 สตาร์ทระบบทันทีที่โหลดสคริปต์
 setTimeout(function() { 
-  window._isInitializingVisit = false; 
-  window.initVisitPage('auto'); 
-}, startDelay);
-
-// 🏁 จุดสตาร์ทเดียวของระบบ
-setTimeout(function() { 
-  window._isInitializingVisit = false; // เคลียร์ล็อกทันทีเผื่อมีการกดเมนูซ้ำ
-  window.initVisitPage('auto'); // ส่งค่า 'auto' เพื่อบอกให้ระบบตัดสินใจเองว่าควรใช้ Cache ไหม
-}, 300);
+    // เริ่มทำงานโดยส่งค่า "false" (ไม่ต้องดึง DB ใหม่ถ้ามีแคชอยู่แล้ว)
+    window.initVisitPage(false); 
+    
+    // 🔄 ผูกปุ่ม Refresh ให้ทำงานได้สมบูรณ์แบบ
+    var btnRef = document.getElementById('btnRefreshVisits');
+    if (btnRef) {
+        btnRef.onclick = function() {
+            var tbody = document.getElementById('visitTableBody');
+            if (tbody) {
+                var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+                var loadText = currentLang === 'en' ? 'Refreshing Data...' : 'กำลังดึงข้อมูลล่าสุด...';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2" role="status"></div><h6 class="fw-bold">' + loadText + '</h6></td></tr>';
+            }
+            window.initVisitPage(true); // บังคับดึง DB ใหม่ 100%
+        };
+    }
+}, 10);
