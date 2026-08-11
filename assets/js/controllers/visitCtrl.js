@@ -1373,8 +1373,16 @@ window.loadVisits = async function(forceReload) {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     
-    // 🌟 1. ดึงตำแหน่ง (Role) ของ User ออกมาเช็กด้วย
+    // 🌟 1. ดึงตำแหน่ง (Role) และ Scope ของ User ออกมาเช็กด้วยตัวเอง!
     var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Territory_ID || crmUser.territory_id || '').trim() : '';
+
+    // 🚀 ตัดปัญหา Race Condition: ให้ฟังก์ชันนี้ตัดสินเองเลยว่าเป็น Admin ไหม (ไม่ต้องรอตัวแปรจากที่อื่น)
+    var isGlobalAdmin = false;
+    var adminRoles = ['admin', 'staff', 'director', 'executive', 'product manager'];
+    if (adminRoles.indexOf(myRole) !== -1 || rawScope.toUpperCase() === 'ALL') {
+        isGlobalAdmin = true;
+    }
 
     var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
 
@@ -1382,34 +1390,37 @@ window.loadVisits = async function(forceReload) {
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
  
-   // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น ป้องกันการเห็นข้อมูล Admin)
-    if (!window.myIsGlobalViewer) {
+    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ปิดตาย Fail-Open 100%)
+    if (!isGlobalAdmin) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-            query = query.eq('Rep_ID', myRepId);
+            query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
         } else {
             var allowedIds = [];
             if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
             
-            // 🎯 กุญแจชั้นที่ 3: ถ้าคุณไม่ใช่ Admin ระบบจะทำการลบ ID ของ Admin ออกจากสิทธิ์การมองเห็นของคุณ
+            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น
             if (myRole !== 'admin' && myRole !== 'system admin') {
-                // เปลี่ยนเป็นตัวแปร window.globalUsersList ที่มีอยู่จริงในระบบ
                 if (window.globalUsersList) {
                     var safeIds = [];
                     for (var i = 0; i < allowedIds.length; i++) {
                         var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
                         var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
-                        
-                        // ถ้าคนๆ นั้นไม่ใช่ Admin ให้เก็บ ID ไว้ดูต่อได้
                         if (targetRole !== 'admin' && targetRole !== 'system admin') {
                             safeIds.push(allowedIds[i]);
                         }
                     }
-                    allowedIds = safeIds; // อัปเดตรายชื่อที่ดูได้แบบล้างบาง Admin แล้ว
+                    allowedIds = safeIds;
                 }
             }
 
             if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-            if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
+            
+            // 🛡️ ปิดประตูตาย: ถ้าจังหวะล็อกอินแรกหาลูกทีมไม่เจอ ห้ามโชว์ทั้งหมดเด็ดขาด! ให้โชว์แค่ของตัวเอง
+            if (allowedIds.length > 0) {
+                query = query.in('Rep_ID', allowedIds);
+            } else {
+                query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
+            }
         }
     }
 
