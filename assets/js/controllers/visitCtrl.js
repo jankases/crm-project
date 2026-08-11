@@ -1241,6 +1241,9 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 window.loadVisits = async function(forceReload) {
+  if (typeof window.loadMasterDataForVisits === 'function') {
+        await window.loadMasterDataForVisits();
+    }
   var tbody = document.getElementById('visitTableBody');
 
   // 🌟 1. ดึงข้อมูล User ปัจจุบันออกมาก่อนเป็นอันดับแรก
@@ -2806,3 +2809,28 @@ var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
     btnRef.onclick = function() { window.initVisitPage(true); };
 }
+
+// ==========================================
+// 📥 ฟังก์ชันโหลดข้อมูล Team และ Territory มารอไว้ในระบบ
+// ==========================================
+window.loadMasterDataForVisits = async function() {
+    // 1. โหลดข้อมูล Territory
+    if (!window.globalTerritories || window.globalTerritories.length === 0) {
+        try {
+            var terrRes = await window.supabaseClient.from('Territory').select('*').eq('Status', 'Active');
+            if (!terrRes.error && terrRes.data) {
+                window.globalTerritories = terrRes.data;
+            }
+        } catch(e) { console.error("Error loading Territories:", e); }
+    }
+
+    // 2. โหลดข้อมูล Team
+    if (!window.globalTeams || window.globalTeams.length === 0) {
+        try {
+            var teamRes = await window.supabaseClient.from('Team').select('*').eq('Status', 'Active');
+            if (!teamRes.error && teamRes.data) {
+                window.globalTeams = teamRes.data;
+            }
+        } catch(e) { console.error("Error loading Teams:", e); }
+    }
+};
