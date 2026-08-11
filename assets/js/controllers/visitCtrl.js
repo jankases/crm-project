@@ -2488,7 +2488,7 @@ window.initVisitPage = async function(forceReload) {
     if (tbody) {
         var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังตรวจสอบสิทธิ์และดึงข้อมูล...';
+        var loadDesc = cLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังตรวจสอบสิทธิ์และดึงข้อมูล...';
         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadTitle + '</h5><span class="text-muted small">' + loadDesc + '</span></div></td></tr>';
     }
 
