@@ -2466,21 +2466,39 @@ if (!window._isAppLangListenerAttached) {
     });
     window._isAppLangListenerAttached = true;
 }
-
 // 🔒 ตัวแปรป้องกันการแย่งกันโหลด
-window._isInitializingVisit = false;
+window.isVisitPageReady = false;
 
 window.initVisitPage = async function(forceReload) {
-    if (window._isInitializingVisit) return; // ป้องกันรันซ้อน
+    // ป้องกันการกดเมนูรัวๆ แล้วโหลดซ้อนกัน
+    if (window._isInitializingVisit) {
+        // ถ้าระบบค้างอยู่เกิน 3 วินาที ให้ปลดล็อกอัตโนมัติ (เผื่อเน็ตหลุดแล้วค้าง)
+        if (window._initVisitStartTime && (Date.now() - window._initVisitStartTime > 3000)) {
+            window._isInitializingVisit = false;
+        } else {
+            return;
+        }
+    }
+    
     window._isInitializingVisit = true;
+    window._initVisitStartTime = Date.now();
+    window.isVisitPageReady = false; // ล็อกฟิลเตอร์ไม่ให้ทำงานแทรก
 
     try {
-        // รอโหลดสิทธิ์ทีมและลูกน้องให้เสร็จสมบูรณ์ 100%
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
-        if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+        // 🌟 ฟีเจอร์ใหม่: เช็กว่ามี Cache อยู่แล้วหรือยัง
+        var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
+        var actualForceReload = forceReload;
         
-        // ค่อยโหลดตาราง Visit (ตอนนี้สิทธิ์ลูกน้องมาครบแล้ว จะโชว์ข้อมูลได้ถูกต้อง)
-        if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
+        // ถ้าสั่งแบบ 'auto' และมีแคชอยู่แล้ว ให้ใช้ข้อมูลเดิมทันที ไม่ต้องโหลดฐานข้อมูลใหม่ (ไวขึ้น 10 เท่า)
+        if (forceReload === 'auto' && hasCache) {
+            actualForceReload = false;
+        } else if (forceReload === 'auto' && !hasCache) {
+            actualForceReload = true;
+        }
+
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(actualForceReload); 
+        if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
+        if (typeof window.loadVisits === 'function') await window.loadVisits(actualForceReload); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
@@ -2495,11 +2513,16 @@ window.initVisitPage = async function(forceReload) {
         var isManager = uRole.indexOf('MANAGER') !== -1 && !isGlobalViewer && !isBuHead;
         var isSales = !isGlobalViewer && !isBuHead && !isManager;
 
-        // เลือกหน้าแรกที่จะแสดง (List หรือ Calendar) ตาม Role
         if (isSales && window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'list') {
             if (typeof window.toggleMainView === 'function') window.toggleMainView('calendar');
         } else {
             if (typeof window.toggleMainView === 'function') window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
+        }
+
+        // หากกดเมนูเข้ามาใหม่ บังคับให้กลับไปหน้า List/Calendar เสมอ (เผื่อค้างอยู่หน้าฟอร์ม)
+        var formView = document.getElementById('visitFormView');
+        if (formView && !formView.classList.contains('d-none')) {
+            if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
         }
 
     } catch(err) {
@@ -2507,12 +2530,13 @@ window.initVisitPage = async function(forceReload) {
         var tbody = document.getElementById('visitTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
     } finally {
-        window._isInitializingVisit = false; // ปลดล็อกทุกอย่างให้ใช้งานได้ปกติ
+        window.isVisitPageReady = true; 
+        window._isInitializingVisit = false;
     }
 };
 
 // 🏁 จุดสตาร์ทเดียวของระบบ
-// 🌟 เปลี่ยนจาก 50ms เป็น 300ms ให้ระบบ Login และเชื่อมต่อฐานข้อมูลตั้งตัวเสร็จก่อน
 setTimeout(function() { 
-  window.initVisitPage(true); 
+  window._isInitializingVisit = false; // เคลียร์ล็อกทันทีเผื่อมีการกดเมนูซ้ำ
+  window.initVisitPage('auto'); // ส่งค่า 'auto' เพื่อบอกให้ระบบตัดสินใจเองว่าควรใช้ Cache ไหม
 }, 300);
