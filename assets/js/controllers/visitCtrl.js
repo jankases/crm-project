@@ -1264,7 +1264,7 @@ window.renderFormProductDropdown = async function() {
    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น + ป้องกันบั๊กโหลดครั้งแรก)
     if (!window.myIsGlobalViewer) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-            query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
+            query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
         } else {
             var allowedIds = [];
             if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
@@ -1292,7 +1292,7 @@ window.renderFormProductDropdown = async function() {
                 query = query.in('Rep_ID', allowedIds);
             } else {
                 // Failsafe: ถ้าจังหวะแรกโหลดยังไม่เสร็จ (ตะกร้าว่าง) บังคับให้ดึงแค่ข้อมูลของตัวเองเท่านั้น! ห้ามโชว์ทั้งหมด!
-                query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
+                query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
             }
         }
     }
@@ -1421,7 +1421,7 @@ window.loadVisits = async function(forceReload) {
     // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ดึงตะกร้ารายชื่อที่ประมวลผลเสร็จแล้วมาใช้เลย!)
     if (!isGlobalAdmin) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-            query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
+            query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
         } else {
             // 🎯 ใช้ตะกร้าลูกทีมสุดแม่นยำ (คำนวณครอบคลุมทั้ง Team และ Territory มาให้แล้ว)
             var allowedIds = [];
@@ -1451,7 +1451,7 @@ window.loadVisits = async function(forceReload) {
             if (allowedIds.length > 0) {
                 query = query.in('Rep_ID', allowedIds);
             } else {
-                query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
+                query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
             }
         }
     }
