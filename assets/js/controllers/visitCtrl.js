@@ -1319,7 +1319,7 @@ window.loadVisits = async function(forceReload) {
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>';
   }
 };
-window.renderVisitTableServerSide = function() {
+ window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
 
@@ -1357,7 +1357,7 @@ window.renderVisitTableServerSide = function() {
     var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
     var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
     var coachingBadge = v.Is_Coaching ? ' <i class="fa-solid fa-clipboard-user text-info ms-2" title="' + coachingTooltip + '"></i>' : '';
-    var docWithBadge = docNameShow + coachingBadge;
+    
     var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
 
     var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
@@ -1381,7 +1381,10 @@ window.renderVisitTableServerSide = function() {
 
     var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); 
     var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
-    var highlightedDoc = applyHighlight(docWithBadge, smartSearchVal); 
+    
+    // 🌟 แก้ไขตรงนี้: ให้ระบบไฮไลต์ทำงานเฉพาะกับชื่อหมอ แล้วค่อยเอาไอคอนโค้ชชิ่งมาต่อท้าย (ป้องกัน HTML พัง)
+    var highlightedDoc = applyHighlight(docNameShow, smartSearchVal) + coachingBadge; 
+    
     var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
     var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
 
