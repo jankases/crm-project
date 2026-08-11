@@ -1,5 +1,5 @@
 // ==========================================
-// 1. GLOBAL STATE VARIABLES & CACHE
+// 1. GLOBAL STATE VARIABLES & CACHE 
 // ==========================================
 window.globalVisits = []; 
 window.totalVisitsCount = 0; 
