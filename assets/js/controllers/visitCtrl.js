@@ -1236,18 +1236,34 @@ window.clearVisitFilters = function() {
     if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
     if (typeof window.filterVisits === 'function') window.filterVisits();
 }; 
+
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 window.loadVisits = async function(forceReload) {
   var tbody = document.getElementById('visitTableBody');
-  
-  // 🌟 1. เช็กก่อนว่ามีข้อมูลเก่าที่เคยโหลดไว้หรือไม่
+
+  // 🌟 1. ดึงข้อมูล User ปัจจุบันออกมาก่อนเป็นอันดับแรก
+  var crmUser = null;
+  try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+  var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+  var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
+
+  // 🌟 2. ล้างบาง Cache (ระเบิดทิ้ง) ถ้า ID คนล็อกอินไม่ตรงกับเจ้าของข้อมูลเดิม!
+  if (!window.VisitManagerCache) window.VisitManagerCache = {};
+  if (window.VisitManagerCache.ownerId !== myRepId) {
+      window.VisitManagerCache = { isLoaded: false, ownerId: myRepId }; // รีเซ็ต Cache และจดจำเจ้าของใหม่
+      window.globalVisits = []; // ล้างข้อมูลคนเก่าทิ้งให้เกลี้ยง
+      window.globalTotLogs = [];
+      forceReload = true; // บังคับให้โหลดข้อมูลจากฐานข้อมูลใหม่ทันที
+  }
+
+  // 🌟 3. เช็กก่อนว่ามีข้อมูลที่เคยโหลดไว้หรือไม่
   var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-  // 🌟 2. จะกางหน้า Loading ก็ต่อเมื่อ "ถูกสั่งให้ดึง DB ใหม่" หรือ "ยังไม่มีข้อมูลเลย" เท่านั้น
+  // 🌟 4. จะกางหน้า Loading ก็ต่อเมื่อ "ถูกสั่งให้ดึง DB ใหม่" หรือ "ยังไม่มีข้อมูลเลย" เท่านั้น
   if ((forceReload || !hasData) && tbody) {
-      var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
       var loadingTitle = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
       var loadingDesc = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
 
