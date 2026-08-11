@@ -822,13 +822,44 @@ window.loadDropdowns = async function(forceReload) {
     var statusSelect = document.getElementById('filterVisitStatus');
     if (statusSelect) {
         var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
-        var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
-        var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
-        statusSelect.innerHTML = '<option value="">' + optAllStatus + '</option><option value="Pending">' + optStatusPending + '</option><option value="Submitted">' + optStatusSubmitted + '</option>';
+
         if (typeof TomSelect !== 'undefined') {
             window.safeDestroyTs(window.tomSelectStatusInstance);
-            window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', { allowEmptyOption: true, create: false, placeholder: optAllStatus, dropdownParent: 'body', onChange: function() { if (typeof window.filterVisits === 'function') window.filterVisits(); } });
+            statusSelect.innerHTML = '<option value=""></option>'; // เคลียร์โครงสร้างเดิมทิ้ง
+            
+            // 🌟 สร้าง TomSelect แบบวาด UI เอง (Custom Render)
+            window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
+                valueField: 'value',
+                searchField: ['text'],
+                options: [
+                    { value: 'Pending', text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending Drafts', icon: '<i class="fa-solid fa-hourglass-half text-warning me-2"></i>', color: 'text-warning' },
+                    { value: 'Submitted', text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted Logs', icon: '<i class="fa-solid fa-circle-check text-success me-2"></i>', color: 'text-success' }
+                ],
+                allowEmptyOption: true,
+                create: false,
+                placeholder: optAllStatus,
+                dropdownParent: 'body',
+                render: {
+                    // วาดหน้าตา "ตอนกดกาง Dropdown"
+                    option: function(data, escape) {
+                        return '<div class="py-1">' + data.icon + '<span class="fw-bold ' + data.color + '">' + escape(data.text) + '</span></div>';
+                    },
+                    // วาดหน้าตา "ตอนที่เลือกค่าแล้วโชว์ในช่อง"
+                    item: function(data, escape) {
+                        return '<div class="item">' + data.icon + '<span class="fw-bold ' + data.color + '">' + escape(data.text) + '</span></div>';
+                    }
+                },
+                onChange: function() { 
+                    if (typeof window.filterVisits === 'function') window.filterVisits(); 
+                }
+            });
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
+        } else {
+            // 🛟 ตาข่ายนิรภัย: กรณีปลั๊กอินไม่ทำงาน (Fallback) ให้ใช้อีโมจิแทน
+            var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
+            var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
+            statusSelect.innerHTML = '<option value="">' + optAllStatus + '</option><option value="Pending">' + optStatusPending + '</option><option value="Submitted">' + optStatusSubmitted + '</option>';
+            if (oldStatusVal) statusSelect.value = oldStatusVal;
         }
     }
 
