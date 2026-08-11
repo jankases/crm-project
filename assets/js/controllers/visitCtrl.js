@@ -1574,7 +1574,7 @@ window.loadVisits = async function(forceReload) {
 
     window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
         var hasAccess = false;
-        if (window.myIsGlobalViewer) hasAccess = true;
+        if (isGlobalAdmin) hasAccess = true;
         else {
              var rawRepId = String(tot.Rep_ID || '').trim(); 
              var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
