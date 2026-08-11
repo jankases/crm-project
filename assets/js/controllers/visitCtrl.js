@@ -892,18 +892,20 @@ window.loadDropdowns = async function(forceReload) {
             if (oldStatusVal) statusSelect.value = oldStatusVal;
         }
     }
-
+ 
     var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     
-    // 🌟 1. ดึง ID ของคนล็อกอินปัจจุบันมาเช็ก
+    // 🌟 1. ดึง Scope ให้ครอบคลุมทุกชื่อฟิลด์ที่เป็นไปได้ (ป้องกันหา BU ไม่เจอ)
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
     var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
     window.myIsGlobalViewer = false; window.myIsBuHead = false; window.myIsManager = false; window.myIsSalesRole = true;
 
-    if (!rawScope || rawScope.toUpperCase().indexOf('ALL') === 0 || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(uRoleUpper) !== -1) {
+    // 🌟 2. อัปเกรดระบบให้แจกสิทธิ์แอดมิน เฉพาะคนที่ตำแหน่งตรงจริงๆ เท่านั้น!
+    var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+    if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
         window.myIsGlobalViewer = true; window.myIsSalesRole = false;
     } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
         window.myIsBuHead = true; window.myIsSalesRole = false;
@@ -1373,16 +1375,11 @@ window.loadVisits = async function(forceReload) {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     
-    // 🌟 1. ดึงตำแหน่ง (Role) และ Scope ของ User ออกมาเช็กด้วยตัวเอง!
+  // 🌟 1. ดึงตำแหน่ง (Role) เพื่อใช้ยืนยันกุญแจชั้นที่ 3
     var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Territory_ID || crmUser.territory_id || '').trim() : '';
-
-    // 🚀 ตัดปัญหา Race Condition: ให้ฟังก์ชันนี้ตัดสินเองเลยว่าเป็น Admin ไหม (ไม่ต้องรอตัวแปรจากที่อื่น)
-    var isGlobalAdmin = false;
-    var adminRoles = ['admin', 'staff', 'director', 'executive', 'product manager'];
-    if (adminRoles.indexOf(myRole) !== -1 || rawScope.toUpperCase() === 'ALL') {
-        isGlobalAdmin = true;
-    }
+    
+    // 🌟 2. ดึงสถานะ Admin มาจากจุดศูนย์กลาง (loadDropdowns) เพื่อให้ทำงานซิงค์กัน 100%
+    var isGlobalAdmin = window.myIsGlobalViewer; 
 
     var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
 
@@ -1390,7 +1387,7 @@ window.loadVisits = async function(forceReload) {
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
  
-    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ปิดตาย Fail-Open 100%)
+    // 🌟 3. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น + ปิดตาย Fail-Open)
     if (!isGlobalAdmin) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
             query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
@@ -1398,7 +1395,7 @@ window.loadVisits = async function(forceReload) {
             var allowedIds = [];
             if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
             
-            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น
+            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น (ป้องกันโชว์ข้อมูลผู้บริหาร)
             if (myRole !== 'admin' && myRole !== 'system admin') {
                 if (window.globalUsersList) {
                     var safeIds = [];
@@ -1409,13 +1406,14 @@ window.loadVisits = async function(forceReload) {
                             safeIds.push(allowedIds[i]);
                         }
                     }
-                    allowedIds = safeIds;
+                    allowedIds = safeIds; 
                 }
             }
 
+            // เผื่อไว้: ให้เห็นข้อมูลของตัวเองเสมอ
             if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
             
-            // 🛡️ ปิดประตูตาย: ถ้าจังหวะล็อกอินแรกหาลูกทีมไม่เจอ ห้ามโชว์ทั้งหมดเด็ดขาด! ให้โชว์แค่ของตัวเอง
+            // 🛡️ ปิดประตูตาย: ถ้าจังหวะล็อกอินแรกโหลดลูกทีมไม่ทัน ห้ามดึงทั้งหมดเด็ดขาด! ให้ดึงแค่ของตัวเอง
             if (allowedIds.length > 0) {
                 query = query.in('Rep_ID', allowedIds);
             } else {
