@@ -2418,7 +2418,6 @@ window.renderCalendarView = function() {
 // 🔗 11. INITIALIZE & EVENT LISTENERS
 // ==========================================
 
-// 🌟 1. ดักจับปุ่มและ Dropdown ไม่ให้แอบรันตอนกำลังโหลดหน้าแรก
 window.handleFilterChange = function(source) { 
     if (!window.isVisitPageReady) return; 
     if (typeof window.filterVisits === 'function') window.filterVisits(); 
@@ -2467,30 +2466,25 @@ if (!window._isAppLangListenerAttached) {
     window._isAppLangListenerAttached = true;
 }
 
-// 🔓 รีเซ็ตล็อกทุกครั้งที่คลิกเมนูเข้ามาหน้าใหม่ (ป้องกันการโหลดค้าง)
+// 🔓 ปลดล็อกทุกอย่างทันทีเมื่อโหลดไฟล์นี้
 window.isVisitPageReady = false;
 
 window.initVisitPage = async function(forceReload) {
-    window.isVisitPageReady = false; // ปิดการทำงานของฟิลเตอร์ชั่วคราว
+    window.isVisitPageReady = false; 
     
     try {
         var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
         var shouldFetchDB = (forceReload === true || !hasCache);
 
-        // 1. สร้าง Dropdown และ UI (ดึงจาก Cache ถ้ามี)
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-
-        // 2. ดึงข้อมูล Visit (ถ้ามี Cache แล้วจะข้ามการดึง DB ไปเลย)
         if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
-        // 3. กำหนดภาษา
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
             setLanguage(currentLang);
         }
 
-        // 4. บังคับให้อยู่หน้าหลัก (เผื่อค้างอยู่หน้า Form)
         var formView = document.getElementById('visitFormView');
         if (formView && !formView.classList.contains('d-none')) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
@@ -2501,31 +2495,24 @@ window.initVisitPage = async function(forceReload) {
         var tbody = document.getElementById('visitTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system</td></tr>';
     } finally {
-        // 🔓 ปลดล็อกและสั่งวาดตารางทันที
         window.isVisitPageReady = true; 
-        
-        if (typeof window.filterVisits === 'function') {
-            window.filterVisits(false); // บังคับอัปเดตตารางและสถิติ
-        }
+        if (typeof window.filterVisits === 'function') window.filterVisits(false); 
     }
 };
 
-// 🏁 สตาร์ทระบบทันทีที่โหลดสคริปต์
-setTimeout(function() { 
-    // เริ่มทำงานโดยส่งค่า "false" (ไม่ต้องดึง DB ใหม่ถ้ามีแคชอยู่แล้ว)
-    window.initVisitPage(false); 
-    
-    // 🔄 ผูกปุ่ม Refresh ให้ทำงานได้สมบูรณ์แบบ
-    var btnRef = document.getElementById('btnRefreshVisits');
-    if (btnRef) {
-        btnRef.onclick = function() {
-            var tbody = document.getElementById('visitTableBody');
-            if (tbody) {
-                var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-                var loadText = currentLang === 'en' ? 'Refreshing Data...' : 'กำลังดึงข้อมูลล่าสุด...';
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2" role="status"></div><h6 class="fw-bold">' + loadText + '</h6></td></tr>';
-            }
-            window.initVisitPage(true); // บังคับดึง DB ใหม่ 100%
-        };
-    }
-}, 10);
+// 🚀 สั่งรันทันทีโดยไม่ใช้ setTimeout! (แก้ปัญหาโหลดกระตุก / UI แหว่ง)
+window.initVisitPage(false); 
+
+// 🔄 ผูกปุ่ม Refresh ให้ทำงานได้สมบูรณ์แบบ
+var btnRef = document.getElementById('btnRefreshVisits');
+if (btnRef) {
+    btnRef.onclick = function() {
+        var tbody = document.getElementById('visitTableBody');
+        if (tbody) {
+            var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+            var loadText = currentLang === 'en' ? 'Refreshing Data...' : 'กำลังดึงข้อมูลล่าสุด...';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2" role="status"></div><h6 class="fw-bold">' + loadText + '</h6></td></tr>';
+        }
+        window.initVisitPage(true); // บังคับดึง DB ใหม่ 100%
+    };
+}
