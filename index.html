@@ -257,11 +257,27 @@
       }
     }
 
-    function logout() { 
-      sessionStorage.clear();
-      localStorage.clear();
-      window.location.reload(true); 
-    }
+    async function logout() {
+            try {
+                // ป้องกันการกดซ้ำซ้อน
+                var btn = document.getElementById('logoutBtn');
+                if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Logging out...';
+
+                // 1. ล้างความจำในเครื่อง
+                sessionStorage.clear();
+                localStorage.clear();
+
+                // 2. 🌟 จุดสำคัญที่เพิ่มเข้ามา: สั่งให้ Supabase ตัดการเชื่อมต่ออย่างเป็นทางการ!
+                if (window.supabaseClient) {
+                    await window.supabaseClient.auth.signOut();
+                }
+            } catch (e) {
+                console.error("Logout Error:", e);
+            } finally {
+                // 3. รีเฟรชหน้าเพื่อกลับไปหน้า Login คลีนๆ
+                window.location.reload(true);
+            }
+        }
   </script>
 </body>
 </html>
