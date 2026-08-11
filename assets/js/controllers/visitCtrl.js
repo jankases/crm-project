@@ -1290,6 +1290,9 @@ window.loadVisits = async function(forceReload) {
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+    
+    // 🌟 1. ดึงตำแหน่ง (Role) ของ User ออกมาเช็กด้วย
+    var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
 
     var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
 
@@ -1297,6 +1300,20 @@ window.loadVisits = async function(forceReload) {
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
 
+    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 2 ชั้น)
+    if (!window.myIsGlobalViewer) {
+        // ถ้ายูสเซอร์มีตำแหน่งเป็น Sales ธรรมดา ให้ "บังคับล็อกตายตัว" 
+        // ว่าต้องดูได้แค่ Rep_ID ของตัวเองเท่านั้น! (เพิกเฉยต่อ Cache หรือสิทธิ์ตกค้างทุกกรณี)
+        if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
+            query = query.eq('Rep_ID', myRepId);
+        } else {
+            // ถ้าเป็น Manager, BU Head หรือตำแหน่งอื่นๆ ให้ดึงตามรายชื่อลูกทีม
+            var allowedIds = [];
+            if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
+            if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
+            if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
+        }
+    }
     if (!window.myIsGlobalViewer) {
       var allowedIds = [];
       if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
