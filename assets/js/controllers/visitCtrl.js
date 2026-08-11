@@ -825,15 +825,14 @@ window.loadDropdowns = async function(forceReload) {
 
         if (typeof TomSelect !== 'undefined') {
             window.safeDestroyTs(window.tomSelectStatusInstance);
+            // เคลียร์ค่า HTML เดิมทิ้ง เพื่อใช้ options จาก JS
             statusSelect.innerHTML = '<option value=""></option>'; 
             
-            // 🌟 สร้าง TomSelect แบบครอบด้วยป้าย (Badge) ให้หน้าตาเหมือนในตาราง
             window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
                 valueField: 'value',
                 searchField: ['text'],
-               controlInput: null,
+                controlInput: null, // 🎯 ปิดช่องพิมพ์ค้นหา ป้องกันกล่องยืดตกบรรทัด
                 options: [
-                    // 🎯 1. เพิ่มตัวเลือก "ทั้งหมด" กลับเข้ามา (ค่า value เป็นค่าว่าง)
                     { 
                         value: '', 
                         text: optAllStatus, 
@@ -860,18 +859,18 @@ window.loadDropdowns = async function(forceReload) {
                 render: {
                     // วาดหน้าตา "ตอนกดกาง Dropdown"
                     option: function(data, escape) {
-                        // ถ้าเป็นตัวเลือก "ทั้งหมด" ให้โชว์เป็นข้อความสีเทาธรรมดา
                         if (!data.value) {
                             return '<div class="py-1 px-2 text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
                         }
                         return '<div class="py-1 px-2"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.4em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     },
-                    // วาดหน้าตา "ตอนที่เลือกค่าแล้วโชว์ในช่อง" 
+                    // วาดหน้าตา "ตอนที่เลือกค่าแล้วโชว์ในช่อง"
                     item: function(data, escape) {
+                        // 🌟 หัวใจสำคัญ: ต้องมี class="item" เสมอ ไม่งั้น TomSelect จะพังและโชว์ข้อความจืดๆ!
                         if (!data.value) {
-                            return '<div class="text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
+                            return '<div class="item text-secondary" style="font-size: 0.85rem; line-height: 1.5;">' + escape(data.text) + '</div>';
                         }
-                        return '<div><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
+                        return '<div class="item" style="line-height: 1.5;"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     }
                 },
                 onChange: function() { 
