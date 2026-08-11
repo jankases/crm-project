@@ -982,7 +982,7 @@ window.loadDropdowns = async function(forceReload) {
                 return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; 
             });
               
-            }
+            
 
             var implicitHospIdsMap = {};
             window.VisitManagerCache.assignedDoctors.forEach(function(d) { var hId = String(d.Hospital_ID || d.hospital_id); if (hId && hId !== 'undefined') implicitHospIdsMap[hId] = true; });
@@ -1390,7 +1390,7 @@ window.loadVisits = async function(forceReload) {
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
  
-    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น ป้องกันการเห็นข้อมูล Admin)
+   // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น ป้องกันการเห็นข้อมูล Admin)
     if (!window.myIsGlobalViewer) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
             query = query.eq('Rep_ID', myRepId);
@@ -1400,12 +1400,11 @@ window.loadVisits = async function(forceReload) {
             
             // 🎯 กุญแจชั้นที่ 3: ถ้าคุณไม่ใช่ Admin ระบบจะทำการลบ ID ของ Admin ออกจากสิทธิ์การมองเห็นของคุณ
             if (myRole !== 'admin' && myRole !== 'system admin') {
-                // (ถ้ามีตัวแปร global ที่เก็บรายชื่อ User ทั้งหมด สามารถเช็ก Role แล้วเตะ ID ทิ้งได้เลย)
-                // สมมติว่ามี window.globalAllUsers
-                if (window.globalAllUsers) {
+                // เปลี่ยนเป็นตัวแปร window.globalUsersList ที่มีอยู่จริงในระบบ
+                if (window.globalUsersList) {
                     var safeIds = [];
                     for (var i = 0; i < allowedIds.length; i++) {
-                        var targetUser = window.globalAllUsers.find(u => (u.Rep_ID || u.id) === allowedIds[i]);
+                        var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
                         var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
                         
                         // ถ้าคนๆ นั้นไม่ใช่ Admin ให้เก็บ ID ไว้ดูต่อได้
@@ -1421,13 +1420,6 @@ window.loadVisits = async function(forceReload) {
             if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
         }
     }
-    if (!window.myIsGlobalViewer) {
-      var allowedIds = [];
-      if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
-      if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-      if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
-    }
- 
 
     // --- เริ่มดึงค่าจากตัวกรองต่างๆ บนหน้าจอ ---
     var statusEl = document.getElementById('filterVisitStatus');
