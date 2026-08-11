@@ -1227,15 +1227,15 @@ window.renderFormProductDropdown = async function() {
     var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || '').trim() : '';
     var filteredProds = allProds || []; // ค่าเริ่มต้นคือให้เห็นทั้งหมด
      
-    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น ป้องกันการเห็นข้อมูล Admin)
+   // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น + ป้องกันบั๊กโหลดครั้งแรก)
     if (!window.myIsGlobalViewer) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-            query = query.eq('Rep_ID', myRepId);
+            query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
         } else {
             var allowedIds = [];
             if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
             
-            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น (ต้องเก็บไว้!)
+            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น
             if (myRole !== 'admin' && myRole !== 'system admin') {
                 if (window.globalUsersList) {
                     var safeIds = [];
@@ -1243,17 +1243,23 @@ window.renderFormProductDropdown = async function() {
                         var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
                         var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
                         
-                        // ถ้าคนๆ นั้นไม่ใช่ Admin ให้เก็บ ID ไว้ดูต่อได้
                         if (targetRole !== 'admin' && targetRole !== 'system admin') {
                             safeIds.push(allowedIds[i]);
                         }
                     }
-                    allowedIds = safeIds; // อัปเดตรายชื่อที่ล้างบาง Admin ออกไปแล้ว
+                    allowedIds = safeIds; 
                 }
             }
 
             if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-            if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
+            
+            // 🛡️ [จุดสำคัญที่แก้บั๊ก!] เช็กก่อนว่ามี ID ให้กรองไหม
+            if (allowedIds.length > 0) {
+                query = query.in('Rep_ID', allowedIds);
+            } else {
+                // Failsafe: ถ้าจังหวะแรกโหลดยังไม่เสร็จ (ตะกร้าว่าง) บังคับให้ดึงแค่ข้อมูลของตัวเองเท่านั้น! ห้ามโชว์ทั้งหมด!
+                query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
+            }
         }
     }
     // ==========================================
