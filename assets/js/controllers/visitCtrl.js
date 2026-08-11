@@ -894,6 +894,9 @@ window.loadDropdowns = async function(forceReload) {
     }
 
     var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    
+    // 🌟 1. ดึง ID ของคนล็อกอินปัจจุบันมาเช็ก
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
     var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
@@ -909,6 +912,13 @@ window.loadDropdowns = async function(forceReload) {
     }
     
     window.VisitManagerCache = window.VisitManagerCache || {};
+
+    // 🌟 2. ระบบระเบิด Cache! ถ้า ID คนล็อกอิน ไม่ตรงกับเจ้าของ Cache เดิม
+    if (window.VisitManagerCache.dropdownOwnerId !== myRepId) {
+        window.VisitManagerCache.dropdownsLoaded = false; // บังคับให้สถานะโหลดเป็น false
+        window.VisitManagerCache.dropdownOwnerId = myRepId; // จำชื่อเจ้าของคนใหม่ไว้
+        forceReload = true; // สั่งบังคับโหลดข้อมูลจาก DB ใหม่ 100%
+    } 
 
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
         var promises = [
