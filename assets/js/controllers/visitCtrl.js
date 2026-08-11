@@ -970,7 +970,10 @@ window.loadDropdowns = async function(forceReload) {
                 window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; });
                 if (window.VisitManagerCache.assignedDoctors.length === 0) window.VisitManagerCache.assignedDoctors = allDoctors;
             } else {
-                window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)]; });
+                // 🌟 แก้ไขแล้ว: ให้ Sales เห็นหมอที่ผูกอยู่กับเขต (Territory_ID) ของตัวเองด้วย!
+                window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
+                    return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; 
+                });
             }
 
             var implicitHospIdsMap = {};
@@ -1188,37 +1191,80 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
 };
 
 window.renderFormProductDropdown = async function() {
-  var formProdSelect = document.getElementById('visitProductId');
-  if (!formProdSelect) return;
+    var formProdSelect = document.getElementById('visitProductId');
+    if (!formProdSelect) return;
 
-  var oldProdVal = [];
-  if (window.tomSelectProdInstance) {
-      var pv = window.tomSelectProdInstance.getValue();
-      oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
-  }
+    var oldProdVal = [];
+    if (window.tomSelectProdInstance) {
+        var pv = window.tomSelectProdInstance.getValue();
+        oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
+    }
 
-  var allProds = (window.globalProductsList && window.globalProductsList.length > 0) ? window.globalProductsList : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
+    // 1. โหลดข้อมูลยาทั้งหมด (Master Data)
+    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) ? window.globalProductsList : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
 
-  if (!allProds || allProds.length === 0) {
-    try {
-      var res = await window.supabaseClient.from('Products').select('*').order('Product', { ascending: true });
-      if (res.data && res.data.length > 0) { allProds = res.data; window.globalProductsList = res.data; }
-    } catch(e) {}
-  }
+    if (!allProds || allProds.length === 0) {
+        try {
+            var res = await window.supabaseClient.from('Products').select('*').order('Product', { ascending: true });
+            if (res.data && res.data.length > 0) { allProds = res.data; window.globalProductsList = res.data; }
+        } catch(e) {}
+    }
 
-  var fHtml = ''; (allProds || []).forEach(function(p) { fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; });
-  formProdSelect.innerHTML = fHtml;
+    // ==========================================
+    // 🌟 2. เริ่มตะแกรงร่อน: กรองข้อมูล Product ตามสิทธิ์ของ Team
+    // ==========================================
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    
+    var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
+    var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || '').trim() : '';
+    
+    var filteredProds = allProds || []; // ค่าเริ่มต้นคือให้เห็นทั้งหมด
+    
+    // บังคับกรองเฉพาะตำแหน่ง Sales / Rep
+    if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
+        if (myTeamId) {
+            // ถ้ายังไม่มีข้อมูล Mapping ระหว่าง Team กับ Product ให้ดึงจาก DB
+            // (🚨 หมายเหตุ: แก้ชื่อตาราง 'Team_Products' ให้ตรงกับที่คุณใช้จริงด้วยนะครับ)
+            if (!window.globalTeamProducts || window.globalTeamProducts.length === 0) {
+                try {
+                    var tpRes = await window.supabaseClient.from('Team_Products').select('*');
+                    if (tpRes && tpRes.data) window.globalTeamProducts = tpRes.data;
+                } catch(e) { console.error("Error loading Team-Products mapping", e); }
+            }
+            
+            // กรองยา เอาเฉพาะที่ได้รับมอบหมาย (Assigned Products)
+            if (window.globalTeamProducts) {
+                var allowedProductIds = window.globalTeamProducts
+                    .filter(function(tp) { return String(tp.Team_ID) === myTeamId; })
+                    .map(function(tp) { return String(tp.Product_ID); });
+                    
+                filteredProds = allProds.filter(function(p) {
+                    return allowedProductIds.indexOf(String(p.Product_ID)) !== -1;
+                });
+            }
+        }
+    }
+    // ==========================================
 
-  if (typeof TomSelect !== 'undefined') {
-      window.safeDestroyTs(window.tomSelectProdInstance);
-      var appLang = window.getCurrentAppLang();
-      var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
-      window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
-          plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
-          onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
-      });
-      if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
-  }
+    // 3. วาด HTML โดยใช้ filteredProds (ยาที่ผ่านการกรองแล้ว)
+    var fHtml = ''; 
+    (filteredProds).forEach(function(p) { 
+        fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; 
+    });
+    formProdSelect.innerHTML = fHtml;
+
+    // 4. สร้าง TomSelect
+    if (typeof TomSelect !== 'undefined') {
+        window.safeDestroyTs(window.tomSelectProdInstance);
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
+        window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
+            plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
+            onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
+        });
+        if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
+    }
 };
 
 window.handleFilterChange = function(source) { if (typeof window.filterVisits === 'function') window.filterVisits(); };
