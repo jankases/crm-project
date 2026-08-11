@@ -1226,48 +1226,34 @@ window.renderFormProductDropdown = async function() {
     
     var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || '').trim() : '';
     var filteredProds = allProds || []; // ค่าเริ่มต้นคือให้เห็นทั้งหมด
-    
-    // 🎯 กรองทุกคนที่ "ไม่ใช่ Admin/Global Viewer" (Sales, Manager, BU Head โดนกรองหมด)
+     
+    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น ป้องกันการเห็นข้อมูล Admin)
     if (!window.myIsGlobalViewer) {
-        
-        // รวบรวม Team ID ที่ยูสเซอร์คนนี้มีสิทธิ์ดูแล (ดึงมาจากที่คำนวณไว้ใน loadDropdowns)
-        var allowedTeamIds = [];
-        if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
-            allowedTeamIds = [...window.myAllowedTeamIds];
-        }
-        // เผื่อเหนียว: เอาทีมของตัวเองใส่เข้าไปด้วยถ้ายังไม่มี
-        if (myTeamId && allowedTeamIds.indexOf(myTeamId) === -1) {
-            allowedTeamIds.push(myTeamId);
-        }
-
-        if (allowedTeamIds.length > 0) {
-            // ดึงข้อมูล Mapping ว่าทีมไหนขายยาอะไร (เช็กจาก Cache ก่อน ถ้าไม่มีค่อยไปดึง DB)
-            var teamProductsMap = (window.VisitManagerCache && window.VisitManagerCache.teamProdLinks) ? window.VisitManagerCache.teamProdLinks : window.globalTeamProducts;
-
-            if (!teamProductsMap || teamProductsMap.length === 0) {
-                try {
-                    // 🚨 สังเกตว่าผมใช้ชื่อ Products_Team ตามโค้ด loadDropdowns ของคุณนะครับ
-                    var tpRes = await window.supabaseClient.from('Products_Team').select('*');
-                    if (tpRes && tpRes.data) {
-                        teamProductsMap = tpRes.data;
-                        window.globalTeamProducts = tpRes.data;
-                    }
-                } catch(e) { console.error("Error loading Products_Team mapping", e); }
-            }
-            
-            // กรองยา เอาเฉพาะตัวที่ตรงกับรายชื่อทีมใน allowedTeamIds
-            if (teamProductsMap) {
-                var allowedProductIds = teamProductsMap
-                    .filter(function(tp) { return allowedTeamIds.indexOf(String(tp.Team_ID)) !== -1; })
-                    .map(function(tp) { return String(tp.Product_ID); });
-                    
-                filteredProds = allProds.filter(function(p) {
-                    return allowedProductIds.indexOf(String(p.Product_ID)) !== -1;
-                });
-            }
+        if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
+            query = query.eq('Rep_ID', myRepId);
         } else {
-            // ถ้าพนักงานคนนี้ไม่มีสังกัดทีมเลย และไม่ได้ดูทีมใครเลย ก็ไม่ควรเห็นยาอะไร
-            filteredProds = [];
+            var allowedIds = [];
+            if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
+            
+            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น (ต้องเก็บไว้!)
+            if (myRole !== 'admin' && myRole !== 'system admin') {
+                if (window.globalUsersList) {
+                    var safeIds = [];
+                    for (var i = 0; i < allowedIds.length; i++) {
+                        var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
+                        var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
+                        
+                        // ถ้าคนๆ นั้นไม่ใช่ Admin ให้เก็บ ID ไว้ดูต่อได้
+                        if (targetRole !== 'admin' && targetRole !== 'system admin') {
+                            safeIds.push(allowedIds[i]);
+                        }
+                    }
+                    allowedIds = safeIds; // อัปเดตรายชื่อที่ล้างบาง Admin ออกไปแล้ว
+                }
+            }
+
+            if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
+            if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
         }
     }
     // ==========================================
