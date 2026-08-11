@@ -825,15 +825,25 @@ window.loadDropdowns = async function(forceReload) {
 
         if (typeof TomSelect !== 'undefined') {
             window.safeDestroyTs(window.tomSelectStatusInstance);
-            statusSelect.innerHTML = '<option value=""></option>'; // เคลียร์โครงสร้างเดิมทิ้ง
+            statusSelect.innerHTML = '<option value=""></option>'; 
             
-            // 🌟 สร้าง TomSelect แบบวาด UI เอง (Custom Render)
+            // 🌟 สร้าง TomSelect แบบครอบด้วยป้าย (Badge) ให้หน้าตาเหมือนในตาราง
             window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
                 valueField: 'value',
                 searchField: ['text'],
                 options: [
-                    { value: 'Pending', text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending Drafts', icon: '<i class="fa-solid fa-hourglass-half text-warning me-2"></i>', color: 'text-warning' },
-                    { value: 'Submitted', text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted Logs', icon: '<i class="fa-solid fa-circle-check text-success me-2"></i>', color: 'text-success' }
+                    { 
+                        value: 'Pending', 
+                        text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending', 
+                        icon: '⏳ ', 
+                        badgeClass: 'badge badge-soft-pending' 
+                    },
+                    { 
+                        value: 'Submitted', 
+                        text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted', 
+                        icon: '✅ ', 
+                        badgeClass: 'badge badge-soft-success' 
+                    }
                 ],
                 allowEmptyOption: true,
                 create: false,
@@ -842,11 +852,11 @@ window.loadDropdowns = async function(forceReload) {
                 render: {
                     // วาดหน้าตา "ตอนกดกาง Dropdown"
                     option: function(data, escape) {
-                        return '<div class="py-1">' + data.icon + '<span class="fw-bold ' + data.color + '">' + escape(data.text) + '</span></div>';
+                        return '<div class="py-1 px-2"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.4em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     },
                     // วาดหน้าตา "ตอนที่เลือกค่าแล้วโชว์ในช่อง"
                     item: function(data, escape) {
-                        return '<div class="item">' + data.icon + '<span class="fw-bold ' + data.color + '">' + escape(data.text) + '</span></div>';
+                        return '<div class="item"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em; margin-top: -2px;">' + data.icon + escape(data.text) + '</span></div>';
                     }
                 },
                 onChange: function() { 
@@ -855,9 +865,9 @@ window.loadDropdowns = async function(forceReload) {
             });
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
         } else {
-            // 🛟 ตาข่ายนิรภัย: กรณีปลั๊กอินไม่ทำงาน (Fallback) ให้ใช้อีโมจิแทน
-            var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending Drafts';
-            var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted Logs';
+            // 🛟 ตาข่ายนิรภัย
+            var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending';
+            var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted';
             statusSelect.innerHTML = '<option value="">' + optAllStatus + '</option><option value="Pending">' + optStatusPending + '</option><option value="Submitted">' + optStatusSubmitted + '</option>';
             if (oldStatusVal) statusSelect.value = oldStatusVal;
         }
