@@ -422,6 +422,31 @@ window.loadProductMedia = async function() {
     return selectedProducts.indexOf(String(m.Product_ID)) !== -1 || selectedProducts.indexOf(String(m.Product)) !== -1;
   });
 
+  // 🌟 [ฟีเจอร์ใหม่] ถ้าสถานะเป็น Submitted ให้โชว์เฉพาะไฟล์ที่เคยถูกเปิดพรีเซนต์จริงๆ เท่านั้น
+  if (isSubmitted && currentVisitId && currentVisitId !== 'NEW') {
+    try {
+      var { data: logData, error } = await window.supabaseClient
+        .from('Visit_Detailing_Logs')
+        .select('Media_ID')
+        .eq('Visit_ID', currentVisitId);
+      
+      if (!error && logData && logData.length > 0) {
+        var presentedMediaIds = logData.map(function(log) { return String(log.Media_ID); });
+        // กรอง matchedMedia ให้เหลือเฉพาะตัวที่อยู่ใน presentedMediaIds
+        matchedMedia = matchedMedia.filter(function(m) {
+          return presentedMediaIds.indexOf(String(m.Media_ID)) !== -1;
+        });
+      } else if (!error && (!logData || logData.length === 0)) {
+        // ถ้า Submitted แล้วแต่ไม่มี Log การเปิดไฟล์เลย ให้ล้าง Array เป็นว่างไปเลย (เพื่อซ่อนกล่อง)
+        matchedMedia = [];
+      }
+    } catch (err) {
+      console.error("Error checking detailing logs:", err);
+    }
+  }
+
+  if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
+
   if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
 
   section.classList.remove('d-none');
