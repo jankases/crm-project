@@ -1261,28 +1261,94 @@ window.loadVisits = async function(forceReload) {
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
     if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
-    // 🌟 พระเอกของเรามาแล้ว: ระบบช่องค้นหาอัจฉริยะ (Smart Search)
+    // 🌟 พระเอกของเรามาแล้ว: ระบบช่องค้นหาอัจฉริยะ (Smart Search) ค้นหาได้ทั้ง หมอ, รพ., ผลิตภัณฑ์ (รองรับ 2 ภาษา)
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
     
     if (smartSearchVal) {
         var matchedDocIds = [];
-        // ค้นหาชื่อหมอจากตัวแปร Cache
+        var matchedVisitIds = [];
+        
+        // --- 1. ค้นหาชื่อโรงพยาบาล (EN / TH) ---
+        var matchedHospIds = [];
+        (window.globalAllHospitals || []).forEach(function(h) {
+            var hEn = String(h.Hospital || h.Hospital_Name || h.Known_As || '').toLowerCase();
+            var hTh = String(h.Hospital_TH || h.Known_As || '').toLowerCase();
+            if (hEn.indexOf(smartSearchVal) !== -1 || hTh.indexOf(smartSearchVal) !== -1) {
+                matchedHospIds.push(String(h.Hospital_ID || h.id).toLowerCase());
+            }
+        });
+
+        // --- 2. ค้นหาชื่อหมอ (EN / TH) และเช็กว่าหมอสังกัด รพ. ที่เจอหรือไม่ ---
         for (var key in window._docIndex) {
             var doc = window._docIndex[key];
+            var isMatch = false;
+
             var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
             var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
             
+            // เช็กชื่อหมอ
             if (dNameEn.indexOf(smartSearchVal) !== -1 || dNameTh.indexOf(smartSearchVal) !== -1) {
-                matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
+                isMatch = true;
             }
+
+            // ถ้าชื่อหมอไม่ตรง ให้เช็กต่อว่าหมออยู่โรงพยาบาลที่เราค้นเจอไหม
+            if (!isMatch && matchedHospIds.length > 0) {
+                var docHospId = String(doc.Hospital_ID || doc.hospital_id || '').toLowerCase();
+                if (matchedHospIds.indexOf(docHospId) !== -1) {
+                    isMatch = true;
+                } else if (doc.Workplaces_JSON) {
+                    try {
+                        var wps = typeof doc.Workplaces_JSON === 'string' ? JSON.parse(doc.Workplaces_JSON) : doc.Workplaces_JSON;
+                        if (Array.isArray(wps)) {
+                            for(var i=0; i<wps.length; i++) {
+                                var wHid = String(wps[i].hospitalId || wps[i].Hospital_ID).toLowerCase();
+                                if (matchedHospIds.indexOf(wHid) !== -1) { isMatch = true; break; }
+                            }
+                        }
+                    } catch(e){}
+                }
+            }
+
+            if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
         }
-        
-        // ถ้าเจอชื่อหมอที่ตรงกัน ให้กรองเอาเฉพาะข้อมูลของหมอคนนั้น
-        if (matchedDocIds.length > 0) {
-            var safeDocIds = matchedDocIds.slice(0, 60); // ป้องกัน URL ยาวเกินไป
-            query = query.in('Doc_ID', safeDocIds);
+
+        // --- 3. ค้นหาผลิตภัณฑ์ (EN / TH) ---
+        var matchedProductIds = [];
+        var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
+        allProds.forEach(function(p) {
+            var pEn = String(p.Product || '').toLowerCase();
+            var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
+            if (pEn.indexOf(smartSearchVal) !== -1 || pTh.indexOf(smartSearchVal) !== -1) {
+                matchedProductIds.push(p.Product_ID || p.id);
+            }
+        });
+
+        if (matchedProductIds.length > 0) {
+            // ถ้าเจอผลิตภัณฑ์ ต้องวิ่งไปถามฐานข้อมูลว่า Visit_ID ไหนบ้างที่มีผลิตภัณฑ์ตัวนี้อยู่
+            try {
+                var vpRes = await window.supabaseClient.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
+                if (!vpRes.error && vpRes.data) {
+                    matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
+                }
+            } catch (e) { console.error("Search Product Error:", e); }
+        }
+
+        // --- 4. รวมพลัง! นำผลลัพธ์ทั้งหมดไปกรองในฐานข้อมูล ---
+        if (matchedDocIds.length > 0 || matchedVisitIds.length > 0) {
+            var safeDocIds = matchedDocIds.slice(0, 60); // ตัดเอาแค่ 60 รายการ ป้องกัน Failed to fetch
+            var safeVisitIds = matchedVisitIds.slice(0, 60);
+
+            if (safeDocIds.length > 0 && safeVisitIds.length === 0) {
+                query = query.in('Doc_ID', safeDocIds);
+            } else if (safeDocIds.length === 0 && safeVisitIds.length > 0) {
+                query = query.in('Visit_ID', safeVisitIds);
+            } else {
+                // ถ้าค้นเจอทั้งคู่ (เช่น พิมพ์ตัว T แล้วเจอทั้งหมอ ทั้งโปรดักส์) ให้ใช้เงื่อนไข OR
+                var orCondition = 'Doc_ID.in.(' + safeDocIds.join(',') + '),Visit_ID.in.(' + safeVisitIds.join(',') + ')';
+                query = query.or(orCondition);
+            }
         } else {
-            // 🎯 แก้ไขตรงนี้: ใช้ Dummy UUID รูปแบบถูกต้อง เพื่อไม่ให้เกิด Error 22P02
+            // ถ้าไม่เจออะไรเลย บังคับให้ตารางว่าง
             query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
         }
     }
