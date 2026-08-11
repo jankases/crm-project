@@ -1317,14 +1317,16 @@ window.loadVisits = async function(forceReload) {
   var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
   var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
 
-  // 🌟 2. ล้างบาง Cache (ระเบิดทิ้ง) ถ้า ID คนล็อกอินไม่ตรงกับเจ้าของข้อมูลเดิม!
+  // 🌟 2. ล้างบาง Cache อย่างปลอดภัย (ห้ามทำลาย Object ทั้งก้อนเด็ดขาด!)
   if (!window.VisitManagerCache) window.VisitManagerCache = {};
   if (window.VisitManagerCache.ownerId !== myRepId) {
-      window.VisitManagerCache = { isLoaded: false, ownerId: myRepId }; // รีเซ็ต Cache และจดจำเจ้าของใหม่
-      window.globalVisits = []; // ล้างข้อมูลคนเก่าทิ้งให้เกลี้ยง
+      window.VisitManagerCache.isLoaded = false; // รีเซ็ตแค่สถานะการโหลดของ Visit
+      window.VisitManagerCache.ownerId = myRepId; // จดจำเจ้าของใหม่
+      window.globalVisits = []; 
       window.globalTotLogs = [];
-      forceReload = true; // บังคับให้โหลดข้อมูลจากฐานข้อมูลใหม่ทันที
+      forceReload = true; // บังคับให้โหลดข้อมูลจากฐานข้อมูลใหม่
   }
+ 
 
   // 🌟 3. เช็กก่อนว่ามีข้อมูลที่เคยโหลดไว้หรือไม่
   var hasData = (window.globalVisits && window.globalVisits.length > 0);
@@ -1375,45 +1377,65 @@ window.loadVisits = async function(forceReload) {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     
-  // 🌟 1. ดึงตำแหน่ง (Role) เพื่อใช้ยืนยันกุญแจชั้นที่ 3
+ // 🌟 1. ดึงตำแหน่ง (Role) และ Scope ของ User ออกมาเช็กด้วยตัวเอง!
     var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
-    
-    // 🌟 2. ดึงสถานะ Admin มาจากจุดศูนย์กลาง (loadDropdowns) เพื่อให้ทำงานซิงค์กัน 100%
-    var isGlobalAdmin = window.myIsGlobalViewer; 
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Territory_ID || crmUser.territory_id || '').trim() : '';
+
+    // 🚀 ระบบตัดสินสิทธิ์เด็ดขาดแบบครบจบในที่เดียว (Self-Contained Permission)
+    var isGlobalAdmin = false;
+    var adminRoles = ['admin', 'staff', 'director', 'executive', 'product manager'];
+    if (adminRoles.indexOf(myRole) !== -1 || rawScope.toUpperCase() === 'ALL') {
+        isGlobalAdmin = true;
+    }
 
     var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
-
     var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
  
-    // 🌟 3. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น + ปิดตาย Fail-Open)
+    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ขั้นสุดยอด (คำนวณลูกทีมเองจาก Cache โดยตรง!)
     if (!isGlobalAdmin) {
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
             query = query.eq('Rep_ID', myRepId || 'INVALID-ID');
         } else {
             var allowedIds = [];
-            if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
+            var allowedTeams = [];
             
-            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น (ป้องกันโชว์ข้อมูลผู้บริหาร)
-            if (myRole !== 'admin' && myRole !== 'system admin') {
-                if (window.globalUsersList) {
-                    var safeIds = [];
-                    for (var i = 0; i < allowedIds.length; i++) {
-                        var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
-                        var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
-                        if (targetRole !== 'admin' && targetRole !== 'system admin') {
-                            safeIds.push(allowedIds[i]);
-                        }
+            // 🎯 ถอดรหัสว่าดูแลทีมไหนบ้างจากรายชื่อ Master Data
+            if (myRole.indexOf('bu') !== -1 || myRole.indexOf('head') !== -1) {
+                var bus = window.VisitManagerCache.bus || [];
+                var matchedBu = bus.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope; });
+                var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+                
+                var teams = window.globalTeamList || [];
+                teams.forEach(function(t) {
+                    if (String(t.BU_ID) === targetBuId || String(t.BU) === rawScope) {
+                        allowedTeams.push(String(t.Team_ID));
                     }
-                    allowedIds = safeIds; 
-                }
+                });
+            } else if (myRole.indexOf('manager') !== -1) {
+                var matchedTeam = (window.globalTeamList || []).find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
+                if (matchedTeam) allowedTeams.push(String(matchedTeam.Team_ID));
+                else allowedTeams.push(rawScope);
             }
 
-            // เผื่อไว้: ให้เห็นข้อมูลของตัวเองเสมอ
+            // 🎯 ควานหาลูกทีมที่สังกัดทีมเหล่านั้น (และต้องไม่ใช่แอดมิน)
+            if (window.globalUsersList && window.globalUsersList.length > 0) {
+                window.globalUsersList.forEach(function(u) {
+                    var uTeam = String(u.Team_ID || u.Team || '').trim();
+                    var uRole = String(u.Role || u.role || '').trim().toLowerCase();
+                    
+                    // ถ้าอยู่ทีมที่ดูแล และไม่ใช่แอดมิน ให้ดึงไอดีมา
+                    if (allowedTeams.indexOf(uTeam) !== -1 && adminRoles.indexOf(uRole) === -1) {
+                        allowedIds.push(String(u.Rep_ID || u.id));
+                    }
+                });
+            }
+
+            // เผื่อเหนียว ให้เห็นข้อมูลของตัวเองเสมอ
             if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
             
-            // 🛡️ ปิดประตูตาย: ถ้าจังหวะล็อกอินแรกโหลดลูกทีมไม่ทัน ห้ามดึงทั้งหมดเด็ดขาด! ให้ดึงแค่ของตัวเอง
+            // 🛡️ ปิดประตูตาย
             if (allowedIds.length > 0) {
                 query = query.in('Rep_ID', allowedIds);
             } else {
