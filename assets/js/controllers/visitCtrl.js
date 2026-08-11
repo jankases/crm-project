@@ -923,18 +923,36 @@ window.loadDropdowns = async function(forceReload) {
     } 
 
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
+    // 🚨 1. ป้องกันบั๊กโหลดไฟล์ utils.js ไม่ทัน (สั่งให้รอจนกว่าฟังก์ชันจะพร้อม สูงสุด 2 วินาที)
+        var waitCount = 0;
+        while (typeof window.fetchAllRecords !== 'function' && waitCount < 20) {
+            await new Promise(r => setTimeout(r, 100)); 
+            waitCount++;
+        }
+
+        // 🚨 2. สร้างฟังก์ชันสำรอง เผื่อกรณีไฟล์ utils โหลดไม่ขึ้นจริงๆ จะได้ดึงข้อมูลได้
+        var fetchFn = typeof window.fetchAllRecords === 'function' 
+            ? window.fetchAllRecords 
+            : async function(tbl, modifier) { 
+                var q = window.supabaseClient.from(tbl).select('*'); 
+                if (modifier) q = modifier(q);
+                var r = await q; 
+                return r.data || []; 
+            };
+
+        // 🚨 3. โค้ดดึงข้อมูลแบบใหม่ (ไม่มีการแอบคืนค่าตะกร้าว่างเปล่าอีกต่อไป!)
         var promises = [
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Doctors') : []),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Products', function(q) { return q.order('Product', { ascending: true }); }) : []), 
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Territory') : []),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }) : []),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Team') : []),            
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('BU') : []),            
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Products_Team') : []),   
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('IndexType') : []),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Index', function(q) { return q.order('Value', { ascending: true }); }) : []),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Rep_Users') : []),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('Assignment') : [])
+          fetchFn('Doctors'),
+          fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+          fetchFn('Territory'),
+          fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+          fetchFn('Team'),            
+          fetchFn('BU'),            
+          fetchFn('Products_Team'),   
+          fetchFn('IndexType'),
+          fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
+          fetchFn('Rep_Users'),
+          fetchFn('Assignment')
         ];
         var results = await Promise.all(promises);
 
