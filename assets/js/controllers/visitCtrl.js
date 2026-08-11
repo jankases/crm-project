@@ -2415,7 +2415,7 @@ window.renderCalendarView = function() {
 };
 
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS (Final Stable Version)
+// 🔗 11. INITIALIZE & EVENT LISTENERS (No-Nonsense Version)
 // ==========================================
 
 window.handleFilterChange = function(source) { 
@@ -2430,6 +2430,7 @@ window.debouncedFilterVisits = function() {
 };
 
 window.updateLangUI = function() {
+    // โค้ดเดิมที่ใช้จัดการภาษาและฟอร์ม
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
@@ -2464,50 +2465,49 @@ if (!window._isAppLangListenerAttached) {
     window._isAppLangListenerAttached = true;
 }
 
-window.isVisitPageReady = true;
-
+// ----------------------------------------------------
+// 🚀 ฟังก์ชันเริ่มระบบแบบดิบและเร็วที่สุด
+// ----------------------------------------------------
 window.initVisitPage = async function(forceReload) {
     var tbody = document.getElementById('visitTableBody');
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded === true);
-    
-    // ถ้าไม่ได้สั่งบังคับโหลด ให้เช็กว่ามี Cache ไหม
-    var shouldFetch = (forceReload === undefined) ? !hasCache : forceReload;
 
-    // 🌟 วาดหน้า Loading ใหญ่ทับทันทีทุกครั้งที่รัน เพื่อรีเซ็ตหน้าจอไม่ให้แหว่ง
+    // 1. วาดหน้า Loading ใหญ่ทับทันที! (ไม่มีการรีรอ ไม่มีแหว่ง)
     if (tbody) {
         var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึง...';
+        var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังประมวลผลข้อมูล...';
         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadTitle + '</h5><span class="text-muted small">' + loadDesc + '</span></div></td></tr>';
     }
 
     try {
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetch); 
+        // 2. สั่งโหลดข้อมูลเบื้องหลังทั้งหมด (บังคับโหลดใหม่เสมอ ป้องกันการค้างจาก Cache เก่า)
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(true); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-        if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetch); 
+        if (typeof window.loadVisits === 'function') await window.loadVisits(true); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
-        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') setLanguage(currentLang);
-        
+        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+            setLanguage(currentLang);
+        }
+
         var formView = document.getElementById('visitFormView');
         if (formView && !formView.classList.contains('d-none')) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
         }
+
     } catch(err) {
         console.error("Init Visits Failed:", err);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>';
     } finally {
-        // 🌟 โหลดเสร็จแล้ว วาดตารางเสมอ! (แก้ปัญหาโหลดค้าง)
-        if (typeof window.filterVisits === 'function') window.filterVisits(false); 
+        // 3. โหลดเสร็จแล้ว บังคับวาดตารางและสถิติ
+        if (typeof window.filterVisits === 'function') window.filterVisits(false);
     }
 };
 
-// ใช้ setTimeout 10ms เพื่อเปิดทางให้ Browser นำ HTML ไปวาดลงจอก่อน 
-// ป้องกันอาการกระตุกตอน Login
-setTimeout(function() {
-    window.initVisitPage(false); 
-}, 10);
+// 🌟 สั่งรันฟังก์ชันทันที 0ms (ไม่มี setTimeout มากวนใจ)
+window.initVisitPage(true); 
 
+// ผูกฟังก์ชันให้ปุ่ม Refresh
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
     btnRef.onclick = function() { window.initVisitPage(true); };
