@@ -2470,9 +2470,7 @@ if (!window._isAppLangListenerAttached) {
 window.isVisitPageReady = false;
 
 window.initVisitPage = async function(forceReload) {
-    // ป้องกันการกดเมนูรัวๆ แล้วโหลดซ้อนกัน
     if (window._isInitializingVisit) {
-        // ถ้าระบบค้างอยู่เกิน 3 วินาที ให้ปลดล็อกอัตโนมัติ (เผื่อเน็ตหลุดแล้วค้าง)
         if (window._initVisitStartTime && (Date.now() - window._initVisitStartTime > 3000)) {
             window._isInitializingVisit = false;
         } else {
@@ -2482,18 +2480,14 @@ window.initVisitPage = async function(forceReload) {
     
     window._isInitializingVisit = true;
     window._initVisitStartTime = Date.now();
-    window.isVisitPageReady = false; // ล็อกฟิลเตอร์ไม่ให้ทำงานแทรก
+    window.isVisitPageReady = false; // 🔒 ล็อกไม่ให้ฟิลเตอร์ทำงานแทรก
 
     try {
-        // 🌟 ฟีเจอร์ใหม่: เช็กว่ามี Cache อยู่แล้วหรือยัง
         var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
         var actualForceReload = forceReload;
         
-        // ถ้าสั่งแบบ 'auto' และมีแคชอยู่แล้ว ให้ใช้ข้อมูลเดิมทันที ไม่ต้องโหลดฐานข้อมูลใหม่ (ไวขึ้น 10 เท่า)
-        if (forceReload === 'auto' && hasCache) {
-            actualForceReload = false;
-        } else if (forceReload === 'auto' && !hasCache) {
-            actualForceReload = true;
+        if (forceReload === 'auto') {
+            actualForceReload = !hasCache; // ถ้ามีแคชแล้ว ไม่ต้องโหลดฐานข้อมูลใหม่
         }
 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(actualForceReload); 
@@ -2519,7 +2513,6 @@ window.initVisitPage = async function(forceReload) {
             if (typeof window.toggleMainView === 'function') window.toggleMainView(window.VisitManagerCache && window.VisitManagerCache.currentMainView ? window.VisitManagerCache.currentMainView : 'list');
         }
 
-        // หากกดเมนูเข้ามาใหม่ บังคับให้กลับไปหน้า List/Calendar เสมอ (เผื่อค้างอยู่หน้าฟอร์ม)
         var formView = document.getElementById('visitFormView');
         if (formView && !formView.classList.contains('d-none')) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
@@ -2530,10 +2523,22 @@ window.initVisitPage = async function(forceReload) {
         var tbody = document.getElementById('visitTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to initialize system: ' + err.message + '</td></tr>';
     } finally {
-        window.isVisitPageReady = true; 
+        window.isVisitPageReady = true; // 🔓 ปลดล็อกระบบให้ทำงานได้ 100%
         window._isInitializingVisit = false;
+
+        // 🌟 จุดที่แก้ปัญหาโหลดค้าง: เมื่อปลดล็อกเสร็จ ต้องบังคับให้มันเอาข้อมูลมาวาดลงตารางทันที!
+        if (typeof window.filterVisits === 'function') window.filterVisits(false);
     }
 };
+
+// 🏁 จุดสตาร์ทเดียวของระบบ
+var hasDataCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
+var startDelay = hasDataCache ? 10 : 300; // 🌟 ถ้ามีข้อมูลอยู่แล้ว โหลดตารางขึ้นมาทันที ไม่ต้องรอหน่วงเวลา
+
+setTimeout(function() { 
+  window._isInitializingVisit = false; 
+  window.initVisitPage('auto'); 
+}, startDelay);
 
 // 🏁 จุดสตาร์ทเดียวของระบบ
 setTimeout(function() { 
