@@ -831,7 +831,15 @@ window.loadDropdowns = async function(forceReload) {
             window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
                 valueField: 'value',
                 searchField: ['text'],
+               controlInput: null,
                 options: [
+                    // 🎯 1. เพิ่มตัวเลือก "ทั้งหมด" กลับเข้ามา (ค่า value เป็นค่าว่าง)
+                    { 
+                        value: '', 
+                        text: optAllStatus, 
+                        icon: '', 
+                        badgeClass: '' 
+                    },
                     { 
                         value: 'Pending', 
                         text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending', 
@@ -852,18 +860,31 @@ window.loadDropdowns = async function(forceReload) {
                 render: {
                     // วาดหน้าตา "ตอนกดกาง Dropdown"
                     option: function(data, escape) {
+                        // ถ้าเป็นตัวเลือก "ทั้งหมด" ให้โชว์เป็นข้อความสีเทาธรรมดา
+                        if (!data.value) {
+                            return '<div class="py-1 px-2 text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
+                        }
                         return '<div class="py-1 px-2"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.4em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     },
-                    // วาดหน้าตา "ตอนที่เลือกค่าแล้วโชว์ในช่อง"
+                    // วาดหน้าตา "ตอนที่เลือกค่าแล้วโชว์ในช่อง" 
                     item: function(data, escape) {
-                        return '<div class="item"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em; margin-top: -2px;">' + data.icon + escape(data.text) + '</span></div>';
+                        if (!data.value) {
+                            return '<div class="text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
+                        }
+                        return '<div><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     }
                 },
                 onChange: function() { 
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 }
             });
-            if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
+            
+            // ดึงค่าเก่ามาตั้ง ถ้าไม่มีให้เลือก 'ทั้งหมด' (ค่าว่าง)
+            if (oldStatusVal) {
+                window.tomSelectStatusInstance.setValue(oldStatusVal, true);
+            } else {
+                window.tomSelectStatusInstance.setValue('', true);
+            }
         } else {
             // 🛟 ตาข่ายนิรภัย
             var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending';
