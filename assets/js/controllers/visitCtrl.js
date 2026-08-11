@@ -2414,8 +2414,9 @@ window.renderCalendarView = function() {
   }
 };
 
+
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS (No-Nonsense Version)
+// 🔗 11. INITIALIZE & EVENT LISTENERS (SPA Ultimate Fix)
 // ==========================================
 
 window.handleFilterChange = function(source) { 
@@ -2430,7 +2431,6 @@ window.debouncedFilterVisits = function() {
 };
 
 window.updateLangUI = function() {
-    // โค้ดเดิมที่ใช้จัดการภาษาและฟอร์ม
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
@@ -2465,13 +2465,10 @@ if (!window._isAppLangListenerAttached) {
     window._isAppLangListenerAttached = true;
 }
 
-// ----------------------------------------------------
-// 🚀 ฟังก์ชันเริ่มระบบแบบดิบและเร็วที่สุด
-// ----------------------------------------------------
 window.initVisitPage = async function(forceReload) {
     var tbody = document.getElementById('visitTableBody');
 
-    // 1. วาดหน้า Loading ใหญ่ทับทันที! (ไม่มีการรีรอ ไม่มีแหว่ง)
+    // วาด Spinner วงใหญ่ทับทันที กลบ HTML ดิบที่อาจจะค้างอยู่
     if (tbody) {
         var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -2480,10 +2477,9 @@ window.initVisitPage = async function(forceReload) {
     }
 
     try {
-        // 2. สั่งโหลดข้อมูลเบื้องหลังทั้งหมด (บังคับโหลดใหม่เสมอ ป้องกันการค้างจาก Cache เก่า)
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(true); 
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-        if (typeof window.loadVisits === 'function') await window.loadVisits(true); 
+        if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
@@ -2497,17 +2493,41 @@ window.initVisitPage = async function(forceReload) {
 
     } catch(err) {
         console.error("Init Visits Failed:", err);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
-        // 3. โหลดเสร็จแล้ว บังคับวาดตารางและสถิติ
         if (typeof window.filterVisits === 'function') window.filterVisits(false);
     }
 };
 
-// 🌟 สั่งรันฟังก์ชันทันที 0ms (ไม่มี setTimeout มากวนใจ)
+// ==========================================
+// 👁️ SPA DOM WATCHER (ยามเฝ้าหน้าจอ แก้ปัญหาค้าง 100%)
+// ==========================================
+if (!window._visitObserverAttached) {
+    var visitObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) {
+                        // ถ้าพบว่ามีตาราง Visit ถูกแปะลงมาบนจอใหม่ (ผู้ใช้เพิ่งคลิกเมนู)
+                        if (node.id === 'visitTableBody' || (node.querySelector && node.querySelector('#visitTableBody'))) {
+                            console.log('🔄 SPA Navigation Detected: Reloading data...');
+                            if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
+                        }
+                    }
+                });
+            }
+        });
+    });
+    
+    // สั่งให้ยามจับตามองการเปลี่ยนแปลงทั้งหน้าจอ
+    visitObserver.observe(document.body, { childList: true, subtree: true });
+    window._visitObserverAttached = true;
+}
+
+// สั่งรันครั้งแรกสำหรับตอน Login เข้ามาใหม่
 window.initVisitPage(true); 
 
-// ผูกฟังก์ชันให้ปุ่ม Refresh
+// ผูกฟังก์ชันปุ่ม Refresh
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
     btnRef.onclick = function() { window.initVisitPage(true); };
