@@ -2414,13 +2414,12 @@ window.renderCalendarView = function() {
   }
 };
 
-
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS (The Ultimate Fix)
+// 🔗 11. INITIALIZE & EVENT LISTENERS (Cache-Enabled Version)
 // ==========================================
 
 window.isInitialLoading = true;
-window._isInitRunning = false; // 🔒 ตัวล็อกป้องกันฟังก์ชันโหลดข้อมูลทำงานซ้อนกัน 2 รอบ
+window._isInitRunning = false; 
 
 window.handleFilterChange = function(source) { 
     if (window.isInitialLoading) return; 
@@ -2473,29 +2472,27 @@ if (!window._isAppLangListenerAttached) {
 }
 
 window.initVisitPage = async function(forceReload) {
-    // 🛑 หากฟังก์ชันนี้กำลังรันอยู่ ห้ามรันซ้อนเด็ดขาด! (จุดนี้แหละที่แก้ปัญหาโหลด 2 จังหวะ)
-    if (window._isInitRunning) {
-        console.log("Blocking overlapped initVisitPage call.");
-        return;
-    }
+    if (window._isInitRunning) return;
 
-    window._isInitRunning = true; // 🔒 ล็อกประตู
-    window.isInitialLoading = true; // 🔒 ล็อกไม่ให้ปลั๊กอินค้นหาทำงาน
+    window._isInitRunning = true; 
+    window.isInitialLoading = true; 
+
+    // 🌟 เช็กว่ามี Cache ไหม ถ้าไม่ได้ถูกสั่ง forceReload และมี Cache ให้ใช้ Cache!
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
+    var shouldFetchDB = (forceReload === true || !hasCache);
 
     var tbody = document.getElementById('visitTableBody');
 
-    // วาด Spinner ลงไป 1 ครั้งถ้วน
-    if (tbody) {
-        var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        var loadDesc = cLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังตรวจสอบสิทธิ์และดึงข้อมูล...';
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadTitle + '</h5><span class="text-muted small">' + loadDesc + '</span></div></td></tr>';
+    // 🌟 สาดหน้า Loading เฉพาะตอนที่ "ต้องไปดึงฐานข้อมูลใหม่" เท่านั้น
+    // (ถ้าใช้ Cache จะข้ามส่วนนี้ไปเลย ทำให้หน้าจอไม่กระพริบ)
+    if (shouldFetchDB && tbody) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">Loading Data...</h5><span class="text-muted small">Processing your access rights and retrieving records.</span></div></td></tr>';
     }
 
     try {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(forceReload); 
-        if (typeof window.loadVisits === 'function') await window.loadVisits(forceReload); 
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
+        if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
@@ -2511,15 +2508,15 @@ window.initVisitPage = async function(forceReload) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
         window.isInitialLoading = false; 
-        window._isInitRunning = false; // 🔓 ปลดล็อกประตูให้ทำงานรอบถัดไปได้เมื่อทุกอย่างเสร็จสิ้น
+        window._isInitRunning = false; 
         
-        // สั่งวาดตารางแค่ครั้งเดียวตอนจบ ได้ครบ 8 รายการเลย
+        // วาดตาราง โดยมันจะจำ Filter ล่าสุดเอาไว้ด้วย
         if (typeof window.filterVisits === 'function') window.filterVisits(false);
     }
 };
 
 // ==========================================
-// 👁️ SPA DOM WATCHER (ยามเฝ้าหน้าจอ แก้ปัญหาเมนูค้าง)
+// 👁️ SPA DOM WATCHER 
 // ==========================================
 if (!window._visitObserverAttached) {
     var visitObserver = new MutationObserver(function(mutations) {
@@ -2528,7 +2525,8 @@ if (!window._visitObserverAttached) {
                 mutation.addedNodes.forEach(function(node) {
                     if (node.nodeType === 1) {
                         if (node.id === 'visitTableBody' || (node.querySelector && node.querySelector('#visitTableBody'))) {
-                            if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
+                            // 🌟 เปลี่ยนเป็น false! เวลากดเมนู จะได้ไปหยิบ Cache มาใช้ ไม่ต้องโหลด DB ใหม่
+                            if (typeof window.initVisitPage === 'function') window.initVisitPage(false);
                         }
                     }
                 });
@@ -2539,11 +2537,12 @@ if (!window._visitObserverAttached) {
     window._visitObserverAttached = true;
 }
 
-// เริ่มรันระบบครั้งแรก (หน่วงเวลาเล็กน้อยเพื่อให้เบราว์เซอร์เตรียมตัว)
+// ล็อกอินครั้งแรก บังคับโหลด DB 100%
 setTimeout(function() {
     window.initVisitPage(true); 
 }, 50);
 
+// ปุ่ม Refresh บังคับโหลด DB 100%
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
     btnRef.onclick = function() { window.initVisitPage(true); };
