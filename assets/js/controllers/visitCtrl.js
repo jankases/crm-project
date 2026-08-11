@@ -2467,18 +2467,36 @@ if (!window._isAppLangListenerAttached) {
 }
 
 window.initVisitPage = async function(forceReload) {
-    window._isInitPhase = true; // 🔒 เปิดโหมดล็อกป้องกันโหลด 2 จังหวะ
+    window._isInitPhase = true; // 🔒 เปิดโหมดล็อกป้องกันปลั๊กอินรันแทรก
     
-    try {
-        var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
-        var shouldFetchDB = (forceReload === true || !hasCache);
+    // 🌟 1. เช็กสถานะ Cache
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
+    var shouldFetchDB = (forceReload === true || !hasCache);
+    var tbody = document.getElementById('visitTableBody');
 
-        // 🌟 FAST RENDER: ถ้ามี Cache อยู่แล้ว ให้วาดตารางโชว์ทันที! (แก้ปัญหาหน้า Loading ค้าง)
+    // 🌟 2. วาดหน้า Loading ทันที (0ms) เพื่อป้องกันหน้าจอกระตุกตอน Login!
+    if (shouldFetchDB) {
+        if (tbody) {
+            var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+            var loadTitle = cLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+            var loadDesc = cLang === 'en' ? 'Processing your access rights...' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึง...';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadTitle + '</h5><span class="text-muted small">' + loadDesc + '</span></div></td></tr>';
+        }
+        
+        // ทำให้เลขสถิติกลายเป็นหมุนๆ ทันที ไม่ปล่อยให้โชว์เลข 0 ให้กระตุกสายตา
+        ['statTotalVisits', 'statPendingVisits', 'statSubmittedVisits'].forEach(id => {
+            let el = document.getElementById(id);
+            if(el) el.innerHTML = '<div class="spinner-border spinner-border-sm text-secondary" role="status"></div>';
+        });
+    }
+
+    try {
+        // 🌟 3. ถ้ามี Cache อยู่แล้ว ให้วาดตารางโชว์ทันที
         if (hasCache && !shouldFetchDB) {
             if (typeof window.filterVisits === 'function') window.filterVisits(false);
         }
 
-        // โหลดองค์ประกอบอื่นๆ
+        // โหลดข้อมูลเบื้องหลัง
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
@@ -2495,29 +2513,20 @@ window.initVisitPage = async function(forceReload) {
 
     } catch(err) {
         console.error("Init Visits Failed:", err);
-        var tbody = document.getElementById('visitTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
     } finally {
         window._isInitPhase = false; // 🔓 ปลดล็อกระบบ
-        if (typeof window.filterVisits === 'function') window.filterVisits(false); // วาดตารางอัปเดตให้สมบูรณ์
+        if (typeof window.filterVisits === 'function') window.filterVisits(false); // วาดตารางรอบสุดท้ายให้สมบูรณ์
     }
 };
 
-// 🚀 ใช้ setTimeout 150ms เพื่อให้ Browser วาดหน้า HTML ให้เสร็จก่อน ลดอาการภาพกระตุก
-setTimeout(function() { 
-    window.initVisitPage(false); 
-    
-    // 🔄 ผูกฟังก์ชันให้ปุ่ม Refresh สีฟ้า
-    var btnRef = document.getElementById('btnRefreshVisits');
-    if (btnRef) {
-        btnRef.onclick = function() {
-            var tbody = document.getElementById('visitTableBody');
-            if (tbody) {
-                var cLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-                var lText = cLang === 'en' ? 'Refreshing Data...' : 'กำลังดึงข้อมูลล่าสุด...';
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2" role="status"></div><h6 class="fw-bold text-muted mt-2">' + lText + '</h6></td></tr>';
-            }
-            window.initVisitPage(true); // บังคับดึง DB ใหม่ 100%
-        };
-    }
-}, 150);
+// 🚀 สั่งรันทันที 0ms! (เอา setTimeout ออกแล้ว)
+window.initVisitPage(false); 
+
+// 🔄 ผูกฟังก์ชันให้ปุ่ม Refresh สีฟ้า (มุมขวาบน)
+var btnRef = document.getElementById('btnRefreshVisits');
+if (btnRef) {
+    btnRef.onclick = function() {
+        window.initVisitPage(true); // พอกด Refresh ก็บังคับรันฟังก์ชันโหลดใหม่ทันที
+    };
+}
