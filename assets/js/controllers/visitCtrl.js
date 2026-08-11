@@ -1261,7 +1261,7 @@ window.loadVisits = async function(forceReload) {
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
     if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
-    // 🌟 พระเอกของเรามาแล้ว: ระบบช่องค้นหาอัจฉริยะ (Smart Search)
+    // 🌟 พระเอกของเรามาแล้ว: ระบบช่องค้นหาอัจฉริยะ (Smart Search) 
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
     
     if (smartSearchVal) {
@@ -1279,7 +1279,11 @@ window.loadVisits = async function(forceReload) {
         
         // ถ้าเจอชื่อหมอที่ตรงกัน ให้กรองเอาเฉพาะข้อมูลของหมอคนนั้น
         if (matchedDocIds.length > 0) {
-            query = query.in('Doc_ID', matchedDocIds);
+            // 🛑 ป้องกัน URL ยาวเกินไป (Failed to fetch) 
+            // ถ้ายูสเซอร์พิมพ์แค่อักษรเดียว (เช่น 's') แล้วเจอหมอเป็นร้อยคน 
+            // เราจะหั่นเอาไปถามเซิร์ฟเวอร์แค่ 60 คนแรกพอ เพื่อไม่ให้ URL พัง
+            var safeDocIds = matchedDocIds.slice(0, 60);
+            query = query.in('Doc_ID', safeDocIds);
         } else {
             // ถ้าพิมพ์มั่วๆ แล้วไม่เจอหมอเลย บังคับให้หา Visit_ID ที่ไม่มีอยู่จริง (ตารางจะได้ว่างเปล่า)
             query = query.eq('Visit_ID', 'not-found');
