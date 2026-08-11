@@ -1299,17 +1299,34 @@ window.loadVisits = async function(forceReload) {
     var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
     var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
     query = query.order(dbSortCol, { ascending: window.currentSortAsc });
-
-    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 2 ชั้น)
+ 
+    // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น ป้องกันการเห็นข้อมูล Admin)
     if (!window.myIsGlobalViewer) {
-        // ถ้ายูสเซอร์มีตำแหน่งเป็น Sales ธรรมดา ให้ "บังคับล็อกตายตัว" 
-        // ว่าต้องดูได้แค่ Rep_ID ของตัวเองเท่านั้น! (เพิกเฉยต่อ Cache หรือสิทธิ์ตกค้างทุกกรณี)
         if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
             query = query.eq('Rep_ID', myRepId);
         } else {
-            // ถ้าเป็น Manager, BU Head หรือตำแหน่งอื่นๆ ให้ดึงตามรายชื่อลูกทีม
             var allowedIds = [];
             if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
+            
+            // 🎯 กุญแจชั้นที่ 3: ถ้าคุณไม่ใช่ Admin ระบบจะทำการลบ ID ของ Admin ออกจากสิทธิ์การมองเห็นของคุณ
+            if (myRole !== 'admin' && myRole !== 'system admin') {
+                // (ถ้ามีตัวแปร global ที่เก็บรายชื่อ User ทั้งหมด สามารถเช็ก Role แล้วเตะ ID ทิ้งได้เลย)
+                // สมมติว่ามี window.globalAllUsers
+                if (window.globalAllUsers) {
+                    var safeIds = [];
+                    for (var i = 0; i < allowedIds.length; i++) {
+                        var targetUser = window.globalAllUsers.find(u => (u.Rep_ID || u.id) === allowedIds[i]);
+                        var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
+                        
+                        // ถ้าคนๆ นั้นไม่ใช่ Admin ให้เก็บ ID ไว้ดูต่อได้
+                        if (targetRole !== 'admin' && targetRole !== 'system admin') {
+                            safeIds.push(allowedIds[i]);
+                        }
+                    }
+                    allowedIds = safeIds; // อัปเดตรายชื่อที่ดูได้แบบล้างบาง Admin แล้ว
+                }
+            }
+
             if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
             if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
         }
