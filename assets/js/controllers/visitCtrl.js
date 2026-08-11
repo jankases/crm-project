@@ -1255,6 +1255,11 @@ window.loadVisits = async function(forceReload) {
     if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
     if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
+    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
+    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+    if (selectedTers.length > 0) {
+        query = query.in('Territory_ID', selectedTers);
+    }
 
     // ✅ คืนชีพเรื่อง Pagination
     var page = window.currentPage || 1;
