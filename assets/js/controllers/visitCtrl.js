@@ -1242,16 +1242,22 @@ window.loadVisits = async function(forceReload) {
       if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
       if (allowedIds.length > 0) query = query.in('Rep_ID', allowedIds);
     }
+ 
 
     // --- เริ่มดึงค่าจากตัวกรองต่างๆ บนหน้าจอ ---
-    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
+    var statusEl = document.getElementById('filterVisitStatus');
+    // 🌟 ดึงค่าจากปลั๊กอินก่อน ถ้าไม่มีปลั๊กอินให้ดึงจาก HTML ธรรมดาแทน
+    var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
+    
     var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
     
-    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : [];
+    var repEl = document.getElementById('filterVisitRep');
+    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
     if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
-    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : [];
+    var terEl = document.getElementById('filterVisitTerritory');
+    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
     if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
     // --- ใส่เงื่อนไขให้ฐานข้อมูล (Filters) ---
@@ -1260,6 +1266,7 @@ window.loadVisits = async function(forceReload) {
     if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
     if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
     if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
+     
 
     // 🌟 พระเอกของเรามาแล้ว: ระบบช่องค้นหาอัจฉริยะ (Multi-Keyword Search) รองรับการเว้นวรรคหาหลายคำ!
     var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
