@@ -2200,6 +2200,9 @@ btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'e
   }
 
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
+// 🌟 สั่งเปิดระบบดักจับการพิมพ์ และเช็กว่ามี Draft ค้างไว้ไหม
+    window.attachAutosaveListeners();
+    setTimeout(() => { window.checkAndRestoreAutosave(); }, 500);
 };
 
 window.handleSaveVisit = async function(e) {
@@ -2329,6 +2332,9 @@ window.handleSaveVisit = async function(e) {
     var msgSuccess = appLang === 'en' ? "Data saved successfully." : "บันทึกข้อมูลเรียบร้อยแล้ว";
     if (window.showToast) window.showToast(msgSuccess, "success");
 
+    // 🌟 เซฟเข้าฐานข้อมูลเรียบร้อยแล้ว ให้ลบตัว Auto-save ทิ้งไปเลย
+    localStorage.removeItem('crm_visit_autosave');
+
     if (typeof window.clearFormDraft === 'function') window.clearFormDraft(existingVisitId || 'NEW');
 
     var returnDocId = sessionStorage.getItem('returnToDocId');
@@ -2366,6 +2372,9 @@ window.handleSaveVisit = async function(e) {
             ? "📶 No Internet Connection: Data saved locally and will auto-sync when online."
             : "📶 ไม่มีสัญญาณอินเทอร์เน็ต: ข้อมูลถูกบันทึกไว้ในเครื่องแล้ว และจะอัปเดตอัตโนมัติเมื่อออนไลน์";
         if (window.showToast) window.showToast(msgOfflineSave, "warning");
+
+        // 🌟 เซฟลงคิวออฟไลน์เสร็จแล้ว ก็ถือว่าจัดการแล้ว ลบ Auto-save ทิ้งได้เลยเช่นกัน
+        localStorage.removeItem('crm_visit_autosave');
         
         if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
     } else {
@@ -2374,7 +2383,8 @@ window.handleSaveVisit = async function(e) {
         if (window.showToast) window.showToast(msgError + err.message, "error");
     }
   } finally {
-    btn.disabled = false; btn.innerHTML = "💾 Save";
+    var saveText = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang() === 'th') ? 'บันทึก' : 'Save';
+    btn.disabled = false; btn.innerHTML = "💾 " + saveText;
   }
 };
 
@@ -2413,6 +2423,8 @@ window.requestUnlockVisit = async function(visitId) {
 };
 
 window.cancelVisitForm = async function() {
+    // 🌟 ถ้ายกเลิกเองแปลว่าไม่เอาแล้ว ให้เคลียร์ทิ้งเลย
+    localStorage.removeItem('crm_visit_autosave');
   if (typeof window.clearFormDraft === 'function') {
     var vInput = document.getElementById('visitId');
     var draftKey = (vInput && vInput.value) ? vInput.value : 'NEW';
