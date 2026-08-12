@@ -125,8 +125,11 @@
       // สลับหน้าจอไปยัง Visit Logs ใน index.html
       if (typeof checkSession === 'function') {
         checkSession();
+        // 🌟 สั่งให้โหลดตารางข้อมูล "หลัง" จากที่สลับหน้าจอเสร็จแล้วเท่านั้น!
+        if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
       } else if (typeof window.checkSession === 'function') {
         window.checkSession();
+        if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
       } else {
         window.location.reload();
       }
