@@ -2920,7 +2920,13 @@ window.updateLangUI = function() {
             }
         });
     } 
-    if (typeof window.renderVisitTable === 'function') window.renderVisitTable();
+    
+    if (typeof window.renderVisitTableServerSide === 'function') {
+        window.renderVisitTableServerSide();
+    } else if (typeof window.renderVisitTable === 'function') {
+        window.renderVisitTable();
+    }
+    
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
