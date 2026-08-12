@@ -3158,6 +3158,9 @@ window.initVisitPage = async function(forceReload) {
         
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
+        // 🌟 สั่งผูกระบบเช็กประวัติหมอล่าสุดตรงนี้ครับ!
+        if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
+
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
             setLanguage(currentLang);
         }
@@ -3506,5 +3509,72 @@ window.checkAndRestoreAutosave = function() {
                 localStorage.removeItem('crm_visit_autosave'); // ถ้าไม่เอา ให้ลบทิ้ง
             }
         } catch(e) {}
+    }
+};
+
+// ==========================================
+// 🔍 LAST VISIT HISTORY ENGINE
+// ==========================================
+window.fetchLastVisitHistory = async function(docId) {
+    const historyBox = document.getElementById('lastVisitHistoryBox');
+    
+    // ถ้าไม่ได้เลือกหมอ ให้ซ่อนกล่องทิ้งไป
+    if (!docId) {
+        if (historyBox) historyBox.classList.add('d-none');
+        return;
+    }
+
+    try {
+        // ค้นหาประวัติการเยี่ยมหมอคนนี้ (เอาเฉพาะที่ Status = Submitted และเรียงจากวันที่ล่าสุด)
+        const { data, error } = await window.supabaseClient
+            .from('Visit_Logs')
+            .select('Visit_Date, Details, Insight, Next_Action, Status')
+            .eq('Doc_ID', docId)
+            .eq('Status', 'Submitted') 
+            .order('Visit_Date', { ascending: false })
+            .limit(1);
+
+        if (error) throw error;
+
+        // ถ้ามีประวัติเก่า
+        if (data && data.length > 0) {
+            const lastVisit = data[0];
+            
+            // จัดรูปแบบวันที่ (ถ้ามี)
+            let formattedDate = '-';
+            if (lastVisit.Visit_Date) {
+                const d = new Date(lastVisit.Visit_Date);
+                formattedDate = d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+            
+            document.getElementById('lastVisitDateBadge').innerText = formattedDate;
+            
+            // นำ Details กับ Insight มารวมกันให้อ่านง่าย
+            let detailsText = lastVisit.Details || '-';
+            if (lastVisit.Insight) detailsText += ` (Insight: ${lastVisit.Insight})`;
+            
+            document.getElementById('lastVisitDetails').innerText = detailsText;
+            document.getElementById('lastVisitNextAction').innerText = lastVisit.Next_Action || '-';
+            
+            // โชว์กล่องขึ้นมา
+            if (historyBox) historyBox.classList.remove('d-none');
+        } else {
+            // ถ้าไม่เคยเยี่ยมเลย ให้ซ่อนกล่อง
+            if (historyBox) historyBox.classList.add('d-none');
+        }
+    } catch (err) {
+        console.error("Error fetching last visit:", err);
+        if (historyBox) historyBox.classList.add('d-none');
+    }
+};
+
+// ฟังก์ชันสำหรับผูก Event เวลาเซลส์เปลี่ยนชื่อหมอ
+window.bindDoctorChangeForHistory = function() {
+    const docSelect = document.getElementById('visitDocId');
+    if (docSelect && !docSelect.hasAttribute('data-history-attached')) {
+        docSelect.addEventListener('change', function(e) {
+            window.fetchLastVisitHistory(e.target.value);
+        });
+        docSelect.setAttribute('data-history-attached', 'true');
     }
 };
