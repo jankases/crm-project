@@ -2159,8 +2159,13 @@ window.handleSaveVisit = async function(e) {
     CheckIn_Lat: latVal ? parseFloat(latVal) : null, CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
     CheckIn_Time: latVal ? new Date().toISOString() : null, Attachments: attachmentsData, Doctor_Signature: sigData
   };
+ 
+  var isOfflineMode = !navigator.onLine;
 
   try {
+    // 🚦 ถ้าออฟไลน์อยู่ ให้โยน Error ออกไปเพื่อไปเข้ากล่องคิว (Catch block)
+    if (isOfflineMode) throw new Error("OFFLINE_MODE");
+
     if (existingVisitId) {
       var updRes = await window.supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
       if (updRes.error) throw new Error("Update Visit_Logs error: " + updRes.error.message);
@@ -2202,15 +2207,16 @@ window.handleSaveVisit = async function(e) {
       else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
 
       if (sbClient && sbClient.storage) {
-        try {
-          await sbClient.storage.from('visit-attachments').remove(window.pendingDeleteFiles);
-        } catch (err) { console.error("Error deleting pending files:", err); }
+        try { await sbClient.storage.from('visit-attachments').remove(window.pendingDeleteFiles); } catch (err) {}
       }
     }
-    window.newlyUploadedFiles = [];
-    window.pendingDeleteFiles = [];
+    window.newlyUploadedFiles = []; window.pendingDeleteFiles = [];
 
-    if (window.showToast) window.showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+    // 🌟 แจ้งเตือนเซฟสำเร็จ 2 ภาษา
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgSuccess = appLang === 'en' ? "Data saved successfully." : "บันทึกข้อมูลเรียบร้อยแล้ว";
+    if (window.showToast) window.showToast(msgSuccess, "success");
+
     if (typeof window.clearFormDraft === 'function') window.clearFormDraft(existingVisitId || 'NEW');
 
     var returnDocId = sessionStorage.getItem('returnToDocId');
@@ -2221,8 +2227,40 @@ window.handleSaveVisit = async function(e) {
       if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
       if (typeof window.loadVisits === 'function') await window.loadVisits(true); 
     }
+
   } catch(err) {
-    if (window.showToast) window.showToast("Failed to save data. Reason: " + err.message, "error");
+    // 📦 พระเอกอยู่ตรงนี้: ถ้าระบบบอกว่าออฟไลน์ หรือดึงข้อมูลล้มเหลวเพราะเน็ตหลุด ให้จับยัดใส่คิวออฟไลน์!
+    var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
+    
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
+    if (isNetworkError) {
+        var offlineData = {
+            existingVisitId: existingVisitId, targetVisitId: targetVisitId, payload: payload,
+            selectedProducts: selectedProducts, pendingDetailingLogs: window.pendingDetailingLogs || [],
+            timestamp: Date.now()
+        };
+
+        var queue = JSON.parse(localStorage.getItem('crmOfflineQueue') || '[]');
+        queue.push(offlineData);
+        localStorage.setItem('crmOfflineQueue', JSON.stringify(queue));
+
+        window.pendingDetailingLogs = []; window.newlyUploadedFiles = []; window.pendingDeleteFiles = [];
+        
+        if (typeof window.clearFormDraft === 'function') window.clearFormDraft(existingVisitId || 'NEW');
+
+        // 🌟 แจ้งเตือนเน็ตหลุด/ออฟไลน์ 2 ภาษา
+        var msgOfflineSave = appLang === 'en' 
+            ? "📶 No Internet Connection: Data saved locally and will auto-sync when online."
+            : "📶 ไม่มีสัญญาณอินเทอร์เน็ต: ข้อมูลถูกบันทึกไว้ในเครื่องแล้ว และจะอัปเดตอัตโนมัติเมื่อออนไลน์";
+        if (window.showToast) window.showToast(msgOfflineSave, "warning");
+        
+        if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+    } else {
+        // 🌟 แจ้งเตือน Error ทั่วไป 2 ภาษา
+        var msgError = appLang === 'en' ? "Failed to save data. Reason: " : "บันทึกข้อมูลไม่สำเร็จ: ";
+        if (window.showToast) window.showToast(msgError + err.message, "error");
+    }
   } finally {
     btn.disabled = false; btn.innerHTML = "💾 Save";
   }
@@ -2456,6 +2494,17 @@ window.calculateDistanceKm = function(lat1, lon1, lat2, lon2) {
 window.handleFileUpload = async function(event) {
   var files = event.target.files;
   if (!files || files.length === 0) return;
+
+  // 🚫 ดักจับออฟไลน์: แจ้งเตือน 2 ภาษา
+  if (!navigator.onLine) {
+      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      var msgOfflineFile = appLang === 'en' 
+          ? "📶 Offline Mode: Cannot upload images/PDFs right now (but you can still sign and save other data)."
+          : "📶 โหมดออฟไลน์: ไม่สามารถแนบไฟล์รูป/PDF ได้ในขณะนี้ (แต่ยังเซ็นชื่อและบันทึกข้อมูลอื่นได้ปกติ)";
+          
+      if (window.showToast) window.showToast(msgOfflineFile, "warning");
+      return;
+  }
 
   var sbClient = null;
   if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
@@ -2982,3 +3031,58 @@ window.loadMasterDataForVisits = async function() {
         } catch(e) { console.error("Error loading Teams:", e); }
     }
 };
+
+// ==========================================
+// 🔄 16. OFFLINE SYNC ENGINE
+// ==========================================
+window.syncOfflineVisits = async function() {
+    if (!navigator.onLine) return;
+    var queue = JSON.parse(localStorage.getItem('crmOfflineQueue') || '[]');
+    if (queue.length === 0) return;
+
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgSyncing = appLang === 'en' 
+        ? "🔄 Back Online: Syncing offline data to server..." 
+        : "🔄 กลับมาออนไลน์: กำลังซิงค์ข้อมูลออฟไลน์ไปยังเซิร์ฟเวอร์...";
+
+    if (window.showToast) window.showToast(msgSyncing, "info");
+    
+    var remainingQueue = [];
+    var successCount = 0;
+
+    for (var i = 0; i < queue.length; i++) {
+        var item = queue[i];
+        try {
+            if (item.existingVisitId) {
+                await window.supabaseClient.from('Visit_Logs').update(item.payload).eq('Visit_ID', item.existingVisitId);
+                await window.supabaseClient.from('Visit_Products').delete().eq('Visit_ID', item.existingVisitId);
+            } else {
+                await window.supabaseClient.from('Visit_Logs').insert([item.payload]);
+            }
+            if (item.selectedProducts && item.selectedProducts.length > 0) {
+                var vpPayload = item.selectedProducts.map(function(p) { return { Visit_ID: item.targetVisitId, Product_ID: p, Whoupdated: item.payload.Whoupdated }; });
+                await window.supabaseClient.from('Visit_Products').insert(vpPayload);
+            }
+            successCount++;
+        } catch (err) {
+            console.error("Offline sync failed for item:", item, err);
+            remainingQueue.push(item); // ถ้าเน็ตสะดุดกลางคัน ให้เก็บไว้ในคิวเหมือนเดิม
+        }
+    }
+
+    localStorage.setItem('crmOfflineQueue', JSON.stringify(remainingQueue));
+    if (successCount > 0) {
+        var msgSuccess = appLang === 'en' 
+            ? "✅ Successfully synced " + successCount + " offline records." 
+            : "✅ ซิงค์ข้อมูลออฟไลน์สำเร็จ " + successCount + " รายการ";
+            
+        if (window.showToast) window.showToast(msgSuccess, "success");
+        if (typeof window.loadVisits === 'function') window.loadVisits(true);
+    }
+};
+
+// 📡 ตรวจจับเมื่อเน็ตกลับมาต่อติดปุ๊บ ให้รันฟังก์ชัน Sync ปั๊บ!
+window.addEventListener('online', window.syncOfflineVisits);
+
+// เผื่อไว้: ให้รันเช็กคิวทุกครั้งที่โหลดเข้าหน้า Visit
+setTimeout(function() { window.syncOfflineVisits(); }, 2000);
