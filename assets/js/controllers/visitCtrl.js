@@ -2908,8 +2908,25 @@ window.renderCalendarView = function() {
 
   var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
   if (typeof FullCalendar !== 'undefined') {
+    
+    // 🌟 สร้างข้อความแปลภาษาสำหรับปุ่มบนปฏิทิน
+    var fcButtonText = appLang === 'th' ? {
+        today: 'วันนี้',
+        month: 'เดือน',
+        week: 'สัปดาห์',
+        day: 'วัน'
+    } : {
+        today: 'Today',
+        month: 'Month',
+        week: 'Week',
+        day: 'Day'
+    };
+
     window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+        initialView: 'dayGridMonth', 
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+        buttonText: fcButtonText, // 🌟 ยัดข้อความ 2 ภาษาเข้าไปตรงนี้
+        locale: appLang === 'th' ? 'th' : 'en', // เผื่อปลั๊กอินรองรับการเปลี่ยนชื่อเดือนด้วย
         events: allEvents,
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
         eventClick: function(info) {
