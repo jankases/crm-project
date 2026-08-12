@@ -2907,9 +2907,12 @@ if (!window._visitObserverAttached) {
     window._visitObserverAttached = true;
 }
 
-// ล็อกอินครั้งแรก บังคับโหลด DB 100%
+// 🚀 แก้บั๊ก Race Condition ขั้นเด็ดขาด: ห้ามโหลดข้อมูลตารางเด็ดขาด ถ้ายังไม่ได้ล็อกอิน!
 setTimeout(function() {
-    window.initVisitPage(true); 
+    var crmUser = sessionStorage.getItem('crmUser');
+    if (crmUser) {
+        window.initVisitPage(true); 
+    }
 }, 50);
 
 // ปุ่ม Refresh บังคับโหลด DB 100%
