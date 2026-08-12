@@ -84,6 +84,15 @@ const i18nDictionary = {
     lbl_insight: "Insight",
     lbl_next_action: "Next Action",
     lbl_status: "Status",
+
+    btn_add_tot: "Add TOT",
+    leg_submitted: "Submitted Visit",
+    leg_pending: "Pending Draft",
+    leg_unlock: "Pending Unlock",
+    leg_holiday: "Public Holiday",
+    leg_company: "Company Event",
+    leg_tot_appr: "TOT (Approved)",
+    leg_tot_pend: "TOT (Pending)",
     
     sec_visit_info: "Visit Information",
     sec_activity_details: "Activity Details",
@@ -171,6 +180,15 @@ const i18nDictionary = {
     lbl_insight: "ข้อมูลเชิงลึก (Insight)",
     lbl_next_action: "การดำเนินการถัดไป",
     lbl_status: "สถานะ",
+
+    btn_add_tot: "เพิ่ม TOT",
+    leg_submitted: "บันทึกที่ส่งแล้ว",
+    leg_pending: "ฉบับร่างรอยืนยัน",
+    leg_unlock: "รอปลดล็อก",
+    leg_holiday: "วันหยุดนักขัตฤกษ์",
+    leg_company: "กิจกรรมบริษัท",
+    leg_tot_appr: "TOT (อนุมัติแล้ว)",
+    leg_tot_pend: "TOT (รออนุมัติ)",
     
     sec_visit_info: "ข้อมูลการเข้าพบ",
     sec_activity_details: "รายละเอียดกิจกรรม",
