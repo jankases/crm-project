@@ -1275,6 +1275,12 @@ window.renderFormProductDropdown = async function() {
                 var targetUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Rep_ID); });
                 if (targetUser) {
                     var uTeam = String(targetUser.Team_ID || targetUser.Team || '').trim();
+                    // 🌟 ถ้าไม่มี Team ให้วิ่งไปหาจาก Territory ของหมอหรือ User
+                    if (!uTeam) {
+                        var uTerr = String(targetUser.Territory_ID || targetUser.Territory || '').trim();
+                        var matchedTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
+                        if (matchedTer) uTeam = String(matchedTer.Team_ID || matchedTer.Team || '').trim();
+                    }
                     if (uTeam) targetTeams.push(uTeam);
                 }
             }
@@ -1285,9 +1291,17 @@ window.renderFormProductDropdown = async function() {
             var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
             if (crmUser) {
                 var myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+                
+                // 🌟 จุดสำคัญที่เพิ่มเข้ามา: ถ้าระดับเซลส์ไม่มี Team ผูกไว้ ให้ไปดึงจาก Territory
+                if (!myTeam) {
+                    var myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
+                    var matchedMyTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr; });
+                    if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
+                }
+                
                 if (myTeam) targetTeams.push(myTeam);
             }
-            // ถ้าเป็น Manager ให้รวมทีมลูกน้องที่ดูแลเข้าไปด้วย (จะได้เห็นยาลูกน้อง)
+            // ถ้าเป็น Manager ให้รวมทีมลูกน้องที่ดูแลเข้าไปด้วย
             if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
                 window.myAllowedTeamIds.forEach(function(t) {
                     if (targetTeams.indexOf(t) === -1) targetTeams.push(t);
@@ -1310,12 +1324,12 @@ window.renderFormProductDropdown = async function() {
         });
 
         // ✂️ กรอง allProds ให้เหลือแค่ยาที่ได้รับอนุญาต
-        if (allowedProdIds.length > 0) {
+        if (targetTeams.length > 0) {
             filteredProds = allProds.filter(function(p) {
                 return allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1;
             });
         } else {
-            // Failsafe: ถ้าไม่มีการตั้งค่าตาราง Products_Team ไว้เลย จะให้เห็นทั้งหมด (ป้องกันกล่องว่าง)
+            // Failsafe: ถ้าไม่มีทีมเลยจริงๆ ถือว่าเป็นบั๊กข้อมูล ให้เห็นทั้งหมดเพื่อป้องกันกล่องว่าง
             filteredProds = allProds;
         }
     }
