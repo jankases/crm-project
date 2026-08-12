@@ -52,6 +52,9 @@ const i18nDictionary = {
     btn_cancel: "Cancel",
     btn_save: "Save",
     btn_view: "View",
+    btn_list: "List",
+    btn_calendar: "Calendar",
+    lbl_area_team: "Area / Team",
     
     filter_doctor: "Doctor Name (EN/TH)",
     filter_hospital: "Hospital Name (EN/TH)",
@@ -136,6 +139,9 @@ const i18nDictionary = {
     btn_cancel: "ยกเลิก",
     btn_save: "บันทึก",
     btn_view: "ดูข้อมูล",
+    btn_list: "รายการ",
+    btn_calendar: "ปฏิทิน",
+    lbl_area_team: "พื้นที่ / ทีม",
     
     filter_doctor: "ชื่อแพทย์ (EN/TH)",
     filter_hospital: "ชื่อโรงพยาบาล (EN/TH)",
