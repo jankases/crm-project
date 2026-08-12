@@ -93,6 +93,15 @@ const i18nDictionary = {
     leg_company: "Company Event",
     leg_tot_appr: "TOT (Approved)",
     leg_tot_pend: "TOT (Pending)",
+
+    lbl_location: "GPS Check-in",
+    lbl_attachments: "Attachments",
+    btn_add_file: "Add File/Photo",
+    lbl_signature: "Doctor Signature",
+    btn_clear_sig: "Clear Signature",
+    txt_sign_here: "Click here to sign",
+    lbl_coaching_main: "Joint Visit / Coaching",
+    lbl_coaching_sub: "Manager Coaching included",
     
     sec_visit_info: "Visit Information",
     sec_activity_details: "Activity Details",
@@ -189,6 +198,15 @@ const i18nDictionary = {
     leg_company: "กิจกรรมบริษัท",
     leg_tot_appr: "TOT (อนุมัติแล้ว)",
     leg_tot_pend: "TOT (รออนุมัติ)",
+
+    lbl_location: "พิกัด (GPS Check-in)",
+    lbl_attachments: "รูปถ่าย/ไฟล์แนบ",
+    btn_add_file: "เพิ่มไฟล์/ถ่ายรูป",
+    lbl_signature: "ลายเซ็นแพทย์",
+    btn_clear_sig: "ล้างลายเซ็น",
+    txt_sign_here: "คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ",
+    lbl_coaching_main: "ออกเยี่ยมร่วม (Joint Visit)",
+    lbl_coaching_sub: "มีหัวหน้า/ผู้จัดการเข้าร่วม",
     
     sec_visit_info: "ข้อมูลการเข้าพบ",
     sec_activity_details: "รายละเอียดกิจกรรม",
