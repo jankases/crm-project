@@ -1254,53 +1254,10 @@ window.renderFormProductDropdown = async function() {
         } catch(e) {}
     }
 
-    // ==========================================
-    // 🌟 2. เริ่มตะแกรงร่อน: กรองข้อมูล Product ตามสิทธิ์ของ Team (รองรับทุก Role)
-    // ==========================================
-    var crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    
-    var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || '').trim() : '';
-    var filteredProds = allProds || []; // ค่าเริ่มต้นคือให้เห็นทั้งหมด
-     
-   // 🌟 2. อัปเกรดระบบจำกัดสิทธิ์ (ล็อกกุญแจ 3 ชั้น + ป้องกันบั๊กโหลดครั้งแรก)
-    if (!window.myIsGlobalViewer) {
-        if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-            query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-        } else {
-            var allowedIds = [];
-            if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) allowedIds = [...window.myAllowedRepIds];
-            
-            // 🎯 กุญแจชั้นที่ 3: เตะ ID ของ Admin ออกจากสิทธิ์การมองเห็น
-            if (myRole !== 'admin' && myRole !== 'system admin') {
-                if (window.globalUsersList) {
-                    var safeIds = [];
-                    for (var i = 0; i < allowedIds.length; i++) {
-                        var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
-                        var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
-                        
-                        if (targetRole !== 'admin' && targetRole !== 'system admin') {
-                            safeIds.push(allowedIds[i]);
-                        }
-                    }
-                    allowedIds = safeIds; 
-                }
-            }
+    // 🌟 ดึงข้อมูลยามาแสดงผล (ลบโค้ดจำกัดสิทธิ์ที่แปะผิดที่ออกไปแล้ว!)
+    var filteredProds = allProds || []; 
 
-            if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-            
-            // 🛡️ [จุดสำคัญที่แก้บั๊ก!] เช็กก่อนว่ามี ID ให้กรองไหม
-            if (allowedIds.length > 0) {
-                query = query.in('Rep_ID', allowedIds);
-            } else {
-                // Failsafe: ถ้าจังหวะแรกโหลดยังไม่เสร็จ (ตะกร้าว่าง) บังคับให้ดึงแค่ข้อมูลของตัวเองเท่านั้น! ห้ามโชว์ทั้งหมด!
-                query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            }
-        }
-    }
-    // ==========================================
-
-    // 3. วาด HTML โดยใช้ filteredProds (ยาที่ผ่านการกรองแล้ว)
+    // 3. วาด HTML
     var fHtml = ''; 
     (filteredProds).forEach(function(p) { 
         fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; 
