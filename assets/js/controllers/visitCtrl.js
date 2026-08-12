@@ -58,6 +58,33 @@ window.isVisitPageReady = false; // ล็อกไม่ให้เผลอ�
 window.docRecognition = null; 
 window.textRecognition = null; 
 window.searchRecognition = null;
+window.globalVisitConfigs = { gps: true, att: true, sig: true };
+
+window.fetchVisitFeaturesConfig = async function() {
+    try {
+        const { data } = await window.supabaseClient.from('System_Settings').select('*').like('Type', 'VisitConfig_%');
+        if (data) {
+            const gpsConf = data.find(s => s.Type === 'VisitConfig_GPS');
+            const attConf = data.find(s => s.Type === 'VisitConfig_Attachment');
+            const sigConf = data.find(s => s.Type === 'VisitConfig_Signature');
+            
+            window.globalVisitConfigs.gps = gpsConf ? gpsConf.Status !== false : true;
+            window.globalVisitConfigs.att = attConf ? attConf.Status !== false : true;
+            window.globalVisitConfigs.sig = sigConf ? sigConf.Status !== false : true;
+        }
+    } catch(e) {}
+};
+
+window.applyVisitFeaturesUI = function() {
+    const gpsSection = document.getElementById('sectionGpsCheckin');
+    const attSection = document.getElementById('sectionAttachments');
+    const sigSection = document.getElementById('sectionSignature');
+    
+    // ถ้าปิดสวิตช์ไว้ ให้ซ่อน (เติม class d-none)
+    if (gpsSection) gpsSection.classList.toggle('d-none', !window.globalVisitConfigs.gps);
+    if (attSection) attSection.classList.toggle('d-none', !window.globalVisitConfigs.att);
+    if (sigSection) sigSection.classList.toggle('d-none', !window.globalVisitConfigs.sig);
+};
 
 // ==========================================
 // 🚀 2. DICTIONARY INDEXING
@@ -1945,6 +1972,7 @@ window.toggleVisitFormEditable = function(isEditable) {
 };
 
 window.openEditVisitView = async function(visitId) {
+  window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2111,6 +2139,7 @@ window.openEditVisitView = async function(visitId) {
 };
 
 window.openAddVisitView = async function(presetDate) {
+  window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -3106,6 +3135,10 @@ window.initVisitPage = async function(forceReload) {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
         if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
+        
+        // 🌟 แทรกฟังก์ชันเช็กการตั้งค่าสวิตช์เปิด/ปิดหน้าจอตรงนี้ครับ
+        if (typeof window.fetchVisitFeaturesConfig === 'function') await window.fetchVisitFeaturesConfig();
+        
         if (typeof window.fetchDetailingMedia === 'function') await window.fetchDetailingMedia();
 
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
