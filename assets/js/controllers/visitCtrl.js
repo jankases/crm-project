@@ -3271,41 +3271,48 @@ window.exportVisitsToCSV = function() {
         return '"' + safeStr + '"';
     };
 
-    // 2. วนลูปข้อมูล (ใช้ Index และ Helper Functions ตัวเดียวกับตารางหน้าเว็บ)
+    // 2. วนลูปข้อมูล
     sourceData.forEach(function(v) {
         var date = v.Visit_Date || "-";
-        // 🌟 ตัดเอาเฉพาะวันที่ทิ้งเวลาไป เพื่อให้ Excel ไม่สับสน
         if (date.indexOf('T') !== -1) date = date.split('T')[0];
 
         var sTime = v.Start_Time || "-";
         var eTime = v.End_Time || "-";
         
-        // --- 🌟 Rep Name (ดึงจาก User Index) ---
+        // --- 🌟 Rep Name ---
         var repName = v.Rep_ID || "-";
         if (window._userIndex) {
             var userObj = window._userIndex[String(v.Rep_ID).trim().toLowerCase()];
             if (userObj) repName = userObj.Rep_Name || userObj.Name || userObj.Email || v.Rep_ID;
         }
 
-        // --- 🌟 Area / Team ---
+        // --- 🌟 Area / Team / BU ---
         var areaName = v.Territory_ID || "-";
+        
+        // ก๊อกที่ 1: หาจากรายชื่อ Territory (เขตพื้นที่)
         if (window.globalTerritoryList) {
             var terObj = window.globalTerritoryList.find(function(t) { return String(t.Territory_ID) === String(v.Territory_ID); });
             if (terObj) areaName = terObj.Territory || terObj.Territory_Name || v.Territory_ID;
         }
-        if (areaName === v.Territory_ID && window.globalTeamList) { // Fallback ไปหา Team ถ้าหา Territory ไม่เจอ
+        // ก๊อกที่ 2: หาจากรายชื่อ Team (ผู้จัดการ)
+        if (areaName === v.Territory_ID && window.globalTeamList) {
             var tmObj = window.globalTeamList.find(function(t) { return String(t.Team_ID) === String(v.Territory_ID); });
             if (tmObj) areaName = tmObj.Team || tmObj.Team_Name || v.Territory_ID;
         }
+        // 🌟 ก๊อกที่ 3: หาจากรายชื่อ BU (ระดับผู้บริหาร) -> แก้ปัญหาบรรทัดของคุณ Kai BU!
+        if (areaName === v.Territory_ID && window.VisitManagerCache && window.VisitManagerCache.bus) {
+            var buObj = window.VisitManagerCache.bus.find(function(b) { return String(b.BU_ID || b.id) === String(v.Territory_ID); });
+            if (buObj) areaName = buObj.BU_Name || buObj.BU || buObj.Name_EN || v.Territory_ID;
+        }
 
-        // --- 🌟 Doctor Name & Hospital (ใช้ Helper Functions สุดล้ำของระบบ) ---
+        // --- 🌟 Doctor Name & Hospital ---
         var docIdClean = String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
         var docObj = window._docIndex ? window._docIndex[docIdClean] : null;
         
         var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, v.Doc_ID) : (v.Doc_ID || "-");
         var hospName = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : "-";
 
-        // --- 🌟 Products (ดึงจาก Product Index) ---
+        // --- 🌟 Products ---
         var prods = "-";
         if (v.Products_List) {
             prods = v.Products_List; 
@@ -3329,7 +3336,7 @@ window.exportVisitsToCSV = function() {
         var insight = v.Insight || "-";
         var nextAction = v.Next_Action || "-";
 
-        // ประกอบร่างทีละบรรทัด
+        // ประกอบร่าง
         csvContent += escapeCsv(date) + "," + 
                       escapeCsv(sTime) + "," + 
                       escapeCsv(eTime) + "," + 
@@ -3345,7 +3352,7 @@ window.exportVisitsToCSV = function() {
                       escapeCsv(nextAction) + "\n";
     });
 
-    // 3. สร้างไฟล์และสั่งดาวน์โหลด
+    // 3. สั่งดาวน์โหลด
     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement("a");
     var url = URL.createObjectURL(blob);
