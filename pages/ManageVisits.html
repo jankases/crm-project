@@ -312,7 +312,7 @@
                       <span data-i18n="lbl_attachments">รูปถ่าย/ไฟล์แนบ (Attachments)</span>
                     </label>
                     <label class="btn btn-sm btn-outline-primary px-3 mb-0 border-dashed cursor-pointer">
-                      <i class="fa-solid fa-paperclip me-1"></i> เพิ่มไฟล์/ถ่ายรูป
+                     <i class="fa-solid fa-paperclip me-1"></i> <span data-i18n="btn_add_file">เพิ่มไฟล์/ถ่ายรูป</span>
                       <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
                     </label>
                   </div>
@@ -325,17 +325,17 @@
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
                       <i class="fa-solid fa-signature text-success me-2"></i>
-                      <span>ลายเซ็นแพทย์ (Doctor Signature)</span>
+                      <span data-i18n="lbl_signature">ลายเซ็นแพทย์ (Doctor Signature)</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" id="btnClearSig" onclick="window.clearSignature()">
-                      <i class="fa-solid fa-rotate-left me-1"></i> ล้างลายเซ็น
+                      <i class="fa-solid fa-rotate-left me-1"></i> <span data-i18n="btn_clear_sig">ล้างลายเซ็น</span>
                     </button>
                   </div>
                   <div id="sigPreviewBox" class="bg-white border rounded-3 p-2 text-center cursor-pointer shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 110px;" onclick="window.openSignatureModal()">
                     <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 90px;" alt="Signature Preview" />
                     <div id="sigPlaceholder" class="text-muted small">
                       <i class="fa-solid fa-pen-nib me-1 text-primary fs-5 d-block mb-1"></i>
-                      <span>คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ (Sign Here)</span>
+                      <span data-i18n="txt_sign_here">คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ (Sign Here)</span>
                     </div>
                   </div>
                 </div>
@@ -381,8 +381,8 @@
 
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
                   <div>
-                    <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText">Joint Visit / Coaching</span></label>
-                    <div class="text-muted small" id="lblCoachingSubText">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
+                    <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span></label>
+<div class="text-muted small" id="lblCoachingSubText" data-i18n="lbl_coaching_sub">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
                   </div>
                   <label class="switch mb-0">
                     <input type="checkbox" id="visitIsCoaching">
