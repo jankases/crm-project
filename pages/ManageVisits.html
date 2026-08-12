@@ -113,25 +113,33 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
-          <button class="btn btn-light border w-50 shadow-sm text-secondary premium-radius" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
-            <i class="fa-solid fa-sliders"></i>
-          </button>
-          <button class="btn btn-light border w-50 shadow-sm text-secondary premium-radius" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
-            <i class="fa-solid fa-eraser"></i>
-          </button>
-        </div>
+           <!-- ปุ่ม More Filters -->
+           <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
+               <i class="fa-solid fa-sliders"></i>
+           </button>
+           <!-- ปุ่ม ยางลบ (Clear Filters) -->
+           <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+               <i class="fa-solid fa-eraser"></i>
+           </button>
+           <!-- 🌟 ปุ่ม Export ใหม่อยู่ตรงนี้ครับ (ซ่อนข้อความไว้โชว์แต่ไอคอน จะได้ไม่ล้นช่อง) -->
+           <button class="btn btn-outline-success border shadow-sm premium-radius flex-fill" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
+               <i class="fa-solid fa-file-excel"></i>
+           </button>
+       </div>
       </div>
 
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
-           <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
-            <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
-          </div>
-          <div class="col-sm-12 col-md-6">
-            <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory">Area / Team</label>
-            <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('territory')"></select>
-          </div>
+             <!-- 🌟 แก้เป็นชื่อพนักงาน (เปลี่ยน ID และ data-i18n) -->
+             <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
+             <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
+         </div>
+         <div class="col-sm-12 col-md-6">
+             <!-- 🌟 ฝั่งนี้คงไว้เป็น Area / Team เหมือนเดิม (อย่าลืมใส่ data-i18n ให้มันด้วย) -->
+             <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
+             <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
+         </div>
         </div>
       </div>
     </div>
