@@ -107,6 +107,7 @@ const i18nDictionary = {
     sec_activity_details: "Activity Details",
     sec_edetailing: "e-Detailing / Presentation",
     btn_export: "Export",
+    lbl_filter_rep: "Employee / Sales Rep",
     unit_items: "items"
   },
   th: {
@@ -213,6 +214,7 @@ const i18nDictionary = {
     sec_activity_details: "รายละเอียดกิจกรรม",
     sec_edetailing: "e-Detailing / สื่อการนำเสนอ",
     btn_export: "ส่งออก",
+    lbl_filter_rep: "พนักงาน / ฝ่ายขาย",
     unit_items: "เล่ม"
   }
 };
