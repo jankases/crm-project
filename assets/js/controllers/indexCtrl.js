@@ -16,16 +16,44 @@ window.indexTypeModalInstance = null;
 window.indexModalInstance = null;
 window.globalSystemSettings = [];
 
-// กำหนดให้ Init อัตโนมัติเมื่อโหลด Controller
+// ==========================================
+// 👁️ SPA DOM WATCHER & INITIALIZER
+// ==========================================
+window.initIndexPage = function() {
+    var typeModalEl = document.getElementById('indexTypeModal');
+    var indexModalEl = document.getElementById('indexModal');
+    if (typeModalEl && typeof bootstrap !== 'undefined') window.indexTypeModalInstance = new bootstrap.Modal(typeModalEl);
+    if (indexModalEl && typeof bootstrap !== 'undefined') window.indexModalInstance = new bootstrap.Modal(indexModalEl);
+
+    if (typeof window.loadSystemSettings === 'function') window.loadSystemSettings(); 
+    if (typeof window.loadAllIndexData === 'function') window.loadAllIndexData();
+};
+
+// 🌟 ตัวดักจับ: เมื่อ HTML หน้า ManageIndex ถูกนำมาแปะบนจอ ให้สั่งโหลดข้อมูลทันที!
+if (!window._indexObserverAttached) {
+    var indexObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) {
+                        if (node.id === 'indexTypeTableBody' || (node.querySelector && node.querySelector('#indexTypeTableBody'))) {
+                            window.initIndexPage();
+                        }
+                    }
+                });
+            }
+        });
+    });
+    indexObserver.observe(document.body, { childList: true, subtree: true });
+    window._indexObserverAttached = true;
+}
+
+// 🌟 เผื่อกรณี Refresh หน้าเว็บตรงๆ หรือไม่ได้โหลดผ่าน Router
 setTimeout(function() {
-  var typeModalEl = document.getElementById('indexTypeModal');
-  var indexModalEl = document.getElementById('indexModal');
-  if (typeModalEl) window.indexTypeModalInstance = new bootstrap.Modal(typeModalEl);
-  if (indexModalEl) window.indexModalInstance = new bootstrap.Modal(indexModalEl);
-  
-  window.loadSystemSettings(); 
-  window.loadAllIndexData();
-}, 300);
+    if (document.getElementById('indexTypeTableBody')) {
+        window.initIndexPage();
+    }
+}, 100);
 
 // ================= 🌟 System Settings (Rating) =================
 window.loadSystemSettings = async function() {
