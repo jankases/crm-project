@@ -1359,16 +1359,31 @@ window.handleFilterChange = function(source) { if (typeof window.filterVisits ==
 window.clearVisitFilters = function() {
     if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
     if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
-    if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.clear(true);
     
-    var clearTs = function(id) { var el = document.getElementById(id); if (el && el.tomselect) el.tomselect.clear(); else if (el) el.value = ''; };
-    clearTs('filterStartDate'); clearTs('filterEndDate'); clearTs('filterVisitStatus');
+    // 🌟 แก้ไขตรงนี้: บังคับให้เลือกตัวเลือกที่เป็นค่าว่าง ('') เพื่อให้โชว์ข้อความ "- สถานะทั้งหมด -"
+    if (window.tomSelectStatusInstance) {
+        window.tomSelectStatusInstance.setValue('', true);
+    }
     
+    var clearTs = function(id) { 
+        var el = document.getElementById(id); 
+        if (el && el.tomselect) el.tomselect.clear(); 
+        else if (el) el.value = ''; 
+    };
+    
+    clearTs('filterStartDate'); 
+    clearTs('filterEndDate'); 
+    // ลบ clearTs('filterVisitStatus'); ออกไปเลย เพราะเราจัดการด้านบนแล้ว
+
     var stEl = document.getElementById('filterVisitStatus');
-    if (stEl) { stEl.value = ''; stEl.classList.add('filter-placeholder-text'); }
+    if (stEl && !window.tomSelectStatusInstance) { 
+        stEl.value = ''; 
+        stEl.classList.add('filter-placeholder-text'); 
+    }
+    
     if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
     if (typeof window.filterVisits === 'function') window.filterVisits();
-}; 
+};
 
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
