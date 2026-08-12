@@ -352,12 +352,22 @@ window.checkMyDraftsReminder = function(myDraftCount) {
 
   if (myDraftCount > 0) {
     sessionStorage.setItem('hasShownDraftReminder', 'true');
+
+    // 🌟 ดึงภาษาปัจจุบันของระบบ
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    
+    // 🌟 กำหนดข้อความ 2 ภาษา
+    var titleText = appLang === 'en' ? 'Pending Drafts Reminder' : 'มีฉบับร่างค้างยืนยัน';
+    var descText = appLang === 'en' 
+        ? 'You have <b class="text-primary">' + myDraftCount + '</b> unsubmitted visit logs.' 
+        : 'คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง';
+
     toastContainer.innerHTML = 
       '<div class="draft-toast" id="myDraftToast">' +
         '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
         '<div>' +
-          '<div class="fw-bold text-dark small">มีฉบับร่างค้างยืนยัน</div>' +
-          '<div class="text-secondary" style="font-size: 0.82rem;">คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง</div>' +
+          '<div class="fw-bold text-dark small">' + titleText + '</div>' +
+          '<div class="text-secondary" style="font-size: 0.82rem;">' + descText + '</div>' +
         '</div>' +
         '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
       '</div>';
