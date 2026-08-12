@@ -460,11 +460,12 @@ window.loadProductMedia = async function() {
 
   if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
 
-  if (matchedMedia.length === 0) { section.classList.add('d-none'); container.innerHTML = ''; return; }
-
   section.classList.remove('d-none');
-  var titleText = window.getCurrentAppLang() === 'en' ? 'e-Detailing / Presentation' : 'สื่อการนำเสนอ (e-Detailing)';
-  var unitText = window.getCurrentAppLang() === 'en' ? 'items' : 'เล่ม';
+  
+  // 🌟 ดึงค่าภาษาปัจจุบัน
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var titleText = appLang === 'en' ? 'e-Detailing / Presentation' : 'สื่อการนำเสนอ (e-Detailing)';
+  var unitText = appLang === 'en' ? 'items' : 'เล่ม';
 
   if (headerEl) {
     headerEl.innerHTML = 
@@ -475,7 +476,14 @@ window.loadProductMedia = async function() {
   var html = '';
   var btnClass = isPreviewMode ? 'btn-premium-secondary' : 'btn-premium-primary';
   var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
-  var btnText = isPreviewMode ? 'Preview' : 'Present';
+  
+  // 🌟 กำหนดข้อความปุ่มแบบ 2 ภาษา (แยกกรณี Preview และ Present)
+  var btnText = '';
+  if (isPreviewMode) {
+      btnText = appLang === 'en' ? 'Preview' : 'เปิดดู';
+  } else {
+      btnText = appLang === 'en' ? 'Present' : 'นำเสนอ';
+  }
 
   matchedMedia.forEach(function(m) {
     var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
@@ -500,7 +508,14 @@ window.loadProductMedia = async function() {
 window.openMediaPresentation = async function(mediaId, isPreview) {
   window.globalIsMediaPreviewMode = isPreview || false;
   var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
-  if (!media) return window.showToast ? window.showToast("ไม่พบไฟล์สื่อการนำเสนอนี้", "error") : alert("Error loading media");
+  
+  // 🌟 1. ดึงค่าภาษาปัจจุบันสำหรับข้อความ Error 
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  
+  if (!media) {
+      var msgNotFound = appLang === 'en' ? "Media file not found." : "ไม่พบไฟล์สื่อการนำเสนอนี้";
+      return window.showToast ? window.showToast(msgNotFound, "error") : alert(msgNotFound);
+  }
 
   var visitIdInput = document.getElementById('visitId');
   if (visitIdInput && !visitIdInput.value && typeof window.generateUUID === 'function') visitIdInput.value = window.generateUUID();
@@ -511,7 +526,10 @@ window.openMediaPresentation = async function(mediaId, isPreview) {
   window.currentPdfPage = 1;
   window.currentPageStartTime = new Date();
 
-  var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">Preview Only</span>' : '';
+  // 🌟 2. รองรับ 2 ภาษาสำหรับป้าย Preview Only
+  var txtPreviewOnly = appLang === 'en' ? 'Preview Only' : 'ดูตัวอย่างเท่านั้น';
+  var titleSuffix = window.globalIsMediaPreviewMode ? ' <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">' + txtPreviewOnly + '</span>' : '';
+  
   document.getElementById('mediaModalTitle').innerHTML = '<i class="fa-solid ' + (media.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger') + ' me-2"></i>' + media.Title + titleSuffix;
 
   var modalBody = document.getElementById('mediaModalBody');
