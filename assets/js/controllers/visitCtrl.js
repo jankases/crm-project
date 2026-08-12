@@ -3458,13 +3458,22 @@ window.syncOfflineVisits = async function() {
             if (item.existingVisitId) {
                 await window.supabaseClient.from('Visit_Logs').update(item.payload).eq('Visit_ID', item.existingVisitId);
                 await window.supabaseClient.from('Visit_Products').delete().eq('Visit_ID', item.existingVisitId);
+                // 🌟 เคลียร์ Visit_Samples เก่าออกก่อน (กรณีแก้ไข Visit ตอนออฟไลน์)
+                await window.supabaseClient.from('Visit_Samples').delete().eq('Visit_ID', item.existingVisitId);
             } else {
                 await window.supabaseClient.from('Visit_Logs').insert([item.payload]);
             }
+
             if (item.selectedProducts && item.selectedProducts.length > 0) {
                 var vpPayload = item.selectedProducts.map(function(p) { return { Visit_ID: item.targetVisitId, Product_ID: p, Whoupdated: item.payload.Whoupdated }; });
                 await window.supabaseClient.from('Visit_Products').insert(vpPayload);
             }
+
+            // 🌟 🎁 ซิงค์รายการ Visit_Samples ลงเซิร์ฟเวอร์
+            if (item.samplePayloads && item.samplePayloads.length > 0) {
+                await window.supabaseClient.from('Visit_Samples').insert(item.samplePayloads);
+            }
+
             successCount++;
         } catch (err) {
             console.error("Offline sync failed for item:", item, err);
