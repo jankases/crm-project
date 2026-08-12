@@ -28,8 +28,8 @@
       
       <div class="d-flex gap-2 align-items-center">
         <div class="btn-group shadow-xs bg-white p-1 border me-2 premium-radius-lg">
-          <button class="btn btn-sm btn-premium-primary px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> List</button>
-          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> Calendar</button>
+         <button class="btn btn-sm btn-premium-primary px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
+         <button class="btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
         </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
@@ -125,7 +125,7 @@
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
-            <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_user">User / Sales Rep</label>
+           <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
             <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
           </div>
           <div class="col-sm-12 col-md-6">
