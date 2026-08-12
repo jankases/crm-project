@@ -3403,3 +3403,96 @@ window.exportVisitsToCSV = function() {
     link.click();
     document.body.removeChild(link);
 };
+
+// ==========================================
+// 🛡️ AUTO-SAVE DRAFT ENGINE (Debounce)
+// ==========================================
+window.visitAutosaveTimer = null;
+
+// 1. ดึงข้อมูลจากหน้าจอ
+window.collectVisitFormData = function() {
+    return {
+        docId: document.getElementById('visitDocId') ? document.getElementById('visitDocId').value : '',
+        purpose: document.getElementById('visitPurpose') ? document.getElementById('visitPurpose').value : '',
+        date: document.getElementById('visitDate') ? document.getElementById('visitDate').value : '',
+        startTime: document.getElementById('visitStartTime') ? document.getElementById('visitStartTime').value : '',
+        endTime: document.getElementById('visitEndTime') ? document.getElementById('visitEndTime').value : '',
+        details: document.getElementById('visitDetails') ? document.getElementById('visitDetails').value : '',
+        insight: document.getElementById('visitInsight') ? document.getElementById('visitInsight').value : '',
+        nextAction: document.getElementById('visitNextAction') ? document.getElementById('visitNextAction').value : '',
+        isCoaching: document.getElementById('visitIsCoaching') ? document.getElementById('visitIsCoaching').checked : false
+    };
+};
+
+// 2. ฟังก์ชันเซฟลงเครื่อง (ทำงานหลังจากเซลส์หยุดพิมพ์ 1.5 วินาที)
+window.triggerVisitAutosave = function() {
+    clearTimeout(window.visitAutosaveTimer);
+    
+    window.visitAutosaveTimer = setTimeout(function() {
+        const isFormVisible = document.getElementById('visitFormView') && !document.getElementById('visitFormView').classList.contains('d-none');
+        const isEditMode = document.getElementById('visitId') && document.getElementById('visitId').value !== "";
+        
+        // 🌟 แอบเซฟเฉพาะตอนสร้างฟอร์มใหม่ (Add New) เท่านั้น
+        if (isFormVisible && !isEditMode) {
+            const formData = window.collectVisitFormData();
+            
+            // ถ้ายังไม่ได้พิมพ์อะไรเลย ก็ไม่ต้องเซฟ
+            if (!formData.docId && !formData.details && !formData.insight && !formData.nextAction) return;
+
+            localStorage.setItem('crm_visit_autosave', JSON.stringify(formData));
+            
+            // แจ้งเตือนเล็กๆ ที่ปุ่ม Save ว่าบันทึกให้แล้ว (หายไปเองใน 2 วิ)
+            const btnSave = document.getElementById('saveVisitBtn');
+            if (btnSave && !btnSave.innerHTML.includes('Auto-saved')) {
+                const originalHTML = btnSave.innerHTML;
+                btnSave.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-info"></i> Auto-saved';
+                setTimeout(() => { btnSave.innerHTML = originalHTML; }, 2000);
+            }
+        }
+    }, 1500); 
+};
+
+// 3. ผูกระบบดักจับการพิมพ์เข้ากับฟอร์ม
+window.attachAutosaveListeners = function() {
+    const form = document.getElementById('visitForm');
+    if (form && !form.hasAttribute('data-autosave-attached')) {
+        form.addEventListener('input', window.triggerVisitAutosave);
+        form.addEventListener('change', window.triggerVisitAutosave);
+        form.setAttribute('data-autosave-attached', 'true');
+    }
+};
+
+// 4. ฟังก์ชันกู้คืนข้อมูลตอนเปิดหน้าฟอร์ม
+window.checkAndRestoreAutosave = function() {
+    const savedDataStr = localStorage.getItem('crm_visit_autosave');
+    if (savedDataStr) {
+        try {
+            const savedData = JSON.parse(savedDataStr);
+            if (!savedData.docId && !savedData.details && !savedData.insight && !savedData.nextAction) return;
+
+            var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
+            var msg = appLang === 'en' ? "You have an unsaved draft. Do you want to restore it?" : "พบข้อมูลฟอร์มที่พิมพ์ค้างไว้รอบที่แล้ว ต้องการกู้คืนหรือไม่?";
+            
+            // เด้งถามเซลส์ว่าจะกู้คืนไหม
+            if (confirm(msg)) {
+                if (savedData.docId) {
+                     const docSelect = document.getElementById('visitDocId');
+                     if(docSelect && docSelect.tomselect) docSelect.tomselect.setValue(savedData.docId);
+                     else if(docSelect) docSelect.value = savedData.docId;
+                }
+                if (savedData.purpose) document.getElementById('visitPurpose').value = savedData.purpose;
+                if (savedData.date) document.getElementById('visitDate').value = savedData.date;
+                if (savedData.startTime) document.getElementById('visitStartTime').value = savedData.startTime;
+                if (savedData.endTime) document.getElementById('visitEndTime').value = savedData.endTime;
+                if (savedData.details) document.getElementById('visitDetails').value = savedData.details;
+                if (savedData.insight) document.getElementById('visitInsight').value = savedData.insight;
+                if (savedData.nextAction) document.getElementById('visitNextAction').value = savedData.nextAction;
+                if (savedData.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = savedData.isCoaching;
+                
+                if (window.showToast) window.showToast(appLang === 'en' ? "Draft restored successfully." : "กู้คืนข้อมูลสำเร็จ", "success");
+            } else {
+                localStorage.removeItem('crm_visit_autosave'); // ถ้าไม่เอา ให้ลบทิ้ง
+            }
+        } catch(e) {}
+    }
+};
