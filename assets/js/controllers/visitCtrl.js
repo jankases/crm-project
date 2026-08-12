@@ -60,6 +60,8 @@ window.textRecognition = null;
 window.searchRecognition = null;
 window.globalVisitConfigs = { gps: true, att: true, sig: true };
 
+window.globalVisitConfigs = { gps: true, att: true, sig: true, samples: true }; // 🌟 เพิ่ม samples เข้าไปในค่าเริ่มต้น
+
 window.fetchVisitFeaturesConfig = async function() {
     try {
         const { data } = await window.supabaseClient.from('System_Settings').select('*').like('Type', 'VisitConfig_%');
@@ -67,12 +69,60 @@ window.fetchVisitFeaturesConfig = async function() {
             const gpsConf = data.find(s => s.Type === 'VisitConfig_GPS');
             const attConf = data.find(s => s.Type === 'VisitConfig_Attachment');
             const sigConf = data.find(s => s.Type === 'VisitConfig_Signature');
-            
+            const smpConf = data.find(s => s.Type === 'VisitConfig_Samples'); // 🌟 รับค่า Samples
+
             window.globalVisitConfigs.gps = gpsConf ? gpsConf.Status !== false : true;
             window.globalVisitConfigs.att = attConf ? attConf.Status !== false : true;
             window.globalVisitConfigs.sig = sigConf ? sigConf.Status !== false : true;
+            window.globalVisitConfigs.samples = smpConf ? smpConf.Status !== false : true; // 🌟 กำหนดค่า
         }
     } catch(e) {}
+};
+
+window.applyVisitFeaturesUI = function() {
+    const gpsSection = document.getElementById('sectionGpsCheckin');
+    const attSection = document.getElementById('sectionAttachments');
+    const sigSection = document.getElementById('sectionSignature');
+    const smpSection = document.getElementById('sectionSamples'); // 🌟 ดึง Element
+
+    if (gpsSection) gpsSection.classList.toggle('d-none', !window.globalVisitConfigs.gps);
+    if (attSection) attSection.classList.toggle('d-none', !window.globalVisitConfigs.att);
+    if (sigSection) sigSection.classList.toggle('d-none', !window.globalVisitConfigs.sig);
+    if (smpSection) smpSection.classList.toggle('d-none', !window.globalVisitConfigs.samples); // 🌟 สั่งซ่อน/แสดง
+};
+
+// ==========================================
+// 🎁 SAMPLES & PROMO ITEMS ENGINE
+// ==========================================
+window.addSampleRow = function(itemName = '', qty = '') {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    if (noText) noText.style.display = 'none';
+
+    const rowId = 'sampleRow_' + Date.now();
+    const rowHTML = `
+        <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
+            <div class="col-7">
+                <input type="text" class="form-control form-control-sm bg-white shadow-sm sample-name" placeholder="ชื่อสินค้าตัวอย่าง / Promo..." value="${itemName}">
+            </div>
+            <div class="col-3">
+                <input type="number" class="form-control form-control-sm bg-white shadow-sm text-center sample-qty" placeholder="จำนวน" min="1" value="${qty}">
+            </div>
+            <div class="col-2 text-end">
+                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples();">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', rowHTML);
+};
+
+window.checkEmptySamples = function() {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    const rows = container.querySelectorAll('.sample-item-row');
+    if (rows.length === 0 && noText) noText.style.display = 'block';
 };
 
 window.applyVisitFeaturesUI = function() {
@@ -84,6 +134,125 @@ window.applyVisitFeaturesUI = function() {
     if (gpsSection) gpsSection.classList.toggle('d-none', !window.globalVisitConfigs.gps);
     if (attSection) attSection.classList.toggle('d-none', !window.globalVisitConfigs.att);
     if (sigSection) sigSection.classList.toggle('d-none', !window.globalVisitConfigs.sig);
+};
+
+// ==========================================
+// 🎁 SAMPLES & PROMO ITEMS ENGINE (SUPABASE MATCHED)
+// ==========================================
+window.globalMasterSamples = [];
+
+// 1. ดึงรายการของแจกที่เปิดใช้งานอยู่ (Is_Active = true)
+window.loadMasterSamplesList = async function() {
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('Master_Samples')
+            .select('Sample_ID, Sample_Name')
+            .eq('Is_Active', true)
+            .order('Sample_Name', { ascending: true });
+
+        if (!error && data) {
+            window.globalMasterSamples = data;
+        } else if (error) {
+            console.error("Error fetching Master_Samples:", error.message);
+        }
+    } catch (e) {
+        console.error("Error loading master samples:", e);
+    }
+};
+
+// 2. ฟังก์ชันสร้าง Dynamic Row บนฟอร์ม
+window.addSampleRow = function(sampleId = '', qty = 1) {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    if (noText) noText.style.display = 'none';
+
+    const rowId = 'sampleRow_' + Date.now();
+    
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var placeholderText = appLang === 'en' ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
+
+    let optionsHTML = `<option value="">${placeholderText}</option>`;
+    if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
+        window.globalMasterSamples.forEach(item => {
+            const isSelected = item.Sample_ID === sampleId ? 'selected' : '';
+            optionsHTML += `<option value="${item.Sample_ID}" ${isSelected}>${item.Sample_Name}</option>`;
+        });
+    }
+
+    const rowHTML = `
+        <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
+            <div class="col-7">
+                <select class="form-select form-select-sm bg-white shadow-sm sample-id-select" required>
+                    ${optionsHTML}
+                </select>
+            </div>
+            <div class="col-3">
+                <input type="number" class="form-control form-control-sm bg-white shadow-sm text-center sample-qty" placeholder="จำนวน" min="1" value="${qty}">
+            </div>
+            <div class="col-2 text-end">
+                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples();">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', rowHTML);
+};
+
+window.checkEmptySamples = function() {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    const rows = container ? container.querySelectorAll('.sample-item-row') : [];
+    if (rows.length === 0 && noText) noText.style.display = 'block';
+};
+
+// 3. รวบรวมข้อมูลเตรียมยัดลง Visit_Samples
+window.collectVisitSamplesPayload = function(visitId, whoUpdated) {
+    const rows = document.querySelectorAll('#sampleItemsContainer .sample-item-row');
+    const samplePayloads = [];
+
+    rows.forEach(row => {
+        const sampleSelect = row.querySelector('.sample-id-select');
+        const qtyInput = row.querySelector('.sample-qty');
+        
+        const sampleId = sampleSelect ? sampleSelect.value : '';
+        const qty = qtyInput ? (parseInt(qtyInput.value) || 0) : 0;
+
+        if (sampleId && qty > 0) {
+            samplePayloads.push({
+                Visit_ID: visitId,
+                Sample_ID: sampleId,
+                Quantity: qty,
+                Whoupdated: whoUpdated,
+                Whenupdated: new Date().toISOString()
+            });
+        }
+    });
+
+    return samplePayloads;
+};
+
+window.loadVisitSamplesForEdit = async function(visitId) {
+    const container = document.getElementById('sampleItemsContainer');
+    if (!container) return;
+    
+    // ล้างตัวเก่าในฟอร์มออกก่อน
+    container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>';
+
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('Visit_Samples')
+            .select('Sample_ID, Quantity')
+            .eq('Visit_ID', visitId);
+
+        if (!error && data && data.length > 0) {
+            data.forEach(item => {
+                window.addSampleRow(item.Sample_ID, item.Quantity);
+            });
+        }
+    } catch (e) {
+        console.error("Error loading Visit_Samples:", e);
+    }
 };
 
 // ==========================================
@@ -2205,7 +2374,7 @@ btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'e
     setTimeout(() => { window.checkAndRestoreAutosave(); }, 500);
 };
 
-window.handleSaveVisit = async function(e) {
+ window.handleSaveVisit = async function(e) {
   e.preventDefault();
   var btn = document.getElementById('saveVisitBtn');
   var mode = btn.dataset.mode;
@@ -2227,7 +2396,6 @@ window.handleSaveVisit = async function(e) {
   var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
-   
   // 🌟 รองรับ 2 ภาษาสำหรับการแจ้งเตือน Validation
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var missingFields = [];
@@ -2274,6 +2442,12 @@ window.handleSaveVisit = async function(e) {
     CheckIn_Lat: latVal ? parseFloat(latVal) : null, CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
     CheckIn_Time: latVal ? new Date().toISOString() : null, Attachments: attachmentsData, Doctor_Signature: sigData
   };
+
+  // 🎁 รวบรวมข้อมูลรายการ Samples
+  var samplePayloads = [];
+  if (window.globalVisitConfigs && window.globalVisitConfigs.samples && typeof window.collectVisitSamplesPayload === 'function') {
+      samplePayloads = window.collectVisitSamplesPayload(targetVisitId, whoUpdated);
+  }
  
   var isOfflineMode = !navigator.onLine;
 
@@ -2295,6 +2469,19 @@ window.handleSaveVisit = async function(e) {
         var vpPayload = selectedProducts.map(function(p) { return { Visit_ID: targetVisitId, Product_ID: p, Whoupdated: whoUpdated }; });
         var vpRes = await window.supabaseClient.from('Visit_Products').insert(vpPayload);
         if (vpRes.error) throw new Error("Insert Visit_Products error: " + vpRes.error.message);
+    }
+
+    // 🎁 จัดการเซฟลงตาราง Visit_Samples
+    if (window.globalVisitConfigs && window.globalVisitConfigs.samples) {
+        if (existingVisitId) {
+            var delSmpRes = await window.supabaseClient.from('Visit_Samples').delete().eq('Visit_ID', existingVisitId);
+            if (delSmpRes.error) console.warn("Delete old Visit_Samples warning:", delSmpRes.error.message);
+        }
+
+        if (samplePayloads.length > 0) {
+            var insSmpRes = await window.supabaseClient.from('Visit_Samples').insert(samplePayloads);
+            if (insSmpRes.error) throw new Error("Insert Visit_Samples error: " + insSmpRes.error.message);
+        }
     }
 
     if (window.pendingDetailingLogs && window.pendingDetailingLogs.length > 0) {
@@ -2347,15 +2534,19 @@ window.handleSaveVisit = async function(e) {
     }
 
   } catch(err) {
-    // 📦 พระเอกอยู่ตรงนี้: ถ้าระบบบอกว่าออฟไลน์ หรือดึงข้อมูลล้มเหลวเพราะเน็ตหลุด ให้จับยัดใส่คิวออฟไลน์!
+    // 📦 ถ้าระบบบอกว่าออฟไลน์ หรือดึงข้อมูลล้มเหลวเพราะเน็ตหลุด ให้จับยัดใส่คิวออฟไลน์
     var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
     
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
     if (isNetworkError) {
         var offlineData = {
-            existingVisitId: existingVisitId, targetVisitId: targetVisitId, payload: payload,
-            selectedProducts: selectedProducts, pendingDetailingLogs: window.pendingDetailingLogs || [],
+            existingVisitId: existingVisitId, 
+            targetVisitId: targetVisitId, 
+            payload: payload,
+            selectedProducts: selectedProducts, 
+            samplePayloads: samplePayloads,
+            pendingDetailingLogs: window.pendingDetailingLogs || [],
             timestamp: Date.now()
         };
 
@@ -2373,7 +2564,7 @@ window.handleSaveVisit = async function(e) {
             : "📶 ไม่มีสัญญาณอินเทอร์เน็ต: ข้อมูลถูกบันทึกไว้ในเครื่องแล้ว และจะอัปเดตอัตโนมัติเมื่อออนไลน์";
         if (window.showToast) window.showToast(msgOfflineSave, "warning");
 
-        // 🌟 เซฟลงคิวออฟไลน์เสร็จแล้ว ก็ถือว่าจัดการแล้ว ลบ Auto-save ทิ้งได้เลยเช่นกัน
+        // 🌟 เซฟลงคิวออฟไลน์เสร็จแล้ว ให้ลบ Auto-save ออก
         localStorage.removeItem('crm_visit_autosave');
         
         if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
@@ -3152,6 +3343,7 @@ window.initVisitPage = async function(forceReload) {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
         if (typeof window.loadVisits === 'function') await window.loadVisits(shouldFetchDB); 
+        if (typeof window.loadMasterSamplesList === 'function') await window.loadMasterSamplesList();
         
         // 🌟 แทรกฟังก์ชันเช็กการตั้งค่าสวิตช์เปิด/ปิดหน้าจอตรงนี้ครับ
         if (typeof window.fetchVisitFeaturesConfig === 'function') await window.fetchVisitFeaturesConfig();
