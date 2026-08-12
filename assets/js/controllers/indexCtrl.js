@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 Index Controller (Master Data Management) - Offline Enabled
+// 🚀 Index Controller (Master Data Management) - Offline Enabled 
 // ==========================================
 
 window.globalIndexTypes = [];
