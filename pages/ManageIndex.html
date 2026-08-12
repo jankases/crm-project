@@ -107,6 +107,42 @@
     </div>
   </div>
 
+  <!-- ================= 🌟 ส่วนควบคุม Visit Form Features (มาใหม่!) ================= -->
+  <div class="card p-4 border-0 visit-card mb-4" style="border-left: 5px solid #0dcaf0 !important;">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+      
+      <div class="flex-grow-1">
+        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-list-check me-2 text-info"></i><span data-i18n="title_visit_features">Visit Form Features</span></h5>
+        <p class="text-muted small mb-0" style="line-height: 1.6;" data-i18n="desc_visit_features">
+          Show or hide specific sections in the Visit Form.
+        </p>
+      </div>
+      
+      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-end justify-content-center justify-content-md-end gap-3 flex-shrink-0">
+        <div class="text-center px-2">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_gps">GPS</label>
+          <label class="switch mb-0"><input type="checkbox" id="toggleGps" checked><span class="slider"></span></label>
+        </div>
+        <div class="text-center px-2">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_attachment">Attach</label>
+          <label class="switch mb-0"><input type="checkbox" id="toggleAttachment" checked><span class="slider"></span></label>
+        </div>
+        <div class="text-center px-2">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_signature">Sign</label>
+          <label class="switch mb-0"><input type="checkbox" id="toggleSignature" checked><span class="slider"></span></label>
+        </div>
+        
+        <div class="vr d-none d-md-block mx-1" style="height: 40px; align-self: center;"></div>
+        
+        <div>
+          <button class="btn btn-premium-primary fw-bold px-4 shadow-sm text-nowrap" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 38px;">
+            <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4">
     <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ================= -->
     <div class="col-lg-3 d-flex">
