@@ -2884,6 +2884,14 @@ window.initVisitPage = async function(forceReload) {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
+    // 🚦 [แก้บั๊ก Dropdown หน้าตาธรรมดา] รอให้โครงสร้าง HTML โหลดขึ้นมาบนจอให้ครบก่อน!
+    var domWaitCount = 0;
+    // เช็กว่ากล่อง Dropdown Status โผล่มาหรือยัง (รอสูงสุด 2 วินาที)
+    while (!document.getElementById('filterVisitStatus') && domWaitCount < 40) {
+        await new Promise(r => setTimeout(r, 50));
+        domWaitCount++;
+    }
+
     // 🌟 เช็กว่ามี Cache ไหม ถ้าไม่ได้ถูกสั่ง forceReload และมี Cache ให้ใช้ Cache!
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
     var shouldFetchDB = (forceReload === true || !hasCache);
@@ -2891,7 +2899,6 @@ window.initVisitPage = async function(forceReload) {
     var tbody = document.getElementById('visitTableBody');
 
     // 🌟 สาดหน้า Loading เฉพาะตอนที่ "ต้องไปดึงฐานข้อมูลใหม่" เท่านั้น
-    // (ถ้าใช้ Cache จะข้ามส่วนนี้ไปเลย ทำให้หน้าจอไม่กระพริบ)
     if (shouldFetchDB && tbody) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">Loading Data...</h5><span class="text-muted small">Processing your access rights and retrieving records.</span></div></td></tr>';
     }
