@@ -725,7 +725,10 @@ window.openAddTotModal = function() {
   if(btnDelete) btnDelete.classList.add('d-none');
 
   var titleEl = document.getElementById('totModalTitle');
-  if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT';
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var titleEl = document.getElementById('totModalTitle');
+  if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>' + (appLang === 'en' ? 'Add TOT' : 'เพิ่ม TOT');
+
   
   window.initTotModal();
   if(window.totModalInstance) window.totModalInstance.show();
@@ -755,7 +758,9 @@ window.openEditTotModal = function(id) {
   if(btnDelete) btnDelete.classList.remove('d-none');
 
   var titleEl = document.getElementById('totModalTitle');
-  if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen me-2"></i>Edit TOT';
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var titleEl = document.getElementById('totModalTitle');
+  if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen me-2"></i>' + (appLang === 'en' ? 'Edit TOT' : 'แก้ไข TOT');
   
   window.initTotModal();
   if(window.totModalInstance) window.totModalInstance.show();
@@ -1735,10 +1740,13 @@ window.loadVisits = async function(forceReload) {
 
   } catch (err) {
     console.error("Load Visits Error:", err);
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data: ' + err.message + '</td></tr>';
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
   }
 };
- window.renderVisitTableServerSide = function() {
+
+window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
 
@@ -1747,10 +1755,13 @@ window.loadVisits = async function(forceReload) {
   var rows = parseInt(window.rowsPerPage) || 20;
   if (rows <= 0) rows = 20; 
   var totalPages = Math.ceil(totalItems / rows);
+  
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
   if (data.length === 0) {
       if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No visit records found.</td></tr>';
+      var msgNoData = appLang === 'en' ? 'No visit records found.' : 'ไม่พบข้อมูลบันทึกเยี่ยม';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
       return;
   }
 
@@ -1758,52 +1769,62 @@ window.loadVisits = async function(forceReload) {
 
   var startIndex = ((window.currentPage - 1) * rows) + 1;
   var endIndex = Math.min(startIndex + data.length - 1, totalItems);
-  if (document.getElementById('visitPageInfo')) document.getElementById('visitPageInfo').innerText = 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries';
+  if (document.getElementById('visitPageInfo')) {
+      document.getElementById('visitPageInfo').innerText = appLang === 'en' 
+          ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
+          : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
+  }
 
   var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
-  var appLang = window.getCurrentAppLang(); 
   var htmlBuffer = '';
 
   data.forEach(function(v) {
     var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
     var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
-    var statusShow = (v.Status === 'Submitted') ? '✅ Submitted' : '⏳ Pending';
-    if (isPendingUnlock) { badgeClass = 'badge-soft-secondary'; statusShow = '⏳ Pending Unlock'; }
+    
+    // 🌟 2 ภาษา สำหรับป้ายสถานะ
+    var statusShow = (v.Status === 'Submitted') 
+        ? (appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว') 
+        : (appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง');
+        
+    if (isPendingUnlock) { 
+        badgeClass = 'badge-soft-secondary'; 
+        statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; 
+    }
 
     var dateShow = (typeof window.formatDateToLocal === 'function') ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
-
     var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
     var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
     var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
     var coachingBadge = v.Is_Coaching ? ' <i class="fa-solid fa-clipboard-user text-info ms-2" title="' + coachingTooltip + '"></i>' : '';
     
     var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
-
     var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
     var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
 
+    // 🌟 2 ภาษา สำหรับป้าย GPS
     var distanceBadge = '';
     if (v.CheckIn_Lat && v.CheckIn_Long) {
       var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
       if (hospLat && hospLng) {
         var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
         if (distKm !== null && distKm <= 0.5) {
-          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-success ms-1" title="Check-in verified (<500m)"><i class="fa-solid fa-circle-check"></i></a>';
+          var ttCheckOk = appLang === 'en' ? 'Check-in verified (<500m)' : 'พิกัดถูกต้อง (<500ม.)';
+          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-success ms-1" title="' + ttCheckOk + '"><i class="fa-solid fa-circle-check"></i></a>';
         } else {
           var distShow = distKm < 1 ? Math.round(distKm * 1000) + 'm' : distKm.toFixed(1) + 'km';
-          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-danger ms-1" title="Off-site: ' + distShow + '"><i class="fa-solid fa-location-dot"></i></a>';
+          var ttCheckFar = appLang === 'en' ? 'Off-site: ' : 'ห่างจากจุดหมาย: ';
+          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-danger ms-1" title="' + ttCheckFar + distShow + '"><i class="fa-solid fa-location-dot"></i></a>';
         }
       } else {
-        distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-secondary opacity-75 ms-1" title="Open Google Maps"><i class="fa-solid fa-location-dot"></i></a>';
+        var ttMap = appLang === 'en' ? 'Open Google Maps' : 'เปิด Google Maps';
+        distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-secondary opacity-75 ms-1" title="' + ttMap + '"><i class="fa-solid fa-location-dot"></i></a>';
       }
     }
 
     var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); 
     var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
-    
-    // 🌟 แก้ไขตรงนี้: ให้ระบบไฮไลต์ทำงานเฉพาะกับชื่อหมอ แล้วค่อยเอาไอคอนโค้ชชิ่งมาต่อท้าย (ป้องกัน HTML พัง)
     var highlightedDoc = applyHighlight(docNameShow, smartSearchVal) + coachingBadge; 
-    
     var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
     var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
 
@@ -1817,12 +1838,15 @@ window.loadVisits = async function(forceReload) {
       });
     } else prodBadges = '<span class="text-muted small">-</span>';
 
+    // 🌟 2 ภาษา สำหรับ Tooltip ไฟล์แนบและลายเซ็น
     var evidenceBadges = '';
     if (v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
-      evidenceBadges += ' <i class="fa-solid fa-paperclip text-muted ms-1" title="Has Attachments"></i>';
+      var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
+      evidenceBadges += ' <i class="fa-solid fa-paperclip text-muted ms-1" title="' + ttAttach + '"></i>';
     }
     if (v.Doctor_Signature) {
-      evidenceBadges += ' <i class="fa-solid fa-signature text-success ms-1" title="Doctor Signed"></i>';
+      var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
+      evidenceBadges += ' <i class="fa-solid fa-signature text-success ms-1" title="' + ttSig + '"></i>';
     }
 
     htmlBuffer += '<tr>' +
@@ -1994,7 +2018,7 @@ window.openEditVisitView = async function(visitId) {
     if (btnGps) {
       btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
+      btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
     }
   }
 
@@ -2035,24 +2059,27 @@ btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'e
 
   var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
   var btn = document.getElementById('saveVisitBtn');
+  
+  // 🌟 ดึงภาษาปัจจุบันของระบบมาใช้งานกับปุ่มด้านล่าง
+  var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
   if (isPendingUnlock) {
     if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
     btn.disabled = true; 
     btn.className = 'btn btn-premium-locked px-5';
-    btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>Waiting for Admin unlock'; 
+    btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>' + (currentAppLang === 'en' ? 'Waiting for Admin unlock' : 'รอแอดมินอนุมัติปลดล็อก'); 
     btn.dataset.mode = 'disabled';
   } else if (v.Status === 'Submitted') {
     if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
     if (canEdit) {
       btn.disabled = false; 
       btn.className = 'btn btn-premium-warning px-5';
-      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock'; 
+      btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>' + (currentAppLang === 'en' ? 'Request Unlock' : 'ขอปลดล็อกแก้ไข'); 
       btn.dataset.mode = 'request_unlock';
     } else {
       btn.disabled = true; 
       btn.className = 'btn btn-premium-locked px-5';
-      btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Locked (Read-Only)'; 
+      btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>' + (currentAppLang === 'en' ? 'Locked (Read-Only)' : 'ถูกล็อก (ดูได้อย่างเดียว)'); 
       btn.dataset.mode = 'disabled';
     }
   } else {
@@ -2060,13 +2087,13 @@ btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'e
       if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
       btn.disabled = false; 
       btn.className = 'btn btn-premium-primary px-5';
-      btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; 
+      btn.innerHTML = '💾 <span data-i18n="btn_save">' + (currentAppLang === 'en' ? 'Save' : 'บันทึก') + '</span>'; 
       btn.dataset.mode = 'save';
     } else {
       if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
       btn.disabled = true; 
       btn.className = 'btn btn-premium-locked px-5';
-      btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Read-Only (Creator Only)'; 
+      btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>' + (currentAppLang === 'en' ? 'Read-Only (Creator Only)' : 'ดูได้อย่างเดียว (เฉพาะผู้สร้าง)'); 
       btn.dataset.mode = 'disabled';
     }
   }
@@ -3066,9 +3093,13 @@ window.initVisitPage = async function(forceReload) {
 
     var tbody = document.getElementById('visitTableBody');
 
-    // 🌟 สาดหน้า Loading เฉพาะตอนที่ "ต้องไปดึงฐานข้อมูลใหม่" เท่านั้น
+    // 🌟 สาดหน้า Loading เฉพาะตอนที่ "ต้องไปดึงฐานข้อมูลใหม่" เท่านั้น (รองรับ 2 ภาษา)
     if (shouldFetchDB && tbody) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">Loading Data...</h5><span class="text-muted small">Processing your access rights and retrieving records.</span></div></td></tr>';
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var loadingTitle = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+        var loadingDesc = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+        
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadingTitle + '</h5><span class="text-muted small">' + loadingDesc + '</span></div></td></tr>';
     }
 
     try {
@@ -3087,7 +3118,10 @@ window.initVisitPage = async function(forceReload) {
         }
     } catch(err) {
         console.error("Init Visits Failed:", err);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">❌ Failed to load data</td></tr>';
+        // 🌟 รองรับ 2 ภาษาตอนที่ดึงข้อมูลเกิด Error
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var msgErr = appLang === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
