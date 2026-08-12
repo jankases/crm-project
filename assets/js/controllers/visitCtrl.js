@@ -1966,7 +1966,8 @@ window.openEditVisitView = async function(visitId) {
     }
     if (btnGps) {
       btnGps.className = 'btn btn-sm btn-success px-3 premium-radius text-white fw-bold';
-      btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> Checked-in';
+       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
     }
   } else {
     if (latInput) latInput.value = '';
@@ -1974,7 +1975,8 @@ window.openEditVisitView = async function(visitId) {
     if (timeWrapper) timeWrapper.classList.add('d-none');
     if (btnGps) {
       btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
-      btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
+      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
     }
   }
 
@@ -2089,7 +2091,8 @@ window.openAddVisitView = async function(presetDate) {
   if (btnGps) {
     btnGps.disabled = false;
     btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
-    btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
   }
 
   if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
@@ -2513,7 +2516,8 @@ window.getLocationCheckin = function() {
       if(timeText) timeText.innerText = timeString;
 
       btn.className = 'btn btn-sm btn-success px-3 premium-radius text-white fw-bold';
-      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Checked-in';
+      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
 
       if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
       
@@ -2609,13 +2613,13 @@ window.handleFileUpload = async function(event) {
 
 window.renderAttachmentPreviews = function() {
   var container = document.getElementById('attachmentPreviewContainer');
-  if (!container) return;
-  
-  if (window.currentAttachments.length === 0) {
-    container.innerHTML = '<small class="text-muted italic" id="noAttachmentText">ยังไม่มีไฟล์แนบ</small>';
+  if (!container) return;   
+    if (window.currentAttachments.length === 0) {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var noText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
+    container.innerHTML = '<small class="text-muted italic" id="noAttachmentText">' + noText + '</small>';
     return;
-  }
-
+  } 
   var html = '';
   window.currentAttachments.forEach(function(item, idx) {
     var isImg = item.url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
@@ -3008,6 +3012,21 @@ if (!window._isAppLangListenerAttached) {
     });
     window._isAppLangListenerAttached = true;
 }
+
+// อัปเดตภาษาแบบ Real-time ให้ปุ่ม Dynamic
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var btnGps = document.getElementById('btnGpsCheckin');
+    if (btnGps) {
+        if (btnGps.classList.contains('btn-success')) {
+            btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
+        } else {
+            btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
+        }
+    }
+    var noAttachmentText = document.getElementById('noAttachmentText');
+    if (noAttachmentText) {
+        noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
+    }
 
 window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
