@@ -89,14 +89,17 @@ window.loadSystemSettings = async function() {
     const gpsConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_GPS');
     const attConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Attachment');
     const sigConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Signature');
+    const smpConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Samples');
     
     const tgGps = document.getElementById('toggleGps');
     const tgAtt = document.getElementById('toggleAttachment');
     const tgSig = document.getElementById('toggleSignature');
+    const tgSmp = document.getElementById('toggleSamples');
     
     if(tgGps) tgGps.checked = gpsConf ? gpsConf.Status !== false : true; // Default เป็นเปิด
     if(tgAtt) tgAtt.checked = attConf ? attConf.Status !== false : true;
     if(tgSig) tgSig.checked = sigConf ? sigConf.Status !== false : true;
+    if(tgSmp) tgSmp.checked = smpConf ? smpConf.Status !== false : true;
       
   } catch (err) { console.error("Load Settings Error:", err); }
 };
@@ -756,18 +759,20 @@ window.saveVisitFeatures = async function() {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
-  const isGps = document.getElementById('toggleGps').checked;
-  const isAtt = document.getElementById('toggleAttachment').checked;
-  const isSig = document.getElementById('toggleSignature').checked;
+  const isGps = document.getElementById('toggleGps') ? document.getElementById('toggleGps').checked : true;
+  const isAtt = document.getElementById('toggleAttachment') ? document.getElementById('toggleAttachment').checked : true;
+  const isSig = document.getElementById('toggleSignature') ? document.getElementById('toggleSignature').checked : true;
+  const tgSmp = document.getElementById('toggleSamples');
 
   let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-  const who = crmUser ? crmUser.Email : "Unknown";
+  const who = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
   const now = new Date().toISOString();
 
   const payloads = [
       { Type: 'VisitConfig_GPS', Status: isGps, Whoupdated: who, Whenupdated: now },
       { Type: 'VisitConfig_Attachment', Status: isAtt, Whoupdated: who, Whenupdated: now },
-      { Type: 'VisitConfig_Signature', Status: isSig, Whoupdated: who, Whenupdated: now }
+      { Type: 'VisitConfig_Signature', Status: isSig, Whoupdated: who, Whenupdated: now },
+      { Type: 'VisitConfig_Samples', Status: tgSmp ? tgSmp.checked : true, Whoupdated: who, Whenupdated: now }
   ];
 
   try {
@@ -775,7 +780,7 @@ window.saveVisitFeatures = async function() {
       
       for (let i = 0; i < payloads.length; i++) {
           const p = payloads[i];
-          const conf = window.globalSystemSettings.find(s => s.Type === p.Type);
+          const conf = window.globalSystemSettings ? window.globalSystemSettings.find(s => s.Type === p.Type) : null;
           if (conf) {
               await window.supabaseClient.from('System_Settings').update({ Status: p.Status, Whoupdated: p.Whoupdated, Whenupdated: p.Whenupdated }).eq('Type', p.Type);
           } else {
