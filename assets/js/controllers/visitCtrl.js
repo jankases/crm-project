@@ -1891,27 +1891,8 @@ window.openEditVisitView = async function(visitId) {
   
   var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
   
-  // 🌟 เริ่มกระบวนการแปลงรหัส UUID เป็นชื่อ Business Unit
-  var displayBuName = '-';
-  if (targetRepObj) {
-      // ดึงรหัส BU จากตัวข้อมูลหมอ หรือจากข้อมูล User
-      var rawBuId = v.BU_ID || v.Business_Unit_ID || targetRepObj.BU_ID || targetRepObj.Business_Unit_ID;
-      displayBuName = rawBuId || '-'; // เผื่อหาชื่อไม่เจอ จะได้โชว์ ID ไปก่อน
-      
-      // เทียบหาชื่อ BU จาก Global List (ถ้ามี)
-      if (rawBuId && window.globalBUList && window.globalBUList.length > 0) {
-          var foundBU = window.globalBUList.find(function(bu) { 
-              return String(bu.id || bu.BU_ID) === String(rawBuId); 
-          });
-          if (foundBU) {
-              displayBuName = foundBU.BU_Name || foundBU.Name || foundBU.Name_EN || rawBuId;
-          }
-      }
-  }
-
-  // 🌟 ส่งชื่อ BU ที่แปลงแล้ว (displayBuName) ไปแสดงผลแทน Territory_ID เดิม
   if (typeof window.updateFormUserInfo === 'function') {
-      window.updateFormUserInfo(targetRepObj, displayBuName);
+      window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
   
   if (v.Doc_ID && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
