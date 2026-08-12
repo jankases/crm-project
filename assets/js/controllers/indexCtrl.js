@@ -84,6 +84,20 @@ window.loadSystemSettings = async function() {
       var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
       document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
     }
+
+   // --- 🎯 Load Visit Features Config ---
+    const gpsConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_GPS');
+    const attConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Attachment');
+    const sigConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Signature');
+    
+    const tgGps = document.getElementById('toggleGps');
+    const tgAtt = document.getElementById('toggleAttachment');
+    const tgSig = document.getElementById('toggleSignature');
+    
+    if(tgGps) tgGps.checked = gpsConf ? gpsConf.Status !== false : true; // Default เป็นเปิด
+    if(tgAtt) tgAtt.checked = attConf ? attConf.Status !== false : true;
+    if(tgSig) tgSig.checked = sigConf ? sigConf.Status !== false : true;
+      
   } catch (err) { console.error("Load Settings Error:", err); }
 };
 
@@ -734,6 +748,64 @@ window.handleSaveIndex = async function(e) {
   } 
   finally { 
       btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + (appLang === 'en' ? "Save" : "บันทึก"); 
+  }
+};
+
+window.saveVisitFeatures = async function() {
+  const btn = document.getElementById('btnSaveVisitFeatures');
+  var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+  const isGps = document.getElementById('toggleGps').checked;
+  const isAtt = document.getElementById('toggleAttachment').checked;
+  const isSig = document.getElementById('toggleSignature').checked;
+
+  let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+  const who = crmUser ? crmUser.Email : "Unknown";
+  const now = new Date().toISOString();
+
+  const payloads = [
+      { Type: 'VisitConfig_GPS', Status: isGps, Whoupdated: who, Whenupdated: now },
+      { Type: 'VisitConfig_Attachment', Status: isAtt, Whoupdated: who, Whenupdated: now },
+      { Type: 'VisitConfig_Signature', Status: isSig, Whoupdated: who, Whenupdated: now }
+  ];
+
+  try {
+      if (!navigator.onLine) throw new Error("OFFLINE_MODE");
+      
+      for (let i = 0; i < payloads.length; i++) {
+          const p = payloads[i];
+          const conf = window.globalSystemSettings.find(s => s.Type === p.Type);
+          if (conf) {
+              await window.supabaseClient.from('System_Settings').update({ Status: p.Status, Whoupdated: p.Whoupdated, Whenupdated: p.Whenupdated }).eq('Type', p.Type);
+          } else {
+              await window.supabaseClient.from('System_Settings').insert([p]);
+          }
+      }
+
+      const { data } = await window.supabaseClient.from('System_Settings').select('*');
+      if (data) window.globalSystemSettings = data;
+
+      btn.classList.replace('btn-premium-primary', 'btn-success');
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (appLang === 'en' ? 'Saved' : 'บันทึกแล้ว');
+      
+      var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
+      setTimeout(() => { btn.classList.replace('btn-success', 'btn-premium-primary'); btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; btn.disabled = false; }, 2000);
+      
+      if (window.showToast) window.showToast(appLang === 'en' ? "Visit features saved successfully." : "บันทึกการตั้งค่าฟีเจอร์เรียบร้อย", "success");
+  } catch (err) {
+      var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
+      if (isNetworkError) {
+          var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
+          payloads.forEach(p => queue.push({ table: 'System_Settings', type: p.Type, payload: p, timestamp: Date.now() }));
+          localStorage.setItem('crmOfflineIndexQueue', JSON.stringify(queue));
+          
+          if (window.showToast) window.showToast(appLang === 'en' ? "📶 Offline Mode: Saved locally and will auto-sync." : "📶 โหมดออฟไลน์: บันทึกการตั้งค่าลงเครื่องแล้ว", "warning");
+      } else {
+          if (window.showToast) window.showToast((appLang === 'en' ? "Failed to save: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
+      }
+      var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
+      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText;
   }
 };
 
