@@ -2151,12 +2151,17 @@ window.openAddVisitView = async function(presetDate) {
   document.getElementById('visitInsight').value = ''; 
   document.getElementById('visitIsCoaching').checked = false; 
   if (typeof window.setFormComponentsReadOnly === 'function') window.setFormComponentsReadOnly(false);
+  
   window.savedSignatureData = null;
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
   window.pendingDetailingLogs = []; 
+ 
+  if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
+
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
+    
 
   if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
   if (document.getElementById('visitLng')) document.getElementById('visitLng').value = '';
