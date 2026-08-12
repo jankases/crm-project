@@ -106,6 +106,7 @@ const i18nDictionary = {
     sec_visit_info: "Visit Information",
     sec_activity_details: "Activity Details",
     sec_edetailing: "e-Detailing / Presentation",
+    btn_export: "Export",
     unit_items: "items"
   },
   th: {
@@ -211,6 +212,7 @@ const i18nDictionary = {
     sec_visit_info: "ข้อมูลการเข้าพบ",
     sec_activity_details: "รายละเอียดกิจกรรม",
     sec_edetailing: "e-Detailing / สื่อการนำเสนอ",
+    btn_export: "ส่งออก",
     unit_items: "เล่ม"
   }
 };
