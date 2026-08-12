@@ -334,9 +334,12 @@ window.restoreFormDraft = function(visitId) {
             if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
             if (draft.status) document.getElementById('visitStatus').value = draft.status;
             
-            if (!document.getElementById('visitId').value && window.showToast) {
-                window.showToast("กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว", "success");
+          if (!document.getElementById('visitId').value && window.showToast) {
+                var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+                var msgRestored = appLang === 'en' ? "Auto-saved draft restored successfully." : "กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว";
+                window.showToast(msgRestored, "success");
             }
+          
             return true;
         } catch(e) {}
     }
@@ -784,6 +787,8 @@ window.handleSaveTot = async function(e) {
       Whoupdated: whoUpdated, Whenupdated: new Date().toISOString()
   };
 
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
   try {
       if(id) { var {error} = await window.supabaseClient.from('TOT_Logs').update(payload).eq('TOT_ID', id); if(error) throw error; } 
       else {
@@ -791,11 +796,14 @@ window.handleSaveTot = async function(e) {
           var {error} = await window.supabaseClient.from('TOT_Logs').insert([payload]);
           if(error) throw error;
       }
-      if (window.showToast) window.showToast("บันทึกข้อมูล TOT เรียบร้อยแล้ว", "success");
+      var msgSaved = appLang === 'en' ? "TOT record saved successfully." : "บันทึกข้อมูล TOT เรียบร้อยแล้ว";
+      if (window.showToast) window.showToast(msgSaved, "success");
+      
       if(window.totModalInstance) window.totModalInstance.hide();
       if (typeof window.loadVisits === 'function') await window.loadVisits(true);
   } catch(err) {
-      if (window.showToast) window.showToast("Error: " + err.message, "error");
+      var msgErr = appLang === 'en' ? "Error: " : "เกิดข้อผิดพลาด: ";
+      if (window.showToast) window.showToast(msgErr + err.message, "error");
   } finally {
       if(btn) { btn.disabled = false; btn.innerHTML = '💾 Save'; }
   }
@@ -804,18 +812,22 @@ window.handleSaveTot = async function(e) {
 window.deleteTot = async function() {
   var idEl = document.getElementById('totId'); var id = idEl ? idEl.value : '';
   if(!id) return;
-  var appLang = window.getCurrentAppLang();
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
   if (!confirm(confirmMsg)) return;
 
   try {
       var {error} = await window.supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
       if (error) throw error;
-      if (window.showToast) window.showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
+      
+      var msgDeleted = appLang === 'en' ? "Record deleted successfully." : "ลบข้อมูลเรียบร้อยแล้ว";
+      if (window.showToast) window.showToast(msgDeleted, "success");
+      
       if(window.totModalInstance) window.totModalInstance.hide();
       if (typeof window.loadVisits === 'function') await window.loadVisits(true);
   } catch(err) {
-      if (window.showToast) window.showToast("Error: " + err.message, "error");
+      var msgErr = appLang === 'en' ? "Error: " : "เกิดข้อผิดพลาด: ";
+      if (window.showToast) window.showToast(msgErr + err.message, "error");
   }
 };
 
@@ -2130,14 +2142,22 @@ window.handleSaveVisit = async function(e) {
   var validateFields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   validateFields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
+   
+  // 🌟 รองรับ 2 ภาษาสำหรับการแจ้งเตือน Validation
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var missingFields = [];
-  if (!docVal) missingFields.push("• ชื่อแพทย์ (Doctor)");
-  if (selectedProducts.length === 0) missingFields.push("• ผลิตภัณฑ์ (Products)");
-  if (!dateInput || !dateInput.value) missingFields.push("• วันที่ (Date)");
-  if (!purposeVal) missingFields.push("• วัตถุประสงค์ (Purpose)");
+  
+  if (!docVal) missingFields.push(appLang === 'en' ? "• Doctor" : "• ชื่อแพทย์");
+  if (selectedProducts.length === 0) missingFields.push(appLang === 'en' ? "• Products" : "• ผลิตภัณฑ์");
+  if (!dateInput || !dateInput.value) missingFields.push(appLang === 'en' ? "• Date" : "• วันที่");
+  if (!purposeVal) missingFields.push(appLang === 'en' ? "• Purpose" : "• วัตถุประสงค์");
 
   if (missingFields.length > 0) {
-    if (window.showToast) window.showToast("⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>" + missingFields.join("<br>"), "warning");
+    var warnMsg = appLang === 'en' 
+        ? "⚠️ Cannot save! Please fill in the following required fields:<br>" 
+        : "⚠️ ไม่สามารถบันทึกได้! กรุณากรอกข้อมูลที่จำเป็นต่อไปนี้:<br>";
+        
+    if (window.showToast) window.showToast(warnMsg + missingFields.join("<br>"), "warning");
     return;
   }
 
@@ -2284,11 +2304,16 @@ window.requestUnlockVisit = async function(visitId) {
   var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
   var payload = { Action: 'Unlock Visit', Ref_ID: visitId, Requested_Data: JSON.stringify({ Status: 'Pending' }), Status: 'Pending', Whoupdated: whoUpdated };
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
   try {
     var res = await window.supabaseClient.from('DCR').insert([payload]);
     if (res.error) throw res.error;
-    if (window.showToast) window.showToast("✅ Unlock request (DCR) submitted successfully. Waiting for Admin approval.", "success");
+    
+    var msgReqSuccess = appLang === 'en' 
+        ? "✅ Unlock request submitted successfully. Waiting for Admin approval." 
+        : "✅ ส่งคำขอปลดล็อกเรียบร้อยแล้ว รอผู้ดูแลระบบอนุมัติ";
+    if (window.showToast) window.showToast(msgReqSuccess, "success");
     
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
@@ -2299,7 +2324,8 @@ window.requestUnlockVisit = async function(visitId) {
       if (typeof window.loadVisits === 'function') await window.loadVisits(true); 
     }
   } catch(err) {
-    if (window.showToast) window.showToast("❌ Error: " + err.message, "error");
+    var msgErr = appLang === 'en' ? "❌ Error: " : "❌ เกิดข้อผิดพลาด: ";
+    if (window.showToast) window.showToast(msgErr + err.message, "error");
     btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>Request Unlock';
   }
 };
@@ -2351,8 +2377,12 @@ window.returnToDoctorProfile = function(docId) {
 // 🎤 11. VOICE DICTATION & SEARCH
 // ==========================================
 window.toggleDocDictation = function() {
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    if (window.showToast) return window.showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { 
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgNoMic = appLang === 'en' ? "Sorry, your browser does not support voice dictation." : "ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง";
+    if (window.showToast) return window.showToast(msgNoMic, "error");
+  }
   }
   var btn = document.getElementById('btnMicDoc'); var icon = document.getElementById('micDocIcon');
   if (window.docRecognition) { window.docRecognition.stop(); window.docRecognition = null; if (btn && icon) { btn.classList.remove('mic-active'); icon.classList.remove('fa-fade'); } return; }
@@ -2382,7 +2412,11 @@ window.stopDocDictation = function() {
 
 window.toggleTextDictation = function(targetInputId, btnId) {
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    if (window.showToast) return window.showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error");
+   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgNoMic = appLang === 'en' ? "Sorry, your browser does not support voice dictation." : "ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง";
+    if (window.showToast) return window.showToast(msgNoMic, "error");
+  }
   }
   var btn = document.getElementById(btnId);
 
@@ -2412,7 +2446,12 @@ window.stopTextDictation = function() {
 };
 
 window.toggleSpeechSearch = function(inputId, btnId, iconId) {
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { if (window.showToast) return window.showToast("ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง", "error"); }
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { 
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgNoMic = appLang === 'en' ? "Sorry, your browser does not support voice dictation." : "ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง";
+    if (window.showToast) return window.showToast(msgNoMic, "error");
+  } }
   if (window.searchRecognition && window.currentSearchInputId === inputId) { if (typeof window.stopSearchDictation === 'function') window.stopSearchDictation(); return; }
   if (window.searchRecognition && typeof window.stopSearchDictation === 'function') window.stopSearchDictation();
 
@@ -2450,9 +2489,11 @@ window.getLocationCheckin = function() {
   var lngInput = document.getElementById('visitLng');
   var timeWrapper = document.getElementById('locationTimeWrapper');
   var timeText = document.getElementById('visitCheckinTimeText');
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
   if (!navigator.geolocation) {
-    if(window.showToast) window.showToast("เบราว์เซอร์ของคุณไม่รองรับ GPS", "error");
+    var msgNoGPS = appLang === 'en' ? "Your browser does not support GPS." : "เบราว์เซอร์ของคุณไม่รองรับ GPS";
+    if(window.showToast) window.showToast(msgNoGPS, "error");
     return;
   }
 
@@ -2475,13 +2516,18 @@ window.getLocationCheckin = function() {
       btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Checked-in';
 
       if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
-      if(window.showToast) window.showToast("ดึงพิกัดตำแหน่งสำเร็จ!", "success");
+      
+      var msgSuccess = appLang === 'en' ? "Location retrieved successfully!" : "ดึงพิกัดตำแหน่งสำเร็จ!";
+      if(window.showToast) window.showToast(msgSuccess, "success");
     },
     function(error) {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
-      var errorMsg = "ไม่สามารถดึงพิกัดได้";
-      if (error.code === 1) errorMsg = "กรุณากดอนุญาต (Allow) ให้เบราว์เซอร์เข้าถึงตำแหน่ง (Location) ของคุณ";
+      
+      var errorMsg = appLang === 'en' ? "Cannot retrieve location." : "ไม่สามารถดึงพิกัดได้";
+      if (error.code === 1) {
+          errorMsg = appLang === 'en' ? "Please allow the browser to access your location." : "กรุณากดอนุญาต (Allow) ให้เบราว์เซอร์เข้าถึงตำแหน่ง (Location) ของคุณ";
+      }
       if(window.showToast) window.showToast("⚠️ " + errorMsg, "warning");
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -2505,23 +2551,27 @@ window.handleFileUpload = async function(event) {
   var files = event.target.files;
   if (!files || files.length === 0) return;
 
-  // 🚫 ดักจับออฟไลน์: แจ้งเตือน 2 ภาษา
-  if (!navigator.onLine) {
-      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      var msgOfflineFile = appLang === 'en' 
-          ? "📶 Offline Mode: Cannot upload images/PDFs right now (but you can still sign and save other data)."
-          : "📶 โหมดออฟไลน์: ไม่สามารถแนบไฟล์รูป/PDF ได้ในขณะนี้ (แต่ยังเซ็นชื่อและบันทึกข้อมูลอื่นได้ปกติ)";
-          
-      if (window.showToast) window.showToast(msgOfflineFile, "warning");
-      return;
-  }
-
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  
   var sbClient = null;
   if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
   else if (window.supabase && window.supabase.storage) sbClient = window.supabase;
   else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
 
-  if (!sbClient) { if (window.showToast) window.showToast("ไม่พบการเชื่อมต่อ Supabase Storage", "error"); return; }
+  if (!sbClient) { 
+      var msgNoDB = appLang === 'en' ? "Supabase Storage connection not found." : "ไม่พบการเชื่อมต่อ Supabase Storage";
+      if (window.showToast) window.showToast(msgNoDB, "error"); 
+      return; 
+  }
+
+  // 🚫 ดักจับออฟไลน์: แจ้งเตือน 2 ภาษา
+  if (!navigator.onLine) {
+      var msgOfflineFile = appLang === 'en' 
+          ? "📶 Offline Mode: Cannot upload images/PDFs right now (but you can still sign and save other data)."
+          : "📶 โหมดออฟไลน์: ไม่สามารถแนบไฟล์รูป/PDF ได้ในขณะนี้ (แต่ยังเซ็นชื่อและบันทึกข้อมูลอื่นได้ปกติ)";
+      if (window.showToast) window.showToast(msgOfflineFile, "warning");
+      return;
+  }
 
   var noText = document.getElementById('noAttachmentText');
   if (noText) noText.classList.add('d-none');
@@ -2546,10 +2596,13 @@ window.handleFileUpload = async function(event) {
       window.newlyUploadedFiles.push(fileName);
 
       if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
-      if (window.showToast) window.showToast("อัปโหลดไฟล์สำเร็จ", "success");
+      
+      var msgSuccess = appLang === 'en' ? "File uploaded successfully." : "อัปโหลดไฟล์สำเร็จ";
+      if (window.showToast) window.showToast(msgSuccess, "success");
     } catch (err) {
       console.error("Upload error:", err);
-      if (window.showToast) window.showToast("อัปโหลดไฟล์ไม่สำเร็จ: " + err.message, "error");
+      var msgErr = appLang === 'en' ? "File upload failed: " : "อัปโหลดไฟล์ไม่สำเร็จ: ";
+      if (window.showToast) window.showToast(msgErr + err.message, "error");
     }
   }
 };
