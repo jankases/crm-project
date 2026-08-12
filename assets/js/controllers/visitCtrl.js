@@ -1254,13 +1254,76 @@ window.renderFormProductDropdown = async function() {
         } catch(e) {}
     }
 
-    // 🌟 ดึงข้อมูลยามาแสดงผล (ลบโค้ดจำกัดสิทธิ์ที่แปะผิดที่ออกไปแล้ว!)
-    var filteredProds = allProds || []; 
+    // ==========================================
+    // 🌟 2. เริ่มตะแกรงร่อน: กรองข้อมูล Product ตามสิทธิ์ของ Team
+    // ==========================================
+    var filteredProds = [];
+    var isGlobalAdmin = window.myIsGlobalViewer;
+
+    if (isGlobalAdmin) {
+        // 🛡️ Admin เห็นยาทุกตัวในระบบ
+        filteredProds = allProds;
+    } else {
+        var targetTeams = [];
+        var visitIdEl = document.getElementById('visitId');
+        var currentVisitId = visitIdEl ? visitIdEl.value : '';
+
+        // 📝 โหมด Edit: หากำลังแก้ Visit ของใคร ให้ใช้สิทธิ์ทีมของคนสร้าง Visit นั้น
+        if (currentVisitId && currentVisitId !== 'NEW' && window.globalVisits) {
+            var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+            if (v && v.Rep_ID) {
+                var targetUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Rep_ID); });
+                if (targetUser) {
+                    var uTeam = String(targetUser.Team_ID || targetUser.Team || '').trim();
+                    if (uTeam) targetTeams.push(uTeam);
+                }
+            }
+        }
+
+        // 📝 โหมด Add New (หรือหาคนสร้างไม่เจอ): ใช้ทีมของตัวเอง
+        if (targetTeams.length === 0) {
+            var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+            if (crmUser) {
+                var myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+                if (myTeam) targetTeams.push(myTeam);
+            }
+            // ถ้าเป็น Manager ให้รวมทีมลูกน้องที่ดูแลเข้าไปด้วย (จะได้เห็นยาลูกน้อง)
+            if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
+                window.myAllowedTeamIds.forEach(function(t) {
+                    if (targetTeams.indexOf(t) === -1) targetTeams.push(t);
+                });
+            }
+        }
+
+        // 🔍 ค้นหายาที่ผูกกับ Team เหล่านั้นจาก Products_Team (teamProdLinks)
+        var teamProdLinks = (window.VisitManagerCache && window.VisitManagerCache.teamProdLinks) ? window.VisitManagerCache.teamProdLinks : [];
+        var allowedProdIds = [];
+
+        teamProdLinks.forEach(function(link) {
+            var tId = String(link.Team_ID || link.Team);
+            if (targetTeams.indexOf(tId) !== -1 || targetTeams.indexOf(String(link.Team_Name)) !== -1) {
+                var pId = String(link.Product_ID || link.Product);
+                if (allowedProdIds.indexOf(pId) === -1) {
+                    allowedProdIds.push(pId);
+                }
+            }
+        });
+
+        // ✂️ กรอง allProds ให้เหลือแค่ยาที่ได้รับอนุญาต
+        if (allowedProdIds.length > 0) {
+            filteredProds = allProds.filter(function(p) {
+                return allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1;
+            });
+        } else {
+            // Failsafe: ถ้าไม่มีการตั้งค่าตาราง Products_Team ไว้เลย จะให้เห็นทั้งหมด (ป้องกันกล่องว่าง)
+            filteredProds = allProds;
+        }
+    }
 
     // 3. วาด HTML
-    var fHtml = ''; 
-    (filteredProds).forEach(function(p) { 
-        fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>'; 
+    var fHtml = '';
+    (filteredProds).forEach(function(p) {
+        fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>';
     });
     formProdSelect.innerHTML = fHtml;
 
@@ -1269,7 +1332,7 @@ window.renderFormProductDropdown = async function() {
         window.safeDestroyTs(window.tomSelectProdInstance);
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
-        window.tomSelectProdInstance = new TomSelect('#visitProductId', { 
+        window.tomSelectProdInstance = new TomSelect('#visitProductId', {
             plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
             onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
         });
