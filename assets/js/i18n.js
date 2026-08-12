@@ -128,6 +128,12 @@ const i18nDictionary = {
     title_add_index: "Add Value",
     title_edit_index: "Edit Value",
     lbl_category_select: "Category (IndexType)",
+
+    title_visit_features: "Visit Form Features",
+    desc_visit_features: "Show or hide specific sections in the Visit Form.",
+    lbl_enable_gps: "GPS Check-in",
+    lbl_enable_attachment: "Attachments",
+    lbl_enable_signature: "Signature",
     
     sec_visit_info: "Visit Information",
     sec_activity_details: "Activity Details",
@@ -262,6 +268,12 @@ const i18nDictionary = {
     title_add_index: "เพิ่มข้อมูลดัชนี",
     title_edit_index: "แก้ไขข้อมูลดัชนี",
     lbl_category_select: "หมวดหมู่ (Category)",
+
+    title_visit_features: "ฟีเจอร์ในหน้าบันทึกเยี่ยม",
+    desc_visit_features: "เปิด/ปิด การแสดงผลบางส่วนในหน้าฟอร์มบันทึกเยี่ยม (มีผลกับทุกคน)",
+    lbl_enable_gps: "พิกัด GPS",
+    lbl_enable_attachment: "ไฟล์แนบ",
+    lbl_enable_signature: "ลายเซ็นแพทย์",
     
     sec_visit_info: "ข้อมูลการเข้าพบ",
     sec_activity_details: "รายละเอียดกิจกรรม",
