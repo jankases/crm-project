@@ -3198,8 +3198,6 @@ setTimeout(function() { window.syncOfflineVisits(); }, 2000);
 // ==========================================
 window.exportVisitsToCSV = function() {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    
-    // 1. ดึงข้อมูลที่จะ Export (ถ้ามีการฟิลเตอร์ไว้ ให้ใช้ข้อมูลที่ฟิลเตอร์แล้ว ถ้าไม่มีให้ใช้ทั้งหมด)
     var sourceData = window.filteredVisits || window.globalVisits || [];
     
     if (sourceData.length === 0) {
@@ -3212,16 +3210,22 @@ window.exportVisitsToCSV = function() {
         window.showToast(appLang === 'en' ? "Preparing export file..." : "กำลังเตรียมไฟล์ Export...", "info");
     }
 
-    // 2. สร้าง Header ของ CSV (\uFEFF คือ BOM ช่วยให้ Excel อ่านภาษาไทยได้ถูกต้อง)
+    // 1. สร้าง Header ของ CSV (เพิ่ม Rep Name และ Area / Team เข้ามาแล้ว)
     var csvContent = "\uFEFF"; 
-    csvContent += "Visit Date,Start Time,End Time,Doctor Name,Hospital,Products,Purpose,Status,Details,Insight,Next Action\n";
+    csvContent += "Visit Date,Start Time,End Time,Rep Name,Area / Team,Doctor Name,Hospital,Products,Purpose,Status,Details,Insight,Next Action\n";
 
-    // ฟังก์ชันช่วยจัดการข้อความ (กันตัวลูกน้ำ (,) หรือการขึ้นบรรทัดใหม่ในช่องกรอกข้อมูล)
     var escapeCsv = function(str) {
         if (str === null || str === undefined) return '""';
         var safeStr = String(str).replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '');
         return '"' + safeStr + '"';
     };
+
+    // 2. ดึงข้อมูลตะกร้าอ้างอิงทั้งหมด (เผื่อไว้ทั้ง 2 รูปแบบ)
+    var doctorsCache = window.globalDoctorsList || (window.VisitManagerCache && window.VisitManagerCache.doctors) || [];
+    var usersCache = window.globalUsersList || (window.VisitManagerCache && window.VisitManagerCache.users) || [];
+    var buCache = window.globalBUList || (window.VisitManagerCache && window.VisitManagerCache.bus) || [];
+    var purposeCache = window.globalPurposesList || (window.VisitManagerCache && window.VisitManagerCache.purposes) || [];
+    var prodCache = window.globalProductsList || (window.VisitManagerCache && window.VisitManagerCache.products) || [];
 
     // 3. วนลูปข้อมูลแต่ละแถว
     sourceData.forEach(function(row) {
@@ -3229,40 +3233,62 @@ window.exportVisitsToCSV = function() {
         var sTime = row.Start_Time || "-";
         var eTime = row.End_Time || "-";
         
-        // แมปชื่อแพทย์และโรงพยาบาล
+        // 🌟 แมป Rep Name (ชื่อพนักงาน)
+        var repName = row.Rep_ID || "-";
+        if (usersCache.length > 0 && row.Rep_ID) {
+            var repObj = usersCache.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(row.Rep_ID); });
+            if (repObj) repName = repObj.Rep_Name || repObj.Name || repObj.Email || row.Rep_ID;
+        }
+
+        // 🌟 แมป Area / Team (พื้นที่/ทีม)
+        var areaName = row.Territory_ID || "-";
+        if (buCache.length > 0 && areaName !== "-") {
+            var buObj = buCache.find(function(b) { return String(b.BU_ID || b.id) === String(areaName); });
+            if (buObj) areaName = buObj.BU_Name || buObj.Name || buObj.Name_EN || areaName;
+        }
+
+        // 🌟 แมป Doctor Name & Hospital (ชื่อแพทย์และโรงพยาบาล)
         var docName = row.Doc_ID || "-";
         var hospName = "-";
-        if (window.globalDoctorsList) {
-            var docObj = window.globalDoctorsList.find(function(d) { return String(d.Doc_ID || d.id) === String(row.Doc_ID); });
+        if (doctorsCache.length > 0 && row.Doc_ID) {
+            var docObj = doctorsCache.find(function(d) { return String(d.Doc_ID || d.id) === String(row.Doc_ID); });
             if (docObj) {
                 docName = docObj.Doc_Name || docObj.Name || row.Doc_ID;
                 hospName = docObj.Hospital || docObj.Hospital_Name || "-";
             }
         }
 
-        // แมปชื่อผลิตภัณฑ์
+        // 🌟 แมป Products (ผลิตภัณฑ์)
         var prods = "-";
         if (row.Products_List) {
             prods = row.Products_List; 
-        } else if (window.globalVisitProducts && window.globalProductsList) {
+        } else if (window.globalVisitProducts && prodCache.length > 0) {
             var linkedProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(row.Visit_ID); });
             var pNames = linkedProds.map(function(vp) {
-                var p = window.globalProductsList.find(function(px) { return String(px.Product_ID || px.id) === String(vp.Product_ID); });
+                var p = prodCache.find(function(px) { return String(px.Product_ID || px.id) === String(vp.Product_ID); });
                 return p ? (p.Product || p.Product_Name) : vp.Product_ID;
             });
             if (pNames.length > 0) prods = pNames.join(", ");
         }
 
+        // 🌟 แมป Purpose (วัตถุประสงค์)
         var purpose = row.Purpose_ID || row.Purpose || "-";
+        if (purposeCache.length > 0 && row.Purpose_ID) {
+            var purpObj = purposeCache.find(function(p) { return String(p.Purpose_ID || p.id) === String(row.Purpose_ID); });
+            if (purpObj) purpose = purpObj.Purpose || purpObj.Purpose_Name || purpObj.Name || row.Purpose_ID;
+        }
+
         var status = row.Status || "-";
         var details = row.Details || "-";
         var insight = row.Insight || "-";
         var nextAction = row.Next_Action || "-";
 
-        // นำข้อมูลมาต่อกันด้วยลูกน้ำ
+        // นำข้อมูลมาต่อกัน
         csvContent += escapeCsv(date) + "," + 
                       escapeCsv(sTime) + "," + 
                       escapeCsv(eTime) + "," + 
+                      escapeCsv(repName) + "," + 
+                      escapeCsv(areaName) + "," + 
                       escapeCsv(docName) + "," + 
                       escapeCsv(hospName) + "," + 
                       escapeCsv(prods) + "," + 
@@ -3273,7 +3299,7 @@ window.exportVisitsToCSV = function() {
                       escapeCsv(nextAction) + "\n";
     });
 
-    // 4. สั่งสร้างไฟล์จำลองและดาวน์โหลดลงเครื่อง
+    // 4. สร้างไฟล์และดาวน์โหลด
     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement("a");
     var url = URL.createObjectURL(blob);
