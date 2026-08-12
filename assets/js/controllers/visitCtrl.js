@@ -3191,3 +3191,98 @@ window.addEventListener('online', window.syncOfflineVisits);
 
 // เผื่อไว้: ให้รันเช็กคิวทุกครั้งที่โหลดเข้าหน้า Visit
 setTimeout(function() { window.syncOfflineVisits(); }, 2000);
+
+
+// ==========================================
+// 📥 EXPORT TO CSV FUNCTION
+// ==========================================
+window.exportVisitsToCSV = function() {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    
+    // 1. ดึงข้อมูลที่จะ Export (ถ้ามีการฟิลเตอร์ไว้ ให้ใช้ข้อมูลที่ฟิลเตอร์แล้ว ถ้าไม่มีให้ใช้ทั้งหมด)
+    var sourceData = window.filteredVisits || window.globalVisits || [];
+    
+    if (sourceData.length === 0) {
+        var msgNoData = appLang === 'en' ? "No data to export." : "ไม่มีข้อมูลสำหรับ Export";
+        if (window.showToast) window.showToast(msgNoData, "warning");
+        return;
+    }
+
+    if (window.showToast) {
+        window.showToast(appLang === 'en' ? "Preparing export file..." : "กำลังเตรียมไฟล์ Export...", "info");
+    }
+
+    // 2. สร้าง Header ของ CSV (\uFEFF คือ BOM ช่วยให้ Excel อ่านภาษาไทยได้ถูกต้อง)
+    var csvContent = "\uFEFF"; 
+    csvContent += "Visit Date,Start Time,End Time,Doctor Name,Hospital,Products,Purpose,Status,Details,Insight,Next Action\n";
+
+    // ฟังก์ชันช่วยจัดการข้อความ (กันตัวลูกน้ำ (,) หรือการขึ้นบรรทัดใหม่ในช่องกรอกข้อมูล)
+    var escapeCsv = function(str) {
+        if (str === null || str === undefined) return '""';
+        var safeStr = String(str).replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '');
+        return '"' + safeStr + '"';
+    };
+
+    // 3. วนลูปข้อมูลแต่ละแถว
+    sourceData.forEach(function(row) {
+        var date = row.Visit_Date || "-";
+        var sTime = row.Start_Time || "-";
+        var eTime = row.End_Time || "-";
+        
+        // แมปชื่อแพทย์และโรงพยาบาล
+        var docName = row.Doc_ID || "-";
+        var hospName = "-";
+        if (window.globalDoctorsList) {
+            var docObj = window.globalDoctorsList.find(function(d) { return String(d.Doc_ID || d.id) === String(row.Doc_ID); });
+            if (docObj) {
+                docName = docObj.Doc_Name || docObj.Name || row.Doc_ID;
+                hospName = docObj.Hospital || docObj.Hospital_Name || "-";
+            }
+        }
+
+        // แมปชื่อผลิตภัณฑ์
+        var prods = "-";
+        if (row.Products_List) {
+            prods = row.Products_List; 
+        } else if (window.globalVisitProducts && window.globalProductsList) {
+            var linkedProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(row.Visit_ID); });
+            var pNames = linkedProds.map(function(vp) {
+                var p = window.globalProductsList.find(function(px) { return String(px.Product_ID || px.id) === String(vp.Product_ID); });
+                return p ? (p.Product || p.Product_Name) : vp.Product_ID;
+            });
+            if (pNames.length > 0) prods = pNames.join(", ");
+        }
+
+        var purpose = row.Purpose_ID || row.Purpose || "-";
+        var status = row.Status || "-";
+        var details = row.Details || "-";
+        var insight = row.Insight || "-";
+        var nextAction = row.Next_Action || "-";
+
+        // นำข้อมูลมาต่อกันด้วยลูกน้ำ
+        csvContent += escapeCsv(date) + "," + 
+                      escapeCsv(sTime) + "," + 
+                      escapeCsv(eTime) + "," + 
+                      escapeCsv(docName) + "," + 
+                      escapeCsv(hospName) + "," + 
+                      escapeCsv(prods) + "," + 
+                      escapeCsv(purpose) + "," + 
+                      escapeCsv(status) + "," + 
+                      escapeCsv(details) + "," + 
+                      escapeCsv(insight) + "," + 
+                      escapeCsv(nextAction) + "\n";
+    });
+
+    // 4. สั่งสร้างไฟล์จำลองและดาวน์โหลดลงเครื่อง
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement("a");
+    var url = URL.createObjectURL(blob);
+    var exportDate = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Visit_Logs_Export_" + exportDate + ".csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
