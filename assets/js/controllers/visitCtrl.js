@@ -1680,7 +1680,7 @@ window.loadVisits = async function(forceReload) {
   try {
     // 🚀 3. หัวใจสำคัญของ Cache!
     if (!forceReload && window.VisitManagerCache && window.VisitManagerCache.isLoaded && hasData) {
-        window.();
+        window.renderVisitTableServerSide();
         if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
         if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
             if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
