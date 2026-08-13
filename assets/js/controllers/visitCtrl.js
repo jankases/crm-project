@@ -1938,7 +1938,7 @@ window.loadVisits = async function(forceReload) {
   }
 };
 
-window.renderVisitTableServerSide = function() {
+ window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
 
