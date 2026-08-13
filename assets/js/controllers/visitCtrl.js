@@ -1987,8 +1987,6 @@ window.loadVisits = async function(forceReload) {
     var dateShow = (typeof window.formatDateToLocal === 'function') ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
     var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
     var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
-    var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
-    var coachingBadge = v.Is_Coaching ? ' <i class="fa-solid fa-clipboard-user text-info ms-2" title="' + coachingTooltip + '"></i>' : '';
     
     var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
     var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
@@ -2016,7 +2014,7 @@ window.loadVisits = async function(forceReload) {
 
     var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); 
     var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
-    var highlightedDoc = applyHighlight(docNameShow, smartSearchVal) + coachingBadge; 
+    var highlightedDoc = applyHighlight(docNameShow, smartSearchVal); 
     var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
     var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
 
@@ -2030,23 +2028,35 @@ window.loadVisits = async function(forceReload) {
       });
     } else prodBadges = '<span class="text-muted small">-</span>';
 
-    // 🌟 2 ภาษา สำหรับ Tooltip ไฟล์แนบ ลายเซ็น และของแจก (Samples)
+    // ✨ 🌟 ปรับปรุงการจัดกลุ่มไอคอนหลักฐานให้อยู่ในรูปแบบ Soft Badge (Clean Look)
     var evidenceBadges = '';
+    
+    // 1. Joint Visit / Coaching
+    if (v.Is_Coaching) {
+      var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
+      evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user"></i></span>';
+    }
+
+    // 2. Attachments
     if (v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
       var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
-      evidenceBadges += ' <i class="fa-solid fa-paperclip text-muted ms-1" title="' + ttAttach + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip"></i></span>';
     }
+
+    // 3. Signature
     if (v.Doctor_Signature) {
       var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
-      evidenceBadges += ' <i class="fa-solid fa-signature text-success ms-1" title="' + ttSig + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature"></i></span>';
     }
-    
-    // 🎁 เช็กไอคอน Samples & Promo Items
+
+    // 4. Samples & Promo Items
+    var vidClean = String(v.Visit_ID).trim().toLowerCase();
     var hasSamples = (v.Visit_Samples && v.Visit_Samples.length > 0) || 
-                     (window._visitSampleIndex && window._visitSampleIndex[String(v.Visit_ID).trim().toLowerCase()]);
+                     (window._visitSampleIndex && window._visitSampleIndex[vidClean] && window._visitSampleIndex[vidClean].length > 0);
+                     
     if (hasSamples) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
-      evidenceBadges += ' <i class="fa-solid fa-gifts text-warning ms-1" title="' + ttSample + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gift"></i></span>';
     }
 
     htmlBuffer += '<tr>' +
