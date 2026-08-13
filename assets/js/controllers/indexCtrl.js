@@ -29,7 +29,6 @@ window.initIndexPage = function() {
     if (typeof window.loadAllIndexData === 'function') window.loadAllIndexData();
 };
 
-// 🌟 ตัวดักจับ: เมื่อ HTML หน้า ManageIndex ถูกนำมาแปะบนจอ ให้สั่งโหลดข้อมูลทันที!
 if (!window._indexObserverAttached) {
     var indexObserver = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
@@ -48,14 +47,13 @@ if (!window._indexObserverAttached) {
     window._indexObserverAttached = true;
 }
 
-// 🌟 เผื่อกรณี Refresh หน้าเว็บตรงๆ หรือไม่ได้โหลดผ่าน Router
 setTimeout(function() {
     if (document.getElementById('indexTypeTableBody')) {
         window.initIndexPage();
     }
 }, 100);
 
-// ================= 🌟 System Settings (Rating) =================
+// ================= 🌟 System Settings (Rating & Visit Configs) =================
 window.loadSystemSettings = async function() {
   try {
     const { data, error } = await supabaseClient.from('System_Settings').select('*');
@@ -85,7 +83,7 @@ window.loadSystemSettings = async function() {
       document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
     }
 
-   // --- 🎯 Load Visit Features Config ---
+    // --- 🎯 Load Visit Features Config ---
     const gpsConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_GPS');
     const attConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Attachment');
     const sigConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Signature');
@@ -96,10 +94,10 @@ window.loadSystemSettings = async function() {
     const tgSig = document.getElementById('toggleSignature');
     const tgSmp = document.getElementById('toggleSamples');
     
-    if(tgGps) tgGps.checked = gpsConf ? gpsConf.Status !== false : true; // Default เป็นเปิด
+    if(tgGps) tgGps.checked = gpsConf ? gpsConf.Status !== false : true; 
     if(tgAtt) tgAtt.checked = attConf ? attConf.Status !== false : true;
     if(tgSig) tgSig.checked = sigConf ? sigConf.Status !== false : true;
-    if(tgSmp) tgSmp.checked = smpConf ? smpConf.Status !== false : true;
+    if(tgSmp) tgSmp.checked = smpConf ? smpConf.Status !== false : true; // 🎁 โหลดค่า Samples
       
   } catch (err) { console.error("Load Settings Error:", err); }
 };
@@ -162,7 +160,7 @@ window.saveSystemSettings = async function() {
   };
 
   try {
-      if (!navigator.onLine) throw new Error("OFFLINE_MODE"); // ดักออฟไลน์
+      if (!navigator.onLine) throw new Error("OFFLINE_MODE");
 
       const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
       if (ratingConfig) {
@@ -190,7 +188,6 @@ window.saveSystemSettings = async function() {
   } catch (err) {
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
       if (isNetworkError) {
-          // เก็บลงคิวออฟไลน์
           var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
           queue.push({ table: 'System_Settings', type: 'Rating', payload: payload, timestamp: Date.now() });
           localStorage.setItem('crmOfflineIndexQueue', JSON.stringify(queue));
@@ -290,7 +287,7 @@ window.handleSaveIndexType = async function(e) {
   const payload = { Name: name, Whoupdated: crmUser ? crmUser.Email : "Unknown" };
 
   try {
-    if (!navigator.onLine) throw new Error("OFFLINE_MODE"); // ดักออฟไลน์
+    if (!navigator.onLine) throw new Error("OFFLINE_MODE");
 
     if (id) {
       const { error } = await supabaseClient.from('IndexType').update(payload).eq('IndexType_ID', id);
@@ -306,7 +303,6 @@ window.handleSaveIndexType = async function(e) {
   } catch (err) { 
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
       if (isNetworkError) {
-          // เก็บลงคิวออฟไลน์
           var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
           queue.push({ table: 'IndexType', id: id || null, payload: payload, timestamp: Date.now() });
           localStorage.setItem('crmOfflineIndexQueue', JSON.stringify(queue));
@@ -414,6 +410,12 @@ window.renderIndexTable = function() {
   } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title' || selectedTypeName === 'tot type' || selectedTypeName === 'tottype') { 
       lblThValue.innerText = "Value (TH)";    
       lblThValue1.innerText = "Value (EN)";   
+      thValue1.classList.remove('d-none'); 
+      thValue2.classList.add('d-none');   
+  // 🎯 ดักจับหมวด Samples / Promo Items (2 ภาษา)
+  } else if (selectedTypeName === 'samples' || selectedTypeName === 'sample' || selectedTypeName === 'promo item' || selectedTypeName === 'samples & promo items') {
+      lblThValue.innerText = appLang === 'en' ? "Sample Name (TH)" : "ชื่อสินค้าตัวอย่าง (TH)";    
+      lblThValue1.innerText = appLang === 'en' ? "Sample Name (EN)" : "ชื่อสินค้าตัวอย่าง (EN)";   
       thValue1.classList.remove('d-none'); 
       thValue2.classList.add('d-none');   
   } else {
@@ -624,6 +626,18 @@ window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
         grpVal1.classList.remove('d-none');
         grpVal2.classList.add('d-none'); 
     }
+    // 🎯 ดักจับหมวด Samples / Promo Items ใน Modal Form
+    else if (typeName === 'samples' || typeName === 'sample' || typeName === 'promo item' || typeName === 'samples & promo items') {
+        lblVal.innerHTML = 'Sample Name (TH) <span class="text-danger">*</span>'; 
+        
+        lblVal1.innerHTML = 'Sample Name (EN)'; 
+        inputVal1.type = 'text';
+        inputVal1.classList.remove('d-none');
+        selectVal1.classList.add('d-none');
+        
+        grpVal1.classList.remove('d-none');
+        grpVal2.classList.add('d-none'); 
+    }
     else {
         lblVal.innerHTML = (appLang === 'en' ? 'Value ' : 'ข้อมูล ') + '<span class="text-danger">*</span>';
         grpVal1.classList.add('d-none');
@@ -680,7 +694,7 @@ window.handleSaveIndex = async function(e) {
   } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
       val1 = document.getElementById('modalIndexValue1_input').value.trim();
       val2 = document.getElementById('modalIndexValue2').value.trim(); 
-  } else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') {
+  } else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype' || typeName === 'samples' || typeName === 'sample' || typeName === 'promo item' || typeName === 'samples & promo items') {
       val1 = document.getElementById('modalIndexValue1_input').value.trim();
       val2 = null;
   } else {
@@ -718,7 +732,7 @@ window.handleSaveIndex = async function(e) {
   };
 
   try {
-    if (!navigator.onLine) throw new Error("OFFLINE_MODE"); // ดักออฟไลน์
+    if (!navigator.onLine) throw new Error("OFFLINE_MODE");
 
     if (id) {
       const { error } = await supabaseClient.from('Index').update(payload).eq('Index_ID', id);
@@ -734,7 +748,6 @@ window.handleSaveIndex = async function(e) {
   } catch (err) { 
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
       if (isNetworkError) {
-          // เก็บลงคิวออฟไลน์
           var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
           queue.push({ table: 'Index', id: id || null, payload: payload, timestamp: Date.now() });
           localStorage.setItem('crmOfflineIndexQueue', JSON.stringify(queue));
@@ -772,7 +785,7 @@ window.saveVisitFeatures = async function() {
       { Type: 'VisitConfig_GPS', Status: isGps, Whoupdated: who, Whenupdated: now },
       { Type: 'VisitConfig_Attachment', Status: isAtt, Whoupdated: who, Whenupdated: now },
       { Type: 'VisitConfig_Signature', Status: isSig, Whoupdated: who, Whenupdated: now },
-      { Type: 'VisitConfig_Samples', Status: tgSmp ? tgSmp.checked : true, Whoupdated: who, Whenupdated: now }
+      { Type: 'VisitConfig_Samples', Status: tgSmp ? tgSmp.checked : true, Whoupdated: who, Whenupdated: now } // 🎁 บันทึกสวิตช์ Samples
   ];
 
   try {
@@ -814,9 +827,7 @@ window.saveVisitFeatures = async function() {
   }
 };
 
-// ==========================================
-// 🔄 OFFLINE SYNC ENGINE (Master Data)
-// ==========================================
+// ================= 🌟 Offline Sync Engine =================
 window.syncOfflineIndexes = async function() {
   if (!navigator.onLine) return;
   var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
@@ -858,7 +869,7 @@ window.syncOfflineIndexes = async function() {
           successCount++;
       } catch (err) {
           console.error("Offline sync failed for item:", item, err);
-          remainingQueue.push(item); // ถ้าเน็ตยังสะดุด ให้เก็บไว้คิวต่อไป
+          remainingQueue.push(item);
       }
   }
 
@@ -869,12 +880,9 @@ window.syncOfflineIndexes = async function() {
           : "✅ ซิงค์การตั้งค่าออฟไลน์สำเร็จ " + successCount + " รายการ";
           
       if (window.showToast) window.showToast(msgSuccess, "success");
-      
-      // ให้โหลดข้อมูลใหม่เพื่อแสดงผลในตาราง
       if (typeof window.loadAllIndexData === 'function') window.loadAllIndexData();
   }
 };
 
-// 📡 ตรวจจับเมื่อเน็ตกลับมาต่อติดปุ๊บ ให้รันฟังก์ชัน Sync ปั๊บ!
 window.addEventListener('online', window.syncOfflineIndexes);
 setTimeout(function() { window.syncOfflineIndexes(); }, 2000);
