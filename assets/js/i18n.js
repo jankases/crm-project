@@ -141,7 +141,8 @@ const i18nDictionary = {
     btn_export: "Export",
     lbl_filter_rep: "Employee / Sales Rep",
     btn_preview: "Preview",
-    unit_items: "items"
+    unit_items: "items",
+    lbl_enable_samples: "Samples"
   },
   th: {
     app_title: "ระบบ CRM",
@@ -281,7 +282,8 @@ const i18nDictionary = {
     btn_export: "ส่งออก",
     lbl_filter_rep: "พนักงาน / ฝ่ายขาย",
     btn_preview: "เปิดดู",
-    unit_items: "เล่ม"
+    unit_items: "เล่ม",
+    lbl_enable_samples: "สินค้าตัวอย่าง"
   }
 };
 
