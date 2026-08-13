@@ -134,6 +134,8 @@ const i18nDictionary = {
     lbl_enable_gps: "GPS Check-in",
     lbl_enable_attachment: "Attachments",
     lbl_enable_signature: "Signature",
+    btn_add_sample: "Add Item",
+    txt_no_sample: "No samples distributed (Click 'Add Item')",
     
     sec_visit_info: "Visit Information",
     sec_activity_details: "Activity Details",
@@ -243,6 +245,8 @@ const i18nDictionary = {
     txt_sign_here: "คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ",
     lbl_coaching_main: "ออกเยี่ยมร่วม (Joint Visit)",
     lbl_coaching_sub: "มีหัวหน้า/ผู้จัดการเข้าร่วม",
+    btn_add_sample: "เพิ่มรายการ",
+    txt_no_sample: "ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม 'เพิ่มรายการ')",
 
     title_sys_settings: "ตั้งค่าระบบ (System Settings)",
     desc_sys_settings: "จัดการข้อมูลหลักและข้อมูลดัชนี (Master Data & Index)",
