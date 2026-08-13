@@ -144,7 +144,8 @@ const i18nDictionary = {
     lbl_filter_rep: "Employee / Sales Rep",
     btn_preview: "Preview",
     unit_items: "items",
-    lbl_enable_samples: "Samples"
+    lbl_enable_samples: "Samples",
+    lbl_samples_title: "Samples & Promo Items"
   },
   th: {
     app_title: "ระบบ CRM",
@@ -287,7 +288,8 @@ const i18nDictionary = {
     lbl_filter_rep: "พนักงาน / ฝ่ายขาย",
     btn_preview: "เปิดดู",
     unit_items: "เล่ม",
-    lbl_enable_samples: "สินค้าตัวอย่าง"
+    lbl_enable_samples: "สินค้าตัวอย่าง",
+    lbl_samples_title: "สินค้าตัวอย่างและของแจก"
   }
 };
 
