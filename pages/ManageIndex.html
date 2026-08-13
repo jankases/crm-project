@@ -24,6 +24,9 @@
     font-weight: 500 !important;
   }
 
+  .btn-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+  .btn-primary:hover { background-color: #0b5ed7 !important; border-color: #0a58ca !important; }
+
   .table-custom-header {
     background-color: #f8fafc !important;
     color: #64748b !important;
@@ -34,7 +37,7 @@
     border-bottom: 2px solid #e2e8f0 !important;
   }
 
-  /* Toggle Switch Switch (UI แบบ iOS) */
+  /* Toggle Switch (UI แบบ iOS) */
   .switch { position: relative; display: inline-block; width: 54px; height: 30px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
@@ -46,11 +49,11 @@
   .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; }
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
 
-  /* 🎯 Pagination Custom Styles */
+  /* Pagination Custom Styles */
   .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
   .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
 
-  /* 🎯 Sortable Header & Text Wrapping */
+  /* Sortable Header & Text Wrapping */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
   .desc-wrap { max-width: 250px; white-space: normal; word-wrap: break-word; line-height: 1.4; margin: 0 auto; }
@@ -60,7 +63,7 @@
   
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h3 class="text-dark fw-bold mb-1"><i class="fa-solid fa-cogs me-2 text-primary"></i><span data-i18n="title_sys_settings">System Settings</span></h3>
+      <h3 class="text-dark fw-bold mb-1" data-i18n="title_sys_settings"><i class="fa-solid fa-cogs me-2 text-primary"></i>System Settings</h3>
       <p class="text-muted small mb-0" data-i18n="desc_sys_settings">Master Data & Index Configuration</p>
     </div>
   </div>
@@ -70,11 +73,11 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
       
       <div class="flex-grow-1">
-        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-bullseye me-2 text-warning"></i><span data-i18n="title_target_call">Target Call (Rating) Access</span></h5>
+        <h5 class="fw-bold text-dark mb-2" data-i18n="title_target_call"><i class="fa-solid fa-bullseye me-2 text-warning"></i>Target Call (Rating) Access</h5>
         <p class="text-muted small mb-0" style="line-height: 1.6;">
           <span data-i18n="desc_target_call_1">Control whether Sales Reps can edit the "Target Call" tab in Doctor Profiles.</span><br>
-          <span class="text-secondary fw-bold" data-i18n="desc_target_call_2">- Set <b>Start/End Dates</b> for automatic access.</span><br>
-          <span class="text-secondary fw-bold" data-i18n="desc_target_call_3">- Or use the <b>Toggle Switch</b> for manual control.</span>
+          <span class="text-secondary" data-i18n="desc_target_call_2">- Set Start/End Dates for automatic access.</span><br>
+          <span class="text-secondary" data-i18n="desc_target_call_3">- Or use the Toggle Switch for manual control.</span>
         </p>
       </div>
       
@@ -91,15 +94,14 @@
         </div>
         <div class="vr d-none d-md-block mx-1" style="height: 40px; align-self: center;"></div>
         <div class="text-center" style="min-width: 140px;">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap"><span data-i18n="lbl_status">Status</span>: <span id="ratingStatusLabel" data-i18n="status_loading">Loading...</span></label>
+          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
           <label class="switch mb-0">
             <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
             <span class="slider"></span>
           </label>
         </div>
         <div>
-          <!-- 🌟 เปลี่ยนปุ่มเป็น Premium -->
-          <button class="btn btn-premium-primary fw-bold px-4 shadow-sm text-nowrap" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 38px;">
+          <button class="btn btn-premium-primary fw-bold text-nowrap" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 38px;">
             <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
           </button>
         </div>
@@ -107,42 +109,53 @@
     </div>
   </div>
 
-  <!-- ================= 🌟 ส่วนควบคุม Visit Form Features (มาใหม่!) ================= -->
-  <div class="card p-4 border-0 visit-card mb-4" style="border-left: 5px solid #0dcaf0 !important;">
+  <!-- ================= 🌟 ส่วนควบคุม Visit Form Features (เปิด/ปิด Samples ได้ที่นี่) ================= -->
+  <div class="card p-4 border-0 visit-card mb-4" style="border-left: 5px solid #0d6efd !important;">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
-      
       <div class="flex-grow-1">
-        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-list-check me-2 text-info"></i><span data-i18n="title_visit_features">Visit Form Features</span></h5>
-        <p class="text-muted small mb-0" style="line-height: 1.6;" data-i18n="desc_visit_features">
-          Show or hide specific sections in the Visit Form.
-        </p>
+        <h5 class="fw-bold text-dark mb-2" data-i18n="title_visit_features"><i class="fa-solid fa-sliders me-2 text-primary"></i>Visit Form Features</h5>
+        <p class="text-muted small mb-0" data-i18n="desc_visit_features">Show or hide specific sections in the Visit Form.</p>
       </div>
-      
-      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-end justify-content-center justify-content-md-end gap-3 flex-shrink-0">
-        <div class="text-center px-2">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_gps">GPS</label>
-          <label class="switch mb-0"><input type="checkbox" id="toggleGps" checked><span class="slider"></span></label>
-        </div>
-        <div class="text-center px-2">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_attachment">Attach</label>
-          <label class="switch mb-0"><input type="checkbox" id="toggleAttachment" checked><span class="slider"></span></label>
-        </div>
-        <div class="text-center px-2">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_signature">Sign</label>
-          <label class="switch mb-0"><input type="checkbox" id="toggleSignature" checked><span class="slider"></span></label>
-        </div> 
-        <div class="text-center px-2">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" data-i18n="lbl_enable_samples">Samples</label>
-          <label class="switch mb-0"><input type="checkbox" id="toggleSamples" checked><span class="slider"></span></label>
-        </div>
+      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-center justify-content-center gap-4 flex-shrink-0">
         
-        <div class="vr d-none d-md-block mx-1" style="height: 40px; align-self: center;"></div>
-        
+        <div class="text-center">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_gps">GPS Check-in</label>
+          <label class="switch mb-0">
+            <input type="checkbox" id="toggleGps" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="text-center">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_attachment">Attachments</label>
+          <label class="switch mb-0">
+            <input type="checkbox" id="toggleAttachment" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="text-center">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_signature">Signature</label>
+          <label class="switch mb-0">
+            <input type="checkbox" id="toggleSignature" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="text-center">
+          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_samples">Samples</label>
+          <label class="switch mb-0">
+            <input type="checkbox" id="toggleSamples" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
         <div>
-          <button class="btn btn-premium-primary fw-bold px-4 shadow-sm text-nowrap" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 38px;">
+          <button class="btn btn-premium-primary fw-bold text-nowrap" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 38px;">
             <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
           </button>
         </div>
+
       </div>
     </div>
   </div>
@@ -152,8 +165,8 @@
     <div class="col-lg-3 d-flex">
       <div class="card p-4 border-0 visit-card w-100">
         <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-          <h5 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-layer-group me-2 text-secondary"></i><span data-i18n="title_categories">1. Categories</span></h5>
-          <button class="btn btn-sm btn-premium-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="window.openAddIndexTypeModal()">
+          <h5 class="fw-bold text-dark mb-0 fs-6" data-i18n="title_categories"><i class="fa-solid fa-layer-group me-2 text-secondary"></i>1. Categories</h5>
+          <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 shadow-sm" onclick="window.openAddIndexTypeModal()">
             <i class="fa-solid fa-plus"></i>
           </button>
         </div>
@@ -161,7 +174,7 @@
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
             <tbody id="indexTypeTableBody">
-              <tr><td class="py-3 text-center text-muted"><span data-i18n="status_loading">Loading data...</span> <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              <tr><td class="py-3 text-center text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
             </tbody>
           </table>
         </div>
@@ -173,14 +186,13 @@
       <div class="card p-4 border-0 visit-card w-100">
         
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2 gap-2">
-          <h5 class="fw-bold text-primary mb-0 fs-6"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="title_index_values">2. Index Values</span></h5>
+          <h5 class="fw-bold text-primary mb-0 fs-6" data-i18n="title_index_values"><i class="fa-solid fa-list-check me-2"></i>2. Index Values</h5>
           
           <div class="d-flex align-items-center gap-2">
-            <select class="form-select form-select-sm shadow-sm fw-bold text-secondary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; min-width: 200px;">
+            <select class="form-select form-select-sm shadow-sm border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; min-width: 200px;">
               <option value="" data-i18n="opt_all_categories">- All Categories -</option>
             </select>
-            <!-- 🌟 เปลี่ยนปุ่มเป็น Premium -->
-            <button class="btn btn-sm btn-premium-primary fw-bold px-3 shadow-sm text-nowrap" onclick="window.openAddIndexModal()">
+            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-sm text-nowrap" onclick="window.openAddIndexModal()">
               <i class="fa-solid fa-plus me-1"></i><span data-i18n="btn_add_value">Add Value</span>
             </button>
           </div>
@@ -206,11 +218,12 @@
               </tr>
             </thead>
             <tbody id="indexTableBody">
-              <tr><td colspan="5" class="py-4 text-muted"><span data-i18n="status_loading">Loading data...</span> <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              <tr><td colspan="5" class="py-4 text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
             </tbody>
           </table>
         </div>
 
+        <!-- Pagination Controls -->
         <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top d-none">
           <div class="d-flex align-items-center mb-3 mb-md-0">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
@@ -231,7 +244,7 @@
     </div>
   </div>
 
-  <!-- ================= Modals ================= -->
+  <!-- Modals -->
 
   <!-- Modal สำหรับ IndexType -->
   <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
@@ -250,8 +263,8 @@
             </div>
           </div>
           <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-light fw-bold px-4 border shadow-sm" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-            <button type="submit" class="btn btn-premium-primary fw-bold px-4 shadow-sm" id="btnSaveIndexType" data-i18n="btn_save">Save</button>
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm" id="btnSaveIndexType" data-i18n="btn_save">Save</button>
           </div>
         </form>
       </div>
@@ -263,7 +276,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg visit-card">
         <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title fw-bold text-primary" id="indexModalTitle"><i class="fa-solid fa-plus me-2"></i><span data-i18n="title_add_index">Add Value</span></h5>
+          <h5 class="modal-title fw-bold text-primary" id="indexModalTitle" data-i18n="title_add_index">Add Value</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <form onsubmit="window.handleSaveIndex(event)">
@@ -300,8 +313,8 @@
 
           </div>
           <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-light fw-bold px-4 border shadow-sm" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-            <button type="submit" class="btn btn-premium-primary fw-bold px-4 shadow-sm" id="btnSaveIndex"><i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span></button>
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" id="btnSaveIndex">💾 <span data-i18n="btn_save">Save</span></button>
           </div>
         </form>
       </div>
