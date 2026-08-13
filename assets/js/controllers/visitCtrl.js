@@ -2146,6 +2146,7 @@ window.toggleVisitFormEditable = function(isEditable) {
 
 window.openEditVisitView = async function(visitId) {
   window.applyVisitFeaturesUI();
+    
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
@@ -2192,7 +2193,10 @@ window.openEditVisitView = async function(visitId) {
       window.tomSelectPurposeInstance.setValue(v.Purpose_ID);
       if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
   }
-
+ 
+if (typeof window.loadVisitSamplesForEdit === 'function') {
+    await window.loadVisitSamplesForEdit(v.Visit_ID);
+}
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2452,6 +2456,7 @@ btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'e
   if (window.globalVisitConfigs && window.globalVisitConfigs.samples && typeof window.collectVisitSamplesPayload === 'function') {
       samplePayloads = window.collectVisitSamplesPayload(targetVisitId, whoUpdated);
   }
+     
  
   var isOfflineMode = !navigator.onLine;
 
@@ -2476,17 +2481,22 @@ btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'e
     }
 
     // 🎁 จัดการเซฟลงตาราง Visit_Samples
-    if (window.globalVisitConfigs && window.globalVisitConfigs.samples) {
-        if (existingVisitId) {
-            var delSmpRes = await window.supabaseClient.from('Visit_Samples').delete().eq('Visit_ID', existingVisitId);
-            if (delSmpRes.error) console.warn("Delete old Visit_Samples warning:", delSmpRes.error.message);
-        }
-
-        if (samplePayloads.length > 0) {
-            var insSmpRes = await window.supabaseClient.from('Visit_Samples').insert(samplePayloads);
-            if (insSmpRes.error) throw new Error("Insert Visit_Samples error: " + insSmpRes.error.message);
-        }
+     
+if (window.globalVisitConfigs && window.globalVisitConfigs.samples) {
+    if (existingVisitId) {
+        await window.supabaseClient.from('Visit_Samples').delete().eq('Visit_ID', existingVisitId);
     }
+
+    if (samplePayloads.length > 0) {
+        var insSmpRes = await window.supabaseClient.from('Visit_Samples').insert(samplePayloads);
+        if (insSmpRes.error) throw new Error("Insert Visit_Samples error: " + insSmpRes.error.message);
+    }
+
+    // 🌟 สั่งอัปเดต Index ในเครื่องทันทีเพื่อให้หน้าตารางเห็นไอคอน
+    var vidClean = String(targetVisitId).trim().toLowerCase();
+    window._visitSampleIndex = window._visitSampleIndex || {};
+    window._visitSampleIndex[vidClean] = samplePayloads;
+}
 
     if (window.pendingDetailingLogs && window.pendingDetailingLogs.length > 0) {
       for (var dIdx = 0; dIdx < window.pendingDetailingLogs.length; dIdx++) {
