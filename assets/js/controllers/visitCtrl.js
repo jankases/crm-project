@@ -125,16 +125,7 @@ window.checkEmptySamples = function() {
     if (rows.length === 0 && noText) noText.style.display = 'block';
 };
 
-window.applyVisitFeaturesUI = function() {
-    const gpsSection = document.getElementById('sectionGpsCheckin');
-    const attSection = document.getElementById('sectionAttachments');
-    const sigSection = document.getElementById('sectionSignature');
-    
-    // ถ้าปิดสวิตช์ไว้ ให้ซ่อน (เติม class d-none)
-    if (gpsSection) gpsSection.classList.toggle('d-none', !window.globalVisitConfigs.gps);
-    if (attSection) attSection.classList.toggle('d-none', !window.globalVisitConfigs.att);
-    if (sigSection) sigSection.classList.toggle('d-none', !window.globalVisitConfigs.sig);
-};
+ 
 
 // ==========================================
 // 🎁 SAMPLES & PROMO ITEMS ENGINE (SUPABASE MATCHED)
