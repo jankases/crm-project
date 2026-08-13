@@ -90,68 +90,42 @@ window.applyVisitFeaturesUI = function() {
     if (sigSection) sigSection.classList.toggle('d-none', !window.globalVisitConfigs.sig);
     if (smpSection) smpSection.classList.toggle('d-none', !window.globalVisitConfigs.samples); // 🌟 สั่งซ่อน/แสดง
 };
-
 // ==========================================
-// 🎁 SAMPLES & PROMO ITEMS ENGINE
-// ==========================================
-window.addSampleRow = function(itemName = '', qty = '') {
-    const container = document.getElementById('sampleItemsContainer');
-    const noText = document.getElementById('noSampleText');
-    if (noText) noText.style.display = 'none';
-
-    const rowId = 'sampleRow_' + Date.now();
-    const rowHTML = `
-        <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
-            <div class="col-7">
-                <input type="text" class="form-control form-control-sm bg-white shadow-sm sample-name" placeholder="ชื่อสินค้าตัวอย่าง / Promo..." value="${itemName}">
-            </div>
-            <div class="col-3">
-                <input type="number" class="form-control form-control-sm bg-white shadow-sm text-center sample-qty" placeholder="จำนวน" min="1" value="${qty}">
-            </div>
-            <div class="col-2 text-end">
-                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples();">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', rowHTML);
-};
-
-window.checkEmptySamples = function() {
-    const container = document.getElementById('sampleItemsContainer');
-    const noText = document.getElementById('noSampleText');
-    const rows = container.querySelectorAll('.sample-item-row');
-    if (rows.length === 0 && noText) noText.style.display = 'block';
-};
-
- 
-
-// ==========================================
-// 🎁 SAMPLES & PROMO ITEMS ENGINE (SUPABASE MATCHED)
+// 🎁 SAMPLES & PROMO ITEMS ENGINE (INDEX TABLE MATCHED)
 // ==========================================
 window.globalMasterSamples = [];
 
-// 1. ดึงรายการของแจกที่เปิดใช้งานอยู่ (Is_Active = true)
+// 1. ดึงรายการของแจกจากตาราง Index (ที่ผูกกับ IndexType หมวด Samples)
 window.loadMasterSamplesList = async function() {
     try {
-        const { data, error } = await window.supabaseClient
-            .from('Master_Samples')
-            .select('Sample_ID, Sample_Name')
-            .eq('Is_Active', true)
-            .order('Sample_Name', { ascending: true });
+        const { data: typeData, error: typeErr } = await window.supabaseClient
+            .from('IndexType')
+            .select('IndexType_ID, Name');
 
-        if (!error && data) {
-            window.globalMasterSamples = data;
-        } else if (error) {
-            console.error("Error fetching Master_Samples:", error.message);
+        if (typeErr) throw typeErr;
+
+        const sampleType = (typeData || []).find(t => {
+            const name = (t.Name || '').toLowerCase().trim();
+            return name === 'samples' || name === 'sample' || name === 'promo item' || name === 'samples & promo items';
+        });
+
+        if (sampleType) {
+            const { data: indexData, error: idxErr } = await window.supabaseClient
+                .from('Index')
+                .select('Index_ID, Value, Value1')
+                .eq('IndexType_ID', sampleType.IndexType_ID)
+                .order('Value', { ascending: true });
+
+            if (!idxErr && indexData) {
+                window.globalMasterSamples = indexData;
+            }
         }
     } catch (e) {
-        console.error("Error loading master samples:", e);
+        console.error("Error loading samples from Index table:", e);
     }
 };
 
-// 2. ฟังก์ชันสร้าง Dynamic Row บนฟอร์ม
+// 2. ฟังก์ชันสร้าง Dynamic Row บนฟอร์ม (รองรับ 2 ภาษา TH/EN)
 window.addSampleRow = function(sampleId = '', qty = 1) {
     const container = document.getElementById('sampleItemsContainer');
     const noText = document.getElementById('noSampleText');
@@ -165,8 +139,9 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     let optionsHTML = `<option value="">${placeholderText}</option>`;
     if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
         window.globalMasterSamples.forEach(item => {
-            const isSelected = item.Sample_ID === sampleId ? 'selected' : '';
-            optionsHTML += `<option value="${item.Sample_ID}" ${isSelected}>${item.Sample_Name}</option>`;
+            const displayName = (appLang === 'en' && item.Value1) ? item.Value1 : item.Value;
+            const isSelected = String(item.Index_ID) === String(sampleId) ? 'selected' : '';
+            optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
         });
     }
 
@@ -227,7 +202,6 @@ window.loadVisitSamplesForEdit = async function(visitId) {
     const container = document.getElementById('sampleItemsContainer');
     if (!container) return;
     
-    // ล้างตัวเก่าในฟอร์มออกก่อน
     container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>';
 
     try {
