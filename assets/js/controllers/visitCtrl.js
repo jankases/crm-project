@@ -125,7 +125,7 @@ window.loadMasterSamplesList = async function() {
     }
 };
 
-// 2. ฟังก์ชันสร้าง Dynamic Row บนฟอร์ม (รองรับ 2 ภาษา TH/EN)
+
 window.addSampleRow = function(sampleId = '', qty = 1) {
     const container = document.getElementById('sampleItemsContainer');
     const noText = document.getElementById('noSampleText');
@@ -133,13 +133,16 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
 
     const rowId = 'sampleRow_' + Date.now();
     
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    var placeholderText = appLang === 'en' ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
+    // 🌟 ดึงภาษาปัจจุบันแบบ Direct Check จากปุ่ม EN/TH
+    var btnEN = document.getElementById('btnLangEN');
+    var isEN = btnEN && btnEN.classList.contains('btn-primary');
+    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
 
     let optionsHTML = `<option value="">${placeholderText}</option>`;
     if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
         window.globalMasterSamples.forEach(item => {
-            const displayName = (appLang === 'en' && item.Value1) ? item.Value1 : item.Value;
+            // สลับข้อความภาษาไทย (Value) / อังกฤษ (Value1)
+            const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
             const isSelected = String(item.Index_ID) === String(sampleId) ? 'selected' : '';
             optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
         });
@@ -153,7 +156,7 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
                 </select>
             </div>
             <div class="col-3">
-                <input type="number" class="form-control form-control-sm bg-white shadow-sm text-center sample-qty" placeholder="จำนวน" min="1" value="${qty}">
+                <input type="number" class="form-control form-control-sm bg-white shadow-sm text-center sample-qty" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
             </div>
             <div class="col-2 text-end">
                 <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples();">
@@ -164,6 +167,34 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     `;
     container.insertAdjacentHTML('beforeend', rowHTML);
 };
+
+// 🌟 สั่งให้รีเรนเดอร์ภาษาใน Dropdown เมื่อมีการสลับปุ่ม EN/TH
+window.refreshSampleDropdownLang = function() {
+    const rows = document.querySelectorAll('#sampleItemsContainer .sample-item-row');
+    if (!rows || rows.length === 0) return;
+
+    var btnEN = document.getElementById('btnLangEN');
+    var isEN = btnEN && btnEN.classList.contains('btn-primary');
+    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
+
+    rows.forEach(row => {
+        const select = row.querySelector('.sample-id-select');
+        if (select) {
+            const currentVal = select.value;
+            let optionsHTML = `<option value="">${placeholderText}</option>`;
+            
+            if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
+                window.globalMasterSamples.forEach(item => {
+                    const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
+                    const isSelected = String(item.Index_ID) === String(currentVal) ? 'selected' : '';
+                    optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
+                });
+            }
+            select.innerHTML = optionsHTML;
+        }
+    });
+};
+ 
 
 window.checkEmptySamples = function() {
     const container = document.getElementById('sampleItemsContainer');
@@ -3251,6 +3282,9 @@ window.updateLangUI = function() {
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
+    if (typeof window.refreshSampleDropdownLang === 'function') {
+        window.refreshSampleDropdownLang();
+    }
 };
 
 if (!window._isAppLangListenerAttached) {
