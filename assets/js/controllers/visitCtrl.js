@@ -1680,7 +1680,7 @@ window.loadVisits = async function(forceReload) {
   try {
     // 🚀 3. หัวใจสำคัญของ Cache!
     if (!forceReload && window.VisitManagerCache && window.VisitManagerCache.isLoaded && hasData) {
-        window.renderVisitTableServerSide();
+        window.();
         if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
         if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
             if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
@@ -2030,7 +2030,7 @@ window.renderVisitTableServerSide = function() {
       });
     } else prodBadges = '<span class="text-muted small">-</span>';
 
-    // 🌟 2 ภาษา สำหรับ Tooltip ไฟล์แนบและลายเซ็น
+    // 🌟 2 ภาษา สำหรับ Tooltip ไฟล์แนบ ลายเซ็น และของแจก (Samples)
     var evidenceBadges = '';
     if (v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
       var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
@@ -2039,6 +2039,14 @@ window.renderVisitTableServerSide = function() {
     if (v.Doctor_Signature) {
       var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
       evidenceBadges += ' <i class="fa-solid fa-signature text-success ms-1" title="' + ttSig + '"></i>';
+    }
+    
+    // 🎁 เช็กไอคอน Samples & Promo Items
+    var hasSamples = (v.Visit_Samples && v.Visit_Samples.length > 0) || 
+                     (window._visitSampleIndex && window._visitSampleIndex[String(v.Visit_ID).trim().toLowerCase()]);
+    if (hasSamples) {
+      var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
+      evidenceBadges += ' <i class="fa-solid fa-gifts text-warning ms-1" title="' + ttSample + '"></i>';
     }
 
     htmlBuffer += '<tr>' +
