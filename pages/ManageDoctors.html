@@ -265,21 +265,21 @@
       <div id="profileDcrStatusBadge" class="ms-2"></div>
     </div>
     
-    <div class="card p-4 border-0 shadow-sm visit-card">
-      <!-- 🌟 แท็บสลับหน้าใน Profile -->
-      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" id="docProfileTabs">
+    <div class="card p-4 border-0 shadow-sm visit-card"> 
+      <!-- 🌟 แท็บสลับหน้าใน Profile (ตัด Bootstrap Data Attributes ออก ป้องกัน Event ตบกัน) -->
+<ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" id="docProfileTabs">
   <li class="nav-item">
-    <button type="button" class="nav-link active" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
+    <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
       <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
     </button>
   </li>
   <li class="nav-item">
-    <button type="button" class="nav-link" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')">
+    <button type="button" class="nav-link" id="tab-btn-history" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')">
       <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span>
     </button>
   </li>
   <li class="nav-item">
-    <button type="button" class="nav-link" onclick="window.switchDoctorProfileTab(this, 'tab-doc-target')">
+    <button type="button" class="nav-link" id="tab-btn-target" onclick="window.switchDoctorProfileTab(this, 'tab-doc-target')">
       <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span>
     </button>
   </li>
