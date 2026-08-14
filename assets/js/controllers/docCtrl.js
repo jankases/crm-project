@@ -809,25 +809,32 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
 
+  // 🌟 ดึงภาษาปัจจุบันของระบบ
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
+  const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
+
+  // 1. เติมชื่อแพทย์บน Header
   const titleEl = document.getElementById('viewDocTitleName');
   if (titleEl) {
     titleEl.innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
   }
 
+  // 2. เติมข้อมูลลงใน Input
   if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
   if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = d.Type || d.type || '-';
   if (document.getElementById('viewDocStatus')) document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
   if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
   if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
 
-  // 🌟 FIX 点 1: แปลชื่อโรงพยาบาลตามภาษาปัจจุบัน
+  // 🌟 3. วาด Workplace History แบบ 2 ภาษา (ทั้งชื่อ รพ. และป้าย Primary)
   let wpHTML = '';
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
   if(parsedWp.length > 0) {
     parsedWp.forEach(wp => {
-      const isPrimary = wp.isPrimary ? '<span class="badge badge-soft-info ms-2">Primary</span>' : '';
+      const isPrimary = wp.isPrimary ? `<span class="badge badge-soft-info ms-2">${primaryBadgeText}</span>` : '';
       const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
       const hospName = window.getHospitalNameByLang(hospObj);
       wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
@@ -835,14 +842,15 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   } else {
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
     const hospName = window.getHospitalNameByLang(hospObj);
-    wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge badge-soft-info ms-2">Primary</span></div>`;
+    wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge badge-soft-info ms-2">${primaryBadgeText}</span></div>`;
   }
 
   if (document.getElementById('viewWorkplaceContainer')) {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  let phtml = '<option value="">- All Products -</option>';
+  // 🌟 4. ตัวเลือก Dropdown ผลิตภัณฑ์แบบ 2 ภาษา
+  let phtml = `<option value="">${allProdsText}</option>`;
   if (typeof window.globalProducts !== 'undefined') {
     window.globalProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
   }
@@ -850,6 +858,7 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
     document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
   }
 
+  // 5. ควบคุมปุ่มและ Banner สิทธิ์ Rating (Target Call)
   const addProdBtn = document.getElementById('btnAddRatingProduct');
   const lockBanner = document.getElementById('ratingLockBanner');
   
@@ -861,16 +870,16 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
     if (lockBanner) lockBanner.style.display = 'none';
   }
 
+  // 6. โหลดข้อมูล Tab ย่อย
   window.loadDoctorVisitHistory(id);
   await window.loadDoctorRatings(id);
 
-  const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTab}"]`);
-  if(tabEl && typeof bootstrap !== 'undefined') { 
-    const tab = new bootstrap.Tab(tabEl); 
-    tab.show(); 
-  }
-
+  // 🌟 7. เปิด View และสั่ง Active หน้า Tab
   window.switchDoctorView('doctorProfileView');
+  
+  if (typeof window.switchDoctorProfileTab === 'function') {
+    window.switchDoctorProfileTab(targetTab);
+  }
 };
 
 window.handleAddDoctor = async function(e) {
