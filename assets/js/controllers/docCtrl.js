@@ -1495,9 +1495,58 @@ window.saveTargetCallRow = async function(btn) {
   }
 };
 
+// ==========================================
+// 🚀 QUICK ADD CALL FROM DOCTOR PROFILE (ฟังก์ชันหลักของปุ่ม + Add Call)
+// ==========================================
 window.goToQuickAddCall = function() {
-  sessionStorage.setItem('returnToDocId', window.currentTargetDocId);
-  if (typeof window.loadComponent === 'function') window.loadComponent('visit');
+  const docId = window.currentTargetDocId;
+  if (!docId) return;
+
+  // 1. จำ ID แพทย์ลง sessionStorage
+  sessionStorage.setItem('returnToDocId', docId);
+
+  // 2. สลับไป Component หน้า Visit
+  if (typeof window.loadComponent === 'function') {
+    window.loadComponent('visit');
+  }
+
+  // 3. รอจนกว่าฟังก์ชัน openAddVisitView ใน visit.js จะพร้อม แล้วสั่งรัน
+  let attempts = 0;
+  const checkReady = setInterval(function() {
+    attempts++;
+    if (typeof window.openAddVisitView === 'function') {
+      clearInterval(checkReady);
+      window.openAddVisitView();
+    } else if (attempts > 50) {
+      clearInterval(checkReady);
+    }
+  }, 100);
+};
+
+
+// ==========================================
+// ✏️ EDIT VISIT FROM DOCTOR PROFILE (สำหรับคลิกวันที่ในตาราง)
+// ==========================================
+window.openEditVisitFromDoctorProfile = function(visitId) {
+  const docId = window.currentTargetDocId;
+  if (!docId || !visitId) return;
+
+  sessionStorage.setItem('returnToDocId', docId);
+
+  if (typeof window.loadComponent === 'function') {
+    window.loadComponent('visit');
+  }
+
+  let attempts = 0;
+  const checkReady = setInterval(function() {
+    attempts++;
+    if (typeof window.openEditVisitView === 'function') {
+      clearInterval(checkReady);
+      window.openEditVisitView(visitId);
+    } else if (attempts > 50) {
+      clearInterval(checkReady);
+    }
+  }, 100);
 };
 
 // ==========================================
@@ -1577,3 +1626,4 @@ setTimeout(() => {
     window.initDoctorPage(true);
   }
 }, 100);
+ 
