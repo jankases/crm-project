@@ -2039,7 +2039,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. สลับหน้ามาที่ฟอร์มทันที 0 วินาที
+  // 🚀 1. เปิดฟอร์มขึ้นจอทันที 0 วินาที (Instant UI Switch)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2061,10 +2061,17 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. ยัดค่าลง Native HTML Select / Inputs ก่อนทันที (ไม่รอ TomSelect เพื่อป้องกันการดีเลย์)
-  var docEl = document.getElementById('visitDocId');
-  if (docEl && v.Doc_ID) docEl.value = v.Doc_ID;
+  // ⚡ 2. ตั้งค่า Doctor Name ทันที
+  if (v.Doc_ID) {
+      if (window.tomSelectDocInstance) {
+          window.tomSelectDocInstance.setValue(v.Doc_ID, true);
+      } else {
+          var docSelect = document.getElementById('visitDocId');
+          if (docSelect) docSelect.value = v.Doc_ID;
+      }
+  }
 
+  // ⚡ 3. ตั้งค่า Inputs ทั่วไปทันที
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2077,53 +2084,54 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitStatus').value = v.Status || 'Pending';
   document.getElementById('visitIsCoaching').checked = (v.Is_Coaching === true);
 
-  // 🎯 3. ฟังก์ชันจับคู่ Purpose (รองรับ UUID, ข้อความ EN/TH, Value ใน Index)
+  // 🎯 4. ระบบซิงค์ Purpose แบบบังคับสร้าง Option (แก้ปัญหา Purpose หาย 100%)
   var rawPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
-  var matchedPurposeValue = rawPurpose;
+  if (rawPurpose && rawPurpose !== '-') {
+      var matchedId = rawPurpose;
+      var matchedText = rawPurpose;
 
-  if (rawPurpose && window.VisitManagerCache && window.VisitManagerCache.indexes) {
-      var foundIdx = window.VisitManagerCache.indexes.find(function(i) {
-          return String(i.Index_ID).toLowerCase() === rawPurpose.toLowerCase() ||
-                 String(i.Value || '').toLowerCase() === rawPurpose.toLowerCase() ||
-                 String(i.Value1 || '').toLowerCase() === rawPurpose.toLowerCase();
-      });
-      if (foundIdx) matchedPurposeValue = foundIdx.Index_ID;
+      // สแกนกับ Index Cache เพื่อแปลงข้อความให้ตรงกับ Master Data
+      if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
+          var foundIdx = window.VisitManagerCache.indexes.find(function(i) {
+              return String(i.Index_ID).toLowerCase() === rawPurpose.toLowerCase() ||
+                     String(i.Value || '').toLowerCase() === rawPurpose.toLowerCase() ||
+                     String(i.Value1 || '').toLowerCase() === rawPurpose.toLowerCase();
+          });
+          if (foundIdx) {
+              matchedId = foundIdx.Index_ID;
+              var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+              matchedText = (appLang === 'en') ? (foundIdx.Value1 || foundIdx.Value) : (foundIdx.Value || foundIdx.Value1);
+          }
+      }
+
+      if (window.tomSelectPurposeInstance) {
+          var tsP = window.tomSelectPurposeInstance;
+          // เพิ่ม Option สำรองไว้ก่อน เพื่อป้องกัน TomSelect มองไม่เห็นค่าแล้วเลือกค่าว่าง
+          tsP.addOption({ value: matchedId, text: matchedText, searchTh: matchedText, searchEn: matchedText });
+          tsP.setValue(matchedId, true);
+          tsP.refreshItems();
+      }
+  } else if (window.tomSelectPurposeInstance) {
+      window.tomSelectPurposeInstance.clear(true);
   }
 
-  var purpEl = document.getElementById('visitPurpose');
-  if (purpEl) purpEl.value = matchedPurposeValue;
-
-  // ⚡ 4. สั่งซิงค์เข้า TomSelect ทั้ง Doctor และ Purpose พร้อมกัน
-  var syncTomSelects = function() {
-      if (v.Doc_ID && window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(v.Doc_ID, true);
-      }
-      
-      if (matchedPurposeValue && window.tomSelectPurposeInstance) {
-          var tsP = window.tomSelectPurposeInstance;
-          tsP.setValue(matchedPurposeValue, true);
-          if (!tsP.getValue() && matchedPurposeValue !== '-') {
-              tsP.addOption({ value: matchedPurposeValue, text: rawPurpose, searchTh: rawPurpose, searchEn: rawPurpose });
-              tsP.setValue(matchedPurposeValue, true);
+  // -------------------------------------------------------------
+  // 🚀 5. โหลดข้อมูลเบื้องหลังแบบ Async Non-Blocking (ไม่ใส่ await ขัดจังหวะหน้าจอ)
+  // -------------------------------------------------------------
+  if (typeof window.renderFormProductDropdown === 'function') {
+      window.renderFormProductDropdown().then(function() {
+          var visitProds = window.globalVisitProducts.filter(function(vp) { 
+              return String(vp.Visit_ID) === String(visitId); 
+          }).map(function(vp) { return String(vp.Product_ID); });
+          
+          if (window.tomSelectProdInstance && visitProds.length > 0) {
+              window.tomSelectProdInstance.setValue(visitProds, true);
           }
-          if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
-      }
-  };
-
-  // รันซิงค์ทันที + การันตีอีกรอบเผื่อ TomSelect กำลัง Re-init
-  syncTomSelects();
-  setTimeout(syncTomSelects, 50);
-  setTimeout(syncTomSelects, 150);
-
-  // -------------------------------------------------------------
-  // ⏳ 5. โหลดข้อมูลหนักรองลงมา (Products / Samples / Attachments / Signature)
-  // -------------------------------------------------------------
-  if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
-  var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
-  if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
+      });
+  }
 
   if (typeof window.loadVisitSamplesForEdit === 'function') {
-      await window.loadVisitSamplesForEdit(v.Visit_ID);
+      window.loadVisitSamplesForEdit(v.Visit_ID);
   }
 
   // GPS Location
@@ -2236,7 +2244,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
-};
+}; 
 
 window.openAddVisitView = async function(presetDate) {
   window.applyVisitFeaturesUI();
