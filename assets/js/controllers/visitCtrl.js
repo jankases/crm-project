@@ -2030,6 +2030,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
+
 window.openEditVisitView = async function(visitId) {
   window.applyVisitFeaturesUI();
     
@@ -2057,37 +2058,39 @@ window.openEditVisitView = async function(visitId) {
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
   
   var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-  
   if (typeof window.updateFormUserInfo === 'function') {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
-  
-  // ⚡ 1. โหลดชื่อหมอขึ้นทันทีความเร็วสูง (ไม่ต้องจอดรอ Products)
- if (v.Doc_ID) {
+
+  // ⚡ 1. [ด่วนที่สุด] ตั้งค่า Doctor Name ทันที
+  if (v.Doc_ID) {
       if (window.tomSelectDocInstance) {
           window.tomSelectDocInstance.setValue(v.Doc_ID, true);
       } else {
           var docSelect = document.getElementById('visitDocId');
-          if (docSelect) docSelect.value = v.Doc_ID || '';
+          if (docSelect) docSelect.value = v.Doc_ID;
       }
   }
 
+  // ⚡ 2. [ด่วนที่สุด] ตั้งค่า วันที่ / เวลา / รายละเอียดกิจกรรม
   document.getElementById('visitDate').value = v.Visit_Date || '';
-  
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
       document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
   }
 
-  // 🎯 2. สแกนหาวัตถุประสงค์ (Purpose) แบบรอบด้าน 100%
+  document.getElementById('visitDetails').value = v.Details || '';
+  document.getElementById('visitInsight').value = v.Insight || ''; 
+  document.getElementById('visitNextAction').value = v.Next_Action || '';
+  document.getElementById('visitStatus').value = v.Status || 'Pending';
+  document.getElementById('visitIsCoaching').checked = (v.Is_Coaching === true);
+
+  // ⚡ 3. [ด่วนที่สุด] ตั้งค่า Purpose (วัตถุประสงค์) ทันที
   var targetPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
   if (targetPurpose && window.tomSelectPurposeInstance) {
       var tsPurp = window.tomSelectPurposeInstance;
-      
-      // 2.1 ลองเลือกด้วย Value/ID ตรงๆ ก่อน
       tsPurp.setValue(targetPurpose, true);
 
-      // 2.2 ถ้าเลือกไม่สำเร็จ ค้นหาแมปกับ Options ทั้งหมด
       if (!tsPurp.getValue()) {
           var matchedVal = null;
           for (var optKey in tsPurp.options) {
@@ -2100,21 +2103,9 @@ window.openEditVisitView = async function(visitId) {
                   break;
               }
           }
-
-          // 2.3 ค้นหาใน Cache Indexes เผื่อ DB เก็บย้อนกลับไปกลับมา
-          if (!matchedVal && window.VisitManagerCache && window.VisitManagerCache.indexes) {
-              var matchedIdx = window.VisitManagerCache.indexes.find(function(i) {
-                  return String(i.Index_ID).toLowerCase() === targetPurpose.toLowerCase() || 
-                         String(i.Value || '').toLowerCase() === targetPurpose.toLowerCase() || 
-                         String(i.Value1 || '').toLowerCase() === targetPurpose.toLowerCase();
-              });
-              if (matchedIdx) matchedVal = matchedIdx.Index_ID;
-          }
-
           if (matchedVal) {
               tsPurp.setValue(matchedVal, true);
           } else {
-              // 2.4 Failsafe: ยัดเป็น Option ชั่วคราวป้องกันกล่องขึ้นเป็นค่าว่าง
               tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
               tsPurp.setValue(targetPurpose, true);
           }
@@ -2125,7 +2116,11 @@ window.openEditVisitView = async function(visitId) {
       }
   }
 
-  // 📦 3. โหลด Dropdown ยาในเบื้องหลัง
+  // -------------------------------------------------------------
+  // ⏳ 4. ส่วนที่มี await/ดึงข้อมูลหนาแน่น ให้รันตามหลังเพื่อไม่ให้บล็อกหน้าจอ
+  // -------------------------------------------------------------
+
+  // โหลด Products & Samples
   if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
   var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
   if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
@@ -2134,6 +2129,7 @@ window.openEditVisitView = async function(visitId) {
       await window.loadVisitSamplesForEdit(v.Visit_ID);
   }
 
+  // โหลดพิกัด GPS / รูปแนบ / ลายเซ็น
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2163,12 +2159,6 @@ window.openEditVisitView = async function(visitId) {
       btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
     }
   }
-
-  document.getElementById('visitDetails').value = v.Details || '';
-  document.getElementById('visitInsight').value = v.Insight || ''; 
-  document.getElementById('visitNextAction').value = v.Next_Action || '';
-  document.getElementById('visitStatus').value = v.Status || 'Pending';
-  document.getElementById('visitIsCoaching').checked = v.Is_Coaching === true;
 
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
