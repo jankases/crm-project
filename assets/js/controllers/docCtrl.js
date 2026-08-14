@@ -1391,46 +1391,40 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
  
-// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (แก้ไข TypeError & Safe Guard)
+// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (เสถียร 100% ไม่พึ่งพา Bootstrap Event)
 window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
-  let targetId = '';
-  let btnEl = null;
+  let cleanId = 'tab-doc-info';
+  let targetBtn = null;
 
-  // 1. จัดการแยกแยะ Parameter ที่ส่งเข้ามาให้อ่านได้ทุกรูปแบบ
+  // Case A: ถ้าส่งสตริงเข้ามา เช่น '#tab-doc-info' หรือ 'tab-doc-info' (เรียกจาก openViewDoctorProfile)
   if (typeof btnOrTarget === 'string') {
-    targetId = btnOrTarget;
-  } else if (btnOrTarget && btnOrTarget.nodeType) {
-    btnEl = btnOrTarget;
-    targetId = targetPaneId || '';
-  } else {
-    targetId = targetPaneId || '#tab-doc-info';
+    cleanId = btnOrTarget.replace('#', '');
+  } 
+  // Case B: ถ้าส่ง Element ปุ่ม (this) เข้ามาจากการคลิก
+  else if (btnOrTarget && btnOrTarget.nodeType) {
+    targetBtn = btnOrTarget;
+    cleanId = (targetPaneId || 'tab-doc-info').replace('#', '');
   }
 
-  // ป้องกันค่า undefined / null
-  if (!targetId || typeof targetId !== 'string') {
-    targetId = '#tab-doc-info';
-  }
-
-  const cleanPaneId = targetId.replace('#', '');
-
-  // 2. เคลียร์ Active ปุ่มทั้งหมดในแถบ Tab Profile
+  // 1. ถอนคลาส active ออกจากปุ่มแท็บทุกปุ่ม
   const allBtns = document.querySelectorAll('#docProfileTabs .nav-link');
   allBtns.forEach(b => b.classList.remove('active'));
 
-  // 3. ซ่อน Pane เนื้อหาทั้งหมดใน Profile
+  // 2. ถอนคลาส active และ show ออกจากเนื้อหาแท็บทุกหน้า
   const allPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
   allPanes.forEach(p => p.classList.remove('active', 'show'));
 
-  // 4. หาปุ่มที่จะ Active (ถ้าไม่ได้ส่ง Element ปุ่มมาตรงๆ)
-  if (!btnEl) {
-    btnEl = document.querySelector(`#docProfileTabs .nav-link[onclick*="${cleanPaneId}"]`) || 
-            document.querySelector(`#docProfileTabs .nav-link[data-bs-target="#${cleanPaneId}"]`);
+  // 3. ถ้าไม่ได้ปุ่มตรงๆ ให้หาปุ่มที่ตรงกับ Target ID
+  if (!targetBtn) {
+    if (cleanId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
+    else if (cleanId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
+    else if (cleanId === 'tab-doc-target') targetBtn = document.getElementById('tab-btn-target');
   }
 
-  // 5. เปิด Active ให้ปุ่มและแสดงเนื้อหา Pane
-  if (btnEl) btnEl.classList.add('active');
+  // 4. สั่ง active ปุ่มและแสดงเนื้อหาแท็บที่ถูกต้อง
+  if (targetBtn) targetBtn.classList.add('active');
 
-  const targetPane = document.getElementById(cleanPaneId);
+  const targetPane = document.getElementById(cleanId);
   if (targetPane) {
     targetPane.classList.add('active', 'show');
   }
