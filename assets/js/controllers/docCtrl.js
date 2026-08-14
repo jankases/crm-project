@@ -1079,11 +1079,40 @@ window.goToPVisitPage = function(page) {
   const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
   const prodTerm = document.getElementById('filterProfileVisitProduct') ? document.getElementById('filterProfileVisitProduct').value : '';
 
-  // 1. ดึงภาษาปัจจุบันของแอปพลิเคชัน
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-  // 2. กรองข้อมูล
+  // 🔒 1. ดึงข้อมูลผู้ใช้งานและคำนวณสิทธิ์ (อิงจากตรรกะ visit.js)
+  let crmUser = null;
+  try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+  
+  const myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+  const myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+  const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').toUpperCase().trim() : '';
+
+  const adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+  const isGlobalAdmin = window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL';
+  const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
+  const allowedReps = window.myAllowedRepIds || [];
+
+  // 🌟 2. กรองข้อมูล (เพิ่มด่านตรวจสิทธิ์)
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
+    
+    // --- 🛑 ด่านที่ 1: ตรวจสอบสิทธิ์การมองเห็น (Data Privacy) ---
+    const vRepId = String(v.Rep_ID || v.rep_id || '').trim();
+    let hasAccess = false;
+
+    if (isGlobalAdmin) {
+      hasAccess = true; // แอดมินเห็นทั้งหมด
+    } else if (isSales) {
+      hasAccess = (vRepId === myRepId); // เซลส์เห็นเฉพาะของตัวเอง
+    } else {
+      // หัวหน้า/Manager เห็นของตัวเอง + ของลูกทีม
+      hasAccess = allowedReps.includes(vRepId) || (vRepId === myRepId);
+    }
+
+    if (!hasAccess) return false; // ถ้าไม่มีสิทธิ์ เตะออกทันทีไม่ให้โชว์
+
+    // --- 📅 ด่านที่ 2: ตรวจสอบวันที่และผลิตภัณฑ์ (ตัวกรองบนหน้าจอ) ---
     let matchDate = true;
     if (startDateTerm || endDateTerm) {
       const vDate = new Date(v.Visit_Date);
@@ -1176,7 +1205,7 @@ window.goToPVisitPage = function(page) {
   pageData.forEach(v => {
     const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
 
-    // 🌟 1. Lookup หาชื่อ Sales Rep ตามโครงสร้าง visit.js (เทียบทั้ง Rep_ID, User_ID, Email)
+    // 🌟 4. Lookup หาชื่อ Sales Rep
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
     if (rawWho) {
@@ -1191,24 +1220,21 @@ window.goToPVisitPage = function(page) {
       }
     }
 
-    // 🌟 2. Lookup หา Territory / Team / BU ตามโครงสร้าง exportVisitsToCSV ใน visit.js
+    // 🌟 5. Lookup หา Territory / Team / BU
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
 
     if (rawTerrId) {
       const targetId = String(rawTerrId).trim();
-
-      // Step A: เช็คใน Territory List
       const terObj = terList.find(t => String(t.Territory_ID || t.id) === targetId || String(t.Territory) === targetId);
+      
       if (terObj) {
         terrNameShow = terObj.Territory || terObj.Territory_Name || targetId;
       } else {
-        // Step B: เช็คใน Team List
         const tmObj = teamList.find(t => String(t.Team_ID || t.id) === targetId || String(t.Team) === targetId);
         if (tmObj) {
           terrNameShow = tmObj.Team || tmObj.Team_Name || targetId;
         } else {
-          // Step C: เช็คใน BU List
           const buObj = buList.find(b => String(b.BU_ID || b.bu_id || b.id) === targetId || String(b.BU) === targetId);
           if (buObj) {
             terrNameShow = buObj.BU || buObj.BU_Name || buObj.Name_EN || targetId;
@@ -1223,7 +1249,7 @@ window.goToPVisitPage = function(page) {
       ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` 
       : '-';
 
-    // 🌟 3. Lookup หา Purpose โดยใช้ฟังก์ชัน getPurposeText ของ visit.js ตรงๆ
+    // 🌟 6. Lookup หา Purpose
     let purposeShow = '-';
     if (typeof window.getPurposeText === 'function') {
       purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective);
@@ -1231,7 +1257,7 @@ window.goToPVisitPage = function(page) {
       purposeShow = v.Purpose || v.Objective || v.Purpose_ID || '-';
     }
 
-    // 🌟 4. Status Badge แสดงผล 2 ภาษาแบบเดียวกับ visit.js
+    // 🌟 7. Status Badge 2 ภาษา
     const rawStatus = String(v.Status || 'Pending').trim();
     let statusBadgeClass = 'badge-soft-pending';
     let statusShow = appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง';
