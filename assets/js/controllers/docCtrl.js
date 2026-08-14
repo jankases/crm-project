@@ -314,21 +314,36 @@ window.loadDoctors = async function(forceReload = false) {
   if (!tbody) return;
 
   tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5">
-    <div class="spinner-border text-primary mb-2" role="status"></div>
-    <div class="text-muted small">Loading Doctors...</div>
+    <div class="d-flex flex-column align-items-center justify-content-center my-4">
+      <div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>
+      <h5 class="text-dark fw-bold mb-1">Loading Data...</h5>
+    </div>
   </td></tr>`;
 
   try {
     const sb = window.supabaseClient || window.supabase;
-    if (!sb) throw new Error("Supabase client is not defined");
+    if (!sb) throw new Error("Supabase client not initialized");
 
     let query = sb.from('Doctors').select('*', { count: 'exact' });
 
-    // กำหนดการเรียงลำดับ
+    // Sorting
     const sortCol = window.currentDocSortCol || 'Doc_Name';
     query = query.order(sortCol, { ascending: window.currentDocSortAsc });
 
-    // คำนวณช่วง Pagination
+    // Filters
+    const specEl = document.getElementById('filterDocSpecialty');
+    const typeEl = document.getElementById('filterDocType');
+    const hospEl = document.getElementById('filterDocWorkplace');
+
+    const selectedSpecs = specEl && specEl.tomselect ? specEl.tomselect.getValue() : [];
+    const selectedTypes = typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [];
+    const selectedHosps = hospEl && hospEl.tomselect ? hospEl.tomselect.getValue() : [];
+
+    if (Array.isArray(selectedSpecs) && selectedSpecs.length > 0) query = query.in('Specialty', selectedSpecs);
+    if (Array.isArray(selectedTypes) && selectedTypes.length > 0) query = query.in('Type', selectedTypes);
+    if (Array.isArray(selectedHosps) && selectedHosps.length > 0) query = query.in('Hospital_ID', selectedHosps);
+
+    // Pagination
     const page = window.currentPage || 1;
     const limit = parseInt(window.rowsPerPage) || 20;
     const from = (page - 1) * limit;
@@ -342,13 +357,14 @@ window.loadDoctors = async function(forceReload = false) {
     window.globalDoctors = res.data || [];
     window.totalDoctorsCount = res.count || 0;
 
-    // สั่งเรนเดอร์ลงตาราง
     window.renderDoctorTableServerSide();
+
+    const filterGroup = document.getElementById('doctorFilterZoneGroup');
+    if (filterGroup) filterGroup.classList.add('ready');
 
   } catch (err) {
     console.error("Load Doctors Error:", err);
-    // แสดงข้อความ Error บนหน้าตารางแทนการปล่อยให้ค้าง
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ ไม่สามารถดึงข้อมูลได้: ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`;
   }
 };
 
