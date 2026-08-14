@@ -1280,17 +1280,22 @@ window.goToPVisitPage = function(page) {
         return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
       }).join('');
     }
+ 
 
-    htmlBuffer += `
-      <tr class="align-middle">
-        <td class="text-center fw-bold">${dateStr}</td>
-        <td class="fw-bold text-dark">${repNameShow}</td>
-        <td class="text-center">${terrBadgeHtml}</td>
-        <td>${prodBadges}</td>
-        <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
-        <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
-      </tr>`;
-  });
+   // 🌟 ปรับเฉพาะบรรทัดแรกใน htmlBuffer ของ filterAndRenderDoctorVisits
+htmlBuffer += `
+  <tr class="align-middle">
+    <td class="text-center fw-bold">
+      <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}'); return false;">
+        ${dateStr}
+      </a>
+    </td>
+    <td class="fw-bold text-dark">${repNameShow}</td>
+    <td class="text-center">${terrBadgeHtml}</td>
+    <td>${prodBadges}</td>
+    <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
+    <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
+  </tr>`;
 
   tbody.innerHTML = htmlBuffer;
 
