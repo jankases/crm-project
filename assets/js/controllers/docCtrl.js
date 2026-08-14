@@ -1390,26 +1390,29 @@ window.initDoctorPage = async function(forceReload = false) {
     window._isDocInitRunning = false;
   }
 };
+ 
+// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ แบบระบุ Element แม่นยำ 100%
+window.switchDoctorProfileTab = function(btnEl, targetPaneId) {
+  // 1. ถ้ารับมาเป็น ID สตริง ให้หาปุ่มก่อน
+  if (typeof btnEl === 'string') {
+    const cleanId = btnEl.replace('#', '');
+    btnEl = document.querySelector(`#docProfileTabs .nav-link[onclick*="${cleanId}"]`);
+  }
 
-// 🌟 HELPER สลับ TAB ในหน้า PROFILE แพทย์แบบ MANUAL (แก้ไขปัญหาคลิกไม่ได้)
-window.switchDoctorProfileTab = function(targetTabId) {
-  // 1. เคลียร์ Active จากปุ่ม Tab ทั้งหมด
-  const tabBtns = document.querySelectorAll('#docProfileTabs .nav-link');
-  tabBtns.forEach(btn => btn.classList.remove('active'));
+  // 2. ปิดสถานะ Active ปุ่มทั้งหมดในแถบ Tab Profile
+  const allBtns = document.querySelectorAll('#docProfileTabs .nav-link');
+  allBtns.forEach(b => b.classList.remove('active'));
 
-  // 2. เคลียร์ Active/Show จากเนื้อหา Tab ทั้งหมด
-  const tabPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
-  tabPanes.forEach(pane => {
-    pane.classList.remove('active', 'show');
-  });
+  // 3. ซ่อน Pane เนื้อหาทั้งหมดใน Profile
+  const cleanPaneId = targetPaneId.replace('#', '');
+  const allPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
+  allPanes.forEach(p => p.classList.remove('active', 'show'));
 
-  // 3. ใส่ Active ให้ปุ่มที่ถูกกด
-  const activeBtn = document.querySelector(`#docProfileTabs .nav-link[onclick*="${targetTabId}"]`) || 
-                    document.querySelector(`#docProfileTabs .nav-link[data-bs-target="${targetTabId}"]`);
-  if (activeBtn) activeBtn.classList.add('active');
+  // 4. เปิด Active ให้ปุ่มที่คลิก
+  if (btnEl) btnEl.classList.add('active');
 
-  // 4. แสดงเนื้อหา Tab ที่เลือก
-  const targetPane = document.querySelector(targetTabId);
+  // 5. แสดง Pane เนื้อหาที่เลือก
+  const targetPane = document.getElementById(cleanPaneId);
   if (targetPane) {
     targetPane.classList.add('active', 'show');
   }
