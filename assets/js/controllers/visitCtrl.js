@@ -1877,7 +1877,7 @@ window.loadVisits = async function(forceReload) {
         }
     }
 
-    // ✅ Pagination
+   // ✅ Pagination
     var page = window.currentPage || 1;
     var limit = parseInt(window.rowsPerPage) || 20;
     var from = (page - 1) * limit;
@@ -1890,10 +1890,36 @@ window.loadVisits = async function(forceReload) {
     window.globalVisits = res.data || [];
     window.totalVisitsCount = res.count || 0;
 
+    // 🌟 เคลียร์ Index ของ Samples ให้เป็น Object ว่างเสมอก่อนโหลดใหม่
+    window._visitSampleIndex = {};
+
     if (window.globalVisits.length > 0) {
       var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
-      var vpRes = await window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds);
-      window.globalVisitProducts = vpRes.data || [];
+
+      // 1. ดึงข้อมูล Visit_Products
+      try {
+        var vpRes = await window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds);
+        window.globalVisitProducts = vpRes.data || [];
+      } catch (vpErr) {
+        console.warn("Visit_Products fetch error:", vpErr);
+        window.globalVisitProducts = [];
+      }
+
+      // 2. 🎁 ดึงข้อมูล Visit_Samples และสร้าง _visitSampleIndex
+      try {
+        var vsRes = await window.supabaseClient.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds);
+        if (vsRes && vsRes.data) {
+          vsRes.data.forEach(function(s) {
+            if (s.Visit_ID) {
+              var vid = String(s.Visit_ID).trim().toLowerCase();
+              if (!window._visitSampleIndex[vid]) window._visitSampleIndex[vid] = [];
+              window._visitSampleIndex[vid].push(s);
+            }
+          });
+        }
+      } catch (vsErr) {
+        console.warn("Visit_Samples fetch error:", vsErr);
+      }
     } else {
       window.globalVisitProducts = [];
     }
@@ -1920,7 +1946,7 @@ window.loadVisits = async function(forceReload) {
         if (selectedReps.length > 0) { var rawRepIdFilt = String(tot.Rep_ID || '').trim(); matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1; }
         return matchDate && matchRep;
     });
-
+      
     window.renderVisitTableServerSide();
     if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
@@ -2027,9 +2053,7 @@ window.loadVisits = async function(forceReload) {
           prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applyHighlight(pName, smartSearchVal) + '</span>';
       });
     } else prodBadges = '<span class="text-muted small">-</span>';
-
-    // ✨ 🌟 ปรับปรุงการจัดกลุ่มไอคอนหลักฐานให้อยู่ในรูปแบบ Soft Badge (Clean Look)
-    // 🌟 ปรับปรุงไอคอนหลักฐานให้สีเด่น คมชัด ไม่กลืนพื้นหลัง
+ 
     // ✨ 🌟 สไตล์ Soft Badge (Clean Look) ปรับโทนสีเข้ม คมชัด ไม่กลืนพื้นหลัง
     var evidenceBadges = '';
     
@@ -2051,15 +2075,17 @@ window.loadVisits = async function(forceReload) {
       evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
     }
 
-    // 4. Samples & Promo Items (ป้ายกล่องของขวัญ สีส้มสว่าง/ทอง)
-    var vidClean = String(v.Visit_ID).trim().toLowerCase();
-    var hasSamples = (v.Visit_Samples && v.Visit_Samples.length > 0) || 
-                     (window._visitSampleIndex && window._visitSampleIndex[vidClean] && window._visitSampleIndex[vidClean].length > 0);
-                     
-    if (hasSamples) {
+     // 4. Samples & Promo Items (ป้ายกล่องของขวัญ สีส้ม/ทอง)
+    var vidClean = String(v.Visit_ID || '').trim().toLowerCase();
+    var sampleItems = (window._visitSampleIndex && window._visitSampleIndex[vidClean]) 
+                      ? window._visitSampleIndex[vidClean] 
+                      : (v.Visit_Samples || []);
+                      
+    if (sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
+       
 
     htmlBuffer += '<tr>' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
