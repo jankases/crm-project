@@ -2030,8 +2030,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-
-window.openEditVisitView = async function(visitId) {
+ window.openEditVisitView = async function(visitId) {
   window.applyVisitFeaturesUI();
     
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
@@ -2039,6 +2038,9 @@ window.openEditVisitView = async function(visitId) {
 
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
+
+  // 🚀 1. สลับหน้าจอเปิดฟอร์มขึ้นทันที 0 วินาที! (ไม่ต้องรอข้อมูลหนักๆ ด้านล่าง)
+  if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
@@ -2062,7 +2064,7 @@ window.openEditVisitView = async function(visitId) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 1. [ด่วนที่สุด] ตั้งค่า Doctor Name ทันที
+  // ⚡ 2. ยัดชื่อหมอลงกล่องทันที
   if (v.Doc_ID) {
       if (window.tomSelectDocInstance) {
           window.tomSelectDocInstance.setValue(v.Doc_ID, true);
@@ -2072,7 +2074,7 @@ window.openEditVisitView = async function(visitId) {
       }
   }
 
-  // ⚡ 2. [ด่วนที่สุด] ตั้งค่า วันที่ / เวลา / รายละเอียดกิจกรรม
+  // ⚡ 3. ยัดวันที่ / เวลา / ข้อความ รายละเอียด
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2085,42 +2087,44 @@ window.openEditVisitView = async function(visitId) {
   document.getElementById('visitStatus').value = v.Status || 'Pending';
   document.getElementById('visitIsCoaching').checked = (v.Is_Coaching === true);
 
-  // ⚡ 3. [ด่วนที่สุด] ตั้งค่า Purpose (วัตถุประสงค์) ทันที
+  // 🎯 4. ตั้งค่า Purpose (วัตถุประสงค์)
   var targetPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
-  if (targetPurpose && window.tomSelectPurposeInstance) {
+  if (window.tomSelectPurposeInstance) {
       var tsPurp = window.tomSelectPurposeInstance;
-      tsPurp.setValue(targetPurpose, true);
+      tsPurp.clear(true);
 
-      if (!tsPurp.getValue()) {
-          var matchedVal = null;
-          for (var optKey in tsPurp.options) {
-              var opt = tsPurp.options[optKey];
-              if (String(opt.value).toLowerCase() === targetPurpose.toLowerCase() || 
-                  String(opt.text).toLowerCase() === targetPurpose.toLowerCase() ||
-                  String(opt.searchEn || '').toLowerCase() === targetPurpose.toLowerCase() ||
-                  String(opt.searchTh || '').toLowerCase() === targetPurpose.toLowerCase()) {
-                  matchedVal = opt.value;
-                  break;
+      if (targetPurpose && targetPurpose !== '-') {
+          tsPurp.setValue(targetPurpose, true);
+
+          if (!tsPurp.getValue()) {
+              var matchedVal = null;
+              for (var optKey in tsPurp.options) {
+                  var opt = tsPurp.options[optKey];
+                  if (String(opt.value).toLowerCase() === targetPurpose.toLowerCase() || 
+                      String(opt.text).toLowerCase() === targetPurpose.toLowerCase() ||
+                      String(opt.searchEn || '').toLowerCase() === targetPurpose.toLowerCase() ||
+                      String(opt.searchTh || '').toLowerCase() === targetPurpose.toLowerCase()) {
+                      matchedVal = opt.value;
+                      break;
+                  }
+              }
+              if (matchedVal) {
+                  tsPurp.setValue(matchedVal, true);
+              } else {
+                  tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
+                  tsPurp.setValue(targetPurpose, true);
               }
           }
-          if (matchedVal) {
-              tsPurp.setValue(matchedVal, true);
-          } else {
-              tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
-              tsPurp.setValue(targetPurpose, true);
-          }
-      }
 
-      if (typeof window.updatePurposeDisplayLang === 'function') {
-          window.updatePurposeDisplayLang();
+          if (typeof window.updatePurposeDisplayLang === 'function') {
+              window.updatePurposeDisplayLang();
+          }
       }
   }
 
   // -------------------------------------------------------------
-  // ⏳ 4. ส่วนที่มี await/ดึงข้อมูลหนาแน่น ให้รันตามหลังเพื่อไม่ให้บล็อกหน้าจอ
+  // ⏳ 5. โหลดข้อมูลหนักเบื้องหลัง (Products / Samples / Attachments)
   // -------------------------------------------------------------
-
-  // โหลด Products & Samples
   if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
   var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
   if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
@@ -2129,7 +2133,7 @@ window.openEditVisitView = async function(visitId) {
       await window.loadVisitSamplesForEdit(v.Visit_ID);
   }
 
-  // โหลดพิกัด GPS / รูปแนบ / ลายเซ็น
+  // GPS Location
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2160,6 +2164,7 @@ window.openEditVisitView = async function(visitId) {
     }
   }
 
+  // Attachments & Signatures
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
@@ -2189,6 +2194,7 @@ window.openEditVisitView = async function(visitId) {
     window.updateSignaturePreviewUI();
   }
 
+  // Lock / Unlock Button Status
   var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -2237,7 +2243,6 @@ window.openEditVisitView = async function(visitId) {
   }
 
   if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
-  if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 };
 
 window.openAddVisitView = async function(presetDate) {
