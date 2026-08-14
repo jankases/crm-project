@@ -1071,7 +1071,7 @@ window.goToPVisitPage = function(page) {
   window.filterAndRenderDoctorVisits();
 };
 
-window.filterAndRenderDoctorVisits = function() {
+ window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -1163,13 +1163,19 @@ window.filterAndRenderDoctorVisits = function() {
       : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
+  // 📦 ดึง Master Data จาก Global / Cache
+  const buList = window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || (window.DocManagerCache && window.DocManagerCache.businessUnits) || [];
+  const terrList = window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
+  const teamList = window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
+  const indexList = window.globalIndexes || (window.DocManagerCache && window.DocManagerCache.index) || (window.DocManagerCache && window.DocManagerCache.indexes) || [];
+
   let htmlBuffer = '';
   pageData.forEach(v => {
     const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
 
-    // 🌟 1. Lookup หาชื่อ Sales Rep จาก Email / ID
+    // 🌟 1. Lookup หาชื่อ Sales Rep
     const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.Rep_ID || '';
-    const userObj = (window.globalUsers || window.DocManagerCache.users || []).find(u => {
+    const userObj = (window.globalUsers || (window.DocManagerCache && window.DocManagerCache.users) || []).find(u => {
       const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
       const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
       const vWhoStr = String(rawWho).toLowerCase().trim();
@@ -1177,35 +1183,35 @@ window.filterAndRenderDoctorVisits = function() {
     });
     const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || rawWho) : (rawWho || '-');
 
-    // 🌟 2. Lookup หา Territory / BU / Team Name (ไล่เช็คครบ 3 ลำดับชั้น)
+    // 🌟 2. Lookup หา Territory / BU (ใช้คอลัมน์ BU จาก Table BU เป๊ะๆ)
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
 
     if (rawTerrId) {
       const searchTarget = String(rawTerrId).toLowerCase().trim();
 
-      // Step 1: ค้นหาใน Master Table Territories
-      const terrObj = (window.globalTerritories || window.DocManagerCache.territories || []).find(t => {
-        const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
-        const tCode = String(t.Territory_Code || t.code || t.Territory || '').toLowerCase().trim();
-        return tId === searchTarget || tCode === searchTarget;
+      // Step A: ค้นหาใน Table BU โดยตรง (ตรงกับรูป Supabase Table BU)
+      const buObj = buList.find(b => {
+        const bId = String(b.BU_ID || b.bu_id || b.id || '').toLowerCase().trim();
+        const bCode = String(b.BU_Code || b.bu_code || b.Code || '').toLowerCase().trim();
+        return bId === searchTarget || bCode === searchTarget;
       });
 
-      if (terrObj) {
-        terrNameShow = terrObj.Territory_Name || terrObj.Territory || terrObj.Territory_Code || terrObj.name;
+      if (buObj) {
+        terrNameShow = buObj.BU || buObj.bu || buObj.BU_Name || buObj.bu_name || buObj.name;
       } else {
-        // Step 2: ค้นหาใน Table BU (Business Units)
-        const buObj = (window.globalBUs || window.DocManagerCache.bus || window.DocManagerCache.businessUnits || []).find(b => {
-          const bId = String(b.BU_ID || b.bu_id || b.id || '').toLowerCase().trim();
-          const bCode = String(b.BU_Code || b.bu_code || b.Code || '').toLowerCase().trim();
-          return bId === searchTarget || bCode === searchTarget;
+        // Step B: ค้นหาใน Table Territory
+        const terrObj = terrList.find(t => {
+          const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
+          const tCode = String(t.Territory_Code || t.code || t.Territory || '').toLowerCase().trim();
+          return tId === searchTarget || tCode === searchTarget;
         });
 
-        if (buObj) {
-          terrNameShow = buObj.BU_Name || buObj.bu_name || buObj.BU || buObj.name;
+        if (terrObj) {
+          terrNameShow = terrObj.Territory || terrObj.Territory_Name || terrObj.Territory_Code || terrObj.name;
         } else {
-          // Step 3: ค้นหาใน Table Teams
-          const teamObj = (window.globalTeams || window.DocManagerCache.teams || []).find(tm => {
+          // Step C: ค้นหาใน Table Team
+          const teamObj = teamList.find(tm => {
             const tmId = String(tm.Team_ID || tm.team_id || tm.id || '').toLowerCase().trim();
             const tmCode = String(tm.Team_Code || tm.team_code || tm.Code || '').toLowerCase().trim();
             return tmId === searchTarget || tmCode === searchTarget;
@@ -1214,7 +1220,6 @@ window.filterAndRenderDoctorVisits = function() {
           if (teamObj) {
             terrNameShow = teamObj.Team_Name || teamObj.team_name || teamObj.Team || teamObj.name;
           } else if (!rawTerrId.includes('-')) {
-            // กรณีเป็นโค้ดสั้นๆ เช่น 'L1'
             terrNameShow = rawTerrId;
           }
         }
@@ -1225,8 +1230,25 @@ window.filterAndRenderDoctorVisits = function() {
       ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` 
       : '-';
 
-    // 🌟 3. ดึงค่า Purpose / Objective
-    const purposeShow = v.Purpose || v.purpose || v.Objective || v.objective || '-';
+    // 🌟 3. Lookup หา Purpose / Objective จาก Table Index (ตรงกับรูป Supabase Table Index)
+    const rawPurposeId = v.Purpose || v.purpose || v.Objective || v.objective || '';
+    let purposeShow = '-';
+
+    if (rawPurposeId) {
+      const idxSearchTarget = String(rawPurposeId).toLowerCase().trim();
+      const idxObj = indexList.find(i => {
+        const iId = String(i.Index_ID || i.index_id || i.id || '').toLowerCase().trim();
+        return iId !== '' && iId === idxSearchTarget;
+      });
+
+      if (idxObj) {
+        // ดึงคอลัมน์ Value จาก Table Index ตามรูป Supabase
+        purposeShow = idxObj.Value || idxObj.value || idxObj.Index_Name || rawPurposeId;
+      } else {
+        // กรณีบันทึกมาเป็นข้อความตรงๆ
+        purposeShow = rawPurposeId;
+      }
+    }
 
     // Status Badge
     let statusBadgeClass = 'badge-soft-success';
