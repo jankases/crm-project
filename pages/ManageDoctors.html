@@ -260,26 +260,26 @@
       <button class="btn btn-premium-primary me-2" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
         <i class="fa-solid fa-pen-to-square me-1"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
       </button>
-      <!-- 🌟 IDviewDocTitleName ตัวการที่ทำให้หน้าจอขาวถูกเอากลับมาไว้ตรงนี้ครับ -->
-      <h4 class="text-primary fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h4>
+      <!-- 🌟 เพิ่ม data-i18n สำหรับหัวข้อ Profile -->
+      <h4 class="text-primary fw-bold mb-0 ms-1" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-2"></div>
     </div>
     
     <div class="card p-4 border-0 shadow-sm visit-card">
-      <!-- 🌟 ปรับปรุงแท็บสลับหน้าใน Profile -->
+      <!-- 🌟 แท็บสลับหน้าใน Profile -->
       <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" id="docProfileTabs" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="tab-btn-info" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-info')">
+          <button class="nav-link active" id="tab-btn-info" data-bs-target="#tab-doc-info" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-info')">
             <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-btn-history" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-history')">
+          <button class="nav-link" id="tab-btn-history" data-bs-target="#tab-doc-history" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-history')">
             <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span>
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-btn-target" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-target')">
+          <button class="nav-link" id="tab-btn-target" data-bs-target="#tab-doc-target" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-target')">
             <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span>
           </button>
         </li>
@@ -372,26 +372,26 @@
         <!-- Tab: Target Call -->
         <div class="tab-pane fade" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>Rating and Targeting</h6>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="title_rating_targeting">Rating and Targeting</span></h6>
             <button class="btn btn-sm btn-premium-primary" id="btnAddRatingProduct" onclick="window.addNewRatingRow()">
-              <i class="fa-solid fa-plus me-1"></i> Add Product
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">Add Product</span>
             </button>
           </div>
           
           <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-xs border-warning" style="display: none; border-radius: 10px;">
-            <i class="fa-solid fa-lock me-2"></i><strong>Locked:</strong> The Target Call evaluation period is currently closed.
+            <i class="fa-solid fa-lock me-2"></i><strong data-i18n="msg_rating_locked">Locked: The Target Call evaluation period is currently closed.</strong>
           </div>
           
           <div class="table-responsive">
             <table class="table table-bordered text-center align-middle" id="ratingTable">
               <thead class="table-custom-header">
                 <tr>
-                  <th style="width: 25%;">Product</th>
-                  <th style="width: 15%;">Adoption</th>
-                  <th style="width: 15%;">Potential</th>
-                  <th style="width: 15%;">Classification</th>
-                  <th style="width: 15%;">Target (Call)</th>
-                  <th style="width: 15%;">Action</th>
+                  <th style="width: 25%;" data-i18n="th_product">Product</th>
+                  <th style="width: 15%;" data-i18n="th_adoption">Adoption</th>
+                  <th style="width: 15%;" data-i18n="th_potential">Potential</th>
+                  <th style="width: 15%;" data-i18n="th_classification">Classification</th>
+                  <th style="width: 15%;" data-i18n="th_target_call">Target (Call)</th>
+                  <th style="width: 15%;" data-i18n="th_action">Action</th>
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
