@@ -1,0 +1,406 @@
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+  
+  <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
+  <div id="doctorListView">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+      <div class="d-flex align-items-center">
+        <div class="header-icon-box">
+          <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <div>
+          <h3 class="text-dark fw-bold mb-1" data-i18n="doc_title">Doctors Management</h3>
+          <p class="text-muted small mb-0" data-i18n="doc_subtitle">Database of Doctors and Workplaces</p>
+        </div>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-premium-secondary fw-bold" onclick="forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate me-1"></i> <span data-i18n="btn_refresh">Refresh</span>
+        </button>
+        <button type="button" class="btn btn-premium-primary fw-bold" onclick="openAddDoctorView()">
+          <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- โซนตัวกรองข้อมูล -->
+    <div class="card p-3 mb-4 border-0 shadow-xs visit-card">
+      <div class="row doctor-filter-group g-3 align-items-end" id="doctorFilterZoneGroup">
+        
+        <div class="col-sm-6 col-md-6 col-lg-3">
+          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_name">Doctor Name (EN/TH)</label>
+          <div class="input-group shadow-xs">
+            <select class="form-select bg-white" id="filterDocName" onchange="filterDoctors()" multiple></select>
+            <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicSearch" onclick="toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
+              <i class="fa-solid fa-microphone text-muted" id="micSearchIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-md-6 col-lg-3">
+          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hosp_name">Hospital Name (EN/TH)</label>
+          <div class="input-group shadow-xs">
+            <select class="form-select bg-white" id="filterDocWorkplace" onchange="filterDoctors()" multiple></select>
+            <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="btnMicHospSearch" onclick="toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
+              <i class="fa-solid fa-microphone text-muted" id="micHospSearchIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_specialty">Specialty</label>
+          <select class="form-select bg-white shadow-xs" id="filterDocSpecialty" onchange="filterDoctors()" multiple></select>
+        </div>
+
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_type">Doctor Type</label>
+          <select class="form-select bg-white shadow-xs" id="filterDocType" onchange="filterDoctors()" multiple></select>
+        </div>
+
+        <div class="col-sm-12 col-md-4 col-lg-2 d-flex justify-content-end">
+          <button class="btn btn-premium-secondary fw-bold w-100" type="button" onclick="clearDoctorFilters()">
+            <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ตารางแสดงผลรายชื่อแพทย์ -->
+    <div class="card p-4 border-0 shadow-xs visit-card">
+      <div class="table-responsive">
+        <table class="table table-hover table-doctor align-middle" style="font-size: 0.95rem;">
+          <thead class="table-custom-header text-center">
+            <tr>
+              <th class="py-3 sortable-th" onclick="sortDoctors('nameEn')"><span data-i18n="th_doc_name_en">Doctor Name (EN)</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-nameEn"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('nameTh')"><span data-i18n="th_doc_name_th">Doctor Name (TH)</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-nameTh"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('specialty')"><span data-i18n="th_specialty">Specialty</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-specialty"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('hospital')"><span data-i18n="th_primary_hosp">Primary Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-hospital"></i></th>
+              <th class="py-3 sortable-th" onclick="sortDoctors('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-status"></i></th>
+              <th class="py-3" data-i18n="th_action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="doctorTableBody">
+            <tr><td colspan="6" class="text-center py-5">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="doctorPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+          <select class="form-select form-select-sm shadow-xs" id="doctorRowsPerPage" onchange="changeRowsPerPage()" style="width: 80px; border-radius: 8px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="text-muted small ms-3" id="doctorPageInfo">Showing 1 to 10 of 50 entries</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm mb-0" id="doctorPagination">
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= 2. หน้าเพิ่มข้อมูลแพทย์ (Add View) ================= -->
+  <div id="doctorAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-premium-secondary fw-bold me-3" onclick="switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🩺 <span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h4>
+    </div>
+    
+    <div class="card p-4 p-md-5 border-0 shadow-xs visit-card doctor-form-group">
+      <form id="addDoctorForm" onsubmit="handleAddDoctor(event)">
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="sec_gen_info">General Information</span></h5>
+          <div class="row g-3">
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_title">Title</label>
+              <select class="form-select bg-white" id="docTitle"></select>
+            </div>
+            <div class="col-sm-8 col-md-4">
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai" required>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_name_th">Name (TH)</label>
+              <input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี">
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_specialty">Specialty</label>
+              <select class="form-select bg-white" id="docSpecialty"></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_type">Type</label>
+              <select class="form-select bg-white" id="docType"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace">Workplace</span></h5>
+            <button type="button" class="btn btn-sm btn-premium-secondary fw-bold" onclick="addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+            </button>
+          </div>
+          <div id="workplaceContainerAdd"></div>
+        </div>
+
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h5>
+          <div class="row g-3">
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_privacy">Privacy Policy</label>
+              <select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_tos">Terms of Service</label>
+              <select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label><input type="email" class="form-control bg-white" id="docEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label><input type="text" class="form-control bg-white" id="docMobile"></div>
+          </div>
+        </div>
+
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-premium-secondary fw-bold px-4" onclick="switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-premium-primary fw-bold px-5" id="submitDoctorBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
+  <div id="doctorEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-premium-secondary fw-bold me-3" onclick="switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ <span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h4>
+      <div id="editDcrStatusBadge" class="ms-3"></div>
+    </div>
+    
+    <div class="card p-4 p-md-5 border-0 shadow-xs visit-card doctor-form-group">
+      <form id="editDoctorForm" onsubmit="handleUpdateDoctor(event)">
+        <input type="hidden" id="editDocId">
+        
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2" data-i18n="sec_gen_info">General Information</h5>
+          <div class="row g-3">
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_title">Title</label>
+              <select class="form-select bg-white" id="editDocTitle"></select>
+            </div>
+            <div class="col-sm-8 col-md-4">
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="editDocNameEn" required>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_name_th">Name (TH)</label>
+              <input type="text" class="form-control bg-white" id="editDocNameTh">
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-6 col-md-4">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_specialty">Specialty</label>
+              <select class="form-select bg-white" id="editDocSpecialty"></select>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_type">Type</label>
+              <select class="form-select bg-white" id="editDocType"></select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <label class="form-label fw-bold text-danger" data-i18n="lbl_status">Status</label>
+              <select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace">Workplace</span></h5>
+            <button type="button" class="btn btn-sm btn-premium-secondary fw-bold" onclick="addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+            </button>
+          </div>
+          <div id="workplaceContainerEdit"></div>
+        </div>
+
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2" data-i18n="sec_contact_consent">Contact & Consent</h5>
+          <div class="row g-3">
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark" data-i18n="lbl_privacy">Privacy Policy</label><select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark" data-i18n="lbl_tos">Terms of Service</label><select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
+          </div>
+        </div>
+
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-premium-secondary fw-bold px-4" onclick="switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-premium-primary fw-bold px-5" id="updateDoctorBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
+  <div id="doctorProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
+      <button class="btn btn-premium-secondary fw-bold" onclick="goBackFromDoctorProfile()">
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <button class="btn btn-premium-primary fw-bold ms-1" id="profileEditBtn" onclick="openEditDoctorView(currentTargetDocId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+      </button>
+      <h4 class="text-primary fw-bold mb-0 ms-2" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h4>
+      <div id="profileDcrStatusBadge" class="ms-2"></div>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-xs visit-card">
+      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span></button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span></button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span></button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- Tab: General Info -->
+        <div class="tab-pane fade show active" id="tab-doc-info">
+          <div class="row mb-3 g-3">
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_status">Status</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
+          </div>
+          <div class="row mb-3 g-3">
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_email">Email</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_mobile">Mobile</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
+          </div>
+          <div class="border rounded-4 p-4 bg-light mt-4">
+            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">Workplace History</span></label>
+            <div id="viewWorkplaceContainer"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Visit History -->
+        <div class="tab-pane fade" id="tab-doc-history">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
+            <button class="btn btn-sm btn-premium-primary fw-bold" onclick="goToQuickAddCall()">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
+            </button>
+          </div>
+
+          <div class="row g-2 mb-3 bg-light p-2 rounded-3 border">
+            <div class="col-md-5">
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
+              <div class="input-group input-group-sm shadow-xs" style="border-radius: 8px; overflow: hidden;">
+                <input type="date" class="form-control" id="filterProfileVisitStart" onchange="filterAndRenderDoctorVisits()" style="border-radius: 8px 0 0 8px;">
+                <span class="input-group-text bg-white border-start-0 border-end-0 text-muted">-</span>
+                <input type="date" class="form-control" id="filterProfileVisitEnd" onchange="filterAndRenderDoctorVisits()" style="border-radius: 0 8px 8px 0;">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
+              <select class="form-select form-select-sm shadow-xs" id="filterProfileVisitProduct" onchange="filterAndRenderDoctorVisits()" style="border-radius: 8px;">
+                <option value="">- All Products -</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                 <button class="btn btn-sm btn-premium-secondary w-100 fw-bold" onclick="clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle" style="font-size: 0.9rem;">
+              <thead class="table-custom-header text-center">
+                <tr>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
+                  <th class="py-3 sortable-th" onclick="sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
+                </tr>
+              </thead>
+              <tbody id="viewVisitHistoryBody">
+                <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="pvisitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+              <select class="form-select form-select-sm shadow-xs" id="pvisitRowsPerPage" onchange="changePVisitRowsPerPage()" style="width: 80px; border-radius: 8px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm mb-0" id="pvisitPagination">
+              </ul>
+            </nav>
+          </div>
+
+        </div>
+
+        <!-- Tab: Target Call -->
+        <div class="tab-pane fade" id="tab-doc-target">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>Rating and Targeting</h6>
+            <button class="btn btn-sm btn-premium-primary fw-bold" id="btnAddRatingProduct" onclick="addNewRatingRow()">
+              <i class="fa-solid fa-plus me-1"></i> Add Product
+            </button>
+          </div>
+          
+          <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-xs border-warning" style="display: none; border-radius: 10px;">
+            <i class="fa-solid fa-lock me-2"></i><strong>Locked:</strong> The Target Call evaluation period is currently closed.
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" id="ratingTable">
+              <thead class="table-custom-header">
+                <tr>
+                  <th style="width: 25%;">Product</th>
+                  <th style="width: 15%;">Adoption</th>
+                  <th style="width: 15%;">Potential</th>
+                  <th style="width: 15%;">Classification</th>
+                  <th style="width: 15%;">Target (Call)</th>
+                  <th style="width: 15%;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="ratingTableBody">
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
