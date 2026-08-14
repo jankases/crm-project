@@ -145,7 +145,20 @@ const i18nDictionary = {
     btn_preview: "Preview",
     unit_items: "items",
     lbl_enable_samples: "Samples",
-    lbl_samples_title: "Samples & Promo Items"
+    lbl_samples_title: "Samples & Promo Items",
+
+    doc_title: "Doctors Management",
+    doc_subtitle: "Database of Doctors and Workplaces",
+    btn_add_doctor: "Add New Doctor",
+    btn_refresh: "Refresh",
+    btn_clear_filters: "Clear Filters",
+    opt_search_doc_hosp_ph: "Search Doctor Name or Hospital (EN/TH)...",
+    th_doc_name_en: "Doctor Name (EN)",
+    th_doc_name_th: "Doctor Name (TH)",
+    th_specialty: "Specialty",
+    th_primary_hosp: "Primary Hospital",
+    th_status: "Status",
+    th_action: "Action"
   },
   th: {
     app_title: "ระบบ CRM",
@@ -289,7 +302,20 @@ const i18nDictionary = {
     btn_preview: "เปิดดู",
     unit_items: "เล่ม",
     lbl_enable_samples: "สินค้าตัวอย่าง",
-    lbl_samples_title: "สินค้าตัวอย่างและของแจก"
+    lbl_samples_title: "สินค้าตัวอย่างและของแจก",
+
+    doc_title: "จัดการข้อมูลแพทย์",
+    doc_subtitle: "ฐานข้อมูลรายชื่อแพทย์และสถานที่ปฏิบัติงาน",
+    btn_add_doctor: "เพิ่มแพทย์ใหม่",
+    btn_refresh: "รีเฟรช",
+    btn_clear_filters: "ล้างตัวกรอง",
+    opt_search_doc_hosp_ph: "ค้นหาชื่อแพทย์ หรือโรงพยาบาล (EN/TH)...",
+    th_doc_name_en: "ชื่อแพทย์ (EN)",
+    th_doc_name_th: "ชื่อแพทย์ (TH)",
+    th_specialty: "ความเชี่ยวชาญ",
+    th_primary_hosp: "โรงพยาบาลหลัก",
+    th_status: "สถานะ",
+    th_action: "จัดการ"
   }
 };
 
