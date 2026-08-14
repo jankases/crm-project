@@ -1259,12 +1259,10 @@ window.loadDropdowns = async function(forceReload) {
       }
     }
 
+    // ⚡ ตั้งค่าหมอทันทีในขั้นตอนสร้าง TomSelect โดยไม่ต้องตั้ง setTimeout ถ่วงเวลา
     var returnToDocId = sessionStorage.getItem('returnToDocId');
-    if (returnToDocId) {
-      setTimeout(function() {
-        if (typeof window.tomSelectDocInstance !== 'undefined' && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(returnToDocId);
-        else { if (docSelect) { docSelect.value = returnToDocId; docSelect.dispatchEvent(new Event('change')); } }
-      }, 200); 
+    if (returnToDocId && window.tomSelectDocInstance) {
+        window.tomSelectDocInstance.setValue(returnToDocId, true);
     }
 
     var formView = document.getElementById('visitFormView');
@@ -2065,13 +2063,12 @@ window.openEditVisitView = async function(visitId) {
   }
   
   // ⚡ 1. โหลดชื่อหมอขึ้นทันทีความเร็วสูง (ไม่ต้องจอดรอ Products)
-  if (v.Doc_ID && window.tomSelectDocInstance) {
-      window.tomSelectDocInstance.setValue(v.Doc_ID, true);
-  } else {
-      var docSelect = document.getElementById('visitDocId');
-      if (docSelect) {
-          docSelect.value = v.Doc_ID || '';
-          docSelect.dispatchEvent(new Event('change'));
+ if (v.Doc_ID) {
+      if (window.tomSelectDocInstance) {
+          window.tomSelectDocInstance.setValue(v.Doc_ID, true);
+      } else {
+          var docSelect = document.getElementById('visitDocId');
+          if (docSelect) docSelect.value = v.Doc_ID || '';
       }
   }
 
