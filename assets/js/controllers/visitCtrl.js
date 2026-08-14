@@ -3388,10 +3388,9 @@ window.initVisitPage = async function(forceReload) {
             setLanguage(currentLang);
         }
 
-        var formView = document.getElementById('visitFormView');
-        if (formView && !formView.classList.contains('d-none')) {
-            if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
-        }
+        // ❌ [แก้ไขบั๊กวาร์ปเด้ง] ตัดคำสั่ง switchVisitView ทิ้ง 
+        // เพื่อให้หน้าฟอร์ม Edit Visit ค้างรอให้ผู้ใช้แก้ไขข้อมูลได้ตามปกติ ไม่โดนพับปิดอัตโนมัติ
+
     } catch(err) {
         console.error("Init Visits Failed:", err);
         // 🌟 รองรับ 2 ภาษาตอนที่ดึงข้อมูลเกิด Error
@@ -3402,7 +3401,7 @@ window.initVisitPage = async function(forceReload) {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
     }
-};
+}; 
 
 // ==========================================
 // 👁️ SPA DOM WATCHER 
