@@ -1391,7 +1391,7 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// 🌟 HELPER สลับ TAB ในหน้า PROFILE แพทย์แบบ MANUAL (แก้ปัญหาคลิกไม่ได้)
+// 🌟 HELPER สลับ TAB ในหน้า PROFILE แพทย์แบบ MANUAL (แก้ไขปัญหาคลิกไม่ได้)
 window.switchDoctorProfileTab = function(targetTabId) {
   // 1. เคลียร์ Active จากปุ่ม Tab ทั้งหมด
   const tabBtns = document.querySelectorAll('#docProfileTabs .nav-link');
@@ -1404,7 +1404,8 @@ window.switchDoctorProfileTab = function(targetTabId) {
   });
 
   // 3. ใส่ Active ให้ปุ่มที่ถูกกด
-  const activeBtn = document.querySelector(`#docProfileTabs .nav-link[data-bs-target="${targetTabId}"]`);
+  const activeBtn = document.querySelector(`#docProfileTabs .nav-link[onclick*="${targetTabId}"]`) || 
+                    document.querySelector(`#docProfileTabs .nav-link[data-bs-target="${targetTabId}"]`);
   if (activeBtn) activeBtn.classList.add('active');
 
   // 4. แสดงเนื้อหา Tab ที่เลือก
