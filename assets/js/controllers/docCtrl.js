@@ -397,28 +397,52 @@ window.renderDoctorTableServerSide = function() {
   const rows = parseInt(window.rowsPerPage) || 20;
   const totalPages = Math.ceil(totalItems / rows);
 
+  // 🌟 ดึงภาษาปัจจุบันของระบบ
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
+  // 1. กรณีไม่มีข้อมูล
   if (data.length === 0) {
-    if (document.getElementById('doctorPaginationContainer')) document.getElementById('doctorPaginationContainer').classList.add('d-none');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>No doctors found.</td></tr>';
+    if (document.getElementById('doctorPaginationContainer')) {
+      document.getElementById('doctorPaginationContainer').classList.add('d-none');
+    }
+    const msgNoData = appLang === 'en' ? 'No doctors found.' : 'ไม่พบข้อมูลแพทย์';
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>${msgNoData}</td></tr>`;
     return;
   }
 
-  if (document.getElementById('doctorPaginationContainer')) document.getElementById('doctorPaginationContainer').classList.remove('d-none');
+  // 2. แสดงตัวควบคุม Pagination
+  if (document.getElementById('doctorPaginationContainer')) {
+    document.getElementById('doctorPaginationContainer').classList.remove('d-none');
+  }
 
   const startIndex = ((window.currentPage - 1) * rows) + 1;
   const endIndex = Math.min(startIndex + data.length - 1, totalItems);
+
+  // 🌟 สรุปจำนวนรายการแบบ 2 ภาษา
   if (document.getElementById('doctorPageInfo')) {
-    document.getElementById('doctorPageInfo').innerText = `Showing ${startIndex} to ${endIndex} of ${totalItems} entries`;
+    document.getElementById('doctorPageInfo').innerText = appLang === 'en'
+      ? `Showing ${startIndex} to ${endIndex} of ${totalItems} entries`
+      : `แสดง ${startIndex} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
+  // 3. วาดแถวข้อมูลในตาราง
   let htmlBuffer = '';
+  const editBtnText = appLang === 'en' ? 'Edit' : 'แก้ไข';
+
   data.forEach(d => {
-    const badge = (d.Status === 'Active') ? 'badge-soft-success' : 'badge-soft-danger';
+    // 🌟 แปลสถานะ
+    const isStatusActive = (d.Status === 'Active');
+    const badge = isStatusActive ? 'badge-soft-success' : 'badge-soft-danger';
+    const statusTextShow = isStatusActive 
+      ? (appLang === 'en' ? 'Active' : 'ใช้งาน') 
+      : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
     
+    // ดึงชื่อแพทย์ภาษาไทย/อังกฤษ (ป้องกันบั๊กเครื่องหมาย ???)
     const docNameShow = window.getDoctorNameByLang(d, d.Doc_ID);
     const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
-    const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen"></i> Edit</button>`;
+    // 🌟 ปุ่มแก้ไขแบบ 2 ภาษา
+    const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen me-1"></i> ${editBtnText}</button>`;
     
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
     const hospNameShow = hospObj ? (hospObj.Known_As || hospObj.Hospital) : '-';
@@ -431,22 +455,40 @@ window.renderDoctorTableServerSide = function() {
         <td class="fw-medium text-secondary">${docNameThShow}</td>
         <td><span class="badge badge-soft-product">${d.Specialty || '-'}</span></td>
         <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
-        <td class="text-center"><span class="badge ${badge}">${d.Status || 'Active'}</span></td>
+        <td class="text-center"><span class="badge ${badge}">${statusTextShow}</span></td>
         <td class="text-center">${actionButton}</td>
       </tr>`;
   });
 
   tbody.innerHTML = htmlBuffer;
-  window.renderDoctorPaginationControls(totalPages);
+
+  // 🌟 เรียกปรับปุ่ม Prev/Next หน้า Pagination
+  if (typeof window.renderDoctorPaginationControls === 'function') {
+    window.renderDoctorPaginationControls(totalPages);
+  }
 };
+
+ if (!window._isDocLangListenerAttached) {
+  window.addEventListener('appLanguageChanged', function() {
+    if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
+      window.renderDoctorTableServerSide();
+    }
+  });
+  window._isDocLangListenerAttached = true;
+}
 
 window.renderDoctorPaginationControls = function(totalPages) {
   const ul = document.getElementById('doctorPagination');
   if (!ul) return;
+
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
+  var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
+
   let html = '';
 
   html += `<li class="page-item ${window.currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${window.currentPage - 1}); return false;">&laquo; Prev</a>
+            <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${window.currentPage - 1}); return false;">${prevText}</a>
           </li>`;
 
   let startPage = Math.max(1, window.currentPage - 2);
@@ -459,7 +501,7 @@ window.renderDoctorPaginationControls = function(totalPages) {
   }
 
   html += `<li class="page-item ${window.currentPage >= totalPages ? 'disabled' : ''}">
-            <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${window.currentPage + 1}); return false;">Next &raquo;</a>
+            <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${window.currentPage + 1}); return false;">${nextText}</a>
           </li>`;
 
   ul.innerHTML = html;
