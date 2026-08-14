@@ -93,3 +93,51 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     }
     return allData;
 };
+
+// =========================================
+// 7. HELPER กลางสำหรับ Pagination (ใช้ร่วมกันทุกหน้า)
+// =========================================
+window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
+  var ul = document.getElementById(ulId);
+  if (!ul) return;
+  if (totalPages === Infinity || isNaN(totalPages) || totalPages < 0) return;
+
+  // ดึงภาษาปัจจุบันของระบบ
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
+  var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
+
+  var html = '';
+
+  // ปุ่ม Prev
+  html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+            '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + '); return false;">' + prevText + '</a>' +
+          '</li>';
+
+  var startPage = Math.max(1, currentPage - 2);
+  var endPage = Math.min(totalPages, currentPage + 2);
+
+  if (startPage > 1) {
+    html += '<li class="page-item"><a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(1); return false;">1</a></li>';
+    if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+  }
+
+  // ตัวเลขหน้า 1, 2, 3...
+  for (var i = startPage; i <= endPage; i++) {
+    html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
+              '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + i + '); return false;">' + i + '</a>' +
+            '</li>';
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+    html += '<li class="page-item"><a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+  }
+
+  // ปุ่ม Next
+  html += '<li class="page-item ' + (currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '">' +
+            '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + '); return false;">' + nextText + '</a>' +
+          '</li>';
+
+  ul.innerHTML = html;
+};
