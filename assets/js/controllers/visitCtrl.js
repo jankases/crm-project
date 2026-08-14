@@ -3553,7 +3553,7 @@ window.addEventListener('online', window.syncOfflineVisits);
 setTimeout(function() { window.syncOfflineVisits(); }, 2000);
 
 // ==========================================
-// 📥 EXPORT TO CSV FUNCTION
+// 📥 EXPORT TO CSV FUNCTION (DYNAMIC SAMPLES & COACHING)
 // ==========================================
 window.exportVisitsToCSV = function() {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -3569,9 +3569,19 @@ window.exportVisitsToCSV = function() {
         window.showToast(appLang === 'en' ? "Preparing export file..." : "กำลังเตรียมไฟล์ Export...", "info");
     }
 
+    // 🌟 เช็กสวิตช์เปิด/ปิด Samples จาก System Settings
+    var isSamplesEnabled = window.globalVisitConfigs && window.globalVisitConfigs.samples !== false;
+
     // 1. สร้าง Header
     var csvContent = "\uFEFF"; 
-    csvContent += "Visit Date,Start Time,End Time,Rep Name,Area / Team,Doctor Name,Hospital,Products,Purpose,Status,Details,Insight,Next Action\n";
+    var headers = ["Visit Date", "Start Time", "End Time", "Rep Name", "Area / Team", "Doctor Name", "Hospital", "Products", "Purpose", "Coaching", "Status", "Details", "Insight", "Next Action"];
+    
+    // ถ้าเปิดใช้งาน Samples ให้เพิ่ม Header เข้าไป
+    if (isSamplesEnabled) {
+        headers.splice(10, 0, "Samples / Promo Items");
+    }
+
+    csvContent += headers.join(",") + "\n";
 
     var escapeCsv = function(str) {
         if (str === null || str === undefined) return '""';
@@ -3596,18 +3606,14 @@ window.exportVisitsToCSV = function() {
 
         // --- 🌟 Area / Team / BU ---
         var areaName = v.Territory_ID || "-";
-        
-        // ก๊อกที่ 1: หาจากรายชื่อ Territory (เขตพื้นที่)
         if (window.globalTerritoryList) {
             var terObj = window.globalTerritoryList.find(function(t) { return String(t.Territory_ID) === String(v.Territory_ID); });
             if (terObj) areaName = terObj.Territory || terObj.Territory_Name || v.Territory_ID;
         }
-        // ก๊อกที่ 2: หาจากรายชื่อ Team (ผู้จัดการ)
         if (areaName === v.Territory_ID && window.globalTeamList) {
             var tmObj = window.globalTeamList.find(function(t) { return String(t.Team_ID) === String(v.Territory_ID); });
             if (tmObj) areaName = tmObj.Team || tmObj.Team_Name || v.Territory_ID;
         }
-        // 🌟 ก๊อกที่ 3: หาจากรายชื่อ BU (ระดับผู้บริหาร) -> แก้ปัญหาบรรทัดของคุณ Kai BU!
         if (areaName === v.Territory_ID && window.VisitManagerCache && window.VisitManagerCache.bus) {
             var buObj = window.VisitManagerCache.bus.find(function(b) { return String(b.BU_ID || b.id) === String(v.Territory_ID); });
             if (buObj) areaName = buObj.BU_Name || buObj.BU || buObj.Name_EN || v.Territory_ID;
@@ -3639,25 +3645,63 @@ window.exportVisitsToCSV = function() {
         // --- 🌟 Purpose ---
         var purpose = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : (v.Purpose_ID || "-");
 
+        // --- 🌟 Coaching ---
+        var coachingText = v.Is_Coaching ? (appLang === 'en' ? "Yes" : "ใช่") : (appLang === 'en' ? "No" : "ไม่ใช่");
+
         var status = v.Status || "-";
         var details = v.Details || "-";
         var insight = v.Insight || "-";
         var nextAction = v.Next_Action || "-";
 
+        // --- 🎁 Samples & Promo Items (ถ้าเปิดสวิตช์) ---
+        var samplesText = "-";
+        if (isSamplesEnabled) {
+            var vidClean = String(v.Visit_ID || '').trim().toLowerCase();
+            var sampleItems = (window._visitSampleIndex && window._visitSampleIndex[vidClean]) 
+                              ? window._visitSampleIndex[vidClean] 
+                              : (v.Visit_Samples || []);
+
+            if (sampleItems && sampleItems.length > 0) {
+                var smpDetails = [];
+                sampleItems.forEach(function(s) {
+                    var sampleName = s.Sample_ID;
+                    // ค้นหาชื่อภาษาไทย/อังกฤษของ Sample จาก Master Data
+                    if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
+                        var masterObj = window.globalMasterSamples.find(function(m) { return String(m.Index_ID) === String(s.Sample_ID); });
+                        if (masterObj) {
+                            sampleName = (appLang === 'en' && masterObj.Value1) ? masterObj.Value1 : masterObj.Value;
+                        }
+                    }
+                    smpDetails.push(sampleName + " (" + (s.Quantity || 1) + ")");
+                });
+                samplesText = smpDetails.join(", ");
+            }
+        }
+
         // ประกอบร่าง
-        csvContent += escapeCsv(date) + "," + 
-                      escapeCsv(sTime) + "," + 
-                      escapeCsv(eTime) + "," + 
-                      escapeCsv(repName) + "," + 
-                      escapeCsv(areaName) + "," + 
-                      escapeCsv(docName) + "," + 
-                      escapeCsv(hospName) + "," + 
-                      escapeCsv(prods) + "," + 
-                      escapeCsv(purpose) + "," + 
-                      escapeCsv(status) + "," + 
-                      escapeCsv(details) + "," + 
-                      escapeCsv(insight) + "," + 
-                      escapeCsv(nextAction) + "\n";
+        var rowData = [
+            escapeCsv(date),
+            escapeCsv(sTime),
+            escapeCsv(eTime),
+            escapeCsv(repName),
+            escapeCsv(areaName),
+            escapeCsv(docName),
+            escapeCsv(hospName),
+            escapeCsv(prods),
+            escapeCsv(purpose),
+            escapeCsv(coachingText)
+        ];
+
+        if (isSamplesEnabled) {
+            rowData.push(escapeCsv(samplesText));
+        }
+
+        rowData.push(escapeCsv(status));
+        rowData.push(escapeCsv(details));
+        rowData.push(escapeCsv(insight));
+        rowData.push(escapeCsv(nextAction));
+
+        csvContent += rowData.join(",") + "\n";
     });
 
     // 3. สั่งดาวน์โหลด
