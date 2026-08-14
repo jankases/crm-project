@@ -84,7 +84,6 @@ window.getDoctorNameByLang = function(docObj, defaultId) {
   return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
 };
 
-// 🌟 HELPER สำหรับดึงชื่อโรงพยาบาลตามภาษา
 window.getHospitalNameByLang = function(hospObj) {
   if (!hospObj) return "Hospital";
   var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -101,11 +100,10 @@ window.switchDoctorView = function(viewId) {
   });
   const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
   window.scrollTo(0, 0); 
-
- };
+};
 
 window.goBackFromDoctorProfile = function() {
-  window.currentTargetDocId = ""; // เคลียร์ ID ป้องกัน Listener ดึง Profile ขึ้นมาใหม่
+  window.currentTargetDocId = ""; 
   const returnHospId = sessionStorage.getItem('returnToHospId');
   if (returnHospId) {
     sessionStorage.removeItem('returnToHospId');
@@ -241,7 +239,7 @@ window.stopSpeechSearch = function() {
 };
 
 // ==========================================
-// 📥 4. PERMISSIONS & DROPDOWNS SETUP (i18n Fully Supported)
+// 📥 4. PERMISSIONS & DROPDOWNS SETUP
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
@@ -378,8 +376,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 
       window.DocManagerCache.indexLoaded = true;
 
-      // 🌟 ดึงคำแปลสำหรับตัวเลือกเริ่มต้นใน Dropdowns
-      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const selectTitleText = (typeof t === 'function') ? t('lbl_doc_title') : '- Select Title -';
       const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -';
       const phType = (typeof t === 'function') ? t('opt_all_types') : '- All Types -';
@@ -394,11 +390,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         return html;
       };
 
-      // 🌟 อัปเดต Title Dropdowns แบบ 2 ภาษา
       window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
 
-      // 🌟 อัปเดต Filter Specialty แบบ 2 ภาษา
       const specSelect = document.getElementById('filterDocSpecialty');
       if (specSelect) {
         const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
@@ -406,7 +400,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         window.initMultiTomSelect('filterDocSpecialty', phSpec);
       }
 
-      // 🌟 อัปเดต Filter Doctor Type แบบ 2 ภาษา
       const typeSelect = document.getElementById('filterDocType');
       if (typeSelect) {
         const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
@@ -581,7 +574,6 @@ window.renderDoctorTableServerSide = function() {
     
     const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen me-1"></i> ${editBtnText}</button>`;
     
-    // 🌟 แปลชื่อโรงพยาบาลในตารางหลัก
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
     const hospNameShow = window.getHospitalNameByLang(hospObj);
 
@@ -664,7 +656,6 @@ window.forceReloadDoctors = async function() {
   await window.loadDoctors(true);
 };
 
-// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (แก้ไขอาการล่องหน และทำงานร่วมกับ Bootstrap Tab)
 window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
   let cleanPaneId = 'tab-doc-info';
   let targetBtn = null;
@@ -676,22 +667,17 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
     cleanPaneId = btnOrTarget.replace('#', '');
   }
 
-  // 1. ถอนคลาส active จากปุ่มแท็บทุกตัวในหน้า Profile
   document.querySelectorAll('#docProfileTabs .nav-link').forEach(b => b.classList.remove('active'));
-
-  // 2. ซ่อนเนื้อหาแท็บทุกตัว (ใส่ fade และถอน active/show เพื่อรีเซ็ต State)
   document.querySelectorAll('#doctorProfileView .tab-pane').forEach(p => {
     p.classList.remove('active', 'show');
   });
 
-  // 3. ค้นหาปุ่มแท็บเป้าหมาย
   if (!targetBtn) {
     targetBtn = document.querySelector(`#docProfileTabs .nav-link[onclick*="${cleanPaneId}"]`) ||
                 document.querySelector(`#docProfileTabs .nav-link[data-bs-target="#${cleanPaneId}"]`);
   }
   if (targetBtn) targetBtn.classList.add('active');
 
-  // 4. แสดงเนื้อหา Pane เป้าหมายโดยเติมทั้ง active และ show (แก้ปัญหา opacity: 0 ล่องหน)
   const targetPane = document.getElementById(cleanPaneId);
   if (targetPane) {
     targetPane.classList.add('active', 'show');
@@ -775,7 +761,7 @@ window.extractWorkplaces = function(containerId) {
 };
 
 // ==========================================
-// 📝 7. FORM ACTIONS (ADD, EDIT, PROFILE, TARGET CALL)
+// 📝 7. FORM ACTIONS (ADD, EDIT, PROFILE)
 // ==========================================
 window.openAddDoctorView = function() {
   if (document.getElementById('addDoctorForm')) document.getElementById('addDoctorForm').reset();
@@ -841,30 +827,26 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
 
-  // 🌟 ดึงภาษาปัจจุบันของระบบ
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
   const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
 
-  // 1. เติมชื่อแพทย์บน Header
   const titleEl = document.getElementById('viewDocTitleName');
   if (titleEl) {
     titleEl.innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
   }
 
-  // 2. เติมข้อมูลลงใน Input
   if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
   if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = d.Type || d.type || '-';
   if (document.getElementById('viewDocStatus')) document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
   if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
   if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
 
-  // 🌟 3. วาด Workplace History แบบ 2 ภาษา (ทั้งชื่อ รพ. และป้าย Primary)
   let wpHTML = '';
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
-if(parsedWp.length > 0) {
+  if(parsedWp.length > 0) {
     parsedWp.forEach(wp => {
       const isPrimary = wp.isPrimary ? `<span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span>` : '';
       const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
@@ -874,7 +856,6 @@ if(parsedWp.length > 0) {
   } else {
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
     const hospName = window.getHospitalNameByLang(hospObj);
-    // 🎨 แก้ไขตรงนี้ให้ใช้ bg-success-subtle เหมือนด้านบน
     wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> <span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span></div>`;
   }
 
@@ -882,7 +863,6 @@ if(parsedWp.length > 0) {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  // 🌟 4. ตัวเลือก Dropdown ผลิตภัณฑ์แบบ 2 ภาษา
   let phtml = `<option value="">${allProdsText}</option>`;
   if (typeof window.globalProducts !== 'undefined') {
     window.globalProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
@@ -891,7 +871,6 @@ if(parsedWp.length > 0) {
     document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
   }
 
-  // 5. ควบคุมปุ่มและ Banner สิทธิ์ Rating (Target Call)
   const addProdBtn = document.getElementById('btnAddRatingProduct');
   const lockBanner = document.getElementById('ratingLockBanner');
   
@@ -903,11 +882,9 @@ if(parsedWp.length > 0) {
     if (lockBanner) lockBanner.style.display = 'none';
   }
 
-  // 6. โหลดข้อมูล Tab ย่อยแบบไม่พึ่งพา await บล็อกหน้าจอ
   window.loadDoctorVisitHistory(id);
   window.loadDoctorRatings(id);
 
-  // 🌟 7. เปิด View และสั่ง Active หน้า Tab ด้วย helper switchDoctorProfileTab ของเรา
   window.switchDoctorView('doctorProfileView');
   
   if (typeof window.switchDoctorProfileTab === 'function') {
@@ -938,7 +915,7 @@ window.handleAddDoctor = async function(e) {
     Doc_Name: document.getElementById('docNameEn').value.trim(),
     Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
     Specialty: document.getElementById('docSpecialty').value, 
-    Type: document.getElementById('docType').value,   
+    Type: document.getElementById('docType').value,    
     Hospital_ID: primaryHospId, 
     Workplaces_JSON: JSON.stringify(workplaces), 
     Email: document.getElementById('docEmail').value.trim(),
@@ -1071,7 +1048,7 @@ window.goToPVisitPage = function(page) {
   window.filterAndRenderDoctorVisits();
 };
 
- window.filterAndRenderDoctorVisits = function() {
+window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -1081,7 +1058,6 @@ window.goToPVisitPage = function(page) {
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-  // 🔒 1. ดึงข้อมูลผู้ใช้งานและคำนวณสิทธิ์ (อิงจากตรรกะ visit.js)
   let crmUser = null;
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   
@@ -1094,25 +1070,20 @@ window.goToPVisitPage = function(page) {
   const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
   const allowedReps = window.myAllowedRepIds || [];
 
-  // 🌟 2. กรองข้อมูล (เพิ่มด่านตรวจสิทธิ์)
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
-    
-    // --- 🛑 ด่านที่ 1: ตรวจสอบสิทธิ์การมองเห็น (Data Privacy) ---
     const vRepId = String(v.Rep_ID || v.rep_id || '').trim();
     let hasAccess = false;
 
     if (isGlobalAdmin) {
-      hasAccess = true; // แอดมินเห็นทั้งหมด
+      hasAccess = true;
     } else if (isSales) {
-      hasAccess = (vRepId === myRepId); // เซลส์เห็นเฉพาะของตัวเอง
+      hasAccess = (vRepId === myRepId);
     } else {
-      // หัวหน้า/Manager เห็นของตัวเอง + ของลูกทีม
       hasAccess = allowedReps.includes(vRepId) || (vRepId === myRepId);
     }
 
-    if (!hasAccess) return false; // ถ้าไม่มีสิทธิ์ เตะออกทันทีไม่ให้โชว์
+    if (!hasAccess) return false;
 
-    // --- 📅 ด่านที่ 2: ตรวจสอบวันที่และผลิตภัณฑ์ (ตัวกรองบนหน้าจอ) ---
     let matchDate = true;
     if (startDateTerm || endDateTerm) {
       const vDate = new Date(v.Visit_Date);
@@ -1139,7 +1110,6 @@ window.goToPVisitPage = function(page) {
     return matchDate && matchProd;
   });
 
-  // 3. เรียงลำดับข้อมูล
   const sortCol = window.currentPVisitSortCol || 'date';
   const sortAsc = window.currentPVisitSortAsc || false;
 
@@ -1195,7 +1165,6 @@ window.goToPVisitPage = function(page) {
       : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // 📦 ดึง Master Data ทุกอย่างตามมาตรฐานของ visit.js
   const usersList = window.globalUsersList || window.globalUsers || (window.VisitManagerCache && window.VisitManagerCache.users) || (window.DocManagerCache && window.DocManagerCache.users) || [];
   const terList = window.globalTerritoryList || window.globalTerritories || (window.VisitManagerCache && window.VisitManagerCache.territories) || (window.DocManagerCache && window.DocManagerCache.territories) || [];
   const teamList = window.globalTeamList || window.globalTeams || (window.VisitManagerCache && window.VisitManagerCache.teams) || (window.DocManagerCache && window.DocManagerCache.teams) || [];
@@ -1205,7 +1174,6 @@ window.goToPVisitPage = function(page) {
   pageData.forEach(v => {
     const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
 
-    // 🌟 4. Lookup หาชื่อ Sales Rep
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
     if (rawWho) {
@@ -1220,7 +1188,6 @@ window.goToPVisitPage = function(page) {
       }
     }
 
-    // 🌟 5. Lookup หา Territory / Team / BU
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
 
@@ -1249,7 +1216,6 @@ window.goToPVisitPage = function(page) {
       ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` 
       : '-';
 
-    // 🌟 6. Lookup หา Purpose
     let purposeShow = '-';
     if (typeof window.getPurposeText === 'function') {
       purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective);
@@ -1257,7 +1223,6 @@ window.goToPVisitPage = function(page) {
       purposeShow = v.Purpose || v.Objective || v.Purpose_ID || '-';
     }
 
-    // 🌟 7. Status Badge 2 ภาษา
     const rawStatus = String(v.Status || 'Pending').trim();
     let statusBadgeClass = 'badge-soft-pending';
     let statusShow = appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง';
@@ -1270,7 +1235,6 @@ window.goToPVisitPage = function(page) {
       statusShow = appLang === 'en' ? '📝 Draft' : '📝 ฉบับร่าง';
     }
 
-    // Products Badges
     const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
     let prodBadges = '-';
     if (matchedVps.length > 0) {
@@ -1280,27 +1244,26 @@ window.goToPVisitPage = function(page) {
         return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
       }).join('');
     }
- 
 
-   // 🌟 ปรับเฉพาะบรรทัดแรกใน htmlBuffer ของ filterAndRenderDoctorVisits
-htmlBuffer += `
-  <tr class="align-middle">
-    <td class="text-center fw-bold">
-      <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}'); return false;">
-        ${dateStr}
-      </a>
-    </td>
-    <td class="fw-bold text-dark">${repNameShow}</td>
-    <td class="text-center">${terrBadgeHtml}</td>
-    <td>${prodBadges}</td>
-    <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
-    <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
-  </tr>`;
+    htmlBuffer += `
+      <tr class="align-middle">
+        <td class="text-center fw-bold">
+          <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}'); return false;">
+            ${dateStr}
+          </a>
+        </td>
+        <td class="fw-bold text-dark">${repNameShow}</td>
+        <td class="text-center">${terrBadgeHtml}</td>
+        <td>${prodBadges}</td>
+        <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
+        <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
+      </tr>`;
+  });
 
   tbody.innerHTML = htmlBuffer;
 
-  if (typeof window.renderGlobalPagination === 'function') {
-    window.renderGlobalPagination('pvisitPagination', currentPage, totalPages, 'goToPVisitPage');
+  if (typeof window.renderDoctorPaginationControls === 'function') {
+    window.renderDoctorPaginationControls(totalPages);
   }
 };
 
@@ -1337,7 +1300,6 @@ window.renderRatingTable = function(ratings) {
   const tbody = document.getElementById('ratingTableBody');
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
-  // 🌟 FIX 点 2: แปลข้อความ Empty State ตาราง Rating
   if(!Array.isArray(ratings) || ratings.length === 0) {
       const noDataMsg = appLang === 'en' ? 'No data. Click "Add Product"' : 'ไม่มีข้อมูล กรุณากด "เพิ่มผลิตภัณฑ์"';
       tbody.innerHTML = `<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
@@ -1384,13 +1346,12 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const canEdit = isAdmin || !window.globalRatingIsLocked;
   const disabledAttr = canEdit ? '' : 'disabled';
 
+  const prodList = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   let prodOpts = '<option value="">- Select -</option>';
-  if (typeof window.globalProducts !== 'undefined') {
-      window.globalProducts.forEach(p => {
-          const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
-          prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
-      });
-  }
+  prodList.forEach(p => {
+      const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
+      prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
+  });
 
   let adoptOpts = '<option value="">- Select -</option>';
   window.getIndexValues('Adoption').forEach(a => {
@@ -1408,7 +1369,6 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
   const lockedText = appLang === 'en' ? 'Locked' : 'ถูกล็อก';
 
-  // 🌟 FIX 点 3: แสดงข้อความบนปุ่ม Save และ Locked ตามภาษาที่ถูกต้อง
   let actionHtml = '';
   if (canEdit) {
       actionHtml = `<button class="btn btn-sm btn-premium-primary fw-bold px-3" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}</button>`;
@@ -1453,7 +1413,6 @@ window.saveTargetCallRow = async function(btn) {
   const classificationValue = tr.querySelector('.rating-class').value;
   const targetValue = tr.querySelector('.rating-target').value;
 
-  // 🌟 FIX 点 4: แปล Alert แจ้งเตือนเมื่อกรอกข้อมูลไม่ครบ
   if(!selectedProductId || !adoptVal || !potVal) {
       const errMsg = appLang === 'en' ? "❌ Missing fields: Product, Adoption or Potential." : "❌ กรุณากรอกข้อมูลให้ครบถ้วน: ผลิตภัณฑ์, Adoption หรือ Potential";
       alert(errMsg);
@@ -1482,7 +1441,6 @@ window.saveTargetCallRow = async function(btn) {
       const { error } = await sb.from('Rating').upsert(payload, { onConflict: 'Doc_ID, Product_ID' });
       if (error) throw error;
 
-      // 🌟 FIX 点 5: แปลข้อความปุ่มกดเมื่อบันทึกสำเร็จ
       const savedText = appLang === 'en' ? 'Saved' : 'บันทึกแล้ว';
       const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
 
@@ -1501,21 +1459,18 @@ window.saveTargetCallRow = async function(btn) {
 };
 
 // ==========================================
-// 🚀 QUICK ADD CALL FROM DOCTOR PROFILE (ฟังก์ชันหลักของปุ่ม + Add Call)
+// 🚀 QUICK ADD CALL FROM DOCTOR PROFILE
 // ==========================================
 window.goToQuickAddCall = function() {
   const docId = window.currentTargetDocId;
   if (!docId) return;
 
-  // 1. จำ ID แพทย์ลง sessionStorage
   sessionStorage.setItem('returnToDocId', docId);
 
-  // 2. สลับไป Component หน้า Visit
   if (typeof window.loadComponent === 'function') {
     window.loadComponent('visit');
   }
 
-  // 3. รอจนกว่าฟังก์ชัน openAddVisitView ใน visit.js จะพร้อม แล้วสั่งรัน
   let attempts = 0;
   const checkReady = setInterval(function() {
     attempts++;
@@ -1528,9 +1483,8 @@ window.goToQuickAddCall = function() {
   }, 100);
 };
 
-
 // ==========================================
-// ✏️ EDIT VISIT FROM DOCTOR PROFILE (สำหรับคลิกวันที่ในตาราง)
+// ✏️ EDIT VISIT FROM DOCTOR PROFILE
 // ==========================================
 window.openEditVisitFromDoctorProfile = function(visitId) {
   const docId = window.currentTargetDocId;
@@ -1555,7 +1509,7 @@ window.openEditVisitFromDoctorProfile = function(visitId) {
 };
 
 // ==========================================
-// 🚀 9. SAFE INITIALIZATION ENGINE & LISTENERS
+// 🚀 INITIALIZATION ENGINE & LISTENERS
 // ==========================================
 window.initDoctorPage = async function(forceReload = false) {
   if (window._isDocInitRunning) return;
@@ -1572,13 +1526,10 @@ window.initDoctorPage = async function(forceReload = false) {
     window._isDocInitRunning = false;
   }
 };
-  
 
-// 🌟 FIX: ฟัง Event appLanguageChanged ให้สลับภาษาครอบคลุมทั้ง Dropdowns, ตารางหลัก และหน้า Doctor Profile
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     
-    // 1. 🌟 อัปเดต Placeholder ของ Dropdown Specialty และ Type ให้สลับภาษา Realtime
     const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -';
     const phType = (typeof t === 'function') ? t('opt_all_types') : '- All Types -';
     
@@ -1596,12 +1547,10 @@ if (!window._isDocLangListenerAttached) {
       typeEl.tomselect.refreshOptions(false);
     }
 
-    // 2. ถ้าระบบอยู่ที่หน้าตารางหลัก ให้รีเรนเดอร์ตาราง
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
       window.renderDoctorTableServerSide();
     }
     
-    // 3. ถ้าระบบเปิดหน้า Doctor Profile อยู่ ให้รีเรนเดอร์ Profile เพื่อเปลี่ยนภาษาชื่อโรงพยาบาลและปุ่มกด
     const profileView = document.getElementById('doctorProfileView');
     if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
       window.openViewDoctorProfile(window.currentTargetDocId);
@@ -1631,4 +1580,3 @@ setTimeout(() => {
     window.initDoctorPage(true);
   }
 }, 100);
- 
