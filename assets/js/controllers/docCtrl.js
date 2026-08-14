@@ -243,7 +243,7 @@ window.stopSpeechSearch = function() {
 };
 
 // ==========================================
-// 📥 4. PERMISSIONS & DROPDOWNS SETUP
+// 📥 4. PERMISSIONS & DROPDOWNS SETUP (i18n Fully Supported)
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
@@ -380,6 +380,12 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 
       window.DocManagerCache.indexLoaded = true;
 
+      // 🌟 ดึงคำแปลสำหรับตัวเลือกเริ่มต้นใน Dropdowns
+      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const selectTitleText = (typeof t === 'function') ? t('lbl_doc_title') : '- Select Title -';
+      const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -';
+      const phType = (typeof t === 'function') ? t('opt_all_types') : '- All Types -';
+
       const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = (window.DocManagerCache.indexTypes || []).find(t => t.Name && t.Name.toLowerCase() === typeName.toLowerCase());
         let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
@@ -390,21 +396,24 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         return html;
       };
 
-      window.updateTomSelect('docTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
-      window.updateTomSelect('editDocTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
+      // 🌟 อัปเดต Title Dropdowns แบบ 2 ภาษา
+      window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
+      window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
 
+      // 🌟 อัปเดต Filter Specialty แบบ 2 ภาษา
       const specSelect = document.getElementById('filterDocSpecialty');
       if (specSelect) {
         const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
-        window.initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
+        window.initMultiTomSelect('filterDocSpecialty', phSpec);
       }
 
+      // 🌟 อัปเดต Filter Doctor Type แบบ 2 ภาษา
       const typeSelect = document.getElementById('filterDocType');
       if (typeSelect) {
         const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-        window.initMultiTomSelect('filterDocType', '- All Types -');
+        window.initMultiTomSelect('filterDocType', phType);
       }
     }
   } catch (err) {
@@ -1373,15 +1382,57 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// 🌟 FIX 点 6: ฟัง Event appLanguageChanged ให้สลับภาษาครอบคลุมทั้งตารางหลัก และหน้า Doctor Profile
+// 🌟 HELPER สลับ TAB ในหน้า PROFILE แพทย์แบบ MANUAL (แก้ปัญหาคลิกไม่ได้)
+window.switchDoctorProfileTab = function(targetTabId) {
+  // 1. เคลียร์ Active จากปุ่ม Tab ทั้งหมด
+  const tabBtns = document.querySelectorAll('#docProfileTabs .nav-link');
+  tabBtns.forEach(btn => btn.classList.remove('active'));
+
+  // 2. เคลียร์ Active/Show จากเนื้อหา Tab ทั้งหมด
+  const tabPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
+  tabPanes.forEach(pane => {
+    pane.classList.remove('active', 'show');
+  });
+
+  // 3. ใส่ Active ให้ปุ่มที่ถูกกด
+  const activeBtn = document.querySelector(`#docProfileTabs .nav-link[data-bs-target="${targetTabId}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // 4. แสดงเนื้อหา Tab ที่เลือก
+  const targetPane = document.querySelector(targetTabId);
+  if (targetPane) {
+    targetPane.classList.add('active', 'show');
+  }
+};
+
+// 🌟 FIX: ฟัง Event appLanguageChanged ให้สลับภาษาครอบคลุมทั้ง Dropdowns, ตารางหลัก และหน้า Doctor Profile
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
-    // 1. ถ้าระบบอยู่ที่หน้าตารางหลัก ให้รีเรนเดอร์ตาราง
+    
+    // 1. 🌟 อัปเดต Placeholder ของ Dropdown Specialty และ Type ให้สลับภาษา Realtime
+    const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -';
+    const phType = (typeof t === 'function') ? t('opt_all_types') : '- All Types -';
+    
+    const specEl = document.getElementById('filterDocSpecialty');
+    if (specEl && specEl.tomselect) {
+      specEl.tomselect.settings.placeholder = phSpec;
+      specEl.tomselect.input.setAttribute('placeholder', phSpec);
+      specEl.tomselect.refreshOptions(false);
+    }
+
+    const typeEl = document.getElementById('filterDocType');
+    if (typeEl && typeEl.tomselect) {
+      typeEl.tomselect.settings.placeholder = phType;
+      typeEl.tomselect.input.setAttribute('placeholder', phType);
+      typeEl.tomselect.refreshOptions(false);
+    }
+
+    // 2. ถ้าระบบอยู่ที่หน้าตารางหลัก ให้รีเรนเดอร์ตาราง
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
       window.renderDoctorTableServerSide();
     }
     
-    // 2. ถ้าระบบเปิดหน้า Doctor Profile อยู่ ให้รีเรนเดอร์ Profile เพื่อเปลี่ยนภาษาชื่อโรงพยาบาลและปุ่มกด
+    // 3. ถ้าระบบเปิดหน้า Doctor Profile อยู่ ให้รีเรนเดอร์ Profile เพื่อเปลี่ยนภาษาชื่อโรงพยาบาลและปุ่มกด
     const profileView = document.getElementById('doctorProfileView');
     if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
       window.openViewDoctorProfile(window.currentTargetDocId);
