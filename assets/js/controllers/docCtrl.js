@@ -27,6 +27,7 @@ window.rowsPerPage = 20;
 
 window._isDocInitRunning = false;
 window.isDocInitialLoading = true;
+window.docFilterDebounceTimer = null;
 
 window.activeSearchRecognition = null;
 window.currentSearchInputId = null;
@@ -113,7 +114,78 @@ window.updateTomSelect = function(id, html, placeholder) {
 };
 
 // ==========================================
-// 📥 3. HIERARCHY PERMISSIONS & DROPDOWNS SETUP
+// 🎤 3. SPEECH SEARCH ENGINE (VOICE SEARCH)
+// ==========================================
+window.toggleSpeechSearch = function(inputId, btnId, iconId) {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var msgNoMic = appLang === 'en' ? "Sorry, your browser does not support voice dictation." : "ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง";
+    if (window.showToast) return window.showToast(msgNoMic, "error");
+    return alert(msgNoMic);
+  }
+
+  if (window.activeSearchRecognition && window.currentSearchInputId === inputId) {
+    window.stopSpeechSearch();
+    return;
+  }
+
+  if (window.activeSearchRecognition) {
+    window.stopSpeechSearch();
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  window.activeSearchRecognition = new SpeechRecognition();
+  window.activeSearchRecognition.lang = 'th-TH';
+  window.activeSearchRecognition.continuous = false;
+  window.activeSearchRecognition.interimResults = false;
+
+  window.currentSearchInputId = inputId;
+  window.currentSearchBtnId = btnId;
+  window.currentSearchIconId = iconId;
+
+  const btn = document.getElementById(btnId);
+  const icon = document.getElementById(iconId);
+
+  if (btn && icon) {
+    btn.classList.add('mic-active');
+    icon.classList.add('fa-fade');
+  }
+
+  window.activeSearchRecognition.onresult = function(event) {
+    let spokenText = event.results[0][0].transcript.trim();
+    const inputEl = document.getElementById(inputId);
+    if (inputEl && spokenText) {
+      inputEl.value = spokenText;
+      window.debouncedFilterDoctors();
+    }
+    window.stopSpeechSearch();
+  };
+
+  window.activeSearchRecognition.onerror = window.stopSpeechSearch;
+  window.activeSearchRecognition.onend = window.stopSpeechSearch;
+  window.activeSearchRecognition.start();
+};
+
+window.stopSpeechSearch = function() {
+  if (window.activeSearchRecognition) {
+    window.activeSearchRecognition.stop();
+    window.activeSearchRecognition = null;
+  }
+  if (window.currentSearchBtnId && window.currentSearchIconId) {
+    const btn = document.getElementById(window.currentSearchBtnId);
+    const icon = document.getElementById(window.currentSearchIconId);
+    if (btn && icon) {
+      btn.classList.remove('mic-active');
+      icon.classList.remove('fa-fade');
+    }
+  }
+  window.currentSearchInputId = null;
+  window.currentSearchBtnId = null;
+  window.currentSearchIconId = null;
+};
+
+// ==========================================
+// 📥 4. PERMISSIONS & DROPDOWNS SETUP
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
@@ -132,14 +204,15 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         const r = await q; return r.data || [];
       };
 
-      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes] = await Promise.all([
+      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes, docDistinctRes] = await Promise.all([
         sb.from('IndexType').select('*'),
         sb.from('Index').select('*').order('Value', { ascending: true }),
         fetchFn('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
         fetchFn('Assignment'),
         sb.from('Territory').select('*'),
         sb.from('Team').select('*'),
-        sb.from('BU').select('*')
+        sb.from('BU').select('*'),
+        sb.from('Doctors').select('Specialty, Type') // 🌟 ดึงข้อมูล Specialty และ Doctor Type ทั้งหมดมาดึง Distinct
       ]);
 
       window.DocManagerCache.indexTypes = typeRes.data || [];
@@ -164,7 +237,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
 
         if (isBuHead) {
-          // 1. BU Head: BU -> Teams -> Territories
           var matchedBu = (buRes.data || buRes || []).find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
           var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
           
@@ -175,7 +247,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
 
         } else if (isManager) {
-          // 2. Manager: Team -> Territories
           var matchedTeam = (teamRes.data || teamRes || []).find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
           var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID) : rawScope;
           
@@ -184,11 +255,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           if (allowedTerIds.length === 0 && rawScope) allowedTerIds.push(rawScope);
 
         } else { 
-          // 3. Sales Rep: Territory ตรงๆ
           if (rawScope) allowedTerIds.push(rawScope);
         }
 
-        // 4. นำ Territory_ID ทั้งหมด ไปแมปหา Doc_ID ในตาราง Assignment
         var allowedTerIdsMap = {}; 
         allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
         
@@ -203,28 +272,19 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.myAllowedDocIds = allowedDocIds;
       window.DocManagerCache.indexLoaded = true;
 
-      // เติม Dropdown โรงพยาบาล
-      const hospSelect = document.getElementById('filterDocWorkplace');
-      if (hospRes && hospSelect) {
-        hospSelect.innerHTML = hospRes.map(h => `<option value="${h.Hospital_ID}">${h.Known_As || h.Hospital}</option>`).join('');
-        window.initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
-      }
-
-      // เติม Dropdown Specialty จาก Index
-      const specType = (typeRes.data || []).find(t => t.Name && t.Name.toLowerCase() === 'specialty');
+      // 🌟 เติม Dropdown Specialty (กรองเฉพาะที่มีใน Data จริงเท่านั้น)
       const specSelect = document.getElementById('filterDocSpecialty');
-      if (specType && specSelect) {
-        const specItems = (idxRes.data || []).filter(i => i.IndexType_ID === specType.IndexType_ID);
-        specSelect.innerHTML = specItems.map(i => `<option value="${i.Value}">${i.Value}</option>`).join('');
+      if (docDistinctRes.data && specSelect) {
+        const uniqueSpecs = [...new Set(docDistinctRes.data.map(d => d.Specialty).filter(v => v && v.trim() !== '' && v !== '-'))].sort();
+        specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
         window.initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
       }
 
-      // เติม Dropdown Doctor Type จาก Index
-      const docTypeObj = (typeRes.data || []).find(t => t.Name && (t.Name.toLowerCase() === 'doctortype' || t.Name.toLowerCase() === 'type'));
+      // 🌟 เติม Dropdown Doctor Type (กรองเฉพาะที่มีใน Data จริงเท่านั้น)
       const typeSelect = document.getElementById('filterDocType');
-      if (docTypeObj && typeSelect) {
-        const typeItems = (idxRes.data || []).filter(i => i.IndexType_ID === docTypeObj.IndexType_ID);
-        typeSelect.innerHTML = typeItems.map(i => `<option value="${i.Value}">${i.Value}</option>`).join('');
+      if (docDistinctRes.data && typeSelect) {
+        const uniqueTypes = [...new Set(docDistinctRes.data.map(d => d.Type).filter(v => v && v.trim() !== '' && v !== '-'))].sort();
+        typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
         window.initMultiTomSelect('filterDocType', '- All Types -');
       }
     }
@@ -234,7 +294,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 };
 
 // ==========================================
-// 📊 4. SERVER-SIDE PAGINATION
+// 📊 5. SERVER-SIDE PAGINATION & SMART SEARCH
 // ==========================================
 window.loadDoctors = async function(forceReload = false) {
   const tbody = document.getElementById('doctorTableBody');
@@ -256,27 +316,52 @@ window.loadDoctors = async function(forceReload = false) {
       if (allowedDocIds.length > 0) {
         query = query.in('Doc_ID', allowedDocIds);
       } else {
-        // หากไม่มีหมอผูกใน Assignment เลย ให้กรองไม่เจอข้อมูล
         query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); 
       }
     }
 
-    // Sorting
-    const sortCol = window.currentDocSortCol || 'Doc_Name';
-    query = query.order(sortCol, { ascending: window.currentDocSortAsc });
+    // 🌟 1. SMART SEARCH (หมอ + โรงพยาบาล)
+    const smartSearchInput = document.getElementById('smartDocSearchInput');
+    const rawSearchVal = smartSearchInput ? smartSearchInput.value.trim().toLowerCase() : '';
 
-    // Filters
+    if (rawSearchVal) {
+      const searchTerms = rawSearchVal.split(/\s+/);
+      
+      for (let i = 0; i < searchTerms.length; i++) {
+        const term = searchTerms[i];
+        
+        // ค้นหาโรงพยาบาลที่แมปคำค้นหาเจอ
+        const matchedHospIds = (window.DocManagerCache.hospitals || [])
+          .filter(h => {
+            const hName = String(h.Hospital || '').toLowerCase();
+            const hKnown = String(h.Known_As || '').toLowerCase();
+            return hName.includes(term) || hKnown.includes(term);
+          })
+          .map(h => h.Hospital_ID);
+
+        // สร้าง OR Condition สำหรับค้นหา Doc_Name, Doc_Name_TH หรือ Hospital_ID
+        let orConditions = [`Doc_Name.ilike.%${term}%`, `Doc_Name_TH.ilike.%${term}%`];
+        if (matchedHospIds.length > 0) {
+          orConditions.push(`Hospital_ID.in.(${matchedHospIds.slice(0, 50).join(',')})`);
+        }
+
+        query = query.or(orConditions.join(','));
+      }
+    }
+
+    // 🌟 2. FILTERS (Specialty & Doctor Type)
     const specEl = document.getElementById('filterDocSpecialty');
     const typeEl = document.getElementById('filterDocType');
-    const hospEl = document.getElementById('filterDocWorkplace');
 
     const selectedSpecs = specEl && specEl.tomselect ? specEl.tomselect.getValue() : [];
     const selectedTypes = typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [];
-    const selectedHosps = hospEl && hospEl.tomselect ? hospEl.tomselect.getValue() : [];
 
     if (Array.isArray(selectedSpecs) && selectedSpecs.length > 0) query = query.in('Specialty', selectedSpecs);
     if (Array.isArray(selectedTypes) && selectedTypes.length > 0) query = query.in('Type', selectedTypes);
-    if (Array.isArray(selectedHosps) && selectedHosps.length > 0) query = query.in('Hospital_ID', selectedHosps);
+
+    // Sorting
+    const sortCol = window.currentDocSortCol || 'Doc_Name';
+    query = query.order(sortCol, { ascending: window.currentDocSortAsc });
 
     // Pagination
     const page = window.currentPage || 1;
@@ -398,13 +483,18 @@ window.filterDoctors = function() {
   window.loadDoctors(true);
 };
 
+window.debouncedFilterDoctors = function() {
+  if (window.isDocInitialLoading) return;
+  if (window.docFilterDebounceTimer) clearTimeout(window.docFilterDebounceTimer);
+  window.docFilterDebounceTimer = setTimeout(function() { window.filterDoctors(); }, 300);
+};
+
 window.clearDoctorFilters = function() {
   const clearTs = (id) => {
     const el = document.getElementById(id);
     if (el && el.tomselect) el.tomselect.clear();
   };
-  clearTs('filterDocName');
-  clearTs('filterDocWorkplace');
+  if (document.getElementById('smartDocSearchInput')) document.getElementById('smartDocSearchInput').value = '';
   clearTs('filterDocSpecialty');
   clearTs('filterDocType');
   window.filterDoctors();
@@ -429,7 +519,7 @@ window.forceReloadDoctors = async function() {
 };
 
 // ==========================================
-// 🚀 5. SAFE INITIALIZATION ENGINE
+// 🚀 6. SAFE INITIALIZATION ENGINE
 // ==========================================
 window.initDoctorPage = async function(forceReload = false) {
   if (window._isDocInitRunning) return;
