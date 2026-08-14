@@ -102,10 +102,7 @@ window.switchDoctorView = function(viewId) {
   const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
   window.scrollTo(0, 0); 
 
-  if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-    setLanguage(currentLang);
-  }
-};
+ };
 
 window.goBackFromDoctorProfile = function() {
   window.currentTargetDocId = ""; // เคลียร์ ID ป้องกัน Listener ดึง Profile ขึ้นมาใหม่
@@ -839,7 +836,7 @@ window.openEditDoctorView = function(id) {
   window.switchDoctorView('doctorEditView');
 };
 
-window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
+window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   window.currentTargetDocId = id; 
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
@@ -905,19 +902,15 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
     if (lockBanner) lockBanner.style.display = 'none';
   }
 
-  // 6. โหลดข้อมูล Tab ย่อย
+  // 6. โหลดข้อมูล Tab ย่อยแบบไม่พึ่งพา await บล็อกหน้าจอ
   window.loadDoctorVisitHistory(id);
-  await window.loadDoctorRatings(id);
+  window.loadDoctorRatings(id);
 
-  // 🌟 7. เปิด View และสั่ง Active หน้า Tab ด้วย Bootstrap Native API
+  // 🌟 7. เปิด View และสั่ง Active หน้า Tab ด้วย helper switchDoctorProfileTab ของเรา
   window.switchDoctorView('doctorProfileView');
   
-  const targetTabSelector = targetTab || '#tab-doc-info';
-  const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTabSelector}"]`);
-  
-  if (tabEl && typeof bootstrap !== 'undefined') {
-    const tab = bootstrap.Tab.getOrCreateInstance(tabEl);
-    tab.show();
+  if (typeof window.switchDoctorProfileTab === 'function') {
+    window.switchDoctorProfileTab(targetTab);
   }
 };
 
