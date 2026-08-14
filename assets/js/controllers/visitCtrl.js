@@ -2064,11 +2064,16 @@ window.openEditVisitView = async function(visitId) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
   
-  if (v.Doc_ID && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(v.Doc_ID);
-
-  if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
-  var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
-  if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
+  // ⚡ 1. โหลดชื่อหมอขึ้นทันทีความเร็วสูง (ไม่ต้องจอดรอ Products)
+  if (v.Doc_ID && window.tomSelectDocInstance) {
+      window.tomSelectDocInstance.setValue(v.Doc_ID, true);
+  } else {
+      var docSelect = document.getElementById('visitDocId');
+      if (docSelect) {
+          docSelect.value = v.Doc_ID || '';
+          docSelect.dispatchEvent(new Event('change'));
+      }
+  }
 
   document.getElementById('visitDate').value = v.Visit_Date || '';
   
@@ -2077,19 +2082,44 @@ window.openEditVisitView = async function(visitId) {
       document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
   }
 
-  // 🌟 FIX PURPOSE: ตั้งค่า Purpose ให้สอดคล้องกัน 100% ทั้งแบบ ID และ Text
-  var targetPurpose = v.Purpose_ID || v.Purpose || v.Objective || '';
+  // 🎯 2. สแกนหาวัตถุประสงค์ (Purpose) แบบรอบด้าน 100%
+  var targetPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
   if (targetPurpose && window.tomSelectPurposeInstance) {
-      window.tomSelectPurposeInstance.setValue(targetPurpose, true);
+      var tsPurp = window.tomSelectPurposeInstance;
+      
+      // 2.1 ลองเลือกด้วย Value/ID ตรงๆ ก่อน
+      tsPurp.setValue(targetPurpose, true);
 
-      if (!window.tomSelectPurposeInstance.getValue() && window.VisitManagerCache && window.VisitManagerCache.indexes) {
-          var matchedIdx = window.VisitManagerCache.indexes.find(function(i) {
-              return String(i.Index_ID).toLowerCase() === String(targetPurpose).toLowerCase() || 
-                     String(i.Value).toLowerCase() === String(targetPurpose).toLowerCase() || 
-                     String(i.Value1).toLowerCase() === String(targetPurpose).toLowerCase();
-          });
-          if (matchedIdx) {
-              window.tomSelectPurposeInstance.setValue(matchedIdx.Index_ID, true);
+      // 2.2 ถ้าเลือกไม่สำเร็จ ค้นหาแมปกับ Options ทั้งหมด
+      if (!tsPurp.getValue()) {
+          var matchedVal = null;
+          for (var optKey in tsPurp.options) {
+              var opt = tsPurp.options[optKey];
+              if (String(opt.value).toLowerCase() === targetPurpose.toLowerCase() || 
+                  String(opt.text).toLowerCase() === targetPurpose.toLowerCase() ||
+                  String(opt.searchEn || '').toLowerCase() === targetPurpose.toLowerCase() ||
+                  String(opt.searchTh || '').toLowerCase() === targetPurpose.toLowerCase()) {
+                  matchedVal = opt.value;
+                  break;
+              }
+          }
+
+          // 2.3 ค้นหาใน Cache Indexes เผื่อ DB เก็บย้อนกลับไปกลับมา
+          if (!matchedVal && window.VisitManagerCache && window.VisitManagerCache.indexes) {
+              var matchedIdx = window.VisitManagerCache.indexes.find(function(i) {
+                  return String(i.Index_ID).toLowerCase() === targetPurpose.toLowerCase() || 
+                         String(i.Value || '').toLowerCase() === targetPurpose.toLowerCase() || 
+                         String(i.Value1 || '').toLowerCase() === targetPurpose.toLowerCase();
+              });
+              if (matchedIdx) matchedVal = matchedIdx.Index_ID;
+          }
+
+          if (matchedVal) {
+              tsPurp.setValue(matchedVal, true);
+          } else {
+              // 2.4 Failsafe: ยัดเป็น Option ชั่วคราวป้องกันกล่องขึ้นเป็นค่าว่าง
+              tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
+              tsPurp.setValue(targetPurpose, true);
           }
       }
 
@@ -2097,6 +2127,11 @@ window.openEditVisitView = async function(visitId) {
           window.updatePurposeDisplayLang();
       }
   }
+
+  // 📦 3. โหลด Dropdown ยาในเบื้องหลัง
+  if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
+  var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
+  if (window.tomSelectProdInstance && visitProds.length > 0) window.tomSelectProdInstance.setValue(visitProds);
 
   if (typeof window.loadVisitSamplesForEdit === 'function') {
       await window.loadVisitSamplesForEdit(v.Visit_ID);
