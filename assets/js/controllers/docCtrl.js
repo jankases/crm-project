@@ -1126,8 +1126,8 @@ window.filterAndRenderDoctorVisits = function() {
       valA = (a.Status || '').toLowerCase();
       valB = (b.Status || '').toLowerCase();
     } else {
-      valA = (a.Purpose || '').toLowerCase();
-      valB = (b.Purpose || '').toLowerCase();
+      valA = (a.Purpose || a.Objective || '').toLowerCase();
+      valB = (b.Purpose || b.Objective || '').toLowerCase();
     }
 
     if (valA < valB) return sortAsc ? -1 : 1;
@@ -1167,6 +1167,29 @@ window.filterAndRenderDoctorVisits = function() {
   pageData.forEach(v => {
     const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
 
+    // 🌟 1. Lookup หาชื่อ Sales Rep จาก Email / ID
+    const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.Rep_ID || '';
+    const userObj = (window.globalUsers || window.DocManagerCache.users || []).find(u => {
+      const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
+      const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
+      const vWhoStr = String(rawWho).toLowerCase().trim();
+      return (uEmail !== '' && vWhoStr === uEmail) || (uRepId !== '' && vWhoStr === uRepId);
+    });
+    const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || rawWho) : (rawWho || '-');
+
+    // 🌟 2. Lookup หา Territory Name / Code ปรับคลาสสไตล์ให้อ่านง่าย ชัดเจน ไม่จาง
+    const rawTerrId = v.Territory_ID || v.territory_id || '';
+    const terrObj = (window.globalTerritories || window.DocManagerCache.territories || []).find(t => {
+      const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
+      return tId !== '' && tId === String(rawTerrId).toLowerCase().trim();
+    });
+    const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || rawTerrId) : (rawTerrId || '-');
+    const terrBadgeHtml = rawTerrId ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` : '-';
+
+    // 🌟 3. ดึงค่า Purpose / Objective
+    const purposeShow = v.Purpose || v.purpose || v.Objective || v.objective || '-';
+
+    // Status Badge
     let statusBadgeClass = 'badge-soft-success';
     let statusText = v.Status || 'Submitted';
     if (statusText === 'Draft') {
@@ -1176,6 +1199,7 @@ window.filterAndRenderDoctorVisits = function() {
       statusText = appLang === 'en' ? 'Submitted' : 'ส่งแล้ว';
     }
 
+    // Products Badges
     const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
     let prodBadges = '-';
     if (matchedVps.length > 0) {
@@ -1189,10 +1213,10 @@ window.filterAndRenderDoctorVisits = function() {
     htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">${dateStr}</td>
-        <td class="fw-bold text-dark">${v.Whoupdated || '-'}</td>
-        <td class="text-center"><span class="badge badge-soft-primary">${v.Territory_ID || '-'}</span></td>
+        <td class="fw-bold text-dark">${repNameShow}</td>
+        <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
-        <td><small class="text-secondary">${v.Purpose || '-'}</small></td>
+        <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
         <td class="text-center"><span class="badge ${statusBadgeClass}">${statusText}</span></td>
       </tr>`;
   });
