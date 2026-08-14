@@ -4,6 +4,7 @@
 
 const i18nDictionary = {
   en: {
+    // --- Navigation & Common ---
     app_title: "CRM System",
     menu_visit: "Visit Logs",
     menu_doctor: "Doctors",
@@ -21,6 +22,7 @@ const i18nDictionary = {
     msg_load_failed: "Failed to load screen",
     msg_check_file: "Please check if the file exists.",
 
+    // --- Options & Placeholders ---
     opt_all: "- All -",
     opt_all_doctors: "- All Doctors -",
     opt_all_hospitals: "- All Hospitals -",
@@ -37,25 +39,33 @@ const i18nDictionary = {
     opt_select_purpose: "-- Select Purpose --",
     opt_select_doc_default: "-- Search/Select Doctor --",
 
-    kpi_total_visits: "Total Visits",
-    kpi_pending_drafts: "Pending Drafts",
-    kpi_submitted_logs: "Submitted Logs",
-
-    visit_title: "Visit Logs",
-    visit_subtitle: "Doctor visits and daily activity logs",
-    title_add_visit: "Add New Visit",
-    title_edit_visit: "Edit Visit",
-    btn_add_visit: "Add New Visit",
+    // --- Common Buttons & Labels ---
     btn_clear: "Clear",
     btn_back: "Back",
-    btn_dictate: "Dictate",
     btn_cancel: "Cancel",
     btn_save: "Save",
     btn_view: "View",
     btn_list: "List",
     btn_calendar: "Calendar",
+    btn_export: "Export",
+    btn_preview: "Preview",
+    btn_dictate: "Dictate",
+    lbl_show_rows: "Show rows:",
+    lbl_status: "Status",
+    status_loading: "Loading...",
+    unit_items: "items",
+    th_action: "Action",
+
+    // --- Visit Logs Module ---
+    kpi_total_visits: "Total Visits",
+    kpi_pending_drafts: "Pending Drafts",
+    kpi_submitted_logs: "Submitted Logs",
+    visit_title: "Visit Logs",
+    visit_subtitle: "Doctor visits and daily activity logs",
+    title_add_visit: "Add New Visit",
+    title_edit_visit: "Edit Visit",
+    btn_add_visit: "Add New Visit",
     lbl_area_team: "Area / Team",
-    
     filter_doctor: "Doctor Name (EN/TH)",
     filter_hospital: "Hospital Name (EN/TH)",
     filter_date_range: "Date Range",
@@ -63,15 +73,13 @@ const i18nDictionary = {
     filter_user: "User / Sales Rep",
     filter_territory: "Territory",
     filter_product: "Product",
-    
+    lbl_filter_rep: "Employee / Sales Rep",
     th_date: "Date",
     th_doctor: "Doctor",
     th_hospital: "Hospital",
     th_products: "Products",
     th_purpose: "Purpose",
     th_status: "Status",
-    
-    lbl_show_rows: "Show rows:",
     lbl_user: "User",
     lbl_territory: "Territory",
     lbl_doctor: "Doctor Name",
@@ -83,8 +91,6 @@ const i18nDictionary = {
     lbl_details: "Details",
     lbl_insight: "Insight",
     lbl_next_action: "Next Action",
-    lbl_status: "Status",
-
     btn_add_tot: "Add TOT",
     leg_submitted: "Submitted Visit",
     leg_pending: "Pending Draft",
@@ -93,7 +99,6 @@ const i18nDictionary = {
     leg_company: "Company Event",
     leg_tot_appr: "TOT (Approved)",
     leg_tot_pend: "TOT (Pending)",
-
     lbl_location: "GPS Check-in",
     lbl_attachments: "Attachments",
     btn_add_file: "Add File/Photo",
@@ -102,7 +107,15 @@ const i18nDictionary = {
     txt_sign_here: "Click here to sign",
     lbl_coaching_main: "Joint Visit / Coaching",
     lbl_coaching_sub: "Manager Coaching included",
+    btn_add_sample: "Add Item",
+    txt_no_sample: "No samples distributed (Click 'Add Item')",
+    sec_visit_info: "Visit Information",
+    sec_activity_details: "Activity Details",
+    sec_edetailing: "e-Detailing / Presentation",
+    lbl_enable_samples: "Samples",
+    lbl_samples_title: "Samples & Promo Items",
 
+    // --- System Settings Module ---
     title_sys_settings: "System Settings",
     desc_sys_settings: "Master Data & Index Configuration",
     title_target_call: "Target Call (Rating) Access",
@@ -111,16 +124,12 @@ const i18nDictionary = {
     desc_target_call_3: "- Or use the Toggle Switch for manual control.",
     lbl_start_date: "Start Date",
     lbl_end_date: "End Date",
-    lbl_status: "Status",
-    status_loading: "Loading...",
     title_categories: "1. Categories",
     title_index_values: "2. Index Values",
     btn_add_value: "Add Value",
     opt_all_categories: "- All Categories -",
     th_category: "Category",
     th_value: "Value",
-    th_action: "Action",
-    lbl_show_rows: "Show rows:",
     title_add_category: "Add Category",
     title_edit_category: "Edit Category",
     lbl_category_name: "Category Name",
@@ -128,25 +137,13 @@ const i18nDictionary = {
     title_add_index: "Add Value",
     title_edit_index: "Edit Value",
     lbl_category_select: "Category (IndexType)",
-
     title_visit_features: "Visit Form Features",
     desc_visit_features: "Show or hide specific sections in the Visit Form.",
     lbl_enable_gps: "GPS Check-in",
     lbl_enable_attachment: "Attachments",
     lbl_enable_signature: "Signature",
-    btn_add_sample: "Add Item",
-    txt_no_sample: "No samples distributed (Click 'Add Item')",
-    
-    sec_visit_info: "Visit Information",
-    sec_activity_details: "Activity Details",
-    sec_edetailing: "e-Detailing / Presentation",
-    btn_export: "Export",
-    lbl_filter_rep: "Employee / Sales Rep",
-    btn_preview: "Preview",
-    unit_items: "items",
-    lbl_enable_samples: "Samples",
-    lbl_samples_title: "Samples & Promo Items",
 
+    // --- Doctors Management Module ---
     doc_title: "Doctors Management",
     doc_subtitle: "Database of Doctors and Workplaces",
     btn_add_doctor: "Add New Doctor",
@@ -157,10 +154,33 @@ const i18nDictionary = {
     th_doc_name_th: "Doctor (TH)",
     th_specialty: "Specialty",
     th_primary_hosp: "Primary Hospital",
-    th_status: "Status",
-    th_action: "Action"
+    btn_edit_doc_dcr: "Edit Doctor (DCR)",
+    tab_general_info: "General Info",
+    tab_visit_history: "Visit History",
+    tab_target_call: "Target Call",
+    lbl_workplace_history: "Workplace History",
+    btn_add_call: "Add Call",
+    btn_add_product: "Add Product",
+    btn_submit_dcr: "Submit DCR",
+    btn_add_hosp: "Add Hospital",
+    sec_gen_info: "General Information",
+    sec_contact_consent: "Contact & Consent",
+    title_add_doc: "Add New Doctor (DCR)",
+    title_edit_doc: "Edit Doctor (DCR)",
+    lbl_doc_title: "Title",
+    lbl_doc_name_en: "Name (EN)",
+    lbl_doc_name_th: "Name (TH)",
+    lbl_specialty: "Specialty",
+    lbl_type: "Type",
+    lbl_workplace: "Workplace",
+    lbl_privacy: "Privacy Policy",
+    lbl_tos: "Terms of Service",
+    lbl_email: "Email",
+    lbl_mobile: "Mobile"
   },
+
   th: {
+    // --- Navigation & Common ---
     app_title: "ระบบ CRM",
     menu_visit: "บันทึกเยี่ยม",
     menu_doctor: "แพทย์",
@@ -178,6 +198,7 @@ const i18nDictionary = {
     msg_load_failed: "ไม่สามารถโหลดหน้าจอได้",
     msg_check_file: "โปรดตรวจสอบว่าสร้างไฟล์นี้ไว้แล้วหรือยัง",
 
+    // --- Options & Placeholders ---
     opt_all: "- ทั้งหมด -",
     opt_all_doctors: "- แพทย์ทั้งหมด -",
     opt_all_hospitals: "- โรงพยาบาลทั้งหมด -",
@@ -194,25 +215,33 @@ const i18nDictionary = {
     opt_select_purpose: "-- เลือกวัตถุประสงค์ --",
     opt_select_doc_default: "-- ค้นหา/เลือกแพทย์ --",
 
-    kpi_total_visits: "จำนวนการเยี่ยมทั้งหมด",
-    kpi_pending_drafts: "ฉบับร่างรอยืนยัน",
-    kpi_submitted_logs: "บันทึกที่ส่งแล้ว",
-
-    visit_title: "บันทึกเยี่ยม",
-    visit_subtitle: "บันทึกการเข้าพบแพทย์และกิจกรรมประจำวัน",
-    title_add_visit: "สร้างบันทึกเยี่ยมใหม่",
-    title_edit_visit: "แก้ไขบันทึกเยี่ยม",
-    btn_add_visit: "สร้างบันทึกเยี่ยมใหม่",
+    // --- Common Buttons & Labels ---
     btn_clear: "ล้างตัวกรอง",
     btn_back: "ย้อนกลับ",
-    btn_dictate: "พิมพ์ด้วยเสียง",
     btn_cancel: "ยกเลิก",
     btn_save: "บันทึก",
     btn_view: "ดูข้อมูล",
     btn_list: "รายการ",
     btn_calendar: "ปฏิทิน",
+    btn_export: "ส่งออก",
+    btn_preview: "เปิดดู",
+    btn_dictate: "พิมพ์ด้วยเสียง",
+    lbl_show_rows: "แสดงแถว:",
+    lbl_status: "สถานะ",
+    status_loading: "กำลังโหลด...",
+    unit_items: "เล่ม",
+    th_action: "จัดการ",
+
+    // --- Visit Logs Module ---
+    kpi_total_visits: "จำนวนการเยี่ยมทั้งหมด",
+    kpi_pending_drafts: "ฉบับร่างรอยืนยัน",
+    kpi_submitted_logs: "บันทึกที่ส่งแล้ว",
+    visit_title: "บันทึกเยี่ยม",
+    visit_subtitle: "บันทึกการเข้าพบแพทย์และกิจกรรมประจำวัน",
+    title_add_visit: "สร้างบันทึกเยี่ยมใหม่",
+    title_edit_visit: "แก้ไขบันทึกเยี่ยม",
+    btn_add_visit: "สร้างบันทึกเยี่ยมใหม่",
     lbl_area_team: "พื้นที่ / ทีม",
-    
     filter_doctor: "ชื่อแพทย์ (EN/TH)",
     filter_hospital: "ชื่อโรงพยาบาล (EN/TH)",
     filter_date_range: "ช่วงวันที่",
@@ -220,15 +249,13 @@ const i18nDictionary = {
     filter_user: "พนักงาน / ฝ่ายขาย",
     filter_territory: "เขตพื้นที่",
     filter_product: "ผลิตภัณฑ์",
-    
+    lbl_filter_rep: "พนักงาน / ฝ่ายขาย",
     th_date: "วันที่",
     th_doctor: "แพทย์",
     th_hospital: "โรงพยาบาล",
     th_products: "ผลิตภัณฑ์",
     th_purpose: "วัตถุประสงค์",
     th_status: "สถานะ",
-    
-    lbl_show_rows: "แสดงแถว:",
     lbl_user: "พนักงาน",
     lbl_territory: "เขตพื้นที่",
     lbl_doctor: "ชื่อแพทย์",
@@ -240,8 +267,6 @@ const i18nDictionary = {
     lbl_details: "รายละเอียด",
     lbl_insight: "ข้อมูลเชิงลึก (Insight)",
     lbl_next_action: "การดำเนินการถัดไป",
-    lbl_status: "สถานะ",
-
     btn_add_tot: "เพิ่ม TOT",
     leg_submitted: "บันทึกที่ส่งแล้ว",
     leg_pending: "ฉบับร่างรอยืนยัน",
@@ -250,7 +275,6 @@ const i18nDictionary = {
     leg_company: "กิจกรรมบริษัท",
     leg_tot_appr: "TOT (อนุมัติแล้ว)",
     leg_tot_pend: "TOT (รออนุมัติ)",
-
     lbl_location: "พิกัด (GPS Check-in)",
     lbl_attachments: "รูปถ่าย/ไฟล์แนบ",
     btn_add_file: "เพิ่มไฟล์/ถ่ายรูป",
@@ -261,7 +285,13 @@ const i18nDictionary = {
     lbl_coaching_sub: "มีหัวหน้า/ผู้จัดการเข้าร่วม",
     btn_add_sample: "เพิ่มรายการ",
     txt_no_sample: "ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม 'เพิ่มรายการ')",
+    sec_visit_info: "ข้อมูลการเข้าพบ",
+    sec_activity_details: "รายละเอียดกิจกรรม",
+    sec_edetailing: "e-Detailing / สื่อการนำเสนอ",
+    lbl_enable_samples: "สินค้าตัวอย่าง",
+    lbl_samples_title: "สินค้าตัวอย่างและของแจก",
 
+    // --- System Settings Module ---
     title_sys_settings: "ตั้งค่าระบบ (System Settings)",
     desc_sys_settings: "จัดการข้อมูลหลักและข้อมูลดัชนี (Master Data & Index)",
     title_target_call: "สิทธิ์การเข้าถึง Target Call (Rating)",
@@ -270,16 +300,12 @@ const i18nDictionary = {
     desc_target_call_3: "- หรือใช้ สวิตช์เปิด/ปิด เพื่อควบคุมด้วยตัวเอง",
     lbl_start_date: "วันที่เริ่ม",
     lbl_end_date: "วันที่สิ้นสุด",
-    lbl_status: "สถานะ",
-    status_loading: "กำลังโหลด...",
     title_categories: "1. หมวดหมู่ (Categories)",
     title_index_values: "2. ข้อมูลดัชนี (Index Values)",
     btn_add_value: "เพิ่มข้อมูล",
     opt_all_categories: "- ทุกหมวดหมู่ -",
     th_category: "หมวดหมู่",
     th_value: "ข้อมูล",
-    th_action: "จัดการ",
-    lbl_show_rows: "แสดงจำนวน:",
     title_add_category: "เพิ่มหมวดหมู่",
     title_edit_category: "แก้ไขหมวดหมู่",
     lbl_category_name: "ชื่อหมวดหมู่",
@@ -287,23 +313,13 @@ const i18nDictionary = {
     title_add_index: "เพิ่มข้อมูลดัชนี",
     title_edit_index: "แก้ไขข้อมูลดัชนี",
     lbl_category_select: "หมวดหมู่ (Category)",
-
     title_visit_features: "ฟีเจอร์ในหน้าบันทึกเยี่ยม",
     desc_visit_features: "เปิด/ปิด การแสดงผลบางส่วนในหน้าฟอร์มบันทึกเยี่ยม (มีผลกับทุกคน)",
     lbl_enable_gps: "พิกัด GPS",
     lbl_enable_attachment: "ไฟล์แนบ",
     lbl_enable_signature: "ลายเซ็นแพทย์",
-    
-    sec_visit_info: "ข้อมูลการเข้าพบ",
-    sec_activity_details: "รายละเอียดกิจกรรม",
-    sec_edetailing: "e-Detailing / สื่อการนำเสนอ",
-    btn_export: "ส่งออก",
-    lbl_filter_rep: "พนักงาน / ฝ่ายขาย",
-    btn_preview: "เปิดดู",
-    unit_items: "เล่ม",
-    lbl_enable_samples: "สินค้าตัวอย่าง",
-    lbl_samples_title: "สินค้าตัวอย่างและของแจก",
 
+    // --- Doctors Management Module ---
     doc_title: "จัดการข้อมูลแพทย์",
     doc_subtitle: "ฐานข้อมูลรายชื่อแพทย์และสถานที่ปฏิบัติงาน",
     btn_add_doctor: "เพิ่มแพทย์ใหม่",
@@ -314,8 +330,29 @@ const i18nDictionary = {
     th_doc_name_th: "แพทย์ (TH)",
     th_specialty: "ความเชี่ยวชาญ",
     th_primary_hosp: "โรงพยาบาลหลัก",
-    th_status: "สถานะ",
-    th_action: "จัดการ"
+    btn_edit_doc_dcr: "แก้ไขข้อมูลแพทย์ (DCR)",
+    tab_general_info: "ข้อมูลทั่วไป",
+    tab_visit_history: "ประวัติการเยี่ยม",
+    tab_target_call: "เป้าหมายการเข้าพบ (Target Call)",
+    lbl_workplace_history: "ประวัติสถานที่ปฏิบัติงาน",
+    btn_add_call: "เพิ่มบันทึกเยี่ยม",
+    btn_add_product: "เพิ่มผลิตภัณฑ์",
+    btn_submit_dcr: "ส่งคำขอ DCR",
+    btn_add_hosp: "เพิ่มโรงพยาบาล",
+    sec_gen_info: "ข้อมูลทั่วไป",
+    sec_contact_consent: "ข้อมูลติดต่อ และการยินยอม",
+    title_add_doc: "เพิ่มแพทย์ใหม่ (DCR)",
+    title_edit_doc: "แก้ไขข้อมูลแพทย์ (DCR)",
+    lbl_doc_title: "คำนำหน้า",
+    lbl_doc_name_en: "ชื่อ-นามสกุล (EN)",
+    lbl_doc_name_th: "ชื่อ-นามสกุล (TH)",
+    lbl_specialty: "ความเชี่ยวชาญ",
+    lbl_type: "ประเภท",
+    lbl_workplace: "สถานที่ปฏิบัติงาน",
+    lbl_privacy: "นโยบายความเป็นส่วนตัว",
+    lbl_tos: "ข้อตกลงการใช้งาน",
+    lbl_email: "อีเมล",
+    lbl_mobile: "เบอร์โทรศัพท์"
   }
 };
 
@@ -354,7 +391,7 @@ function setLanguage(lang) {
     }
   });
 
-  // 🌟 บรอดแคสต์ (กระจายสัญญาณ) ไปให้หน้าย่อยต่างๆ อัปเดตข้อมูลของตัวเอง
+  // บรอดแคสต์กระจายสัญญาณไปให้โมดูลต่างๆ รีเรนเดอร์ UI สลับภาษา Realtime
   window.dispatchEvent(new CustomEvent('appLanguageChanged', { detail: lang }));
 }
 
