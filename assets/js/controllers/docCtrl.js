@@ -101,18 +101,17 @@ window.initMultiTomSelect = function(id, placeholder) {
     });
   }
 };
-
 // ==========================================
-// 📥 3. MASTER DATA DROPDOWNS SETUP
+// 📥 3. MASTER DATA DROPDOWNS SETUP (SAFE VERSION)
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
     if (forceReload || !window.DocManagerCache.indexLoaded) {
-      const [typeRes, idxRes, hospRes, specRes] = await Promise.all([
+      // ดึงเฉพาะตาราง Master Data ที่จำเป็น
+      const [typeRes, idxRes, hospRes] = await Promise.all([
         window.supabaseClient.from('IndexType').select('*'),
         window.supabaseClient.from('Index').select('*').order('Value', { ascending: true }),
-        window.supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').limit(200),
-        window.supabaseClient.from('Doctors').select('Specialty, Type')
+        window.supabaseClient.from('Hospitals').select('Hospital_ID, Hospital, Known_As').eq('Status', 'Active').limit(300)
       ]);
 
       window.DocManagerCache.indexTypes = typeRes.data || [];
@@ -120,35 +119,46 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.hospitals = hospRes.data || [];
       window.DocManagerCache.indexLoaded = true;
 
-      // Populate Specialty & Doctor Type Filter Dropdowns
+      // เติม Dropdown โรงพยาบาล
+      const hospSelect = document.getElementById('filterDocWorkplace');
+      if (hospRes.data && hospSelect) {
+        let hospHtml = '';
+        hospRes.data.forEach(h => {
+          hospHtml += `<option value="${h.Hospital_ID}">${h.Known_As || h.Hospital}</option>`;
+        });
+        hospSelect.innerHTML = hospHtml;
+        window.initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
+      }
+
+      // เติม Dropdown Specialty จาก Index
+      const specType = (typeRes.data || []).find(t => t.Name && t.Name.toLowerCase() === 'specialty');
       const specSelect = document.getElementById('filterDocSpecialty');
-      const typeSelect = document.getElementById('filterDocType');
-      
-      if (specRes.data && specSelect) {
-        const specs = [...new Set(specRes.data.map(d => d.Specialty).filter(Boolean))].sort();
-        specSelect.innerHTML = specs.map(s => `<option value="${s}">${s}</option>`).join('');
+      if (specType && specSelect) {
+        const specItems = (idxRes.data || []).filter(i => i.IndexType_ID === specType.IndexType_ID);
+        let specHtml = '';
+        specItems.forEach(i => { specHtml += `<option value="${i.Value}">${i.Value}</option>`; });
+        specSelect.innerHTML = specHtml;
         window.initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
       }
 
-      if (specRes.data && typeSelect) {
-        const types = [...new Set(specRes.data.map(d => d.Type).filter(Boolean))].sort();
-        typeSelect.innerHTML = types.map(t => `<option value="${t}">${t}</option>`).join('');
+      // เติม Dropdown Doctor Type จาก Index
+      const docTypeObj = (typeRes.data || []).find(t => t.Name && (t.Name.toLowerCase() === 'doctortype' || t.Name.toLowerCase() === 'type'));
+      const typeSelect = document.getElementById('filterDocType');
+      if (docTypeObj && typeSelect) {
+        const typeItems = (idxRes.data || []).filter(i => i.IndexType_ID === docTypeObj.IndexType_ID);
+        let typeHtml = '';
+        typeItems.forEach(i => { typeHtml += `<option value="${i.Value}">${i.Value}</option>`; });
+        typeSelect.innerHTML = typeHtml;
         window.initMultiTomSelect('filterDocType', '- All Types -');
-      }
-
-      const hospSelect = document.getElementById('filterDocWorkplace');
-      if (hospRes.data && hospSelect) {
-        hospSelect.innerHTML = hospRes.data.map(h => `<option value="${h.Hospital_ID}">${h.Known_As || h.Hospital}</option>`).join('');
-        window.initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
       }
     }
   } catch (err) {
-    console.error("Error loading dropdowns:", err.message);
+    console.warn("Dropdown load warning (non-blocking):", err.message);
   }
 };
 
 // ==========================================
-// 📊 4. SERVER-SIDE PAGINATION (หมอ)
+// 📊 4. SERVER-SIDE PAGINATION (SAFE LOAD DOCTORS)
 // ==========================================
 window.loadDoctors = async function(forceReload = false) {
   const tbody = document.getElementById('doctorTableBody');
@@ -184,11 +194,11 @@ window.loadDoctors = async function(forceReload = false) {
 
     query = query.range(from, to);
 
-    const { data, count, error } = await query;
-    if (error) throw error;
+    const res = await query;
+    if (res.error) throw res.error;
 
-    window.globalDoctors = data || [];
-    window.totalDoctorsCount = count || 0;
+    window.globalDoctors = res.data || [];
+    window.totalDoctorsCount = res.count || 0;
 
     window.renderDoctorTableServerSide();
 
@@ -200,6 +210,7 @@ window.loadDoctors = async function(forceReload = false) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`;
   }
 };
+ 
 
 window.renderDoctorTableServerSide = function() {
   const tbody = document.getElementById('doctorTableBody');
