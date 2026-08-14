@@ -161,7 +161,7 @@ window.updateTomSelect = function(id, html, placeholder) {
 };
 
 // ==========================================
-// 🎤 3. SPEECH SEARCH ENGINE (VOICE SEARCH)
+// 🎤 3. SPEECH SEARCH ENGINE
 // ==========================================
 window.toggleSpeechSearch = function(inputId, btnId, iconId) {
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -288,7 +288,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.globalMatrixData = window.DocManagerCache.matrixData;
       window.globalTargetData = window.DocManagerCache.targetData;
 
-      // เช็กการล็อกสิทธิ์ Rating
       const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating');
       if (ratingSetting) {
         if (ratingSetting.Status === false) {
@@ -311,7 +310,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         window.globalRatingIsLocked = true;
       }
 
-      // --- 🌟 คำนวณสิทธิ์ตาม HIERARCHY MAPPING ---
       var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
       var rawScope = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.Team_ID || crmUser.BU_ID || '').trim() : '';
 
@@ -357,7 +355,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.myAllowedTerIds = allowedTerIds;
       window.DocManagerCache.myAllowedDocIds = allowedDocIds;
 
-      // ดึง Specialty และ Type เฉพาะจากตารางที่มีสิทธิ์จริง
       let docQuery = sb.from('Doctors').select('Specialty, Type');
       if (!isGlobalViewer) {
         if (allowedDocIds.length > 0) {
@@ -372,7 +369,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 
       window.DocManagerCache.indexLoaded = true;
 
-      // เติม Dropdown Title
       const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = (window.DocManagerCache.indexTypes || []).find(t => t.Name && t.Name.toLowerCase() === typeName.toLowerCase());
         let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
@@ -386,7 +382,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.updateTomSelect('docTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
       window.updateTomSelect('editDocTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
 
-      // เติม Dropdown Specialty (กรองเฉพาะที่มีใน Data ยูสเซอร์คนนี้)
       const specSelect = document.getElementById('filterDocSpecialty');
       if (specSelect) {
         const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
@@ -394,7 +389,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         window.initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
       }
 
-      // เติม Dropdown Doctor Type (กรองเฉพาะที่มีใน Data ยูสเซอร์คนนี้)
       const typeSelect = document.getElementById('filterDocType');
       if (typeSelect) {
         const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
@@ -437,7 +431,7 @@ window.getIndexValues = function(typeName) {
 };
 
 // ==========================================
-// 📊 5. SERVER-SIDE PAGINATION & SMART SEARCH
+// 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
 window.loadDoctors = async function(forceReload = false) {
   const tbody = document.getElementById('doctorTableBody');
@@ -794,12 +788,17 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
 
-  document.getElementById('viewDocTitleName').innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
-  document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
-  document.getElementById('viewDocType').value = d.Type || d.type || '-';
-  document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
-  document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
-  document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
+  // 🌟 มีการเช็กความปลอดภัย (Safety Check) ป้องกัน Error กรณีหา Element ไม่เจอ
+  const titleEl = document.getElementById('viewDocTitleName');
+  if (titleEl) {
+    titleEl.innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
+  }
+
+  if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
+  if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = d.Type || d.type || '-';
+  if (document.getElementById('viewDocStatus')) document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
+  if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
+  if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
 
   let wpHTML = '';
   let parsedWp = [];
@@ -817,7 +816,10 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
     const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Primary Hospital";
     wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge badge-soft-info ms-2">Primary</span></div>`;
   }
-  document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
+
+  if (document.getElementById('viewWorkplaceContainer')) {
+    document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
+  }
 
   let phtml = '<option value="">- All Products -</option>';
   if (typeof window.globalProducts !== 'undefined') {
@@ -1261,7 +1263,6 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// สลับภาษา Realtime
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
@@ -1271,7 +1272,6 @@ if (!window._isDocLangListenerAttached) {
   window._isDocLangListenerAttached = true;
 }
 
-// SPA DOM WATCHER
 if (!window._docObserverAttached) {
   const docObserver = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
@@ -1288,7 +1288,6 @@ if (!window._docObserverAttached) {
   window._docObserverAttached = true;
 }
 
-// Direct Trigger
 setTimeout(() => {
   if (document.getElementById('doctorTableBody')) {
     window.initDoctorPage(true);
