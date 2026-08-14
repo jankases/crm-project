@@ -1,5 +1,5 @@
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
-   
+    
   <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
   <div id="doctorListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -25,7 +25,7 @@
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 doctor-filter-group" id="doctorFilterZoneGroup">
       <div class="row g-2 align-items-center">
         
-        <!-- ช่องค้นหา Smart Search รวม หมอ + โรงพยาบาล (พร้อมปุ่มไมค์) -->
+        <!-- ช่องค้นหา Smart Search รวม หมอ + โรงพยาบาล -->
         <div class="col-12 col-lg-5">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
             <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -260,31 +260,30 @@
       <button class="btn btn-premium-primary me-2" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
         <i class="fa-solid fa-pen-to-square me-1"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
       </button>
-      <!-- 🌟 เพิ่ม data-i18n สำหรับหัวข้อ Profile -->
       <h4 class="text-primary fw-bold mb-0 ms-1" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h4>
       <div id="profileDcrStatusBadge" class="ms-2"></div>
     </div>
     
     <div class="card p-4 border-0 shadow-sm visit-card">  
 
-      <!-- 🌟 แท็บ Profile แพทย์ (รักษา data-i18n สำหรับสลับ 2 ภาษาเต็มรูปแบบ) -->
-<ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" id="docProfileTabs">
-  <li class="nav-item">
-    <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
-      <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
-    </button>
-  </li>
-  <li class="nav-item">
-    <button type="button" class="nav-link" id="tab-btn-history" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')">
-      <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span>
-    </button>
-  </li>
-  <li class="nav-item">
-    <button type="button" class="nav-link" id="tab-btn-target" onclick="window.switchDoctorProfileTab(this, 'tab-doc-target')">
-      <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span>
-    </button>
-  </li>
-</ul>
+      <!-- 🌟 แท็บ Profile แพทย์ -->
+      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" id="docProfileTabs">
+        <li class="nav-item">
+          <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
+            <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link" id="tab-btn-history" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')">
+            <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link" id="tab-btn-target" onclick="window.switchDoctorProfileTab(this, 'tab-doc-target')">
+            <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span>
+          </button>
+        </li>
+      </ul>
 
       <div class="tab-content">
         <!-- Tab: General Info -->
@@ -309,8 +308,8 @@
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
             <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3" onclick="window.goToQuickAddCall()">
-  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
-</button>
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
+            </button>
           </div>
 
           <div class="row g-2 mb-3 bg-light p-2 rounded-3 border">
