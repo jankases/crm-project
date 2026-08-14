@@ -1391,27 +1391,45 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
  
-// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ แบบระบุ Element แม่นยำ 100%
-window.switchDoctorProfileTab = function(btnEl, targetPaneId) {
-  // 1. ถ้ารับมาเป็น ID สตริง ให้หาปุ่มก่อน
-  if (typeof btnEl === 'string') {
-    const cleanId = btnEl.replace('#', '');
-    btnEl = document.querySelector(`#docProfileTabs .nav-link[onclick*="${cleanId}"]`);
+// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (แก้ไข TypeError & Safe Guard)
+window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
+  let targetId = '';
+  let btnEl = null;
+
+  // 1. จัดการแยกแยะ Parameter ที่ส่งเข้ามาให้อ่านได้ทุกรูปแบบ
+  if (typeof btnOrTarget === 'string') {
+    targetId = btnOrTarget;
+  } else if (btnOrTarget && btnOrTarget.nodeType) {
+    btnEl = btnOrTarget;
+    targetId = targetPaneId || '';
+  } else {
+    targetId = targetPaneId || '#tab-doc-info';
   }
 
-  // 2. ปิดสถานะ Active ปุ่มทั้งหมดในแถบ Tab Profile
+  // ป้องกันค่า undefined / null
+  if (!targetId || typeof targetId !== 'string') {
+    targetId = '#tab-doc-info';
+  }
+
+  const cleanPaneId = targetId.replace('#', '');
+
+  // 2. เคลียร์ Active ปุ่มทั้งหมดในแถบ Tab Profile
   const allBtns = document.querySelectorAll('#docProfileTabs .nav-link');
   allBtns.forEach(b => b.classList.remove('active'));
 
   // 3. ซ่อน Pane เนื้อหาทั้งหมดใน Profile
-  const cleanPaneId = targetPaneId.replace('#', '');
   const allPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
   allPanes.forEach(p => p.classList.remove('active', 'show'));
 
-  // 4. เปิด Active ให้ปุ่มที่คลิก
+  // 4. หาปุ่มที่จะ Active (ถ้าไม่ได้ส่ง Element ปุ่มมาตรงๆ)
+  if (!btnEl) {
+    btnEl = document.querySelector(`#docProfileTabs .nav-link[onclick*="${cleanPaneId}"]`) || 
+            document.querySelector(`#docProfileTabs .nav-link[data-bs-target="#${cleanPaneId}"]`);
+  }
+
+  // 5. เปิด Active ให้ปุ่มและแสดงเนื้อหา Pane
   if (btnEl) btnEl.classList.add('active');
 
-  // 5. แสดง Pane เนื้อหาที่เลือก
   const targetPane = document.getElementById(cleanPaneId);
   if (targetPane) {
     targetPane.classList.add('active', 'show');
