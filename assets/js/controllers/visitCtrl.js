@@ -2039,7 +2039,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. สลับหน้าจอเปิดฟอร์มขึ้นทันทีเป็นอันดับแรก (ให้ UI กางออกก่อน)
+  // 🚀 1. สลับหน้ามาที่ฟอร์มทันที 0 วินาที
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2050,10 +2050,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var isAdmin = (myRole === 'admin');
   var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
   var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-  var isCreator = false;
-  if (myRepId && creatorRepId && myRepId === creatorRepId) isCreator = true;
-  if (myEmail && creatorWho && myEmail === creatorWho) isCreator = true;
-
+  var isCreator = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
   var canEdit = (isAdmin || isCreator);
 
   document.getElementById('visitId').value = v.Visit_ID;
@@ -2064,7 +2061,10 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. ยัดค่าลง Input ปกติก่อน
+  // ⚡ 2. ยัดค่าลง Native HTML Select / Inputs ก่อนทันที (ไม่รอ TomSelect เพื่อป้องกันการดีเลย์)
+  var docEl = document.getElementById('visitDocId');
+  if (docEl && v.Doc_ID) docEl.value = v.Doc_ID;
+
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2077,56 +2077,46 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitStatus').value = v.Status || 'Pending';
   document.getElementById('visitIsCoaching').checked = (v.Is_Coaching === true);
 
-  // ⚡ 3. ใช้ requestAnimationFrame รอให้ DOM กางเสร็จแล้วยัดค่า TomSelect ทันที (แก้หมอ/Purpose ขึ้นช้า)
-  requestAnimationFrame(function() {
-      // 3.1 ยัด Doctor Name
-      if (v.Doc_ID) {
-          if (window.tomSelectDocInstance) {
-              window.tomSelectDocInstance.setValue(v.Doc_ID, true);
-          } else {
-              var docSelect = document.getElementById('visitDocId');
-              if (docSelect) docSelect.value = v.Doc_ID;
-          }
+  // 🎯 3. ฟังก์ชันจับคู่ Purpose (รองรับ UUID, ข้อความ EN/TH, Value ใน Index)
+  var rawPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
+  var matchedPurposeValue = rawPurpose;
+
+  if (rawPurpose && window.VisitManagerCache && window.VisitManagerCache.indexes) {
+      var foundIdx = window.VisitManagerCache.indexes.find(function(i) {
+          return String(i.Index_ID).toLowerCase() === rawPurpose.toLowerCase() ||
+                 String(i.Value || '').toLowerCase() === rawPurpose.toLowerCase() ||
+                 String(i.Value1 || '').toLowerCase() === rawPurpose.toLowerCase();
+      });
+      if (foundIdx) matchedPurposeValue = foundIdx.Index_ID;
+  }
+
+  var purpEl = document.getElementById('visitPurpose');
+  if (purpEl) purpEl.value = matchedPurposeValue;
+
+  // ⚡ 4. สั่งซิงค์เข้า TomSelect ทั้ง Doctor และ Purpose พร้อมกัน
+  var syncTomSelects = function() {
+      if (v.Doc_ID && window.tomSelectDocInstance) {
+          window.tomSelectDocInstance.setValue(v.Doc_ID, true);
       }
-
-      // 3.2 ยัด Purpose
-      var targetPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
-      if (window.tomSelectPurposeInstance) {
-          var tsPurp = window.tomSelectPurposeInstance;
-          tsPurp.clear(true);
-
-          if (targetPurpose && targetPurpose !== '-') {
-              tsPurp.setValue(targetPurpose, true);
-
-              if (!tsPurp.getValue()) {
-                  var matchedVal = null;
-                  for (var optKey in tsPurp.options) {
-                      var opt = tsPurp.options[optKey];
-                      if (String(opt.value).toLowerCase() === targetPurpose.toLowerCase() || 
-                          String(opt.text).toLowerCase() === targetPurpose.toLowerCase() ||
-                          String(opt.searchEn || '').toLowerCase() === targetPurpose.toLowerCase() ||
-                          String(opt.searchTh || '').toLowerCase() === targetPurpose.toLowerCase()) {
-                          matchedVal = opt.value;
-                          break;
-                      }
-                  }
-                  if (matchedVal) {
-                      tsPurp.setValue(matchedVal, true);
-                  } else {
-                      tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
-                      tsPurp.setValue(targetPurpose, true);
-                  }
-              }
-
-              if (typeof window.updatePurposeDisplayLang === 'function') {
-                  window.updatePurposeDisplayLang();
-              }
+      
+      if (matchedPurposeValue && window.tomSelectPurposeInstance) {
+          var tsP = window.tomSelectPurposeInstance;
+          tsP.setValue(matchedPurposeValue, true);
+          if (!tsP.getValue() && matchedPurposeValue !== '-') {
+              tsP.addOption({ value: matchedPurposeValue, text: rawPurpose, searchTh: rawPurpose, searchEn: rawPurpose });
+              tsP.setValue(matchedPurposeValue, true);
           }
+          if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
       }
-  });
+  };
+
+  // รันซิงค์ทันที + การันตีอีกรอบเผื่อ TomSelect กำลัง Re-init
+  syncTomSelects();
+  setTimeout(syncTomSelects, 50);
+  setTimeout(syncTomSelects, 150);
 
   // -------------------------------------------------------------
-  // ⏳ 4. ส่วนโหลดหนักในเบื้องหลัง (Products / Samples / Attachments)
+  // ⏳ 5. โหลดข้อมูลหนักรองลงมา (Products / Samples / Attachments / Signature)
   // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
   var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
