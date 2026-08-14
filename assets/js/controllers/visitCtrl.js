@@ -2203,9 +2203,29 @@ window.openEditVisitView = async function(visitId) {
       document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
   }
 
-  if (v.Purpose_ID && window.tomSelectPurposeInstance) {
-      window.tomSelectPurposeInstance.setValue(v.Purpose_ID);
-      if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
+// 🌟 FIX: ดึงค่า Purpose ให้แม่นยำ รองรับทั้ง ID และ Text ข้อความ
+  var targetPurpose = v.Purpose_ID || v.Purpose || v.Objective || '';
+  
+  if (targetPurpose && window.tomSelectPurposeInstance) {
+      // 1. ลองตั้งค่าด้วย ID/ข้อความ ก่อน
+      window.tomSelectPurposeInstance.setValue(targetPurpose, true);
+
+      // 2. ถ้าหาไม่เจอ ให้ลองหา Index_ID จาก Master Data
+      if (!window.tomSelectPurposeInstance.getValue() && window.VisitManagerCache && window.VisitManagerCache.indexes) {
+          var matchedIdx = window.VisitManagerCache.indexes.find(function(i) {
+              return String(i.Index_ID) === String(targetPurpose) || 
+                     String(i.Value) === String(targetPurpose) || 
+                     String(i.Value1) === String(targetPurpose);
+          });
+          if (matchedIdx) {
+              window.tomSelectPurposeInstance.setValue(matchedIdx.Index_ID, true);
+          }
+      }
+
+      // 3. อัปเดตการแสดงผลภาษา
+      if (typeof window.updatePurposeDisplayLang === 'function') {
+          window.updatePurposeDisplayLang();
+      }
   }
  
 if (typeof window.loadVisitSamplesForEdit === 'function') {
