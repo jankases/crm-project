@@ -476,7 +476,216 @@ window.setQuickTime = function(type, addMinutes) {
 };
 
 // ==========================================
-// 📥 8. DROPDOWNS & PERMISSIONS SETUP
+// 💾 4. DRAFT & AUTO-SAVE ENGINE
+// ==========================================
+window.saveFormDraft = function() {
+    var visitId = document.getElementById('visitId').value || 'NEW';
+    var draftData = {
+        docId: window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '',
+        productId: window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : [],
+        purpose: window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : '',
+        date: document.getElementById('visitDate').value,
+        startTime: document.getElementById('visitStartTime').value,
+        endTime: document.getElementById('visitEndTime').value,
+        details: document.getElementById('visitDetails').value,
+        insight: document.getElementById('visitInsight').value,
+        nextAction: document.getElementById('visitNextAction').value,
+        isCoaching: document.getElementById('visitIsCoaching').checked,
+        status: document.getElementById('visitStatus').value,
+        timestamp: Date.now()
+    };
+    localStorage.setItem('visitDraft_' + visitId, JSON.stringify(draftData));
+};
+
+window.restoreFormDraft = function(visitId) {
+    var draftStr = localStorage.getItem('visitDraft_' + (visitId || 'NEW'));
+    if (draftStr) {
+        try {
+            var draft = JSON.parse(draftStr);
+            if (Date.now() - draft.timestamp > 12 * 60 * 60 * 1000) {
+                window.clearFormDraft(visitId);
+                return false;
+            }
+            setTimeout(function() {
+                if (draft.docId && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(draft.docId, true);
+                if (draft.productId && window.tomSelectProdInstance) window.tomSelectProdInstance.setValue(draft.productId, true);
+                if (draft.purpose && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(draft.purpose, true);
+            }, 200);
+
+            if (draft.date) document.getElementById('visitDate').value = draft.date;
+            if (draft.startTime) document.getElementById('visitStartTime').value = draft.startTime;
+            if (draft.endTime) document.getElementById('visitEndTime').value = draft.endTime;
+            if (draft.details) document.getElementById('visitDetails').value = draft.details;
+            if (draft.insight) document.getElementById('visitInsight').value = draft.insight;
+            if (draft.nextAction) document.getElementById('visitNextAction').value = draft.nextAction;
+            if (draft.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = draft.isCoaching;
+            if (draft.status) document.getElementById('visitStatus').value = draft.status;
+            
+            if (!document.getElementById('visitId').value && window.showToast) {
+                var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+                var msgRestored = appLang === 'en' ? "Auto-saved draft restored successfully." : "กู้คืนข้อมูลร่างล่าสุด (Auto-Saved) เรียบร้อยแล้ว";
+                window.showToast(msgRestored, "success");
+            }
+            return true;
+        } catch(e) {}
+    }
+    return false;
+};
+
+window.clearFormDraft = function(visitId) { localStorage.removeItem('visitDraft_' + (visitId || 'NEW')); };
+
+window.visitAutosaveTimer = null;
+
+window.collectVisitFormData = function() {
+    return {
+        docId: document.getElementById('visitDocId') ? document.getElementById('visitDocId').value : '',
+        purpose: document.getElementById('visitPurpose') ? document.getElementById('visitPurpose').value : '',
+        date: document.getElementById('visitDate') ? document.getElementById('visitDate').value : '',
+        startTime: document.getElementById('visitStartTime') ? document.getElementById('visitStartTime').value : '',
+        endTime: document.getElementById('visitEndTime') ? document.getElementById('visitEndTime').value : '',
+        details: document.getElementById('visitDetails') ? document.getElementById('visitDetails').value : '',
+        insight: document.getElementById('visitInsight') ? document.getElementById('visitInsight').value : '',
+        nextAction: document.getElementById('visitNextAction') ? document.getElementById('visitNextAction').value : '',
+        isCoaching: document.getElementById('visitIsCoaching') ? document.getElementById('visitIsCoaching').checked : false
+    };
+};
+
+window.triggerVisitAutosave = function() {
+    clearTimeout(window.visitAutosaveTimer);
+    window.visitAutosaveTimer = setTimeout(function() {
+        const isFormVisible = document.getElementById('visitFormView') && !document.getElementById('visitFormView').classList.contains('d-none');
+        const isEditMode = document.getElementById('visitId') && document.getElementById('visitId').value !== "";
+        
+        if (isFormVisible && !isEditMode) {
+            const formData = window.collectVisitFormData();
+            if (!formData.docId && !formData.details && !formData.insight && !formData.nextAction) return;
+
+            localStorage.setItem('crm_visit_autosave', JSON.stringify(formData));
+            
+            const btnSave = document.getElementById('saveVisitBtn');
+            if (btnSave && !btnSave.innerHTML.includes('Auto-saved')) {
+                const originalHTML = btnSave.innerHTML;
+                btnSave.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-info"></i> Auto-saved';
+                setTimeout(() => { btnSave.innerHTML = originalHTML; }, 2000);
+            }
+        }
+    }, 1500); 
+};
+
+window.attachAutosaveListeners = function() {
+    const form = document.getElementById('visitForm');
+    if (form && !form.hasAttribute('data-autosave-attached')) {
+        form.addEventListener('input', window.triggerVisitAutosave);
+        form.addEventListener('change', window.triggerVisitAutosave);
+        form.setAttribute('data-autosave-attached', 'true');
+    }
+};
+
+window.checkAndRestoreAutosave = function() {
+    const savedDataStr = localStorage.getItem('crm_visit_autosave');
+    if (savedDataStr) {
+        try {
+            const savedData = JSON.parse(savedDataStr);
+            if (!savedData.docId && !savedData.details && !savedData.insight && !savedData.nextAction) return;
+
+            var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
+            var msg = appLang === 'en' ? "You have an unsaved draft. Do you want to restore it?" : "พบข้อมูลฟอร์มที่พิมพ์ค้างไว้รอบที่แล้ว ต้องการกู้คืนหรือไม่?";
+            
+            if (confirm(msg)) {
+                if (savedData.docId) {
+                     const docSelect = document.getElementById('visitDocId');
+                     if(docSelect && docSelect.tomselect) docSelect.tomselect.setValue(savedData.docId);
+                     else if(docSelect) docSelect.value = savedData.docId;
+                }
+                if (savedData.purpose) document.getElementById('visitPurpose').value = savedData.purpose;
+                if (savedData.date) document.getElementById('visitDate').value = savedData.date;
+                if (savedData.startTime) document.getElementById('visitStartTime').value = savedData.startTime;
+                if (savedData.endTime) document.getElementById('visitEndTime').value = savedData.endTime;
+                if (savedData.details) document.getElementById('visitDetails').value = savedData.details;
+                if (savedData.insight) document.getElementById('visitInsight').value = savedData.insight;
+                if (savedData.nextAction) document.getElementById('visitNextAction').value = savedData.nextAction;
+                if (savedData.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = savedData.isCoaching;
+                
+                if (window.showToast) window.showToast(appLang === 'en' ? "Draft restored successfully." : "กู้คืนข้อมูลสำเร็จ", "success");
+            } else {
+                localStorage.removeItem('crm_visit_autosave');
+            }
+        } catch(e) {}
+    }
+};
+
+window.checkMyDraftsReminder = function(myDraftCount) {
+  var toastContainer = document.getElementById('draftToastContainer');
+  if (!toastContainer) return;
+  if (sessionStorage.getItem('hasShownDraftReminder') === 'true') { toastContainer.innerHTML = ''; return; }
+
+  if (myDraftCount > 0) {
+    sessionStorage.setItem('hasShownDraftReminder', 'true');
+
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var titleText = appLang === 'en' ? 'Pending Drafts Reminder' : 'มีฉบับร่างค้างยืนยัน';
+    var descText = appLang === 'en' 
+        ? 'You have <b class="text-primary">' + myDraftCount + '</b> unsubmitted visit logs.' 
+        : 'คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง';
+
+    toastContainer.innerHTML = 
+      '<div class="draft-toast" id="myDraftToast">' +
+        '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
+        '<div>' +
+          '<div class="fw-bold text-dark small">' + titleText + '</div>' +
+          '<div class="text-secondary" style="font-size: 0.82rem;">' + descText + '</div>' +
+        '</div>' +
+        '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
+      '</div>';
+    setTimeout(function() { var t = document.getElementById('myDraftToast'); if (t) t.remove(); }, 7000);
+  } else { toastContainer.innerHTML = ''; }
+};
+
+// ==========================================
+// 📊 5. VIEW TOGGLE FUNCTIONS
+// ==========================================
+window.toggleMainView = function(viewName) {
+  window.VisitManagerCache = window.VisitManagerCache || {};
+  window.VisitManagerCache.currentMainView = viewName;
+  var btnList = document.getElementById('btnToggleList');
+  var btnCal = document.getElementById('btnToggleCal');
+  var listZone = document.getElementById('visitListZone');
+  var calZone = document.getElementById('visitCalendarZone');
+
+  if (viewName === 'calendar') {
+      if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+      if (btnCal) btnCal.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+      if (listZone) listZone.classList.add('d-none');
+      if (calZone) calZone.classList.remove('d-none');
+      if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
+  } else {
+      if (btnList) btnList.className = 'btn btn-sm btn-primary rounded-pill px-3 fw-bold text-white';
+      if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary rounded-pill px-3 fw-bold border-0';
+      if (calZone) calZone.classList.add('d-none');
+      if (listZone) listZone.classList.remove('d-none');
+  }
+};
+
+window.switchVisitView = function(viewId) {
+  var views = ['visitListView', 'visitFormView'];
+  views.forEach(function(v) { var el = document.getElementById(v); if(el) el.classList.add('d-none'); });
+  var target = document.getElementById(viewId); 
+  if(target) target.classList.remove('d-none');
+  window.scrollTo(0, 0);
+};
+
+window.updateStatCards = function(filteredVisits) {
+  var total = window.totalVisitsCount || filteredVisits.length;
+  var pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
+  var submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
+
+  if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
+  if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
+  if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
+};
+
+// ==========================================
+// 📥 6. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
 window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
@@ -737,7 +946,7 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || crmUser.Territory || '').trim() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.teamId || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
     var isGlobalViewer = window.myIsGlobalViewer;
     var isBuHead = window.myIsBuHead;
@@ -983,7 +1192,7 @@ window.clearVisitFilters = function() {
 };
 
 // ==========================================
-// 📥 9. DATA LOADING & PAGINATION
+// 📥 7. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
@@ -1492,7 +1701,7 @@ window.sortVisits = function(col) {
 };
 
 // ==========================================
-// 📝 10. FORM ACTIONS & EDIT VISIT VIEW
+// 📝 8. FORM ACTIONS & EDIT VISIT VIEW
 // ==========================================
 window.openAddVisitView = async function(presetDate) {
   window.applyVisitFeaturesUI();
@@ -1779,7 +1988,7 @@ window.openEditVisitView = function(visitId) {
 };
 
 // ==========================================
-// ⛱️ 11. TOT MODAL (TIME OFF TERRITORY)
+// ⛱️ 9. TOT MODAL (TIME OFF TERRITORY)
 // ==========================================
 window.initTotModal = function() {
   if (!window.totModalInstance) {
@@ -1863,7 +2072,7 @@ window.populateTotTypes = function() {
 };
 
 // ==========================================
-// 🔍 12. LAST VISIT HISTORY ENGINE
+// 🔍 10. LAST VISIT HISTORY ENGINE
 // ==========================================
 window.fetchLastVisitHistory = async function(docId) {
     const historyBox = document.getElementById('lastVisitHistoryBox');
@@ -1973,10 +2182,56 @@ window.bindDoctorChangeForHistory = function() {
 };
 
 // ==========================================
-// 🔗 13. INITIALIZE & EVENT LISTENERS
+// 🔗 11. INITIALIZE & EVENT LISTENERS
 // ==========================================
 window.isInitialLoading = true;
 window._isInitRunning = false; 
+
+window.updateLangUI = function() {
+    if (window.isInitialLoading) return; 
+
+    var formView = document.getElementById('visitFormView');
+    if (formView && !formView.classList.contains('d-none')) {
+        var visitIdEl = document.getElementById('visitId');
+        var currentVisitId = visitIdEl ? visitIdEl.value : '';
+        if (!currentVisitId || currentVisitId === 'NEW') {
+            if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+        }
+    }
+    if (typeof window.loadDropdowns === 'function') {
+        window.loadDropdowns(false).then(() => {
+            if (formView && !formView.classList.contains('d-none')) {
+                var vId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+                if (vId && vId !== 'NEW') {
+                    if (typeof window.openEditVisitView === 'function') window.openEditVisitView(vId); 
+                } else {
+                    if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
+                    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
+                }
+            }
+        });
+    } 
+    
+    if (typeof window.renderVisitTableServerSide === 'function') {
+        window.renderVisitTableServerSide();
+    } else if (typeof window.renderVisitTable === 'function') {
+        window.renderVisitTable();
+    }
+    
+    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+        if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
+    }   
+    if (typeof window.refreshSampleDropdownLang === 'function') {
+        window.refreshSampleDropdownLang();
+    }
+};
+
+if (!window._isAppLangListenerAttached) {
+    window.addEventListener('appLanguageChanged', function() {
+        if (typeof window.updateLangUI === 'function') window.updateLangUI();
+    });
+    window._isAppLangListenerAttached = true;
+}
 
 window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
