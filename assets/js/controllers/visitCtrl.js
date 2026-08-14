@@ -1074,11 +1074,6 @@ window.loadDropdowns = async function(forceReload) {
             
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
             else window.tomSelectStatusInstance.setValue('', true);
-        } else {
-            var optStatusPending = appLang === 'th' ? '⏳ รอส่ง (Pending)' : '⏳ Pending';
-            var optStatusSubmitted = appLang === 'th' ? '✅ ส่งแล้ว (Submitted)' : '✅ Submitted';
-            statusSelect.innerHTML = '<option value="">' + optAllStatus + '</option><option value="Pending">' + optStatusPending + '</option><option value="Submitted">' + optStatusSubmitted + '</option>';
-            if (oldStatusVal) statusSelect.value = oldStatusVal;
         }
     }
  
@@ -1109,12 +1104,6 @@ window.loadDropdowns = async function(forceReload) {
     } 
 
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-        var waitCount = 0;
-        while (typeof window.fetchAllRecords !== 'function' && waitCount < 20) {
-            await new Promise(r => setTimeout(r, 100)); 
-            waitCount++;
-        }
-
         var fetchFn = typeof window.fetchAllRecords === 'function' 
             ? window.fetchAllRecords 
             : async function(tbl, modifier) { 
@@ -1226,7 +1215,7 @@ window.loadDropdowns = async function(forceReload) {
 
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-    // 🌟 3. โหลดตัวเลือกวัตถุประสงค์ (Purpose) ทั้งหมดอย่างปลอดภัย
+    // 🎯 ส่วนแก้ไขหลัก PURPOSE: ใส่ทั้ง Index_ID และ ข้อความภาษาไทย/อังกฤษ ให้ TomSelect ค้นเจอทั้งหมด
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect) { 
       var types = window.VisitManagerCache.indexTypes || []; 
@@ -1243,9 +1232,11 @@ window.loadDropdowns = async function(forceReload) {
       var purposeData = [];
       purposeItems.forEach(function(i) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
-          purposeData.push({
-              value: i.Index_ID, text: (appLang === 'en') ? valEN : valTH, searchEn: valEN, searchTh: valTH
-          });
+          var dispText = (appLang === 'en') ? valEN : valTH;
+          
+          if (i.Index_ID) purposeData.push({ value: i.Index_ID, text: dispText, searchEn: valEN, searchTh: valTH });
+          if (valTH && valTH !== i.Index_ID) purposeData.push({ value: valTH, text: dispText, searchEn: valEN, searchTh: valTH });
+          if (valEN && valEN !== i.Index_ID && valEN !== valTH) purposeData.push({ value: valEN, text: dispText, searchEn: valEN, searchTh: valTH });
       });
 
       if (typeof TomSelect !== 'undefined') {
@@ -1259,7 +1250,6 @@ window.loadDropdowns = async function(forceReload) {
       }
     }
 
-    // ⚡ ตั้งค่าหมอทันทีในขั้นตอนสร้าง TomSelect โดยไม่ต้องตั้ง setTimeout ถ่วงเวลา
     var returnToDocId = sessionStorage.getItem('returnToDocId');
     if (returnToDocId && window.tomSelectDocInstance) {
         window.tomSelectDocInstance.setValue(returnToDocId, true);
@@ -2030,7 +2020,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-window.openEditVisitView = function(visitId) {
+ window.openEditVisitView = function(visitId) {
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2038,7 +2028,7 @@ window.openEditVisitView = function(visitId) {
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. เปิดฟอร์มขึ้นจอทันที 0 วินาที (Non-blocking UI)
+  // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0 วินาที (Non-blocking UI)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2060,12 +2050,12 @@ window.openEditVisitView = function(visitId) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. โหลดชื่อหมอขึ้นทันที (0s delay)
+  // ⚡ 2. ตั้งค่าชื่อหมอทันที (0s delay)
   if (v.Doc_ID && window.tomSelectDocInstance) {
       window.tomSelectDocInstance.setValue(v.Doc_ID, true);
   }
 
-  // ⚡ 3. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
+  // ⚡ 3. ตั้งค่า วันที่ / เวลา / รายละเอียดกิจกรรม
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2101,7 +2091,7 @@ window.openEditVisitView = function(visitId) {
 
           tsPurp.setValue(targetIndexId, true);
 
-          // Failsafe ยัด Option สำรองกรณีเป็นข้อความ Text ที่ไม่มีใน Index Table
+          // Failsafe: หากเป็นข้อความภาษาไทย/อังกฤษ ที่ไม่มีใน Index ให้ยัดตัวเลือกสำรองให้
           if (!tsPurp.getValue()) {
               tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
               tsPurp.setValue(dbPurposeVal, true);
