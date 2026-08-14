@@ -266,15 +266,22 @@
     </div>
     
     <div class="card p-4 border-0 shadow-sm visit-card">
-      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
-        <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span></button>
+      <!-- 🌟 ปรับปรุงแท็บสลับหน้าใน Profile -->
+      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" id="docProfileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-btn-info" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-info')">
+            <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
+          </button>
         </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span></button>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-btn-history" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-history')">
+            <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span>
+          </button>
         </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span></button>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-btn-target" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button" role="tab" onclick="window.switchDoctorProfileTab('#tab-doc-target')">
+            <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span>
+          </button>
         </li>
       </ul>
 
