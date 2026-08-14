@@ -1177,14 +1177,41 @@ window.filterAndRenderDoctorVisits = function() {
     });
     const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || rawWho) : (rawWho || '-');
 
-    // 🌟 2. Lookup หา Territory Name / Code ปรับคลาสสไตล์ให้อ่านง่าย ชัดเจน ไม่จาง
-    const rawTerrId = v.Territory_ID || v.territory_id || '';
-    const terrObj = (window.globalTerritories || window.DocManagerCache.territories || []).find(t => {
-      const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
-      return tId !== '' && tId === String(rawTerrId).toLowerCase().trim();
-    });
-    const terrNameShow = terrObj ? (terrObj.Territory || terrObj.territory || rawTerrId) : (rawTerrId || '-');
-    const terrBadgeHtml = rawTerrId ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` : '-';
+    // 🌟 2. Lookup หา Territory Name / Code ตามโครงสร้าง Organization Structure
+    const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
+    let terrNameShow = '-';
+
+    if (rawTerrId) {
+      const searchTarget = String(rawTerrId).toLowerCase().trim();
+
+      // Step A: ค้นหาจาก Master Table Territories (หาด้วย ID, Code หรือ Name)
+      const terrObj = (window.globalTerritories || window.DocManagerCache.territories || []).find(t => {
+        const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
+        const tCode = String(t.Territory_Code || t.code || t.Territory || '').toLowerCase().trim();
+        return tId === searchTarget || tCode === searchTarget;
+      });
+
+      if (terrObj) {
+        terrNameShow = terrObj.Territory_Name || terrObj.Territory || terrObj.Territory_Code || terrObj.name;
+      } else {
+        // Step B: ค้นหาจาก Teams (กรณี Territory_ID เก็บเป็น Team UUID)
+        const teamObj = (window.globalTeams || window.DocManagerCache.teams || []).find(tm => {
+          const tmId = String(tm.Team_ID || tm.team_id || tm.id || '').toLowerCase().trim();
+          return tmId === searchTarget;
+        });
+
+        if (teamObj) {
+          terrNameShow = teamObj.Team_Name || teamObj.team_name || teamObj.Name || rawTerrId;
+        } else if (!rawTerrId.includes('-')) {
+          // กรณีไม่ใช่ UUID (เช่น โค้ด 'L1' หรือข้อความสั้นๆ)
+          terrNameShow = rawTerrId;
+        }
+      }
+    }
+
+    const terrBadgeHtml = (terrNameShow !== '-') 
+      ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` 
+      : '-';
 
     // 🌟 3. ดึงค่า Purpose / Objective
     const purposeShow = v.Purpose || v.purpose || v.Objective || v.objective || '-';
