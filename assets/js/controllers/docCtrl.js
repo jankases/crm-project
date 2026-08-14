@@ -864,17 +864,18 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
-  if(parsedWp.length > 0) {
+if(parsedWp.length > 0) {
     parsedWp.forEach(wp => {
-      const isPrimary = wp.isPrimary ? `<span class="badge badge-soft-info ms-2">${primaryBadgeText}</span>` : '';
+      const isPrimary = wp.isPrimary ? `<span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span>` : '';
       const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
       const hospName = window.getHospitalNameByLang(hospObj);
-      wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
+      wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> ${isPrimary}</div>`;
     });
   } else {
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
     const hospName = window.getHospitalNameByLang(hospObj);
-    wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge badge-soft-info ms-2">${primaryBadgeText}</span></div>`;
+    // 🎨 แก้ไขตรงนี้ให้ใช้ bg-success-subtle เหมือนด้านบน
+    wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> <span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span></div>`;
   }
 
   if (document.getElementById('viewWorkplaceContainer')) {
