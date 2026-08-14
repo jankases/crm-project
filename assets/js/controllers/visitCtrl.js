@@ -2101,30 +2101,7 @@ window.loadVisits = async function(forceReload) {
 };
 
 window.renderPaginationControls = function(totalPages) {
-  var ul = document.getElementById('visitPagination');
-  if (!ul) return;
-  if (totalPages === Infinity || isNaN(totalPages)) return; 
-  var html = '';
-
-  html += '<li class="page-item ' + (window.currentPage === 1 ? 'disabled' : '') + '"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + (window.currentPage - 1) + '); return false;">&laquo; Prev</a></li>';
-  var startPage = Math.max(1, window.currentPage - 2);
-  var endPage = Math.min(totalPages, window.currentPage + 2);
-
-  if (startPage > 1) {
-      html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(1); return false;">1</a></li>';
-      if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-  }
-
-  for (var i = startPage; i <= endPage; i++) {
-      html += '<li class="page-item ' + (window.currentPage === i ? 'active' : '') + '"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + i + '); return false;">' + i + '</a></li>';
-  }
-
-  if (endPage < totalPages) {
-      if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-      html += '<li class="page-item"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + totalPages + '); return false;">' + totalPages + '</a></li>';
-  }
-  html += '<li class="page-item ' + (window.currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '"><a class="page-link shadow-sm" href="#" onclick="window.goToPage(' + (window.currentPage + 1) + '); return false;">Next &raquo;</a></li>';
-  ul.innerHTML = html;
+  window.renderGlobalPagination('visitPagination', window.currentPage, totalPages, 'goToPage');
 };
 
 window.goToPage = function(page) {
