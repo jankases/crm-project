@@ -2039,7 +2039,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. สลับหน้าจอเปิดฟอร์มขึ้นทันที 0 วินาที! (ไม่ต้องรอข้อมูลหนักๆ ด้านล่าง)
+  // 🚀 1. สลับหน้าจอเปิดฟอร์มขึ้นทันทีเป็นอันดับแรก (ให้ UI กางออกก่อน)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2064,17 +2064,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. ยัดชื่อหมอลงกล่องทันที
-  if (v.Doc_ID) {
-      if (window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(v.Doc_ID, true);
-      } else {
-          var docSelect = document.getElementById('visitDocId');
-          if (docSelect) docSelect.value = v.Doc_ID;
-      }
-  }
-
-  // ⚡ 3. ยัดวันที่ / เวลา / ข้อความ รายละเอียด
+  // ⚡ 2. ยัดค่าลง Input ปกติก่อน
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2087,43 +2077,56 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitStatus').value = v.Status || 'Pending';
   document.getElementById('visitIsCoaching').checked = (v.Is_Coaching === true);
 
-  // 🎯 4. ตั้งค่า Purpose (วัตถุประสงค์)
-  var targetPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
-  if (window.tomSelectPurposeInstance) {
-      var tsPurp = window.tomSelectPurposeInstance;
-      tsPurp.clear(true);
-
-      if (targetPurpose && targetPurpose !== '-') {
-          tsPurp.setValue(targetPurpose, true);
-
-          if (!tsPurp.getValue()) {
-              var matchedVal = null;
-              for (var optKey in tsPurp.options) {
-                  var opt = tsPurp.options[optKey];
-                  if (String(opt.value).toLowerCase() === targetPurpose.toLowerCase() || 
-                      String(opt.text).toLowerCase() === targetPurpose.toLowerCase() ||
-                      String(opt.searchEn || '').toLowerCase() === targetPurpose.toLowerCase() ||
-                      String(opt.searchTh || '').toLowerCase() === targetPurpose.toLowerCase()) {
-                      matchedVal = opt.value;
-                      break;
-                  }
-              }
-              if (matchedVal) {
-                  tsPurp.setValue(matchedVal, true);
-              } else {
-                  tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
-                  tsPurp.setValue(targetPurpose, true);
-              }
-          }
-
-          if (typeof window.updatePurposeDisplayLang === 'function') {
-              window.updatePurposeDisplayLang();
+  // ⚡ 3. ใช้ requestAnimationFrame รอให้ DOM กางเสร็จแล้วยัดค่า TomSelect ทันที (แก้หมอ/Purpose ขึ้นช้า)
+  requestAnimationFrame(function() {
+      // 3.1 ยัด Doctor Name
+      if (v.Doc_ID) {
+          if (window.tomSelectDocInstance) {
+              window.tomSelectDocInstance.setValue(v.Doc_ID, true);
+          } else {
+              var docSelect = document.getElementById('visitDocId');
+              if (docSelect) docSelect.value = v.Doc_ID;
           }
       }
-  }
+
+      // 3.2 ยัด Purpose
+      var targetPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
+      if (window.tomSelectPurposeInstance) {
+          var tsPurp = window.tomSelectPurposeInstance;
+          tsPurp.clear(true);
+
+          if (targetPurpose && targetPurpose !== '-') {
+              tsPurp.setValue(targetPurpose, true);
+
+              if (!tsPurp.getValue()) {
+                  var matchedVal = null;
+                  for (var optKey in tsPurp.options) {
+                      var opt = tsPurp.options[optKey];
+                      if (String(opt.value).toLowerCase() === targetPurpose.toLowerCase() || 
+                          String(opt.text).toLowerCase() === targetPurpose.toLowerCase() ||
+                          String(opt.searchEn || '').toLowerCase() === targetPurpose.toLowerCase() ||
+                          String(opt.searchTh || '').toLowerCase() === targetPurpose.toLowerCase()) {
+                          matchedVal = opt.value;
+                          break;
+                      }
+                  }
+                  if (matchedVal) {
+                      tsPurp.setValue(matchedVal, true);
+                  } else {
+                      tsPurp.addOption({ value: targetPurpose, text: targetPurpose, searchTh: targetPurpose, searchEn: targetPurpose });
+                      tsPurp.setValue(targetPurpose, true);
+                  }
+              }
+
+              if (typeof window.updatePurposeDisplayLang === 'function') {
+                  window.updatePurposeDisplayLang();
+              }
+          }
+      }
+  });
 
   // -------------------------------------------------------------
-  // ⏳ 5. โหลดข้อมูลหนักเบื้องหลัง (Products / Samples / Attachments)
+  // ⏳ 4. ส่วนโหลดหนักในเบื้องหลัง (Products / Samples / Attachments)
   // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown(); 
   var visitProds = window.globalVisitProducts.filter(function(vp) { return String(vp.Visit_ID) === String(visitId); }).map(function(vp) { return String(vp.Product_ID); });
