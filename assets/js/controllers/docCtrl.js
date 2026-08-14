@@ -397,10 +397,8 @@ window.renderDoctorTableServerSide = function() {
   const rows = parseInt(window.rowsPerPage) || 20;
   const totalPages = Math.ceil(totalItems / rows);
 
-  // 🌟 ดึงภาษาปัจจุบันของระบบ
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-  // 1. กรณีไม่มีข้อมูล
   if (data.length === 0) {
     if (document.getElementById('doctorPaginationContainer')) {
       document.getElementById('doctorPaginationContainer').classList.add('d-none');
@@ -410,7 +408,6 @@ window.renderDoctorTableServerSide = function() {
     return;
   }
 
-  // 2. แสดงตัวควบคุม Pagination
   if (document.getElementById('doctorPaginationContainer')) {
     document.getElementById('doctorPaginationContainer').classList.remove('d-none');
   }
@@ -418,36 +415,34 @@ window.renderDoctorTableServerSide = function() {
   const startIndex = ((window.currentPage - 1) * rows) + 1;
   const endIndex = Math.min(startIndex + data.length - 1, totalItems);
 
-  // 🌟 สรุปจำนวนรายการแบบ 2 ภาษา
   if (document.getElementById('doctorPageInfo')) {
     document.getElementById('doctorPageInfo').innerText = appLang === 'en'
       ? `Showing ${startIndex} to ${endIndex} of ${totalItems} entries`
       : `แสดง ${startIndex} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // 3. วาดแถวข้อมูลในตาราง
   let htmlBuffer = '';
   const editBtnText = appLang === 'en' ? 'Edit' : 'แก้ไข';
 
   data.forEach(d => {
-    // 🌟 แปลสถานะ
     const isStatusActive = (d.Status === 'Active');
     const badge = isStatusActive ? 'badge-soft-success' : 'badge-soft-danger';
     const statusTextShow = isStatusActive 
       ? (appLang === 'en' ? 'Active' : 'ใช้งาน') 
       : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
     
-    // ดึงชื่อแพทย์ภาษาไทย/อังกฤษ (ป้องกันบั๊กเครื่องหมาย ???)
-    const docNameShow = window.getDoctorNameByLang(d, d.Doc_ID);
+    // 🌟 บังคับดึงชื่อภาษาอังกฤษ (Doc_Name) ตรงๆ สำหรับคอลัมน์ EN
+    const docNameEnShow = d.Doc_Name || d.doc_name || '-';
+    
+    // 🌟 คอลัมน์ TH เช็กถ้าเป็น ??? หรือไม่มีค่า ให้แสดง -
     const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
-    // 🌟 ปุ่มแก้ไขแบบ 2 ภาษา
     const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen me-1"></i> ${editBtnText}</button>`;
     
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
     const hospNameShow = hospObj ? (hospObj.Known_As || hospObj.Hospital) : '-';
 
-    const nameCellLink = `<a href="#" class="table-visit-link" onclick="window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameShow}</a>`;
+    const nameCellLink = `<a href="#" class="table-visit-link" onclick="window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
 
     htmlBuffer += `
       <tr>
@@ -462,7 +457,6 @@ window.renderDoctorTableServerSide = function() {
 
   tbody.innerHTML = htmlBuffer;
 
-  // 🌟 เรียกปรับปุ่ม Prev/Next หน้า Pagination
   if (typeof window.renderDoctorPaginationControls === 'function') {
     window.renderDoctorPaginationControls(totalPages);
   }
