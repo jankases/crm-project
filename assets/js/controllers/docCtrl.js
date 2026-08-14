@@ -185,7 +185,7 @@ window.stopSpeechSearch = function() {
 };
 
 // ==========================================
-// 📥 4. PERMISSIONS & DROPDOWNS SETUP
+// 📥 4. PERMISSIONS & DROPDOWNS SETUP (FILTER DISTINCT DATA STRICTLY)
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
@@ -204,15 +204,14 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         const r = await q; return r.data || [];
       };
 
-      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes, docDistinctRes] = await Promise.all([
+      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes] = await Promise.all([
         sb.from('IndexType').select('*'),
         sb.from('Index').select('*').order('Value', { ascending: true }),
         fetchFn('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
         fetchFn('Assignment'),
         sb.from('Territory').select('*'),
         sb.from('Team').select('*'),
-        sb.from('BU').select('*'),
-        sb.from('Doctors').select('Specialty, Type') // 🌟 ดึงข้อมูล Specialty และ Doctor Type ทั้งหมดมาดึง Distinct
+        sb.from('BU').select('*')
       ]);
 
       window.DocManagerCache.indexTypes = typeRes.data || [];
@@ -270,20 +269,41 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.isGlobalViewer = isGlobalViewer;
       window.DocManagerCache.myAllowedTerIds = allowedTerIds;
       window.DocManagerCache.myAllowedDocIds = allowedDocIds;
+
+      // 🌟 ดึงข้อมูล Specialty และ Type เฉพาะจากตารางที่มีสิทธิ์ตามจริง
+      let docQuery = sb.from('Doctors').select('Specialty, Type');
+      if (!isGlobalViewer) {
+        if (allowedDocIds.length > 0) {
+          docQuery = docQuery.in('Doc_ID', allowedDocIds);
+        } else {
+          docQuery = docQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+        }
+      }
+
+      const docDistinctRes = await docQuery;
+      const validDocsData = docDistinctRes.data || [];
+
       window.DocManagerCache.indexLoaded = true;
 
-      // 🌟 เติม Dropdown Specialty (กรองเฉพาะที่มีใน Data จริงเท่านั้น)
+      // 🌟 เติม Dropdown โรงพยาบาล
+      const hospSelect = document.getElementById('filterDocWorkplace');
+      if (hospRes && hospSelect) {
+        hospSelect.innerHTML = hospRes.map(h => `<option value="${h.Hospital_ID}">${h.Known_As || h.Hospital}</option>`).join('');
+        window.initMultiTomSelect('filterDocWorkplace', '- All Hospitals -');
+      }
+
+      // 🌟 เติม Dropdown Specialty (กรองเฉพาะที่มีใน Data จริงของยูสเซอร์คนนี้)
       const specSelect = document.getElementById('filterDocSpecialty');
-      if (docDistinctRes.data && specSelect) {
-        const uniqueSpecs = [...new Set(docDistinctRes.data.map(d => d.Specialty).filter(v => v && v.trim() !== '' && v !== '-'))].sort();
+      if (specSelect) {
+        const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
         window.initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
       }
 
-      // 🌟 เติม Dropdown Doctor Type (กรองเฉพาะที่มีใน Data จริงเท่านั้น)
+      // 🌟 เติม Dropdown Doctor Type (กรองเฉพาะที่มีใน Data จริงของยูสเซอร์คนนี้)
       const typeSelect = document.getElementById('filterDocType');
-      if (docDistinctRes.data && typeSelect) {
-        const uniqueTypes = [...new Set(docDistinctRes.data.map(d => d.Type).filter(v => v && v.trim() !== '' && v !== '-'))].sort();
+      if (typeSelect) {
+        const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
         window.initMultiTomSelect('filterDocType', '- All Types -');
       }
