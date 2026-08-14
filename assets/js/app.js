@@ -122,6 +122,17 @@ async function loadComponent(page) {
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = html;
 
+     // 🌟 สั่งรัน Controller เมื่อโหลดหน้า View เสร็จแล้ว
+        if (page === 'doctor') {
+            if (typeof window.initDoctorPage === 'function') {
+                window.initDoctorPage(true);
+            }
+        } else if (page === 'visit') {
+            if (typeof window.initVisitPage === 'function') {
+                window.initVisitPage(true);
+            }
+        }
+
         // ประมวลผลเฉพาะสคริปต์ใน Component (ยกเว้น Controllers ที่โหลดไปแล้ว)
         const scriptElements = mainContent.querySelectorAll('script');
         scriptElements.forEach(s => {
