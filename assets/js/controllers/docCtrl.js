@@ -84,6 +84,17 @@ window.getDoctorNameByLang = function(docObj, defaultId) {
   return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
 };
 
+// 🌟 HELPER สำหรับดึงชื่อโรงพยาบาลตามภาษา
+window.getHospitalNameByLang = function(hospObj) {
+  if (!hospObj) return "Hospital";
+  var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  if (lang === 'en') {
+    return hospObj.Hospital || hospObj.Known_As || "Hospital";
+  } else {
+    return hospObj.Known_As || hospObj.Hospital || "Hospital";
+  }
+};
+
 window.switchDoctorView = function(viewId) {
   ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
     const el = document.getElementById(v); if (el) el.classList.add('d-none'); 
@@ -563,8 +574,9 @@ window.renderDoctorTableServerSide = function() {
     
     const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen me-1"></i> ${editBtnText}</button>`;
     
+    // 🌟 แปลชื่อโรงพยาบาลในตารางหลัก
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
-    const hospNameShow = hospObj ? (hospObj.Known_As || hospObj.Hospital) : '-';
+    const hospNameShow = window.getHospitalNameByLang(hospObj);
 
     const nameCellLink = `<a href="#" class="table-visit-link" onclick="window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
 
@@ -673,7 +685,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const selected = h.Hospital_ID === hospId ? 'selected' : '';
-    const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
+    const showName = window.getHospitalNameByLang(h);
     optionsHtml += `<option value="${h.Hospital_ID}" ${selected}>${showName}</option>`;
   });
 
@@ -788,7 +800,6 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
 
-  // 🌟 มีการเช็กความปลอดภัย (Safety Check) ป้องกัน Error กรณีหา Element ไม่เจอ
   const titleEl = document.getElementById('viewDocTitleName');
   if (titleEl) {
     titleEl.innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
@@ -800,6 +811,7 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
   if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
 
+  // 🌟 FIX 点 1: แปลชื่อโรงพยาบาลตามภาษาปัจจุบัน
   let wpHTML = '';
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
@@ -807,13 +819,13 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   if(parsedWp.length > 0) {
     parsedWp.forEach(wp => {
       const isPrimary = wp.isPrimary ? '<span class="badge badge-soft-info ms-2">Primary</span>' : '';
-      const hospObj = (window.DocManagerCache.hospitals || []).find(h => h.Hospital_ID === wp.hospitalId);
-      const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Hospital";
+      const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
+      const hospName = window.getHospitalNameByLang(hospObj);
       wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
     });
   } else {
-    const hospObj = (window.DocManagerCache.hospitals || []).find(h => h.Hospital_ID === (d.Hospital_ID || d.hospitalId));
-    const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Primary Hospital";
+    const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
+    const hospName = window.getHospitalNameByLang(hospObj);
     wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge badge-soft-info ms-2">Primary</span></div>`;
   }
 
@@ -1016,47 +1028,129 @@ window.filterAndRenderDoctorVisits = function() {
   const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
   const prodTerm = document.getElementById('filterProfileVisitProduct') ? document.getElementById('filterProfileVisitProduct').value : '';
 
-  let filtered = window.globalCurrentDoctorVisits.filter(v => {
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
+  let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
     let matchDate = true;
     if (startDateTerm || endDateTerm) {
-        const vDate = new Date(v.Visit_Date);
-        vDate.setHours(0, 0, 0, 0); 
-        
-        if (startDateTerm) {
-            const sDate = new Date(startDateTerm);
-            sDate.setHours(0, 0, 0, 0);
-            if (vDate < sDate) matchDate = false;
-        }
-        if (endDateTerm) {
-            const eDate = new Date(endDateTerm);
-            eDate.setHours(23, 59, 59, 999);
-            if (vDate > eDate) matchDate = false;
-        }
+      const vDate = new Date(v.Visit_Date);
+      vDate.setHours(0, 0, 0, 0); 
+      
+      if (startDateTerm) {
+        const sDate = new Date(startDateTerm);
+        sDate.setHours(0, 0, 0, 0);
+        if (vDate < sDate) matchDate = false;
+      }
+      if (endDateTerm) {
+        const eDate = new Date(endDateTerm);
+        eDate.setHours(23, 59, 59, 999);
+        if (vDate > eDate) matchDate = false;
+      }
     }
 
-    const visitProds = window.globalCurrentDoctorVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
+    const visitProds = (window.globalCurrentDoctorVisitProducts || [])
+      .filter(vp => String(vp.Visit_ID) === String(v.Visit_ID))
+      .map(vp => String(vp.Product_ID));
+
     const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
 
     return matchDate && matchProd;
   });
 
-  tbody.innerHTML = '';
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No visit history found.</td></tr>';
+  const sortCol = window.currentPVisitSortCol || 'date';
+  const sortAsc = window.currentPVisitSortAsc || false;
+
+  filtered.sort((a, b) => {
+    let valA, valB;
+    if (sortCol === 'date') {
+      valA = new Date(a.Visit_Date || 0).getTime();
+      valB = new Date(b.Visit_Date || 0).getTime();
+    } else if (sortCol === 'user') {
+      valA = (a.Whoupdated || '').toLowerCase();
+      valB = (b.Whoupdated || '').toLowerCase();
+    } else if (sortCol === 'territory') {
+      valA = (a.Territory_ID || '').toLowerCase();
+      valB = (b.Territory_ID || '').toLowerCase();
+    } else if (sortCol === 'status') {
+      valA = (a.Status || '').toLowerCase();
+      valB = (b.Status || '').toLowerCase();
+    } else {
+      valA = (a.Purpose || '').toLowerCase();
+      valB = (b.Purpose || '').toLowerCase();
+    }
+
+    if (valA < valB) return sortAsc ? -1 : 1;
+    if (valA > valB) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const totalItems = filtered.length;
+  const rows = parseInt(window.pvisitRowsPerPage) || 10;
+  const totalPages = Math.ceil(totalItems / rows);
+
+  if (totalItems === 0) {
+    if (document.getElementById('pvisitPaginationContainer')) {
+      document.getElementById('pvisitPaginationContainer').classList.add('d-none');
+    }
+    const noDataMsg = appLang === 'en' ? 'No visit history found.' : 'ไม่พบประวัติการเยี่ยม';
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-folder-open fs-4 mb-2 d-block text-muted"></i>${noDataMsg}</td></tr>`;
     return;
   }
 
-  filtered.forEach(v => {
-    const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
-    tbody.innerHTML += `
+  if (document.getElementById('pvisitPaginationContainer')) {
+    document.getElementById('pvisitPaginationContainer').classList.remove('d-none');
+  }
+
+  const currentPage = window.currentPVisitPage || 1;
+  const startIndex = (currentPage - 1) * rows;
+  const endIndex = Math.min(startIndex + rows, totalItems);
+  const pageData = filtered.slice(startIndex, endIndex);
+
+  if (document.getElementById('pvisitPageInfo')) {
+    document.getElementById('pvisitPageInfo').innerText = appLang === 'en'
+      ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`
+      : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
+  }
+
+  let htmlBuffer = '';
+  pageData.forEach(v => {
+    const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
+
+    let statusBadgeClass = 'badge-soft-success';
+    let statusText = v.Status || 'Submitted';
+    if (statusText === 'Draft') {
+      statusBadgeClass = 'badge-soft-warning';
+      statusText = appLang === 'en' ? 'Draft' : 'ฉบับร่าง';
+    } else if (statusText === 'Submitted') {
+      statusText = appLang === 'en' ? 'Submitted' : 'ส่งแล้ว';
+    }
+
+    const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
+    let prodBadges = '-';
+    if (matchedVps.length > 0) {
+      prodBadges = matchedVps.map(vp => {
+        const pObj = (window.globalProducts || []).find(p => String(p.Product_ID) === String(vp.Product_ID));
+        const pName = pObj ? pObj.Product : vp.Product_ID;
+        return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
+      }).join('');
+    }
+
+    htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">${dateStr}</td>
         <td class="fw-bold text-dark">${v.Whoupdated || '-'}</td>
-        <td class="text-center"><span class="badge badge-soft-product">${v.Territory_ID || '-'}</span></td>
-        <td><small>${v.Purpose || '-'}</small></td>
-        <td class="text-center"><span class="badge badge-soft-success">${v.Status || 'Submitted'}</span></td>
+        <td class="text-center"><span class="badge badge-soft-primary">${v.Territory_ID || '-'}</span></td>
+        <td>${prodBadges}</td>
+        <td><small class="text-secondary">${v.Purpose || '-'}</small></td>
+        <td class="text-center"><span class="badge ${statusBadgeClass}">${statusText}</span></td>
       </tr>`;
   });
+
+  tbody.innerHTML = htmlBuffer;
+
+  if (typeof window.renderGlobalPagination === 'function') {
+    window.renderGlobalPagination('pvisitPagination', currentPage, totalPages, 'goToPVisitPage');
+  }
 };
 
 window.clearRatingTable = function() {
@@ -1090,9 +1184,12 @@ window.loadDoctorRatings = async function(docId) {
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
+  // 🌟 FIX 点 2: แปลข้อความ Empty State ตาราง Rating
   if(!Array.isArray(ratings) || ratings.length === 0) {
-      tbody.innerHTML = '<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">No data. Click "Add Product"</td></tr>';
+      const noDataMsg = appLang === 'en' ? 'No data. Click "Add Product"' : 'ไม่มีข้อมูล กรุณากด "เพิ่มผลิตภัณฑ์"';
+      tbody.innerHTML = `<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
       return;
   }
 
@@ -1156,11 +1253,16 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
       potOpts += `<option value="${p}" ${sel}>${p}</option>`;
   });
 
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
+  const lockedText = appLang === 'en' ? 'Locked' : 'ถูกล็อก';
+
+  // 🌟 FIX 点 3: แสดงข้อความบนปุ่ม Save และ Locked ตามภาษาที่ถูกต้อง
   let actionHtml = '';
   if (canEdit) {
-      actionHtml = `<button class="btn btn-sm btn-premium-primary fw-bold px-3" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>`;
+      actionHtml = `<button class="btn btn-sm btn-premium-primary fw-bold px-3" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}</button>`;
   } else {
-      actionHtml = `<span class="badge badge-soft-secondary"><i class="fa-solid fa-lock me-1"></i> Locked</span>`;
+      actionHtml = `<span class="badge badge-soft-secondary"><i class="fa-solid fa-lock me-1"></i> ${lockedText}</span>`;
   }
 
   tr.innerHTML = `
@@ -1192,6 +1294,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
 
 window.saveTargetCallRow = async function(btn) {
   const tr = btn.closest('tr');
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
   const selectedProductId = tr.querySelector('.rating-product').value;
   const adoptVal = tr.querySelector('.rating-adopt').value;
@@ -1199,8 +1302,10 @@ window.saveTargetCallRow = async function(btn) {
   const classificationValue = tr.querySelector('.rating-class').value;
   const targetValue = tr.querySelector('.rating-target').value;
 
+  // 🌟 FIX 点 4: แปล Alert แจ้งเตือนเมื่อกรอกข้อมูลไม่ครบ
   if(!selectedProductId || !adoptVal || !potVal) {
-      alert("❌ Missing fields: Product, Adoption or Potential.");
+      const errMsg = appLang === 'en' ? "❌ Missing fields: Product, Adoption or Potential." : "❌ กรุณากรอกข้อมูลให้ครบถ้วน: ผลิตภัณฑ์, Adoption หรือ Potential";
+      alert(errMsg);
       return;
   }
 
@@ -1226,16 +1331,21 @@ window.saveTargetCallRow = async function(btn) {
       const { error } = await sb.from('Rating').upsert(payload, { onConflict: 'Doc_ID, Product_ID' });
       if (error) throw error;
 
-      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Saved';
+      // 🌟 FIX 点 5: แปลข้อความปุ่มกดเมื่อบันทึกสำเร็จ
+      const savedText = appLang === 'en' ? 'Saved' : 'บันทึกแล้ว';
+      const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
+
+      btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> ${savedText}`;
       setTimeout(() => {
           btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save';
+          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}`;
       }, 2000);
 
   } catch(err) {
+      const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
       alert("❌ Save failed: " + err.message);
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save';
+      btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}`;
   }
 };
 
@@ -1263,10 +1373,18 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
+// 🌟 FIX 点 6: ฟัง Event appLanguageChanged ให้สลับภาษาครอบคลุมทั้งตารางหลัก และหน้า Doctor Profile
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
+    // 1. ถ้าระบบอยู่ที่หน้าตารางหลัก ให้รีเรนเดอร์ตาราง
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
       window.renderDoctorTableServerSide();
+    }
+    
+    // 2. ถ้าระบบเปิดหน้า Doctor Profile อยู่ ให้รีเรนเดอร์ Profile เพื่อเปลี่ยนภาษาชื่อโรงพยาบาลและปุ่มกด
+    const profileView = document.getElementById('doctorProfileView');
+    if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
+      window.openViewDoctorProfile(window.currentTargetDocId);
     }
   });
   window._isDocLangListenerAttached = true;
