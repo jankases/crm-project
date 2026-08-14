@@ -875,11 +875,15 @@ window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
   window.loadDoctorVisitHistory(id);
   await window.loadDoctorRatings(id);
 
-  // 🌟 7. เปิด View และสั่ง Active หน้า Tab
+  // 🌟 7. เปิด View และสั่ง Active หน้า Tab ด้วย Bootstrap Native API
   window.switchDoctorView('doctorProfileView');
   
-  if (typeof window.switchDoctorProfileTab === 'function') {
-    window.switchDoctorProfileTab(targetTab);
+  const targetTabSelector = targetTab || '#tab-doc-info';
+  const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTabSelector}"]`);
+  
+  if (tabEl && typeof bootstrap !== 'undefined') {
+    const tab = bootstrap.Tab.getOrCreateInstance(tabEl);
+    tab.show();
   }
 };
 
@@ -1391,46 +1395,7 @@ window.initDoctorPage = async function(forceReload = false) {
     window._isDocInitRunning = false;
   }
 };
- 
-// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (แก้ไขให้รองรับทั้งการคลิกและการเรียกด้วย สตริง ID)
-window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
-  let cleanPaneId = 'tab-doc-info';
-  let targetBtn = null;
-
-  // Case 1: ถ้าส่งมาเป็น HTML Button Element (จากการกด onclick="switchDoctorProfileTab(this, 'tab-doc-history')")
-  if (btnOrTarget && btnOrTarget.nodeType) {
-    targetBtn = btnOrTarget;
-    if (targetPaneId) cleanPaneId = String(targetPaneId).replace('#', '');
-  } 
-  // Case 2: ถ้าส่งมาเป็น สตริง เช่น '#tab-doc-info' หรือ 'tab-doc-history'
-  else if (typeof btnOrTarget === 'string' && btnOrTarget.trim() !== '') {
-    cleanPaneId = btnOrTarget.replace('#', '');
-  }
-
-  // 1. ถอน active จากปุ่มแท็บทุกตัวในหน้า Profile
-  const allBtns = document.querySelectorAll('#docProfileTabs .nav-link');
-  allBtns.forEach(b => b.classList.remove('active'));
-
-  // 2. ถอน active และ show จากเนื้อหาแท็บทุกตัว
-  const allPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
-  allPanes.forEach(p => p.classList.remove('active', 'show'));
-
-  // 3. ถ้าไม่ได้ส่ง Element ปุ่มมา ให้ค้นหาปุ่มจาก ID ล่าสุด
-  if (!targetBtn) {
-    if (cleanPaneId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
-    else if (cleanPaneId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
-    else if (cleanPaneId === 'tab-doc-target') targetBtn = document.getElementById('tab-btn-target');
-  }
-
-  // 4. ใส่ active ให้ปุ่มแท็บ
-  if (targetBtn) targetBtn.classList.add('active');
-
-  // 5. แสดงเนื้อหา Pane
-  const targetPane = document.getElementById(cleanPaneId);
-  if (targetPane) {
-    targetPane.classList.add('active', 'show');
-  }
-};
+  
 
 // 🌟 FIX: ฟัง Event appLanguageChanged ให้สลับภาษาครอบคลุมทั้ง Dropdowns, ตารางหลัก และหน้า Doctor Profile
 if (!window._isDocLangListenerAttached) {
