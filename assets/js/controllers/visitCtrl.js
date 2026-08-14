@@ -2030,34 +2030,35 @@ window.loadVisits = async function(forceReload) {
 
     // ✨ 🌟 ปรับปรุงการจัดกลุ่มไอคอนหลักฐานให้อยู่ในรูปแบบ Soft Badge (Clean Look)
     // 🌟 ปรับปรุงไอคอนหลักฐานให้สีเด่น คมชัด ไม่กลืนพื้นหลัง
+    // ✨ 🌟 สไตล์ Soft Badge (Clean Look) ปรับโทนสีเข้ม คมชัด ไม่กลืนพื้นหลัง
     var evidenceBadges = '';
     
-    // 1. Joint Visit / Coaching (สีฟ้าสดใส คมชัด)
+    // 1. Joint Visit / Coaching (ป้ายสีฟ้าสด คมชัด)
     if (v.Is_Coaching) {
       var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
-      evidenceBadges += ' <i class="fa-solid fa-clipboard-user text-info fs-6 ms-1.5" title="' + coachingTooltip + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
     }
 
-    // 2. Attachments (ไฟล์แนบ - สีเทาเข้ม)
+    // 2. Attachments (ป้ายสีเทา คลีนๆ)
     if (v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
       var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
-      evidenceBadges += ' <i class="fa-solid fa-paperclip text-secondary fs-6 ms-1.5" title="' + ttAttach + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
     }
 
-    // 3. Signature (ลายเซ็นแพทย์ - สีเขียวสด)
+    // 3. Signature (ป้ายลายเซ็น สีเขียวสด)
     if (v.Doctor_Signature) {
       var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
-      evidenceBadges += ' <i class="fa-solid fa-signature text-success fs-6 ms-1.5" title="' + ttSig + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
     }
 
-    // 4. Samples & Promo Items (ของแจก - สีส้มสว่าง/ทอง เด่นชัดเจน)
+    // 4. Samples & Promo Items (ป้ายกล่องของขวัญ สีส้มสว่าง/ทอง)
     var vidClean = String(v.Visit_ID).trim().toLowerCase();
     var hasSamples = (v.Visit_Samples && v.Visit_Samples.length > 0) || 
                      (window._visitSampleIndex && window._visitSampleIndex[vidClean] && window._visitSampleIndex[vidClean].length > 0);
                      
     if (hasSamples) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
-      evidenceBadges += ' <i class="fa-solid fa-gifts text-warning fs-6 ms-1.5" title="' + ttSample + '"></i>';
+      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
     htmlBuffer += '<tr>' +
