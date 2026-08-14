@@ -108,6 +108,7 @@ window.switchDoctorView = function(viewId) {
 };
 
 window.goBackFromDoctorProfile = function() {
+  window.currentTargetDocId = ""; // เคลียร์ ID ป้องกัน Listener ดึง Profile ขึ้นมาใหม่
   const returnHospId = sessionStorage.getItem('returnToHospId');
   if (returnHospId) {
     sessionStorage.removeItem('returnToHospId');
@@ -1391,40 +1392,41 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
  
-// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (เสถียร 100% ไม่พึ่งพา Bootstrap Event)
+// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (แก้ไขให้รองรับทั้งการคลิกและการเรียกด้วย สตริง ID)
 window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
-  let cleanId = 'tab-doc-info';
+  let cleanPaneId = 'tab-doc-info';
   let targetBtn = null;
 
-  // Case A: ถ้าส่งสตริงเข้ามา เช่น '#tab-doc-info' หรือ 'tab-doc-info' (เรียกจาก openViewDoctorProfile)
-  if (typeof btnOrTarget === 'string') {
-    cleanId = btnOrTarget.replace('#', '');
-  } 
-  // Case B: ถ้าส่ง Element ปุ่ม (this) เข้ามาจากการคลิก
-  else if (btnOrTarget && btnOrTarget.nodeType) {
+  // Case 1: ถ้าส่งมาเป็น HTML Button Element (จากการกด onclick="switchDoctorProfileTab(this, 'tab-doc-history')")
+  if (btnOrTarget && btnOrTarget.nodeType) {
     targetBtn = btnOrTarget;
-    cleanId = (targetPaneId || 'tab-doc-info').replace('#', '');
+    if (targetPaneId) cleanPaneId = String(targetPaneId).replace('#', '');
+  } 
+  // Case 2: ถ้าส่งมาเป็น สตริง เช่น '#tab-doc-info' หรือ 'tab-doc-history'
+  else if (typeof btnOrTarget === 'string' && btnOrTarget.trim() !== '') {
+    cleanPaneId = btnOrTarget.replace('#', '');
   }
 
-  // 1. ถอนคลาส active ออกจากปุ่มแท็บทุกปุ่ม
+  // 1. ถอน active จากปุ่มแท็บทุกตัวในหน้า Profile
   const allBtns = document.querySelectorAll('#docProfileTabs .nav-link');
   allBtns.forEach(b => b.classList.remove('active'));
 
-  // 2. ถอนคลาส active และ show ออกจากเนื้อหาแท็บทุกหน้า
+  // 2. ถอน active และ show จากเนื้อหาแท็บทุกตัว
   const allPanes = document.querySelectorAll('#doctorProfileView .tab-pane');
   allPanes.forEach(p => p.classList.remove('active', 'show'));
 
-  // 3. ถ้าไม่ได้ปุ่มตรงๆ ให้หาปุ่มที่ตรงกับ Target ID
+  // 3. ถ้าไม่ได้ส่ง Element ปุ่มมา ให้ค้นหาปุ่มจาก ID ล่าสุด
   if (!targetBtn) {
-    if (cleanId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
-    else if (cleanId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
-    else if (cleanId === 'tab-doc-target') targetBtn = document.getElementById('tab-btn-target');
+    if (cleanPaneId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
+    else if (cleanPaneId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
+    else if (cleanPaneId === 'tab-doc-target') targetBtn = document.getElementById('tab-btn-target');
   }
 
-  // 4. สั่ง active ปุ่มและแสดงเนื้อหาแท็บที่ถูกต้อง
+  // 4. ใส่ active ให้ปุ่มแท็บ
   if (targetBtn) targetBtn.classList.add('active');
 
-  const targetPane = document.getElementById(cleanId);
+  // 5. แสดงเนื้อหา Pane
+  const targetPane = document.getElementById(cleanPaneId);
   if (targetPane) {
     targetPane.classList.add('active', 'show');
   }
