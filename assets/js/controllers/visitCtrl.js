@@ -3768,35 +3768,51 @@ window.checkAndRestoreAutosave = function() {
 };
 
 // ==========================================
-// 🔍 LAST VISIT HISTORY ENGINE (UPGRADED)
+// 🔍 LAST VISIT HISTORY ENGINE (WITH SUBMITTED CHECK)
 // ==========================================
 window.fetchLastVisitHistory = async function(docId) {
     const historyBox = document.getElementById('lastVisitHistoryBox');
     
-    // ถ้าไม่ได้เลือกหมอ ให้ซ่อนกล่องทิ้งไป
-    if (!docId) {
+    // 1. ถ้าไม่ได้เลือกหมอ ให้ซ่อนกล่อง
+    if (!docId || !historyBox) {
         if (historyBox) historyBox.classList.add('d-none');
         return;
     }
 
+    // 🌟 2. เพิ่มจุดนี้: ถ้า Visit ปัจจุบันที่กำลังเปิดอยู่เป็น 'Submitted' แล้ว ให้ซ่อนกล่องทิ้งทันที
+    const currentStatusEl = document.getElementById('visitStatus');
+    const currentStatus = currentStatusEl ? currentStatusEl.value : '';
+    
+    if (currentStatus === 'Submitted') {
+        historyBox.classList.add('d-none');
+        return; // Stop ทำงานทันที ไม่ต้อง Query DB ซ้ำ
+    }
+
     try {
-        // ค้นหาประวัติการเยี่ยมหมอคนนี้ (เอาเฉพาะที่ Status = Submitted และเรียงจากวันที่ล่าสุด)
-        const { data, error } = await window.supabaseClient
+        // 3. ดึงประวัติรายการล่าสุด (เอาเฉพาะรายการก่อนหน้า)
+        const currentVisitId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+        
+        let query = window.supabaseClient
             .from('Visit_Logs')
             .select('Visit_Date, Details, Insight, Next_Action, Status')
             .eq('Doc_ID', docId)
-            .eq('Status', 'Submitted') 
-            .order('Visit_Date', { ascending: false })
-            .limit(1);
+            .eq('Status', 'Submitted')
+            .order('Visit_Date', { ascending: false });
+
+        // ถ้าเป็นการแก้ไข ให้ละเว้น Visit_ID ตัวเองออกไป (เพื่อไม่ให้ดึงตัวเองมาโชว์)
+        if (currentVisitId && currentVisitId !== 'NEW') {
+            query = query.neq('Visit_ID', currentVisitId);
+        }
+
+        const { data, error } = await query.limit(1);
 
         if (error) throw error;
 
-        // ถ้ามีประวัติเก่า
+        // ถ้ามีประวัติเก่ารายการอื่นก่อนหน้านี้
         if (data && data.length > 0) {
             const lastVisit = data[0];
             const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
             
-            // 🌟 1. จัดรูปแบบวันที่ให้ตรงกับระบบภาษา (TH = พ.ศ. / EN = ค.ศ.)
             let formattedDate = '-';
             let relativeTimeStr = '';
             
@@ -3810,7 +3826,6 @@ window.fetchLastVisitHistory = async function(docId) {
                     year: 'numeric' 
                 });
 
-                // 🌟 2. คำนวณ Relative Time (ระยะห่างเวลา)
                 const today = new Date();
                 const diffDays = Math.round((today - lastDateObj) / (1000 * 60 * 60 * 24));
                 
@@ -3823,7 +3838,6 @@ window.fetchLastVisitHistory = async function(docId) {
                 }
             }
             
-            // 🌟 3. Smart Alert: เช็กว่าวันที่ลง Visit ปัจจุบัน น้อยกว่า ประวัติล่าสุดหรือไม่ (ลงย้อนหลัง)
             const dateBadge = document.getElementById('lastVisitDateBadge');
             const visitDateInput = document.getElementById('visitDate');
             const currentSelectedDate = visitDateInput ? new Date(visitDateInput.value) : new Date();
@@ -3833,29 +3847,24 @@ window.fetchLastVisitHistory = async function(docId) {
                 const displayText = relativeTimeStr ? `${formattedDate} (${relativeTimeStr})` : formattedDate;
                 
                 if (lastVisitDateObj > currentSelectedDate) {
-                    // ⚠️ เตือนเมื่อลง Visit ในวันที่เก่ากว่าประวัติที่มี
                     dateBadge.className = 'badge bg-warning text-dark border border-warning-subtle shadow-xs';
                     var warnText = appLang === 'en' ? 'Backdated' : 'บันทึกย้อนหลัง';
                     dateBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left me-1"></i> ${displayText} [${warnText}]`;
                 } else {
-                    // Normal Badge
                     dateBadge.className = 'badge bg-primary shadow-xs';
                     dateBadge.innerText = displayText;
                 }
             }
             
-            // นำ Details กับ Insight มารวมกันให้อ่านง่าย
             let detailsText = lastVisit.Details || '-';
             if (lastVisit.Insight) detailsText += ` (Insight: ${lastVisit.Insight})`;
             
             document.getElementById('lastVisitDetails').innerText = detailsText;
             document.getElementById('lastVisitNextAction').innerText = lastVisit.Next_Action || '-';
             
-            // โชว์กล่องขึ้นมา
-            if (historyBox) historyBox.classList.remove('d-none');
+            historyBox.classList.remove('d-none');
         } else {
-            // ถ้าไม่เคยเยี่ยมเลย ให้ซ่อนกล่อง
-            if (historyBox) historyBox.classList.add('d-none');
+            historyBox.classList.add('d-none');
         }
     } catch (err) {
         console.error("Error fetching last visit:", err);
