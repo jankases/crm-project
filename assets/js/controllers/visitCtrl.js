@@ -3768,7 +3768,7 @@ window.checkAndRestoreAutosave = function() {
 };
 
 // ==========================================
-// 🔍 LAST VISIT HISTORY ENGINE
+// 🔍 LAST VISIT HISTORY ENGINE (UPGRADED)
 // ==========================================
 window.fetchLastVisitHistory = async function(docId) {
     const historyBox = document.getElementById('lastVisitHistoryBox');
@@ -3794,15 +3794,55 @@ window.fetchLastVisitHistory = async function(docId) {
         // ถ้ามีประวัติเก่า
         if (data && data.length > 0) {
             const lastVisit = data[0];
+            const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
             
-            // จัดรูปแบบวันที่ (ถ้ามี)
+            // 🌟 1. จัดรูปแบบวันที่ให้ตรงกับระบบภาษา (TH = พ.ศ. / EN = ค.ศ.)
             let formattedDate = '-';
+            let relativeTimeStr = '';
+            
             if (lastVisit.Visit_Date) {
-                const d = new Date(lastVisit.Visit_Date);
-                formattedDate = d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+                const lastDateObj = new Date(lastVisit.Visit_Date);
+                const localeStr = (appLang === 'en') ? 'en-US' : 'th-TH';
+                
+                formattedDate = lastDateObj.toLocaleDateString(localeStr, { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+
+                // 🌟 2. คำนวณ Relative Time (ระยะห่างเวลา)
+                const today = new Date();
+                const diffDays = Math.round((today - lastDateObj) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays >= 0) {
+                    if (diffDays === 0) relativeTimeStr = appLang === 'en' ? 'Today' : 'วันนี้';
+                    else if (diffDays === 1) relativeTimeStr = appLang === 'en' ? 'Yesterday' : 'เมื่อวาน';
+                    else if (diffDays < 7) relativeTimeStr = appLang === 'en' ? `${diffDays} days ago` : `${diffDays} วันที่แล้ว`;
+                    else if (diffDays < 30) relativeTimeStr = appLang === 'en' ? `${Math.floor(diffDays / 7)} weeks ago` : `${Math.floor(diffDays / 7)} สัปดาห์ที่แล้ว`;
+                    else relativeTimeStr = appLang === 'en' ? `${Math.floor(diffDays / 30)} months ago` : `${Math.floor(diffDays / 30)} เดือนที่แล้ว`;
+                }
             }
             
-            document.getElementById('lastVisitDateBadge').innerText = formattedDate;
+            // 🌟 3. Smart Alert: เช็กว่าวันที่ลง Visit ปัจจุบัน น้อยกว่า ประวัติล่าสุดหรือไม่ (ลงย้อนหลัง)
+            const dateBadge = document.getElementById('lastVisitDateBadge');
+            const visitDateInput = document.getElementById('visitDate');
+            const currentSelectedDate = visitDateInput ? new Date(visitDateInput.value) : new Date();
+            const lastVisitDateObj = new Date(lastVisit.Visit_Date);
+
+            if (dateBadge) {
+                const displayText = relativeTimeStr ? `${formattedDate} (${relativeTimeStr})` : formattedDate;
+                
+                if (lastVisitDateObj > currentSelectedDate) {
+                    // ⚠️ เตือนเมื่อลง Visit ในวันที่เก่ากว่าประวัติที่มี
+                    dateBadge.className = 'badge bg-warning text-dark border border-warning-subtle shadow-xs';
+                    var warnText = appLang === 'en' ? 'Backdated' : 'บันทึกย้อนหลัง';
+                    dateBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left me-1"></i> ${displayText} [${warnText}]`;
+                } else {
+                    // Normal Badge
+                    dateBadge.className = 'badge bg-primary shadow-xs';
+                    dateBadge.innerText = displayText;
+                }
+            }
             
             // นำ Details กับ Insight มารวมกันให้อ่านง่าย
             let detailsText = lastVisit.Details || '-';
