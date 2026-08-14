@@ -28,6 +28,11 @@ window.rowsPerPage = 20;
 window._isDocInitRunning = false;
 window.isDocInitialLoading = true;
 
+window.activeSearchRecognition = null;
+window.currentSearchInputId = null;
+window.currentSearchBtnId = null;
+window.currentSearchIconId = null;
+
 // ==========================================
 // 🛠️ 2. UTILITY & UI HELPER FUNCTIONS
 // ==========================================
@@ -90,8 +95,25 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
+window.updateTomSelect = function(id, html, placeholder) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(el.tomselect) el.tomselect.destroy();
+  el.innerHTML = html;
+  if (typeof TomSelect !== 'undefined') {
+    new TomSelect(`#${id}`, { 
+      create: false, 
+      searchField: ["text"],
+      sortField: { field: "text", direction: "asc" }, 
+      placeholder: placeholder, 
+      allowEmptyOption: true, 
+      dropdownParent: 'body' 
+    });
+  }
+};
+
 // ==========================================
-// 📥 3. PERMISSIONS & DROPDOWNS SETUP (อ้างอิงจาก VISIT LOGS)
+// 📥 3. HIERARCHY PERMISSIONS & DROPDOWNS SETUP
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
@@ -124,9 +146,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.indexes = idxRes.data || [];
       window.DocManagerCache.hospitals = hospRes || [];
 
-      // --- 🌟 คำนวณสิทธิ์ตามระบบเดียวกับ Visit Logs ---
+      // --- 🌟 คำนวณสิทธิ์ตาม HIERARCHY MAPPING ---
       var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-      var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
+      var rawScope = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.Team_ID || crmUser.BU_ID || '').trim() : '';
 
       var isGlobalViewer = false;
       var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
@@ -142,29 +164,38 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
 
         if (isBuHead) {
-          var matchedBu = (buRes.data || []).find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
+          // 1. BU Head: BU -> Teams -> Territories
+          var matchedBu = (buRes.data || buRes || []).find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
           var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-          var buTeams = (teamRes.data || []).filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
-          buTeams.forEach(t => {
-            var terrs = (terrRes.data || []).filter(ter => String(ter.Team_ID) === String(t.Team_ID));
-            terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-          });
+          
+          var buTeams = (teamRes.data || teamRes || []).filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+          var buTeamIds = buTeams.map(t => String(t.Team_ID));
+          
+          var terrs = (terrRes.data || terrRes || []).filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
+          terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
+
         } else if (isManager) {
-          var matchedTeam = (teamRes.data || []).find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-          if (matchedTeam) {
-            var terrs = (terrRes.data || []).filter(t => String(t.Team_ID) === String(matchedTeam.Team_ID));
-            terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-          } else if (rawScope) {
-            allowedTerIds.push(rawScope);
-          }
-        } else { // Sales Role
-          var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim() : rawScope;
-          if (userTerrId) allowedTerIds.push(userTerrId);
+          // 2. Manager: Team -> Territories
+          var matchedTeam = (teamRes.data || teamRes || []).find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+          var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID) : rawScope;
+          
+          var terrs = (terrRes.data || terrRes || []).filter(t => String(t.Team_ID) === targetTeamId);
+          terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+          if (allowedTerIds.length === 0 && rawScope) allowedTerIds.push(rawScope);
+
+        } else { 
+          // 3. Sales Rep: Territory ตรงๆ
+          if (rawScope) allowedTerIds.push(rawScope);
         }
 
-        var allowedTerIdsMap = {}; allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
+        // 4. นำ Territory_ID ทั้งหมด ไปแมปหา Doc_ID ในตาราง Assignment
+        var allowedTerIdsMap = {}; 
+        allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
+        
         var myAssignments = (assignRes || []).filter(a => allowedTerIdsMap[String(a.Territory_ID || a.Territory)]);
-        myAssignments.forEach(a => { if (a.Type === 'Doctor') allowedDocIds.push(String(a.Account_ID)); });
+        myAssignments.forEach(a => { 
+          if (a.Type === 'Doctor') allowedDocIds.push(String(a.Account_ID)); 
+        });
       }
 
       window.DocManagerCache.isGlobalViewer = isGlobalViewer;
@@ -203,7 +234,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 };
 
 // ==========================================
-// 📊 4. SERVER-SIDE PAGINATION (คัดกรองตามสิทธิ์)
+// 📊 4. SERVER-SIDE PAGINATION
 // ==========================================
 window.loadDoctors = async function(forceReload = false) {
   const tbody = document.getElementById('doctorTableBody');
@@ -217,20 +248,16 @@ window.loadDoctors = async function(forceReload = false) {
 
     let query = sb.from('Doctors').select('*', { count: 'exact' });
 
-    // 🌟 สิทธิ์การเข้าถึงข้อมูล (อ้างอิงจาก Visit Logs)
+    // 🌟 สิทธิ์การเข้าถึงข้อมูลตาม Assignment
     const isGlobalViewer = window.DocManagerCache.isGlobalViewer;
     const allowedDocIds = window.DocManagerCache.myAllowedDocIds || [];
-    const allowedTerIds = window.DocManagerCache.myAllowedTerIds || [];
 
     if (!isGlobalViewer) {
-      if (allowedDocIds.length > 0 && allowedTerIds.length > 0) {
-        query = query.or(`Doc_ID.in.(${allowedDocIds.join(',')}),Territory_ID.in.(${allowedTerIds.join(',')})`);
-      } else if (allowedDocIds.length > 0) {
+      if (allowedDocIds.length > 0) {
         query = query.in('Doc_ID', allowedDocIds);
-      } else if (allowedTerIds.length > 0) {
-        query = query.in('Territory_ID', allowedTerIds);
       } else {
-        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); // Fail-safe Lock
+        // หากไม่มีหมอผูกใน Assignment เลย ให้กรองไม่เจอข้อมูล
+        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); 
       }
     }
 
@@ -303,7 +330,6 @@ window.renderDoctorTableServerSide = function() {
   data.forEach(d => {
     const badge = (d.Status === 'Active') ? 'badge-soft-success' : 'badge-soft-danger';
     
-    // 🌟 ดึงชื่อหมอตามภาษาพร้อมแก้ปัญหาฟอนต์ ???
     const docNameShow = window.getDoctorNameByLang(d, d.Doc_ID);
     const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
