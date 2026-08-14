@@ -478,31 +478,8 @@ window.renderDoctorTableServerSide = function() {
 }
 
 window.renderDoctorPaginationControls = function(totalPages) {
-  const ul = document.getElementById('doctorPagination');
-  if (!ul) return;
- 
+  // เรียกใช้ฟังก์ชันกลางจาก utils.js
   window.renderGlobalPagination('doctorPagination', window.currentPage, totalPages, 'goToDoctorPage');
-
-  let html = '';
-
-  html += `<li class="page-item ${window.currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${window.currentPage - 1}); return false;">${prevText}</a>
-          </li>`;
-
-  let startPage = Math.max(1, window.currentPage - 2);
-  let endPage = Math.min(totalPages, window.currentPage + 2);
-
-  for (let i = startPage; i <= endPage; i++) {
-      html += `<li class="page-item ${window.currentPage === i ? 'active' : ''}">
-                <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${i}); return false;">${i}</a>
-              </li>`;
-  }
-
-  html += `<li class="page-item ${window.currentPage >= totalPages ? 'disabled' : ''}">
-            <a class="page-link shadow-xs" href="#" onclick="window.goToDoctorPage(${window.currentPage + 1}); return false;">${nextText}</a>
-          </li>`;
-
-  ul.innerHTML = html;
 };
 
 window.goToDoctorPage = function(page) {
