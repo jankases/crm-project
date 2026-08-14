@@ -2083,10 +2083,9 @@ window.loadVisits = async function(forceReload) {
                       
     if (sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
-      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
+      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-box-archive text-warning"></i></span>';
     }
-       
-
+        
     htmlBuffer += '<tr>' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
       '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + evidenceBadges + '</td>' +
