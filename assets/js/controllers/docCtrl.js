@@ -480,10 +480,8 @@ window.renderDoctorTableServerSide = function() {
 window.renderDoctorPaginationControls = function(totalPages) {
   const ul = document.getElementById('doctorPagination');
   if (!ul) return;
-
-  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
-  var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
+ 
+  window.renderGlobalPagination('doctorPagination', window.currentPage, totalPages, 'goToDoctorPage');
 
   let html = '';
 
