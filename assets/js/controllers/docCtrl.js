@@ -667,6 +667,41 @@ window.forceReloadDoctors = async function() {
   await window.loadDoctors(true);
 };
 
+// 🌟 HELPER สลับ TAB โปรไฟล์แพทย์ (รองรับ 2 ภาษา + การันตีเนื้อหาไม่โปร่งใส)
+window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
+  let cleanId = 'tab-doc-info';
+  let targetBtn = null;
+
+  if (btnOrTarget && btnOrTarget.nodeType) {
+    targetBtn = btnOrTarget;
+    if (targetPaneId) cleanId = String(targetPaneId).replace('#', '');
+  } else if (typeof btnOrTarget === 'string' && btnOrTarget.trim() !== '') {
+    cleanId = btnOrTarget.replace('#', '');
+  }
+
+  // 1. เคลียร์ active จากปุ่มแท็บทั้งหมด
+  document.querySelectorAll('#docProfileTabs .nav-link').forEach(b => b.classList.remove('active'));
+
+  // 2. เคลียร์ active และ show จากเนื้อหาแท็บทุกตัว (แก้ไขอาการเนื้อหาล่องหน)
+  document.querySelectorAll('#doctorProfileView .tab-pane').forEach(p => {
+    p.classList.remove('active', 'show');
+  });
+
+  // 3. ค้นหาปุ่มแท็บเป้าหมาย
+  if (!targetBtn) {
+    if (cleanId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
+    else if (cleanId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
+    else if (cleanId === 'tab-doc-target') targetBtn = document.getElementById('tab-btn-target');
+  }
+  if (targetBtn) targetBtn.classList.add('active');
+
+  // 4. แสดงเนื้อหา Pane โดยใส่ทั้ง active และ show
+  const targetPane = document.getElementById(cleanPaneId);
+  if (targetPane) {
+    targetPane.classList.add('active', 'show');
+  }
+};
+
 // ==========================================
 // 🏥 6. WORKPLACE DYNAMIC ROW ENGINE
 // ==========================================
