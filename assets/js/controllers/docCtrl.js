@@ -1079,8 +1079,10 @@ window.goToPVisitPage = function(page) {
   const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
   const prodTerm = document.getElementById('filterProfileVisitProduct') ? document.getElementById('filterProfileVisitProduct').value : '';
 
+  // 1. ดึงภาษาปัจจุบันของแอปพลิเคชัน
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
+  // 2. กรองข้อมูล
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
     let matchDate = true;
     if (startDateTerm || endDateTerm) {
@@ -1108,6 +1110,7 @@ window.goToPVisitPage = function(page) {
     return matchDate && matchProd;
   });
 
+  // 3. เรียงลำดับข้อมูล
   const sortCol = window.currentPVisitSortCol || 'date';
   const sortAsc = window.currentPVisitSortAsc || false;
 
@@ -1126,8 +1129,8 @@ window.goToPVisitPage = function(page) {
       valA = (a.Status || '').toLowerCase();
       valB = (b.Status || '').toLowerCase();
     } else {
-      valA = (a.Purpose || a.Objective || '').toLowerCase();
-      valB = (b.Purpose || b.Objective || '').toLowerCase();
+      valA = (a.Purpose_ID || a.Purpose || a.Objective || '').toLowerCase();
+      valB = (b.Purpose_ID || b.Purpose || b.Objective || '').toLowerCase();
     }
 
     if (valA < valB) return sortAsc ? -1 : 1;
@@ -1163,64 +1166,54 @@ window.goToPVisitPage = function(page) {
       : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // 📦 ดึง Master Data จาก Global / Cache
-  const buList = window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || (window.DocManagerCache && window.DocManagerCache.businessUnits) || [];
-  const terrList = window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
-  const teamList = window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
-  const indexList = window.globalIndexes || (window.DocManagerCache && window.DocManagerCache.index) || (window.DocManagerCache && window.DocManagerCache.indexes) || [];
-
+  // 📦 ดึง Master Data ทุกอย่างตามมาตรฐานของ visit.js
+  const usersList = window.globalUsersList || window.globalUsers || (window.VisitManagerCache && window.VisitManagerCache.users) || (window.DocManagerCache && window.DocManagerCache.users) || [];
+  const terList = window.globalTerritoryList || window.globalTerritories || (window.VisitManagerCache && window.VisitManagerCache.territories) || (window.DocManagerCache && window.DocManagerCache.territories) || [];
+  const teamList = window.globalTeamList || window.globalTeams || (window.VisitManagerCache && window.VisitManagerCache.teams) || (window.DocManagerCache && window.DocManagerCache.teams) || [];
+  const buList = (window.VisitManagerCache && window.VisitManagerCache.bus) || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || [];
+  
   let htmlBuffer = '';
   pageData.forEach(v => {
     const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
 
-    // 🌟 1. Lookup หาชื่อ Sales Rep
-    const rawWho = v.Whoupdated || v.whoupdated || v.Sales_Rep || v.Rep_ID || '';
-    const userObj = (window.globalUsers || (window.DocManagerCache && window.DocManagerCache.users) || []).find(u => {
-      const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
-      const uRepId = String(u.Rep_ID || u.rep_id || u.ID || u.id || '').trim();
-      const vWhoStr = String(rawWho).toLowerCase().trim();
-      return (uEmail !== '' && vWhoStr === uEmail) || (uRepId !== '' && vWhoStr === uRepId);
-    });
-    const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || rawWho) : (rawWho || '-');
+    // 🌟 1. Lookup หาชื่อ Sales Rep ตามโครงสร้าง visit.js (เทียบทั้ง Rep_ID, User_ID, Email)
+    const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
+    let repNameShow = rawWho || '-';
+    if (rawWho) {
+      const uSearch = String(rawWho).toLowerCase().trim();
+      const userObj = usersList.find(u => {
+        const uRepId = String(u.Rep_ID || u.User_ID || u.id || '').toLowerCase().trim();
+        const uEmail = String(u.Email || u.email || '').toLowerCase().trim();
+        return uRepId === uSearch || uEmail === uSearch;
+      });
+      if (userObj) {
+        repNameShow = userObj.Rep_Name || userObj.Name || userObj.name || userObj.Email || rawWho;
+      }
+    }
 
-    // 🌟 2. Lookup หา Territory / BU (ใช้คอลัมน์ BU จาก Table BU เป๊ะๆ)
+    // 🌟 2. Lookup หา Territory / Team / BU ตามโครงสร้าง exportVisitsToCSV ใน visit.js
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
 
     if (rawTerrId) {
-      const searchTarget = String(rawTerrId).toLowerCase().trim();
+      const targetId = String(rawTerrId).trim();
 
-      // Step A: ค้นหาใน Table BU โดยตรง (ตรงกับรูป Supabase Table BU)
-      const buObj = buList.find(b => {
-        const bId = String(b.BU_ID || b.bu_id || b.id || '').toLowerCase().trim();
-        const bCode = String(b.BU_Code || b.bu_code || b.Code || '').toLowerCase().trim();
-        return bId === searchTarget || bCode === searchTarget;
-      });
-
-      if (buObj) {
-        terrNameShow = buObj.BU || buObj.bu || buObj.BU_Name || buObj.bu_name || buObj.name;
+      // Step A: เช็คใน Territory List
+      const terObj = terList.find(t => String(t.Territory_ID || t.id) === targetId || String(t.Territory) === targetId);
+      if (terObj) {
+        terrNameShow = terObj.Territory || terObj.Territory_Name || targetId;
       } else {
-        // Step B: ค้นหาใน Table Territory
-        const terrObj = terrList.find(t => {
-          const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
-          const tCode = String(t.Territory_Code || t.code || t.Territory || '').toLowerCase().trim();
-          return tId === searchTarget || tCode === searchTarget;
-        });
-
-        if (terrObj) {
-          terrNameShow = terrObj.Territory || terrObj.Territory_Name || terrObj.Territory_Code || terrObj.name;
+        // Step B: เช็คใน Team List
+        const tmObj = teamList.find(t => String(t.Team_ID || t.id) === targetId || String(t.Team) === targetId);
+        if (tmObj) {
+          terrNameShow = tmObj.Team || tmObj.Team_Name || targetId;
         } else {
-          // Step C: ค้นหาใน Table Team
-          const teamObj = teamList.find(tm => {
-            const tmId = String(tm.Team_ID || tm.team_id || tm.id || '').toLowerCase().trim();
-            const tmCode = String(tm.Team_Code || tm.team_code || tm.Code || '').toLowerCase().trim();
-            return tmId === searchTarget || tmCode === searchTarget;
-          });
-
-          if (teamObj) {
-            terrNameShow = teamObj.Team_Name || teamObj.team_name || teamObj.Team || teamObj.name;
-          } else if (!rawTerrId.includes('-')) {
-            terrNameShow = rawTerrId;
+          // Step C: เช็คใน BU List
+          const buObj = buList.find(b => String(b.BU_ID || b.bu_id || b.id) === targetId || String(b.BU) === targetId);
+          if (buObj) {
+            terrNameShow = buObj.BU || buObj.BU_Name || buObj.Name_EN || targetId;
+          } else if (!targetId.includes('-')) {
+            terrNameShow = targetId;
           }
         }
       }
@@ -1230,34 +1223,25 @@ window.goToPVisitPage = function(page) {
       ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` 
       : '-';
 
-    // 🌟 3. Lookup หา Purpose / Objective จาก Table Index (ตรงกับรูป Supabase Table Index)
-    const rawPurposeId = v.Purpose || v.purpose || v.Objective || v.objective || '';
+    // 🌟 3. Lookup หา Purpose โดยใช้ฟังก์ชัน getPurposeText ของ visit.js ตรงๆ
     let purposeShow = '-';
-
-    if (rawPurposeId) {
-      const idxSearchTarget = String(rawPurposeId).toLowerCase().trim();
-      const idxObj = indexList.find(i => {
-        const iId = String(i.Index_ID || i.index_id || i.id || '').toLowerCase().trim();
-        return iId !== '' && iId === idxSearchTarget;
-      });
-
-      if (idxObj) {
-        // ดึงคอลัมน์ Value จาก Table Index ตามรูป Supabase
-        purposeShow = idxObj.Value || idxObj.value || idxObj.Index_Name || rawPurposeId;
-      } else {
-        // กรณีบันทึกมาเป็นข้อความตรงๆ
-        purposeShow = rawPurposeId;
-      }
+    if (typeof window.getPurposeText === 'function') {
+      purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective);
+    } else {
+      purposeShow = v.Purpose || v.Objective || v.Purpose_ID || '-';
     }
 
-    // Status Badge
-    let statusBadgeClass = 'badge-soft-success';
-    let statusText = v.Status || 'Submitted';
-    if (statusText === 'Draft') {
-      statusBadgeClass = 'badge-soft-warning';
-      statusText = appLang === 'en' ? 'Draft' : 'ฉบับร่าง';
-    } else if (statusText === 'Submitted') {
-      statusText = appLang === 'en' ? 'Submitted' : 'ส่งแล้ว';
+    // 🌟 4. Status Badge แสดงผล 2 ภาษาแบบเดียวกับ visit.js
+    const rawStatus = String(v.Status || 'Pending').trim();
+    let statusBadgeClass = 'badge-soft-pending';
+    let statusShow = appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง';
+
+    if (rawStatus === 'Submitted') {
+      statusBadgeClass = 'badge-soft-success';
+      statusShow = appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว';
+    } else if (rawStatus === 'Draft') {
+      statusBadgeClass = 'badge-soft-secondary';
+      statusShow = appLang === 'en' ? '📝 Draft' : '📝 ฉบับร่าง';
     }
 
     // Products Badges
@@ -1265,7 +1249,7 @@ window.goToPVisitPage = function(page) {
     let prodBadges = '-';
     if (matchedVps.length > 0) {
       prodBadges = matchedVps.map(vp => {
-        const pObj = (window.globalProducts || []).find(p => String(p.Product_ID) === String(vp.Product_ID));
+        const pObj = (window.globalProducts || window.globalProductsList || []).find(p => String(p.Product_ID) === String(vp.Product_ID));
         const pName = pObj ? pObj.Product : vp.Product_ID;
         return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
       }).join('');
@@ -1278,7 +1262,7 @@ window.goToPVisitPage = function(page) {
         <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
         <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
-        <td class="text-center"><span class="badge ${statusBadgeClass}">${statusText}</span></td>
+        <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
       </tr>`;
   });
 
