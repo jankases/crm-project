@@ -1,5 +1,5 @@
 <div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
-    <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
+  <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
   <div id="doctorListView">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div class="d-flex align-items-center">
@@ -20,42 +20,34 @@
       </div>
     </div>
 
-    <!-- ส่วนค้นหา/ตัวกรองข้อมูล -->
+    <!-- ส่วนค้นหา/ตัวกรองข้อมูล (Smart Search Filter Zone) -->
     <div class="card p-3 border-0 shadow-sm visit-card mb-4 doctor-filter-group" id="doctorFilterZoneGroup">
-      <div class="row g-3 align-items-end">
+      <div class="row g-2 align-items-center">
         
-        <div class="col-sm-6 col-md-6 col-lg-3">
-          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_name">Doctor Name (EN/TH)</label>
+        <!-- 🌟 ช่องค้นหา Smart Search รวม หมอ + โรงพยาบาล (พร้อมปุ่มไมค์) -->
+        <div class="col-12 col-lg-5">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
-            <select class="form-select border-0 bg-transparent" id="filterDocName" onchange="window.filterDoctors()" multiple></select>
-            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicSearch" onclick="window.toggleSpeechSearch('filterDocName', 'btnMicSearch', 'micSearchIcon')" title="Voice Search">
-              <i class="fa-solid fa-microphone" id="micSearchIcon"></i>
+            <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartDocSearchInput" data-i18n="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." onkeyup="window.debouncedFilterDoctors()">
+            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
+              <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
             </button>
           </div>
         </div>
 
-        <div class="col-sm-6 col-md-6 col-lg-3">
-          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_hosp_name">Hospital Name (EN/TH)</label>
-          <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
-            <select class="form-select border-0 bg-transparent" id="filterDocWorkplace" onchange="window.filterDoctors()" multiple></select>
-            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicHospSearch" onclick="window.toggleSpeechSearch('filterDocWorkplace', 'btnMicHospSearch', 'micHospSearchIcon')" title="Voice Search">
-              <i class="fa-solid fa-microphone" id="micHospSearchIcon"></i>
-            </button>
-          </div>
+        <!-- 🌟 Specialty Dropdown -->
+        <div class="col-6 col-sm-4 col-lg-3">
+          <select class="form-select border shadow-none premium-radius-lg" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
         </div>
 
-        <div class="col-sm-6 col-md-4 col-lg-2">
-          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_specialty">Specialty</label>
-          <select class="form-select bg-white shadow-xs premium-radius-lg" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
+        <!-- 🌟 Doctor Type Dropdown -->
+        <div class="col-6 col-sm-4 col-lg-2">
+          <select class="form-select border shadow-none premium-radius-lg" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
         </div>
 
-        <div class="col-sm-6 col-md-4 col-lg-2">
-          <label class="form-label fw-bold text-secondary small mb-1" data-i18n="filter_doc_type">Doctor Type</label>
-          <select class="form-select bg-white shadow-xs premium-radius-lg" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
-        </div>
-
-        <div class="col-sm-12 col-md-4 col-lg-2 d-flex justify-content-end">
-          <button class="btn btn-premium-secondary w-100" type="button" onclick="window.clearDoctorFilters()">
+        <!-- 🌟 ปุ่ม Clear Filters -->
+        <div class="col-12 col-sm-4 col-lg-2 d-flex justify-content-end">
+          <button class="btn btn-premium-secondary w-100" type="button" onclick="window.clearDoctorFilters()" title="Clear All Filters">
             <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
           </button>
         </div>
@@ -406,5 +398,5 @@
 
 </div>
 
-<!-- โหลด Controller ฝั่ง JavaScript แบบแยกไฟล์ให้เป็นระเบียบตามโครงสร้างโครงการ -->
+<!-- โหลด Controller ฝั่ง JavaScript แบบแยกไฟล์ -->
 <script src="assets/js/controllers/docCtrl.js"></script>
