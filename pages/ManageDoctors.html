@@ -1,1295 +1,404 @@
-// ==========================================
-// 1. GLOBAL STATE & CACHE FOR DOCTORS ENGINE
-// ==========================================
-window.DocManagerCache = window.DocManagerCache || {
-  isLoaded: false,
-  indexLoaded: false,
-  doctors: [],
-  indexTypes: [],
-  indexes: [],
-  hospitals: [],
-  products: [],
-  users: [],
-  territories: [],
-  matrixData: [],
-  targetData: [],
-  teamProdLinks: [],
-  sysSettings: [],
-  teamList: [],
-  assignedDoctors: [],
-  assignedHospitals: [],
-  myAllowedDocIds: [],
-  myAllowedTerIds: []
-};
-
-window.globalDoctors = [];
-window.totalDoctorsCount = 0;
-window.globalFilteredDoctors = []; 
-window.globalHospitals = [];
-window.globalProducts = [];
-window.globalUsers = [];
-window.globalTerritories = [];
-window.currentTargetDocId = ""; 
-
-window.globalIndexes = [];
-window.globalIndexTypes = [];
-window.globalMatrixData = [];
-window.globalTargetData = [];
-window.globalTeamProducts = []; 
-
-window.globalPendingUnlockVisits = []; 
-window.globalCurrentDoctorVisits = [];
-window.globalCurrentDoctorVisitProducts = [];
-window.currentPVisitSortCol = 'date';
-window.currentPVisitSortAsc = false;
-
-window.currentPVisitPage = 1;
-window.pvisitRowsPerPage = 10;
-
-window.currentDocSortCol = 'Doc_Name';
-window.currentDocSortAsc = true; 
-
-window.globalRatingIsLocked = false;
-window.globalCurrentUserRole = '';
-
-window.currentPage = 1;
-window.rowsPerPage = 20;
-
-window._isDocInitRunning = false;
-window.isDocInitialLoading = true;
-window.docFilterDebounceTimer = null;
-
-window.activeSearchRecognition = null;
-window.currentSearchInputId = null;
-window.currentSearchBtnId = null;
-window.currentSearchIconId = null;
-
-// ==========================================
-// 🛠️ 2. UTILITY & UI HELPER FUNCTIONS
-// ==========================================
-window.safeTranslate = function(key, fallbackText) {
-  if (typeof t === 'function') {
-    const res = t(key);
-    return res !== key ? res : fallbackText;
-  }
-  return fallbackText;
-};
-
-window.getDoctorNameByLang = function(docObj, defaultId) {
-  if (!docObj) return defaultId || '-';
-  var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  if (lang === 'en') return docObj.Doc_Name || docObj.doc_name || docObj.name || defaultId || '-';
-  var hasQuestionMarks = docObj.Doc_Name_TH && docObj.Doc_Name_TH.indexOf('???') !== -1;
-  if (docObj.Doc_Name_TH && !hasQuestionMarks) return docObj.Doc_Name_TH;
-  return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
-};
-
-window.switchDoctorView = function(viewId) {
-  ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
-    const el = document.getElementById(v); if (el) el.classList.add('d-none'); 
-  });
-  const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
-  window.scrollTo(0, 0); 
-
-  if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-    setLanguage(currentLang);
-  }
-};
-
-window.goBackFromDoctorProfile = function() {
-  const returnHospId = sessionStorage.getItem('returnToHospId');
-  if (returnHospId) {
-    sessionStorage.removeItem('returnToHospId');
-    if (typeof window.loadComponent === 'function') {
-      window.loadComponent('hospital');
-    } else {
-      const hospMenu = document.querySelector('.nav-menu-item[data-page="hospital"]');
-      if (hospMenu) hospMenu.click();
-    }
-
-    let attempts = 0;
-    const checkReady = setInterval(() => {
-      attempts++;
-      if (typeof window.openViewHospitalProfile === 'function' && window.HospManagerCache && window.HospManagerCache.isLoaded) {
-        clearInterval(checkReady);
-        setTimeout(() => {
-          window.openViewHospitalProfile(returnHospId);
-        }, 50);
-      } else if (attempts > 60) {
-        clearInterval(checkReady);
-        window.switchDoctorView('doctorListView');
-      }
-    }, 100);
-  } else {
-    window.switchDoctorView('doctorListView');
-  }
-};
-
-window.initMultiTomSelect = function(id, placeholder) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  if(el.tomselect) el.tomselect.destroy();
+<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
   
-  if (typeof TomSelect !== 'undefined') {
-    new TomSelect(`#${id}`, { 
-      plugins: ['remove_button'],
-      create: false, 
-      searchField: ["text"],
-      sortField: { field: "text", direction: "asc" }, 
-      placeholder: placeholder, 
-      allowEmptyOption: true, 
-      dropdownParent: 'body'
-    });
-  }
-};
-
-window.updateTomSelect = function(id, html, placeholder) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  if(el.tomselect) el.tomselect.destroy();
-  el.innerHTML = html;
-  if (typeof TomSelect !== 'undefined') {
-    new TomSelect(`#${id}`, { 
-      create: false, 
-      searchField: ["text"],
-      sortField: { field: "text", direction: "asc" }, 
-      placeholder: placeholder, 
-      allowEmptyOption: true, 
-      dropdownParent: 'body' 
-    });
-  }
-};
-
-// ==========================================
-// 🎤 3. SPEECH SEARCH ENGINE
-// ==========================================
-window.toggleSpeechSearch = function(inputId, btnId, iconId) {
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    var msgNoMic = appLang === 'en' ? "Sorry, your browser does not support voice dictation." : "ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง";
-    if (window.showToast) return window.showToast(msgNoMic, "error");
-    return alert(msgNoMic);
-  }
-
-  if (window.activeSearchRecognition && window.currentSearchInputId === inputId) {
-    window.stopSpeechSearch();
-    return;
-  }
-
-  if (window.activeSearchRecognition) {
-    window.stopSpeechSearch();
-  }
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  window.activeSearchRecognition = new SpeechRecognition();
-  window.activeSearchRecognition.lang = 'th-TH';
-  window.activeSearchRecognition.continuous = false;
-  window.activeSearchRecognition.interimResults = false;
-
-  window.currentSearchInputId = inputId;
-  window.currentSearchBtnId = btnId;
-  window.currentSearchIconId = iconId;
-
-  const btn = document.getElementById(btnId);
-  const icon = document.getElementById(iconId);
-
-  if (btn && icon) {
-    btn.classList.add('mic-active');
-    icon.classList.add('fa-fade');
-  }
-
-  window.activeSearchRecognition.onresult = function(event) {
-    let spokenText = event.results[0][0].transcript.trim();
-    const inputEl = document.getElementById(inputId);
-    if (inputEl && spokenText) {
-      inputEl.value = spokenText;
-      window.debouncedFilterDoctors();
-    }
-    window.stopSpeechSearch();
-  };
-
-  window.activeSearchRecognition.onerror = window.stopSpeechSearch;
-  window.activeSearchRecognition.onend = window.stopSpeechSearch;
-  window.activeSearchRecognition.start();
-};
-
-window.stopSpeechSearch = function() {
-  if (window.activeSearchRecognition) {
-    window.activeSearchRecognition.stop();
-    window.activeSearchRecognition = null;
-  }
-  if (window.currentSearchBtnId && window.currentSearchIconId) {
-    const btn = document.getElementById(window.currentSearchBtnId);
-    const icon = document.getElementById(window.currentSearchIconId);
-    if (btn && icon) {
-      btn.classList.remove('mic-active');
-      icon.classList.remove('fa-fade');
-    }
-  }
-  window.currentSearchInputId = null;
-  window.currentSearchBtnId = null;
-  window.currentSearchIconId = null;
-};
-
-// ==========================================
-// 📥 4. PERMISSIONS & DROPDOWNS SETUP
-// ==========================================
-window.loadIndexDropdowns = async function(forceReload = false) {
-  try {
-    const sb = window.supabaseClient || window.supabase;
-    if (!sb) return;
-
-    var crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-
-    if (forceReload || !window.DocManagerCache.indexLoaded || window.DocManagerCache.ownerId !== myRepId) {
-      window.DocManagerCache.ownerId = myRepId;
-
-      const fetchFn = typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords : async function(tbl, modifier) {
-        let q = sb.from(tbl).select('*'); if (modifier) q = modifier(q);
-        const r = await q; return r.data || [];
-      };
-
-      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes, prodRes, userRes, matrixRes, targetRes, teamProdRes, sysSetRes] = await Promise.all([
-        sb.from('IndexType').select('*'),
-        sb.from('Index').select('*').order('Value', { ascending: true }),
-        fetchFn('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
-        fetchFn('Assignment'),
-        sb.from('Territory').select('*'),
-        sb.from('Team').select('*'),
-        sb.from('BU').select('*'),
-        fetchFn('Products', q => q.order('Product', { ascending: true })),
-        fetchFn('Rep_Users'),
-        sb.from('Rating_Matrix').select('*'),
-        sb.from('Target').select('*'),
-        fetchFn('Products_Team'),
-        sb.from('System_Settings').select('*')
-      ]);
-
-      window.DocManagerCache.indexTypes = typeRes.data || [];
-      window.DocManagerCache.indexes = idxRes.data || [];
-      window.DocManagerCache.hospitals = hospRes || [];
-      window.DocManagerCache.products = prodRes || [];
-      window.DocManagerCache.users = userRes || [];
-      window.DocManagerCache.territories = terrRes.data || [];
-      window.DocManagerCache.matrixData = matrixRes.data || [];
-      window.DocManagerCache.targetData = targetRes.data || [];
-      window.DocManagerCache.teamProdLinks = teamProdRes || [];
-      window.DocManagerCache.sysSettings = sysSetRes.data || [];
-      window.DocManagerCache.teamList = teamRes.data || [];
-
-      window.globalIndexTypes = window.DocManagerCache.indexTypes;
-      window.globalIndexes = window.DocManagerCache.indexes;
-      window.globalHospitals = window.DocManagerCache.hospitals;
-      window.globalProducts = window.DocManagerCache.products;
-      window.globalUsers = window.DocManagerCache.users;
-      window.globalTerritories = window.DocManagerCache.territories;
-      window.globalMatrixData = window.DocManagerCache.matrixData;
-      window.globalTargetData = window.DocManagerCache.targetData;
-
-      const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating');
-      if (ratingSetting) {
-        if (ratingSetting.Status === false) {
-          window.globalRatingIsLocked = true;
-        } else {
-          let startStr = ratingSetting.Start;
-          let endStr = ratingSetting.End;
-          if (!startStr && !endStr) {
-            window.globalRatingIsLocked = false;
-          } else {
-            const offset = new Date().getTimezoneOffset() * 60000;
-            const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
-            let isWithinRange = true;
-            if (startStr && localISOTime < startStr) isWithinRange = false;
-            if (endStr && localISOTime > endStr) isWithinRange = false;
-            window.globalRatingIsLocked = !isWithinRange;
-          }
-        }
-      } else {
-        window.globalRatingIsLocked = true;
-      }
-
-      var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-      var rawScope = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.Team_ID || crmUser.BU_ID || '').trim() : '';
-
-      var isGlobalViewer = false;
-      var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-      if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
-        isGlobalViewer = true;
-      }
-
-      var allowedTerIds = [];
-      var allowedDocIds = [];
-
-      if (!isGlobalViewer) {
-        var isBuHead = uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1;
-        var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
-
-        if (isBuHead) {
-          var matchedBu = (buRes.data || buRes || []).find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
-          var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-          var buTeams = (teamRes.data || teamRes || []).filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
-          var buTeamIds = buTeams.map(t => String(t.Team_ID));
-          var terrs = (terrRes.data || terrRes || []).filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
-          terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
-        } else if (isManager) {
-          var matchedTeam = (teamRes.data || teamRes || []).find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-          var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID) : rawScope;
-          var terrs = (terrRes.data || terrRes || []).filter(t => String(t.Team_ID) === targetTeamId);
-          terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-          if (allowedTerIds.length === 0 && rawScope) allowedTerIds.push(rawScope);
-        } else { 
-          if (rawScope) allowedTerIds.push(rawScope);
-        }
-
-        var allowedTerIdsMap = {}; 
-        allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
-        var myAssignments = (assignRes || []).filter(a => allowedTerIdsMap[String(a.Territory_ID || a.Territory)]);
-        myAssignments.forEach(a => { 
-          if (a.Type === 'Doctor') allowedDocIds.push(String(a.Account_ID)); 
-        });
-      }
-
-      window.DocManagerCache.isGlobalViewer = isGlobalViewer;
-      window.DocManagerCache.myAllowedTerIds = allowedTerIds;
-      window.DocManagerCache.myAllowedDocIds = allowedDocIds;
-
-      let docQuery = sb.from('Doctors').select('Specialty, Type');
-      if (!isGlobalViewer) {
-        if (allowedDocIds.length > 0) {
-          docQuery = docQuery.in('Doc_ID', allowedDocIds);
-        } else {
-          docQuery = docQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
-        }
-      }
-
-      const docDistinctRes = await docQuery;
-      const validDocsData = docDistinctRes.data || [];
-
-      window.DocManagerCache.indexLoaded = true;
-
-      const getOptionsHtml = (typeName, defaultText) => {
-        const typeObj = (window.DocManagerCache.indexTypes || []).find(t => t.Name && t.Name.toLowerCase() === typeName.toLowerCase());
-        let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
-        if (typeObj) {
-          const items = (window.DocManagerCache.indexes || []).filter(i => i.IndexType_ID === typeObj.IndexType_ID);
-          items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
-        }
-        return html;
-      };
-
-      window.updateTomSelect('docTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
-      window.updateTomSelect('editDocTitle', getOptionsHtml('Title', '- Select Title -'), '- Select Title -');
-
-      const specSelect = document.getElementById('filterDocSpecialty');
-      if (specSelect) {
-        const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-        specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
-        window.initMultiTomSelect('filterDocSpecialty', '- All Specialties -');
-      }
-
-      const typeSelect = document.getElementById('filterDocType');
-      if (typeSelect) {
-        const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-        typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-        window.initMultiTomSelect('filterDocType', '- All Types -');
-      }
-    }
-  } catch (err) {
-    console.warn("Dropdown load warning:", err.message);
-  }
-};
-
-window.getIndexValues = function(typeName) {
-  const typeObj = (window.DocManagerCache.indexTypes || []).find(t => t.Name && t.Name.toLowerCase() === typeName.toLowerCase());
-  if (!typeObj) return [];
-  
-  let items = (window.DocManagerCache.indexes || []).filter(i => i.IndexType_ID === typeObj.IndexType_ID);
-
-  if (typeName.toLowerCase() === 'adoption') {
-    const order = ['High', 'Medium-High', 'Medium', 'Medium-Low', 'Low', 'Non User'];
-    items.sort((a, b) => {
-      let indexA = order.indexOf(a.Value);
-      let indexB = order.indexOf(b.Value);
-      if (indexA === -1) indexA = 99;
-      if (indexB === -1) indexB = 99;
-      return indexA - indexB;
-    });
-  } else if (typeName.toLowerCase() === 'potential') {
-    const order = ['High', 'Medium', 'Low', 'No'];
-    items.sort((a, b) => {
-      let indexA = order.indexOf(a.Value);
-      let indexB = order.indexOf(b.Value);
-      if (indexA === -1) indexA = 99;
-      if (indexB === -1) indexB = 99;
-      return indexA - indexB;
-    });
-  }
-
-  return items.map(i => i.Value);
-};
-
-// ==========================================
-// 📊 5. SERVER-SIDE PAGINATION
-// ==========================================
-window.loadDoctors = async function(forceReload = false) {
-  const tbody = document.getElementById('doctorTableBody');
-  if (!tbody) return;
-
-  tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading Doctors...</div></td></tr>`;
-
-  try {
-    const sb = window.supabaseClient || window.supabase;
-    if (!sb) throw new Error("Supabase client not initialized");
-
-    let query = sb.from('Doctors').select('*', { count: 'exact' });
-
-    const isGlobalViewer = window.DocManagerCache.isGlobalViewer;
-    const allowedDocIds = window.DocManagerCache.myAllowedDocIds || [];
-
-    if (!isGlobalViewer) {
-      if (allowedDocIds.length > 0) {
-        query = query.in('Doc_ID', allowedDocIds);
-      } else {
-        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); 
-      }
-    }
-
-    const smartSearchInput = document.getElementById('smartDocSearchInput');
-    const rawSearchVal = smartSearchInput ? smartSearchInput.value.trim().toLowerCase() : '';
-
-    if (rawSearchVal) {
-      const searchTerms = rawSearchVal.split(/\s+/);
-      for (let i = 0; i < searchTerms.length; i++) {
-        const term = searchTerms[i];
-        const matchedHospIds = (window.DocManagerCache.hospitals || [])
-          .filter(h => {
-            const hName = String(h.Hospital || '').toLowerCase();
-            const hKnown = String(h.Known_As || '').toLowerCase();
-            return hName.includes(term) || hKnown.includes(term);
-          })
-          .map(h => h.Hospital_ID);
-
-        let orConditions = [`Doc_Name.ilike.%${term}%`, `Doc_Name_TH.ilike.%${term}%`];
-        if (matchedHospIds.length > 0) {
-          orConditions.push(`Hospital_ID.in.(${matchedHospIds.slice(0, 50).join(',')})`);
-        }
-        query = query.or(orConditions.join(','));
-      }
-    }
-
-    const specEl = document.getElementById('filterDocSpecialty');
-    const typeEl = document.getElementById('filterDocType');
-
-    const selectedSpecs = specEl && specEl.tomselect ? specEl.tomselect.getValue() : [];
-    const selectedTypes = typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [];
-
-    if (Array.isArray(selectedSpecs) && selectedSpecs.length > 0) query = query.in('Specialty', selectedSpecs);
-    if (Array.isArray(selectedTypes) && selectedTypes.length > 0) query = query.in('Type', selectedTypes);
-
-    const sortCol = window.currentDocSortCol || 'Doc_Name';
-    query = query.order(sortCol, { ascending: window.currentDocSortAsc });
-
-    const page = window.currentPage || 1;
-    const limit = parseInt(window.rowsPerPage) || 20;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    query = query.range(from, to);
-
-    const res = await query;
-    if (res.error) throw res.error;
-
-    window.globalDoctors = res.data || [];
-    window.totalDoctorsCount = res.count || 0;
-
-    window.renderDoctorTableServerSide();
-
-    const filterGroup = document.getElementById('doctorFilterZoneGroup');
-    if (filterGroup) filterGroup.classList.add('ready');
-
-  } catch (err) {
-    console.error("Load Doctors Error:", err);
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`;
-  }
-};
-
-window.renderDoctorTableServerSide = function() {
-  const tbody = document.getElementById('doctorTableBody');
-  if (!tbody) return;
-
-  const data = window.globalDoctors || [];
-  const totalItems = window.totalDoctorsCount || 0;
-  const rows = parseInt(window.rowsPerPage) || 20;
-  const totalPages = Math.ceil(totalItems / rows);
-
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-
-  if (data.length === 0) {
-    if (document.getElementById('doctorPaginationContainer')) {
-      document.getElementById('doctorPaginationContainer').classList.add('d-none');
-    }
-    const msgNoData = appLang === 'en' ? 'No doctors found.' : 'ไม่พบข้อมูลแพทย์';
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>${msgNoData}</td></tr>`;
-    return;
-  }
-
-  if (document.getElementById('doctorPaginationContainer')) {
-    document.getElementById('doctorPaginationContainer').classList.remove('d-none');
-  }
-
-  const startIndex = ((window.currentPage - 1) * rows) + 1;
-  const endIndex = Math.min(startIndex + data.length - 1, totalItems);
-
-  if (document.getElementById('doctorPageInfo')) {
-    document.getElementById('doctorPageInfo').innerText = appLang === 'en'
-      ? `Showing ${startIndex} to ${endIndex} of ${totalItems} entries`
-      : `แสดง ${startIndex} ถึง ${endIndex} จาก ${totalItems} รายการ`;
-  }
-
-  let htmlBuffer = '';
-  const editBtnText = appLang === 'en' ? 'Edit' : 'แก้ไข';
-
-  data.forEach(d => {
-    const isStatusActive = (d.Status === 'Active');
-    const badge = isStatusActive ? 'badge-soft-success' : 'badge-soft-danger';
-    const statusTextShow = isStatusActive 
-      ? (appLang === 'en' ? 'Active' : 'ใช้งาน') 
-      : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
-    
-    const docNameEnShow = d.Doc_Name || d.doc_name || '-';
-    const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
-    
-    const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen me-1"></i> ${editBtnText}</button>`;
-    
-    const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
-    const hospNameShow = hospObj ? (hospObj.Known_As || hospObj.Hospital) : '-';
-
-    const nameCellLink = `<a href="#" class="table-visit-link" onclick="window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
-
-    htmlBuffer += `
-      <tr>
-        <td class="text-start ps-3">${nameCellLink}</td>
-        <td class="fw-medium text-secondary">${docNameThShow}</td>
-        <td><span class="badge badge-soft-product">${d.Specialty || '-'}</span></td>
-        <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
-        <td class="text-center"><span class="badge ${badge}">${statusTextShow}</span></td>
-        <td class="text-center">${actionButton}</td>
-      </tr>`;
-  });
-
-  tbody.innerHTML = htmlBuffer;
-
-  if (typeof window.renderDoctorPaginationControls === 'function') {
-    window.renderDoctorPaginationControls(totalPages);
-  }
-};
-
-window.renderDoctorPaginationControls = function(totalPages) {
-  if (typeof window.renderGlobalPagination === 'function') {
-    window.renderGlobalPagination('doctorPagination', window.currentPage, totalPages, 'goToDoctorPage');
-  }
-};
-
-window.goToDoctorPage = function(page) {
-  window.currentPage = page;
-  window.loadDoctors(true);
-};
-
-window.changeRowsPerPage = function() {
-  const selectEl = document.getElementById('doctorRowsPerPage');
-  window.rowsPerPage = parseInt(selectEl.value) || 20;
-  window.currentPage = 1;
-  window.loadDoctors(true);
-};
-
-window.filterDoctors = function() {
-  if (window.isDocInitialLoading) return;
-  window.currentPage = 1;
-  window.loadDoctors(true);
-};
-
-window.debouncedFilterDoctors = function() {
-  if (window.isDocInitialLoading) return;
-  if (window.docFilterDebounceTimer) clearTimeout(window.docFilterDebounceTimer);
-  window.docFilterDebounceTimer = setTimeout(function() { window.filterDoctors(); }, 300);
-};
-
-window.clearDoctorFilters = function() {
-  const clearTs = (id) => {
-    const el = document.getElementById(id);
-    if (el && el.tomselect) el.tomselect.clear();
-  };
-  if (document.getElementById('smartDocSearchInput')) document.getElementById('smartDocSearchInput').value = '';
-  clearTs('filterDocSpecialty');
-  clearTs('filterDocType');
-  window.filterDoctors();
-};
-
-window.sortDoctors = function(col) {
-  const dbColMap = { 'Doc_Name': 'Doc_Name', 'Doc_Name_TH': 'Doc_Name_TH', 'Specialty': 'Specialty', 'Status': 'Status' };
-  const targetCol = dbColMap[col] || 'Doc_Name';
-
-  if (window.currentDocSortCol === targetCol) {
-    window.currentDocSortAsc = !window.currentDocSortAsc; 
-  } else {
-    window.currentDocSortCol = targetCol;
-    window.currentDocSortAsc = true; 
-  }
-  window.loadDoctors(true);
-};
-
-window.forceReloadDoctors = async function() {
-  await window.loadIndexDropdowns(true);
-  await window.loadDoctors(true);
-};
-
-// ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE
-// ==========================================
-window.clearWorkplaceContainer = function(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const selects = container.querySelectorAll('.hospital-select');
-  selects.forEach(s => { if (s.tomselect) s.tomselect.destroy(); });
-  container.innerHTML = '';
-};
-
-window.removeWorkplaceRow = function(btn) {
-  const row = btn.closest('.workplace-row');
-  const sel = row.querySelector('.hospital-select');
-  if (sel && sel.tomselect) sel.tomselect.destroy();
-  row.remove();
-};
-
-window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const row = document.createElement('div');
-  row.className = 'row align-items-center workplace-row mb-2';
-  const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
-
-  let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
-  (window.DocManagerCache.hospitals || []).forEach(h => {
-    const selected = h.Hospital_ID === hospId ? 'selected' : '';
-    const showName = h.Known_As ? `${h.Hospital} (${h.Known_As})` : h.Hospital;
-    optionsHtml += `<option value="${h.Hospital_ID}" ${selected}>${showName}</option>`;
-  });
-
-  const checked = isPrimary ? 'checked' : '';
-
-  row.innerHTML = `
-    <div class="col-sm-12 col-md-7 mb-2 mb-md-0">
-      <select class="form-select hospital-select bg-white border-primary" id="${selectId}" required>
-        ${optionsHtml}
-      </select>
-    </div>
-    <div class="col-sm-8 col-md-3">
-      <div class="form-check pt-1 px-3 py-2 bg-light rounded border">
-        <input class="form-check-input primary-radio" type="radio" name="${radioGroupName}" value="true" ${checked} required style="cursor:pointer; transform: scale(1.2); margin-top:0.3rem;">
-        <label class="form-check-label text-dark fw-bold ms-2" style="cursor:pointer;">Primary</label>
+  <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
+  <div id="doctorListView">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+      <div class="d-flex align-items-center">
+        <span class="header-icon-box"><i class="fa-solid fa-user-doctor"></i></span>
+        <div>
+          <h3 class="text-dark fw-bold mb-1" data-i18n="doc_title">Doctors Management</h3>
+          <p class="text-muted small mb-0" data-i18n="doc_subtitle">Database of Doctors and Workplaces</p>
+        </div>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-premium-secondary" onclick="window.forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate me-1"></i> <span data-i18n="btn_refresh">Refresh</span>
+        </button>
+        <button type="button" class="btn btn-premium-primary" onclick="window.openAddDoctorView()">
+          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
+        </button>
       </div>
     </div>
-    <div class="col-sm-4 col-md-2 text-end">
-      <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="window.removeWorkplaceRow(this)"><i class="fa-solid fa-trash me-1"></i> Remove</button>
-    </div>
-  `;
-  container.appendChild(row);
 
-  if (typeof TomSelect !== 'undefined') {
-    new TomSelect(`#${selectId}`, {
-      create: false, 
-      searchField: ["text"], 
-      sortField: { field: "text", direction: "asc" },
-      placeholder: "- Search and Select Hospital -", 
-      allowEmptyOption: true, 
-      dropdownParent: 'body'
-    });
-  }
-};
-
-window.extractWorkplaces = function(containerId) {
-  const container = document.getElementById(containerId);
-  const rows = container ? container.querySelectorAll('.workplace-row') : [];
-  const workplaces = [];
-  rows.forEach(row => {
-    const hospId = row.querySelector('.hospital-select').value;
-    const isPrimary = row.querySelector('.primary-radio').checked;
-    if (hospId) workplaces.push({ hospitalId: hospId, isPrimary: isPrimary });
-  });
-  return workplaces;
-};
-
-// ==========================================
-// 📝 7. FORM ACTIONS (ADD, EDIT, PROFILE, TARGET CALL)
-// ==========================================
-window.openAddDoctorView = function() {
-  if (document.getElementById('addDoctorForm')) document.getElementById('addDoctorForm').reset();
-  
-  const clearTs = (id) => { const el = document.getElementById(id); if (el && el.tomselect) el.tomselect.clear(); };
-  clearTs('docTitle');
-  clearTs('docSpecialty');
-  clearTs('docType');
-
-  window.clearWorkplaceContainer('workplaceContainerAdd');
-  window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd', '', true);
-  window.switchDoctorView('doctorAddView');
-};
-
-window.checkPendingDCR = async function(docId) {
-  try {
-    const sb = window.supabaseClient || window.supabase;
-    const { data, error } = await sb.from('DCR').select('Status, Action').eq('Ref_ID', docId).eq('Status', 'Pending');
-    if (error) throw error;
-    
-    const badgeContainer = document.getElementById('editDcrStatusBadge');
-    if (badgeContainer) {
-      badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge badge-soft-warning fs-6"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${data[0].Action})</span>` : '';
-    }
-  } catch (err) { console.error("Error check DCR:", err); }
-};
-
-window.openEditDoctorView = function(id) {
-  const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
-  if(!d) return;
-  
-  document.getElementById('editDocId').value = d.Doc_ID || d.id; 
-  
-  const setTsVal = (elId, val) => { const el = document.getElementById(elId); if(el && el.tomselect) el.tomselect.setValue(val); else if (el) el.value = val; };
-  setTsVal('editDocTitle', d.Title || d.title || '');
-  setTsVal('editDocSpecialty', d.Specialty || d.specialty || '');
-  setTsVal('editDocType', d.Type || d.type || '');
-  
-  document.getElementById('editDocNameEn').value = d.Doc_Name || d.nameEn || ''; 
-  document.getElementById('editDocNameTh').value = d.Doc_Name_TH || d.nameTh || ''; 
-  document.getElementById('editDocEmail').value = d.Email || d.email || '';
-  document.getElementById('editDocMobile').value = d.Mobile || d.mobile || '';
-  document.getElementById('editDocPrivacy').value = d.Privacy_Policy || d.privacy || 'Yes';
-  document.getElementById('editDocTos').value = d.Terms_of_Service || d.tos || 'Yes';
-  document.getElementById('editDocStatus').value = d.Status || d.status || 'Active';
-
-  window.clearWorkplaceContainer('workplaceContainerEdit');
-  let parsedWp = [];
-  try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
-  
-  if (parsedWp.length > 0) {
-    parsedWp.forEach(wp => window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', wp.hospitalId, wp.isPrimary));
-  } else {
-    window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.Hospital_ID || d.hospitalId, true);
-  }
-
-  window.checkPendingDCR(d.Doc_ID || d.id); 
-  window.switchDoctorView('doctorEditView');
-};
-
-window.openViewDoctorProfile = async function(id, targetTab = '#tab-doc-info') {
-  window.currentTargetDocId = id; 
-  const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
-  if(!d) return;
-
-  // 🌟 มีการเช็กความปลอดภัย (Safety Check) ป้องกัน Error กรณีหา Element ไม่เจอ
-  const titleEl = document.getElementById('viewDocTitleName');
-  if (titleEl) {
-    titleEl.innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
-  }
-
-  if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
-  if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = d.Type || d.type || '-';
-  if (document.getElementById('viewDocStatus')) document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
-  if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
-  if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
-
-  let wpHTML = '';
-  let parsedWp = [];
-  try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
-  
-  if(parsedWp.length > 0) {
-    parsedWp.forEach(wp => {
-      const isPrimary = wp.isPrimary ? '<span class="badge badge-soft-info ms-2">Primary</span>' : '';
-      const hospObj = (window.DocManagerCache.hospitals || []).find(h => h.Hospital_ID === wp.hospitalId);
-      const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Hospital";
-      wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
-    });
-  } else {
-    const hospObj = (window.DocManagerCache.hospitals || []).find(h => h.Hospital_ID === (d.Hospital_ID || d.hospitalId));
-    const hospName = hospObj ? (hospObj.Known_As || hospObj.Hospital) : "Primary Hospital";
-    wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2">🏥 <span class="fw-bold text-dark">${hospName}</span> <span class="badge badge-soft-info ms-2">Primary</span></div>`;
-  }
-
-  if (document.getElementById('viewWorkplaceContainer')) {
-    document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
-  }
-
-  let phtml = '<option value="">- All Products -</option>';
-  if (typeof window.globalProducts !== 'undefined') {
-    window.globalProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-  }
-  if (document.getElementById('filterProfileVisitProduct')) {
-    document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
-  }
-
-  const addProdBtn = document.getElementById('btnAddRatingProduct');
-  const lockBanner = document.getElementById('ratingLockBanner');
-  
-  if (window.globalRatingIsLocked && window.globalCurrentUserRole !== 'Admin') {
-    if (addProdBtn) addProdBtn.style.display = 'none';
-    if (lockBanner) lockBanner.style.display = 'block';
-  } else {
-    if (addProdBtn) addProdBtn.style.display = 'inline-block';
-    if (lockBanner) lockBanner.style.display = 'none';
-  }
-
-  window.loadDoctorVisitHistory(id);
-  await window.loadDoctorRatings(id);
-
-  const tabEl = document.querySelector(`#doctorProfileView .nav-link[data-bs-target="${targetTab}"]`);
-  if(tabEl && typeof bootstrap !== 'undefined') { 
-    const tab = new bootstrap.Tab(tabEl); 
-    tab.show(); 
-  }
-
-  window.switchDoctorView('doctorProfileView');
-};
-
-window.handleAddDoctor = async function(e) {
-  e.preventDefault(); 
-  
-  const workplaces = window.extractWorkplaces('workplaceContainerAdd');
-  if (workplaces.length === 0) return alert("❌ Please add at least 1 workplace."); 
-  if (!workplaces.some(w => w.isPrimary)) return alert("❌ Please select a Primary hospital."); 
-  
-  const hospIds = workplaces.map(w => w.hospitalId);
-  if (hospIds.length !== new Set(hospIds).size) return alert("❌ Duplicate hospitals found. Please review."); 
-  
-  const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
-
-  const btn = document.getElementById('submitDoctorBtn'); 
-  btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...`;
-
-  let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-  const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-
-  const payload = {
-    Title: document.getElementById('docTitle').value, 
-    Doc_Name: document.getElementById('docNameEn').value.trim(),
-    Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
-    Specialty: document.getElementById('docSpecialty').value, 
-    Type: document.getElementById('docType').value,   
-    Hospital_ID: primaryHospId, 
-    Workplaces_JSON: JSON.stringify(workplaces), 
-    Email: document.getElementById('docEmail').value.trim(),
-    Mobile: document.getElementById('docMobile').value.trim(),
-    Privacy_Policy: document.getElementById('docPrivacy').value,
-    Terms_of_Service: document.getElementById('docTos').value,
-    Status: 'Active',
-    Whoupdated: whoUpdated
-  };
-
-  try {
-    const dcrPayload = { Action: 'Add Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
-    const sb = window.supabaseClient || window.supabase;
-    const { error } = await sb.from('DCR').insert([dcrPayload]);
-    if (error) throw error;
-    
-    alert("✅ DCR submitted successfully. Waiting for Admin approval.");
-    window.switchDoctorView('doctorListView'); 
-    await window.loadDoctors(true); 
-
-  } catch (err) { alert("❌ Error: " + err.message); } 
-  finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
-};
-
-window.handleUpdateDoctor = async function(e) {
-  e.preventDefault(); 
-
-  const workplaces = window.extractWorkplaces('workplaceContainerEdit');
-  if (workplaces.length === 0) return alert("❌ Please add at least 1 workplace."); 
-  if (!workplaces.some(w => w.isPrimary)) return alert("❌ Please select a Primary hospital."); 
-  
-  const hospIds = workplaces.map(w => w.hospitalId);
-  if (hospIds.length !== new Set(hospIds).size) return alert("❌ Duplicate hospitals found. Please review."); 
-  
-  const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
-
-  const btn = document.getElementById('updateDoctorBtn'); 
-  btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...`;
-
-  const docId = document.getElementById('editDocId').value;
-  let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-  const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-
-  const payload = {
-    Title: document.getElementById('editDocTitle').value, 
-    Doc_Name: document.getElementById('editDocNameEn').value.trim(),
-    Doc_Name_TH: document.getElementById('editDocNameTh').value.trim(),
-    Specialty: document.getElementById('editDocSpecialty').value,
-    Type: document.getElementById('editDocType').value,
-    Hospital_ID: primaryHospId, 
-    Workplaces_JSON: JSON.stringify(workplaces), 
-    Email: document.getElementById('editDocEmail').value.trim(),
-    Mobile: document.getElementById('docMobile').value.trim(),
-    Privacy_Policy: document.getElementById('editDocPrivacy').value,
-    Terms_of_Service: document.getElementById('editDocTos').value,
-    Status: document.getElementById('editDocStatus').value,
-    Whoupdated: whoUpdated
-  };
-
-  try {
-    const dcrPayload = { Ref_ID: docId, Action: 'Edit Doctor', Requested_Data: JSON.stringify(payload), Status: 'Pending', Whoupdated: whoUpdated };
-    const sb = window.supabaseClient || window.supabase;
-    const { error } = await sb.from('DCR').insert([dcrPayload]);
-    if (error) throw error;
-    
-    alert("✅ DCR submitted successfully. Waiting for Admin approval.");
-    window.switchDoctorView('doctorListView'); 
-    await window.loadDoctors(true); 
-
-  } catch (err) { alert("❌ Error: " + err.message); } 
-  finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
-};
-
-// ==========================================
-// 📅 8. DOCTOR PROFILE VISIT HISTORY & TARGET CALL
-// ==========================================
-window.clearProfileVisitFilters = function() {
-  if (document.getElementById('filterProfileVisitStart')) document.getElementById('filterProfileVisitStart').value = '';
-  if (document.getElementById('filterProfileVisitEnd')) document.getElementById('filterProfileVisitEnd').value = '';
-  if (document.getElementById('filterProfileVisitProduct')) document.getElementById('filterProfileVisitProduct').value = '';
-  window.filterAndRenderDoctorVisits();
-};
-
-window.sortDoctorVisits = function(col) {
-  if (window.currentPVisitSortCol === col) {
-    window.currentPVisitSortAsc = !window.currentPVisitSortAsc;
-  } else {
-    window.currentPVisitSortCol = col;
-    window.currentPVisitSortAsc = (col === 'date') ? false : true; 
-  }
-  window.filterAndRenderDoctorVisits();
-};
-
-window.loadDoctorVisitHistory = async function(docId) {
-  const tbody = document.getElementById('viewVisitHistoryBody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
-  
-  try {
-    const sb = window.supabaseClient || window.supabase;
-    const [visitRes, vpRes, dcrRes] = await Promise.all([
-      sb.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false }),
-      sb.from('Visit_Products').select('*'),
-      sb.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
-    ]);
-
-    if (visitRes.error) throw visitRes.error;
-    
-    window.globalCurrentDoctorVisits = visitRes.data || [];
-    window.globalCurrentDoctorVisitProducts = vpRes.data || [];
-    window.globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
-
-    window.currentPVisitPage = 1;
-    window.filterAndRenderDoctorVisits();
-
-  } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load failed: ${err.message}</td></tr>`;
-  }
-};
-
-window.changePVisitRowsPerPage = function() {
-  const selectEl = document.getElementById('pvisitRowsPerPage');
-  window.pvisitRowsPerPage = parseInt(selectEl.value) || 10;
-  window.currentPVisitPage = 1;
-  window.filterAndRenderDoctorVisits();
-};
-
-window.goToPVisitPage = function(page) {
-  window.currentPVisitPage = page;
-  window.filterAndRenderDoctorVisits();
-};
-
-window.filterAndRenderDoctorVisits = function() {
-  const tbody = document.getElementById('viewVisitHistoryBody');
-  if (!tbody) return;
-
-  const startDateTerm = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
-  const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
-  const prodTerm = document.getElementById('filterProfileVisitProduct') ? document.getElementById('filterProfileVisitProduct').value : '';
-
-  let filtered = window.globalCurrentDoctorVisits.filter(v => {
-    let matchDate = true;
-    if (startDateTerm || endDateTerm) {
-        const vDate = new Date(v.Visit_Date);
-        vDate.setHours(0, 0, 0, 0); 
+    <!-- ส่วนค้นหา/ตัวกรองข้อมูล (Smart Search Filter Zone) -->
+    <div class="card p-3 border-0 shadow-sm visit-card mb-4 doctor-filter-group" id="doctorFilterZoneGroup">
+      <div class="row g-2 align-items-center">
         
-        if (startDateTerm) {
-            const sDate = new Date(startDateTerm);
-            sDate.setHours(0, 0, 0, 0);
-            if (vDate < sDate) matchDate = false;
-        }
-        if (endDateTerm) {
-            const eDate = new Date(endDateTerm);
-            eDate.setHours(23, 59, 59, 999);
-            if (vDate > eDate) matchDate = false;
-        }
-    }
+        <!-- ช่องค้นหา Smart Search รวม หมอ + โรงพยาบาล (พร้อมปุ่มไมค์) -->
+        <div class="col-12 col-lg-5">
+          <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
+            <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" class="form-control border-0 bg-transparent fs-6 shadow-none pe-1" id="smartDocSearchInput" data-i18n="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." onkeyup="window.debouncedFilterDoctors()">
+            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-3" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
+              <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
+            </button>
+          </div>
+        </div>
 
-    const visitProds = window.globalCurrentDoctorVisitProducts.filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
-    const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
+        <!-- Specialty Dropdown -->
+        <div class="col-6 col-sm-4 col-lg-3">
+          <select class="form-select border shadow-none premium-radius-lg" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
+        </div>
 
-    return matchDate && matchProd;
-  });
+        <!-- Doctor Type Dropdown -->
+        <div class="col-6 col-sm-4 col-lg-2">
+          <select class="form-select border shadow-none premium-radius-lg" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
+        </div>
 
-  tbody.innerHTML = '';
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No visit history found.</td></tr>';
-    return;
-  }
+        <!-- ปุ่ม Clear Filters -->
+        <div class="col-12 col-sm-4 col-lg-2 d-flex justify-content-end">
+          <button class="btn btn-premium-secondary w-100" type="button" onclick="window.clearDoctorFilters()" title="Clear All Filters">
+            <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
+          </button>
+        </div>
 
-  filtered.forEach(v => {
-    const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString('th-TH') : '-';
-    tbody.innerHTML += `
-      <tr class="align-middle">
-        <td class="text-center fw-bold">${dateStr}</td>
-        <td class="fw-bold text-dark">${v.Whoupdated || '-'}</td>
-        <td class="text-center"><span class="badge badge-soft-product">${v.Territory_ID || '-'}</span></td>
-        <td><small>${v.Purpose || '-'}</small></td>
-        <td class="text-center"><span class="badge badge-soft-success">${v.Status || 'Submitted'}</span></td>
-      </tr>`;
-  });
-};
+      </div>
+    </div>
 
-window.clearRatingTable = function() {
-  const tbody = document.getElementById('ratingTableBody');
-  if (!tbody) return;
-  const selects = tbody.querySelectorAll('select');
-  selects.forEach(s => { if(s.tomselect) s.tomselect.destroy(); });
-  tbody.innerHTML = '';
-};
+    <!-- ตารางแสดงผลรายชื่อแพทย์ -->
+    <div class="card p-4 border-0 shadow-sm visit-card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
+          <thead class="table-custom-header text-center">
+            <tr>
+              <th class="py-3 sortable-th" onclick="window.sortDoctors('Doc_Name')"><span data-i18n="th_doc_name_en">Doctor Name (EN)</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-Doc_Name"></i></th>
+              <th class="py-3 sortable-th" onclick="window.sortDoctors('Doc_Name_TH')"><span data-i18n="th_doc_name_th">Doctor Name (TH)</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Doc_Name_TH"></i></th>
+              <th class="py-3 sortable-th" onclick="window.sortDoctors('Specialty')"><span data-i18n="th_specialty">Specialty</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Specialty"></i></th>
+              <th class="py-3 sortable-th" onclick="window.sortDoctors('Hospital_ID')"><span data-i18n="th_primary_hosp">Primary Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Hospital_ID"></i></th>
+              <th class="py-3 sortable-th" onclick="window.sortDoctors('Status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Status"></i></th>
+              <th class="py-3" data-i18n="th_action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="doctorTableBody">
+            <tr><td colspan="6" class="text-center py-5">
+              <div class="d-flex flex-column align-items-center justify-content-center my-4">
+                <div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>
+                <h5 class="text-dark fw-bold mb-1" data-i18n="msg_loading">Loading Data...</h5>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
 
-window.loadDoctorRatings = async function(docId) {
-  const tbody = document.getElementById('ratingTableBody');
-  if (!tbody) return;
-
-  window.clearRatingTable();
-  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
-  
-  try {
-      const sb = window.supabaseClient || window.supabase;
-      const { data, error } = await sb.from('Rating').select('*').eq('Doc_ID', docId);
-
-      if (error) throw error;
-      window.renderRatingTable(data); 
-  } catch(err) {
-      console.error("Error fetching ratings:", err);
-      window.clearRatingTable();
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Error: ${err.message}</td></tr>`;
-  }
-};
-
-window.renderRatingTable = function(ratings) {
-  window.clearRatingTable();
-  const tbody = document.getElementById('ratingTableBody');
-  
-  if(!Array.isArray(ratings) || ratings.length === 0) {
-      tbody.innerHTML = '<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">No data. Click "Add Product"</td></tr>';
-      return;
-  }
-
-  try {
-      ratings.forEach(row => {
-          window.addRatingRowHTML(
-              row.Product_ID || '', 
-              row.Adoption || '', 
-              row.Potential || '', 
-              row.Classification || '', 
-              row.Target || ''
-          );
-      });
-  } catch (e) {
-      window.clearRatingTable();
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Render Error: ${e.message}</td></tr>`;
-  }
-};
-
-window.addNewRatingRow = function() {
-  const tbody = document.getElementById('ratingTableBody');
-  if (!tbody) return;
-  const noData = tbody.querySelector('.no-data');
-  if(noData) {
-      const selects = noData.querySelectorAll('select');
-      selects.forEach(s => { if(s.tomselect) s.tomselect.destroy(); });
-      noData.remove();
-  }
-  window.addRatingRowHTML('', '', '', '', '');
-};
-
-window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
-  const tbody = document.getElementById('ratingTableBody');
-  if (!tbody) return;
-  const tr = document.createElement('tr');
-  const selectId = 'tgt_prod_' + Math.random().toString(36).substr(2, 9);
-  const adoptId = 'tgt_adopt_' + Math.random().toString(36).substr(2, 9);
-  const potId = 'tgt_pot_' + Math.random().toString(36).substr(2, 9);
-
-  const isAdmin = (window.globalCurrentUserRole === 'Admin');
-  const canEdit = isAdmin || !window.globalRatingIsLocked;
-  const disabledAttr = canEdit ? '' : 'disabled';
-
-  let prodOpts = '<option value="">- Select -</option>';
-  if (typeof window.globalProducts !== 'undefined') {
-      window.globalProducts.forEach(p => {
-          const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
-          prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
-      });
-  }
-
-  let adoptOpts = '<option value="">- Select -</option>';
-  window.getIndexValues('Adoption').forEach(a => {
-      const sel = a === adopt ? 'selected' : '';
-      adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
-  });
-
-  let potOpts = '<option value="">- Select -</option>';
-  window.getIndexValues('Potential').forEach(p => {
-      const sel = p === pot ? 'selected' : '';
-      potOpts += `<option value="${p}" ${sel}>${p}</option>`;
-  });
-
-  let actionHtml = '';
-  if (canEdit) {
-      actionHtml = `<button class="btn btn-sm btn-premium-primary fw-bold px-3" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-1"></i> Save</button>`;
-  } else {
-      actionHtml = `<span class="badge badge-soft-secondary"><i class="fa-solid fa-lock me-1"></i> Locked</span>`;
-  }
-
-  tr.innerHTML = `
-      <td>
-          <select class="form-select form-select-sm rating-product border-primary shadow-none" id="${selectId}" ${disabledAttr}>
-              ${prodOpts}
+      <div id="doctorPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+        <div class="d-flex align-items-center mb-3 mb-md-0">
+          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+          <select class="form-select form-select-sm shadow-sm premium-radius" id="doctorRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
           </select>
-      </td>
-      <td><select class="form-select form-select-sm rating-adopt shadow-none" id="${adoptId}" ${disabledAttr}>${adoptOpts}</select></td>
-      <td><select class="form-select form-select-sm rating-pot shadow-none" id="${potId}" ${disabledAttr}>${potOpts}</select></td>
-      <td>
-          <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#e9ecef;">
-      </td>
-      <td>
-          <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none" value="${tgt}" readonly style="background-color:#e9ecef;">
-      </td>
-      <td class="text-center">
-          ${actionHtml}
-      </td>
-  `;
-  tbody.appendChild(tr);
+          <span class="text-muted small ms-3" id="doctorPageInfo">Showing 1 to 10 of 50 entries</span>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination"></ul>
+        </nav>
+      </div>
 
-  if (!disabledAttr && typeof TomSelect !== 'undefined') {
-      new TomSelect(`#${selectId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-      new TomSelect(`#${adoptId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-      new TomSelect(`#${potId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-  }
-};
+    </div>
+  </div>
 
-window.saveTargetCallRow = async function(btn) {
-  const tr = btn.closest('tr');
-  
-  const selectedProductId = tr.querySelector('.rating-product').value;
-  const adoptVal = tr.querySelector('.rating-adopt').value;
-  const potVal = tr.querySelector('.rating-pot').value;
-  const classificationValue = tr.querySelector('.rating-class').value;
-  const targetValue = tr.querySelector('.rating-target').value;
+  <!-- ================= 2. หน้าเพิ่มข้อมูลแพทย์ (Add View) ================= -->
+  <div id="doctorAddView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-premium-secondary me-3" onclick="window.switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <h4 class="text-primary fw-bold mb-0">🩺 <span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h4>
+    </div>
+    
+    <div class="card p-4 p-md-5 border-0 shadow-sm visit-card">
+      <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)">
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="sec_gen_info">General Information</span></h5>
+          <div class="row g-3">
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_title">Title</label>
+              <select class="form-select bg-white" id="docTitle"></select>
+            </div>
+            <div class="col-sm-8 col-md-4">
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="docNameEn" placeholder="e.g. Somchai" required>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_name_th">Name (TH)</label>
+              <input type="text" class="form-control bg-white" id="docNameTh" placeholder="เช่น สมชาย ใจดี">
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_specialty">Specialty</label>
+              <select class="form-select bg-white" id="docSpecialty"></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_type">Type</label>
+              <select class="form-select bg-white" id="docType"></select>
+            </div>
+          </div>
+        </div>
 
-  if(!selectedProductId || !adoptVal || !potVal) {
-      alert("❌ Missing fields: Product, Adoption or Potential.");
-      return;
-  }
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace">Workplace</span></h5>
+            <button type="button" class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+            </button>
+          </div>
+          <div id="workplaceContainerAdd"></div>
+        </div>
 
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2"><i class="fa-solid fa-check-to-slot me-2"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h5>
+          <div class="row g-3">
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_privacy">Privacy Policy</label>
+              <select class="form-select bg-white" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+            <div class="col-sm-6 col-md-6">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_tos">Terms of Service</label>
+              <select class="form-select bg-white" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label><input type="email" class="form-control bg-white" id="docEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label><input type="text" class="form-control bg-white" id="docMobile"></div>
+          </div>
+        </div>
 
-  let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-  const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-premium-secondary" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-premium-primary" id="submitDoctorBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  const payload = {
-      Doc_ID: window.currentTargetDocId,
-      Product_ID: selectedProductId,
-      Adoption: adoptVal,
-      Potential: potVal,
-      Classification: classificationValue,
-      Target: targetValue ? parseInt(targetValue) : 0,
-      Whoupdated: whoUpdated, 
-      Whenupdated: new Date().toISOString()
-  };
+  <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
+  <div id="doctorEditView" class="d-none">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-premium-secondary me-3" onclick="window.switchDoctorView('doctorListView')">
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <h4 class="text-primary fw-bold mb-0">✏️ <span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h4>
+      <div id="editDcrStatusBadge" class="ms-3"></div>
+    </div>
+    
+    <div class="card p-4 p-md-5 border-0 shadow-sm visit-card">
+      <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)">
+        <input type="hidden" id="editDocId">
+        
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2" data-i18n="sec_gen_info">General Information</h5>
+          <div class="row g-3">
+            <div class="col-sm-4 col-md-3">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_title">Title</label>
+              <select class="form-select bg-white" id="editDocTitle"></select>
+            </div>
+            <div class="col-sm-8 col-md-4">
+              <label class="form-label fw-bold text-dark"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-white" id="editDocNameEn" required>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_doc_name_th">Name (TH)</label>
+              <input type="text" class="form-control bg-white" id="editDocNameTh">
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-6 col-md-4">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_specialty">Specialty</label>
+              <select class="form-select bg-white" id="editDocSpecialty"></select>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <label class="form-label fw-bold text-dark" data-i18n="lbl_type">Type</label>
+              <select class="form-select bg-white" id="editDocType"></select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <label class="form-label fw-bold text-danger" data-i18n="lbl_status">Status</label>
+              <select class="form-select border-danger bg-white fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select>
+            </div>
+          </div>
+        </div>
 
-  try {
-      const sb = window.supabaseClient || window.supabase;
-      const { error } = await sb.from('Rating').upsert(payload, { onConflict: 'Doc_ID, Product_ID' });
-      if (error) throw error;
+        <div class="p-4 rounded-4 mb-4 border" style="background-color: #f0f5ff; border-color: #cfe2ff !important;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace">Workplace</span></h5>
+            <button type="button" class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+            </button>
+          </div>
+          <div id="workplaceContainerEdit"></div>
+        </div>
 
-      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Saved';
-      setTimeout(() => {
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save';
-      }, 2000);
+        <div class="p-4 rounded-4 mb-4 border bg-light">
+          <h5 class="fw-bold text-primary mb-4 border-bottom pb-2" data-i18n="sec_contact_consent">Contact & Consent</h5>
+          <div class="row g-3">
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark" data-i18n="lbl_privacy">Privacy Policy</label><select class="form-select bg-white" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+            <div class="col-sm-6 col-md-6"><label class="form-label fw-bold text-dark" data-i18n="lbl_tos">Terms of Service</label><select class="form-select bg-white" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label><input type="email" class="form-control bg-white" id="editDocEmail"></div>
+            <div class="col-sm-12 col-md-6"><label class="form-label fw-bold text-dark"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label><input type="text" class="form-control bg-white" id="editDocMobile"></div>
+          </div>
+        </div>
 
-  } catch(err) {
-      alert("❌ Save failed: " + err.message);
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save';
-  }
-};
+        <div class="text-end border-top pt-4 mt-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-premium-secondary" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-premium-primary" id="updateDoctorBtn" data-i18n="btn_submit_dcr">Submit DCR</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-window.goToQuickAddCall = function() {
-  sessionStorage.setItem('returnToDocId', window.currentTargetDocId);
-  if (typeof window.loadComponent === 'function') window.loadComponent('visit');
-};
+  <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
+  <div id="doctorProfileView" class="d-none">
+    <div class="d-flex align-items-center mb-4 flex-wrap gap-2">
+      <button class="btn btn-premium-secondary me-1" onclick="window.goBackFromDoctorProfile()">
+        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <button class="btn btn-premium-primary me-2" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+        <i class="fa-solid fa-pen-to-square me-1"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+      </button>
+      <!-- 🌟 IDviewDocTitleName ตัวการที่ทำให้หน้าจอขาวถูกเอากลับมาไว้ตรงนี้ครับ -->
+      <h4 class="text-primary fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h4>
+      <div id="profileDcrStatusBadge" class="ms-2"></div>
+    </div>
+    
+    <div class="card p-4 border-0 shadow-sm visit-card">
+      <ul class="nav nav-pills doctor-profile-tabs mb-4 border-bottom pb-3" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-doc-info" type="button"><i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span></button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-history" type="button"><i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span></button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc-target" type="button"><i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span></button>
+        </li>
+      </ul>
 
-// ==========================================
-// 🚀 9. SAFE INITIALIZATION ENGINE & LISTENERS
-// ==========================================
-window.initDoctorPage = async function(forceReload = false) {
-  if (window._isDocInitRunning) return;
-  window._isDocInitRunning = true;
-  window.isDocInitialLoading = true;
+      <div class="tab-content">
+        <!-- Tab: General Info -->
+        <div class="tab-pane fade show active" id="tab-doc-info">
+          <div class="row mb-3 g-3">
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light" id="viewDocSpecialty" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light" id="viewDocType" disabled style="border-radius:10px;"></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_status">Status</label><input type="text" class="form-control bg-light fw-bold" id="viewDocStatus" disabled style="border-radius:10px;"></div>
+          </div>
+          <div class="row mb-3 g-3">
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_email">Email</label><input type="text" class="form-control bg-light" id="viewDocEmail" disabled style="border-radius:10px;"></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_mobile">Mobile</label><input type="text" class="form-control bg-light" id="viewDocMobile" disabled style="border-radius:10px;"></div>
+          </div>
+          <div class="border rounded-4 p-4 bg-light mt-4">
+            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">Workplace History</span></label>
+            <div id="viewWorkplaceContainer"></div>
+          </div>
+        </div>
 
-  try {
-    await window.loadIndexDropdowns(forceReload); 
-    await window.loadDoctors(forceReload);
-  } catch (err) {
-    console.error("Init Doctors Failed:", err);
-  } finally {
-    window.isDocInitialLoading = false;
-    window._isDocInitRunning = false;
-  }
-};
+        <!-- Tab: Visit History -->
+        <div class="tab-pane fade" id="tab-doc-history">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
+            <button class="btn btn-sm btn-premium-primary" onclick="window.goToQuickAddCall()">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
+            </button>
+          </div>
 
-if (!window._isDocLangListenerAttached) {
-  window.addEventListener('appLanguageChanged', function() {
-    if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
-      window.renderDoctorTableServerSide();
-    }
-  });
-  window._isDocLangListenerAttached = true;
-}
+          <div class="row g-2 mb-3 bg-light p-2 rounded-3 border">
+            <div class="col-md-5">
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
+              <div class="input-group input-group-sm shadow-xs" style="border-radius: 8px; overflow: hidden;">
+                <input type="date" class="form-control" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()" style="border-radius: 8px 0 0 8px;">
+                <span class="input-group-text bg-white border-start-0 border-end-0 text-muted">-</span>
+                <input type="date" class="form-control" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()" style="border-radius: 0 8px 8px 0;">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
+              <select class="form-select form-select-sm shadow-xs" id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" style="border-radius: 8px;">
+                <option value="">- All Products -</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                 <button class="btn btn-sm btn-premium-secondary w-100" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
+            </div>
+          </div>
 
-if (!window._docObserverAttached) {
-  const docObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.addedNodes) {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === 1 && (node.id === 'doctorTableBody' || (node.querySelector && node.querySelector('#doctorTableBody')))) {
-            window.initDoctorPage(false);
-          }
-        });
-      }
-    });
-  });
-  docObserver.observe(document.body, { childList: true, subtree: true });
-  window._docObserverAttached = true;
-}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle border-0" style="font-size: 0.9rem;">
+              <thead class="table-custom-header text-center">
+                <tr>
+                  <th class="py-3 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
+                  <th class="py-3 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-3 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
+                  <th class="py-3 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
+                  <th class="py-3 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
+                  <th class="py-3 sortable-th" onclick="window.sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
+                </tr>
+              </thead>
+              <tbody id="viewVisitHistoryBody">
+                <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-setTimeout(() => {
-  if (document.getElementById('doctorTableBody')) {
-    window.initDoctorPage(true);
-  }
-}, 100);
+          <div id="pvisitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+              <select class="form-select form-select-sm shadow-xs" id="pvisitRowsPerPage" onchange="window.changePVisitRowsPerPage()" style="width: 80px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination">
+              </ul>
+            </nav>
+          </div>
+
+        </div>
+
+        <!-- Tab: Target Call -->
+        <div class="tab-pane fade" id="tab-doc-target">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i>Rating and Targeting</h6>
+            <button class="btn btn-sm btn-premium-primary" id="btnAddRatingProduct" onclick="window.addNewRatingRow()">
+              <i class="fa-solid fa-plus me-1"></i> Add Product
+            </button>
+          </div>
+          
+          <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-xs border-warning" style="display: none; border-radius: 10px;">
+            <i class="fa-solid fa-lock me-2"></i><strong>Locked:</strong> The Target Call evaluation period is currently closed.
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" id="ratingTable">
+              <thead class="table-custom-header">
+                <tr>
+                  <th style="width: 25%;">Product</th>
+                  <th style="width: 15%;">Adoption</th>
+                  <th style="width: 15%;">Potential</th>
+                  <th style="width: 15%;">Classification</th>
+                  <th style="width: 15%;">Target (Call)</th>
+                  <th style="width: 15%;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="ratingTableBody">
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- โหลด Controller ฝั่ง JavaScript แบบแยกไฟล์ -->
+<script src="assets/js/controllers/docCtrl.js"></script>
