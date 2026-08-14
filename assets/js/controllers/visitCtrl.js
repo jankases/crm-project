@@ -2030,16 +2030,15 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
- window.openEditVisitView = async function(visitId) {
+window.openEditVisitView = function(visitId) {
   window.applyVisitFeaturesUI();
-    
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. เปิดฟอร์มขึ้นจอทันที 0 วินาที (Instant UI Switch)
+  // 🚀 1. เปิดฟอร์มขึ้นจอทันที 0 วินาที (Non-blocking UI)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2061,17 +2060,12 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. ตั้งค่า Doctor Name ทันที
-  if (v.Doc_ID) {
-      if (window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.setValue(v.Doc_ID, true);
-      } else {
-          var docSelect = document.getElementById('visitDocId');
-          if (docSelect) docSelect.value = v.Doc_ID;
-      }
+  // ⚡ 2. ยัดชื่อหมอลง TomSelect ทันที (0s delay)
+  if (v.Doc_ID && window.tomSelectDocInstance) {
+      window.tomSelectDocInstance.setValue(v.Doc_ID, true);
   }
 
-  // ⚡ 3. ตั้งค่า Inputs ทั่วไปทันที
+  // ⚡ 3. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2084,39 +2078,49 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitStatus').value = v.Status || 'Pending';
   document.getElementById('visitIsCoaching').checked = (v.Is_Coaching === true);
 
-  // 🎯 4. ระบบซิงค์ Purpose แบบบังคับสร้าง Option (แก้ปัญหา Purpose หาย 100%)
-  var rawPurpose = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
-  if (rawPurpose && rawPurpose !== '-') {
-      var matchedId = rawPurpose;
-      var matchedText = rawPurpose;
+  // 🎯 4. ระบบสแกนหา PURPOSE (รองรับทั้งแบบใหม่ที่เป็น Index_ID และแบบเก่าที่เป็น Text ตรงๆ)
+  var dbPurposeVal = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
+  if (window.tomSelectPurposeInstance) {
+      var tsPurp = window.tomSelectPurposeInstance;
+      tsPurp.clear(true);
 
-      // สแกนกับ Index Cache เพื่อแปลงข้อความให้ตรงกับ Master Data
-      if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
-          var foundIdx = window.VisitManagerCache.indexes.find(function(i) {
-              return String(i.Index_ID).toLowerCase() === rawPurpose.toLowerCase() ||
-                     String(i.Value || '').toLowerCase() === rawPurpose.toLowerCase() ||
-                     String(i.Value1 || '').toLowerCase() === rawPurpose.toLowerCase();
-          });
-          if (foundIdx) {
-              matchedId = foundIdx.Index_ID;
-              var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-              matchedText = (appLang === 'en') ? (foundIdx.Value1 || foundIdx.Value) : (foundIdx.Value || foundIdx.Value1);
+      if (dbPurposeVal && dbPurposeVal !== '-') {
+          var targetIndexId = null;
+
+          // 4.1 ค้นหาใน Master Indexes (ตาราง Index) เพื่อแปลง Text เก่า เป็น Index_ID ใหม่
+          if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
+              var foundIndex = window.VisitManagerCache.indexes.find(function(i) {
+                  return String(i.Index_ID).toLowerCase() === dbPurposeVal.toLowerCase() ||
+                         String(i.Value || '').toLowerCase() === dbPurposeVal.toLowerCase() ||
+                         String(i.Value1 || '').toLowerCase() === dbPurposeVal.toLowerCase();
+              });
+              if (foundIndex) {
+                  targetIndexId = foundIndex.Index_ID;
+              }
+          }
+
+          // 4.2 ถ้าหาใน Index ไม่เจอ ให้ใช้ค่าเดิมของมัน (กรณีเป็น UUID หรือ Text อื่น)
+          if (!targetIndexId) {
+              targetIndexId = dbPurposeVal;
+          }
+
+          // 4.3 ลองสั่ง setValue
+          tsPurp.setValue(targetIndexId, true);
+
+          // 4.4 Failsafe: หาก setValue ไม่ผ่าน (เพราะเป็น Text โบราณที่ไม่อยู่ในตาราง Index) ให้สร้าง Option พิเศษยัดเข้าไป
+          if (!tsPurp.getValue()) {
+              tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
+              tsPurp.setValue(dbPurposeVal, true);
+          }
+
+          if (typeof window.updatePurposeDisplayLang === 'function') {
+              window.updatePurposeDisplayLang();
           }
       }
-
-      if (window.tomSelectPurposeInstance) {
-          var tsP = window.tomSelectPurposeInstance;
-          // เพิ่ม Option สำรองไว้ก่อน เพื่อป้องกัน TomSelect มองไม่เห็นค่าแล้วเลือกค่าว่าง
-          tsP.addOption({ value: matchedId, text: matchedText, searchTh: matchedText, searchEn: matchedText });
-          tsP.setValue(matchedId, true);
-          tsP.refreshItems();
-      }
-  } else if (window.tomSelectPurposeInstance) {
-      window.tomSelectPurposeInstance.clear(true);
   }
 
   // -------------------------------------------------------------
-  // 🚀 5. โหลดข้อมูลเบื้องหลังแบบ Async Non-Blocking (ไม่ใส่ await ขัดจังหวะหน้าจอ)
+  // 🚀 5. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking (ข้ามการใช้ await)
   // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
@@ -2127,6 +2131,7 @@ window.toggleVisitFormEditable = function(isEditable) {
           if (window.tomSelectProdInstance && visitProds.length > 0) {
               window.tomSelectProdInstance.setValue(visitProds, true);
           }
+          if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
       });
   }
 
@@ -2134,7 +2139,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.loadVisitSamplesForEdit(v.Visit_ID);
   }
 
-  // GPS Location
+  // GPS Check-in
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2165,7 +2170,7 @@ window.toggleVisitFormEditable = function(isEditable) {
     }
   }
 
-  // Attachments & Signatures
+  // Attachments & Signature
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
@@ -2191,11 +2196,9 @@ window.toggleVisitFormEditable = function(isEditable) {
   } else {
     window.savedSignatureData = null;
   }
-  if (typeof window.updateSignaturePreviewUI === 'function') {
-    window.updateSignaturePreviewUI();
-  }
+  if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
-  // Lock / Unlock Button Status
+  // สถานะปุ่ม Save / Lock
   var isPendingUnlock = window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1;
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -2242,9 +2245,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   if (typeof window.setFormComponentsReadOnly === 'function') {
     window.setFormComponentsReadOnly(isReadOnly);
   }
-
-  if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
-}; 
+};
 
 window.openAddVisitView = async function(presetDate) {
   window.applyVisitFeaturesUI();
