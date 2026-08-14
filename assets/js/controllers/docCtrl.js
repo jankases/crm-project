@@ -1177,14 +1177,14 @@ window.filterAndRenderDoctorVisits = function() {
     });
     const repNameShow = userObj ? (userObj.Rep_Name || userObj.rep_name || userObj.Name || rawWho) : (rawWho || '-');
 
-    // 🌟 2. Lookup หา Territory Name / Code ตามโครงสร้าง Organization Structure
+    // 🌟 2. Lookup หา Territory / BU / Team Name (ไล่เช็คครบ 3 ลำดับชั้น)
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
 
     if (rawTerrId) {
       const searchTarget = String(rawTerrId).toLowerCase().trim();
 
-      // Step A: ค้นหาจาก Master Table Territories (หาด้วย ID, Code หรือ Name)
+      // Step 1: ค้นหาใน Master Table Territories
       const terrObj = (window.globalTerritories || window.DocManagerCache.territories || []).find(t => {
         const tId = String(t.Territory_ID || t.territory_id || t.id || '').toLowerCase().trim();
         const tCode = String(t.Territory_Code || t.code || t.Territory || '').toLowerCase().trim();
@@ -1194,17 +1194,29 @@ window.filterAndRenderDoctorVisits = function() {
       if (terrObj) {
         terrNameShow = terrObj.Territory_Name || terrObj.Territory || terrObj.Territory_Code || terrObj.name;
       } else {
-        // Step B: ค้นหาจาก Teams (กรณี Territory_ID เก็บเป็น Team UUID)
-        const teamObj = (window.globalTeams || window.DocManagerCache.teams || []).find(tm => {
-          const tmId = String(tm.Team_ID || tm.team_id || tm.id || '').toLowerCase().trim();
-          return tmId === searchTarget;
+        // Step 2: ค้นหาใน Table BU (Business Units)
+        const buObj = (window.globalBUs || window.DocManagerCache.bus || window.DocManagerCache.businessUnits || []).find(b => {
+          const bId = String(b.BU_ID || b.bu_id || b.id || '').toLowerCase().trim();
+          const bCode = String(b.BU_Code || b.bu_code || b.Code || '').toLowerCase().trim();
+          return bId === searchTarget || bCode === searchTarget;
         });
 
-        if (teamObj) {
-          terrNameShow = teamObj.Team_Name || teamObj.team_name || teamObj.Name || rawTerrId;
-        } else if (!rawTerrId.includes('-')) {
-          // กรณีไม่ใช่ UUID (เช่น โค้ด 'L1' หรือข้อความสั้นๆ)
-          terrNameShow = rawTerrId;
+        if (buObj) {
+          terrNameShow = buObj.BU_Name || buObj.bu_name || buObj.BU || buObj.name;
+        } else {
+          // Step 3: ค้นหาใน Table Teams
+          const teamObj = (window.globalTeams || window.DocManagerCache.teams || []).find(tm => {
+            const tmId = String(tm.Team_ID || tm.team_id || tm.id || '').toLowerCase().trim();
+            const tmCode = String(tm.Team_Code || tm.team_code || tm.Code || '').toLowerCase().trim();
+            return tmId === searchTarget || tmCode === searchTarget;
+          });
+
+          if (teamObj) {
+            terrNameShow = teamObj.Team_Name || teamObj.team_name || teamObj.Team || teamObj.name;
+          } else if (!rawTerrId.includes('-')) {
+            // กรณีเป็นโค้ดสั้นๆ เช่น 'L1'
+            terrNameShow = rawTerrId;
+          }
         }
       }
     }
