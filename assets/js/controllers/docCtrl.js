@@ -1245,10 +1245,14 @@ window.filterAndRenderDoctorVisits = function() {
       }).join('');
     }
 
+    // ⚡ [จุดที่ปรับแก้] ดึง Doc_ID และ Purpose_ID สดๆ ส่งข้ามหน้าข้ามฟังก์ชันผ่าน onclick ตรงๆ 
+    const currentDocId = window.currentTargetDocId || v.Doc_ID || '';
+    const rawPurposeId = v.Purpose_ID || v.Purpose || v.Objective || '';
+
     htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">
-          <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}'); return false;">
+          <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}', '${currentDocId}', '${rawPurposeId}'); return false;">
             ${dateStr}
           </a>
         </td>
@@ -1265,6 +1269,30 @@ window.filterAndRenderDoctorVisits = function() {
   if (typeof window.renderDoctorPaginationControls === 'function') {
     window.renderDoctorPaginationControls(totalPages);
   }
+};
+
+// ⚡ [จุดที่ปรับแก้เพิ่ม] ปรับฟังก์ชันเรียกเปิดฟอร์มแก้ไขให้รับ + ส่งต่อ Parameters 3 ตัว
+window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overridePurposeId) {
+  const docId = overrideDocId || window.currentTargetDocId;
+  if (!docId || !visitId) return;
+
+  sessionStorage.setItem('returnToDocId', docId);
+
+  if (typeof window.loadComponent === 'function') {
+    window.loadComponent('visit');
+  }
+
+  let attempts = 0;
+  const checkReady = setInterval(function() {
+    attempts++;
+    if (typeof window.openEditVisitView === 'function') {
+      clearInterval(checkReady);
+      // 🚀 ยัด Visit_ID, Doc_ID และ Purpose_ID ข้ามไฟล์ไปให้ visitCtrl.js ทันที
+      window.openEditVisitView(visitId, docId, overridePurposeId);
+    } else if (attempts > 50) {
+      clearInterval(checkReady);
+    }
+  }, 100);
 };
 
 window.clearRatingTable = function() {
@@ -1484,13 +1512,17 @@ window.goToQuickAddCall = function() {
 };
 
 // ==========================================
-// ✏️ EDIT VISIT FROM DOCTOR PROFILE
+// ✏️ EDIT VISIT FROM DOCTOR PROFILE (เวอร์ชันส่ง Parameters ครบชุด)
 // ==========================================
 window.openEditVisitFromDoctorProfile = function(visitId) {
   const docId = window.currentTargetDocId;
   if (!docId || !visitId) return;
 
   sessionStorage.setItem('returnToDocId', docId);
+
+  // 🎯 ดึงข้อมูล Visit จาก RAM เพื่อเอา Purpose_ID/Purpose มาส่งข้ามหน้า
+  const v = (window.globalCurrentDoctorVisits || []).find(x => String(x.Visit_ID) === String(visitId));
+  const purposeVal = v ? (v.Purpose_ID || v.Purpose || v.Objective || '') : '';
 
   if (typeof window.loadComponent === 'function') {
     window.loadComponent('visit');
@@ -1501,7 +1533,8 @@ window.openEditVisitFromDoctorProfile = function(visitId) {
     attempts++;
     if (typeof window.openEditVisitView === 'function') {
       clearInterval(checkReady);
-      window.openEditVisitView(visitId);
+      // ⚡ ส่ง Visit_ID, Doc_ID และ Purpose_ID ให้เปิดฟอร์มยัดค่าใส่ TomSelect ทันที 0s
+      window.openEditVisitView(visitId, docId, purposeVal);
     } else if (attempts > 50) {
       clearInterval(checkReady);
     }
