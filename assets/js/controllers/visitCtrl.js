@@ -2004,7 +2004,9 @@ window.toggleVisitFormEditable = function(isEditable) {
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
-  var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
+  var v = (window.globalVisits && window.globalVisits.length > 0) 
+    ? window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); }) 
+    : null;
   
   // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0 วินาที
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
@@ -2023,20 +2025,18 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  // ⚡ 2. [แก้หมอหาย/ขึ้นช้า] ดึง Doc_ID จาก Parameter ที่ส่งมา หรือจากตัวแปร v
+  // ⚡ 2. [FAST DOCTOR] ยัดค่าหมอทันที 0s (ไม่ใช้ setTimeout ถ่วงเวลา)
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
   
-  var setDocValue = function() {
-      if (targetDocId && window.tomSelectDocInstance) {
+  if (targetDocId) {
+      var rawDocSelect = document.getElementById('visitDocId');
+      if (rawDocSelect) rawDocSelect.value = targetDocId;
+
+      if (window.tomSelectDocInstance) {
           window.tomSelectDocInstance.enable();
           window.tomSelectDocInstance.setValue(targetDocId, true);
       }
-  };
-  
-  // ยัดค่าหมอทันที 0 วินาที
-  setDocValue();
-  // Failsafe: ยัดซ้ำอีกรอบที่ 300ms ป้องกันหน้าหมอแอบมารีเซ็ตกล่องทิ้ง
-  setTimeout(setDocValue, 300);
+  }
 
   // ⚡ 3. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
   if (v) {
@@ -2053,12 +2053,15 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
   }
 
-  // 🎯 4. [แก้ PURPOSE ไม่ขึ้น] รับค่า Parameter หรือสแกนจาก Index
+  // 🎯 4. [FAST PURPOSE] ยัดค่า Purpose ทันที 0s (ตรงเข้า UUID / Text Option)
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
   var dbPurposeVal = String(rawPurpose || '').trim();
 
-  var setPurposeValue = function() {
-      if (window.tomSelectPurposeInstance && dbPurposeVal && dbPurposeVal !== '-' && dbPurposeVal !== 'null') {
+  if (dbPurposeVal && dbPurposeVal !== '-' && dbPurposeVal !== 'null') {
+      var rawPurpSelect = document.getElementById('visitPurpose');
+      if (rawPurpSelect) rawPurpSelect.value = dbPurposeVal;
+
+      if (window.tomSelectPurposeInstance) {
           var tsPurp = window.tomSelectPurposeInstance;
           tsPurp.enable();
 
@@ -2074,7 +2077,6 @@ window.toggleVisitFormEditable = function(isEditable) {
 
           tsPurp.setValue(targetIndexId, true);
 
-          // Failsafe: ถ้ายังไม่ขึ้น ให้สร้าง Option ข้อความใส่ลง TomSelect ตรงๆ
           if (!tsPurp.getValue()) {
               tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
               tsPurp.setValue(dbPurposeVal, true);
@@ -2084,12 +2086,7 @@ window.toggleVisitFormEditable = function(isEditable) {
               window.updatePurposeDisplayLang();
           }
       }
-  };
-
-  // ยัดค่า Purpose ทันที 0 วินาที
-  setPurposeValue();
-  // Failsafe: ยัดซ้ำที่ 300ms ป้องกันโดนสั่ง Clear
-  setTimeout(setPurposeValue, 300);
+  }
 
   // 🌟 5. ดึงประวัติการเยี่ยมย้อนหลัง
   if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
