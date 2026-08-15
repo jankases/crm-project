@@ -1025,6 +1025,7 @@ window.deleteTot = async function() {
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
  window.loadDropdowns = async function(forceReload) {
+  if (window.isOpeningEditView) return; 
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
