@@ -2001,9 +2001,6 @@ window.toggleVisitFormEditable = function(isEditable) {
 };
 
 window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
-  // 🛡️ 1. ล็อก Flag ไม่ให้ loadDropdowns() แอบมาล้างค่า TomSelect ทิ้ง
-  window.isOpeningEditView = true;
-
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2012,7 +2009,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
     ? window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); }) 
     : null;
   
-  // 🚀 2. สลับหน้าเปิดฟอร์มทันที 0 วินาที
+  // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0s
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2029,19 +2026,26 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  // ⚡ 3. [SET DOCTOR NAME] ยัดค่าลง HTML Element + TomSelect ทันที
+  // 🔒 [HARD-LOCK DOCTOR] ยัดค่าตรงลง Element และ TomSelect แบบ Silent
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
   if (targetDocId) {
       var rawDocSelect = document.getElementById('visitDocId');
       if (rawDocSelect) rawDocSelect.value = targetDocId;
 
       if (window.tomSelectDocInstance) {
-          window.tomSelectDocInstance.enable();
-          window.tomSelectDocInstance.setValue(targetDocId, true);
+          var tsDoc = window.tomSelectDocInstance;
+          tsDoc.enable();
+          // ถ้าไม่มี Option ในลิสต์ ให้สร้างเพิ่มทันที
+          if (!tsDoc.options[targetDocId]) {
+              var docObj = window._docIndex ? window._docIndex[String(targetDocId).toLowerCase()] : null;
+              var dName = docObj ? (docObj.Doc_Name || docObj.Doc_Name_TH) : targetDocId;
+              tsDoc.addOption({ value: targetDocId, text: dName });
+          }
+          tsDoc.setValue(targetDocId, true); // true = Silent (ไม่กระตุ้น onChange ให้โดนล้าง)
       }
   }
 
-  // ⚡ 4. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
+  // ⚡ 3. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
   if (v) {
       document.getElementById('visitDate').value = v.Visit_Date || '';
       if (typeof window.formatTimeString === 'function') {
@@ -2056,7 +2060,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
   }
 
-  // 🎯 5. [SET PURPOSE] ยัดค่า Purpose UUID ตรงๆ 0s
+  // 🔒 [HARD-LOCK PURPOSE] ยัดค่า Purpose แบบ Silent
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
   var dbPurposeVal = String(rawPurpose || '').trim();
 
@@ -2078,12 +2082,12 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
               if (foundIndex) targetIndexId = foundIndex.Index_ID;
           }
 
-          tsPurp.setValue(targetIndexId, true);
-
-          if (!tsPurp.getValue()) {
-              tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
-              tsPurp.setValue(dbPurposeVal, true);
+          if (!tsPurp.options[targetIndexId]) {
+              tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal });
+              targetIndexId = dbPurposeVal;
           }
+
+          tsPurp.setValue(targetIndexId, true); // true = Silent
 
           if (typeof window.updatePurposeDisplayLang === 'function') {
               window.updatePurposeDisplayLang();
@@ -2091,13 +2095,13 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       }
   }
 
-  // 🌟 6. ดึงประวัติการเยี่ยมย้อนหลัง
+  // 🌟 5. ดึงประวัติการเยี่ยมย้อนหลัง
   if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
       window.fetchLastVisitHistory(targetDocId);
   }
 
   // -------------------------------------------------------------
-  // 🚀 7. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking
+  // 🚀 6. โหลด Product Dropdown เบื้องหลังแบบ Async
   // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
@@ -2109,6 +2113,15 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
               window.tomSelectProdInstance.setValue(visitProds, true);
           }
           if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
+
+          // 🛡️ RE-CONFIRM LOCK: บังคับล็อคค่า Doctor & Purpose อีกรอบหลังจาก Product Dropdown เรนเดอร์เสร็จ
+          if (targetDocId && window.tomSelectDocInstance) {
+              window.tomSelectDocInstance.setValue(targetDocId, true);
+          }
+          if (dbPurposeVal && window.tomSelectPurposeInstance) {
+              var finalPurpId = targetIndexId || dbPurposeVal;
+              window.tomSelectPurposeInstance.setValue(finalPurpId, true);
+          }
       });
   }
 
@@ -2230,9 +2243,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   if (typeof window.setFormComponentsReadOnly === 'function') {
     window.setFormComponentsReadOnly(isReadOnly);
   }
-
-  // 🛡️ ปลดล็อก Flag หลังจากฟอร์มเรนเดอร์เสร็จสิ้น
-  setTimeout(function() { window.isOpeningEditView = false; }, 500);
 };
 
 window.openAddVisitView = async function(presetDate) {
