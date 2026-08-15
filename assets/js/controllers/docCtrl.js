@@ -240,6 +240,47 @@ window.stopSpeechSearch = function() {
 };
 
 // ==========================================
+// 🎯 HELPER RENDER FILTER DROPDOWNS (FROM validDocsData)
+// ==========================================
+window.renderFilterDropdowns = function(validDocsData) {
+  if (!validDocsData || !Array.isArray(validDocsData)) return;
+
+  window.DocManagerCache.validDocsData = validDocsData;
+
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
+  const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
+
+  // 1. Specialty Filter
+  const specSelect = document.getElementById('filterDocSpecialty');
+  if (specSelect) {
+    const selectedVals = specSelect.tomselect ? specSelect.tomselect.getValue() : [];
+    const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+    
+    specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
+    window.initMultiTomSelect('filterDocSpecialty', phSpec);
+    
+    if (selectedVals.length > 0 && specSelect.tomselect) {
+      specSelect.tomselect.setValue(selectedVals, true);
+    }
+  }
+
+  // 2. Type Filter
+  const typeSelect = document.getElementById('filterDocType');
+  if (typeSelect) {
+    const selectedVals = typeSelect.tomselect ? typeSelect.tomselect.getValue() : [];
+    const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+    
+    typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    window.initMultiTomSelect('filterDocType', phType);
+
+    if (selectedVals.length > 0 && typeSelect.tomselect) {
+      typeSelect.tomselect.setValue(selectedVals, true);
+    }
+  }
+};
+
+// ==========================================
 // 📥 4. PERMISSIONS & DROPDOWNS SETUP
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
@@ -411,6 +452,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         return html;
       };
 
+      // 🎯 Form Add/Edit ใช้ตัวเลือกเต็มจาก Index
       window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
 
@@ -420,19 +462,8 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.updateTomSelect('docType', getOptionsHtml('DoctorType', phType), phType);
       window.updateTomSelect('editDocType', getOptionsHtml('DoctorType', phType), phType);
 
-      const specSelect = document.getElementById('filterDocSpecialty');
-      if (specSelect) {
-        const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-        specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
-        window.initMultiTomSelect('filterDocSpecialty', phSpec);
-      }
-
-      const typeSelect = document.getElementById('filterDocType');
-      if (typeSelect) {
-        const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-        typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-        window.initMultiTomSelect('filterDocType', phType);
-      }
+      // 🎯 Form Filter ใช้คำเฉพาะจาก validDocsData (แพทย์ที่มีอยู่จริง)
+      window.renderFilterDropdowns(validDocsData);
     }
   } catch (err) {
     console.warn("Dropdown load warning:", err.message);
@@ -1646,31 +1677,11 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// ⚡ Listener ตรวจจับการสลับภาษา (EN / TH) และปรับ Placeholder ของ Filter ทันที
+// ⚡ Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
-    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
-    const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
-
-    const specEl = document.getElementById('filterDocSpecialty');
-    if (specEl && specEl.tomselect) {
-      specEl.tomselect.settings.placeholder = phSpec;
-      specEl.tomselect.input.setAttribute('placeholder', phSpec);
-      if (specEl.tomselect.control_input) specEl.tomselect.control_input.setAttribute('placeholder', phSpec);
-      specEl.tomselect.refreshOptions(false);
-    } else if (specEl) {
-      window.initMultiTomSelect('filterDocSpecialty', phSpec);
-    }
-
-    const typeEl = document.getElementById('filterDocType');
-    if (typeEl && typeEl.tomselect) {
-      typeEl.tomselect.settings.placeholder = phType;
-      typeEl.tomselect.input.setAttribute('placeholder', phType);
-      if (typeEl.tomselect.control_input) typeEl.tomselect.control_input.setAttribute('placeholder', phType);
-      typeEl.tomselect.refreshOptions(false);
-    } else if (typeEl) {
-      window.initMultiTomSelect('filterDocType', phType);
+    if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
+      window.renderFilterDropdowns(window.DocManagerCache.validDocsData);
     }
 
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
