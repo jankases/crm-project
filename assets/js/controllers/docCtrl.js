@@ -386,9 +386,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.indexLoaded = true;
 
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      const selectTitleText = (typeof t === 'function') ? t('lbl_doc_title') : (appLang === 'en' ? '- Select Title -' : '- เลือกคำนำหน้า -');
-      const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : (appLang === 'en' ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -');
-      const phType = (typeof t === 'function') ? t('opt_all_types') : (appLang === 'en' ? '- All Types -' : '- ประเภททั้งหมด -');
+      const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
+      const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
+      const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
 
       const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
@@ -1235,13 +1235,13 @@ window.filterAndRenderDoctorVisits = function() {
       valB = new Date(b.Visit_Date || 0).getTime();
     } else if (sortCol === 'user') {
       valA = (a.Whoupdated || '').toLowerCase();
-      valB = (b.Whoupdated || '').toLowerCase();
+      valB = (a.Whoupdated || '').toLowerCase();
     } else if (sortCol === 'territory') {
       valA = (a.Territory_ID || '').toLowerCase();
       valB = (a.Territory_ID || '').toLowerCase();
     } else if (sortCol === 'status') {
       valA = (a.Status || '').toLowerCase();
-      valB = (b.Status || '').toLowerCase();
+      valB = (a.Status || '').toLowerCase();
     } else {
       valA = (a.Purpose_ID || a.Purpose || a.Objective || '').toLowerCase();
       valB = (b.Purpose_ID || b.Purpose || b.Objective || '').toLowerCase();
@@ -1646,25 +1646,31 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// ⚡ Listener ตรวจจับการสลับภาษา (EN / TH) ทั่วทั้งแอพ
+// ⚡ Listener ตรวจจับการสลับภาษา (EN / TH) และปรับ Placeholder ของ Filter ทันที
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : (appLang === 'en' ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -');
-    const phType = (typeof t === 'function') ? t('opt_all_types') : (appLang === 'en' ? '- All Types -' : '- ประเภททั้งหมด -');
-    
+    const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
+    const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
+
     const specEl = document.getElementById('filterDocSpecialty');
     if (specEl && specEl.tomselect) {
       specEl.tomselect.settings.placeholder = phSpec;
       specEl.tomselect.input.setAttribute('placeholder', phSpec);
+      if (specEl.tomselect.control_input) specEl.tomselect.control_input.setAttribute('placeholder', phSpec);
       specEl.tomselect.refreshOptions(false);
+    } else if (specEl) {
+      window.initMultiTomSelect('filterDocSpecialty', phSpec);
     }
 
     const typeEl = document.getElementById('filterDocType');
     if (typeEl && typeEl.tomselect) {
       typeEl.tomselect.settings.placeholder = phType;
       typeEl.tomselect.input.setAttribute('placeholder', phType);
+      if (typeEl.tomselect.control_input) typeEl.tomselect.control_input.setAttribute('placeholder', phType);
       typeEl.tomselect.refreshOptions(false);
+    } else if (typeEl) {
+      window.initMultiTomSelect('filterDocType', phType);
     }
 
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
