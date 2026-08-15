@@ -377,34 +377,53 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.indexLoaded = true;
 
       const selectTitleText = (typeof t === 'function') ? t('lbl_doc_title') : '- Select Title -';
-      const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -';
-      const phType = (typeof t === 'function') ? t('opt_all_types') : '- All Types -';
+      const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- Select Specialty -';
+      const phType = (typeof t === 'function') ? t('opt_all_types') : '- Select Type -';
 
+      // ⚡ ปรับปรุงการค้นหาชื่อหมวดหมู่ให้ยืดหยุ่น ยอมรับทั้ง DoctorType, Doctor Type, Type
       const getOptionsHtml = (typeName, defaultText) => {
-        const typeObj = (window.DocManagerCache.indexTypes || []).find(t => t.Name && t.Name.toLowerCase() === typeName.toLowerCase());
+        const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
+          const name = (t.Name || '').toLowerCase().trim();
+          const target = typeName.toLowerCase().trim();
+          if (target === 'type' || target === 'doctortype') {
+            return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
+          }
+          return name === target;
+        });
+
         let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
         if (typeObj) {
-          const items = (window.DocManagerCache.indexes || []).filter(i => i.IndexType_ID === typeObj.IndexType_ID);
-          items.forEach(i => html += `<option value="${i.Value}">${i.Value}</option>`);
+          const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
+          items.forEach(i => {
+            const valStr = i.Value || i.value || '';
+            if (valStr) html += `<option value="${valStr}">${valStr}</option>`;
+          });
         }
         return html;
       };
 
+      // 🎯 สร้าง Options เผื่อไว้ให้ TomSelect ทั้งฟอร์ม Add และ Edit
       window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
+
+      window.updateTomSelect('docSpecialty', getOptionsHtml('Specialty', phSpec), phSpec);
+      window.updateTomSelect('editDocSpecialty', getOptionsHtml('Specialty', phSpec), phSpec);
+
+      window.updateTomSelect('docType', getOptionsHtml('DoctorType', phType), phType);
+      window.updateTomSelect('editDocType', getOptionsHtml('DoctorType', phType), phType);
 
       const specSelect = document.getElementById('filterDocSpecialty');
       if (specSelect) {
         const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
-        window.initMultiTomSelect('filterDocSpecialty', phSpec);
+        window.initMultiTomSelect('filterDocSpecialty', (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -');
       }
 
       const typeSelect = document.getElementById('filterDocType');
       if (typeSelect) {
         const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-        window.initMultiTomSelect('filterDocType', phType);
+        window.initMultiTomSelect('filterDocType', (typeof t === 'function') ? t('opt_all_types') : '- All Types -');
       }
     }
   } catch (err) {
@@ -413,10 +432,18 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 };
 
 window.getIndexValues = function(typeName) {
-  const typeObj = (window.DocManagerCache.indexTypes || []).find(t => t.Name && t.Name.toLowerCase() === typeName.toLowerCase());
+  const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
+    const name = (t.Name || '').toLowerCase().trim();
+    const target = typeName.toLowerCase().trim();
+    if (target === 'type' || target === 'doctortype') {
+      return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
+    }
+    return name === target;
+  });
+
   if (!typeObj) return [];
   
-  let items = (window.DocManagerCache.indexes || []).filter(i => i.IndexType_ID === typeObj.IndexType_ID);
+  let items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
 
   if (typeName.toLowerCase() === 'adoption') {
     const order = ['High', 'Medium-High', 'Medium', 'Medium-Low', 'Low', 'Non User'];
@@ -487,7 +514,7 @@ window.loadDoctors = async function(forceReload = false) {
 
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
-  // 🚀 1. CACHE GUARD: สลับ Tab เมนูหลักแล้วมี Cache เดิมอยู่ -> เรนเดอร์ทันที 0 วินาที ไม่ขึ้น Loading!
+  // 🚀 CACHE GUARD: สลับ Tab เมนูหลักแล้วมี Cache เดิม -> เรนเดอร์ทันที 0s
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
@@ -513,7 +540,6 @@ window.loadDoctors = async function(forceReload = false) {
       }
     }
 
-    // บันทึก Filter State ปัจจุบัน
     window.saveDocFilterState();
 
     const smartSearchInput = document.getElementById('smartDocSearchInput');
@@ -845,7 +871,19 @@ window.openEditDoctorView = function(id) {
   
   document.getElementById('editDocId').value = d.Doc_ID || d.id; 
   
-  const setTsVal = (elId, val) => { const el = document.getElementById(elId); if(el && el.tomselect) el.tomselect.setValue(val); else if (el) el.value = val; };
+  // ⚡ Helper ฟังก์ชันยัดค่าลง TomSelect แบบการันตีว่าค่าไม่หลุด
+  const setTsVal = (elId, val) => { 
+    const el = document.getElementById(elId); 
+    if (el && el.tomselect) {
+      if (val && !el.tomselect.options[val]) {
+        el.tomselect.addOption({ value: val, text: val });
+      }
+      el.tomselect.setValue(val, true);
+    } else if (el) {
+      el.value = val || ''; 
+    }
+  };
+
   setTsVal('editDocTitle', d.Title || d.title || '');
   setTsVal('editDocSpecialty', d.Specialty || d.specialty || '');
   setTsVal('editDocType', d.Type || d.type || '');
@@ -1564,7 +1602,6 @@ window.goToQuickAddCall = function() {
 window.initDoctorPage = async function(forceReload = false) {
   if (window._isDocInitRunning) return;
 
-  // 🛡️ เช็กว่าถ้ามี Cache ข้อมูลเดิมอยู่แล้ว ไม่ต้องดึงข้อมูลซ้ำ
   const hasCache = (window.DocManagerCache && window.DocManagerCache.isLoaded && window.globalDoctors && window.globalDoctors.length > 0);
   const shouldFetchDB = forceReload === true ? true : !hasCache;
 
