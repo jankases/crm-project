@@ -1209,13 +1209,13 @@ window.loadDropdowns = async function(forceReload) {
               create: false, searchField: ["text", "name_en", "name_th"], sortField: { field: "text", direction: "asc" }, 
               placeholder: appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --', maxOptions: null, dropdownParent: 'body', dataAttr: 'data'
           });
-          if (oldDocVal) setTimeout(() => window.tomSelectDocInstance.setValue(oldDocVal, true), 50);
+          if (oldDocVal) window.tomSelectDocInstance.setValue(oldDocVal, true);
       }
     }
 
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-    // 🎯 ส่วนแก้ไขหลัก PURPOSE: ใส่ทั้ง Index_ID และ ข้อความภาษาไทย/อังกฤษ ให้ TomSelect ค้นเจอทั้งหมด
+    // 🎯 แก้ไข PURPOSE: สร้างความเชื่อมโยงแบบ Multi-Value ให้ค้นเจอทั้ง UUID และ ข้อความภาษาไทย/อังกฤษ
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect) { 
       var types = window.VisitManagerCache.indexTypes || []; 
@@ -1234,9 +1234,9 @@ window.loadDropdowns = async function(forceReload) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
           var dispText = (appLang === 'en') ? valEN : valTH;
           
-          if (i.Index_ID) purposeData.push({ value: i.Index_ID, text: dispText, searchEn: valEN, searchTh: valTH });
-          if (valTH && valTH !== i.Index_ID) purposeData.push({ value: valTH, text: dispText, searchEn: valEN, searchTh: valTH });
-          if (valEN && valEN !== i.Index_ID && valEN !== valTH) purposeData.push({ value: valEN, text: dispText, searchEn: valEN, searchTh: valTH });
+          if (i.Index_ID) purposeData.push({ value: String(i.Index_ID), text: dispText, searchEn: valEN, searchTh: valTH });
+          if (valTH && valTH !== i.Index_ID) purposeData.push({ value: String(valTH), text: dispText, searchEn: valEN, searchTh: valTH });
+          if (valEN && valEN !== i.Index_ID && valEN !== valTH) purposeData.push({ value: String(valEN), text: dispText, searchEn: valEN, searchTh: valTH });
       });
 
       if (typeof TomSelect !== 'undefined') {
@@ -1246,7 +1246,7 @@ window.loadDropdowns = async function(forceReload) {
               options: purposeData, valueField: 'value', labelField: 'text', searchField: ["searchTh", "searchEn", "text"], sortField: { field: "searchTh", direction: "asc" }, 
               placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', create: false, dropdownParent: 'body'
           });
-          if (oldPurpVal) setTimeout(() => window.tomSelectPurposeInstance.setValue(oldPurpVal, true), 50);
+          if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
       }
     }
 
@@ -2028,7 +2028,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0 วินาที (Non-blocking UI)
+  // 🚀 1. เปิดฟอร์มทันที 0 วินาที
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2050,7 +2050,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. ตั้งค่าชื่อหมอทันที (0s delay)
+  // ⚡ 2. ตั้งค่าชื่อหมอทันที และสั่ง Failsafe ป้องกันโดนลบ
   if (v.Doc_ID && window.tomSelectDocInstance) {
       window.tomSelectDocInstance.setValue(v.Doc_ID, true);
   }
@@ -2069,29 +2069,31 @@ window.toggleVisitFormEditable = function(isEditable) {
   var chkCoach = document.getElementById('visitIsCoaching');
   if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
 
-  // 🎯 4. แมป PURPOSE รองรับทั้ง Index_ID (UUID) และ Text ตรงๆ
+  // 🎯 4. ระบบสแกนและจับคู่ PURPOSE ยืดหยุ่น 100%
   var dbPurposeVal = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
   if (window.tomSelectPurposeInstance) {
       var tsPurp = window.tomSelectPurposeInstance;
       tsPurp.clear(true);
 
       if (dbPurposeVal && dbPurposeVal !== '-') {
-          var targetIndexId = null;
+          var targetValue = dbPurposeVal;
 
+          // ถ้าค่าเป็น UUID ให้เช็กใน Cache แปลงเป็น Text หรือเทียบ UUID ตรงๆ
           if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
               var foundIndex = window.VisitManagerCache.indexes.find(function(i) {
                   return String(i.Index_ID).toLowerCase() === dbPurposeVal.toLowerCase() ||
                          String(i.Value || '').toLowerCase() === dbPurposeVal.toLowerCase() ||
                          String(i.Value1 || '').toLowerCase() === dbPurposeVal.toLowerCase();
               });
-              if (foundIndex) targetIndexId = foundIndex.Index_ID;
+              if (foundIndex) {
+                  targetValue = foundIndex.Index_ID; // ใช้ Index_ID ถ้าเจอ
+              }
           }
 
-          if (!targetIndexId) targetIndexId = dbPurposeVal;
+          // สั่งเลือกค่า
+          tsPurp.setValue(targetValue, true);
 
-          tsPurp.setValue(targetIndexId, true);
-
-          // Failsafe: หากเป็นข้อความภาษาไทย/อังกฤษ ที่ไม่มีใน Index ให้ยัดตัวเลือกสำรองให้
+          // Failsafe: หากยังไม่ขึ้น (เพราะข้อความใน DB ไม่ตรงกับ Index ใดๆ) ให้สร้างตัวเลือกนั้นใส่เข้าไปแล้วเลือกทันที
           if (!tsPurp.getValue()) {
               tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
               tsPurp.setValue(dbPurposeVal, true);
@@ -2109,7 +2111,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   // -------------------------------------------------------------
-  // 🚀 6. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking (ไม่ใช้ await)
+  // 🚀 6. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking
   // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
