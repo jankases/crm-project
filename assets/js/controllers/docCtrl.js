@@ -259,7 +259,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         const r = await q; return r.data || [];
       };
 
-      // ⚡ เพิ่ม dcrRes เพื่อดึงรายการค้างอนุมัติมาเก็บใน Cache
       const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes, prodRes, userRes, matrixRes, targetRes, teamProdRes, sysSetRes, dcrRes] = await Promise.all([
         sb.from('IndexType').select('*'),
         sb.from('Index').select('*').order('Value', { ascending: true }),
@@ -289,7 +288,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.sysSettings = sysSetRes.data || [];
       window.DocManagerCache.teamList = teamRes.data || [];
 
-      // ⚡ สร้าง Map สำหรับค้นหา Pending DCR รายบุคคลแบบ 0 วินาที
       window.DocManagerCache.pendingDcrMap = {};
       (dcrRes.data || []).forEach(item => {
         if (item.Ref_ID) {
@@ -387,11 +385,11 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 
       window.DocManagerCache.indexLoaded = true;
 
-      const selectTitleText = (typeof t === 'function') ? t('lbl_doc_title') : '- Select Title -';
-      const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- Select Specialty -';
-      const phType = (typeof t === 'function') ? t('opt_all_types') : '- Select Type -';
+      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const selectTitleText = (typeof t === 'function') ? t('lbl_doc_title') : (appLang === 'en' ? '- Select Title -' : '- เลือกคำนำหน้า -');
+      const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : (appLang === 'en' ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -');
+      const phType = (typeof t === 'function') ? t('opt_all_types') : (appLang === 'en' ? '- All Types -' : '- ประเภททั้งหมด -');
 
-      // ⚡ สแกนหาหมวดหมู่ยืดหยุ่น ยอมรับ DoctorType, Doctor Type, Type
       const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
           const name = (t.Name || '').toLowerCase().trim();
@@ -413,7 +411,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         return html;
       };
 
-      // 🎯 สร้าง Options เผื่อไว้ให้ TomSelect ทั้งฟอร์ม Add และ Edit
       window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
 
@@ -427,14 +424,14 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       if (specSelect) {
         const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
-        window.initMultiTomSelect('filterDocSpecialty', (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -');
+        window.initMultiTomSelect('filterDocSpecialty', phSpec);
       }
 
       const typeSelect = document.getElementById('filterDocType');
       if (typeSelect) {
         const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
         typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-        window.initMultiTomSelect('filterDocType', (typeof t === 'function') ? t('opt_all_types') : '- All Types -');
+        window.initMultiTomSelect('filterDocType', phType);
       }
     }
   } catch (err) {
@@ -525,7 +522,6 @@ window.loadDoctors = async function(forceReload = false) {
 
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
-  // 🚀 CACHE GUARD: สลับ Tab แล้วมี Cache เดิม -> เรนเดอร์ทันที 0s
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
@@ -656,7 +652,6 @@ window.renderDoctorTableServerSide = function() {
       ? (appLang === 'en' ? 'Active' : 'ใช้งาน') 
       : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
 
-    // ⚡ เช็กว่าแพทย์คนนี้มี DCR ค้างอนุมัติหรือไม่
     const docIdKey = String(d.Doc_ID || d.id || '').trim();
     const pendingDcr = window.DocManagerCache.pendingDcrMap ? window.DocManagerCache.pendingDcrMap[docIdKey] : null;
 
@@ -666,12 +661,13 @@ window.renderDoctorTableServerSide = function() {
       const whenStr = pendingDcr.Whenupdated ? new Date(pendingDcr.Whenupdated).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '';
       const whoStr = pendingDcr.Whoupdated || '';
       
-      // Native HTML Tooltip (title attribute) - แสดงผลเร็ว ไม่กระทบความเร็วของระบบ
       const tooltipText = appLang === 'en'
         ? `Pending Approval: ${actName}${whoStr ? ` by ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`
         : `รอแอดมินอนุมัติ: ${actName}${whoStr ? ` โดย ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`;
 
-      pendingBadgeHtml = `<span class="badge badge-soft-warning ms-1" title="${tooltipText}" style="cursor: help;"><i class="fa-solid fa-hourglass-half me-1"></i>DCR Pending</span>`;
+      const badgeText = appLang === 'en' ? '⏳ DCR Pending' : '⏳ รออนุมัติ DCR';
+
+      pendingBadgeHtml = `<span class="badge badge-soft-warning ms-1" title="${tooltipText}" style="cursor: help;">${badgeText}</span>`;
     }
     
     const docNameEnShow = d.Doc_Name || d.doc_name || '-';
@@ -903,7 +899,6 @@ window.openEditDoctorView = function(id) {
   
   document.getElementById('editDocId').value = d.Doc_ID || d.id; 
   
-  // ⚡ Helper ฟังก์ชันยัดค่าลง TomSelect แบบการันตีว่าค่าไม่หลุด
   const setTsVal = (elId, val) => { 
     const el = document.getElementById(elId); 
     if (el && el.tomselect) {
@@ -1651,11 +1646,12 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
+// ⚡ Listener ตรวจจับการสลับภาษา (EN / TH) ทั่วทั้งแอพ
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
-    
-    const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- All Specialties -';
-    const phType = (typeof t === 'function') ? t('opt_all_types') : '- All Types -';
+    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : (appLang === 'en' ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -');
+    const phType = (typeof t === 'function') ? t('opt_all_types') : (appLang === 'en' ? '- All Types -' : '- ประเภททั้งหมด -');
     
     const specEl = document.getElementById('filterDocSpecialty');
     if (specEl && specEl.tomselect) {
