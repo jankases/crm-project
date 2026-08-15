@@ -1524,13 +1524,16 @@ window.clearVisitFilters = function() {
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
+ // ==========================================
+// 📥 LOAD VISITS WITH STATE PRESERVATION & FULL SMART SEARCH
+// ==========================================
 window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
         waitLimit++;
     }
-  
+
     if (typeof window.loadMasterDataForVisits === 'function') {
         await window.loadMasterDataForVisits();
     }
@@ -1551,6 +1554,17 @@ window.loadVisits = async function(forceReload) {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
+    // 🚀 1. CACHE GUARD: ถ้าสลับ Tab แล้วมีข้อมูลเดิมใน RAM อยู่แล้ว -> ดึงมาเรนเดอร์ทันที 0 วินาที ไม่ขึ้น Loading
+    if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
+        if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
+        window.renderVisitTableServerSide();
+        if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
+        if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
+            window.renderCalendarView();
+        }
+        return; 
+    }
+
     if ((forceReload || !hasData) && tbody) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         var loadingTitle = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -1569,15 +1583,6 @@ window.loadVisits = async function(forceReload) {
     }
 
     try {
-      if (!forceReload && window.VisitManagerCache && window.VisitManagerCache.isLoaded && hasData) {
-          window.renderVisitTableServerSide();
-          if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
-          if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-              if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
-          }
-          return; 
-      }
-
       if (forceReload || !window.VisitManagerCache.isLoaded) {
           var promises = [
               window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
@@ -1652,6 +1657,7 @@ window.loadVisits = async function(forceReload) {
       if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
       if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
+      // 🔍 2. [FULL SMART SEARCH] รักษาระบบสแกนละเอียดเหมือนเดิมทุกประการ
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       
       if (rawSearchVal) {
@@ -1828,6 +1834,39 @@ window.loadVisits = async function(forceReload) {
     }
 };
 
+
+// ==========================================
+// 💾 HELPER: SAVE & RESTORE FILTER STATE
+// ==========================================
+window.saveVisitFilterState = function() {
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    window.VisitManagerCache.savedFilters = {
+        search: document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '',
+        status: window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '',
+        startDate: document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '',
+        endDate: document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '',
+        page: window.currentPage || 1
+    };
+};
+
+window.restoreVisitFilterState = function() {
+    if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
+    var sf = window.VisitManagerCache.savedFilters;
+
+    if (sf.search && document.getElementById('smartSearchInput')) {
+        document.getElementById('smartSearchInput').value = sf.search;
+    }
+    if (sf.startDate && document.getElementById('filterStartDate')) {
+        document.getElementById('filterStartDate').value = sf.startDate;
+    }
+    if (sf.endDate && document.getElementById('filterEndDate')) {
+        document.getElementById('filterEndDate').value = sf.endDate;
+    }
+    if (sf.status && window.tomSelectStatusInstance) {
+        window.tomSelectStatusInstance.setValue(sf.status, true);
+    }
+    if (sf.page) window.currentPage = sf.page;
+};
 window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
@@ -3249,6 +3288,10 @@ if (noAttachmentText) {
 window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
+    // 🛡️ 1. GUARD: ถ้าเปิดหน้าฟอร์มแก้ไข/เพิ่มข้อมูลอยู่ ห้ามรัน initVisitPage เพื่อป้องกัน TomSelect โดนรีเซ็ต
+    var formView = document.getElementById('visitFormView');
+    if (formView && !formView.classList.contains('d-none')) return;
+
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
@@ -3258,11 +3301,13 @@ window.initVisitPage = async function(forceReload) {
         domWaitCount++;
     }
 
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded);
-    var shouldFetchDB = (forceReload === true || !hasCache);
+    // ⚡ 2. CACHE CHECK: เช็กว่ามี Cache ข้อมูลเดิมใน RAM อยู่แล้วหรือไม่
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0);
+    var shouldFetchDB = forceReload === true ? true : !hasCache;
 
     var tbody = document.getElementById('visitTableBody');
 
+    // ขึ้นตัวหมุน Loading เฉพาะตอนที่ต้องดึงข้อมูลใหม่จาก Server จริงๆ เท่านั้น
     if (shouldFetchDB && tbody) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadingTitle = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -3296,7 +3341,7 @@ window.initVisitPage = async function(forceReload) {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
     }
-}; 
+};
 
 // ==========================================
 // 👁️ SPA DOM WATCHER 
