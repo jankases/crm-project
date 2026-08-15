@@ -79,7 +79,7 @@ async function loadLoginComponent() {
     }
 }
 
-async function loadComponent(page) {
+ async function loadComponent(page) {
     let url = '';
      
     switch(page) {
@@ -111,11 +111,17 @@ async function loadComponent(page) {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
-    // ⚡ 1. ซ่อน View หน้าอื่นๆ ที่เคยถูกเรนเดอร์ไว้ใน DOM ทั้งหมด
+    // ⚡ 1. ลบตัว Loading System... ดั้งเดิมออกจากหน้าจอ
+    const initialLoading = mainContent.querySelector('.text-center.py-5.text-muted');
+    if (initialLoading) {
+        initialLoading.remove();
+    }
+
+    // ⚡ 2. ซ่อน View หน้าอื่นๆ ที่เคยถูกเรนเดอร์ไว้ใน DOM ทั้งหมด
     const allViews = mainContent.querySelectorAll('.spa-page-view');
     allViews.forEach(v => v.classList.add('d-none'));
 
-    // ⚡ 2. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง
+    // ⚡ 3. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง
     let pageView = document.getElementById(`view_page_${page}`);
 
     if (pageView) {
@@ -138,7 +144,7 @@ async function loadComponent(page) {
         return;
     }
 
-    // ⚡ 3. ถ้ายังไม่เคยเปิดหน้านี้เลย ให้ทำการ Fetch โหลดเข้ามาเป็นครั้งแรก
+    // ⚡ 4. ถ้ายังไม่เคยเปิดหน้านี้เลย ให้ทำการ Fetch โหลดเข้ามาเป็นครั้งแรก
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('File not found ' + url);
@@ -192,7 +198,6 @@ async function loadComponent(page) {
         mainContent.innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load page (${url})</div>`;
     }
 }
-
 function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
