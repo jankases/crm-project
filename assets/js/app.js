@@ -1,8 +1,86 @@
-/* =========================================
-   CRM System - Main Router Engine (app.js)
-   ========================================= */
+// assets/js/app.js
 
-// ⚡ ฟังก์ชันเช็กว่าฟอร์มปัจจุบันมีข้อมูลพิมพ์ค้างไว้หรือไม่
+// 1. ฟังก์ชันตรวจสอบ Session จังหวะเข้าใช้งาน
+function checkAuthSession() {
+  const userStr = sessionStorage.getItem('crmUser');
+  
+  if (!userStr) {
+    const loginComponent = document.getElementById('loginComponent');
+    const appContainer = document.getElementById('appContainer');
+    
+    if (loginComponent) {
+      loginComponent.classList.remove('d-none');
+      loginComponent.style.display = 'block';
+    }
+    if (appContainer) {
+      appContainer.style.display = 'none';
+    }
+    return false;
+  }
+  
+  try {
+    return JSON.parse(userStr);
+  } catch (e) {
+    console.error("Invalid session data", e);
+    return false;
+  }
+}
+
+// 2. ฟังก์ชัน Logout กลาง
+function handleLogout() {
+  sessionStorage.clear();
+  localStorage.clear();
+  window.location.href = './';
+}
+
+// 3. เริ่มทำงานเมื่อโหลดหน้า index.html
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = checkAuthSession();
+  if (currentUser) {
+    console.log('LoggedIn as:', currentUser.Email || currentUser.email);
+    
+    const nameEl = document.getElementById('displayUserName') || document.getElementById('navUserName');
+    if (nameEl) {
+      nameEl.innerText = currentUser.Rep_Name || currentUser.rep_name || currentUser.Email || currentUser.email || '-';
+    }
+  }
+});
+
+// ==========================================
+// 🚀 APP ROUTER & LIFECYCLE MANAGEMENT (DOM STACKING VERSION)
+// ==========================================
+
+window.addEventListener('load', async () => {
+    await loadLoginComponent();
+    checkSession();
+    if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
+        setLanguage(currentLang);
+    }
+});
+
+async function loadLoginComponent() {
+    try {
+        const response = await fetch('Login.html');
+        if (!response.ok) throw new Error("File Login.html not found");
+        const htmlText = await response.text();
+        const container = document.getElementById('loginComponent');
+        if (container) container.innerHTML = htmlText;
+        
+        const scripts = container ? container.querySelectorAll('script') : [];
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            if (oldScript.src) newScript.src = oldScript.src;
+            if (oldScript.innerHTML) newScript.innerHTML = oldScript.innerHTML;
+            document.body.appendChild(newScript);
+        });
+    } catch (error) {
+        console.error(error);
+        const container = document.getElementById('loginComponent');
+        if (container) container.innerHTML = `<div class="alert alert-danger text-center m-3">❌ Failed to load Login.html</div>`;
+    }
+}
+
+// 🛡️ ฟังก์ชันเช็กว่าฟอร์มปัจจุบันมีข้อมูลพิมพ์ค้างไว้หรือไม่ (Unsaved Guard)
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     
@@ -15,7 +93,6 @@ function hasUnsavedChanges() {
         const docVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
         const prodVal = window.tomSelectProdInstance ? window.tomSelectProdInstance.getValue() : '';
 
-        // ถ้ามีการพิมพ์รายละเอียด หรือเลือกหมอ/สินค้าค้างไว้
         if (details || insight || nextAction || docVal || (Array.isArray(prodVal) && prodVal.length > 0)) {
             return appLang === 'en' 
                 ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
@@ -47,21 +124,26 @@ function hasUnsavedChanges() {
         }
     }
 
-    return null; // ไม่มีข้อมูลค้าง ผ่านได้เลย
+    return null;
 }
 
+/* =========================================
+   CRM System - Main Router Engine (app.js)
+   ========================================= */
+
 async function loadComponent(page) {
-    // 🛡️ 0. ตรวจสอบข้อมูลค้างก่อนเปลี่ยนหน้า
+    // 🛡️ ตรวจสอบข้อมูลค้างก่อนเปลี่ยนหน้า
     const confirmMsg = hasUnsavedChanges();
     if (confirmMsg) {
         const userConfirmed = confirm(confirmMsg);
         if (!userConfirmed) {
-            return; // ผู้ใช้กด "ยกเลิก" ให้ค้างไว้ที่หน้าเดิม
+            return; // ยกเลิกการสลับหน้า อยู่ที่เดิม
         }
     }
 
     let url = '';
      
+    // ⚡ 1. กำหนด Path โดยใส่ ./ นำหน้า
     switch(page) {
         case 'dashboard': url = './pages/Dashboard.html'; break;
         case 'visit': url = './pages/ManageVisits.html'; break;
@@ -80,6 +162,7 @@ async function loadComponent(page) {
             url = './pages/ManageVisits.html'; 
     }
 
+    // ⚡ 2. อัปเดตสถานะ Active บน Navbar Menu
     const menuItems = document.querySelectorAll('.nav-menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
 
@@ -91,23 +174,23 @@ async function loadComponent(page) {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
-    // ลบตัว Loading System... ตั้งต้นเฉพาะครั้งแรก
+    // ⚡ 3. ลบตัว Loading System... ดั้งเดิมออกจากหน้าจอเฉพาะการโหลดครั้งแรก
     const initialLoading = mainContent.querySelector('.text-center.py-5.text-muted');
     if (initialLoading) {
         initialLoading.remove();
     }
 
-    // ซ่อน View หน้าอื่นๆ ใน DOM ทั้งหมด
+    // ⚡ 4. ซ่อน View หน้าอื่นๆ ใน DOM ทั้งหมด
     const allViews = mainContent.querySelectorAll('.spa-page-view');
     allViews.forEach(v => v.classList.add('d-none'));
 
-    // เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง (DOM Stacking)
+    // ⚡ 5. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง (DOM Stacking)
     let pageView = document.getElementById(`view_page_${page}`);
 
     if (pageView) {
         pageView.classList.remove('d-none');
 
-        // 🌟 พากลับมาแสดงหน้า List View หลักเสมอ และรีเซ็ตการแสดงผล
+        // 🌟 UX Standard Fix: บังคับ Reset สลับกลับมาแสดงหน้า List View หลักเสมอเมื่อคลิกเมนู Navbar
         if (page === 'doctor') {
             if (typeof window.switchDoctorView === 'function') {
                 window.switchDoctorView('doctorListView');
@@ -132,7 +215,7 @@ async function loadComponent(page) {
         return;
     }
 
-    // ถ้ายังไม่เคยเปิดหน้านี้ ให้ Fetch HTML มาเรนเดอร์ครั้งแรก
+    // ⚡ 6. ถ้ายังไม่เคยเปิดหน้านี้ ให้ Fetch โหลด HTML เข้ามาครั้งแรก
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('File not found at ' + url);
@@ -190,5 +273,65 @@ async function loadComponent(page) {
         errDiv.className = 'spa-page-view';
         errDiv.innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load page (${url}) - Please check file path.</div>`;
         mainContent.appendChild(errDiv);
+    }
+}
+
+function checkSession() {
+    const userStr = sessionStorage.getItem('crmUser');
+    const loginScreen = document.getElementById('loginScreen'); 
+    const appContainer = document.getElementById('appContainer');
+
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        
+        if (loginScreen) {
+            loginScreen.classList.remove('d-flex');
+            loginScreen.classList.add('d-none');
+        }
+        if (appContainer) appContainer.style.display = 'block';
+        
+        const nameDisplay = document.getElementById('displayUserName');
+        const roleDisplay = document.getElementById('displayUserRole');
+        const dName = user.Rep_Name || user.rep_name || user.name || user.Email || user.email;
+        const uRole = user.Role || user.role || 'User';
+        
+        if(nameDisplay) nameDisplay.innerText = dName; 
+        if(roleDisplay) roleDisplay.innerText = uRole;
+        
+        const adminItems = document.querySelectorAll('.admin-only');
+        adminItems.forEach(el => {
+            if (String(uRole).toLowerCase() === 'admin') {
+                el.style.setProperty('display', 'block', 'important');
+            } else {
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+
+        loadComponent('visit');
+
+    } else {
+        if (loginScreen) {
+            loginScreen.classList.remove('d-none');
+            loginScreen.classList.add('d-flex');
+        }
+        if (appContainer) appContainer.style.display = 'none';
+    }
+}
+
+async function logout() {
+    try {
+        var btn = document.getElementById('logoutBtn');
+        if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Logging out...';
+
+        sessionStorage.clear();
+        localStorage.clear();
+
+        if (window.supabaseClient) {
+            await window.supabaseClient.auth.signOut();
+        }
+    } catch (e) {
+        console.error("Logout Error:", e);
+    } finally {
+        window.location.reload(true);
     }
 }
