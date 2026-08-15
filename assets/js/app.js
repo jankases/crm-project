@@ -1,11 +1,10 @@
 // assets/js/app.js
- 
+
 // 1. ฟังก์ชันตรวจสอบ Session จังหวะเข้าใช้งาน
 function checkAuthSession() {
   const userStr = sessionStorage.getItem('crmUser');
   
   if (!userStr) {
-    // ถ้าไม่มี Session ให้สลับแสดงผลหน้า Login (ไม่ต้องย้าย URL)
     const loginComponent = document.getElementById('loginComponent');
     const appContainer = document.getElementById('appContainer');
     
@@ -27,13 +26,10 @@ function checkAuthSession() {
   }
 }
 
-// 2. ฟังก์ชัน Logout กลาง (ล้าง Session และ Refresh กลับมาหน้าแรกของ Repository)
+// 2. ฟังก์ชัน Logout กลาง
 function handleLogout() {
-  // ล้างข้อมูล User และ Flag ทั้งหมด
   sessionStorage.clear();
   localStorage.clear();
-  
-  // สั่ง Reload กลับมาหน้าแรกของ Repo (ใช้ ./ ป้องกันปัญหา Path คลาดเคลื่อนบน GitHub Pages)
   window.location.href = './';
 }
 
@@ -43,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (currentUser) {
     console.log('LoggedIn as:', currentUser.Email || currentUser.email);
     
-    // แสดงชื่อ User บน Navbar
     const nameEl = document.getElementById('displayUserName') || document.getElementById('navUserName');
     if (nameEl) {
       nameEl.innerText = currentUser.Rep_Name || currentUser.rep_name || currentUser.Email || currentUser.email || '-';
@@ -52,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 🚀 APP ROUTER & LIFECYCLE MANAGEMENT
+// 🚀 APP ROUTER & LIFECYCLE MANAGEMENT (DOM STACKING VERSION)
 // ==========================================
 
 window.addEventListener('load', async () => {
@@ -65,7 +60,6 @@ window.addEventListener('load', async () => {
 
 async function loadLoginComponent() {
     try {
-        // ดึง Login.html จาก Root Directory ตรงๆ
         const response = await fetch('Login.html');
         if (!response.ok) throw new Error("File Login.html not found");
         const htmlText = await response.text();
@@ -114,29 +108,65 @@ async function loadComponent(page) {
         targetMenu.classList.add('active');
     }
 
+    const mainContent = document.getElementById('mainContent');
+    if (!mainContent) return;
+
+    // ⚡ 1. ซ่อน View หน้าอื่นๆ ที่เคยถูกเรนเดอร์ไว้ใน DOM ทั้งหมด
+    const allViews = mainContent.querySelectorAll('.spa-page-view');
+    allViews.forEach(v => v.classList.add('d-none'));
+
+    // ⚡ 2. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง
+    let pageView = document.getElementById(`view_page_${page}`);
+
+    if (pageView) {
+        // 🚀 ถ้ามี View ใน DOM อยู่แล้ว ให้เปิดโชว์ทันที 0s (ไม่ยิง Fetch ใหม่ + ไม่ล้าง Filter)
+        pageView.classList.remove('d-none');
+
+        // สั่ง Init แบบ (false) เพื่อดึงข้อมูลเดิมใน Memory RAM มาเรนเดอร์
+        if (page === 'doctor' && typeof window.initDoctorPage === 'function') {
+            window.initDoctorPage(false);
+        } else if (page === 'visit' && typeof window.initVisitPage === 'function') {
+            window.initVisitPage(false);
+        }
+
+        // ซ่อน Navbar Mobile
+        const navbarCollapse = document.getElementById('navbarNav');
+        if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
+            if(bsCollapse) bsCollapse.hide();
+        }
+        return;
+    }
+
+    // ⚡ 3. ถ้ายังไม่เคยเปิดหน้านี้เลย ให้ทำการ Fetch โหลดเข้ามาเป็นครั้งแรก
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('File not found ' + url);
         const html = await response.text();
         
-        const mainContent = document.getElementById('mainContent');
-        mainContent.innerHTML = html;
+        // สร้าง Container Wrapper สวม View ใหม่
+        pageView = document.createElement('div');
+        pageView.id = `view_page_${page}`;
+        pageView.className = 'spa-page-view';
+        pageView.innerHTML = html;
 
-     // 🌟 สั่งรัน Controller เมื่อโหลดหน้า View เสร็จแล้ว
+        mainContent.appendChild(pageView);
+
+        // 🌟 สั่งรัน Controller ครั้งแรกด้วย (false)
         if (page === 'doctor') {
             if (typeof window.initDoctorPage === 'function') {
-                window.initDoctorPage(true);
+                window.initDoctorPage(false);
             }
         } else if (page === 'visit') {
             if (typeof window.initVisitPage === 'function') {
-                window.initVisitPage(true);
+                window.initVisitPage(false);
             }
         }
 
-        // ประมวลผลเฉพาะสคริปต์ใน Component (ยกเว้น Controllers ที่โหลดไปแล้ว)
-        const scriptElements = mainContent.querySelectorAll('script');
+        // ประมวลผลสคริปต์ย่อยใน View
+        const scriptElements = pageView.querySelectorAll('script');
         scriptElements.forEach(s => {
-            if (s.src && s.src.includes('controllers/')) return; // ข้ามการโหลดซ้ำ
+            if (s.src && s.src.includes('controllers/')) return;
             const code = s.textContent || s.innerText;
             const newScript = document.createElement('script');
             if (s.src) {
@@ -159,7 +189,7 @@ async function loadComponent(page) {
 
     } catch (error) {
         console.error('Error loading component:', error);
-        document.getElementById('mainContent').innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load page (${url})</div>`;
+        mainContent.innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load page (${url})</div>`;
     }
 }
 
@@ -194,13 +224,7 @@ function checkSession() {
             }
         });
 
-        // 📌 สั่งโหลดหน้า visit และเรียก Init ใหม่เพื่อบังคับดึง Data ล่าสุดตาม Session
         loadComponent('visit');
-        setTimeout(() => {
-            if (typeof window.initVisitPage === 'function') {
-                window.initVisitPage();
-            }
-        }, 100);
 
     } else {
         if (loginScreen) {
