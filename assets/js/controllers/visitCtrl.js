@@ -1024,7 +1024,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
-window.loadDropdowns = async function(forceReload) {
+ window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1192,8 +1192,9 @@ window.loadDropdowns = async function(forceReload) {
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
+    // ⚡ สร้าง TomSelect แพทย์ เฉพาะตอนที่ยังไม่มี หรือ โดนบังคับ forceReload
     var docSelect = document.getElementById('visitDocId');
-    if (docSelect) { 
+    if (docSelect && (!window.tomSelectDocInstance || forceReload)) { 
       docSelect.innerHTML = '<option value=""></option>';
       var activeAssignedDocs = window.globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
       activeAssignedDocs.forEach(function(d) {
@@ -1215,9 +1216,9 @@ window.loadDropdowns = async function(forceReload) {
 
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-    // 🎯 แก้ไข PURPOSE: สร้างความเชื่อมโยงแบบ Multi-Value ให้ค้นเจอทั้ง UUID และ ข้อความภาษาไทย/อังกฤษ
+    // 🎯 PURPOSE: โหลด UUID (Index_ID) ตรงๆ แบบคลีน
     var purposeSelect = document.getElementById('visitPurpose');
-    if (purposeSelect) { 
+    if (purposeSelect && (!window.tomSelectPurposeInstance || forceReload)) { 
       var types = window.VisitManagerCache.indexTypes || []; 
       var indexes = window.VisitManagerCache.indexes || [];
       
@@ -1233,10 +1234,7 @@ window.loadDropdowns = async function(forceReload) {
       purposeItems.forEach(function(i) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
           var dispText = (appLang === 'en') ? valEN : valTH;
-          
-          if (i.Index_ID) purposeData.push({ value: String(i.Index_ID), text: dispText, searchEn: valEN, searchTh: valTH });
-          if (valTH && valTH !== i.Index_ID) purposeData.push({ value: String(valTH), text: dispText, searchEn: valEN, searchTh: valTH });
-          if (valEN && valEN !== i.Index_ID && valEN !== valTH) purposeData.push({ value: String(valEN), text: dispText, searchEn: valEN, searchTh: valTH });
+          purposeData.push({ value: String(i.Index_ID), text: dispText, searchEn: valEN, searchTh: valTH });
       });
 
       if (typeof TomSelect !== 'undefined') {
@@ -1248,25 +1246,6 @@ window.loadDropdowns = async function(forceReload) {
           });
           if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
       }
-    }
-
-    var returnToDocId = sessionStorage.getItem('returnToDocId');
-    if (returnToDocId && window.tomSelectDocInstance) {
-        window.tomSelectDocInstance.setValue(returnToDocId, true);
-    }
-
-    var formView = document.getElementById('visitFormView');
-    if (formView && !formView.classList.contains('d-none')) {
-        var visitId = document.getElementById('visitId').value;
-        if (visitId) {
-            var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
-            if (v) {
-                var targetRepObj = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); });
-                if (typeof window.updateFormUserInfo === 'function') window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-            }
-        } else {
-            if (typeof window.initUserInfo === 'function') window.initUserInfo();
-        }
     }
 
     var filterGroup = document.getElementById('visitFilterZoneGroup');
@@ -2020,7 +1999,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
- window.openEditVisitView = function(visitId) {
+  window.openEditVisitView = function(visitId) {
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2028,7 +2007,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
   if (!v) return;
 
-  // 🚀 1. เปิดฟอร์มทันที 0 วินาที
+  // 🚀 1. สลับหน้าเปิดฟอร์มทันที
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2050,12 +2029,13 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.updateFormUserInfo(targetRepObj, v.Territory_ID);
   }
 
-  // ⚡ 2. ตั้งค่าชื่อหมอทันที และสั่ง Failsafe ป้องกันโดนลบ
+  // ⚡ 2. [Doctor Name] ปลดล็อกและยัด UUID หมอทันที 0s
   if (v.Doc_ID && window.tomSelectDocInstance) {
+      window.tomSelectDocInstance.enable();
       window.tomSelectDocInstance.setValue(v.Doc_ID, true);
   }
 
-  // ⚡ 3. ตั้งค่า วันที่ / เวลา / รายละเอียดกิจกรรม
+  // ⚡ 3. วันที่ / เวลา / รายละเอียด
   document.getElementById('visitDate').value = v.Visit_Date || '';
   if (typeof window.formatTimeString === 'function') {
       document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2069,39 +2049,13 @@ window.toggleVisitFormEditable = function(isEditable) {
   var chkCoach = document.getElementById('visitIsCoaching');
   if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
 
-  // 🎯 4. ระบบสแกนและจับคู่ PURPOSE ยืดหยุ่น 100%
-  var dbPurposeVal = String(v.Purpose_ID || v.Purpose || v.Objective || '').trim();
-  if (window.tomSelectPurposeInstance) {
-      var tsPurp = window.tomSelectPurposeInstance;
-      tsPurp.clear(true);
-
-      if (dbPurposeVal && dbPurposeVal !== '-') {
-          var targetValue = dbPurposeVal;
-
-          // ถ้าค่าเป็น UUID ให้เช็กใน Cache แปลงเป็น Text หรือเทียบ UUID ตรงๆ
-          if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
-              var foundIndex = window.VisitManagerCache.indexes.find(function(i) {
-                  return String(i.Index_ID).toLowerCase() === dbPurposeVal.toLowerCase() ||
-                         String(i.Value || '').toLowerCase() === dbPurposeVal.toLowerCase() ||
-                         String(i.Value1 || '').toLowerCase() === dbPurposeVal.toLowerCase();
-              });
-              if (foundIndex) {
-                  targetValue = foundIndex.Index_ID; // ใช้ Index_ID ถ้าเจอ
-              }
-          }
-
-          // สั่งเลือกค่า
-          tsPurp.setValue(targetValue, true);
-
-          // Failsafe: หากยังไม่ขึ้น (เพราะข้อความใน DB ไม่ตรงกับ Index ใดๆ) ให้สร้างตัวเลือกนั้นใส่เข้าไปแล้วเลือกทันที
-          if (!tsPurp.getValue()) {
-              tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
-              tsPurp.setValue(dbPurposeVal, true);
-          }
-
-          if (typeof window.updatePurposeDisplayLang === 'function') {
-              window.updatePurposeDisplayLang();
-          }
+  // 🎯 4. [Purpose] เช็กและยัดค่า UUID ตรงๆ (ไม่สแกน Text หลายลูปให้ช้า)
+  var purposeUuid = v.Purpose_ID || v.Purpose;
+  if (purposeUuid && window.tomSelectPurposeInstance) {
+      window.tomSelectPurposeInstance.enable();
+      window.tomSelectPurposeInstance.setValue(purposeUuid, true);
+      if (typeof window.updatePurposeDisplayLang === 'function') {
+          window.updatePurposeDisplayLang();
       }
   }
 
@@ -2110,9 +2064,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.fetchLastVisitHistory(v.Doc_ID);
   }
 
-  // -------------------------------------------------------------
   // 🚀 6. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking
-  // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
           var visitProds = window.globalVisitProducts ? window.globalVisitProducts.filter(function(vp) { 
