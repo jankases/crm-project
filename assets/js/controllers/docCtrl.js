@@ -19,7 +19,8 @@ window.DocManagerCache = window.DocManagerCache || {
   assignedDoctors: [],
   assignedHospitals: [],
   myAllowedDocIds: [],
-  myAllowedTerIds: []
+  myAllowedTerIds: [],
+  pendingDcrMap: {}
 };
 
 window.globalDoctors = [];
@@ -258,7 +259,8 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         const r = await q; return r.data || [];
       };
 
-      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes, prodRes, userRes, matrixRes, targetRes, teamProdRes, sysSetRes] = await Promise.all([
+      // ⚡ เพิ่ม dcrRes เพื่อดึงรายการค้างอนุมัติมาเก็บใน Cache
+      const [typeRes, idxRes, hospRes, assignRes, terrRes, teamRes, buRes, prodRes, userRes, matrixRes, targetRes, teamProdRes, sysSetRes, dcrRes] = await Promise.all([
         sb.from('IndexType').select('*'),
         sb.from('Index').select('*').order('Value', { ascending: true }),
         fetchFn('Hospitals', q => q.eq('Status', 'Active').order('Hospital', { ascending: true })),
@@ -271,7 +273,8 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         sb.from('Rating_Matrix').select('*'),
         sb.from('Target').select('*'),
         fetchFn('Products_Team'),
-        sb.from('System_Settings').select('*')
+        sb.from('System_Settings').select('*'),
+        sb.from('DCR').select('Ref_ID, Action, Whenupdated, Whoupdated').eq('Status', 'Pending')
       ]);
 
       window.DocManagerCache.indexTypes = typeRes.data || [];
@@ -285,6 +288,14 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.teamProdLinks = teamProdRes || [];
       window.DocManagerCache.sysSettings = sysSetRes.data || [];
       window.DocManagerCache.teamList = teamRes.data || [];
+
+      // ⚡ สร้าง Map สำหรับค้นหา Pending DCR รายบุคคลแบบ 0 วินาที
+      window.DocManagerCache.pendingDcrMap = {};
+      (dcrRes.data || []).forEach(item => {
+        if (item.Ref_ID) {
+          window.DocManagerCache.pendingDcrMap[String(item.Ref_ID).trim()] = item;
+        }
+      });
 
       window.globalIndexTypes = window.DocManagerCache.indexTypes;
       window.globalIndexes = window.DocManagerCache.indexes;
@@ -380,7 +391,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       const phSpec = (typeof t === 'function') ? t('opt_all_specialties') : '- Select Specialty -';
       const phType = (typeof t === 'function') ? t('opt_all_types') : '- Select Type -';
 
-      // ⚡ ปรับปรุงการค้นหาชื่อหมวดหมู่ให้ยืดหยุ่น ยอมรับทั้ง DoctorType, Doctor Type, Type
+      // ⚡ สแกนหาหมวดหมู่ยืดหยุ่น ยอมรับ DoctorType, Doctor Type, Type
       const getOptionsHtml = (typeName, defaultText) => {
         const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
           const name = (t.Name || '').toLowerCase().trim();
@@ -514,7 +525,7 @@ window.loadDoctors = async function(forceReload = false) {
 
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
-  // 🚀 CACHE GUARD: สลับ Tab เมนูหลักแล้วมี Cache เดิม -> เรนเดอร์ทันที 0s
+  // 🚀 CACHE GUARD: สลับ Tab แล้วมี Cache เดิม -> เรนเดอร์ทันที 0s
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
@@ -644,6 +655,24 @@ window.renderDoctorTableServerSide = function() {
     const statusTextShow = isStatusActive 
       ? (appLang === 'en' ? 'Active' : 'ใช้งาน') 
       : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
+
+    // ⚡ เช็กว่าแพทย์คนนี้มี DCR ค้างอนุมัติหรือไม่
+    const docIdKey = String(d.Doc_ID || d.id || '').trim();
+    const pendingDcr = window.DocManagerCache.pendingDcrMap ? window.DocManagerCache.pendingDcrMap[docIdKey] : null;
+
+    let pendingBadgeHtml = '';
+    if (pendingDcr) {
+      const actName = pendingDcr.Action || 'Edit Doctor';
+      const whenStr = pendingDcr.Whenupdated ? new Date(pendingDcr.Whenupdated).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '';
+      const whoStr = pendingDcr.Whoupdated || '';
+      
+      // Native HTML Tooltip (title attribute) - แสดงผลเร็ว ไม่กระทบความเร็วของระบบ
+      const tooltipText = appLang === 'en'
+        ? `Pending Approval: ${actName}${whoStr ? ` by ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`
+        : `รอแอดมินอนุมัติ: ${actName}${whoStr ? ` โดย ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`;
+
+      pendingBadgeHtml = `<span class="badge badge-soft-warning ms-1" title="${tooltipText}" style="cursor: help;"><i class="fa-solid fa-hourglass-half me-1"></i>DCR Pending</span>`;
+    }
     
     const docNameEnShow = d.Doc_Name || d.doc_name || '-';
     const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
@@ -661,7 +690,10 @@ window.renderDoctorTableServerSide = function() {
         <td class="fw-medium text-secondary">${docNameThShow}</td>
         <td><span class="badge badge-soft-product">${d.Specialty || '-'}</span></td>
         <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
-        <td class="text-center"><span class="badge ${badge}">${statusTextShow}</span></td>
+        <td class="text-center">
+          <span class="badge ${badge}">${statusTextShow}</span>
+          ${pendingBadgeHtml}
+        </td>
         <td class="text-center">${actionButton}</td>
       </tr>`;
   });
@@ -1211,7 +1243,7 @@ window.filterAndRenderDoctorVisits = function() {
       valB = (b.Whoupdated || '').toLowerCase();
     } else if (sortCol === 'territory') {
       valA = (a.Territory_ID || '').toLowerCase();
-      valB = (b.Territory_ID || '').toLowerCase();
+      valB = (a.Territory_ID || '').toLowerCase();
     } else if (sortCol === 'status') {
       valA = (a.Status || '').toLowerCase();
       valB = (b.Status || '').toLowerCase();
