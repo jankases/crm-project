@@ -79,27 +79,33 @@ async function loadLoginComponent() {
     }
 }
 
- async function loadComponent(page) {
+/* =========================================
+   CRM System - Main Router Engine (app.js)
+   ========================================= */
+
+async function loadComponent(page) {
     let url = '';
      
+    // ⚡ 1. กำหนด Path โดยใส่ ./ นำหน้า และเช็กชื่อไฟล์ให้ตรงกับโครงสร้างจริง
     switch(page) {
-        case 'dashboard': url = 'pages/Dashboard.html'; break;
-        case 'visit': url = 'pages/ManageVisits.html'; break;
-        case 'doctor': url = 'pages/ManageDoctors.html'; break;
-        case 'hospital': url = 'pages/ManageHospitals.html'; break;
-        case 'organization': url = 'pages/ManageOrganization.html'; break; 
-        case 'target': url = 'pages/ManageTarget.html'; break;
-        case 'matrix': url = 'pages/ManageMatrix.html'; break; 
-        case 'assignment': url = 'pages/ManageAssignment.html'; break;
-        case 'indexData': url = 'pages/ManageIndex.html'; break;
-        case 'dcr': url = 'pages/ManageDCR.html'; break;
-        case 'media': url = 'pages/ManageMedia.html'; break;
-        case 'user': url = 'pages/ManageUsers.html'; break;
+        case 'dashboard': url = './pages/Dashboard.html'; break;
+        case 'visit': url = './pages/ManageVisits.html'; break;
+        case 'doctor': url = './pages/ManageDoctors.html'; break;
+        case 'hospital': url = './pages/ManageHospitals.html'; break;
+        case 'organization': url = './pages/ManageOrganization.html'; break; 
+        case 'target': url = './pages/ManageTarget.html'; break;
+        case 'matrix': url = './pages/ManageMatrix.html'; break; 
+        case 'assignment': url = './pages/ManageAssignment.html'; break;
+        case 'indexData': url = './pages/ManageIndex.html'; break;
+        case 'dcr': url = './pages/ManageDCR.html'; break;
+        case 'media': url = './pages/ManageMedia.html'; break;
+        case 'user': url = './pages/ManageUsers.html'; break;
         default: 
             page = 'visit'; 
-            url = 'pages/ManageVisits.html'; 
+            url = './pages/ManageVisits.html'; 
     }
 
+    // ⚡ 2. อัปเดตสถานะ Active บน Navbar Menu
     const menuItems = document.querySelectorAll('.nav-menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
 
@@ -111,31 +117,41 @@ async function loadLoginComponent() {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
-    // ⚡ 1. ลบตัว Loading System... ดั้งเดิมออกจากหน้าจอ
+    // ⚡ 3. ลบตัว Loading System... ดั้งเดิมออกจากหน้าจอเฉพาะการโหลดครั้งแรก
     const initialLoading = mainContent.querySelector('.text-center.py-5.text-muted');
     if (initialLoading) {
         initialLoading.remove();
     }
 
-    // ⚡ 2. ซ่อน View หน้าอื่นๆ ที่เคยถูกเรนเดอร์ไว้ใน DOM ทั้งหมด
+    // ⚡ 4. ซ่อน View หน้าอื่นๆ ที่เคยถูกเรนเดอร์ไว้ใน DOM ทั้งหมด
     const allViews = mainContent.querySelectorAll('.spa-page-view');
     allViews.forEach(v => v.classList.add('d-none'));
 
-    // ⚡ 3. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง
+    // ⚡ 5. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง (DOM Stacking)
     let pageView = document.getElementById(`view_page_${page}`);
 
     if (pageView) {
-        // 🚀 ถ้ามี View ใน DOM อยู่แล้ว ให้เปิดโชว์ทันที 0s (ไม่ยิง Fetch ใหม่ + ไม่ล้าง Filter)
+        // 🚀 ถ้ามี View ใน DOM อยู่แล้ว ให้เปิดโชว์ทันที 0s
         pageView.classList.remove('d-none');
 
-        // สั่ง Init แบบ (false) เพื่อดึงข้อมูลเดิมใน Memory RAM มาเรนเดอร์
-        if (page === 'doctor' && typeof window.initDoctorPage === 'function') {
-            window.initDoctorPage(false);
-        } else if (page === 'visit' && typeof window.initVisitPage === 'function') {
-            window.initVisitPage(false);
+        // 🌟 UX Standard Fix: บังคับ Reset สลับกลับมาแสดงหน้า List View หลักเสมอเมื่อคลิกเปลี่ยนเมนูบน Navbar
+        if (page === 'doctor') {
+            if (typeof window.switchDoctorView === 'function') {
+                window.switchDoctorView('doctorListView');
+            }
+            if (typeof window.initDoctorPage === 'function') {
+                window.initDoctorPage(false);
+            }
+        } else if (page === 'visit') {
+            if (typeof window.switchVisitView === 'function') {
+                window.switchVisitView('visitListView');
+            }
+            if (typeof window.initVisitPage === 'function') {
+                window.initVisitPage(false);
+            }
         }
 
-        // ซ่อน Navbar Mobile
+        // ซ่อน Navbar Mobile เมื่อมีการเลือกเมนู
         const navbarCollapse = document.getElementById('navbarNav');
         if (navbarCollapse && navbarCollapse.classList.contains('show')) {
             const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
@@ -144,13 +160,13 @@ async function loadLoginComponent() {
         return;
     }
 
-    // ⚡ 4. ถ้ายังไม่เคยเปิดหน้านี้เลย ให้ทำการ Fetch โหลดเข้ามาเป็นครั้งแรก
+    // ⚡ 6. ถ้ายังไม่เคยเปิดหน้านี้เลย ให้ทำการ Fetch โหลดไฟล์ HTML เข้ามาครั้งแรก
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error('File not found ' + url);
+        if (!response.ok) throw new Error('File not found at ' + url);
         const html = await response.text();
         
-        // สร้าง Container Wrapper สวม View ใหม่
+        // สร้าง Container สวม View ใหม่
         pageView = document.createElement('div');
         pageView.id = `view_page_${page}`;
         pageView.className = 'spa-page-view';
@@ -158,18 +174,24 @@ async function loadLoginComponent() {
 
         mainContent.appendChild(pageView);
 
-        // 🌟 สั่งรัน Controller ครั้งแรกด้วย (false)
+        // สั่ง Init Controller ครั้งแรกด้วย (false) เพื่ออ่าน Cache
         if (page === 'doctor') {
+            if (typeof window.switchDoctorView === 'function') {
+                window.switchDoctorView('doctorListView');
+            }
             if (typeof window.initDoctorPage === 'function') {
                 window.initDoctorPage(false);
             }
         } else if (page === 'visit') {
+            if (typeof window.switchVisitView === 'function') {
+                window.switchVisitView('visitListView');
+            }
             if (typeof window.initVisitPage === 'function') {
                 window.initVisitPage(false);
             }
         }
 
-        // ประมวลผลสคริปต์ย่อยใน View
+        // ประมวลผลสคริปต์ย่อยใน View (ถ้ามี)
         const scriptElements = pageView.querySelectorAll('script');
         scriptElements.forEach(s => {
             if (s.src && s.src.includes('controllers/')) return;
@@ -195,7 +217,10 @@ async function loadLoginComponent() {
 
     } catch (error) {
         console.error('Error loading component:', error);
-        mainContent.innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load page (${url})</div>`;
+        const errDiv = document.createElement('div');
+        errDiv.className = 'spa-page-view';
+        errDiv.innerHTML = `<div class="alert alert-danger m-4 text-center fw-bold">❌ Failed to load page (${url}) - Please check file path.</div>`;
+        mainContent.appendChild(errDiv);
     }
 }
 function checkSession() {
