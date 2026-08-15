@@ -1999,7 +1999,10 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
- window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+  // 🛡️ 1. ล็อก Flag ไม่ให้ loadDropdowns() แอบมาล้างค่า TomSelect ทิ้ง
+  window.isOpeningEditView = true;
+
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2008,7 +2011,7 @@ window.toggleVisitFormEditable = function(isEditable) {
     ? window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); }) 
     : null;
   
-  // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0 วินาที
+  // 🚀 2. สลับหน้าเปิดฟอร์มทันที 0 วินาที
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2025,9 +2028,8 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  // ⚡ 2. [FAST DOCTOR] ยัดค่าหมอทันที 0s (ไม่ใช้ setTimeout ถ่วงเวลา)
+  // ⚡ 3. [SET DOCTOR NAME] ยัดค่าลง HTML Element + TomSelect ทันที
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
-  
   if (targetDocId) {
       var rawDocSelect = document.getElementById('visitDocId');
       if (rawDocSelect) rawDocSelect.value = targetDocId;
@@ -2038,7 +2040,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       }
   }
 
-  // ⚡ 3. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
+  // ⚡ 4. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
   if (v) {
       document.getElementById('visitDate').value = v.Visit_Date || '';
       if (typeof window.formatTimeString === 'function') {
@@ -2053,7 +2055,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
   }
 
-  // 🎯 4. [FAST PURPOSE] ยัดค่า Purpose ทันที 0s (ตรงเข้า UUID / Text Option)
+  // 🎯 5. [SET PURPOSE] ยัดค่า Purpose UUID ตรงๆ 0s
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
   var dbPurposeVal = String(rawPurpose || '').trim();
 
@@ -2088,13 +2090,13 @@ window.toggleVisitFormEditable = function(isEditable) {
       }
   }
 
-  // 🌟 5. ดึงประวัติการเยี่ยมย้อนหลัง
+  // 🌟 6. ดึงประวัติการเยี่ยมย้อนหลัง
   if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
       window.fetchLastVisitHistory(targetDocId);
   }
 
   // -------------------------------------------------------------
-  // 🚀 6. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking
+  // 🚀 7. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking
   // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
@@ -2227,6 +2229,9 @@ window.toggleVisitFormEditable = function(isEditable) {
   if (typeof window.setFormComponentsReadOnly === 'function') {
     window.setFormComponentsReadOnly(isReadOnly);
   }
+
+  // 🛡️ ปลดล็อก Flag หลังจากฟอร์มเรนเดอร์เสร็จสิ้น
+  setTimeout(function() { window.isOpeningEditView = false; }, 500);
 };
 
 window.openAddVisitView = async function(presetDate) {
