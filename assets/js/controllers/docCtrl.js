@@ -1276,23 +1276,25 @@ window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overrid
   const docId = overrideDocId || window.currentTargetDocId;
   if (!docId || !visitId) return;
 
+  // ⚡ ฝากค่าข้ามหน้าใน sessionStorage ทันที
   sessionStorage.setItem('returnToDocId', docId);
+  sessionStorage.setItem('pendingEditVisitId', visitId);
+  if (overridePurposeId) sessionStorage.setItem('pendingEditPurposeId', overridePurposeId);
 
+  // สลับมาคอมโพเนนต์ Visit
   if (typeof window.loadComponent === 'function') {
     window.loadComponent('visit');
   }
 
-  let attempts = 0;
-  const checkReady = setInterval(function() {
-    attempts++;
+  // เรียกเปิด View ทันทีโดยไม่ต้องตั้ง setInterval วนรอ
+  var runOpen = function() {
     if (typeof window.openEditVisitView === 'function') {
-      clearInterval(checkReady);
-      // 🚀 ยัด Visit_ID, Doc_ID และ Purpose_ID ข้ามไฟล์ไปให้ visitCtrl.js ทันที
       window.openEditVisitView(visitId, docId, overridePurposeId);
-    } else if (attempts > 50) {
-      clearInterval(checkReady);
+    } else {
+      setTimeout(runOpen, 30);
     }
-  }, 100);
+  };
+  runOpen();
 };
 
 window.clearRatingTable = function() {
