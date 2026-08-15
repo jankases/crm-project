@@ -1865,6 +1865,13 @@ window.restoreVisitFilterState = function() {
     if (sf.status && window.tomSelectStatusInstance) {
         window.tomSelectStatusInstance.setValue(sf.status, true);
     }
+    // ⚡ เพิ่ม 2 บรรทัดนี้เพื่อ Restore Filter Rep และ Territory คืน
+    if (sf.rep && sf.rep.length > 0 && window.tomSelectRepInstance) {
+        window.tomSelectRepInstance.setValue(sf.rep, true);
+    }
+    if (sf.ter && sf.ter.length > 0 && window.tomSelectTerInstance) {
+        window.tomSelectTerInstance.setValue(sf.ter, true);
+    }
     if (sf.page) window.currentPage = sf.page;
 };
 window.renderVisitTableServerSide = function() {
