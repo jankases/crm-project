@@ -442,11 +442,57 @@ window.getIndexValues = function(typeName) {
 };
 
 // ==========================================
+// 💾 HELPER: SAVE & RESTORE FILTER STATE (DOCTORS)
+// ==========================================
+window.saveDocFilterState = function() {
+  window.DocManagerCache = window.DocManagerCache || {};
+  const specEl = document.getElementById('filterDocSpecialty');
+  const typeEl = document.getElementById('filterDocType');
+  
+  window.DocManagerCache.savedFilters = {
+    search: document.getElementById('smartDocSearchInput') ? document.getElementById('smartDocSearchInput').value : '',
+    specialties: specEl && specEl.tomselect ? specEl.tomselect.getValue() : [],
+    types: typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [],
+    page: window.currentPage || 1
+  };
+};
+
+window.restoreDocFilterState = function() {
+  if (!window.DocManagerCache || !window.DocManagerCache.savedFilters) return;
+  const sf = window.DocManagerCache.savedFilters;
+
+  if (sf.search && document.getElementById('smartDocSearchInput')) {
+    document.getElementById('smartDocSearchInput').value = sf.search;
+  }
+  
+  const specEl = document.getElementById('filterDocSpecialty');
+  if (sf.specialties && sf.specialties.length > 0 && specEl && specEl.tomselect) {
+    specEl.tomselect.setValue(sf.specialties, true);
+  }
+
+  const typeEl = document.getElementById('filterDocType');
+  if (sf.types && sf.types.length > 0 && typeEl && typeEl.tomselect) {
+    typeEl.tomselect.setValue(sf.types, true);
+  }
+
+  if (sf.page) window.currentPage = sf.page;
+};
+
+// ==========================================
 // 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
 window.loadDoctors = async function(forceReload = false) {
   const tbody = document.getElementById('doctorTableBody');
   if (!tbody) return;
+
+  const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
+
+  // 🚀 1. CACHE GUARD: สลับ Tab เมนูหลักแล้วมี Cache เดิมอยู่ -> เรนเดอร์ทันที 0 วินาที ไม่ขึ้น Loading!
+  if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
+    window.restoreDocFilterState();
+    window.renderDoctorTableServerSide();
+    return;
+  }
 
   tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading Doctors...</div></td></tr>`;
 
@@ -466,6 +512,9 @@ window.loadDoctors = async function(forceReload = false) {
         query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); 
       }
     }
+
+    // บันทึก Filter State ปัจจุบัน
+    window.saveDocFilterState();
 
     const smartSearchInput = document.getElementById('smartDocSearchInput');
     const rawSearchVal = smartSearchInput ? smartSearchInput.value.trim().toLowerCase() : '';
@@ -514,6 +563,7 @@ window.loadDoctors = async function(forceReload = false) {
 
     window.globalDoctors = res.data || [];
     window.totalDoctorsCount = res.count || 0;
+    window.DocManagerCache.isLoaded = true;
 
     window.renderDoctorTableServerSide();
 
@@ -1245,7 +1295,6 @@ window.filterAndRenderDoctorVisits = function() {
       }).join('');
     }
 
-    // ⚡ [จุดที่ปรับแก้] ดึง Doc_ID และ Purpose_ID สดๆ ส่งข้ามหน้าข้ามฟังก์ชันผ่าน onclick ตรงๆ 
     const currentDocId = window.currentTargetDocId || v.Doc_ID || '';
     const rawPurposeId = v.Purpose_ID || v.Purpose || v.Objective || '';
 
@@ -1271,22 +1320,18 @@ window.filterAndRenderDoctorVisits = function() {
   }
 };
 
-// ⚡ [จุดที่ปรับแก้เพิ่ม] ปรับฟังก์ชันเรียกเปิดฟอร์มแก้ไขให้รับ + ส่งต่อ Parameters 3 ตัว
 window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overridePurposeId) {
   const docId = overrideDocId || window.currentTargetDocId;
   if (!docId || !visitId) return;
 
-  // ⚡ ฝากค่าข้ามหน้าใน sessionStorage ทันที
   sessionStorage.setItem('returnToDocId', docId);
   sessionStorage.setItem('pendingEditVisitId', visitId);
   if (overridePurposeId) sessionStorage.setItem('pendingEditPurposeId', overridePurposeId);
 
-  // สลับมาคอมโพเนนต์ Visit
   if (typeof window.loadComponent === 'function') {
     window.loadComponent('visit');
   }
 
-  // เรียกเปิด View ทันทีโดยไม่ต้องตั้ง setInterval วนรอ
   var runOpen = function() {
     if (typeof window.openEditVisitView === 'function') {
       window.openEditVisitView(visitId, docId, overridePurposeId);
@@ -1514,46 +1559,21 @@ window.goToQuickAddCall = function() {
 };
 
 // ==========================================
-// ✏️ EDIT VISIT FROM DOCTOR PROFILE (เวอร์ชันส่ง Parameters ครบชุด)
-// ==========================================
-window.openEditVisitFromDoctorProfile = function(visitId) {
-  const docId = window.currentTargetDocId;
-  if (!docId || !visitId) return;
-
-  sessionStorage.setItem('returnToDocId', docId);
-
-  // 🎯 ดึงข้อมูล Visit จาก RAM เพื่อเอา Purpose_ID/Purpose มาส่งข้ามหน้า
-  const v = (window.globalCurrentDoctorVisits || []).find(x => String(x.Visit_ID) === String(visitId));
-  const purposeVal = v ? (v.Purpose_ID || v.Purpose || v.Objective || '') : '';
-
-  if (typeof window.loadComponent === 'function') {
-    window.loadComponent('visit');
-  }
-
-  let attempts = 0;
-  const checkReady = setInterval(function() {
-    attempts++;
-    if (typeof window.openEditVisitView === 'function') {
-      clearInterval(checkReady);
-      // ⚡ ส่ง Visit_ID, Doc_ID และ Purpose_ID ให้เปิดฟอร์มยัดค่าใส่ TomSelect ทันที 0s
-      window.openEditVisitView(visitId, docId, purposeVal);
-    } else if (attempts > 50) {
-      clearInterval(checkReady);
-    }
-  }, 100);
-};
-
-// ==========================================
 // 🚀 INITIALIZATION ENGINE & LISTENERS
 // ==========================================
 window.initDoctorPage = async function(forceReload = false) {
   if (window._isDocInitRunning) return;
+
+  // 🛡️ เช็กว่าถ้ามี Cache ข้อมูลเดิมอยู่แล้ว ไม่ต้องดึงข้อมูลซ้ำ
+  const hasCache = (window.DocManagerCache && window.DocManagerCache.isLoaded && window.globalDoctors && window.globalDoctors.length > 0);
+  const shouldFetchDB = forceReload === true ? true : !hasCache;
+
   window._isDocInitRunning = true;
   window.isDocInitialLoading = true;
 
   try {
-    await window.loadIndexDropdowns(forceReload); 
-    await window.loadDoctors(forceReload);
+    await window.loadIndexDropdowns(shouldFetchDB); 
+    await window.loadDoctors(shouldFetchDB);
   } catch (err) {
     console.error("Init Doctors Failed:", err);
   } finally {
@@ -1612,6 +1632,6 @@ if (!window._docObserverAttached) {
 
 setTimeout(() => {
   if (document.getElementById('doctorTableBody')) {
-    window.initDoctorPage(true);
+    window.initDoctorPage(false);
   }
 }, 100);
