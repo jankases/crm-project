@@ -1999,15 +1999,14 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-  window.openEditVisitView = function(visitId) {
+ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
   var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); });
-  if (!v) return;
-
-  // 🚀 1. สลับหน้าเปิดฟอร์มทันที
+  
+  // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0 วินาที
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2016,58 +2015,93 @@ window.toggleVisitFormEditable = function(isEditable) {
   var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
 
   var isAdmin = (myRole === 'admin');
-  var creatorRepId = String(v.Rep_ID || v.rep_id || '').trim();
-  var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+  var creatorRepId = v ? String(v.Rep_ID || v.rep_id || '').trim() : '';
+  var creatorWho = v ? String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim() : '';
   var isCreator = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
   var canEdit = (isAdmin || isCreator);
 
-  document.getElementById('visitId').value = v.Visit_ID;
+  document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
+
+  // ⚡ 2. [แก้หมอหาย/ขึ้นช้า] ดึง Doc_ID จาก Parameter ที่ส่งมา หรือจากตัวแปร v
+  var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
   
-  var targetRepObj = window.globalUsersList ? window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === String(v.Rep_ID); }) : null;
-  if (typeof window.updateFormUserInfo === 'function') {
-      window.updateFormUserInfo(targetRepObj, v.Territory_ID);
-  }
-
-  // ⚡ 2. [Doctor Name] ปลดล็อกและยัด UUID หมอทันที 0s
-  if (v.Doc_ID && window.tomSelectDocInstance) {
-      window.tomSelectDocInstance.enable();
-      window.tomSelectDocInstance.setValue(v.Doc_ID, true);
-  }
-
-  // ⚡ 3. วันที่ / เวลา / รายละเอียด
-  document.getElementById('visitDate').value = v.Visit_Date || '';
-  if (typeof window.formatTimeString === 'function') {
-      document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
-      document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
-  }
-
-  document.getElementById('visitDetails').value = v.Details || '';
-  document.getElementById('visitInsight').value = v.Insight || ''; 
-  document.getElementById('visitNextAction').value = v.Next_Action || '';
-  document.getElementById('visitStatus').value = v.Status || 'Pending';
-  var chkCoach = document.getElementById('visitIsCoaching');
-  if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
-
-  // 🎯 4. [Purpose] เช็กและยัดค่า UUID ตรงๆ (ไม่สแกน Text หลายลูปให้ช้า)
-  var purposeUuid = v.Purpose_ID || v.Purpose;
-  if (purposeUuid && window.tomSelectPurposeInstance) {
-      window.tomSelectPurposeInstance.enable();
-      window.tomSelectPurposeInstance.setValue(purposeUuid, true);
-      if (typeof window.updatePurposeDisplayLang === 'function') {
-          window.updatePurposeDisplayLang();
+  var setDocValue = function() {
+      if (targetDocId && window.tomSelectDocInstance) {
+          window.tomSelectDocInstance.enable();
+          window.tomSelectDocInstance.setValue(targetDocId, true);
       }
+  };
+  
+  // ยัดค่าหมอทันที 0 วินาที
+  setDocValue();
+  // Failsafe: ยัดซ้ำอีกรอบที่ 300ms ป้องกันหน้าหมอแอบมารีเซ็ตกล่องทิ้ง
+  setTimeout(setDocValue, 300);
+
+  // ⚡ 3. ยัดวันที่ / เวลา / รายละเอียดกิจกรรม
+  if (v) {
+      document.getElementById('visitDate').value = v.Visit_Date || '';
+      if (typeof window.formatTimeString === 'function') {
+          document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
+          document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
+      }
+      document.getElementById('visitDetails').value = v.Details || '';
+      document.getElementById('visitInsight').value = v.Insight || ''; 
+      document.getElementById('visitNextAction').value = v.Next_Action || '';
+      document.getElementById('visitStatus').value = v.Status || 'Pending';
+      var chkCoach = document.getElementById('visitIsCoaching');
+      if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
   }
+
+  // 🎯 4. [แก้ PURPOSE ไม่ขึ้น] รับค่า Parameter หรือสแกนจาก Index
+  var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
+  var dbPurposeVal = String(rawPurpose || '').trim();
+
+  var setPurposeValue = function() {
+      if (window.tomSelectPurposeInstance && dbPurposeVal && dbPurposeVal !== '-' && dbPurposeVal !== 'null') {
+          var tsPurp = window.tomSelectPurposeInstance;
+          tsPurp.enable();
+
+          var targetIndexId = dbPurposeVal;
+          if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
+              var foundIndex = window.VisitManagerCache.indexes.find(function(i) {
+                  return String(i.Index_ID).toLowerCase() === dbPurposeVal.toLowerCase() ||
+                         String(i.Value || '').toLowerCase() === dbPurposeVal.toLowerCase() ||
+                         String(i.Value1 || '').toLowerCase() === dbPurposeVal.toLowerCase();
+              });
+              if (foundIndex) targetIndexId = foundIndex.Index_ID;
+          }
+
+          tsPurp.setValue(targetIndexId, true);
+
+          // Failsafe: ถ้ายังไม่ขึ้น ให้สร้าง Option ข้อความใส่ลง TomSelect ตรงๆ
+          if (!tsPurp.getValue()) {
+              tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal, searchTh: dbPurposeVal, searchEn: dbPurposeVal });
+              tsPurp.setValue(dbPurposeVal, true);
+          }
+
+          if (typeof window.updatePurposeDisplayLang === 'function') {
+              window.updatePurposeDisplayLang();
+          }
+      }
+  };
+
+  // ยัดค่า Purpose ทันที 0 วินาที
+  setPurposeValue();
+  // Failsafe: ยัดซ้ำที่ 300ms ป้องกันโดนสั่ง Clear
+  setTimeout(setPurposeValue, 300);
 
   // 🌟 5. ดึงประวัติการเยี่ยมย้อนหลัง
-  if (v.Doc_ID && typeof window.fetchLastVisitHistory === 'function') {
-      window.fetchLastVisitHistory(v.Doc_ID);
+  if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
+      window.fetchLastVisitHistory(targetDocId);
   }
 
+  // -------------------------------------------------------------
   // 🚀 6. โหลดข้อมูลหนักเบื้องหลังแบบ Async Non-Blocking
+  // -------------------------------------------------------------
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
-          var visitProds = window.globalVisitProducts ? window.globalVisitProducts.filter(function(vp) { 
+          var visitProds = (window.globalVisitProducts && v) ? window.globalVisitProducts.filter(function(vp) { 
               return String(vp.Visit_ID) === String(visitId); 
           }).map(function(vp) { return String(vp.Product_ID); }) : [];
           
@@ -2079,7 +2113,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   if (typeof window.loadVisitSamplesForEdit === 'function') {
-      window.loadVisitSamplesForEdit(v.Visit_ID);
+      window.loadVisitSamplesForEdit(visitId);
   }
 
   // GPS Location
@@ -2089,7 +2123,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   var timeWrapper = document.getElementById('locationTimeWrapper');
   var timeText = document.getElementById('visitCheckinTimeText');
 
-  if (v.CheckIn_Lat && v.CheckIn_Long) {
+  if (v && v.CheckIn_Lat && v.CheckIn_Long) {
     if (latInput) latInput.value = v.CheckIn_Lat;
     if (lngInput) lngInput.value = v.CheckIn_Long;
     if (timeWrapper) timeWrapper.classList.remove('d-none');
@@ -2119,7 +2153,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   window.pendingDeleteFiles = [];
   window.pendingDetailingLogs = []; 
 
-  if (v.Attachments) {
+  if (v && v.Attachments) {
     try {
       var rawArr = typeof v.Attachments === 'string' ? JSON.parse(v.Attachments) : v.Attachments;
       if (Array.isArray(rawArr)) {
@@ -2134,7 +2168,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
   if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
 
-  if (v.Doctor_Signature) {
+  if (v && v.Doctor_Signature) {
     window.savedSignatureData = v.Doctor_Signature;
   } else {
     window.savedSignatureData = null;
@@ -2142,7 +2176,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
   // สถานะปุ่ม Save / Lock
-  var isPendingUnlock = window.globalPendingUnlockVisits ? window.globalPendingUnlockVisits.indexOf(v.Visit_ID) !== -1 : false;
+  var isPendingUnlock = window.globalPendingUnlockVisits ? window.globalPendingUnlockVisits.indexOf(visitId) !== -1 : false;
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
@@ -2154,7 +2188,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>' + (currentAppLang === 'en' ? 'Waiting for Admin unlock' : 'รอแอดมินอนุมัติปลดล็อก'); 
       btn.dataset.mode = 'disabled';
     }
-  } else if (v.Status === 'Submitted') {
+  } else if (v && v.Status === 'Submitted') {
     if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
     if (btn) {
       if (canEdit) {
@@ -2190,7 +2224,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   var isReadOnly = true;
-  if (!isPendingUnlock && v.Status !== 'Submitted' && canEdit) {
+  if (!isPendingUnlock && v && v.Status !== 'Submitted' && canEdit) {
     isReadOnly = false;
   }
   if (typeof window.setFormComponentsReadOnly === 'function') {
