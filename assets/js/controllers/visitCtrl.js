@@ -1025,7 +1025,6 @@ window.deleteTot = async function() {
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
  window.loadDropdowns = async function(forceReload) {
-  if (window.isOpeningEditView) return; 
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1193,7 +1192,7 @@ window.deleteTot = async function() {
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
-    // ⚡ สร้าง TomSelect แพทย์ เฉพาะตอนที่ยังไม่มี หรือ โดนบังคับ forceReload
+    // ⚡ สร้าง TomSelect แพทย์
     var docSelect = document.getElementById('visitDocId');
     if (docSelect && (!window.tomSelectDocInstance || forceReload)) { 
       docSelect.innerHTML = '<option value=""></option>';
@@ -1211,13 +1210,12 @@ window.deleteTot = async function() {
               create: false, searchField: ["text", "name_en", "name_th"], sortField: { field: "text", direction: "asc" }, 
               placeholder: appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --', maxOptions: null, dropdownParent: 'body', dataAttr: 'data'
           });
-          if (oldDocVal) window.tomSelectDocInstance.setValue(oldDocVal, true);
       }
     }
 
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-    // 🎯 PURPOSE: โหลด UUID (Index_ID) ตรงๆ แบบคลีน
+    // 🎯 PURPOSE Dropdown
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect && (!window.tomSelectPurposeInstance || forceReload)) { 
       var types = window.VisitManagerCache.indexTypes || []; 
@@ -1245,8 +1243,22 @@ window.deleteTot = async function() {
               options: purposeData, valueField: 'value', labelField: 'text', searchField: ["searchTh", "searchEn", "text"], sortField: { field: "searchTh", direction: "asc" }, 
               placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', create: false, dropdownParent: 'body'
           });
-          if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
       }
+    }
+
+    // 🚀 [RE-APPLY VALUES]: ตรวจเช็กว่าหากฟอร์มเปิดอยู่ ให้จับยัดค่า Doctor และ Purpose ที่ต้องการคืนกลับลง TomSelect ทันที
+    var formView = document.getElementById('visitFormView');
+    if (formView && !formView.classList.contains('d-none')) {
+        var vIdInput = document.getElementById('visitId');
+        var curVisitId = vIdInput ? vIdInput.value : '';
+        if (curVisitId && window.globalVisits) {
+            var vObj = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(curVisitId); });
+            var targetDoc = (vObj ? vObj.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
+            var targetPurp = vObj ? (vObj.Purpose_ID || vObj.Purpose || v.Objective) : null;
+
+            if (targetDoc && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(targetDoc, true);
+            if (targetPurp && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(targetPurp, true);
+        }
     }
 
     var filterGroup = document.getElementById('visitFilterZoneGroup');
