@@ -2070,21 +2070,37 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   // 🚀 1. สลับหน้าเปิดฟอร์มทันที 0s
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
+  // ⚡ 2. ปรับปรุงการตรวจสอบสิทธิ์ (isCreator) ให้ยืดหยุ่น ครอบคลุมทั้ง Rep_ID, Email, และ Rep_Name
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
-  var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+  var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.rep_id || crmUser.id || crmUser.User_ID || '').toLowerCase().trim() : '';
   var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
+  var myName = crmUser ? String(crmUser.Rep_Name || crmUser.rep_name || crmUser.Name || crmUser.name || '').toLowerCase().trim() : '';
 
-  var isAdmin = (myRole === 'admin');
-  var creatorRepId = v ? String(v.Rep_ID || v.rep_id || '').trim() : '';
-  var creatorWho = v ? String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim() : '';
-  var isCreator = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
+  var isAdmin = (myRole === 'admin' || myRole === 'system admin');
+
+  var isCreator = false;
+  if (v) {
+      var creatorRepId = String(v.Rep_ID || v.rep_id || '').toLowerCase().trim();
+      var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
+
+      if (myRepId && creatorRepId && myRepId === creatorRepId) {
+          isCreator = true;
+      } else if (myEmail && creatorWho && (creatorWho === myEmail || creatorWho.indexOf(myEmail) !== -1)) {
+          isCreator = true;
+      } else if (myName && creatorWho && (creatorWho.indexOf(myName) !== -1 || myName.indexOf(creatorWho) !== -1)) {
+          isCreator = true;
+      }
+  } else {
+      isCreator = true;
+  }
+
   var canEdit = (isAdmin || isCreator);
 
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  // 🔒 [HARD-LOCK DOCTOR] ยัดค่าตรงลง Element และ TomSelect แบบ Silent
+  // 🔒 [HARD-LOCK DOCTOR] ยัดค่าลง Element และ TomSelect แบบ Silent ทันที
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
   if (targetDocId) {
       var rawDocSelect = document.getElementById('visitDocId');
@@ -2093,13 +2109,12 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       if (window.tomSelectDocInstance) {
           var tsDoc = window.tomSelectDocInstance;
           tsDoc.enable();
-          // ถ้าไม่มี Option ในลิสต์ ให้สร้างเพิ่มทันที
           if (!tsDoc.options[targetDocId]) {
               var docObj = window._docIndex ? window._docIndex[String(targetDocId).toLowerCase()] : null;
               var dName = docObj ? (docObj.Doc_Name || docObj.Doc_Name_TH) : targetDocId;
               tsDoc.addOption({ value: targetDocId, text: dName });
           }
-          tsDoc.setValue(targetDocId, true); // true = Silent (ไม่กระตุ้น onChange ให้โดนล้าง)
+          tsDoc.setValue(targetDocId, true);
       }
   }
 
@@ -2145,7 +2160,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
               targetIndexId = dbPurposeVal;
           }
 
-          tsPurp.setValue(targetIndexId, true); // true = Silent
+          tsPurp.setValue(targetIndexId, true);
 
           if (typeof window.updatePurposeDisplayLang === 'function') {
               window.updatePurposeDisplayLang();
@@ -2368,13 +2383,18 @@ window.openAddVisitView = async function(presetDate) {
   setTimeout(() => { window.checkAndRestoreAutosave(); }, 500);
 };
 
-window.handleSaveVisit = async function(e) {
+ window.handleSaveVisit = async function(e) {
   e.preventDefault();
   var btn = document.getElementById('saveVisitBtn');
-  var mode = btn.dataset.mode;
+  var mode = btn ? btn.dataset.mode : '';
 
   if (mode === 'disabled') return;
-  if (mode === 'request_unlock') { if (typeof window.requestUnlockVisit === 'function') window.requestUnlockVisit(document.getElementById('visitId').value); return; }
+  if (mode === 'request_unlock') { 
+    if (typeof window.requestUnlockVisit === 'function') {
+      window.requestUnlockVisit(document.getElementById('visitId').value); 
+    }
+    return; 
+  }
 
   var docVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var dateInput = document.getElementById('visitDate');
@@ -2407,12 +2427,16 @@ window.handleSaveVisit = async function(e) {
     return;
   }
 
-  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...';
+  if (btn) {
+    btn.disabled = true; 
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...';
+  }
 
+  // ⚡ 1. ดึงข้อมูล User และกำหนดค่า Rep_ID / Whoupdated อย่างรัดกุม
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-  var whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
-  var repId = crmUser ? (crmUser.Rep_ID || crmUser.id || null) : null;
-  var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territoryId || null) : null;
+  var whoUpdated = crmUser ? (crmUser.Email || crmUser.email || crmUser.Rep_Name || crmUser.rep_name || "User") : "Unknown";
+  var repId = crmUser ? (crmUser.Rep_ID || crmUser.rep_id || crmUser.User_ID || crmUser.id || null) : null;
+  var territoryId = crmUser ? (crmUser.Territory_ID || crmUser.territory_id || crmUser.territoryId || null) : null;
 
   var existingVisitId = document.getElementById('visitId').value;
   var targetVisitId = existingVisitId || (typeof window.generateUUID === 'function' ? window.generateUUID() : Date.now().toString());
@@ -2427,13 +2451,26 @@ window.handleSaveVisit = async function(e) {
   }
 
   var payload = {
-    Visit_ID: targetVisitId, Rep_ID: repId, Territory_ID: territoryId, Doc_ID: docVal,
-    Visit_Date: dateInput.value, Start_Time: document.getElementById('visitStartTime').value || null, End_Time: document.getElementById('visitEndTime').value || null,
-    Purpose_ID: purposeVal, Details: document.getElementById('visitDetails').value.trim(), Insight: document.getElementById('visitInsight').value.trim(), 
-    Next_Action: document.getElementById('visitNextAction').value.trim(), Is_Coaching: document.getElementById('visitIsCoaching').checked, 
-    Status: document.getElementById('visitStatus').value, Whoupdated: whoUpdated, Whenupdated: new Date().toISOString(),
-    CheckIn_Lat: latVal ? parseFloat(latVal) : null, CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
-    CheckIn_Time: latVal ? new Date().toISOString() : null, Attachments: attachmentsData, Doctor_Signature: sigData
+    Visit_ID: targetVisitId, 
+    Rep_ID: repId, 
+    Territory_ID: territoryId, 
+    Doc_ID: docVal,
+    Visit_Date: dateInput.value, 
+    Start_Time: document.getElementById('visitStartTime').value || null, 
+    End_Time: document.getElementById('visitEndTime').value || null,
+    Purpose_ID: purposeVal, 
+    Details: document.getElementById('visitDetails').value.trim(), 
+    Insight: document.getElementById('visitInsight').value.trim(), 
+    Next_Action: document.getElementById('visitNextAction').value.trim(), 
+    Is_Coaching: document.getElementById('visitIsCoaching').checked, 
+    Status: document.getElementById('visitStatus').value, 
+    Whoupdated: whoUpdated, 
+    Whenupdated: new Date().toISOString(),
+    CheckIn_Lat: latVal ? parseFloat(latVal) : null, 
+    CheckIn_Long: lngVal ? parseFloat(lngVal) : null,
+    CheckIn_Time: latVal ? new Date().toISOString() : null, 
+    Attachments: attachmentsData, 
+    Doctor_Signature: sigData
   };
 
   var samplePayloads = [];
@@ -2446,6 +2483,7 @@ window.handleSaveVisit = async function(e) {
   try {
     if (isOfflineMode) throw new Error("OFFLINE_MODE");
 
+    // ⚡ 2. บันทึกลง Supabase
     if (existingVisitId) {
       var updRes = await window.supabaseClient.from('Visit_Logs').update(payload).eq('Visit_ID', existingVisitId);
       if (updRes.error) throw new Error("Update Visit_Logs error: " + updRes.error.message);
@@ -2507,7 +2545,15 @@ window.handleSaveVisit = async function(e) {
     }
     window.newlyUploadedFiles = []; window.pendingDeleteFiles = [];
 
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    // ⚡ 3. อัปเดต Memory Cache สดๆ ทันที ให้ปุ่ม Edit แสดงผลสิทธิ์ถูกเสมอ
+    window.globalVisits = window.globalVisits || [];
+    var existingIndex = window.globalVisits.findIndex(function(x) { return String(x.Visit_ID) === String(targetVisitId); });
+    if (existingIndex !== -1) {
+      window.globalVisits[existingIndex] = payload;
+    } else {
+      window.globalVisits.unshift(payload);
+    }
+
     var msgSuccess = appLang === 'en' ? "Data saved successfully." : "บันทึกข้อมูลเรียบร้อยแล้ว";
     if (window.showToast) window.showToast(msgSuccess, "success");
 
@@ -2515,6 +2561,7 @@ window.handleSaveVisit = async function(e) {
 
     if (typeof window.clearFormDraft === 'function') window.clearFormDraft(existingVisitId || 'NEW');
 
+    // ⚡ 4. เปลี่ยนเส้นทางกลับหน้าเดิม
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
@@ -2526,7 +2573,6 @@ window.handleSaveVisit = async function(e) {
 
   } catch(err) {
     var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
     if (isNetworkError) {
         var offlineData = {
@@ -2560,8 +2606,11 @@ window.handleSaveVisit = async function(e) {
         if (window.showToast) window.showToast(msgError + err.message, "error");
     }
   } finally {
-    var saveText = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang() === 'th') ? 'บันทึก' : 'Save';
-    btn.disabled = false; btn.innerHTML = "💾 " + saveText;
+    if (btn) {
+      var saveText = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang() === 'th') ? 'บันทึก' : 'Save';
+      btn.disabled = false; 
+      btn.innerHTML = "💾 " + saveText;
+    }
   }
 };
 
