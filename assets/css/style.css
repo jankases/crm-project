@@ -2,42 +2,43 @@
    CRM System - Global Stylesheet (style.css)
    ========================================= */
 
-/* 🔒 1. GLOBAL APP-LIKE LOCK (ล็อกซ่อน Scrollbar นอกสุดของเบราว์เซอร์) */
+/* 🔒 1. GLOBAL APP-LIKE SCROLL CONTROL */
 html, body {
   height: 100vh !important;
   margin: 0 !important;
   padding: 0 !important;
-  overflow: hidden !important;
+  overflow: hidden !important; /* ปิด Scrollbar นอกสุดของตัวเบราว์เซอร์ */
 }
 
 /* 🖥️ 2. ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 65px); /* หักล้างกับความสูง Navbar */
+  height: calc(100vh - 65px); /* หักล้างความสูง Top Navbar */
   width: 100%;
   overflow: hidden !important; /* ปิดการ Scroll นอกตาราง */
   padding: 1.25rem;
   background-color: #f8fafc;
 }
 
-/* 📊 3. TABLE-ONLY SCROLL ENGINE (ล็อกเลื่อนเฉพาะในตาราง) */
+/* 📊 3. FIXED TABLE-ONLY SCROLL ENGINE (แก้ปัญหา Scrollbar ตารางไม่เด้ง) */
 #visitListZone, 
 #doctorListView .card,
 #hospListView .card {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  min-height: 0; /* สำคัญ: ป้องกัน Flex Child ดันขอบจอเกินขนาด */
+  min-height: 0;
   overflow: hidden;
 }
 
 .table-scroll-inside {
-  flex: 1 1 auto;
-  overflow-y: auto !important; /* ให้เลื่อนขึ้น-ลงได้เฉพาะภายในกล่องตาราง */
+  width: 100%;
+  max-height: calc(100vh - 420px) !important; /* กำหนดความสูงชัดเจนเพื่อขยับ Scrollbar ได้แน่นอน */
+  min-height: 250px;
+  overflow-y: auto !important; /* บังคับเปิด Scrollbar แนวตั้งเฉพาะในตาราง */
   overflow-x: auto;
+  border-radius: 8px;
 }
 
 /* ตรึงหัวตาราง (THEAD) ให้อยู่ด้านบนสุดเวลาเลื่อนตารางลง */
@@ -56,8 +57,8 @@ html, body {
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .table-scroll-inside::-webkit-scrollbar-track,
@@ -65,22 +66,22 @@ html, body {
 .doc-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+  background: #94a3b8;
+  border-radius: 4px;
 }
 
 .table-scroll-inside::-webkit-scrollbar-thumb:hover,
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #64748b;
 }
 
 /* -----------------------------------------
