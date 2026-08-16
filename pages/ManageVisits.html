@@ -9,86 +9,15 @@
 <!-- 📚 โหลด FullCalendar Library -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
-<style>
-  /* --------------------------------------------------
-     1. App-like Scroll Control & Full-Screen Canvas
-  -------------------------------------------------- */
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden !important; /* ซ่อน Scrollbar นอกสุดของ Browser */
-  }
-
-  .visit-module-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 70px); /* ลบความสูง Navbar ด้านบน */
-    width: 100%;
-    overflow-y: auto; /* เลื่อน Scroll เฉพาะพื้นที่ภายในโมดูลนี้ */
-    overflow-x: hidden;
-    padding: 1.5rem;
-    background-color: #f8fafc;
-  }
-
-  /* --------------------------------------------------
-     2. UI Component Styling
-  -------------------------------------------------- */
-  .stat-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 1.25rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .visit-card {
-    border-radius: 15px;
-    background-color: #ffffff;
-  }
-
-  .table-custom-header {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    font-weight: 600;
-  }
-  .table-custom-header th { white-space: nowrap; }
-
-  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
-  .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
-
-  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
-  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
-
-  .filter-placeholder-text { color: #6c757d !important; }
-
-  @media (max-width: 768px) {
-    .visit-module-wrapper { padding: 0.75rem; }
-  }
-</style>
-
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
-<!-- 🌟 ใช้ container-fluid p-0 และสวม visit-module-wrapper เพื่อขยายเต็มพื้นที่จอ -->
+<!-- 🌟 โมดูล Wrapper คุมเต็มจอความสูงและกว้าง 100% -->
 <div class="container-fluid p-0 visit-module-wrapper">
   
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
-  <div id="visitListView" class="w-100">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div id="visitListView" class="w-100 h-100 d-flex flex-column">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3 flex-shrink-0">
       <div>
         <h3 class="text-dark fw-bold mb-1 d-flex align-items-center">
           <span class="header-icon-box text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
@@ -119,8 +48,8 @@
       </div>
     </div>
 
-    <!-- Stats Cards Zone -->
-    <div class="row g-3 mb-4">
+    <!-- Stats Cards Zone (ตรึงนิ่งอยู่กับที่ ไม่เลื่อน) -->
+    <div class="row g-3 mb-3 flex-shrink-0">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
           <div class="stat-icon bg-primary-subtle text-primary me-3"><i class="fa-solid fa-calendar-days fs-5"></i></div>
@@ -156,8 +85,8 @@
       </div>
     </div>
 
-    <!-- Filter Zone -->
-    <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group w-100" id="visitFilterZoneGroup">
+    <!-- Filter Zone (ตรึงนิ่งอยู่กับที่ ไม่เลื่อน) -->
+    <div class="card p-3 border-0 shadow-sm visit-card mb-3 visit-filter-group w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         <div class="col-12 col-lg-5">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
@@ -212,9 +141,11 @@
       </div>
     </div>
 
-    <!-- Zone 1: List View Table -->
-    <div id="visitListZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100">
-      <div class="table-responsive">
+    <!-- Zone 1: List View Table Card (ยืดกินพื้นที่ส่วนที่เหลือทั้งหมด) -->
+    <div id="visitListZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
+      
+      <!-- 🌟 กล่องเลื่อน Scrollbar เฉพาะภายในตารางนี้เท่านั้น -->
+      <div class="table-responsive table-scroll-inside flex-grow-1">
         <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
             <tr>
@@ -240,7 +171,8 @@
         </table>
       </div>
 
-      <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top d-none">
+      <!-- Pagination Footer (ตรึงนิ่งล่างสุดของ Card ตาราง) -->
+      <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 pt-3 border-top flex-shrink-0 d-none">
         <div class="d-flex align-items-center mb-3 mb-md-0">
           <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
           <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
@@ -258,7 +190,7 @@
     </div>
 
     <!-- Zone 2: Calendar View -->
-    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 d-none">
+    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 overflow-auto d-none">
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted" data-i18n="leg_submitted">Submitted Visit</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending" data-i18n="leg_pending">Pending Draft</span></div>
@@ -274,7 +206,7 @@
   </div>
 
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม ================= -->
-  <div id="visitFormView" class="d-none w-100">
+  <div id="visitFormView" class="d-none w-100 overflow-auto">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
