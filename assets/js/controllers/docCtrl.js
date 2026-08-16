@@ -391,7 +391,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           var terrs = (terrRes.data || terrRes || []).filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
           terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
         } else if (isManager) {
-          var matchedTeam = (teamRes.data || teamRes || []).find(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
+          var matchedTeam = (teamRes.data || teamRes || []).filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
           var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID) : rawScope;
           var terrs = (terrRes.data || terrRes || []).filter(t => String(t.Team_ID) === targetTeamId);
           terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
@@ -408,24 +408,43 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         });
       }
 
-      // 🌟 กรอง Products สำหรับ Team / Sales ของตนเอง
+      // 🌟 [FULL VISITING PERMISSION MATCHING]: คำนวณหา Products แบบเดียวกับ visitCtrl.js
       const allProductsList = prodRes || [];
       const teamProdLinksList = teamProdRes || [];
-      let allowedProducts = allProductsList;
+      let filteredProds = [];
 
-      if (!isGlobalViewer) {
-        let userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
-        if (userTeamId) {
-          const linkedProdIds = teamProdLinksList
-            .filter(tp => String(tp.Team_ID || tp.team_id) === userTeamId || String(tp.Team) === userTeamId)
-            .map(tp => String(tp.Product_ID || tp.product_id));
-            
-          if (linkedProdIds.length > 0) {
-            allowedProducts = allProductsList.filter(p => linkedProdIds.includes(String(p.Product_ID)));
+      if (isGlobalViewer) {
+        filteredProds = allProductsList;
+      } else {
+        let targetTeams = [];
+        if (crmUser) {
+          let myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+          if (!myTeam) {
+            let myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
+            let matchedMyTer = (terrRes.data || terrRes || []).find(t => String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr);
+            if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
           }
+          if (myTeam) targetTeams.push(myTeam);
+        }
+
+        let allowedProdIds = [];
+        teamProdLinksList.forEach(link => {
+          let tId = String(link.Team_ID || link.Team);
+          if (targetTeams.indexOf(tId) !== -1 || targetTeams.indexOf(String(link.Team_Name)) !== -1) {
+            let pId = String(link.Product_ID || link.Product);
+            if (allowedProdIds.indexOf(pId) === -1) {
+              allowedProdIds.push(pId);
+            }
+          }
+        });
+
+        if (targetTeams.length > 0 && allowedProdIds.length > 0) {
+          filteredProds = allProductsList.filter(p => allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1);
+        } else {
+          filteredProds = allProductsList;
         }
       }
-      window.globalTeamProducts = allowedProducts;
+      window.globalTeamProducts = filteredProds;
 
       window.DocManagerCache.isGlobalViewer = isGlobalViewer;
       window.DocManagerCache.myAllowedTerIds = allowedTerIds;
@@ -1028,7 +1047,7 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  // 🌟 FIX: ใช้เฉพาะสินค้าที่ผ่านการกรองสิทธิ์ทีม (globalTeamProducts) เพื่อไม่ให้เห็นสินค้าทั้งหมดในระบบ
+  // 🌟 FIX: โหลดตัวเลือกสินค้าเฉพาะตามสิทธิ์ทีมของผู้ใช้ (globalTeamProducts)
   let phtml = `<option value="">${allProdsText}</option>`;
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   availableProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
