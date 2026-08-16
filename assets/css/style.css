@@ -110,68 +110,50 @@ html, body {
 }
 
 /* ==========================================
-   ✨ VIBRANT GLASS KPI BADGES (สไตล์มีลูกเล่น สีสดใส มินิมอล)
+   ✨ ELEVATED KPI CARDS (มีขอบ มีมิติ สวยงาม)
    ========================================== */
-.kpi-badge-vibrant {
+.kpi-card-elevated {
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 4px 12px 4px 8px !important;
+  height: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 8px !important;
-  padding: 3px 10px 3px 8px !important;
-  border-radius: 10px !important;
-  height: 38px !important;
-  border: 1px solid transparent !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+  gap: 10px !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.kpi-badge-vibrant:hover {
+.kpi-card-elevated:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.09) !important;
 }
 
-/* โทนสีฟ้า - Total Visits */
-.kpi-blue {
-  background: #f0f7ff !important;
-  border-color: #bae6fd !important;
-  border-left: 3.5px solid #0284c7 !important;
-}
+.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #0284c7 !important; }
+.kpi-border-amber { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #d97706 !important; }
+.kpi-border-emerald { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #059669 !important; }
 
-/* โทนสีส้ม - Pending Drafts */
-.kpi-amber {
-  background: #fffbeb !important;
-  border-color: #fde68a !important;
-  border-left: 3.5px solid #d97706 !important;
-}
-
-/* โทนสีเขียว - Submitted Logs */
-.kpi-emerald {
-  background: #f0fdf4 !important;
-  border-color: #a7f3d0 !important;
-  border-left: 3.5px solid #059669 !important;
-}
-
-.kpi-icon-box {
-  width: 24px !important;
-  height: 24px !important;
+.kpi-icon-square {
+  width: 26px !important;
+  height: 26px !important;
   border-radius: 6px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 0.75rem !important;
+  font-size: 0.8rem !important;
   flex-shrink: 0 !important;
-  background: rgba(255, 255, 255, 0.7) !important;
 }
 
-.kpi-title-text {
-  font-size: 0.65rem !important;
+.kpi-label-text {
+  font-size: 0.68rem !important;
   color: #64748b !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
   line-height: 1 !important;
 }
 
-.kpi-num-text {
-  font-size: 0.95rem !important;
+.kpi-value-text {
+  font-size: 1rem !important;
   font-weight: 800 !important;
   line-height: 1 !important;
   margin-top: 2px !important;
