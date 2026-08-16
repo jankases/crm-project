@@ -35,7 +35,7 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 215px) !important;
+  max-height: calc(100vh - 200px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -110,61 +110,28 @@ html, body {
 }
 
 /* ==========================================
-   ✨ LARGE & PREMIUM KPI CARDS (ขยายใหญ่ โดดเด่น โปร่งตา)
+   ✨ PRO MINIMAL METRICS (สไตล์คลีน ไร้ขอบ ไม่เทอะทะ)
    ========================================== */
-.stat-card-premium {
-  background: #ffffff !important;
-  border-radius: 12px !important;
-  padding: 6px 14px !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  min-width: 145px !important;
-  height: 48px !important; /* ขยายความสูงให้ดูโปร่ง พรีเมียมขึ้น */
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+.metric-item-pro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
 }
 
-.stat-card-premium:hover {
-  transform: translateY(-1.5px) !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.09) !important;
-  border-color: #cbd5e1 !important;
+.metric-item-pro .metric-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.stat-card-premium .stat-icon-premium {
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 10px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-shrink: 0 !important;
+.metric-item-pro .metric-value {
+  font-size: 1.15rem;
+  font-weight: 800;
 }
 
-.stat-card-premium .stat-content-premium {
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  line-height: 1.15 !important;
-}
-
-.stat-card-premium .stat-lbl-premium {
-  font-size: 0.72rem !important;
-  color: #64748b !important;
-  font-weight: 600 !important;
-  white-space: nowrap !important;
-  letter-spacing: 0.2px !important;
-}
-
-.stat-card-premium .stat-val-premium {
-  font-size: 1.1rem !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  margin-top: 2px !important;
-}
-
-/* 🌟 จัดระเบียบฟอนต์และช่องต่างๆ ในแผง Filter ให้ขนานตรงกลาง */
+/* 🌟 BORDERLESS CONTROL TOOLBAR */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
@@ -187,6 +154,10 @@ html, body {
 
 .visit-filter-compact input[type="text"] {
   margin: 0 !important;
+}
+
+.bg-light-subtle {
+  background-color: #f8fafc !important;
 }
 
 .visit-filter-group { 
