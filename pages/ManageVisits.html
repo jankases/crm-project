@@ -17,7 +17,7 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: Header Title + Action Controls (สะอาด คลีน เคลียร์พื้นที่) -->
+    <!-- 🌟 ROW 1: Header Title + Action Controls -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 flex-shrink-0">
       <div class="d-flex align-items-center me-2 ps-1">
         <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
@@ -50,11 +50,11 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: KPI Cards + Integrated Filter Zone (เรียงแถวเดียวกันแบบสไตล์คุณเป๊ะ!) -->
-    <div class="card p-1.5 px-2 border-0 shadow-sm visit-card mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
+    <!-- 🌟 ROW 2: KPI Cards + Filter Bar (ปรับโทนสีไม่ขัดตา + แก้ Popover) -->
+    <div class="p-2 px-3 border rounded-3 mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0 bg-transparent" id="visitFilterZoneGroup">
       <div class="d-flex flex-wrap align-items-center gap-2">
         
-        <!-- กลุ่ม KPI 3 กล่องฝั่งซ้าย -->
+        <!-- กลุ่ม KPI 3 กล่องฝั่งซ้าย (ปรับไม่ให้แน่น) -->
         <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
           <div class="stat-card-mockup">
             <div class="stat-icon-mockup bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
@@ -81,10 +81,10 @@
           </div>
         </div>
 
-        <span class="text-muted opacity-25 d-none d-lg-inline">|</span>
+        <span class="text-muted opacity-25 d-none d-lg-inline me-1">|</span>
 
-        <!-- ช่องค้นหา Smart Search -->
-        <div class="flex-grow-1" style="min-width: 220px;">
+        <!-- ช่องค้นหา Smart Search (บีบความยาวลงให้สมดุล) -->
+        <div style="width: 260px;">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius align-items-center">
             <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted d-flex align-items-center"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
@@ -95,7 +95,7 @@
         </div>
 
         <!-- ช่วงวันที่ Date Range -->
-        <div style="width: 220px;">
+        <div style="width: 210px;">
           <div class="input-group input-group-sm border px-2 bg-white premium-radius d-flex align-items-center">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
             <span class="text-muted small px-1">-</span>
@@ -104,7 +104,7 @@
         </div>
 
         <!-- ตัวเลือกสถานะ Status -->
-        <div style="width: 135px;">
+        <div style="width: 130px;">
           <select class="form-select border shadow-none filter-placeholder-text premium-radius" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
@@ -112,26 +112,26 @@
           </select>
         </div>
 
-        <!-- กลุ่มปุ่มจัดการด้านขวา + Advanced Filter Dropdown Popover -->
+        <!-- กลุ่มปุ่มจัดการด้านขวา + Advanced Filter Popover (แก้จุดเหลื่อมของปุ่ม Clear / Apply) -->
         <div class="d-flex gap-1.5 align-items-center ms-auto">
           
           <div class="dropdown position-relative">
             <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
               <i class="fa-solid fa-sliders"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end p-3 border-0 shadow-lg visit-card mt-1" aria-labelledby="btnAdvFilterDropdown" style="width: 320px; z-index: 1050;">
-              <h6 class="fw-bold text-dark mb-2 border-bottom pb-1 fs-6"><i class="fa-solid fa-filter text-primary me-1.5"></i>Advanced Filters</h6>
+            <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 280px; z-index: 1050;">
+              <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6 d-flex align-items-center"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
               <div class="mb-2">
                 <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
-                <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
+                <select class="form-select shadow-none fs-6" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
-                <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
+                <select class="form-select shadow-none fs-6" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
               </div>
-              <div class="text-end border-top pt-2">
-                <button class="btn btn-sm btn-light text-secondary border me-1" type="button" onclick="window.clearVisitFilters()">Clear</button>
-                <button class="btn btn-sm btn-primary" type="button" onclick="document.getElementById('btnAdvFilterDropdown').click()">Apply</button>
+              <div class="d-flex gap-2 border-top pt-2 mt-2">
+                <button class="btn btn-sm btn-outline-secondary flex-fill fw-semibold" type="button" onclick="window.clearVisitFilters()">Clear</button>
+                <button class="btn btn-sm btn-primary flex-fill fw-bold" type="button" onclick="document.getElementById('btnAdvFilterDropdown').click()">Apply</button>
               </div>
             </div>
           </div>
