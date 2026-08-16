@@ -666,3 +666,16 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   color: #d97706 !important;
   font-weight: 600 !important;
 }
+
+/* 📅 DATEPICKER POPUP FIX */
+.cursor-pointer { cursor: pointer !important; }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0;
+  margin: 0;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
