@@ -110,54 +110,62 @@ html, body {
 }
 
 /* ==========================================
-   🎯 EXACT CENTER KPI CARDS & VERTICAL ALIGNMENT
+   ✨ PREMIUM ELEVATED KPI CARDS (ปรับไม่ให้ดู DROP)
    ========================================== */
 .stat-card-mockup {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 4px 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 140px;
-  height: 38px;
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 4px 14px !important;
+  border: 1px solid #cbd5e1 !important; /* เพิ่มความคมของขอบ */
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important; /* เพิ่มเงามิติอ่อนๆ ไม่ให้ดร็อป */
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 150px !important;
+  height: 42px !important; /* ขยายความสูงให้รับกับปุ่มขวามือ */
+  transition: all 0.2s ease-in-out !important;
+}
+
+.stat-card-mockup:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1) !important;
+  border-color: #94a3b8 !important;
 }
 
 .stat-card-mockup .stat-icon-mockup {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  flex-shrink: 0;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.9rem !important;
+  flex-shrink: 0 !important;
 }
 
 .stat-card-mockup .stat-content-mockup {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  line-height: 1.1;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  line-height: 1.1 !important;
 }
 
 .stat-card-mockup .stat-lbl-mockup {
-  font-size: 0.7rem;
-  color: #64748b;
-  font-weight: 600;
-  white-space: nowrap;
+  font-size: 0.72rem !important;
+  color: #64748b !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  letter-spacing: 0.2px !important;
 }
 
 .stat-card-mockup .stat-val-mockup {
-  font-size: 0.95rem;
-  font-weight: 800;
-  line-height: 1;
-  margin-top: 1px;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  margin-top: 2px !important;
 }
 
-/* 🌟 แก้ปัญหาฟอนต์ใน Filter ตก ไม่ตรงกึ่งกลาง */
+/* 🌟 จัดระเบียบฟอนต์ใน Filter ให้ขนานตรงกลางเป๊ะ */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
