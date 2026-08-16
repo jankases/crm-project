@@ -19,8 +19,8 @@
     body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
     #appContainer { display: none; width: 100vw; height: 100vh; overflow: hidden; } 
     
-    /* 🌟 สไตล์ Sidebar Rail สำหรับ iPad / Tablet (768px - 991px) */
-    @media (min-width: 768px) and (max-width: 991px) {
+    /* 🌟 สไตล์ Sidebar Rail สำหรับ iPad / Tablet ทุกรุ่น (768px - 1199px) */
+    @media (min-width: 768px) and (max-width: 1199px) {
       .app-layout-shell {
         display: flex !important;
         flex-direction: row !important;
@@ -32,8 +32,8 @@
       .ipad-sidebar-rail {
         width: 70px;
         height: 100vh;
-        background: #1e293b; /* สีเธมนกพิราบเข้มสไตล์ Enterprise */
-        display: flex;
+        background: #1e293b;
+        display: flex !important;
         flex-direction: column;
         align-items: center;
         padding: 1rem 0;
@@ -76,16 +76,8 @@
         transition: all 0.2s ease;
       }
 
-      .sidebar-icon-btn:hover {
-        background: #334155;
-        color: #38bdf8;
-      }
-
-      .sidebar-icon-btn.active {
-        background: #0284c7 !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
-      }
+      .sidebar-icon-btn:hover { background: #334155; color: #38bdf8; }
+      .sidebar-icon-btn.active { background: #0284c7 !important; color: #ffffff !important; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4); }
 
       .sidebar-bottom-profile {
         margin-top: auto;
@@ -104,8 +96,8 @@
       }
     }
 
-    /* 🌟 สไตล์สำหรับ Desktop (คอมพิวเตอร์) */
-    @media (min-width: 992px) {
+    /* 🌟 สไตล์สำหรับ Desktop คอมพิวเตอร์จอใหญ่เท่านั้น (>= 1200px) */
+    @media (min-width: 1200px) {
       .app-layout-shell {
         display: flex;
         flex-direction: column;
@@ -131,8 +123,8 @@
   <div id="appContainer">
     <div class="app-layout-shell">
 
-      <!-- 📌 1. TOP NAVBAR (แสดงผลเฉพาะบน Desktop / คอมพิวเตอร์ และ Mobile) -->
-      <nav id="mainNavbar" class="navbar navbar-expand-lg sticky-top d-flex d-md-none d-lg-flex">
+      <!-- 📌 1. TOP NAVBAR (โชว์เฉพาะ Mobile และ Desktop จอใหญ่กว่า 1200px) -->
+      <nav id="mainNavbar" class="navbar navbar-expand-lg sticky-top d-flex d-md-none d-xl-flex">
         <div class="container-fluid px-3 px-md-4">
           
           <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" href="#" onclick="loadComponent('dashboard')">
@@ -197,8 +189,8 @@
         </div>
       </nav>
 
-      <!-- 📌 2. LEFT SIDEBAR RAIL (แสดงผลเฉพาะบน Tablet / iPad 768px - 991px) -->
-      <aside class="ipad-sidebar-rail d-none d-md-flex d-lg-none">
+      <!-- 📌 2. LEFT SIDEBAR RAIL (โชว์บน iPad และ Tablet ทุกรุ่น 768px - 1199px) -->
+      <aside class="ipad-sidebar-rail d-none d-md-flex d-xl-none">
         <div class="sidebar-brand-icon" onclick="loadComponent('dashboard')" style="cursor: pointer;" title="CRM System">
           <i class="fa-solid fa-briefcase-medical"></i>
         </div>
