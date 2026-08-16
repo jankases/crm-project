@@ -17,32 +17,45 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 TOP ROW: Title + Inline KPI Pills + Action Buttons (แถวเดียวครบจบทันที!) -->
+    <!-- 🌟 TOP ROW: Title + Inline KPI Cards + Action Buttons (แถวเดียวครบจบทันทีตาม Mockup) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 flex-shrink-0">
       
-      <!-- ฝั่งซ้าย: Visit Logs Title + 3 กล่อง KPI แบบ Inline Pills -->
-      <div class="d-flex align-items-center gap-2.5 flex-wrap">
-        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-1">
-          <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
-          <span data-i18n="visit_title">Visit Logs</span>
-        </h4>
-
-        <div class="stat-pill-inline">
-          <div class="stat-icon-mini bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
-          <span class="stat-val text-dark" id="statTotalVisits">-</span>
-          <span class="stat-lbl" data-i18n="kpi_total_visits">Total</span>
+      <!-- ฝั่งซ้าย: Visit Logs Title + 3 กล่อง KPI แบบการ์ดเล็กเรียงตามรูป -->
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="d-flex align-items-center me-2">
+          <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
+            <span class="text-primary me-1.5"><i class="fa-solid fa-calendar-check"></i></span>
+            <span data-i18n="visit_title">Visit Logs</span>
+          </h4>
+          <span class="text-muted opacity-50 me-2">|</span>
+          <span class="text-muted small d-none d-xl-inline" data-i18n="visit_subtitle">Doctor visits and daily activity logs</span>
         </div>
 
-        <div class="stat-pill-inline">
-          <div class="stat-icon-mini bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
-          <span class="stat-val text-dark" id="statPendingVisits">-</span>
-          <span class="stat-lbl" data-i18n="kpi_pending_drafts">Drafts</span>
+        <!-- กล่องที่ 1: Total Visits -->
+        <div class="stat-card-mockup">
+          <div class="stat-icon-mockup bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
+          <div class="stat-content-mockup">
+            <span class="stat-lbl-mockup" data-i18n="kpi_total_visits">Total Visits</span>
+            <span class="stat-val-mockup text-dark" id="statTotalVisits">-</span>
+          </div>
         </div>
 
-        <div class="stat-pill-inline">
-          <div class="stat-icon-mini bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
-          <span class="stat-val text-dark" id="statSubmittedVisits">-</span>
-          <span class="stat-lbl" data-i18n="kpi_submitted_logs">Submitted</span>
+        <!-- กล่องที่ 2: Pending Drafts -->
+        <div class="stat-card-mockup">
+          <div class="stat-icon-mockup bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div class="stat-content-mockup">
+            <span class="stat-lbl-mockup" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+            <span class="stat-val-mockup text-dark" id="statPendingVisits">-</span>
+          </div>
+        </div>
+
+        <!-- กล่องที่ 3: Submitted Logs -->
+        <div class="stat-card-mockup">
+          <div class="stat-icon-mockup bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-content-mockup">
+            <span class="stat-lbl-mockup" data-i18n="kpi_submitted_logs">Submitted Logs</span>
+            <span class="stat-val-mockup text-dark" id="statSubmittedVisits">-</span>
+          </div>
         </div>
       </div>
       
@@ -69,14 +82,14 @@
       </div>
     </div>
 
-    <!-- 🌟 Filter Zone (จัดระเบียบฟอนต์ไม่ตก แนวกึ่งกลางเป๊ะ) -->
+    <!-- 🌟 Filter Zone (จัดระเบียบฟอนต์ให้อยู่ตรงกลาง ไม่ตกขอบล่าง) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         <div class="col-12 col-lg-5">
-          <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius">
-            <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius align-items-center">
+            <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted d-flex align-items-center"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
-            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
+            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5 d-flex align-items-center" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
               <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
             </button>
           </div>
@@ -99,13 +112,13 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-1.5 justify-content-end">
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill d-flex align-items-center justify-content-center" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
             <i class="fa-solid fa-sliders"></i>
           </button>
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill d-flex align-items-center justify-content-center" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
             <i class="fa-solid fa-eraser"></i>
           </button>
-          <button class="btn btn-outline-success border shadow-sm premium-radius flex-fill" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
+          <button class="btn btn-outline-success border shadow-sm premium-radius flex-fill d-flex align-items-center justify-content-center" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
             <i class="fa-solid fa-file-excel"></i>
           </button>
         </div>
