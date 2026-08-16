@@ -1509,8 +1509,6 @@ window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overrid
 window.clearRatingTable = function() {
   const tbody = document.getElementById('ratingTableBody');
   if (!tbody) return;
-  const selects = tbody.querySelectorAll('select');
-  selects.forEach(s => { if(s.tomselect) s.tomselect.destroy(); });
   tbody.innerHTML = '';
 };
 
@@ -1641,8 +1639,6 @@ window.addNewRatingRow = function() {
 
   const noData = tbody.querySelector('.no-data');
   if(noData) {
-      const selects = noData.querySelectorAll('select');
-      selects.forEach(s => { if(s.tomselect) s.tomselect.destroy(); });
       noData.remove();
   }
   window.addRatingRowHTML('', '', '', '', '');
@@ -1664,7 +1660,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   const usedProductIds = window.getSelectedRatingProductIds(selectId);
   
-  let prodOpts = '<option value="">- Select -</option>';
+  let prodOpts = '<option value="">- Select Product -</option>';
   availableProducts.forEach(p => {
       const isCurrentSelected = String(p.Product_ID) === String(prodId);
       const isAlreadyUsed = usedProductIds.includes(String(p.Product_ID));
@@ -1675,6 +1671,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
       }
   });
 
+  // ⚡ ใช้ Native <select> สำหรับ Adoption และ Potential ให้ UI พอดีตาราง สวยงาม Clean
   let adoptOpts = '<option value="">- Select -</option>';
   window.getIndexValues('Adoption').forEach(a => {
       const sel = a === adopt ? 'selected' : '';
@@ -1700,17 +1697,25 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
 
   tr.innerHTML = `
       <td>
-          <select class="form-select form-select-sm rating-product border-primary shadow-none" id="${selectId}" ${disabledAttr}>
+          <select class="form-select form-select-sm rating-product border-primary shadow-none" id="${selectId}" ${disabledAttr} style="min-height: 38px; border-radius: 8px;">
               ${prodOpts}
           </select>
       </td>
-      <td><select class="form-select form-select-sm rating-adopt shadow-none" id="${adoptId}" ${disabledAttr}>${adoptOpts}</select></td>
-      <td><select class="form-select form-select-sm rating-pot shadow-none" id="${potId}" ${disabledAttr}>${potOpts}</select></td>
       <td>
-          <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#e9ecef;">
+          <select class="form-select form-select-sm rating-adopt border-secondary shadow-none" id="${adoptId}" ${disabledAttr} onchange="window.triggerCalcTarget(this)" style="min-height: 38px; border-radius: 8px;">
+              ${adoptOpts}
+          </select>
       </td>
       <td>
-          <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none" value="${tgt}" readonly style="background-color:#e9ecef;">
+          <select class="form-select form-select-sm rating-pot border-secondary shadow-none" id="${potId}" ${disabledAttr} onchange="window.triggerCalcTarget(this)" style="min-height: 38px; border-radius: 8px;">
+              ${potOpts}
+          </select>
+      </td>
+      <td>
+          <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none" value="${cls}" readonly style="background-color:#e9ecef; min-height: 38px; border-radius: 8px;">
+      </td>
+      <td>
+          <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none" value="${tgt}" readonly style="background-color:#e9ecef; min-height: 38px; border-radius: 8px;">
       </td>
       <td class="text-center">
           ${actionHtml}
@@ -1718,15 +1723,18 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   `;
   tbody.appendChild(tr);
 
-  // 🌟 BIND TOMSELECT WITH AUTO-CALCULATION LISTENERS
+  // 🌟 ใช้ TomSelect เฉพาะช่อง Product เพื่อให้พิมพ์ค้นหาชื่อสินค้าได้
   if (!disabledAttr && typeof TomSelect !== 'undefined') {
-      const tsProd = new TomSelect(`#${selectId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-      const tsAdopt = new TomSelect(`#${adoptId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-      const tsPot = new TomSelect(`#${potId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+      const tsProd = new TomSelect(`#${selectId}`, { 
+        create: false, 
+        placeholder: "- Select Product -", 
+        allowEmptyOption: true, 
+        dropdownParent: 'body' 
+      });
 
-      tsProd.on('change', function() { window.triggerCalcTarget(document.getElementById(selectId)); });
-      tsAdopt.on('change', function() { window.triggerCalcTarget(document.getElementById(adoptId)); });
-      tsPot.on('change', function() { window.triggerCalcTarget(document.getElementById(potId)); });
+      tsProd.on('change', function() { 
+        window.triggerCalcTarget(document.getElementById(selectId)); 
+      });
   }
 };
 
