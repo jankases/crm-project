@@ -370,10 +370,10 @@ const i18nDictionary = {
     lbl_locked: "ล็อกอยู่:",
     msg_rating_locked: "ขณะนี้ไม่อยู่ในช่วงเวลาประเมิน Target Call",
     th_product: "ผลิตภัณฑ์",
-    th_adoption: "ADOPTION",
-    th_potential: "POTENTIAL",
-    th_classification: "CLASSIFICATION",
-    th_target_call: "TARGET (CALL)"
+    th_adoption: "การยอมรับใช้ยา (Adoption)",
+    th_potential: "ศักยภาพแพทย์ (Potential)",
+    th_classification: "การจัดกลุ่มแพทย์ (Classification)",
+    th_target_call: "เป้าหมายการเข้าพบ (Target Call)"
   }
 };
 
