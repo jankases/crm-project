@@ -408,6 +408,25 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         });
       }
 
+      // 🌟 กรอง Products สำหรับ Team / Sales ของตนเอง
+      const allProductsList = prodRes || [];
+      const teamProdLinksList = teamProdRes || [];
+      let allowedProducts = allProductsList;
+
+      if (!isGlobalViewer) {
+        let userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim() : '';
+        if (userTeamId) {
+          const linkedProdIds = teamProdLinksList
+            .filter(tp => String(tp.Team_ID || tp.team_id) === userTeamId || String(tp.Team) === userTeamId)
+            .map(tp => String(tp.Product_ID || tp.product_id));
+            
+          if (linkedProdIds.length > 0) {
+            allowedProducts = allProductsList.filter(p => linkedProdIds.includes(String(p.Product_ID)));
+          }
+        }
+      }
+      window.globalTeamProducts = allowedProducts;
+
       window.DocManagerCache.isGlobalViewer = isGlobalViewer;
       window.DocManagerCache.myAllowedTerIds = allowedTerIds;
       window.DocManagerCache.myAllowedDocIds = allowedDocIds;
@@ -1009,10 +1028,11 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
+  // 🌟 FIX: ใช้เฉพาะสินค้าที่ผ่านการกรองสิทธิ์ทีม (globalTeamProducts) เพื่อไม่ให้เห็นสินค้าทั้งหมดในระบบ
   let phtml = `<option value="">${allProdsText}</option>`;
-  if (typeof window.globalProducts !== 'undefined') {
-    window.globalProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-  }
+  const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
+  availableProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
+
   if (document.getElementById('filterProfileVisitProduct')) {
     document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
   }
@@ -1385,7 +1405,7 @@ window.filterAndRenderDoctorVisits = function() {
     let prodBadges = '-';
     if (matchedVps.length > 0) {
       prodBadges = matchedVps.map(vp => {
-        const pObj = (window.globalProducts || window.globalProductsList || []).find(p => String(p.Product_ID) === String(vp.Product_ID));
+        const pObj = (window.globalTeamProducts || window.globalProducts || window.globalProductsList || []).find(p => String(p.Product_ID) === String(vp.Product_ID));
         const pName = pObj ? pObj.Product : vp.Product_ID;
         return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
       }).join('');
