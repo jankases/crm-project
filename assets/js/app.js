@@ -80,18 +80,22 @@ async function loadLoginComponent() {
     }
 }
 
-// 🛡️ ฟังก์ชันเช็กข้อมูลพิมพ์ค้างก่อนเปลี่ยนหน้า (Smart Dirty Check)
+// 🛡️ ฟังก์ชันเช็กข้อมูลพิมพ์ค้างก่อนเปลี่ยนหน้า (ตรวจเฉพาะหน้าปัจจุบันที่โชว์อยู่)
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     
-    // 1. เช็กฟอร์มบันทึกการเยี่ยม (Visit Form)
+    // Helper เช็กว่า Element แสดงผลอยู่จริงๆ ไม่ได้โดนซ่อนด้วย d-none
+    const isVisible = (el) => el && !el.classList.contains('d-none') && el.offsetWidth > 0 && el.offsetHeight > 0;
+
+    // 1. เช็กฟอร์มบันทึกการเยี่ยม (Visit Form) - ต้องเปิดอยู่ในหน้า Visit จริงๆ
+    const visitPageView = document.getElementById('view_page_visit');
     const visitFormView = document.getElementById('visitFormView');
-    if (visitFormView && !visitFormView.classList.contains('d-none')) {
+    
+    if (isVisible(visitPageView) && isVisible(visitFormView)) {
         const detailsEl = document.getElementById('visitDetails');
         const insightEl = document.getElementById('visitInsight');
         const nextActionEl = document.getElementById('visitNextAction');
 
-        // เช็กว่ามีการแก้ไขข้อความให้ต่างจากค่าดั้งเดิมหรือไม่
         const isDetailsDirty = detailsEl && detailsEl.value !== detailsEl.defaultValue && detailsEl.value.trim() !== '';
         const isInsightDirty = insightEl && insightEl.value !== insightEl.defaultValue && insightEl.value.trim() !== '';
         const isNextActionDirty = nextActionEl && nextActionEl.value !== nextActionEl.defaultValue && nextActionEl.value.trim() !== '';
@@ -103,31 +107,34 @@ function hasUnsavedChanges() {
         }
     }
 
-    // 2. เช็กฟอร์มเพิ่มแพทย์ใหม่ (Doctor Add)
+    // 2. เช็กฟอร์มแพทย์ (Doctor Add / Edit) - ต้องเปิดอยู่ในหน้า Doctor จริงๆ
+    const doctorPageView = document.getElementById('view_page_doctor');
     const doctorAddView = document.getElementById('doctorAddView');
-    if (doctorAddView && !doctorAddView.classList.contains('d-none')) {
-        const nameEn = document.getElementById('docNameEn')?.value.trim();
-        const nameTh = document.getElementById('docNameTh')?.value.trim();
-        if (nameEn || nameTh) {
-            return appLang === 'en'
-                ? "You have unsaved doctor information. Are you sure you want to leave?"
-                : "คุณมีข้อมูลแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
-        }
-    }
-
-    // 3. เช็กฟอร์มแก้ไขแพทย์ (Doctor Edit)
     const doctorEditView = document.getElementById('doctorEditView');
-    if (doctorEditView && !doctorEditView.classList.contains('d-none')) {
-        const editEnEl = document.getElementById('editDocNameEn');
-        const editThEl = document.getElementById('editDocNameTh');
 
-        const isEnDirty = editEnEl && editEnEl.value !== editEnEl.defaultValue;
-        const isThDirty = editThEl && editThEl.value !== editThEl.defaultValue;
+    if (isVisible(doctorPageView)) {
+        if (isVisible(doctorAddView)) {
+            const nameEn = document.getElementById('docNameEn')?.value.trim();
+            const nameTh = document.getElementById('docNameTh')?.value.trim();
+            if (nameEn || nameTh) {
+                return appLang === 'en'
+                    ? "You have unsaved doctor information. Are you sure you want to leave?"
+                    : "คุณมีข้อมูลแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
+            }
+        }
 
-        if (isEnDirty || isThDirty) {
-            return appLang === 'en'
-                ? "You have unsaved changes in the Doctor Edit Form. Are you sure you want to leave?"
-                : "คุณมีข้อมูลการแก้ไขแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
+        if (isVisible(doctorEditView)) {
+            const editEnEl = document.getElementById('editDocNameEn');
+            const editThEl = document.getElementById('editDocNameTh');
+
+            const isEnDirty = editEnEl && editEnEl.value !== editEnEl.defaultValue;
+            const isThDirty = editThEl && editThEl.value !== editThEl.defaultValue;
+
+            if (isEnDirty || isThDirty) {
+                return appLang === 'en'
+                    ? "You have unsaved changes in the Doctor Edit Form. Are you sure you want to leave?"
+                    : "คุณมีข้อมูลการแก้ไขแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
+            }
         }
     }
 
