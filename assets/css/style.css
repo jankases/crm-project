@@ -35,7 +35,7 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 210px) !important; /* ยืดตารางยาวขึ้น คืนพื้นที่แนวตั้ง */
+  max-height: calc(100vh - 210px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -110,41 +110,51 @@ html, body {
 }
 
 /* ==========================================
-   🎯 ULTRA COMPACT TOP BAR & FIX FONT ALIGNMENT
+   🎯 EXACT MOCKUP KPI CARDS & VERTICAL CENTER FIX
    ========================================== */
-.stat-pill-inline {
+.stat-card-mockup {
   background: #ffffff;
-  border-radius: 10px;
-  padding: 4px 10px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  padding: 6px 14px;
+  border: 1px solid #eef2f6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 36px;
+  gap: 10px;
+  min-width: 140px;
+  height: 40px;
 }
 
-.stat-pill-inline .stat-icon-mini {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+.stat-card-mockup .stat-icon-mockup {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
-.stat-pill-inline .stat-val {
-  font-size: 0.95rem;
-  font-weight: 800;
-  line-height: 1;
+.stat-card-mockup .stat-content-mockup {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
 }
 
-.stat-pill-inline .stat-lbl {
-  font-size: 0.72rem;
+.stat-card-mockup .stat-lbl-mockup {
+  font-size: 0.7rem;
   color: #64748b;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.stat-card-mockup .stat-val-mockup {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-top: 2px;
 }
 
 /* 🌟 แก้ปัญหาฟอนต์ใน Filter ตก ไม่ตรงกึ่งกลาง */
@@ -166,6 +176,10 @@ html, body {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   line-height: 34px !important;
+}
+
+.visit-filter-compact input[type="text"] {
+  margin: 0 !important;
 }
 
 .visit-filter-group { 
