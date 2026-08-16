@@ -53,8 +53,8 @@
       <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
-          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">รายการ</span></button>
-          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">ปฏิทิน</span></button>
+          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1.5"></i> <span data-i18n="btn_list">รายการ</span></button>
+          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1.5"></i> <span data-i18n="btn_calendar">ปฏิทิน</span></button>
         </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
@@ -62,25 +62,25 @@
         </button>
 
         <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
-          <i class="fa-solid fa-umbrella-beach me-1"></i>
+          <i class="fa-solid fa-umbrella-beach me-1.5"></i>
           <span data-i18n="btn_add_tot">เพิ่ม TOT</span>
         </button>
 
         <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddVisitView()">
-          <i class="fa-solid fa-plus me-1"></i>
+          <i class="fa-solid fa-plus me-1.5"></i>
           <span data-i18n="btn_add_visit">สร้างบันทึกเยี่ยมใหม่</span>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Filter Toolbar Card (ยืด Search และ Status ให้กว้างจุใจเต็มพื้นที่) -->
+    <!-- 🌟 ROW 2: Filter Toolbar Card (รองรับ 2 ภาษา + เว้นระยะปุ่มอย่างสวยงาม) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
         
-        <!-- ฝั่งซ้าย: Smart Search (ขยายยาว) + Date Range + Status (ขยายยาวอ่านครบ) -->
+        <!-- ฝั่งซ้าย: Smart Search + Date Range + Status -->
         <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
           
-          <!-- Smart Search ยืดขยายอิสระกว้างขึ้น -->
+          <!-- Smart Search -->
           <div class="flex-grow-1" style="min-width: 320px; max-width: 480px;">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -91,7 +91,7 @@
             </div>
           </div>
 
-          <!-- Date Range (กดแล้วเปิด Calendar Popup) -->
+          <!-- Date Range -->
           <div style="width: 250px;">
             <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer">
               <span class="text-muted pe-1" onclick="document.getElementById('filterStartDate').showPicker()"><i class="fa-regular fa-calendar-days"></i></span>
@@ -101,22 +101,23 @@
             </div>
           </div>
 
-          <!-- Status ปรับขยายกว้างเป็น 190px ไม่โดนตัดคำแน่นอน -->
+          <!-- Status -->
           <div style="width: 190px;">
             <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
-              <option value="" id="optAllStatus">- สถานะทั้งหมด -</option>
-              <option value="Pending" id="optStatusPending">⏳ รอส่ง (Pending)</option>
-              <option value="Submitted" id="optStatusSubmitted">✅ ส่งแล้ว (Submitted)</option>
+              <option value="" id="optAllStatus" data-i18n="opt_all_status">- สถานะทั้งหมด -</option>
+              <option value="Pending" id="optStatusPending" data-i18n="opt_status_pending">⏳ รอส่ง (Pending)</option>
+              <option value="Submitted" id="optStatusSubmitted" data-i18n="opt_status_submitted">✅ ส่งแล้ว (Submitted)</option>
             </select>
           </div>
         </div>
 
-        <!-- ฝั่งขวา: กลุ่มปุ่ม Filters + Clear + Export (ขนาดสมส่วนขนานตรงกัน) -->
-        <div class="d-flex gap-2 align-items-center ms-auto">
+        <!-- ฝั่งขวา: กลุ่มปุ่ม Filters + Clear + Export (เพิ่ม spacing โปร่งสบายตา + รองรับ 2 ภาษา) -->
+        <div class="d-flex gap-2.5 align-items-center ms-auto">
           
+          <!-- ปุ่ม Filters -->
           <div class="dropdown position-relative">
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-2.5 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
-              <i class="fa-solid fa-sliders me-1.5 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
+              <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">ตัวกรอง</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 290px; z-index: 1050;">
               <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6 d-flex align-items-center"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
@@ -135,12 +136,14 @@
             </div>
           </div>
 
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-2.5 py-1.5" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
-            <i class="fa-solid fa-eraser me-1.5 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear</span>
+          <!-- ปุ่ม Clear -->
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-3 py-1.5" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+            <i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">ล้างตัวกรอง</span>
           </button>
           
-          <button class="btn btn-outline-success border shadow-sm premium-radius d-flex align-items-center justify-content-center px-2.5 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
-            <i class="fa-solid fa-file-excel me-1.5"></i><span class="small fw-semibold" data-i18n="btn_export">Export</span>
+          <!-- ปุ่ม Export -->
+          <button class="btn btn-outline-success border shadow-sm premium-radius d-flex align-items-center justify-content-center px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
+            <i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold" data-i18n="btn_export">ส่งออก</span>
           </button>
         </div>
 
@@ -215,7 +218,7 @@
   <div id="visitFormView" class="d-none w-100 overflow-auto">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
-        <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+        <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
       </button>
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
     </div>
