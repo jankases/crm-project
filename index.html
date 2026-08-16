@@ -16,9 +16,112 @@
 
   <style>
     /* CSS โครงร่างหลักของหน้า Index */
-    body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-    #appContainer { display: none; } 
-    #mainContent { margin-top: 20px; }
+    body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+    #appContainer { display: none; width: 100vw; height: 100vh; overflow: hidden; } 
+    
+    /* 🌟 สไตล์ Sidebar Rail สำหรับ iPad / Tablet (768px - 991px) */
+    @media (min-width: 768px) and (max-width: 991px) {
+      .app-layout-shell {
+        display: flex !important;
+        flex-direction: row !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+      }
+      
+      .ipad-sidebar-rail {
+        width: 70px;
+        height: 100vh;
+        background: #1e293b; /* สีเธมนกพิราบเข้มสไตล์ Enterprise */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        flex-shrink: 0;
+        z-index: 1040;
+      }
+
+      .sidebar-brand-icon {
+        width: 42px;
+        height: 42px;
+        background-color: #0d6efd;
+        color: #ffffff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+      }
+
+      .sidebar-icon-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        align-items: center;
+      }
+
+      .sidebar-icon-btn {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .sidebar-icon-btn:hover {
+        background: #334155;
+        color: #38bdf8;
+      }
+
+      .sidebar-icon-btn.active {
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+      }
+
+      .sidebar-bottom-profile {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      #mainContent {
+        flex: 1;
+        height: 100vh !important;
+        overflow: hidden !important;
+        margin-top: 0 !important;
+        padding: 0 !important;
+      }
+    }
+
+    /* 🌟 สไตล์สำหรับ Desktop (คอมพิวเตอร์) */
+    @media (min-width: 992px) {
+      .app-layout-shell {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+
+      #mainContent {
+        flex: 1;
+        height: calc(100vh - 65px);
+        overflow: hidden;
+        margin-top: 0 !important;
+        padding: 0 !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -26,73 +129,121 @@
   <div id="loginComponent"></div>
 
   <div id="appContainer">
-    <nav id="mainNavbar" class="navbar navbar-expand-lg sticky-top">
-      <div class="container-fluid px-3 px-md-4">
-        
-        <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" href="#" onclick="loadComponent('dashboard')">
-          <div class="bg-primary text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 32px;">
-            <i class="fa-solid fa-briefcase-medical fs-6"></i>
-          </div>
-          <span class="d-none d-sm-inline fs-5" data-i18n="app_title">CRM System</span>
-        </a>
-        
-        <button class="navbar-toggler border-0 shadow-none bg-light px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="app-layout-shell">
+
+      <!-- 📌 1. TOP NAVBAR (แสดงผลเฉพาะบน Desktop / คอมพิวเตอร์ และ Mobile) -->
+      <nav id="mainNavbar" class="navbar navbar-expand-lg sticky-top d-flex d-md-none d-lg-flex">
+        <div class="container-fluid px-3 px-md-4">
           
-          <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-lg-0">
-            <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-2"></i> <span data-i18n="menu_visit">Visit Logs</span></a></li>
-            <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-2"></i> <span data-i18n="menu_doctor">Doctors</span></a></li>
-            <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-2"></i> <span data-i18n="menu_hospital">Hospitals</span></a></li>
-            
-            <li class="nav-item dropdown admin-only ms-1" style="display: none;">
-              <a class="nav-link nav-menu-item dropdown-toggle" href="#" id="adminToolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-sliders me-2"></i> <span data-i18n="menu_admin_tools">Admin Tools</span>
-              </a>
-              <ul class="dropdown-menu admin-dropdown-menu border-0 shadow-lg mt-2" aria-labelledby="adminToolsDropdown">
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
-                <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
-                <li><hr class="dropdown-divider opacity-50"></li>
-                <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
-              </ul>
-            </li>
-          </ul>
-
-          <div class="d-flex flex-column flex-lg-row align-items-center justify-content-end gap-2 mt-3 mt-lg-0 pt-3 pt-lg-0 border-top border-lg-0">
-            
-            <div class="btn-group lang-btn-group me-lg-2" role="group">
-              <button type="button" class="btn btn-outline-primary" id="btnLangEN" onclick="setLanguage('en')">EN</button>
-              <button type="button" class="btn btn-outline-primary" id="btnLangTH" onclick="setLanguage('th')">TH</button>
+          <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" href="#" onclick="loadComponent('dashboard')">
+            <div class="bg-primary text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 32px;">
+              <i class="fa-solid fa-briefcase-medical fs-6"></i>
             </div>
+            <span class="d-none d-sm-inline fs-5" data-i18n="app_title">CRM System</span>
+          </a>
+          
+          <button class="navbar-toggler border-0 shadow-none bg-light px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="collapse navbar-collapse" id="navbarNav">
+            
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-lg-0">
+              <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" href="#" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-2"></i> <span data-i18n="menu_visit">Visit Logs</span></a></li>
+              <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" href="#" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-2"></i> <span data-i18n="menu_doctor">Doctors</span></a></li>
+              <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" href="#" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-2"></i> <span data-i18n="menu_hospital">Hospitals</span></a></li>
+              
+              <li class="nav-item dropdown admin-only ms-1" style="display: none;">
+                <a class="nav-link nav-menu-item dropdown-toggle" href="#" id="adminToolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fa-solid fa-sliders me-2"></i> <span data-i18n="menu_admin_tools">Admin Tools</span>
+                </a>
+                <ul class="dropdown-menu admin-dropdown-menu border-0 shadow-lg mt-2" aria-labelledby="adminToolsDropdown">
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
+                  <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
+                  <li><hr class="dropdown-divider opacity-50"></li>
+                  <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
+                </ul>
+              </li>
+            </ul>
 
-            <div class="user-profile-pill d-flex align-items-center me-lg-2">
-              <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                <i class="fa-solid fa-user small"></i>
+            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-end gap-2 mt-3 mt-lg-0 pt-3 pt-lg-0 border-top border-lg-0">
+              
+              <div class="btn-group lang-btn-group me-lg-2" role="group">
+                <button type="button" class="btn btn-outline-primary" id="btnLangEN" onclick="setLanguage('en')">EN</button>
+                <button type="button" class="btn btn-outline-primary" id="btnLangTH" onclick="setLanguage('th')">TH</button>
               </div>
-              <div class="text-start pe-2" style="line-height: 1.2;">
-                <div class="fw-bold text-dark small" id="displayUserName">-</div>
-                <div class="text-muted" id="displayUserRole" style="font-size: 0.72rem;">-</div>
+
+              <div class="user-profile-pill d-flex align-items-center me-lg-2">
+                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                  <i class="fa-solid fa-user small"></i>
+                </div>
+                <div class="text-start pe-2" style="line-height: 1.2;">
+                  <div class="fw-bold text-dark small" id="displayUserName">-</div>
+                  <div class="text-muted" id="displayUserRole" style="font-size: 0.72rem;">-</div>
+                </div>
               </div>
+
+              <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white shadow-xs" id="logoutBtn" onclick="logout()">
+                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span data-i18n="btn_logout">Logout</span>
+              </button>
+
             </div>
-
-            <button class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-3 bg-white shadow-xs" id="logoutBtn" onclick="logout()">
-              <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> <span data-i18n="btn_logout">Logout</span>
-            </button>
-
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
 
-    <div id="mainContent" class="container-fluid max-width-md" style="max-width: 1200px; padding-bottom: 50px;">
- 
+      <!-- 📌 2. LEFT SIDEBAR RAIL (แสดงผลเฉพาะบน Tablet / iPad 768px - 991px) -->
+      <aside class="ipad-sidebar-rail d-none d-md-flex d-lg-none">
+        <div class="sidebar-brand-icon" onclick="loadComponent('dashboard')" style="cursor: pointer;" title="CRM System">
+          <i class="fa-solid fa-briefcase-medical"></i>
+        </div>
+        
+        <nav class="sidebar-icon-menu">
+          <a href="#" class="sidebar-icon-btn menu-visit" title="Visit Logs" onclick="loadComponent('visit')">
+            <i class="fa-solid fa-calendar-check"></i>
+          </a>
+          <a href="#" class="sidebar-icon-btn menu-doctor" title="Doctors" onclick="loadComponent('doctor')">
+            <i class="fa-solid fa-user-doctor"></i>
+          </a>
+          <a href="#" class="sidebar-icon-btn menu-hospital" title="Hospitals" onclick="loadComponent('hospital')">
+            <i class="fa-solid fa-hospital"></i>
+          </a>
+          
+          <div class="dropend admin-only w-100 d-flex justify-content-center" style="display: none;">
+            <a href="#" class="sidebar-icon-btn dropdown-toggle" id="ipadAdminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Admin Tools">
+              <i class="fa-solid fa-sliders"></i>
+            </a>
+            <ul class="dropdown-menu admin-dropdown-menu border-0 shadow-lg ms-2" aria-labelledby="ipadAdminDropdown">
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
+              <li><hr class="dropdown-divider opacity-50"></li>
+              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
+            </ul>
+          </div>
+        </nav>
+
+        <div class="sidebar-bottom-profile">
+          <button class="btn btn-sm btn-outline-light text-white-50 border-0 p-0 fs-5 mb-2" onclick="logout()" title="Logout">
+            <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- 📌 3. MAIN CONTENT CANVAS (ขยายเต็มความกว้างและความสูง) -->
+      <main id="mainContent" class="container-fluid w-100 p-0">
+        <!-- หน้า ManageVisits.html / ManageDoctors.html จะถูกโหลดมาวางตรงนี้ -->
+      </main>
+
     </div>
   </div>
 
