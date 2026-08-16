@@ -80,12 +80,30 @@ async function loadLoginComponent() {
     }
 }
 
-// ⚡ ฟังก์ชันเช็กเฉพาะกรณี "กดเพิ่มหมอใหม่แล้วพิมพ์ชื่อค้างไว้" เท่านั้น (ไม่ซับซ้อน ไม่กระทบหน้าอื่น)
+// 🛡️ ฟังก์ชันเช็กเตือนเฉพาะกรณี "กดสร้างใหม่ แล้วมีการพิมพ์ค้างไว้" เท่านั้น
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const isVisible = (el) => el && !el.classList.contains('d-none');
 
-    // เตือนเฉพาะฟอร์มสร้างหมอใหม่ (doctorAddView) ถ้ามีการพิมพ์ชื่อค้างไว้
+    // 1. เช็กการ "สร้างบันทึกการเยี่ยมใหม่" (New Visit Form)
+    const visitPageView = document.getElementById('view_page_visit');
+    const visitFormView = document.getElementById('visitFormView');
+    const visitFormTitle = document.getElementById('visitFormTitle')?.innerText || '';
+
+    // เช็กว่าอยู่ในหน้า Visit, เปิดฟอร์มอยู่ และเป็นโหมดสร้างใหม่ (ไม่ใช่โหมดแก้ไข)
+    if (isVisible(visitPageView) && isVisible(visitFormView) && !visitFormTitle.includes('Edit')) {
+        const details = document.getElementById('visitDetails')?.value.trim();
+        const insight = document.getElementById('visitInsight')?.value.trim();
+        const nextAction = document.getElementById('visitNextAction')?.value.trim();
+
+        if (details || insight || nextAction) {
+            return appLang === 'en' 
+                ? "You have unsaved changes in the New Visit Form. Are you sure you want to leave?" 
+                : "คุณมีข้อมูลการเยี่ยมที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
+        }
+    }
+
+    // 2. เช็กการ "เพิ่มแพทย์ใหม่" (New Doctor Form)
     const doctorPageView = document.getElementById('view_page_doctor');
     const doctorAddView = document.getElementById('doctorAddView');
 
@@ -107,12 +125,12 @@ function hasUnsavedChanges() {
    ========================================= */
 
 async function loadComponent(page) {
-    // 🛡️ เช็กเฉพาะการเพิ่มหมอใหม่ ถ้าไม่ใช่เปิดสลับหน้าได้ทันที 100%
+    // 🛡️ เช็กก่อนเปลี่ยนหน้าเฉพาะการสร้างใหม่ที่พิมพ์ค้างไว้
     const confirmMsg = hasUnsavedChanges();
     if (confirmMsg) {
         const userConfirmed = confirm(confirmMsg);
         if (!userConfirmed) {
-            return; 
+            return; // ยกเลิกการสลับหน้า ค้างไว้อย่างเดิม
         }
     }
 
