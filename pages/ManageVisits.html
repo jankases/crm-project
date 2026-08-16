@@ -17,20 +17,21 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 TOP ROW: Title + Inline KPI Cards + Action Buttons (แถวเดียวครบจบทันทีตาม Mockup) -->
+    <!-- 🌟 TOP ROW: Title (ซ้าย) + Center KPI Cards (กลาง) + Action Buttons (ขวา) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 flex-shrink-0">
       
-      <!-- ฝั่งซ้าย: Visit Logs Title + 3 กล่อง KPI แบบการ์ดเล็กเรียงตามรูป -->
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <div class="d-flex align-items-center me-2">
-          <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
-            <span class="text-primary me-1.5"><i class="fa-solid fa-calendar-check"></i></span>
-            <span data-i18n="visit_title">Visit Logs</span>
-          </h4>
-          <span class="text-muted opacity-50 me-2">|</span>
-          <span class="text-muted small d-none d-xl-inline" data-i18n="visit_subtitle">Doctor visits and daily activity logs</span>
-        </div>
+      <!-- 📌 ฝั่งซ้าย: Visit Logs Title + Subtitle (เพิ่มระยะขยับไม่ให้เหลื่อม) -->
+      <div class="d-flex align-items-center me-2 ps-1">
+        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
+          <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
+          <span data-i18n="visit_title">Visit Logs</span>
+        </h4>
+        <span class="text-muted opacity-50 me-2">|</span>
+        <span class="text-muted small d-none d-xl-inline" data-i18n="visit_subtitle">Doctor visits and daily activity logs</span>
+      </div>
 
+      <!-- 📌 ตรงกลาง: 3 กล่อง KPI จัดกึ่งกลางแนวนอนสมดุล -->
+      <div class="d-flex align-items-center justify-content-center gap-2 flex-grow-1 my-1 my-md-0">
         <!-- กล่องที่ 1: Total Visits -->
         <div class="stat-card-mockup">
           <div class="stat-icon-mockup bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
@@ -59,8 +60,8 @@
         </div>
       </div>
       
-      <!-- ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
-      <div class="d-flex gap-2 align-items-center flex-wrap">
+      <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
+      <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
           <button class="btn btn-sm btn-premium-primary px-3 py-1 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
           <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
@@ -82,7 +83,7 @@
       </div>
     </div>
 
-    <!-- 🌟 Filter Zone (จัดระเบียบฟอนต์ให้อยู่ตรงกลาง ไม่ตกขอบล่าง) -->
+    <!-- 🌟 Filter Zone (จัดระดับฟอนต์และช่องต่างๆ ให้ขนานกึ่งกลางเป๊ะ) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         <div class="col-12 col-lg-5">
