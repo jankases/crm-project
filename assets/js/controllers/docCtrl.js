@@ -417,7 +417,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         });
       }
 
-      // 🌟 [VISITING PERMISSION MATCHING FOR PRODUCTS]
       const allProductsList = prodRes || [];
       const teamProdLinksList = teamProdRes || [];
       let filteredProds = [];
@@ -1595,7 +1594,6 @@ window.triggerCalcTarget = function(element) {
   
   let calcClass = "";
 
-  // 1. คำนวณ Classification จาก Adoption + Potential ด้วย Rating_Matrix
   if (adopt && pot) {
       const matrixData = window.globalMatrixData || (window.DocManagerCache ? window.DocManagerCache.matrixData : []) || [];
       const matrixRow = matrixData.find(m => String(m.Adoption || m.adoption).trim().toLowerCase() === String(adopt).trim().toLowerCase() && 
@@ -1606,7 +1604,6 @@ window.triggerCalcTarget = function(element) {
   }
   if (classInput) classInput.value = calcClass;
 
-  // 2. คำนวณ Target Call จาก Product_ID + Classification ด้วย Target Table
   if (prodId && calcClass) {
       const targetData = window.globalTargetData || (window.DocManagerCache ? window.DocManagerCache.targetData : []) || [];
       const targetRow = targetData.find(t => 
@@ -1657,10 +1654,16 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const canEdit = isPowerUser || !window.globalRatingIsLocked;
   const disabledAttr = canEdit ? '' : 'disabled';
 
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   const usedProductIds = window.getSelectedRatingProductIds(selectId);
   
-  let prodOpts = '<option value="">- Select Product -</option>';
+  // 🌟 FIX: แปลภาษาสองภาษาของ Placeholder ใน Dropdown
+  const selectProdText = appLang === 'en' ? '- Select Product -' : '- เลือกผลิตภัณฑ์ -';
+  const selectOptText = appLang === 'en' ? '- Select -' : '- เลือก -';
+
+  let prodOpts = `<option value="">${selectProdText}</option>`;
   availableProducts.forEach(p => {
       const isCurrentSelected = String(p.Product_ID) === String(prodId);
       const isAlreadyUsed = usedProductIds.includes(String(p.Product_ID));
@@ -1671,20 +1674,18 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
       }
   });
 
-  // ⚡ ใช้ Native <select> สำหรับ Adoption และ Potential ให้ UI พอดีตาราง สวยงาม Clean
-  let adoptOpts = '<option value="">- Select -</option>';
+  let adoptOpts = `<option value="">${selectOptText}</option>`;
   window.getIndexValues('Adoption').forEach(a => {
       const sel = a === adopt ? 'selected' : '';
       adoptOpts += `<option value="${a}" ${sel}>${a}</option>`;
   });
 
-  let potOpts = '<option value="">- Select -</option>';
+  let potOpts = `<option value="">${selectOptText}</option>`;
   window.getIndexValues('Potential').forEach(p => {
       const sel = p === pot ? 'selected' : '';
       potOpts += `<option value="${p}" ${sel}>${p}</option>`;
   });
 
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
   const lockedText = appLang === 'en' ? 'Locked' : 'ถูกล็อก';
 
@@ -1723,11 +1724,10 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   `;
   tbody.appendChild(tr);
 
-  // 🌟 ใช้ TomSelect เฉพาะช่อง Product เพื่อให้พิมพ์ค้นหาชื่อสินค้าได้
   if (!disabledAttr && typeof TomSelect !== 'undefined') {
       const tsProd = new TomSelect(`#${selectId}`, { 
         create: false, 
-        placeholder: "- Select Product -", 
+        placeholder: selectProdText, 
         allowEmptyOption: true, 
         dropdownParent: 'body' 
       });
