@@ -370,8 +370,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
       var rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.BU_ID || '').trim() : '';
 
+      // ล็อกให้เฉพาะ ADMIN/EXECUTIVE/STAFF ถึงจะเป็น Global Viewer ที่เห็นสินค้าทุกรายการ
       var isGlobalViewer = false;
-      var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+      var adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
       if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
         isGlobalViewer = true;
       }
@@ -379,14 +380,13 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       var allowedTerIds = [];
       var allowedDocIds = [];
 
-      // 🌟 FIX: ปรับปรุง Logic คำนวณ Territory & Doctor ของ Manager ให้แม่นยำ 100%
+      var allTerritories = terrRes.data || terrRes || [];
+      var allTeams = teamRes.data || teamRes || [];
+      var allBus = buRes.data || buRes || [];
+
       if (!isGlobalViewer) {
         var isBuHead = uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1;
         var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
-
-        var allTerritories = terrRes.data || terrRes || [];
-        var allTeams = teamRes.data || teamRes || [];
-        var allBus = buRes.data || buRes || [];
 
         if (isBuHead) {
           var matchedBu = allBus.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
@@ -396,7 +396,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           var terrs = allTerritories.filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
           terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
         } else if (isManager) {
-          // หาตาราง Team ที่แมปตรงกับ Scope
           var matchedTeams = allTeams.filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope || String(t.Team_Name) === rawScope);
           var targetTeamIds = matchedTeams.map(t => String(t.Team_ID));
           if (targetTeamIds.length === 0 && rawScope) targetTeamIds.push(rawScope);
@@ -404,7 +403,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           var terrs = allTerritories.filter(t => targetTeamIds.indexOf(String(t.Team_ID)) !== -1 || targetTeamIds.indexOf(String(t.Team)) !== -1 || String(t.Territory_ID) === rawScope);
           terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
 
-          // Fallback ป้องกันกรณี Territory_ID ตรงกับ Scope โดยตรง
           if (allowedTerIds.length === 0 && rawScope) allowedTerIds.push(rawScope);
         } else { 
           if (rawScope) allowedTerIds.push(rawScope);
@@ -418,7 +416,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         });
       }
 
-      // 🌟 VISITING PERMISSION MATCHING FOR PRODUCTS
+      // 🌟 [VISITING PERMISSION MATCHING FOR PRODUCTS] - ถอดแบบ Logic สิทธิ์ Product จาก Visit Engine
       const allProductsList = prodRes || [];
       const teamProdLinksList = teamProdRes || [];
       let filteredProds = [];
@@ -428,13 +426,34 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       } else {
         let targetTeams = [];
         if (crmUser) {
-          let myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
-          if (!myTeam) {
-            let myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
-            let matchedMyTer = (terrRes.data || terrRes || []).find(t => String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr);
-            if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
+          var isBuHead = uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1;
+          var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
+
+          if (isBuHead) {
+            // BU Head: ดึงทุก Team ID ที่อยู่ในสังกัด BU เดียวกัน
+            var matchedBu = allBus.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
+            var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
+            var buTeams = allTeams.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+            buTeams.forEach(bt => {
+              if (targetTeams.indexOf(String(bt.Team_ID)) === -1) targetTeams.push(String(bt.Team_ID));
+            });
+          } else if (isManager) {
+            // Manager: ดึงทุก Team ID ที่สโคปเข้าถึง
+            var mTeams = allTeams.filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope || String(t.Team_Name) === rawScope);
+            mTeams.forEach(mt => {
+              if (targetTeams.indexOf(String(mt.Team_ID)) === -1) targetTeams.push(String(mt.Team_ID));
+            });
+            if (targetTeams.length === 0 && rawScope) targetTeams.push(rawScope);
+          } else {
+            // Sales Rep
+            let myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+            if (!myTeam) {
+              let myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
+              let matchedMyTer = allTerritories.find(t => String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr);
+              if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
+            }
+            if (myTeam) targetTeams.push(myTeam);
           }
-          if (myTeam) targetTeams.push(myTeam);
         }
 
         let allowedProdIds = [];
@@ -1057,7 +1076,7 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  // 🌟 FIX: โหลดตัวเลือกสินค้าเฉพาะตามสิทธิ์ทีมของผู้ใช้ (globalTeamProducts)
+  // 🌟 FIX: ใช้ตัวเลือกสินค้าที่ผ่านการกรองสิทธิ์ Team / BU ของผู้ใช้งานเรียบร้อยแล้ว
   let phtml = `<option value="">${allProdsText}</option>`;
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   availableProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
@@ -1260,7 +1279,7 @@ window.filterAndRenderDoctorVisits = function() {
   const myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
   const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').toUpperCase().trim() : '';
 
-  const adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+  const adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
   const isGlobalAdmin = window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL';
   const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
   const allowedReps = window.myAllowedRepIds || [];
