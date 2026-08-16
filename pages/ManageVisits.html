@@ -17,15 +17,15 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: KPI Cards (ซ้ายสุด) + Action Controls (ขวาสุด) - [ตัด Visit Logs ออกแล้ว] -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-2 flex-shrink-0">
+    <!-- 🌟 ROW 1: KPI Cards ขนาดใหญ่โดดเด่น (ซ้ายสุด) + Action Controls (ขวาสุด) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       
-      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน โดดเด่น สวยงาม มาแทนที่ตำแหน่ง Visit Logs -->
-      <div class="d-flex align-items-center gap-2">
+      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน ปรับขยายใหญ่ พรีเมียมสะใจ -->
+      <div class="d-flex align-items-center gap-2.5 flex-wrap">
         <!-- Total Visits Card -->
         <div class="kpi-card-elevated kpi-border-blue">
-          <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
-          <div class="d-flex flex-column">
+          <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-5"></i></div>
+          <div class="d-flex flex-column justify-content-center">
             <span class="kpi-label-text" data-i18n="kpi_total_visits">Total Visits</span>
             <span class="kpi-value-text text-primary" id="statTotalVisits">-</span>
           </div>
@@ -33,8 +33,8 @@
 
         <!-- Pending Drafts Card -->
         <div class="kpi-card-elevated kpi-border-amber">
-          <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
-          <div class="d-flex flex-column">
+          <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-5"></i></div>
+          <div class="d-flex flex-column justify-content-center">
             <span class="kpi-label-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
             <span class="kpi-value-text text-warning-emphasis" id="statPendingVisits">-</span>
           </div>
@@ -42,8 +42,8 @@
 
         <!-- Submitted Logs Card -->
         <div class="kpi-card-elevated kpi-border-emerald">
-          <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
-          <div class="d-flex flex-column">
+          <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-5"></i></div>
+          <div class="d-flex flex-column justify-content-center">
             <span class="kpi-label-text" data-i18n="kpi_submitted_logs">Submitted</span>
             <span class="kpi-value-text text-success" id="statSubmittedVisits">-</span>
           </div>
@@ -73,15 +73,15 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Filter Toolbar Card (ใส่การ์ดครอบ แยกชั้นกับพื้นหลังสีเทาชัดเจน) -->
+    <!-- 🌟 ROW 2: Filter Toolbar Card (ปรับช่องค้นหาให้ขยายยาวขึ้นอย่างสมดุล) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
         
-        <!-- ฝั่งซ้าย: Smart Search + Date + Status -->
-        <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
+        <!-- ฝั่งซ้าย: Smart Search (ขยายยาว) + Date (ขยายยาว) + Status -->
+        <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
           
-          <!-- Smart Search -->
-          <div style="width: 280px;">
+          <!-- Smart Search ขยายเป็น 360px -->
+          <div style="width: 360px;" class="flex-grow-1 flex-md-grow-0">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
               <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
@@ -91,8 +91,8 @@
             </div>
           </div>
 
-          <!-- Date Range -->
-          <div style="width: 215px;">
+          <!-- Date Range ขยายเป็น 240px -->
+          <div style="width: 240px;">
             <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius d-flex align-items-center">
               <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
               <span class="text-muted small px-1">-</span>
@@ -101,7 +101,7 @@
           </div>
 
           <!-- Status -->
-          <div style="width: 140px;">
+          <div style="width: 150px;">
             <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
               <option value="" id="optAllStatus">- All Status -</option>
               <option value="Pending" id="optStatusPending">Pending Drafts</option>
@@ -194,9 +194,9 @@
       </div>
     </div>
 
-    <!-- Zone 2: Calendar View -->
+    <!-- Zone 2: Calendar View (แก้ปัญหาคลิกไม่ได้ โดยเปิด Z-Index และ Pointer Events) -->
     <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 overflow-auto d-none">
-      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
+      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom flex-shrink-0" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted" data-i18n="leg_submitted">Submitted Visit</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending" data-i18n="leg_pending">Pending Draft</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #64748b; border-radius: 50%; margin-right: 6px;"></span><span id="legUnlock" data-i18n="leg_unlock">Pending Unlock</span></div>
@@ -205,7 +205,7 @@
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #0ea5e9; border-radius: 50%; margin-right: 6px;"></span><span id="legTotAppr" data-i18n="leg_tot_appr">TOT (Approved)</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #94a3b8; border-radius: 50%; margin-right: 6px;"></span><span id="legTotPend" data-i18n="leg_tot_pend">TOT (Pending)</span></div>
       </div>
-      <div id="calendar" class="w-100"></div>
+      <div id="calendar" class="w-100 flex-grow-1" style="position: relative; z-index: 10;"></div>
     </div>
 
   </div>
