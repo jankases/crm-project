@@ -110,24 +110,24 @@ html, body {
 }
 
 /* ==========================================
-   🎯 EXACT MOCKUP KPI CARDS & VERTICAL CENTER FIX
+   🎯 EXACT CENTER KPI CARDS & VERTICAL ALIGNMENT
    ========================================== */
 .stat-card-mockup {
   background: #ffffff;
   border-radius: 12px;
-  padding: 6px 14px;
-  border: 1px solid #eef2f6;
+  padding: 4px 12px;
+  border: 1px solid #e2e8f0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   display: inline-flex;
   align-items: center;
   gap: 10px;
   min-width: 140px;
-  height: 40px;
+  height: 38px;
 }
 
 .stat-card-mockup .stat-icon-mockup {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -151,10 +151,10 @@ html, body {
 }
 
 .stat-card-mockup .stat-val-mockup {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   line-height: 1;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 /* 🌟 แก้ปัญหาฟอนต์ใน Filter ตก ไม่ตรงกึ่งกลาง */
