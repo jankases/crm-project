@@ -30,7 +30,7 @@
         <span class="text-muted small d-none d-xl-inline" data-i18n="visit_subtitle">Doctor visits and daily activity logs</span>
       </div>
 
-      <!-- 📌 ตรงกลาง: 3 กล่อง KPI ยกระดับความนูนและสวยงาม (Elevated Style) -->
+      <!-- 📌 ตรงกลาง: 3 กล่อง KPI ยกระดับความนูนสมดุล -->
       <div class="d-flex align-items-center justify-content-center gap-2 flex-grow-1 my-1 my-md-0">
         <!-- กล่องที่ 1: Total Visits -->
         <div class="stat-card-mockup">
@@ -83,10 +83,12 @@
       </div>
     </div>
 
-    <!-- 🌟 Filter Zone (ขนานกึ่งกลางพอดี ไม่ตกขอบ) -->
-    <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
-      <div class="row g-2 align-items-center">
-        <div class="col-12 col-lg-5">
+    <!-- 🌟 Integrated Modern Search Bar (แผงค้นหาคลีน ทรงกระชับ) -->
+    <div class="card p-1.5 px-2 border-0 shadow-sm visit-card mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        
+        <!-- ช่องค้นหาหลัก Smart Search -->
+        <div class="flex-grow-1" style="min-width: 280px; max-width: 400px;">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius align-items-center">
             <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted d-flex align-items-center"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
@@ -96,7 +98,8 @@
           </div>
         </div>
 
-        <div class="col-12 col-sm-6 col-lg-3">
+        <!-- ช่วงวันที่ Date Range -->
+        <div style="width: 240px;">
           <div class="input-group input-group-sm border px-2 bg-white premium-radius d-flex align-items-center">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
             <span class="text-muted small px-1">-</span>
@@ -104,7 +107,8 @@
           </div>
         </div>
 
-        <div class="col-6 col-sm-3 col-lg-2">
+        <!-- ตัวเลือก สถานะ Status -->
+        <div style="width: 150px;">
           <select class="form-select border shadow-none filter-placeholder-text premium-radius" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
@@ -112,30 +116,40 @@
           </select>
         </div>
 
-        <div class="col-6 col-sm-3 col-lg-2 d-flex gap-1.5 justify-content-end">
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill d-flex align-items-center justify-content-center" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
-            <i class="fa-solid fa-sliders"></i>
-          </button>
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill d-flex align-items-center justify-content-center" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+        <!-- กลุ่มปุ่มจัดการด้านขวา + Advanced Filter Dropdown Popover (ไม่ดันตาราง!) -->
+        <div class="d-flex gap-1.5 align-items-center ms-auto">
+          
+          <!-- Dropdown Popover สำหรับ Advanced Filter -->
+          <div class="dropdown position-relative">
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
+              <i class="fa-solid fa-sliders"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 border-0 shadow-lg visit-card mt-1" aria-labelledby="btnAdvFilterDropdown" style="width: 320px; z-index: 1050;">
+              <h6 class="fw-bold text-dark mb-2 border-bottom pb-1 fs-6"><i class="fa-solid fa-filter text-primary me-1.5"></i>Advanced Filters</h6>
+              <div class="mb-2">
+                <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
+                <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
+                <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
+              </div>
+              <div class="text-end border-top pt-2">
+                <button class="btn btn-sm btn-light text-secondary border me-1" type="button" onclick="window.clearVisitFilters()">Clear</button>
+                <button class="btn btn-sm btn-primary" type="button" onclick="document.getElementById('btnAdvFilterDropdown').click()">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
             <i class="fa-solid fa-eraser"></i>
           </button>
-          <button class="btn btn-outline-success border shadow-sm premium-radius flex-fill d-flex align-items-center justify-content-center" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
+          
+          <button class="btn btn-outline-success border shadow-sm premium-radius d-flex align-items-center justify-content-center" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
             <i class="fa-solid fa-file-excel"></i>
           </button>
         </div>
-      </div>
 
-      <div class="collapse mt-2 pt-2 border-top" id="advancedFilters">
-        <div class="row g-2">
-          <div class="col-sm-12 col-md-6">
-            <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
-            <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
-          </div>
-          <div class="col-sm-12 col-md-6">
-            <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
-            <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
-          </div>
-        </div>
       </div>
     </div>
 
