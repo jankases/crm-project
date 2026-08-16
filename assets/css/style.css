@@ -110,34 +110,35 @@ html, body {
 }
 
 /* ==========================================
-   ✨ LARGE ELEVATED KPI CARDS (ขยายใหญ่ โดดเด่น อ่านง่าย)
+   ✨ COMPACT ELEVATED KPI CARDS (ย่อขนาดกล่องลง + ขนาดเท่ากันเป๊ะ)
    ========================================== */
 .kpi-card-elevated {
   background: #ffffff !important;
-  border-radius: 12px !important;
-  padding: 6px 16px 6px 12px !important;
-  height: 54px !important; /* ขยายความสูงเพิ่มความพรีเมียม */
+  border-radius: 10px !important;
+  padding: 4px 12px 4px 8px !important;
+  height: 44px !important; /* ปรับลดความสูงให้กล่องกระชับ ไม่ดูแน่น */
   display: inline-flex !important;
   align-items: center !important;
-  gap: 12px !important;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06) !important;
+  gap: 10px !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  min-width: 145px !important;
+  width: 155px !important; /* ล็อกความยาวของกล่องทั้ง 3 ให้เท่ากันเป๊ะ */
+  flex-shrink: 0 !important;
 }
 
 .kpi-card-elevated:hover {
-  transform: translateY(-1.5px) !important;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
 }
 
-.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 4px solid #0284c7 !important; }
-.kpi-border-amber { border: 1px solid #cbd5e1 !important; border-left: 4px solid #d97706 !important; }
-.kpi-border-emerald { border: 1px solid #cbd5e1 !important; border-left: 4px solid #059669 !important; }
+.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #0284c7 !important; }
+.kpi-border-amber { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #d97706 !important; }
+.kpi-border-emerald { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #059669 !important; }
 
 .kpi-icon-square {
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 8px !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 7px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -145,16 +146,17 @@ html, body {
 }
 
 .kpi-label-text {
-  font-size: 0.72rem !important;
+  font-size: 0.65rem !important;
   color: #64748b !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
-  line-height: 1.1 !important;
-  letter-spacing: 0.2px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1 !important;
 }
 
 .kpi-value-text {
-  font-size: 1.25rem !important; /* ขยายขนาดตัวเลขใหญ่เด่น */
+  font-size: 1.05rem !important;
   font-weight: 800 !important;
   line-height: 1 !important;
   margin-top: 2px !important;
@@ -282,7 +284,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
 #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-/* 📅 FULLCALENDAR FIX & POINTER EVENTS (แก้ไขปฏิทินให้คลิกได้สมบูรณ์) */
+/* 📅 FULLCALENDAR FIX & POINTER EVENTS */
 #calendar { min-height: 550px; font-family: inherit; position: relative; z-index: 10 !important; }
 .fc { position: relative; z-index: 10 !important; }
 .fc-event { 
@@ -312,6 +314,19 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 .fc .fc-button-primary { background-color: #ffffff; border-color: #cbd5e1; color: #334155; font-weight: 600; text-transform: capitalize; cursor: pointer !important; }
 .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
 .fc-toolbar-title { font-weight: 700 !important; color: #1e293b; font-size: 1.25rem !important; }
+
+/* 📅 DATEPICKER POPUP FIX */
+.cursor-pointer { cursor: pointer !important; }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0;
+  margin: 0;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
 
 /* =========================================
    Navbar & Navigation Menu Styles
@@ -665,17 +680,4 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   padding: 4px 7px !important;
   color: #d97706 !important;
   font-weight: 600 !important;
-}
-
-/* 📅 DATEPICKER POPUP FIX */
-.cursor-pointer { cursor: pointer !important; }
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.6;
-  padding: 0;
-  margin: 0;
-}
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
 }
