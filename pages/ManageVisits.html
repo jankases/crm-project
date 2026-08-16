@@ -17,50 +17,40 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: Header Title + Vibrant KPI Badges + Action Buttons -->
+    <!-- 🌟 ROW 1: KPI Cards (ซ้ายสุด) + Action Controls (ขวาสุด) - [ตัด Visit Logs ออกแล้ว] -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-2 flex-shrink-0">
       
-      <!-- ฝั่งซ้าย: Title + กล่อง KPI สีสันมีลูกเล่น -->
-      <div class="d-flex align-items-center gap-2.5 flex-wrap">
-        <div class="d-flex align-items-center pe-2 border-end">
-          <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
-            <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
-            <span data-i18n="visit_title">Visit Logs</span>
-          </h4>
+      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน โดดเด่น สวยงาม มาแทนที่ตำแหน่ง Visit Logs -->
+      <div class="d-flex align-items-center gap-2">
+        <!-- Total Visits Card -->
+        <div class="kpi-card-elevated kpi-border-blue">
+          <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
+          <div class="d-flex flex-column">
+            <span class="kpi-label-text" data-i18n="kpi_total_visits">Total Visits</span>
+            <span class="kpi-value-text text-primary" id="statTotalVisits">-</span>
+          </div>
         </div>
 
-        <!-- 3 กล่อง KPI ปรับโฉมมีสีสันพรีเมียม (Vibrant Badges) -->
-        <div class="d-flex align-items-center gap-2">
-          <!-- Total Visits -->
-          <div class="kpi-badge-vibrant kpi-blue">
-            <div class="kpi-icon-box text-primary"><i class="fa-solid fa-calendar-days"></i></div>
-            <div class="d-flex flex-column justify-content-center">
-              <span class="kpi-title-text" data-i18n="kpi_total_visits">Total Visits</span>
-              <span class="kpi-num-text text-primary" id="statTotalVisits">-</span>
-            </div>
+        <!-- Pending Drafts Card -->
+        <div class="kpi-card-elevated kpi-border-amber">
+          <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div class="d-flex flex-column">
+            <span class="kpi-label-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+            <span class="kpi-value-text text-warning-emphasis" id="statPendingVisits">-</span>
           </div>
+        </div>
 
-          <!-- Pending Drafts -->
-          <div class="kpi-badge-vibrant kpi-amber">
-            <div class="kpi-icon-box text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
-            <div class="d-flex flex-column justify-content-center">
-              <span class="kpi-title-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
-              <span class="kpi-num-text text-warning-emphasis" id="statPendingVisits">-</span>
-            </div>
-          </div>
-
-          <!-- Submitted Logs -->
-          <div class="kpi-badge-vibrant kpi-emerald">
-            <div class="kpi-icon-box text-success"><i class="fa-solid fa-circle-check"></i></div>
-            <div class="d-flex flex-column justify-content-center">
-              <span class="kpi-title-text" data-i18n="kpi_submitted_logs">Submitted</span>
-              <span class="kpi-num-text text-success" id="statSubmittedVisits">-</span>
-            </div>
+        <!-- Submitted Logs Card -->
+        <div class="kpi-card-elevated kpi-border-emerald">
+          <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="d-flex flex-column">
+            <span class="kpi-label-text" data-i18n="kpi_submitted_logs">Submitted</span>
+            <span class="kpi-value-text text-success" id="statSubmittedVisits">-</span>
           </div>
         </div>
       </div>
 
-      <!-- ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
+      <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
           <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
@@ -83,15 +73,15 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Control Toolbar Card (การ์ดครอบสัดส่วนเรียบหรู) -->
+    <!-- 🌟 ROW 2: Filter Toolbar Card (ใส่การ์ดครอบ แยกชั้นกับพื้นหลังสีเทาชัดเจน) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         
-        <!-- ฝั่งซ้าย: Omnibox Search + Date + Status -->
+        <!-- ฝั่งซ้าย: Smart Search + Date + Status -->
         <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
           
           <!-- Smart Search -->
-          <div class="pro-search-box" style="width: 280px;">
+          <div style="width: 280px;">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
               <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
