@@ -80,61 +80,22 @@ async function loadLoginComponent() {
     }
 }
 
-// 🛡️ ฟังก์ชันเช็กข้อมูลพิมพ์ค้างก่อนเปลี่ยนหน้า (ตรวจเฉพาะหน้าปัจจุบันที่โชว์อยู่)
+// ⚡ ฟังก์ชันเช็กเฉพาะกรณี "กดเพิ่มหมอใหม่แล้วพิมพ์ชื่อค้างไว้" เท่านั้น (ไม่ซับซ้อน ไม่กระทบหน้าอื่น)
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    
-    // Helper เช็กว่า Element แสดงผลอยู่จริงๆ ไม่ได้โดนซ่อนด้วย d-none
-    const isVisible = (el) => el && !el.classList.contains('d-none') && el.offsetWidth > 0 && el.offsetHeight > 0;
+    const isVisible = (el) => el && !el.classList.contains('d-none');
 
-    // 1. เช็กฟอร์มบันทึกการเยี่ยม (Visit Form) - ต้องเปิดอยู่ในหน้า Visit จริงๆ
-    const visitPageView = document.getElementById('view_page_visit');
-    const visitFormView = document.getElementById('visitFormView');
-    
-    if (isVisible(visitPageView) && isVisible(visitFormView)) {
-        const detailsEl = document.getElementById('visitDetails');
-        const insightEl = document.getElementById('visitInsight');
-        const nextActionEl = document.getElementById('visitNextAction');
-
-        const isDetailsDirty = detailsEl && detailsEl.value !== detailsEl.defaultValue && detailsEl.value.trim() !== '';
-        const isInsightDirty = insightEl && insightEl.value !== insightEl.defaultValue && insightEl.value.trim() !== '';
-        const isNextActionDirty = nextActionEl && nextActionEl.value !== nextActionEl.defaultValue && nextActionEl.value.trim() !== '';
-
-        if (isDetailsDirty || isInsightDirty || isNextActionDirty) {
-            return appLang === 'en' 
-                ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
-                : "คุณมีข้อมูลการเยี่ยมที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
-        }
-    }
-
-    // 2. เช็กฟอร์มแพทย์ (Doctor Add / Edit) - ต้องเปิดอยู่ในหน้า Doctor จริงๆ
+    // เตือนเฉพาะฟอร์มสร้างหมอใหม่ (doctorAddView) ถ้ามีการพิมพ์ชื่อค้างไว้
     const doctorPageView = document.getElementById('view_page_doctor');
     const doctorAddView = document.getElementById('doctorAddView');
-    const doctorEditView = document.getElementById('doctorEditView');
 
-    if (isVisible(doctorPageView)) {
-        if (isVisible(doctorAddView)) {
-            const nameEn = document.getElementById('docNameEn')?.value.trim();
-            const nameTh = document.getElementById('docNameTh')?.value.trim();
-            if (nameEn || nameTh) {
-                return appLang === 'en'
-                    ? "You have unsaved doctor information. Are you sure you want to leave?"
-                    : "คุณมีข้อมูลแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
-            }
-        }
-
-        if (isVisible(doctorEditView)) {
-            const editEnEl = document.getElementById('editDocNameEn');
-            const editThEl = document.getElementById('editDocNameTh');
-
-            const isEnDirty = editEnEl && editEnEl.value !== editEnEl.defaultValue;
-            const isThDirty = editThEl && editThEl.value !== editThEl.defaultValue;
-
-            if (isEnDirty || isThDirty) {
-                return appLang === 'en'
-                    ? "You have unsaved changes in the Doctor Edit Form. Are you sure you want to leave?"
-                    : "คุณมีข้อมูลการแก้ไขแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
-            }
+    if (isVisible(doctorPageView) && isVisible(doctorAddView)) {
+        const nameEn = document.getElementById('docNameEn')?.value.trim();
+        const nameTh = document.getElementById('docNameTh')?.value.trim();
+        if (nameEn || nameTh) {
+            return appLang === 'en'
+                ? "You have unsaved doctor information. Are you sure you want to leave?"
+                : "คุณมีข้อมูลแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
         }
     }
 
@@ -146,18 +107,17 @@ function hasUnsavedChanges() {
    ========================================= */
 
 async function loadComponent(page) {
-    // 🛡️ ตรวจสอบข้อมูลค้างก่อนเปลี่ยนหน้า
+    // 🛡️ เช็กเฉพาะการเพิ่มหมอใหม่ ถ้าไม่ใช่เปิดสลับหน้าได้ทันที 100%
     const confirmMsg = hasUnsavedChanges();
     if (confirmMsg) {
         const userConfirmed = confirm(confirmMsg);
         if (!userConfirmed) {
-            return; // ยกเลิกการสลับหน้า อยู่หน้าเดิม
+            return; 
         }
     }
 
     let url = '';
      
-    // ⚡ 1. กำหนด Path โดยใส่ ./ นำหน้า
     switch(page) {
         case 'dashboard': url = './pages/Dashboard.html'; break;
         case 'visit': url = './pages/ManageVisits.html'; break;
@@ -176,7 +136,6 @@ async function loadComponent(page) {
             url = './pages/ManageVisits.html'; 
     }
 
-    // ⚡ 2. อัปเดตสถานะ Active บน Navbar Menu
     const menuItems = document.querySelectorAll('.nav-menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
 
@@ -188,23 +147,20 @@ async function loadComponent(page) {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
-    // ⚡ 3. ลบตัว Loading System... ดั้งเดิมออกจากหน้าจอเฉพาะการโหลดครั้งแรก
     const initialLoading = mainContent.querySelector('.text-center.py-5.text-muted');
     if (initialLoading) {
         initialLoading.remove();
     }
 
-    // ⚡ 4. ซ่อน View หน้าอื่นๆ ใน DOM ทั้งหมด
     const allViews = mainContent.querySelectorAll('.spa-page-view');
     allViews.forEach(v => v.classList.add('d-none'));
 
-    // ⚡ 5. เช็กว่าหน้านี้เคยถูกสร้างไว้ใน DOM หรือยัง (DOM Stacking)
     let pageView = document.getElementById(`view_page_${page}`);
 
     if (pageView) {
         pageView.classList.remove('d-none');
 
-        // 🌟 UX Standard Fix: บังคับ Reset สลับกลับมาแสดงหน้า List View หลักเสมอเมื่อคลิกเมนู Navbar
+        // บังคับ Reset สลับกลับมาแสดงหน้า List View หลักเสมอ
         if (page === 'doctor') {
             if (typeof window.switchDoctorView === 'function') {
                 window.switchDoctorView('doctorListView');
@@ -229,7 +185,6 @@ async function loadComponent(page) {
         return;
     }
 
-    // ⚡ 6. ถ้ายังไม่เคยเปิดหน้านี้ ให้ Fetch โหลด HTML เข้ามาครั้งแรก
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('File not found at ' + url);
