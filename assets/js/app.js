@@ -80,28 +80,30 @@ async function loadLoginComponent() {
     }
 }
 
-// 🛡️ ฟังก์ชันเช็กเฉพาะเมื่อมีการ "พิมพ์แก้ไขเพิ่มจริง" เท่านั้น (Smart Unsaved Guard)
+// 🛡️ ฟังก์ชันเช็กข้อมูลพิมพ์ค้างก่อนเปลี่ยนหน้า (Smart Dirty Check)
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     
-    // 1. เช็กฟอร์มบันทึกการเยี่ยม (Visit Form) เฉพาะกรณี "สร้างใหม่" แล้วเริ่มพิมพ์ข้อมูล
+    // 1. เช็กฟอร์มบันทึกการเยี่ยม (Visit Form)
     const visitFormView = document.getElementById('visitFormView');
-    const visitId = document.getElementById('visitId')?.value;
+    if (visitFormView && !visitFormView.classList.contains('d-none')) {
+        const detailsEl = document.getElementById('visitDetails');
+        const insightEl = document.getElementById('visitInsight');
+        const nextActionEl = document.getElementById('visitNextAction');
 
-    // เช็กเฉพาะฟอร์มสร้าง Visit ใหม่ (ไม่มี visitId) และมีการพิมพ์รายละเอียดลงไป
-    if (visitFormView && !visitFormView.classList.contains('d-none') && !visitId) {
-        const details = document.getElementById('visitDetails')?.value.trim();
-        const insight = document.getElementById('visitInsight')?.value.trim();
-        const nextAction = document.getElementById('visitNextAction')?.value.trim();
+        // เช็กว่ามีการแก้ไขข้อความให้ต่างจากค่าดั้งเดิมหรือไม่
+        const isDetailsDirty = detailsEl && detailsEl.value !== detailsEl.defaultValue && detailsEl.value.trim() !== '';
+        const isInsightDirty = insightEl && insightEl.value !== insightEl.defaultValue && insightEl.value.trim() !== '';
+        const isNextActionDirty = nextActionEl && nextActionEl.value !== nextActionEl.defaultValue && nextActionEl.value.trim() !== '';
 
-        if (details || insight || nextAction) {
+        if (isDetailsDirty || isInsightDirty || isNextActionDirty) {
             return appLang === 'en' 
                 ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
                 : "คุณมีข้อมูลการเยี่ยมที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
         }
     }
 
-    // 2. เช็กฟอร์ม "เพิ่มแพทย์ใหม่" (Doctor Add) เฉพาะเมื่อมีการพิมพ์ชื่อค้างไว้
+    // 2. เช็กฟอร์มเพิ่มแพทย์ใหม่ (Doctor Add)
     const doctorAddView = document.getElementById('doctorAddView');
     if (doctorAddView && !doctorAddView.classList.contains('d-none')) {
         const nameEn = document.getElementById('docNameEn')?.value.trim();
@@ -113,7 +115,22 @@ function hasUnsavedChanges() {
         }
     }
 
-    // 3. ฟอร์ม Edit Doctor / Edit Visit (ดูข้อมูลเดิม) -> ไม่ต้องขึ้นเตือนรบกวนผู้ใช้
+    // 3. เช็กฟอร์มแก้ไขแพทย์ (Doctor Edit)
+    const doctorEditView = document.getElementById('doctorEditView');
+    if (doctorEditView && !doctorEditView.classList.contains('d-none')) {
+        const editEnEl = document.getElementById('editDocNameEn');
+        const editThEl = document.getElementById('editDocNameTh');
+
+        const isEnDirty = editEnEl && editEnEl.value !== editEnEl.defaultValue;
+        const isThDirty = editThEl && editThEl.value !== editThEl.defaultValue;
+
+        if (isEnDirty || isThDirty) {
+            return appLang === 'en'
+                ? "You have unsaved changes in the Doctor Edit Form. Are you sure you want to leave?"
+                : "คุณมีข้อมูลการแก้ไขแพทย์ที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
+        }
+    }
+
     return null;
 }
 
@@ -122,12 +139,12 @@ function hasUnsavedChanges() {
    ========================================= */
 
 async function loadComponent(page) {
-    // 🛡️ ตรวจสอบข้อมูลค้างเฉพาะกรณีพิมพ์จริงก่อนเปลี่ยนหน้า
+    // 🛡️ ตรวจสอบข้อมูลค้างก่อนเปลี่ยนหน้า
     const confirmMsg = hasUnsavedChanges();
     if (confirmMsg) {
         const userConfirmed = confirm(confirmMsg);
         if (!userConfirmed) {
-            return; // ยกเลิกการสลับหน้า อยู่ที่เดิม
+            return; // ยกเลิกการสลับหน้า อยู่หน้าเดิม
         }
     }
 
