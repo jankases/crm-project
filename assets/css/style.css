@@ -35,7 +35,7 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 210px) !important;
+  max-height: calc(100vh - 215px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -110,58 +110,58 @@ html, body {
 }
 
 /* ==========================================
-   ✨ COMPACT ELEVATED KPI CARDS (แก้ความอึดอัดแน่นเกินไป)
+   ✨ LARGE & PREMIUM KPI CARDS (ขยายใหญ่ โดดเด่น โปร่งตา)
    ========================================== */
-.stat-card-mockup {
+.stat-card-premium {
   background: #ffffff !important;
-  border-radius: 8px !important;
-  padding: 2px 8px !important; /* ปรับลด padding ไม่ให้แน่นเบียด */
-  border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border-radius: 12px !important;
+  padding: 6px 14px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  min-width: 110px !important;
-  height: 36px !important;
-  transition: all 0.2s ease-in-out !important;
+  gap: 12px !important;
+  min-width: 145px !important;
+  height: 48px !important; /* ขยายความสูงให้ดูโปร่ง พรีเมียมขึ้น */
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.stat-card-mockup:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
-  border-color: #94a3b8 !important;
+.stat-card-premium:hover {
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.09) !important;
+  border-color: #cbd5e1 !important;
 }
 
-.stat-card-mockup .stat-icon-mockup {
-  width: 22px !important;
-  height: 22px !important;
-  border-radius: 6px !important;
+.stat-card-premium .stat-icon-premium {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 0.72rem !important;
   flex-shrink: 0 !important;
 }
 
-.stat-card-mockup .stat-content-mockup {
+.stat-card-premium .stat-content-premium {
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
-  line-height: 1 !important;
+  line-height: 1.15 !important;
 }
 
-.stat-card-mockup .stat-lbl-mockup {
-  font-size: 0.62rem !important;
+.stat-card-premium .stat-lbl-premium {
+  font-size: 0.72rem !important;
   color: #64748b !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
+  letter-spacing: 0.2px !important;
 }
 
-.stat-card-mockup .stat-val-mockup {
-  font-size: 0.88rem !important;
+.stat-card-premium .stat-val-premium {
+  font-size: 1.1rem !important;
   font-weight: 800 !important;
   line-height: 1 !important;
-  margin-top: 1px !important;
+  margin-top: 2px !important;
 }
 
 /* 🌟 จัดระเบียบฟอนต์และช่องต่างๆ ในแผง Filter ให้ขนานตรงกลาง */
@@ -169,8 +169,8 @@ html, body {
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
 .visit-filter-compact .btn {
-  height: 36px !important;
-  min-height: 36px !important;
+  height: 38px !important;
+  min-height: 38px !important;
   font-size: 0.85rem !important;
   line-height: 1.2 !important;
   display: flex !important;
@@ -182,7 +182,7 @@ html, body {
 .visit-filter-compact input[type="date"] {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
-  line-height: 34px !important;
+  line-height: 36px !important;
 }
 
 .visit-filter-compact input[type="text"] {
@@ -454,8 +454,8 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   border: 1px solid #e2e8f0 !important;
   color: #64748b !important;
   border-radius: 8px !important;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   padding: 0 !important;
   display: inline-flex;
   align-items: center;
