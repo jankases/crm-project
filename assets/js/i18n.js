@@ -33,6 +33,9 @@ const i18nDictionary = {
     opt_all_types: "- All Types -",
     opt_all_provinces: "- All Provinces -",
     opt_all_zones: "- All Zones -",
+    opt_all_status: "- All Status -",
+    opt_status_pending: "⏳ Pending Drafts",
+    opt_status_submitted: "✅ Submitted Logs",
     opt_search_doc: "Search Doctor (EN/TH)...",
     opt_smart_search_ph: "Search Doctor, Hospital or Product...",
     opt_select_products: "-- Select Products --",
@@ -40,14 +43,15 @@ const i18nDictionary = {
     opt_select_doc_default: "-- Search/Select Doctor --",
 
     // --- Common Buttons & Labels ---
-    btn_clear: "Clear",
+    btn_filters: "Filters",
+    btn_clear: "Clear Filters",
+    btn_export: "Export",
     btn_back: "Back",
     btn_cancel: "Cancel",
     btn_save: "Save",
     btn_view: "View",
     btn_list: "List",
     btn_calendar: "Calendar",
-    btn_export: "Export",
     btn_preview: "Preview",
     btn_dictate: "Dictate",
     lbl_show_rows: "Show rows:",
@@ -179,7 +183,6 @@ const i18nDictionary = {
     lbl_mobile: "Mobile",
 
     sec_rating_targeting: "Rating and Targeting",
-    btn_add_product: "Add Product",
     lbl_locked: "Locked:",
     msg_rating_locked: "The Target Call evaluation period is currently closed.",
     th_product: "PRODUCT",
@@ -187,7 +190,6 @@ const i18nDictionary = {
     th_potential: "POTENTIAL",
     th_classification: "CLASSIFICATION",
     th_target_call: "TARGET (CALL)"
-    
   },
 
   th: {
@@ -220,6 +222,9 @@ const i18nDictionary = {
     opt_all_types: "- ประเภททั้งหมด -",
     opt_all_provinces: "- จังหวัดทั้งหมด -",
     opt_all_zones: "- เขต/โซนทั้งหมด -",
+    opt_all_status: "- สถานะทั้งหมด -",
+    opt_status_pending: "⏳ รอส่ง (Pending)",
+    opt_status_submitted: "✅ ส่งแล้ว (Submitted)",
     opt_search_doc: "ค้นหาชื่อแพทย์ (EN/TH)...",
     opt_smart_search_ph: "ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...",
     opt_select_products: "-- เลือกผลิตภัณฑ์ --",
@@ -227,14 +232,15 @@ const i18nDictionary = {
     opt_select_doc_default: "-- ค้นหา/เลือกแพทย์ --",
 
     // --- Common Buttons & Labels ---
+    btn_filters: "ตัวกรอง",
     btn_clear: "ล้างตัวกรอง",
+    btn_export: "ส่งออก",
     btn_back: "ย้อนกลับ",
     btn_cancel: "ยกเลิก",
     btn_save: "บันทึก",
     btn_view: "ดูข้อมูล",
     btn_list: "รายการ",
     btn_calendar: "ปฏิทิน",
-    btn_export: "ส่งออก",
     btn_preview: "เปิดดู",
     btn_dictate: "พิมพ์ด้วยเสียง",
     lbl_show_rows: "แสดงแถว:",
@@ -364,9 +370,8 @@ const i18nDictionary = {
     lbl_tos: "ข้อตกลงการใช้งาน",
     lbl_email: "อีเมล",
     lbl_mobile: "เบอร์โทรศัพท์",
-    
+
     sec_rating_targeting: "เป้าหมายการเข้าพบ (Rating & Targeting)",
-    btn_add_product: "เพิ่มผลิตภัณฑ์",
     lbl_locked: "ล็อกอยู่:",
     msg_rating_locked: "ขณะนี้ไม่อยู่ในช่วงเวลาประเมิน Target Call",
     th_product: "ผลิตภัณฑ์",
@@ -402,12 +407,20 @@ function setLanguage(lang) {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
+      const translatedText = i18nDictionary[lang][key];
+
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-        el.placeholder = i18nDictionary[lang][key];
+        el.placeholder = translatedText;
       } else if (el.tagName === 'OPTION') {
-        el.text = i18nDictionary[lang][key];
+        el.text = translatedText;
       } else {
-        el.innerText = i18nDictionary[lang][key];
+        // หากมี Element ไอคอนซ้อนอยู่ภายใน ให้แปลเฉพาะ Node ข้อความโดยไม่ลบไอคอน
+        let textNode = Array.from(el.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+        if (textNode) {
+          textNode.textContent = translatedText;
+        } else {
+          el.innerText = translatedText;
+        }
       }
     }
   });
@@ -422,3 +435,8 @@ function t(key) {
     ? i18nDictionary[currentLang][key] 
     : key;
 }
+
+// เรียกให้ระบบเริ่มแปลตามภาษาตั้งต้นทันทีเมื่อโหลดไฟล์
+document.addEventListener('DOMContentLoaded', () => {
+  setLanguage(currentLang);
+});
