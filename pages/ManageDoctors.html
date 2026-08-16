@@ -369,29 +369,29 @@
 
         </div>
 
-        <!-- Tab: Target Call -->
+       <!-- Tab: Target Call -->
         <div class="tab-pane fade" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="title_rating_targeting">Rating and Targeting</span></h6>
-            <button class="btn btn-sm btn-premium-primary" id="btnAddRatingProduct" onclick="window.addNewRatingRow()">
-              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">Add Product</span>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" id="btnAddRatingProduct" onclick="addNewRatingRow()">
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">+ เพิ่มผลิตภัณฑ์</span>
             </button>
           </div>
           
-          <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-xs border-warning" style="display: none; border-radius: 10px;">
-            <i class="fa-solid fa-lock me-2"></i><strong data-i18n="msg_rating_locked">Locked: The Target Call evaluation period is currently closed.</strong>
+          <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning" style="display: none; border-radius: 10px;">
+            <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">Locked:</strong> <span data-i18n="msg_rating_locked">The Target Call evaluation period is currently closed.</span>
           </div>
           
           <div class="table-responsive">
             <table class="table table-bordered text-center align-middle" id="ratingTable">
-              <thead class="table-custom-header">
+              <thead class="table-doctor-header">
                 <tr>
-                  <th style="width: 25%;" data-i18n="th_product">Product</th>
-                  <th style="width: 15%;" data-i18n="th_adoption">Adoption</th>
-                  <th style="width: 15%;" data-i18n="th_potential">Potential</th>
-                  <th style="width: 15%;" data-i18n="th_classification">Classification</th>
-                  <th style="width: 15%;" data-i18n="th_target_call">Target (Call)</th>
-                  <th style="width: 15%;" data-i18n="th_action">Action</th>
+                  <th style="width: 25%;" data-i18n="th_product">PRODUCT</th>
+                  <th style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
+                  <th style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
+                  <th style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
+                  <th style="width: 15%;" data-i18n="th_target_call">TARGET (CALL)</th>
+                  <th style="width: 15%;" data-i18n="th_action">จัดการ</th>
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
