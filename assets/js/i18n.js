@@ -176,7 +176,18 @@ const i18nDictionary = {
     lbl_privacy: "Privacy Policy",
     lbl_tos: "Terms of Service",
     lbl_email: "Email",
-    lbl_mobile: "Mobile"
+    lbl_mobile: "Mobile",
+
+    sec_rating_targeting: "Rating and Targeting",
+    btn_add_product: "Add Product",
+    lbl_locked: "Locked:",
+    msg_rating_locked: "The Target Call evaluation period is currently closed.",
+    th_product: "PRODUCT",
+    th_adoption: "ADOPTION",
+    th_potential: "POTENTIAL",
+    th_classification: "CLASSIFICATION",
+    th_target_call: "TARGET (CALL)"
+    
   },
 
   th: {
@@ -352,7 +363,17 @@ const i18nDictionary = {
     lbl_privacy: "นโยบายความเป็นส่วนตัว",
     lbl_tos: "ข้อตกลงการใช้งาน",
     lbl_email: "อีเมล",
-    lbl_mobile: "เบอร์โทรศัพท์"
+    lbl_mobile: "เบอร์โทรศัพท์",
+    
+    sec_rating_targeting: "เป้าหมายการเข้าพบ (Rating & Targeting)",
+    btn_add_product: "เพิ่มผลิตภัณฑ์",
+    lbl_locked: "ล็อกอยู่:",
+    msg_rating_locked: "ขณะนี้ไม่อยู่ในช่วงเวลาประเมิน Target Call",
+    th_product: "ผลิตภัณฑ์",
+    th_adoption: "ADOPTION",
+    th_potential: "POTENTIAL",
+    th_classification: "CLASSIFICATION",
+    th_target_call: "TARGET (CALL)"
   }
 };
 
