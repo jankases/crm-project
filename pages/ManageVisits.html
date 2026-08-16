@@ -17,38 +17,50 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: Pro Header (Title + Clean Metric Strip + Action Buttons) -->
+    <!-- 🌟 ROW 1: Header Title + Vibrant KPI Badges + Action Buttons -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-2 flex-shrink-0">
       
-      <!-- ฝั่งซ้าย: Title + Metric Strip สไตล์คลีนไร้ขอบ -->
-      <div class="d-flex align-items-center gap-3 flex-wrap">
-        <div class="d-flex align-items-center pe-3 border-end">
+      <!-- ฝั่งซ้าย: Title + กล่อง KPI สีสันมีลูกเล่น -->
+      <div class="d-flex align-items-center gap-2.5 flex-wrap">
+        <div class="d-flex align-items-center pe-2 border-end">
           <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
             <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
             <span data-i18n="visit_title">Visit Logs</span>
           </h4>
         </div>
 
-        <!-- Metric Strip แบบพรีเมียมมินิมอล -->
-        <div class="d-flex align-items-center gap-3">
-          <div class="metric-item-pro">
-            <span class="metric-label" data-i18n="kpi_total_visits">Total Visits</span>
-            <span class="metric-value text-dark" id="statTotalVisits">-</span>
+        <!-- 3 กล่อง KPI ปรับโฉมมีสีสันพรีเมียม (Vibrant Badges) -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- Total Visits -->
+          <div class="kpi-badge-vibrant kpi-blue">
+            <div class="kpi-icon-box text-primary"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="d-flex flex-column justify-content-center">
+              <span class="kpi-title-text" data-i18n="kpi_total_visits">Total Visits</span>
+              <span class="kpi-num-text text-primary" id="statTotalVisits">-</span>
+            </div>
           </div>
-          <span class="text-muted opacity-25">|</span>
-          <div class="metric-item-pro">
-            <span class="metric-label" data-i18n="kpi_pending_drafts">Pending Drafts</span>
-            <span class="metric-value text-warning" id="statPendingVisits">-</span>
+
+          <!-- Pending Drafts -->
+          <div class="kpi-badge-vibrant kpi-amber">
+            <div class="kpi-icon-box text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
+            <div class="d-flex flex-column justify-content-center">
+              <span class="kpi-title-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+              <span class="kpi-num-text text-warning-emphasis" id="statPendingVisits">-</span>
+            </div>
           </div>
-          <span class="text-muted opacity-25">|</span>
-          <div class="metric-item-pro">
-            <span class="metric-label" data-i18n="kpi_submitted_logs">Submitted</span>
-            <span class="metric-value text-success" id="statSubmittedVisits">-</span>
+
+          <!-- Submitted Logs -->
+          <div class="kpi-badge-vibrant kpi-emerald">
+            <div class="kpi-icon-box text-success"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="d-flex flex-column justify-content-center">
+              <span class="kpi-title-text" data-i18n="kpi_submitted_logs">Submitted</span>
+              <span class="kpi-num-text text-success" id="statSubmittedVisits">-</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- ฝั่งขวา: ปุ่มคำสั่ง Action Buttons -->
+      <!-- ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
           <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
@@ -71,7 +83,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Control Toolbar Card (แผงการ์ดสีขาวหรูหรา ครอบสัดส่วนเป๊ะ) -->
+    <!-- 🌟 ROW 2: Control Toolbar Card (การ์ดครอบสัดส่วนเรียบหรู) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         
@@ -79,7 +91,7 @@
         <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
           
           <!-- Smart Search -->
-          <div class="pro-search-box" style="width: 300px;">
+          <div class="pro-search-box" style="width: 280px;">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
               <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
@@ -90,7 +102,7 @@
           </div>
 
           <!-- Date Range -->
-          <div style="width: 220px;">
+          <div style="width: 215px;">
             <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius d-flex align-items-center">
               <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
               <span class="text-muted small px-1">-</span>
