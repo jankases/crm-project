@@ -2,6 +2,56 @@
    CRM System - Global Stylesheet (style.css)
    ========================================= */
 
+/* 🔒 ล็อกไม่ให้เกิด Scrollbar นอกสุดของตัวเบราว์เซอร์ */
+html, body {
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 🖥️ คอนเทนเนอร์หลักของโมดูลสำหรับเลื่อน Scroll ภายในตัวเอง */
+.visit-module-wrapper,
+.doc-module-wrapper,
+.hosp-module-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 65px); /* หักล้างกับความสูง Navbar */
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.25rem;
+  background-color: #f8fafc;
+}
+
+/* ✨ Custom Scrollbar แบบมินิมอล */
+.visit-module-wrapper::-webkit-scrollbar,
+.doc-module-wrapper::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.visit-module-wrapper::-webkit-scrollbar-track,
+.doc-module-wrapper::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.visit-module-wrapper::-webkit-scrollbar-thumb,
+.doc-module-wrapper::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.visit-module-wrapper::-webkit-scrollbar-thumb:hover,
+.doc-module-wrapper::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 .visit-card { 
   border-radius: 20px !important; 
   border: 1px solid #eef2f6 !important;
@@ -32,7 +82,6 @@
   opacity: 1 !important; 
 }
 
-/* สร้าง Layer แถบสีเทากะพริบทับไว้ตอนกำลังโหลด */
 .visit-filter-group::before {
   content: "";
   position: absolute;
@@ -40,24 +89,21 @@
   background: linear-gradient(90deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%);
   background-size: 200% 100%;
   animation: shimmerSkeleton 1.5s infinite linear;
-  border-radius: 20px; /* ให้โค้งพอดีกับขอบ Card */
+  border-radius: 20px;
   z-index: 10;
   transition: opacity 0.4s ease-out, visibility 0.4s;
 }
 
-/* อนิเมชันวิ่งๆ เหมือน Facebook Loading */
 @keyframes shimmerSkeleton {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* ซ่อนแถบเทาเมื่อระบบรันเสร็จ (มีคลาส .ready) */
 .visit-filter-group.ready::before {
   opacity: 0;
   visibility: hidden;
 }
 
-/* ซ่อน Select แบบ Multi ดั้งเดิมเวลา TomSelect ทำงาน */
 select.form-select[multiple]:not(.tomselected) { display: none !important; }
 
 .btn-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
@@ -72,7 +118,6 @@ select.form-select[multiple]:not(.tomselected) { display: none !important; }
   letter-spacing: 0.5px;
 }
 
-/* กล่องตัวเลขสถิติ */
 .stat-card {
   background: #ffffff;
   border-radius: 16px;
@@ -85,7 +130,6 @@ select.form-select[multiple]:not(.tomselected) { display: none !important; }
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ปุ่ม Switch เปิด-ปิด */
 .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
@@ -94,11 +138,9 @@ input:checked + .slider { background-color: #0ea5e9; }
 input:focus + .slider { box-shadow: 0 0 1px #0ea5e9; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
-/* สไตล์ไมโครโฟนตอนอัดเสียง */
 .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
 @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-/* ปรับแต่ง TomSelect ให้เข้ากับ Bootstrap */
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
 .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
 .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
@@ -169,7 +211,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 .fc-toolbar-title { font-weight: 700 !important; color: #1e293b; font-size: 1.25rem !important; }
 
 /* =========================================
-   Navbar & Navigation Menu Styles (แถบเมนูด้านบน)
+   Navbar & Navigation Menu Styles
    ========================================= */
 .navbar { 
   background-color: #ffffff !important; 
@@ -203,7 +245,6 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   color: #0d6efd; 
 }
 
-/* 🌟 สไตล์ตอนที่เมนูถูกกดเลือก (ปุ่มสีน้ำเงิน) */
 .nav-menu-item.active { 
   background-color: #0d6efd !important; 
   color: #ffffff !important; 
@@ -257,7 +298,6 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 .premium-radius { border-radius: 10px !important; }
 .premium-radius-lg { border-radius: 12px !important; }
 
-/* 🌟 ปรับปรุงปุ่มหลัก Action (+ Add Call): ใช้สีน้ำเงินเข้มข้น + เงา 3D เด่นชัด */
 .btn-premium-primary {
   background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -332,7 +372,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 }
 
 /* ==========================================
-   🎨 modern UNDERLINE SUB-TABS (แก้ปัญหาปุ่มกลืนกัน)
+   🎨 MODERN UNDERLINE SUB-TABS
    ========================================== */
 #docProfileTabs, .nav-tabs-custom {
   border-bottom: 2px solid #e2e8f0 !important;
@@ -360,12 +400,11 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 #docProfileTabs .nav-link.active, .nav-tabs-custom .nav-link.active {
   color: #1d4ed8 !important;
   background-color: transparent !important;
-  border-bottom: 3px solid #2563eb !important; /* ขีดเส้นใต้สีฟ้าเฉพาะตัวที่เลือก */
+  border-bottom: 3px solid #2563eb !important;
   font-weight: 700 !important;
   box-shadow: none !important;
 }
 
-/* ปุ่มแจ้งเตือน/ขอปลดล็อก (Premium Warning) */
 .btn-premium-warning {
   background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -395,7 +434,6 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* ปุ่มสถานะถูกล็อก/อ่านอย่างเดียว (Premium Locked) */
 .btn-premium-locked {
   background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -409,7 +447,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 }
 
 /* ==========================================
-   ✨ PREMIUM TABLE ELEMENTS (Badges & Links)
+   ✨ PREMIUM TABLE ELEMENTS
    ========================================== */
 .table-visit-link {
   color: #2563eb !important;
@@ -590,7 +628,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 } 
 
 /* ==========================================
-   ✨ PREMIUM PAGINATION (สไตล์ปุ่มแบ่งหน้าแบบ SaaS) 
+   ✨ PREMIUM PAGINATION
    ========================================== */
 .pagination {
   gap: 5px;
@@ -627,7 +665,7 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 }
 
 /* ==========================================
-   ✨ PREMIUM SOFT BADGES (รวบตึงรวมทุกไอคอน)
+   ✨ PREMIUM SOFT BADGES
    ========================================== */
 .badge-soft-info {
   background-color: #e0f2fe !important;
