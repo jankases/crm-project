@@ -8,7 +8,7 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important; /* ปิด Scrollbar นอกสุดของตัวเบราว์เซอร์ */
-}
+} 
 
 /* 🖥️ 2. ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
