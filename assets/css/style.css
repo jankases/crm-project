@@ -110,50 +110,51 @@ html, body {
 }
 
 /* ==========================================
-   ✨ ELEVATED KPI CARDS (มีขอบ มีมิติ สวยงาม)
+   ✨ LARGE ELEVATED KPI CARDS (ขยายใหญ่ โดดเด่น อ่านง่าย)
    ========================================== */
 .kpi-card-elevated {
   background: #ffffff !important;
-  border-radius: 10px !important;
-  padding: 4px 12px 4px 8px !important;
-  height: 40px !important;
+  border-radius: 12px !important;
+  padding: 6px 16px 6px 12px !important;
+  height: 54px !important; /* ขยายความสูงเพิ่มความพรีเมียม */
   display: inline-flex !important;
   align-items: center !important;
-  gap: 10px !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+  gap: 12px !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  min-width: 145px !important;
 }
 
 .kpi-card-elevated:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.09) !important;
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1) !important;
 }
 
-.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #0284c7 !important; }
-.kpi-border-amber { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #d97706 !important; }
-.kpi-border-emerald { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #059669 !important; }
+.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 4px solid #0284c7 !important; }
+.kpi-border-amber { border: 1px solid #cbd5e1 !important; border-left: 4px solid #d97706 !important; }
+.kpi-border-emerald { border: 1px solid #cbd5e1 !important; border-left: 4px solid #059669 !important; }
 
 .kpi-icon-square {
-  width: 26px !important;
-  height: 26px !important;
-  border-radius: 6px !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 0.8rem !important;
   flex-shrink: 0 !important;
 }
 
 .kpi-label-text {
-  font-size: 0.68rem !important;
+  font-size: 0.72rem !important;
   color: #64748b !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
-  line-height: 1 !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0.2px !important;
 }
 
 .kpi-value-text {
-  font-size: 1rem !important;
+  font-size: 1.25rem !important; /* ขยายขนาดตัวเลขใหญ่เด่น */
   font-weight: 800 !important;
   line-height: 1 !important;
   margin-top: 2px !important;
@@ -201,7 +202,7 @@ html, body {
   background-size: 200% 100%;
   animation: shimmerSkeleton 1.5s infinite linear;
   border-radius: 16px;
-  z-index: 10;
+  z-index: 5;
   transition: opacity 0.4s ease-out, visibility 0.4s;
 }
 
@@ -281,16 +282,18 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
 #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-/* ปฏิทิน */
-#calendar { min-height: 550px; font-family: inherit; }
+/* 📅 FULLCALENDAR FIX & POINTER EVENTS (แก้ไขปฏิทินให้คลิกได้สมบูรณ์) */
+#calendar { min-height: 550px; font-family: inherit; position: relative; z-index: 10 !important; }
+.fc { position: relative; z-index: 10 !important; }
 .fc-event { 
-    cursor: pointer; 
+    cursor: pointer !important; 
     border: none !important; 
     padding: 3px 6px !important; 
     border-radius: 6px !important; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
     margin-bottom: 3px !important; 
     color: #ffffff !important; 
+    pointer-events: auto !important;
 }
 .fc-event-main {
     overflow: hidden;
@@ -298,14 +301,15 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
     white-space: nowrap;
     display: flex;
     align-items: center;
+    pointer-events: auto !important;
 }
 .fc-daygrid-event-dot { display: none !important; }
 .fc-event-title { font-weight: 600; font-size: 0.8rem; }
 .fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
-.fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; }
+.fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; cursor: pointer !important; pointer-events: auto !important; }
 .fc-daygrid-day-number:hover { color: #0d6efd; }
 .fc-col-header-cell { background-color: #f8fafc; color: #64748b; padding: 10px 0 !important; }
-.fc .fc-button-primary { background-color: #ffffff; border-color: #cbd5e1; color: #334155; font-weight: 600; text-transform: capitalize; }
+.fc .fc-button-primary { background-color: #ffffff; border-color: #cbd5e1; color: #334155; font-weight: 600; text-transform: capitalize; cursor: pointer !important; }
 .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
 .fc-toolbar-title { font-weight: 700 !important; color: #1e293b; font-size: 1.25rem !important; }
 
