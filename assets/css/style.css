@@ -8,7 +8,7 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important; /* ปิด Scrollbar นอกสุดของตัวเบราว์เซอร์ */
-} 
+}
 
 /* 🖥️ 2. ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
@@ -597,107 +597,4 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
   padding: 4px 7px !important;
   color: #d97706 !important;
   font-weight: 600 !important;
-}
-
-/* ==================================================
-   📱 RESPONSIVE ARCHITECTURE (iPad Sidebar vs Desktop Nav)
-   ================================================== */
-
-/* 1. สไตล์เริ่มต้นสำหรับ Desktop (คอมพิวเตอร์ปกติ) */
-@media (min-width: 992px) {
-  .app-layout-shell {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-  }
-
-  .main-navbar {
-    height: 65px;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-
-  .app-main-canvas {
-    flex: 1;
-    height: calc(100vh - 65px);
-    overflow: hidden;
-  }
-}
-
-/* 2. สไตล์สลับโหมดเฉพาะบน iPad / Tablet (768px - 991px) */
-@media (min-width: 768px) and (max-width: 991px) {
-  .app-layout-shell {
-    display: flex !important;
-    flex-direction: row !important;
-    height: 100vh !important;
-    width: 100vw !important;
-    overflow: hidden !important;
-  }
-
-  /* เมนูด้านข้างทรงแคบสไตล์ R-CRM */
-  .ipad-sidebar-rail {
-    width: 70px;
-    height: 100vh;
-    background: #1e293b; /* สีเข้มพรีเมียม */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem 0;
-    flex-shrink: 0;
-    z-index: 100;
-  }
-
-  .sidebar-brand-icon {
-    color: #38bdf8;
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .sidebar-icon-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    width: 100%;
-    align-items: center;
-  }
-
-  .sidebar-icon-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-
-  .sidebar-icon-btn:hover,
-  .sidebar-icon-btn.active {
-    background: #0284c7;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
-  }
-
-  /* พื้นที่ทำงานขวาขยายเต็มที่เหลือ */
-  .app-main-canvas {
-    flex: 1;
-    height: 100vh;
-    overflow: hidden;
-    background-color: #f8fafc;
-  }
-
-  .visit-module-wrapper,
-  .doc-module-wrapper {
-    height: 100vh !important; /* บน iPad ใช้ความสูงเต็ม 100vh โดยไม่ต้องหัก Navbar บน */
-  }
 }
