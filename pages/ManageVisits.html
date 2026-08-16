@@ -1,4 +1,4 @@
-<!-- 📚 โหลด PDF.js --> 
+<!-- 📚 โหลด PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
@@ -17,74 +17,78 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: Header Title + Action Controls -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 flex-shrink-0">
-      <div class="d-flex align-items-center me-2 ps-1">
-        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
-          <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
-          <span data-i18n="visit_title">Visit Logs</span>
-        </h4>
-        <span class="text-muted opacity-50 me-2">|</span>
-        <span class="text-muted small d-none d-xl-inline" data-i18n="visit_subtitle">Doctor visits and daily activity logs</span>
+    <!-- 🌟 ROW 1: Title + Large KPI Cards (ฝั่งซ้าย) + Action Controls (ฝั่งขวา) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
+      
+      <!-- 📌 ฝั่งซ้าย: Visit Logs Title + 3 กล่อง KPI ใหญ่ พรีเมียม โปร่งสบาย -->
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex align-items-center pe-2 border-end">
+          <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
+            <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
+            <span data-i18n="visit_title">Visit Logs</span>
+          </h4>
+        </div>
+
+        <!-- 3 กล่อง KPI ปรับขนาดใหญ่โดดเด่น ย้ายมาทางซ้าย -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- กล่อง 1: Total Visits -->
+          <div class="stat-card-premium">
+            <div class="stat-icon-premium bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-6"></i></div>
+            <div class="stat-content-premium">
+              <span class="stat-lbl-premium" data-i18n="kpi_total_visits">Total Visits</span>
+              <span class="stat-val-premium text-dark" id="statTotalVisits">-</span>
+            </div>
+          </div>
+
+          <!-- กล่อง 2: Pending Drafts -->
+          <div class="stat-card-premium">
+            <div class="stat-icon-premium bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-6"></i></div>
+            <div class="stat-content-premium">
+              <span class="stat-lbl-premium" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+              <span class="stat-val-premium text-dark" id="statPendingVisits">-</span>
+            </div>
+          </div>
+
+          <!-- กล่อง 3: Submitted Logs -->
+          <div class="stat-card-premium">
+            <div class="stat-icon-premium bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-6"></i></div>
+            <div class="stat-content-premium">
+              <span class="stat-lbl-premium" data-i18n="kpi_submitted_logs">Submitted Logs</span>
+              <span class="stat-val-premium text-dark" id="statSubmittedVisits">-</span>
+            </div>
+          </div>
+        </div>
       </div>
 
+      <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
-          <button class="btn btn-sm btn-premium-primary px-3 py-1 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
-          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
+          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
+          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
         </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate fs-6"></i>
         </button>
 
-        <button type="button" class="btn btn-sm btn-premium-secondary py-1 px-3" onclick="window.openAddTotModal()">
+        <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-1"></i>
           <span data-i18n="btn_add_tot">Add TOT</span>
         </button>
 
-        <button type="button" class="btn btn-sm btn-premium-primary py-1 px-3" onclick="window.openAddVisitView()">
+        <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddVisitView()">
           <i class="fa-solid fa-plus me-1"></i>
           <span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: KPI Cards + Filter Bar (ปรับโทนสีไม่ขัดตา + แก้ Popover) -->
-    <div class="p-2 px-3 border rounded-3 mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0 bg-transparent" id="visitFilterZoneGroup">
-      <div class="d-flex flex-wrap align-items-center gap-2">
+    <!-- 🌟 ROW 2: Separated Filter Zone Card (การ์ดแยกสีขาวคลีน สมดุลพอดี) -->
+    <div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
+      <div class="d-flex flex-wrap align-items-center gap-2.5">
         
-        <!-- กลุ่ม KPI 3 กล่องฝั่งซ้าย (ปรับไม่ให้แน่น) -->
-        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
-          <div class="stat-card-mockup">
-            <div class="stat-icon-mockup bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
-            <div class="stat-content-mockup">
-              <span class="stat-lbl-mockup" data-i18n="kpi_total_visits">Total Visits</span>
-              <span class="stat-val-mockup text-dark" id="statTotalVisits">-</span>
-            </div>
-          </div>
-
-          <div class="stat-card-mockup">
-            <div class="stat-icon-mockup bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
-            <div class="stat-content-mockup">
-              <span class="stat-lbl-mockup" data-i18n="kpi_pending_drafts">Pending Drafts</span>
-              <span class="stat-val-mockup text-dark" id="statPendingVisits">-</span>
-            </div>
-          </div>
-
-          <div class="stat-card-mockup">
-            <div class="stat-icon-mockup bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
-            <div class="stat-content-mockup">
-              <span class="stat-lbl-mockup" data-i18n="kpi_submitted_logs">Submitted Logs</span>
-              <span class="stat-val-mockup text-dark" id="statSubmittedVisits">-</span>
-            </div>
-          </div>
-        </div>
-
-        <span class="text-muted opacity-25 d-none d-lg-inline me-1">|</span>
-
-        <!-- ช่องค้นหา Smart Search (บีบความยาวลงให้สมดุล) -->
-        <div style="width: 260px;">
+        <!-- ช่องค้นหา Smart Search -->
+        <div class="flex-grow-1" style="min-width: 260px; max-width: 450px;">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius align-items-center">
             <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted d-flex align-items-center"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
@@ -95,7 +99,7 @@
         </div>
 
         <!-- ช่วงวันที่ Date Range -->
-        <div style="width: 210px;">
+        <div style="width: 230px;">
           <div class="input-group input-group-sm border px-2 bg-white premium-radius d-flex align-items-center">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
             <span class="text-muted small px-1">-</span>
@@ -104,7 +108,7 @@
         </div>
 
         <!-- ตัวเลือกสถานะ Status -->
-        <div style="width: 130px;">
+        <div style="width: 145px;">
           <select class="form-select border shadow-none filter-placeholder-text premium-radius" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
             <option value="" id="optAllStatus">- All Status -</option>
             <option value="Pending" id="optStatusPending">Pending Drafts</option>
@@ -112,7 +116,7 @@
           </select>
         </div>
 
-        <!-- กลุ่มปุ่มจัดการด้านขวา + Advanced Filter Popover (แก้จุดเหลื่อมของปุ่ม Clear / Apply) -->
+        <!-- กลุ่มปุ่มจัดการด้านขวา + Advanced Filter Popover -->
         <div class="d-flex gap-1.5 align-items-center ms-auto">
           
           <div class="dropdown position-relative">
