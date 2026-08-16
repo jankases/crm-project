@@ -345,13 +345,13 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.globalMatrixData = window.DocManagerCache.matrixData;
       window.globalTargetData = window.DocManagerCache.targetData;
 
-      const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating');
+      const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating' || s.Type === 'TargetCall' || s.Type === 'Target Call');
       if (ratingSetting) {
-        if (ratingSetting.Status === false) {
+        if (ratingSetting.Status === false || ratingSetting.status === false) {
           window.globalRatingIsLocked = true;
         } else {
-          let startStr = ratingSetting.Start;
-          let endStr = ratingSetting.End;
+          let startStr = ratingSetting.Start || ratingSetting.start;
+          let endStr = ratingSetting.End || ratingSetting.end;
           if (!startStr && !endStr) {
             window.globalRatingIsLocked = false;
           } else {
@@ -364,13 +364,14 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           }
         }
       } else {
-        window.globalRatingIsLocked = true;
+        window.globalRatingIsLocked = false;
       }
 
       var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
       var rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.BU_ID || '').trim() : '';
 
-      // ล็อกให้เฉพาะ ADMIN/EXECUTIVE/STAFF ถึงจะเป็น Global Viewer ที่เห็นสินค้าทุกรายการ
+      window.globalCurrentUserRole = uRoleUpper;
+
       var isGlobalViewer = false;
       var adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
       if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
@@ -416,7 +417,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         });
       }
 
-      // 🌟 [VISITING PERMISSION MATCHING FOR PRODUCTS] - ถอดแบบ Logic สิทธิ์ Product จาก Visit Engine
+      // 🌟 [VISITING PERMISSION MATCHING FOR PRODUCTS]
       const allProductsList = prodRes || [];
       const teamProdLinksList = teamProdRes || [];
       let filteredProds = [];
@@ -430,7 +431,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
           var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
 
           if (isBuHead) {
-            // BU Head: ดึงทุก Team ID ที่อยู่ในสังกัด BU เดียวกัน
             var matchedBu = allBus.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
             var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
             var buTeams = allTeams.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
@@ -438,14 +438,12 @@ window.loadIndexDropdowns = async function(forceReload = false) {
               if (targetTeams.indexOf(String(bt.Team_ID)) === -1) targetTeams.push(String(bt.Team_ID));
             });
           } else if (isManager) {
-            // Manager: ดึงทุก Team ID ที่สโคปเข้าถึง
             var mTeams = allTeams.filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope || String(t.Team_Name) === rawScope);
             mTeams.forEach(mt => {
               if (targetTeams.indexOf(String(mt.Team_ID)) === -1) targetTeams.push(String(mt.Team_ID));
             });
             if (targetTeams.length === 0 && rawScope) targetTeams.push(rawScope);
           } else {
-            // Sales Rep
             let myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
             if (!myTeam) {
               let myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
@@ -761,7 +759,7 @@ window.renderDoctorTableServerSide = function() {
       
       const tooltipText = appLang === 'en'
         ? `Pending Approval: ${actName}${whoStr ? ` by ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`
-        : `รอแอดมินอนุมัติ: ${actName}${whoStr ? ` โดย ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`;
+        : `รออนุมัติ DCR: ${actName}${whoStr ? ` โดย ${whoStr}` : ''}${whenStr ? ` (${whenStr})` : ''}`;
 
       const badgeText = appLang === 'en' ? '⏳ DCR Pending' : '⏳ รออนุมัติ DCR';
 
@@ -1076,7 +1074,6 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  // 🌟 FIX: ใช้ตัวเลือกสินค้าที่ผ่านการกรองสิทธิ์ Team / BU ของผู้ใช้งานเรียบร้อยแล้ว
   let phtml = `<option value="">${allProdsText}</option>`;
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   availableProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
@@ -1088,7 +1085,10 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   const addProdBtn = document.getElementById('btnAddRatingProduct');
   const lockBanner = document.getElementById('ratingLockBanner');
   
-  if (window.globalRatingIsLocked && window.globalCurrentUserRole !== 'Admin') {
+  var uRole = (window.globalCurrentUserRole || '').toUpperCase();
+  var isPowerUser = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN'].indexOf(uRole) !== -1;
+
+  if (window.globalRatingIsLocked && !isPowerUser) {
     if (addProdBtn) addProdBtn.style.display = 'none';
     if (lockBanner) lockBanner.style.display = 'block';
   } else {
@@ -1561,9 +1561,84 @@ window.renderRatingTable = function(ratings) {
   }
 };
 
+window.getSelectedRatingProductIds = function(excludeSelectId = null) {
+  const tbody = document.getElementById('ratingTableBody');
+  if (!tbody) return [];
+  
+  const productSelects = tbody.querySelectorAll('.rating-product');
+  const selectedIds = [];
+  
+  productSelects.forEach(select => {
+    if (excludeSelectId && select.id === excludeSelectId) return;
+    const val = select.value;
+    if (val && val.trim() !== '') {
+      selectedIds.push(val.trim());
+    }
+  });
+  
+  return selectedIds;
+};
+
+// 🌟 AUTO CALCULATION LOGIC FOR RATING & TARGETING
+window.triggerCalcTarget = function(element) {
+  const tr = element.closest('tr');
+  if (!tr) return;
+
+  const prodSelect = tr.querySelector('.rating-product');
+  const adoptSelect = tr.querySelector('.rating-adopt');
+  const potSelect = tr.querySelector('.rating-pot');
+
+  const prodId = prodSelect ? prodSelect.value : '';
+  const adopt = adoptSelect ? adoptSelect.value : '';
+  const pot = potSelect ? potSelect.value : '';
+  
+  const classInput = tr.querySelector('.rating-class');
+  const targetInput = tr.querySelector('.rating-target');
+  
+  let calcClass = "";
+
+  // 1. คำนวณ Classification จาก Adoption + Potential ด้วย Rating_Matrix
+  if (adopt && pot) {
+      const matrixData = window.globalMatrixData || (window.DocManagerCache ? window.DocManagerCache.matrixData : []) || [];
+      const matrixRow = matrixData.find(m => String(m.Adoption || m.adoption).trim().toLowerCase() === String(adopt).trim().toLowerCase() && 
+                                              String(m.Potential || m.potential).trim().toLowerCase() === String(pot).trim().toLowerCase());
+      if (matrixRow) {
+          calcClass = matrixRow.Classification || matrixRow.classification || "";
+      }
+  }
+  if (classInput) classInput.value = calcClass;
+
+  // 2. คำนวณ Target Call จาก Product_ID + Classification ด้วย Target Table
+  if (prodId && calcClass) {
+      const targetData = window.globalTargetData || (window.DocManagerCache ? window.DocManagerCache.targetData : []) || [];
+      const targetRow = targetData.find(t => 
+          String(t.Product_ID || t.product_id).trim() === String(prodId).trim() && 
+          String(t.Classification || t.classification).trim().toLowerCase() === String(calcClass).trim().toLowerCase()
+      );
+      if (targetInput) targetInput.value = targetRow ? (targetRow.Target !== undefined ? targetRow.Target : (targetRow.target !== undefined ? targetRow.target : "")) : "";
+  } else {
+      if (targetInput) targetInput.value = "";
+  }
+};
+
 window.addNewRatingRow = function() {
   const tbody = document.getElementById('ratingTableBody');
   if (!tbody) return;
+  
+  const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
+  const usedIds = window.getSelectedRatingProductIds();
+  const remainingProducts = availableProducts.filter(p => !usedIds.includes(String(p.Product_ID)));
+
+  if (availableProducts.length > 0 && remainingProducts.length === 0) {
+    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    const msgAllSelected = appLang === 'en' 
+      ? 'All available products have already been added to Target Call.' 
+      : 'เลือกผลิตภัณฑ์ที่มีสิทธิ์ทั้งหมดครบเรียบร้อยแล้ว';
+    if (window.showToast) window.showToast(msgAllSelected, "warning");
+    else alert(msgAllSelected);
+    return;
+  }
+
   const noData = tbody.querySelector('.no-data');
   if(noData) {
       const selects = noData.querySelectorAll('select');
@@ -1581,15 +1656,23 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const adoptId = 'tgt_adopt_' + Math.random().toString(36).substr(2, 9);
   const potId = 'tgt_pot_' + Math.random().toString(36).substr(2, 9);
 
-  const isAdmin = (window.globalCurrentUserRole === 'Admin');
-  const canEdit = isAdmin || !window.globalRatingIsLocked;
+  var uRole = (window.globalCurrentUserRole || '').toUpperCase();
+  var isPowerUser = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN'].indexOf(uRole) !== -1;
+  const canEdit = isPowerUser || !window.globalRatingIsLocked;
   const disabledAttr = canEdit ? '' : 'disabled';
 
-  const prodList = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
+  const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
+  const usedProductIds = window.getSelectedRatingProductIds(selectId);
+  
   let prodOpts = '<option value="">- Select -</option>';
-  prodList.forEach(p => {
-      const sel = String(p.Product_ID) === String(prodId) ? 'selected' : '';
-      prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
+  availableProducts.forEach(p => {
+      const isCurrentSelected = String(p.Product_ID) === String(prodId);
+      const isAlreadyUsed = usedProductIds.includes(String(p.Product_ID));
+      
+      if (isCurrentSelected || !isAlreadyUsed) {
+        const sel = isCurrentSelected ? 'selected' : '';
+        prodOpts += `<option value="${p.Product_ID}" ${sel}>${p.Product}</option>`; 
+      }
   });
 
   let adoptOpts = '<option value="">- Select -</option>';
@@ -1635,10 +1718,15 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   `;
   tbody.appendChild(tr);
 
+  // 🌟 BIND TOMSELECT WITH AUTO-CALCULATION LISTENERS
   if (!disabledAttr && typeof TomSelect !== 'undefined') {
-      new TomSelect(`#${selectId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-      new TomSelect(`#${adoptId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
-      new TomSelect(`#${potId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+      const tsProd = new TomSelect(`#${selectId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+      const tsAdopt = new TomSelect(`#${adoptId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+      const tsPot = new TomSelect(`#${potId}`, { create: false, placeholder: "- Select -", allowEmptyOption: true, dropdownParent: 'body' });
+
+      tsProd.on('change', function() { window.triggerCalcTarget(document.getElementById(selectId)); });
+      tsAdopt.on('change', function() { window.triggerCalcTarget(document.getElementById(adoptId)); });
+      tsPot.on('change', function() { window.triggerCalcTarget(document.getElementById(potId)); });
   }
 };
 
@@ -1646,7 +1734,8 @@ window.saveTargetCallRow = async function(btn) {
   const tr = btn.closest('tr');
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
-  const selectedProductId = tr.querySelector('.rating-product').value;
+  const selectEl = tr.querySelector('.rating-product');
+  const selectedProductId = selectEl ? selectEl.value : '';
   const adoptVal = tr.querySelector('.rating-adopt').value;
   const potVal = tr.querySelector('.rating-pot').value;
   const classificationValue = tr.querySelector('.rating-class').value;
@@ -1655,6 +1744,20 @@ window.saveTargetCallRow = async function(btn) {
   if(!selectedProductId || !adoptVal || !potVal) {
       const errMsg = appLang === 'en' ? "❌ Missing fields: Product, Adoption or Potential." : "❌ กรุณากรอกข้อมูลให้ครบถ้วน: ผลิตภัณฑ์, Adoption หรือ Potential";
       alert(errMsg);
+      return;
+  }
+
+  const usedProductIds = window.getSelectedRatingProductIds(selectEl ? selectEl.id : null);
+  if (usedProductIds.includes(String(selectedProductId))) {
+      const pObj = (window.globalTeamProducts || window.globalProducts || []).find(p => String(p.Product_ID) === String(selectedProductId));
+      const productName = pObj ? pObj.Product : selectedProductId;
+      
+      const duplicateMsg = appLang === 'en'
+        ? `❌ Duplicate Product! "${productName}" is already added in another row.`
+        : `❌ ผลิตภัณฑ์ซ้ำ! "${productName}" มีการประเมินอยู่แล้วในแถวอื่น กรุณาเลือกผลิตภัณฑ์ใหม่`;
+      
+      if (window.showToast) window.showToast(duplicateMsg, "error");
+      else alert(duplicateMsg);
       return;
   }
 
