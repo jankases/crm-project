@@ -20,7 +20,7 @@
     <!-- 🌟 ROW 1: KPI Cards ขนาดใหญ่โดดเด่น (ซ้ายสุด) + Action Controls (ขวาสุด) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       
-      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน ปรับขยายใหญ่ พรีเมียมสะใจ -->
+      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน ปรับขยายใหญ่ พรีเมียม -->
       <div class="d-flex align-items-center gap-2.5 flex-wrap">
         <!-- Total Visits Card -->
         <div class="kpi-card-elevated kpi-border-blue">
@@ -73,15 +73,15 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Filter Toolbar Card (ปรับช่องค้นหาให้ขยายยาวขึ้นอย่างสมดุล) -->
+    <!-- 🌟 ROW 2: Filter Toolbar Card (แก้ไข Date Filter ให้กดแล้วเด้ง Pop-up Calendar ชัดเจน) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
         
-        <!-- ฝั่งซ้าย: Smart Search (ขยายยาว) + Date (ขยายยาว) + Status -->
+        <!-- ฝั่งซ้าย: Smart Search + Date Range (เด้ง Calendar) + Status -->
         <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
           
-          <!-- Smart Search ขยายเป็น 360px -->
-          <div style="width: 360px;" class="flex-grow-1 flex-md-grow-0">
+          <!-- Smart Search -->
+          <div style="width: 320px;" class="flex-grow-1 flex-md-grow-0">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
               <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
@@ -91,12 +91,13 @@
             </div>
           </div>
 
-          <!-- Date Range ขยายเป็น 240px -->
-          <div style="width: 240px;">
-            <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius d-flex align-items-center">
-              <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
+          <!-- Date Range (กดช่องแล้วเปิด Calendar Popup) -->
+          <div style="width: 260px;">
+            <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer">
+              <span class="text-muted pe-1" onclick="document.getElementById('filterStartDate').showPicker()"><i class="fa-regular fa-calendar-days"></i></span>
+              <input type="date" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterStartDate" onchange="window.filterVisits()" onclick="this.showPicker()">
               <span class="text-muted small px-1">-</span>
-              <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="window.filterVisits()">
+              <input type="date" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterEndDate" onchange="window.filterVisits()" onclick="this.showPicker()">
             </div>
           </div>
 
@@ -194,7 +195,7 @@
       </div>
     </div>
 
-    <!-- Zone 2: Calendar View (แก้ปัญหาคลิกไม่ได้ โดยเปิด Z-Index และ Pointer Events) -->
+    <!-- Zone 2: Calendar View -->
     <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 overflow-auto d-none">
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom flex-shrink-0" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted" data-i18n="leg_submitted">Submitted Visit</span></div>
