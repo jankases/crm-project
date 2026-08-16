@@ -26,7 +26,7 @@
         <div class="kpi-card-elevated kpi-border-blue">
           <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-5"></i></div>
           <div class="d-flex flex-column justify-content-center">
-            <span class="kpi-label-text" data-i18n="kpi_total_visits">Total Visits</span>
+            <span class="kpi-label-text" data-i18n="kpi_total_visits">จำนวนการเยี่ยมทั้งหมด</span>
             <span class="kpi-value-text text-primary" id="statTotalVisits">-</span>
           </div>
         </div>
@@ -35,7 +35,7 @@
         <div class="kpi-card-elevated kpi-border-amber">
           <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-5"></i></div>
           <div class="d-flex flex-column justify-content-center">
-            <span class="kpi-label-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+            <span class="kpi-label-text" data-i18n="kpi_pending_drafts">ฉบับร่างรอยืนยัน</span>
             <span class="kpi-value-text text-warning-emphasis" id="statPendingVisits">-</span>
           </div>
         </div>
@@ -44,7 +44,7 @@
         <div class="kpi-card-elevated kpi-border-emerald">
           <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-5"></i></div>
           <div class="d-flex flex-column justify-content-center">
-            <span class="kpi-label-text" data-i18n="kpi_submitted_logs">Submitted</span>
+            <span class="kpi-label-text" data-i18n="kpi_submitted_logs">บันทึกที่ส่งแล้ว</span>
             <span class="kpi-value-text text-success" id="statSubmittedVisits">-</span>
           </div>
         </div>
@@ -53,8 +53,8 @@
       <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
-          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
-          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
+          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">รายการ</span></button>
+          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">ปฏิทิน</span></button>
         </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
@@ -63,17 +63,17 @@
 
         <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-1"></i>
-          <span data-i18n="btn_add_tot">Add TOT</span>
+          <span data-i18n="btn_add_tot">เพิ่ม TOT</span>
         </button>
 
         <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddVisitView()">
           <i class="fa-solid fa-plus me-1"></i>
-          <span data-i18n="btn_add_visit">Add New Visit</span>
+          <span data-i18n="btn_add_visit">สร้างบันทึกเยี่ยมใหม่</span>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Filter Toolbar Card (แก้ไข Date Filter ให้กดแล้วเด้ง Pop-up Calendar ชัดเจน) -->
+    <!-- 🌟 ROW 2: Filter Toolbar Card (ปรับขนาดปุ่มขวามือให้มีคำประกอบ บาลานซ์ขนานเท่ากัน) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
         
@@ -84,14 +84,14 @@
           <div style="width: 320px;" class="flex-grow-1 flex-md-grow-0">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-              <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
+              <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์..." onkeyup="window.debouncedFilterVisits()">
               <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
                 <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
               </button>
             </div>
           </div>
 
-          <!-- Date Range (กดช่องแล้วเปิด Calendar Popup) -->
+          <!-- Date Range (กดแล้วเปิด Calendar Popup) -->
           <div style="width: 260px;">
             <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer">
               <span class="text-muted pe-1" onclick="document.getElementById('filterStartDate').showPicker()"><i class="fa-regular fa-calendar-days"></i></span>
@@ -104,19 +104,19 @@
           <!-- Status -->
           <div style="width: 150px;">
             <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
-              <option value="" id="optAllStatus">- All Status -</option>
-              <option value="Pending" id="optStatusPending">Pending Drafts</option>
-              <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
+              <option value="" id="optAllStatus">- สถานะทั้งหมด -</option>
+              <option value="Pending" id="optStatusPending">รอส่ง</option>
+              <option value="Submitted" id="optStatusSubmitted">ส่งแล้ว</option>
             </select>
           </div>
         </div>
 
-        <!-- ฝั่งขวา: Advanced Filter & Controls -->
-        <div class="d-flex gap-1.5 align-items-center ms-auto">
+        <!-- ฝั่งขวา: กลุ่มปุ่ม Filters + Clear + Export (ขนาดสมส่วนขนานตรงกัน) -->
+        <div class="d-flex gap-2 align-items-center ms-auto">
           
           <div class="dropdown position-relative">
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
-              <i class="fa-solid fa-sliders me-1.5"></i><span class="small fw-semibold">Filters</span>
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-2.5 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
+              <i class="fa-solid fa-sliders me-1.5 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 290px; z-index: 1050;">
               <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6 d-flex align-items-center"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
@@ -135,12 +135,12 @@
             </div>
           </div>
 
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
-            <i class="fa-solid fa-eraser"></i>
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-2.5 py-1.5" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+            <i class="fa-solid fa-eraser me-1.5 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear</span>
           </button>
           
-          <button class="btn btn-outline-success border shadow-sm premium-radius d-flex align-items-center justify-content-center" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
-            <i class="fa-solid fa-file-excel me-1"></i><span class="small fw-semibold">Export</span>
+          <button class="btn btn-outline-success border shadow-sm premium-radius d-flex align-items-center justify-content-center px-2.5 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
+            <i class="fa-solid fa-file-excel me-1.5"></i><span class="small fw-semibold" data-i18n="btn_export">Export</span>
           </button>
         </div>
 
@@ -155,12 +155,12 @@
         <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
             <tr>
-              <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+              <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">วันที่</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+              <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">แพทย์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+              <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">โรงพยาบาล</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+              <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">ผลิตภัณฑ์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+              <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">วัตถุประสงค์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+              <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">สถานะ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
             </tr>
           </thead>
           <tbody id="visitTableBody">
@@ -180,14 +180,14 @@
       <!-- Pagination Footer -->
       <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
         <div class="d-flex align-items-center mb-2 mb-md-0">
-          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">แสดงแถว:</label>
           <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
             <option value="10">10</option>
             <option value="20" selected>20</option>
             <option value="50">50</option>
             <option value="100">100</option>
           </select>
-          <span class="text-muted small ms-3" id="visitPageInfo">Showing 1 to 10 of 50 entries</span>
+          <span class="text-muted small ms-3" id="visitPageInfo">แสดง 1 ถึง 9 จาก 9 รายการ</span>
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination"></ul>
