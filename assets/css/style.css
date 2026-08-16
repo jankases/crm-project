@@ -110,36 +110,36 @@ html, body {
 }
 
 /* ==========================================
-   ✨ PREMIUM ELEVATED KPI CARDS
+   ✨ PREMIUM COMPACT KPI CARDS (สไตล์เรียงในแผง Filter)
    ========================================== */
 .stat-card-mockup {
   background: #ffffff !important;
-  border-radius: 10px !important;
-  padding: 4px 14px !important;
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
   border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04) !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 12px !important;
-  min-width: 150px !important;
-  height: 42px !important;
+  gap: 8px !important;
+  min-width: 125px !important;
+  height: 36px !important;
   transition: all 0.2s ease-in-out !important;
 }
 
 .stat-card-mockup:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
   border-color: #94a3b8 !important;
 }
 
 .stat-card-mockup .stat-icon-mockup {
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 0.9rem !important;
+  font-size: 0.75rem !important;
   flex-shrink: 0 !important;
 }
 
@@ -147,25 +147,24 @@ html, body {
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
-  line-height: 1.1 !important;
+  line-height: 1 !important;
 }
 
 .stat-card-mockup .stat-lbl-mockup {
-  font-size: 0.72rem !important;
+  font-size: 0.65rem !important;
   color: #64748b !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
-  letter-spacing: 0.2px !important;
 }
 
 .stat-card-mockup .stat-val-mockup {
-  font-size: 1.05rem !important;
+  font-size: 0.95rem !important;
   font-weight: 800 !important;
   line-height: 1 !important;
   margin-top: 2px !important;
 }
 
-/* 🌟 จัดระเบียบฟอนต์ใน Filter ให้ขนานตรงกลางเป๊ะ */
+/* 🌟 จัดระเบียบฟอนต์และช่องต่างๆ ในแผง Filter ให้ขนานตรงกลาง */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
