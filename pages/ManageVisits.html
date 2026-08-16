@@ -9,26 +9,98 @@
 <!-- 📚 โหลด FullCalendar Library -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
+<style>
+  /* --------------------------------------------------
+     1. App-like Scroll Control & Full-Screen Canvas
+  -------------------------------------------------- */
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important; /* ซ่อน Scrollbar นอกสุดของ Browser */
+  }
+
+  .visit-module-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 70px); /* ลบความสูง Navbar ด้านบน */
+    width: 100%;
+    overflow-y: auto; /* เลื่อน Scroll เฉพาะพื้นที่ภายในโมดูลนี้ */
+    overflow-x: hidden;
+    padding: 1.5rem;
+    background-color: #f8fafc;
+  }
+
+  /* --------------------------------------------------
+     2. UI Component Styling
+  -------------------------------------------------- */
+  .stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .visit-card {
+    border-radius: 15px;
+    background-color: #ffffff;
+  }
+
+  .table-custom-header {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 600;
+  }
+  .table-custom-header th { white-space: nowrap; }
+
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { background-color: #e2e8f0; color: #0d6efd; }
+
+  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+
+  .filter-placeholder-text { color: #6c757d !important; }
+
+  @media (max-width: 768px) {
+    .visit-module-wrapper { padding: 0.75rem; }
+  }
+</style>
+
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
-<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+<!-- 🌟 ใช้ container-fluid p-0 และสวม visit-module-wrapper เพื่อขยายเต็มพื้นที่จอ -->
+<div class="container-fluid p-0 visit-module-wrapper">
   
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
-  <div id="visitListView">
+  <div id="visitListView" class="w-100">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
       <div>
         <h3 class="text-dark fw-bold mb-1 d-flex align-items-center">
-          <span class="header-icon-box"><i class="fa-solid fa-calendar-check"></i></span>
+          <span class="header-icon-box text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
           <span data-i18n="visit_title">Visit Logs</span>
-      </h3>
+        </h3>
         <p class="text-muted small mb-0" data-i18n="visit_subtitle">Doctor visits and daily activity logs</p>
       </div>
       
-      <div class="d-flex gap-2 align-items-center">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
         <div class="btn-group shadow-xs bg-white p-1 border me-2 premium-radius-lg">
-         <button class="btn btn-sm btn-premium-primary px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
-         <button class="btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
+          <button class="btn btn-sm btn-premium-primary px-3 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
+          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1"></i> <span data-i18n="btn_calendar">Calendar</span></button>
         </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
@@ -47,6 +119,7 @@
       </div>
     </div>
 
+    <!-- Stats Cards Zone -->
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-md-4">
         <div class="stat-card d-flex align-items-center">
@@ -54,8 +127,8 @@
           <div>
             <div class="text-muted small fw-semibold" data-i18n="kpi_total_visits">Total Visits</div>
             <h4 class="fw-bold mb-0 text-dark" id="statTotalVisits">
-             <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-           </h4>
+              <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            </h4>
           </div>
         </div>
       </div>
@@ -65,8 +138,8 @@
           <div>
             <div class="text-muted small fw-semibold" data-i18n="kpi_pending_drafts">Pending Drafts</div>
             <h4 class="fw-bold mb-0 text-dark" id="statPendingVisits">
-             <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
-           </h4>
+              <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+            </h4>
           </div>
         </div>
       </div>
@@ -76,14 +149,15 @@
           <div>
             <div class="text-muted small fw-semibold" data-i18n="kpi_submitted_logs">Submitted Logs</div>
             <h4 class="fw-bold mb-0 text-dark" id="statSubmittedVisits">
-             <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-           </h4>
+              <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+            </h4>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group" id="visitFilterZoneGroup">
+    <!-- Filter Zone -->
+    <div class="card p-3 border-0 shadow-sm visit-card mb-4 visit-filter-group w-100" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         <div class="col-12 col-lg-5">
           <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius-lg">
@@ -112,36 +186,36 @@
         </div>
 
         <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2 justify-content-end">
-           <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
-               <i class="fa-solid fa-sliders"></i>
-           </button>
-           <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
-               <i class="fa-solid fa-eraser"></i>
-           </button>
-           <button class="btn btn-outline-success border shadow-sm premium-radius flex-fill" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
-               <i class="fa-solid fa-file-excel"></i>
-           </button>
-       </div>
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" title="More Filters">
+            <i class="fa-solid fa-sliders"></i>
+          </button>
+          <button class="btn btn-light border shadow-sm text-secondary premium-radius flex-fill" type="button" onclick="window.clearVisitFilters()" title="Clear All Filters">
+            <i class="fa-solid fa-eraser"></i>
+          </button>
+          <button class="btn btn-outline-success border shadow-sm premium-radius flex-fill" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+        </div>
       </div>
 
       <div class="collapse mt-3 pt-3 border-top" id="advancedFilters">
         <div class="row g-3">
           <div class="col-sm-12 col-md-6">
-              <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
-              <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
+            <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
+            <select class="form-select shadow-none" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
           </div>
           <div class="col-sm-12 col-md-6">
-              <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
-              <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
+            <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
+            <select class="form-select shadow-none" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Zone 1: List View -->
-    <div id="visitListZone" class="card p-4 border-0 shadow-sm visit-card">
+    <!-- Zone 1: List View Table -->
+    <div id="visitListZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100">
       <div class="table-responsive">
-        <table class="table table-hover align-middle border-0" style="font-size: 0.95rem;">
+        <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
             <tr>
               <th class="py-3 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
@@ -153,13 +227,15 @@
             </tr>
           </thead>
           <tbody id="visitTableBody">
-            <tr><td colspan="6" class="text-center py-5">
-    <div class="d-flex flex-column align-items-center justify-content-center my-4">
-        <div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>
-        <h5 class="text-dark fw-bold mb-1">Loading Data...</h5>
-        <span class="text-muted small">Processing your access rights and retrieving records.</span>
-    </div>
-</td></tr>
+            <tr>
+              <td colspan="6" class="text-center py-5">
+                <div class="d-flex flex-column align-items-center justify-content-center my-4">
+                  <div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>
+                  <h5 class="text-dark fw-bold mb-1">Loading Data...</h5>
+                  <span class="text-muted small">Processing your access rights and retrieving records.</span>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -182,7 +258,7 @@
     </div>
 
     <!-- Zone 2: Calendar View -->
-    <div id="visitCalendarZone" class="card p-4 border-0 shadow-sm visit-card d-none">
+    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 d-none">
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted" data-i18n="leg_submitted">Submitted Visit</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending" data-i18n="leg_pending">Pending Draft</span></div>
@@ -192,13 +268,13 @@
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #0ea5e9; border-radius: 50%; margin-right: 6px;"></span><span id="legTotAppr" data-i18n="leg_tot_appr">TOT (Approved)</span></div>
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #94a3b8; border-radius: 50%; margin-right: 6px;"></span><span id="legTotPend" data-i18n="leg_tot_pend">TOT (Pending)</span></div>
       </div>
-      <div id="calendar"></div>
+      <div id="calendar" class="w-100"></div>
     </div>
 
   </div>
 
   <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม ================= -->
-  <div id="visitFormView" class="d-none">
+  <div id="visitFormView" class="d-none w-100">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
         <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
@@ -206,7 +282,7 @@
       <h4 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h4>
     </div>
 
-    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card">
+    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100">
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="d-flex flex-column">
         <input type="hidden" id="visitId">
 
@@ -239,16 +315,15 @@
                   </div>
                 </div>
 
-                <!-- ================= 🌟 วางกล่องประวัติล่าสุดตรงนี้ ================= -->
+                <!-- กล่องประวัติการเยี่ยมล่าสุด -->
                 <div id="lastVisitHistoryBox" class="mb-3 p-3 bg-primary-subtle border border-primary-subtle rounded-3 d-none shadow-sm">
                   <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span class="fw-bold text-primary small"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเยี่ยมล่าสุด</span>
-                      <span class="badge bg-primary text-white shadow-sm" id="lastVisitDateBadge">-</span>
+                    <span class="fw-bold text-primary small"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเยี่ยมล่าสุด</span>
+                    <span class="badge bg-primary text-white shadow-sm" id="lastVisitDateBadge">-</span>
                   </div>
                   <div class="small text-dark mb-1" style="line-height: 1.5;"><strong>📝 Details:</strong> <span id="lastVisitDetails">-</span></div>
                   <div class="small text-dark"><strong>🎯 Next Action:</strong> <span id="lastVisitNextAction" class="text-danger fw-bold">-</span></div>
                 </div>
-                <!-- ============================================================= -->
 
                 <div class="mb-3">
                   <label class="form-label fw-bold text-dark"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
@@ -292,7 +367,7 @@
                   </div>
                 </div>
 
-                <!-- 🌟 เพิ่ม ID sectionGpsCheckin -->
+                <!-- GPS Check-in -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius" id="sectionGpsCheckin">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i><span data-i18n="lbl_location">GPS Check-in</span></label>
@@ -318,24 +393,24 @@
                     <small class="text-success fw-bold"><i class="fa-solid fa-check-circle me-1"></i>Checked-in at: <span id="visitCheckinTimeText"></span></small>
                   </div>
                 </div>
-<!-- ================= 🌟 วางกล่อง Samples & Promo ตรงนี้ ================= -->
 
+                <!-- Samples & Promo -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius d-none" id="sectionSamples">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-gifts text-warning me-2"></i>
-                    <!-- 🌟 ผูกคีย์ data-i18n สลับภาษาตรงนี้ -->
-                    <span data-i18n="lbl_samples_title">Samples & Promo Items</span>
-                  </label>
-                  <button type="button" class="btn btn-sm btn-outline-primary px-3" onclick="window.addSampleRow()">
-                    <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_sample">เพิ่มรายการ</span>
-                  </button>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold text-dark mb-0">
+                      <i class="fa-solid fa-gifts text-warning me-2"></i>
+                      <span data-i18n="lbl_samples_title">Samples & Promo Items</span>
+                    </label>
+                    <button type="button" class="btn btn-sm btn-outline-primary px-3" onclick="window.addSampleRow()">
+                      <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_sample">เพิ่มรายการ</span>
+                    </button>
+                  </div>
+                  <div id="sampleItemsContainer" class="d-flex flex-column gap-2 mt-2">
+                    <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>
+                  </div>
                 </div>
-                <div id="sampleItemsContainer" class="d-flex flex-column gap-2 mt-2">
-                  <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>
-                </div>
-              </div>
-                <!-- 🌟 เพิ่ม ID sectionAttachments -->
+
+                <!-- Attachments -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius" id="sectionAttachments">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
@@ -343,7 +418,7 @@
                       <span data-i18n="lbl_attachments">รูปถ่าย/ไฟล์แนบ (Attachments)</span>
                     </label>
                     <label class="btn btn-sm btn-outline-primary px-3 mb-0 border-dashed cursor-pointer">
-                     <i class="fa-solid fa-paperclip me-1"></i> <span data-i18n="btn_add_file">เพิ่มไฟล์/ถ่ายรูป</span>
+                      <i class="fa-solid fa-paperclip me-1"></i> <span data-i18n="btn_add_file">เพิ่มไฟล์/ถ่ายรูป</span>
                       <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
                     </label>
                   </div>
@@ -352,7 +427,7 @@
                   </div>
                 </div>
 
-                <!-- 🌟 เพิ่ม ID sectionSignature -->
+                <!-- Doctor Signature -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius" id="sectionSignature">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
@@ -414,7 +489,7 @@
                 <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
                   <div>
                     <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-users text-primary me-2"></i><span id="lblCoachingMainText" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span></label>
-<div class="text-muted small" id="lblCoachingSubText" data-i18n="lbl_coaching_sub">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
+                    <div class="text-muted small" id="lblCoachingSubText" data-i18n="lbl_coaching_sub">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
                   </div>
                   <label class="switch mb-0">
                     <input type="checkbox" id="visitIsCoaching">
@@ -558,5 +633,5 @@
   </div>
 </div>
 
-<!-- โหลด Controller ฝั่ง JavaScript แบบแยกไฟล์ให้เป็นระเบียบ -->
+<!-- โหลด Controller ฝั่ง JavaScript -->
 <script src="assets/js/controllers/visitCtrl.js"></script>
