@@ -17,50 +17,38 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: Title + Large KPI Cards (ฝั่งซ้าย) + Action Controls (ฝั่งขวา) -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
+    <!-- 🌟 ROW 1: Pro Header (Title + Clean Metric Strip + Action Buttons) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-2 flex-shrink-0">
       
-      <!-- 📌 ฝั่งซ้าย: Visit Logs Title + 3 กล่อง KPI ใหญ่ พรีเมียม โปร่งสบาย -->
+      <!-- ฝั่งซ้าย: Title + Metric Strip สไตล์คลีนไร้ขอบ -->
       <div class="d-flex align-items-center gap-3 flex-wrap">
-        <div class="d-flex align-items-center pe-2 border-end">
+        <div class="d-flex align-items-center pe-3 border-end">
           <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-2">
             <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
             <span data-i18n="visit_title">Visit Logs</span>
           </h4>
         </div>
 
-        <!-- 3 กล่อง KPI ปรับขนาดใหญ่โดดเด่น ย้ายมาทางซ้าย -->
-        <div class="d-flex align-items-center gap-2">
-          <!-- กล่อง 1: Total Visits -->
-          <div class="stat-card-premium">
-            <div class="stat-icon-premium bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-6"></i></div>
-            <div class="stat-content-premium">
-              <span class="stat-lbl-premium" data-i18n="kpi_total_visits">Total Visits</span>
-              <span class="stat-val-premium text-dark" id="statTotalVisits">-</span>
-            </div>
+        <!-- Metric Strip แบบพรีเมียมมินิมอล -->
+        <div class="d-flex align-items-center gap-3">
+          <div class="metric-item-pro">
+            <span class="metric-label" data-i18n="kpi_total_visits">Total Visits</span>
+            <span class="metric-value text-dark" id="statTotalVisits">-</span>
           </div>
-
-          <!-- กล่อง 2: Pending Drafts -->
-          <div class="stat-card-premium">
-            <div class="stat-icon-premium bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-6"></i></div>
-            <div class="stat-content-premium">
-              <span class="stat-lbl-premium" data-i18n="kpi_pending_drafts">Pending Drafts</span>
-              <span class="stat-val-premium text-dark" id="statPendingVisits">-</span>
-            </div>
+          <span class="text-muted opacity-25">|</span>
+          <div class="metric-item-pro">
+            <span class="metric-label" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+            <span class="metric-value text-warning" id="statPendingVisits">-</span>
           </div>
-
-          <!-- กล่อง 3: Submitted Logs -->
-          <div class="stat-card-premium">
-            <div class="stat-icon-premium bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-6"></i></div>
-            <div class="stat-content-premium">
-              <span class="stat-lbl-premium" data-i18n="kpi_submitted_logs">Submitted Logs</span>
-              <span class="stat-val-premium text-dark" id="statSubmittedVisits">-</span>
-            </div>
+          <span class="text-muted opacity-25">|</span>
+          <div class="metric-item-pro">
+            <span class="metric-label" data-i18n="kpi_submitted_logs">Submitted</span>
+            <span class="metric-value text-success" id="statSubmittedVisits">-</span>
           </div>
         </div>
       </div>
 
-      <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
+      <!-- ฝั่งขวา: ปุ่มคำสั่ง Action Buttons -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
           <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
@@ -83,47 +71,51 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: Separated Filter Zone Card (การ์ดแยกสีขาวคลีน สมดุลพอดี) -->
-    <div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
-      <div class="d-flex flex-wrap align-items-center gap-2.5">
+    <!-- 🌟 ROW 2: Control Toolbar Card (แผงการ์ดสีขาวหรูหรา ครอบสัดส่วนเป๊ะ) -->
+    <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         
-        <!-- ช่องค้นหา Smart Search -->
-        <div class="flex-grow-1" style="min-width: 260px; max-width: 450px;">
-          <div class="input-group border bg-white shadow-xs overflow-hidden premium-radius align-items-center">
-            <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted d-flex align-items-center"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
-            <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5 d-flex align-items-center" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
-              <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
-            </button>
+        <!-- ฝั่งซ้าย: Omnibox Search + Date + Status -->
+        <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
+          
+          <!-- Smart Search -->
+          <div class="pro-search-box" style="width: 300px;">
+            <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
+              <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+              <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Product..." onkeyup="window.debouncedFilterVisits()">
+              <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')" title="Voice Search">
+                <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Date Range -->
+          <div style="width: 220px;">
+            <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius d-flex align-items-center">
+              <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
+              <span class="text-muted small px-1">-</span>
+              <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="window.filterVisits()">
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div style="width: 140px;">
+            <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
+              <option value="" id="optAllStatus">- All Status -</option>
+              <option value="Pending" id="optStatusPending">Pending Drafts</option>
+              <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
+            </select>
           </div>
         </div>
 
-        <!-- ช่วงวันที่ Date Range -->
-        <div style="width: 230px;">
-          <div class="input-group input-group-sm border px-2 bg-white premium-radius d-flex align-items-center">
-            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
-            <span class="text-muted small px-1">-</span>
-            <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="window.filterVisits()">
-          </div>
-        </div>
-
-        <!-- ตัวเลือกสถานะ Status -->
-        <div style="width: 145px;">
-          <select class="form-select border shadow-none filter-placeholder-text premium-radius" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
-            <option value="" id="optAllStatus">- All Status -</option>
-            <option value="Pending" id="optStatusPending">Pending Drafts</option>
-            <option value="Submitted" id="optStatusSubmitted">Submitted Logs</option>
-          </select>
-        </div>
-
-        <!-- กลุ่มปุ่มจัดการด้านขวา + Advanced Filter Popover -->
+        <!-- ฝั่งขวา: Advanced Filter & Controls -->
         <div class="d-flex gap-1.5 align-items-center ms-auto">
           
           <div class="dropdown position-relative">
             <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
-              <i class="fa-solid fa-sliders"></i>
+              <i class="fa-solid fa-sliders me-1.5"></i><span class="small fw-semibold">Filters</span>
             </button>
-            <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 280px; z-index: 1050;">
+            <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 290px; z-index: 1050;">
               <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6 d-flex align-items-center"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
               <div class="mb-2">
                 <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
@@ -145,7 +137,7 @@
           </button>
           
           <button class="btn btn-outline-success border shadow-sm premium-radius d-flex align-items-center justify-content-center" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()" title="Export Data">
-            <i class="fa-solid fa-file-excel"></i>
+            <i class="fa-solid fa-file-excel me-1"></i><span class="small fw-semibold">Export</span>
           </button>
         </div>
 
