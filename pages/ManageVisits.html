@@ -17,17 +17,36 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 Header Title + Action Buttons (มินิมอล ไม่ทับซ้อน Navbar) -->
+    <!-- 🌟 TOP ROW: Title + Inline KPI Pills + Action Buttons (แถวเดียวครบจบทันที!) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2 flex-shrink-0">
-      <div class="d-flex align-items-center gap-2">
-        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5">
+      
+      <!-- ฝั่งซ้าย: Visit Logs Title + 3 กล่อง KPI แบบ Inline Pills -->
+      <div class="d-flex align-items-center gap-2.5 flex-wrap">
+        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center fs-5 me-1">
           <span class="text-primary me-2"><i class="fa-solid fa-calendar-check"></i></span>
           <span data-i18n="visit_title">Visit Logs</span>
         </h4>
-        <span class="text-muted opacity-50">|</span>
-        <span class="text-muted small" data-i18n="visit_subtitle">Doctor visits & daily activity logs</span>
+
+        <div class="stat-pill-inline">
+          <div class="stat-icon-mini bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days"></i></div>
+          <span class="stat-val text-dark" id="statTotalVisits">-</span>
+          <span class="stat-lbl" data-i18n="kpi_total_visits">Total</span>
+        </div>
+
+        <div class="stat-pill-inline">
+          <div class="stat-icon-mini bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <span class="stat-val text-dark" id="statPendingVisits">-</span>
+          <span class="stat-lbl" data-i18n="kpi_pending_drafts">Drafts</span>
+        </div>
+
+        <div class="stat-pill-inline">
+          <div class="stat-icon-mini bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
+          <span class="stat-val text-dark" id="statSubmittedVisits">-</span>
+          <span class="stat-lbl" data-i18n="kpi_submitted_logs">Submitted</span>
+        </div>
       </div>
       
+      <!-- ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
           <button class="btn btn-sm btn-premium-primary px-3 py-1 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1"></i> <span data-i18n="btn_list">List</span></button>
@@ -50,38 +69,7 @@
       </div>
     </div>
 
-    <!-- 🌟 Stats Cards Zone (แบบย่อกระชับ สไตล์ Compact Inline) -->
-    <div class="row g-2 mb-2 flex-shrink-0">
-      <div class="col-sm-4">
-        <div class="stat-card-compact">
-          <div class="stat-icon bg-primary-subtle text-primary me-2.5"><i class="fa-solid fa-calendar-days"></i></div>
-          <div>
-            <div class="text-muted small fw-semibold" style="font-size: 0.75rem;" data-i18n="kpi_total_visits">Total Visits</div>
-            <h5 class="text-dark" id="statTotalVisits">-</h5>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-4">
-        <div class="stat-card-compact">
-          <div class="stat-icon bg-warning-subtle text-warning me-2.5"><i class="fa-solid fa-clock-rotate-left"></i></div>
-          <div>
-            <div class="text-muted small fw-semibold" style="font-size: 0.75rem;" data-i18n="kpi_pending_drafts">Pending Drafts</div>
-            <h5 class="text-dark" id="statPendingVisits">-</h5>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-4">
-        <div class="stat-card-compact">
-          <div class="stat-icon bg-success-subtle text-success me-2.5"><i class="fa-solid fa-circle-check"></i></div>
-          <div>
-            <div class="text-muted small fw-semibold" style="font-size: 0.75rem;" data-i18n="kpi_submitted_logs">Submitted Logs</div>
-            <h5 class="text-dark" id="statSubmittedVisits">-</h5>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🌟 Filter Zone (ปรับความสูง 36px ประหยัดพื้นที่แนวตั้ง) -->
+    <!-- 🌟 Filter Zone (จัดระเบียบฟอนต์ไม่ตก แนวกึ่งกลางเป๊ะ) -->
     <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
       <div class="row g-2 align-items-center">
         <div class="col-12 col-lg-5">
@@ -95,9 +83,9 @@
         </div>
 
         <div class="col-12 col-sm-6 col-lg-3">
-          <div class="input-group input-group-sm border px-2 bg-white premium-radius">
+          <div class="input-group input-group-sm border px-2 bg-white premium-radius d-flex align-items-center">
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterStartDate" onchange="window.filterVisits()">
-            <span class="align-self-center text-muted">-</span>
+            <span class="text-muted small px-1">-</span>
             <input type="date" class="form-control border-0 bg-transparent text-secondary px-1" id="filterEndDate" onchange="window.filterVisits()">
           </div>
         </div>
@@ -140,7 +128,7 @@
     <!-- Zone 1: List View Table Card -->
     <div id="visitListZone" class="card p-3 p-md-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
       
-      <!-- 🌟 กล่องตารางเลื่อน Scrollbar -->
+      <!-- 🌟 กล่องเลื่อน Scrollbar ภายในตาราง -->
       <div class="table-responsive table-scroll-inside flex-grow-1">
         <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
           <thead class="table-custom-header text-center">
