@@ -368,7 +368,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       }
 
       var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-      var rawScope = crmUser ? String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.Team_ID || crmUser.BU_ID || '').trim() : '';
+      var rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.BU_ID || '').trim() : '';
 
       var isGlobalViewer = false;
       var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
@@ -379,22 +379,32 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       var allowedTerIds = [];
       var allowedDocIds = [];
 
+      // 🌟 FIX: ปรับปรุง Logic คำนวณ Territory & Doctor ของ Manager ให้แม่นยำ 100%
       if (!isGlobalViewer) {
         var isBuHead = uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1;
         var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
 
+        var allTerritories = terrRes.data || terrRes || [];
+        var allTeams = teamRes.data || teamRes || [];
+        var allBus = buRes.data || buRes || [];
+
         if (isBuHead) {
-          var matchedBu = (buRes.data || buRes || []).find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
+          var matchedBu = allBus.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
           var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-          var buTeams = (teamRes.data || teamRes || []).filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+          var buTeams = allTeams.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
           var buTeamIds = buTeams.map(t => String(t.Team_ID));
-          var terrs = (terrRes.data || terrRes || []).filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
+          var terrs = allTerritories.filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
           terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
         } else if (isManager) {
-          var matchedTeam = (teamRes.data || teamRes || []).filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope);
-          var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID) : rawScope;
-          var terrs = (terrRes.data || terrRes || []).filter(t => String(t.Team_ID) === targetTeamId);
+          // หาตาราง Team ที่แมปตรงกับ Scope
+          var matchedTeams = allTeams.filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope || String(t.Team_Name) === rawScope);
+          var targetTeamIds = matchedTeams.map(t => String(t.Team_ID));
+          if (targetTeamIds.length === 0 && rawScope) targetTeamIds.push(rawScope);
+
+          var terrs = allTerritories.filter(t => targetTeamIds.indexOf(String(t.Team_ID)) !== -1 || targetTeamIds.indexOf(String(t.Team)) !== -1 || String(t.Territory_ID) === rawScope);
           terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
+
+          // Fallback ป้องกันกรณี Territory_ID ตรงกับ Scope โดยตรง
           if (allowedTerIds.length === 0 && rawScope) allowedTerIds.push(rawScope);
         } else { 
           if (rawScope) allowedTerIds.push(rawScope);
@@ -408,7 +418,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         });
       }
 
-      // 🌟 [FULL VISITING PERMISSION MATCHING]: คำนวณหา Products แบบเดียวกับ visitCtrl.js
+      // 🌟 VISITING PERMISSION MATCHING FOR PRODUCTS
       const allProductsList = prodRes || [];
       const teamProdLinksList = teamProdRes || [];
       let filteredProds = [];
