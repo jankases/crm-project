@@ -1989,11 +1989,14 @@ window.renderVisitTableServerSide = function() {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-box-archive text-warning"></i></span>';
     }
-        
+
+    // 🌟 [PREMIUM REFINEMENT] 
+    // - ชื่อแพทย์: ใช้ class="table-doc-name" เด่นชัดเนียนตาสไตล์ Enterprise
+    // - โรงพยาบาล: ใช้ class="table-hosp-text" พร้อมไอคอนตึกแบบ Plain Text ไม่ติดกล่องกรอบสี่เหลี่ยม
     htmlBuffer += '<tr>' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-      '<td class="fw-bold text-dark text-start ps-3">' + highlightedDoc + evidenceBadges + '</td>' +
-      '<td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>' + highlightedHosp + distanceBadge + '</small></td>' +
+      '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
       '<td>' + prodBadges + '</td>' +
       '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
       '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
