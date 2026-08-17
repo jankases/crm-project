@@ -1113,20 +1113,28 @@ window.deleteTot = async function() {
                 return r.data || []; 
             };
 
-        // 🛡️ ดึงข้อมูลแบบสมบูรณ์เหมือนเดิม 100% เพื่อป้องกันปัญหาชื่อหลุดเป็น UUID
-        var promises = [
-          fetchFn('Doctors'),
-          fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
-          fetchFn('Territory'),
-          fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
-          fetchFn('Team'),            
-          fetchFn('BU'),            
-          fetchFn('Products_Team'),   
-          fetchFn('IndexType'),
-          fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
-          fetchFn('Rep_Users'),
-          fetchFn('Assignment')
-        ];
+        // 🛡️ ดึงข้อมูลแบบสมบูรณ์เหมือนเดิม 100% เพื่อป้องกันปัญหาชื่อหลุดเป็น UUID 
+            var promises = [
+              fetchFn('Doctors', function(q) { 
+                return q.select('Doc_ID, doc_id, id, Doc_Name, doc_name, name, Doc_Name_TH, Hospital_ID, hospital_id, Territory_ID, territory_id, Status, Workplaces_JSON'); 
+              }),
+              fetchFn('Products', function(q) { 
+                return q.select('Product_ID, id, Product, Product_TH').order('Product', { ascending: true }); 
+              }), 
+              fetchFn('Territory'),
+              fetchFn('Hospitals', function(q) { 
+                return q.select('Hospital_ID, id, Hospital, Hospital_Name, Hospital_TH, Known_As').order('Hospital', { ascending: true }); 
+              }),
+              fetchFn('Team'),            
+              fetchFn('BU'),            
+              fetchFn('Products_Team'),   
+              fetchFn('IndexType'),
+              fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
+              fetchFn('Rep_Users', function(q) { 
+                return q.select('Rep_ID, User_ID, id, Rep_Name, Name, Email, Role, role, Territory_ID, Team_ID, BU_ID'); 
+              }),
+              fetchFn('Assignment')
+            ];
         var results = await Promise.all(promises);
 
         var allDoctors = results[0] || [];
@@ -1575,19 +1583,19 @@ window.loadVisits = async function(forceReload) {
         return; 
     }
 
-    try {
-      // 🚀 [SPEED BOOST] ยิงดึง DCR, TOT_Logs และ MasterData ขนานกันตั้งแต่วินาทีแรก
-      if (forceReload || !window.VisitManagerCache.isLoaded) {
-          var promises = [
-              window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-              (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
-              (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
-          ];
-          var additionalRes = await Promise.all(promises);
-          window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
-          window.VisitManagerCache.totLogs = additionalRes[1] || [];
-          window.VisitManagerCache.isLoaded = true;
-      }
+// ใน window.loadVisits ท่อน try { ... }
+try {
+  if (forceReload || !window.VisitManagerCache.isLoaded) {
+      var promises = [
+          window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
+          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
+          (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
+      ];
+      var additionalRes = await Promise.all(promises);
+      window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
+      window.VisitManagerCache.totLogs = additionalRes[1] || [];
+      window.VisitManagerCache.isLoaded = true;
+  }
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
