@@ -17,10 +17,10 @@
   <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: KPI Cards สัดส่วนเท่ากันกระชับพอดี (ซ้ายสุด) + Action Controls (ขวาสุด) -->
+    <!-- 🌟 ROW 1: KPI Cards + Action Controls -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       
-      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน ขนาดเท่ากันเป๊ะ สัดส่วนบาลานซ์สวยงาม -->
+      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน -->
       <div class="d-flex align-items-center gap-2 flex-wrap">
         <!-- Total Visits Card -->
         <div class="kpi-card-elevated kpi-border-blue">
@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: MAIN CONTENT CONTAINER (ครอบรวม Filter + Table ไว้เป็นก้อนเดียวกัน ป้องกัน UI แวบวูบวาบ) -->
+    <!-- 🌟 ROW 2: MAIN CONTENT CONTAINER (ครอบตั้งแต่ Filter bar + Table ทั้งหมด ไม่ให้หัวตารางหลุดออกมา) -->
     <div id="visitMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden">
       
       <!-- Filter Toolbar Card -->
@@ -185,7 +185,7 @@
 
     </div>
 
-    <!-- 🌟 GLOBAL UNIFIED LOADING OVERLAY (ขึ้นแสดงแทนที่ Filter + Table กึ่งกลางการ์ดสีขาวก้อนเดียว) -->
+    <!-- 🌟 UNIFIED SINGLE LOADING SCREEN (วางไว้นอก #visitMainContentContainer เพื่อขึ้นแสดงทับเดี่ยวๆ ไร้หัวตารางลอย) -->
     <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column align-items-center justify-content-center my-auto d-none">
       <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem; border-width: 0.25rem;" role="status"></div>
       <h5 class="text-dark fw-bold mb-1" id="loadingTitleText">Loading Data...</h5>
