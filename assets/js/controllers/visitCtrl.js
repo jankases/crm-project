@@ -1024,7 +1024,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
- window.loadDropdowns = async function(forceReload) {
+window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1113,28 +1113,19 @@ window.deleteTot = async function() {
                 return r.data || []; 
             };
 
-        // 🛡️ ดึงข้อมูลแบบสมบูรณ์เหมือนเดิม 100% เพื่อป้องกันปัญหาชื่อหลุดเป็น UUID 
-            var promises = [
-              fetchFn('Doctors', function(q) { 
-                return q.select('Doc_ID, doc_id, id, Doc_Name, doc_name, name, Doc_Name_TH, Hospital_ID, hospital_id, Territory_ID, territory_id, Status, Workplaces_JSON'); 
-              }),
-              fetchFn('Products', function(q) { 
-                return q.select('Product_ID, id, Product, Product_TH').order('Product', { ascending: true }); 
-              }), 
-              fetchFn('Territory'),
-              fetchFn('Hospitals', function(q) { 
-                return q.select('Hospital_ID, id, Hospital, Hospital_Name, Hospital_TH, Known_As').order('Hospital', { ascending: true }); 
-              }),
-              fetchFn('Team'),            
-              fetchFn('BU'),            
-              fetchFn('Products_Team'),   
-              fetchFn('IndexType'),
-              fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
-              fetchFn('Rep_Users', function(q) { 
-                return q.select('Rep_ID, User_ID, id, Rep_Name, Name, Email, Role, role, Territory_ID, Team_ID, BU_ID'); 
-              }),
-              fetchFn('Assignment')
-            ];
+        var promises = [
+          fetchFn('Doctors'),
+          fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+          fetchFn('Territory'),
+          fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+          fetchFn('Team'),            
+          fetchFn('BU'),            
+          fetchFn('Products_Team'),   
+          fetchFn('IndexType'),
+          fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
+          fetchFn('Rep_Users'),
+          fetchFn('Assignment')
+        ];
         var results = await Promise.all(promises);
 
         var allDoctors = results[0] || [];
@@ -1201,7 +1192,6 @@ window.deleteTot = async function() {
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
-    // ⚡ สร้าง TomSelect แพทย์
     var docSelect = document.getElementById('visitDocId');
     if (docSelect && (!window.tomSelectDocInstance || forceReload)) { 
       docSelect.innerHTML = '<option value=""></option>';
@@ -1224,7 +1214,6 @@ window.deleteTot = async function() {
 
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
-    // 🎯 PURPOSE Dropdown
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect && (!window.tomSelectPurposeInstance || forceReload)) { 
       var types = window.VisitManagerCache.indexTypes || []; 
@@ -1255,7 +1244,6 @@ window.deleteTot = async function() {
       }
     }
 
-    // 🚀 [RE-APPLY VALUES]: ตรวจเช็กว่าหากฟอร์มเปิดอยู่ ให้จับยัดค่า Doctor และ Purpose ที่ต้องการคืนกลับลง TomSelect ทันที
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var vIdInput = document.getElementById('visitId');
@@ -1560,7 +1548,6 @@ window.loadVisits = async function(forceReload) {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🚀 [STEP 1] สั่งเข้าสถานะ Loading ทันที (ซ่อนทั้ง Filter และ Table ไม่ให้เหลือหัวตารางลอย)
     if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -1569,7 +1556,6 @@ window.loadVisits = async function(forceReload) {
         if (visitViewEl) visitViewEl.classList.add('is-loading');
     }
 
-    // 🚀 CACHE GUARD: ถ้าข้อมูลอยู่ใน RAM แล้ว สั่งแสดงผลทันที 0 วินาที
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         
@@ -1583,7 +1569,6 @@ window.loadVisits = async function(forceReload) {
         return; 
     }
 
-// ใน window.loadVisits ท่อน try { ... }
 try {
   if (forceReload || !window.VisitManagerCache.isLoaded) {
       var promises = [
@@ -1767,7 +1752,6 @@ try {
 
       window._visitSampleIndex = {};
 
-      // 🚀 [SPEED OPTIMIZATION]: ดึง Products และ Samples พร้อมกันขนานกัน
       if (window.globalVisits.length > 0) {
         var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
 
@@ -1837,7 +1821,6 @@ try {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      // 🚀 [STEP 2] ปิดสถานะ Loading เปิด Filter + Table ออกมาพร้อมกันช็อตเดียว
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
@@ -1880,6 +1863,7 @@ window.restoreVisitFilterState = function() {
     }
     if (sf.page) window.currentPage = sf.page;
 };
+
 window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
@@ -1995,7 +1979,6 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-box-archive text-warning"></i></span>';
     }
 
-    // 🌟 PREMIUM REFINEMENT (ชื่อแพทย์เด่น + โรงพยาบาล Plain Text)
     htmlBuffer += '<tr>' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
       '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
@@ -2377,7 +2360,7 @@ window.openAddVisitView = async function(presetDate) {
   setTimeout(() => { window.checkAndRestoreAutosave(); }, 500);
 };
 
- window.handleSaveVisit = async function(e) {
+window.handleSaveVisit = async function(e) {
   e.preventDefault();
   var btn = document.getElementById('saveVisitBtn');
   var mode = btn ? btn.dataset.mode : '';
@@ -3331,11 +3314,9 @@ if (noAttachmentText) {
     noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
 }
 
-// 🚀 [SPEED OPTIMIZATION]: ลดเวลา domWaitCount เพื่อให้เริ่มต้นทำงานเร็วขึ้นทันที
- window.initVisitPage = async function(forceReload) {
+window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
-    // 🛡️ 1. GUARD: ถ้าเปิดหน้าฟอร์มแก้ไข/เพิ่มข้อมูลอยู่ ห้ามรัน initVisitPage เพื่อป้องกัน TomSelect โดนรีเซ็ต
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) return;
 
@@ -3360,19 +3341,16 @@ if (noAttachmentText) {
         if (loadingTitleEl) loadingTitleEl.textContent = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
         if (loadingDescEl) loadingDescEl.textContent = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
 
-        // 🛡️ ล็อกหน้า Loading ไว้ก่อน ไม่ให้ Filter/Table หลุดออกมา
         visitViewEl.classList.add('is-loading');
     }
 
     try {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
 
-        // 🔒 STEP 1: คำนวณสิทธิ์ & สร้าง Dropdowns / Indexes ให้เสร็จสมบูรณ์ 100% ก่อน
         if (typeof window.loadDropdowns === 'function') {
             await window.loadDropdowns(shouldFetchDB); 
         }
 
-        // 🔒 STEP 2: เมื่อสิทธิ์ชัวร์แล้ว ค่อยยิงดึง Visits และ Master ข้อมูลอื่นต่อทันที
         var subTasks = [];
         if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(shouldFetchDB));
         if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
@@ -3397,7 +3375,6 @@ if (noAttachmentText) {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
 
-        // 🌟 ปลดล็อกหน้า Loading ออกพร้อมกันในช็อตเดียว
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
@@ -3411,7 +3388,7 @@ if (!window._visitObserverAttached) {
             if (mutation.addedNodes) {
                 mutation.addedNodes.forEach(function(node) {
                     if (node.nodeType === 1) {
-                        if (node.id === 'visitTableBody' || (node.querySelector && node.querySelector('#visitTableBody'))) {
+                        if (node.id === 'visitTableBody' && !window.VisitManagerCache?.isLoaded) {
                             if (typeof window.initVisitPage === 'function') window.initVisitPage(false);
                         }
                     }
@@ -3422,13 +3399,6 @@ if (!window._visitObserverAttached) {
     visitObserver.observe(document.body, { childList: true, subtree: true });
     window._visitObserverAttached = true;
 }
-
-setTimeout(function() {
-    var crmUser = sessionStorage.getItem('crmUser');
-    if (crmUser) {
-        window.initVisitPage(true); 
-    }
-}, 50);
 
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
