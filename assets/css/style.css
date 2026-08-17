@@ -682,20 +682,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 กำหนดความสูงพื้นที่ Loading ให้ยืดกึ่งกลางการ์ด */
-#visitTableBody .spinner-border {
-  margin-top: auto;
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY (จัดสปินเนอร์กึ่งกลางการ์ดสีขาวสมบูรณ์แบบ) */
+#visitTableLoading {
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-#visitTableBody tr:has(.spinner-border) td {
-  padding-top: 100px !important;
-  padding-bottom: 100px !important;
-  vertical-align: middle !important;
-}
-
-/* 🌟 แถวข้อมูลปกติจะคงความสูงกระชับ ไม่โดนกระทบ */
-.table-scroll-inside .table tbody tr:not(:has(.spinner-border)) td {
-  padding-top: 0.6rem !important;
-  padding-bottom: 0.6rem !important;
+/* 🌟 คลีน CSS ตารางปกติให้แถวกะทัดรัด สวยงาม */
+.table-scroll-inside .table tbody tr td {
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
   vertical-align: middle;
 }
