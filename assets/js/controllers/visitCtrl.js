@@ -3362,15 +3362,21 @@ window.initVisitPage = async function(forceReload) {
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
-    var tbody = document.getElementById('visitTableBody');
+    var visitViewEl = document.getElementById('visitListView');
+    var loadingTitleEl = document.getElementById('loadingTitleText');
+    var loadingDescEl = document.getElementById('loadingDescText');
 
-    // ขึ้นตัวหมุน Loading เฉพาะตอนที่ต้องดึงข้อมูลใหม่จาก Server จริงๆ เท่านั้น
-    if (shouldFetchDB && tbody) {
+    // 🚀 [แก้ไขจุดนี้] เปลี่ยนจากการยัด <tr><td> ลง tbody มาเป็นการเข้าสถานะ Single Loading ทันที ป้องกันหัวตารางลอยและ 2 ขยัก
+    if (shouldFetchDB && visitViewEl) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadingTitle = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
         var loadingDesc = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
         
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5"><div class="d-flex flex-column align-items-center justify-content-center my-4"><div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div><h5 class="text-dark fw-bold mb-1">' + loadingTitle + '</h5><span class="text-muted small">' + loadingDesc + '</span></div></td></tr>';
+        if (loadingTitleEl) loadingTitleEl.textContent = loadingTitle;
+        if (loadingDescEl) loadingDescEl.textContent = loadingDesc;
+
+        // สั่งซ่อนทั้งแผง (Filter + หัวตาราง + tbody) ตั้งแต่วินาทีแรกที่ init
+        visitViewEl.classList.add('is-loading');
     }
 
     try {
@@ -3393,10 +3399,14 @@ window.initVisitPage = async function(forceReload) {
         console.error("Init Visits Failed:", err);
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var msgErr = appLang === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
+        var tbody = document.getElementById('visitTableBody');
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
+
+        // 🌟 ปิดสถานะ Loading เปิด Filter + Table ออกมาพร้อมกันช็อตเดียวจบ!
+        if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
 
