@@ -1527,7 +1527,7 @@ window.clearVisitFilters = function() {
  // ==========================================
 // 📥 LOAD VISITS WITH STATE PRESERVATION & FULL SMART SEARCH
 // ==========================================
-window.loadVisits = async function(forceReload) {
+ window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1538,7 +1538,7 @@ window.loadVisits = async function(forceReload) {
         await window.loadMasterDataForVisits();
     }
     
-    // 🌟 ดึง Element สำหรับการควบคุมการซ่อน/แสดงระหว่างแผงเนื้อหาหลัก กับหน้า Loading กึ่งกลางการ์ด
+    // 🌟 ดึง Element สำหรับการควบคุมการซ่อน/แสดงแผงเนื้อหา และหน้า Loading กึ่งกลางการ์ด
     var mainContentEl = document.getElementById('visitMainContentContainer');
     var tableLoadingEl = document.getElementById('visitTableLoading');
     var loadingTitleEl = document.getElementById('loadingTitleText');
@@ -1559,11 +1559,11 @@ window.loadVisits = async function(forceReload) {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🚀 1. CACHE GUARD: สลับ Tab แล้วมีข้อมูลเดิม -> แสดงผลทันที 0 วินาที ไร้การกระพริบ
+    // 🚀 1. CACHE GUARD: สลับ Tab แล้วมีข้อมูลเดิมใน RAM -> ดึงแสดงผลทันที 0 วินาที ไร้การกระพริบ
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         
-        // 🌟 ปิด Loading และแสดงแผงเนื้อหาหลัก (Filter + Table) ทันที
+        // 🌟 ปิด Loading Overlay และเปิดแผงเนื้อหาหลัก (Filter + Table) ทันที
         if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
         if (mainContentEl) mainContentEl.classList.remove('d-none');
 
@@ -1575,7 +1575,7 @@ window.loadVisits = async function(forceReload) {
         return; 
     }
 
-    // 🌟 2. UNIFIED LOADING STATE: ซ่อนทั้งแผงเนื้อหา (Filter + Table) เพื่อแสดงหน้า Loading ก้อนเดียวกึ่งกลางการ์ด
+    // 🌟 2. UNIFIED LOADING STATE: ซ่อนแผง Filter + Table เพื่อโชว์ Loading Card ก้อนเดียวกึ่งกลางการ์ด
     if (forceReload || !hasData) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         var loadingTitle = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -1584,7 +1584,6 @@ window.loadVisits = async function(forceReload) {
         if (loadingTitleEl) loadingTitleEl.textContent = loadingTitle;
         if (loadingDescEl) loadingDescEl.textContent = loadingDesc;
 
-        // ซ่อนเนื้อหาทั้งหมด แล้วเปิด Loading ก้อนเดียว
         if (mainContentEl) mainContentEl.classList.add('d-none');
         if (tableLoadingEl) tableLoadingEl.classList.remove('d-none');
     }
@@ -1824,7 +1823,7 @@ window.loadVisits = async function(forceReload) {
           return matchDate && matchRep;
       });
         
-      // 🌟 3. SHOW CONTENT STATE: ซ่อน Loading และเปิดการแสดงผลแผงเนื้อหาหลัก (Filter + Table) ทั้งหมดพร้อมกันแบบเนียนตา
+      // 🌟 3. SHOW CONTENT STATE: โหลดข้อมูลเสร็จแล้ว สั่งปิด Loading Overlay แล้วคลี่แผงเนื้อหา (Filter + Table) ออกมาพร้อมกัน
       if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
       if (mainContentEl) mainContentEl.classList.remove('d-none');
 
@@ -1840,7 +1839,7 @@ window.loadVisits = async function(forceReload) {
     } catch (err) {
       console.error("Load Visits Error:", err);
       
-      // กรณีเกิดข้อผิดพลาด: แสดงแผงเนื้อหาเพื่อโชว์ข้อความ Error ในตาราง
+      // กรณีดึงข้อมูลล้มเหลว: ปิด Loading แล้วโชว์แผงเนื้อหาเพื่อแสดงบรรทัด Error ในตาราง
       if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
       if (mainContentEl) mainContentEl.classList.remove('d-none');
 
