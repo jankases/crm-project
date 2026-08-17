@@ -1527,33 +1527,16 @@ window.clearVisitFilters = function() {
  // ==========================================
 // 📥 LOAD VISITS WITH STATE PRESERVATION & FULL SMART SEARCH
 // ==========================================
- window.loadVisits = async function(forceReload) {
+window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
         waitLimit++;
     }
 
-    // 🌟 ดึง Element สำหรับสลับการแสดงผล
-    var mainContentEl = document.getElementById('visitMainContentContainer');
-    var tableLoadingEl = document.getElementById('visitTableLoading');
+    var visitViewEl = document.getElementById('visitListView');
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
-
-    // 🚀 [ขยักเดียวจบ STEP 1] ซ่อนทั้งก้อน (Filter + Table) ทันที แล้วเปิดโชว์ Loading Screen กล่องเดียวกึ่งกลางจอ
-    if (forceReload || !window.VisitManagerCache || !window.VisitManagerCache.isLoaded) {
-        var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
-
-        if (mainContentEl) mainContentEl.classList.add('d-none');
-        if (tableLoadingEl) tableLoadingEl.classList.remove('d-none');
-    }
-
-    // ดึง Master Data และ Visit Logs เบื้องหลัง
-    if (typeof window.loadMasterDataForVisits === 'function') {
-        await window.loadMasterDataForVisits();
-    }
 
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -1570,12 +1553,24 @@ window.clearVisitFilters = function() {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🚀 CACHE GUARD: สลับ Tab แล้วมีข้อมูลเดิมใน RAM -> ดึงมาเรนเดอร์ทันที 0 วินาที
+    // 🚀 [STEP 1] สั่งเข้าสถานะ Loading ทันที (ซ่อนทั้ง Filter และ Table ไม่ให้เหลือหัวตารางลอย)
+    if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
+        var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
+        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+
+        if (visitViewEl) visitViewEl.classList.add('is-loading');
+    }
+
+    if (typeof window.loadMasterDataForVisits === 'function') {
+        await window.loadMasterDataForVisits();
+    }
+
+    // 🚀 CACHE GUARD: ถ้าข้อมูลอยู่ใน RAM แล้ว สั่งแสดงผลทันที 0 วินาที
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         
-        if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
-        if (mainContentEl) mainContentEl.classList.remove('d-none');
+        if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
         window.renderVisitTableServerSide();
         if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
@@ -1660,7 +1655,6 @@ window.clearVisitFilters = function() {
       if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
       if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
-      // 🔍 2. [FULL SMART SEARCH] รักษาระบบสแกนรายละเอียดเดิมทุกประการ
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       
       if (rawSearchVal) {
@@ -1836,9 +1830,8 @@ window.clearVisitFilters = function() {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      // 🚀 [ขยักเดียวจบ STEP 2] ดึงข้อมูลและเซ็ตค่า Filter เสร็จสมบูรณ์แล้ว ค่อยเปิดการ์ดแสดงผล Filter + Table ออกมาพร้อมกัน 100%
-      if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
-      if (mainContentEl) mainContentEl.classList.remove('d-none');
+      // 🚀 [STEP 2] ปิดสถานะ Loading เพื่อเปิดแผง Filter + Table ออกมาพร้อมกันในวินาทีเดียวกัน 100%
+      if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
 
