@@ -719,3 +719,38 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
+
+/* ==========================================
+   ✨ PREMIUM TABLE & VISUAL REFINEMENTS
+   ========================================== */
+
+/* 1. คอลัมน์โรงพยาบาล: ทำเป็น Plain Text สบายตา ไม่เป็นกล่องสี่เหลี่ยม */
+.table-hosp-text {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.table-hosp-text i {
+  color: #0284c7 !important;
+  font-size: 0.85rem;
+}
+
+/* 2. คอลัมน์ชื่อแพทย์: เด่นชัดเป็นจุดโฟกัสหลัก */
+.table-doc-name {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* 3. ปรับระยะบรรทัดและเส้นแบ่งตารางให้นุ่มนวลขึ้น */
+.table-scroll-inside .table tbody tr td {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid #f1f5f9 !important; /* เส้นแบ่งนุ่มตา ไม่เป็นกรอบเข้ม */
+  vertical-align: middle;
+}
+
+.table-scroll-inside .table tbody tr:hover {
+  background-color: #f8fafc !important; /* Hilight แถวเวลานำเมาส์ไปชี้ */
+}
