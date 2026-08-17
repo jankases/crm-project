@@ -1599,10 +1599,12 @@ try {
               var allowedIds = [];
               if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
                   allowedIds = [...window.myAllowedRepIds];
+              } else if (myRepId) {
+                  allowedIds = [myRepId];
               }
               
               if (myRole !== 'admin' && myRole !== 'system admin') {
-                  if (window.globalUsersList) {
+                  if (window.globalUsersList && window.globalUsersList.length > 0) {
                       var safeIds = [];
                       for (var i = 0; i < allowedIds.length; i++) {
                           var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
@@ -1611,7 +1613,7 @@ try {
                               safeIds.push(allowedIds[i]);
                           }
                       }
-                      allowedIds = safeIds; 
+                      if (safeIds.length > 0) safeIds = safeIds; 
                   }
               }
 
