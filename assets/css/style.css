@@ -682,23 +682,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 กำหนดความสูงกึ่งกลางเฉพาะแถวที่เป็น Loading */
-#visitTableBody:has(.spinner-border) tr,
-#visitTableBody:has(.spinner-border) td {
-  height: 380px !important; /* บังคับความสูงกล่อง Loading ให้ยืดลงมากึ่งกลาง */
+/* 🌟 กำหนดความสูงพื้นที่ Loading ให้ยืดกึ่งกลางการ์ด */
+#visitTableBody .spinner-border {
+  margin-top: auto;
+}
+
+#visitTableBody tr:has(.spinner-border) td {
+  padding-top: 100px !important;
+  padding-bottom: 100px !important;
   vertical-align: middle !important;
 }
 
-#visitTableBody:has(.spinner-border) td > div {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 🌟 ปรับระยะความสูงของตารางปกติเมื่อข้อมูลมาแล้ว ให้กะทัดรัด สวยงามพอดี */
-.table-scroll-inside .table tbody tr td {
+/* 🌟 แถวข้อมูลปกติจะคงความสูงกระชับ ไม่โดนกระทบ */
+.table-scroll-inside .table tbody tr:not(:has(.spinner-border)) td {
   padding-top: 0.6rem !important;
   padding-bottom: 0.6rem !important;
   vertical-align: middle;
