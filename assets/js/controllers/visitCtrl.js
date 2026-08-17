@@ -1024,7 +1024,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
-window.loadDropdowns = async function(forceReload) {
+ window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1113,20 +1113,20 @@ window.loadDropdowns = async function(forceReload) {
                 return r.data || []; 
             };
 
-        // 🚀 [SPEED OPTIMIZATION]: ดึงเฉพาะ Columns ที่จำเป็นเพื่อลดขนาด Data Payload ข้าม Network
+        // 🛡️ ดึงข้อมูลแบบสมบูรณ์เหมือนเดิม 100% เพื่อป้องกันปัญหาชื่อหลุดเป็น UUID
         var promises = [
-                  fetchFn('Doctors'),
-                  fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
-                  fetchFn('Territory'),
-                  fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
-                  fetchFn('Team'),            
-                  fetchFn('BU'),            
-                  fetchFn('Products_Team'),   
-                  fetchFn('IndexType'),
-                  fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
-                  fetchFn('Rep_Users'),
-                  fetchFn('Assignment')
-                ];
+          fetchFn('Doctors'),
+          fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+          fetchFn('Territory'),
+          fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+          fetchFn('Team'),            
+          fetchFn('BU'),            
+          fetchFn('Products_Team'),   
+          fetchFn('IndexType'),
+          fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
+          fetchFn('Rep_Users'),
+          fetchFn('Assignment')
+        ];
         var results = await Promise.all(promises);
 
         var allDoctors = results[0] || [];
@@ -3324,7 +3324,7 @@ if (noAttachmentText) {
 }
 
 // 🚀 [SPEED OPTIMIZATION]: ลดเวลา domWaitCount เพื่อให้เริ่มต้นทำงานเร็วขึ้นทันที
-window.initVisitPage = async function(forceReload) {
+ window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     // 🛡️ 1. GUARD: ถ้าเปิดหน้าฟอร์มแก้ไข/เพิ่มข้อมูลอยู่ ห้ามรัน initVisitPage เพื่อป้องกัน TomSelect โดนรีเซ็ต
@@ -3335,12 +3335,11 @@ window.initVisitPage = async function(forceReload) {
     window.isInitialLoading = true; 
 
     var domWaitCount = 0;
-    while (!document.getElementById('filterVisitStatus') && domWaitCount < 15) {
+    while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
         await new Promise(r => setTimeout(r, 20));
         domWaitCount++;
     }
 
-    // ⚡ 2. CACHE CHECK: เช็กว่ามี Cache ข้อมูลเดิมใน RAM อยู่แล้วหรือไม่
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
@@ -3350,40 +3349,29 @@ window.initVisitPage = async function(forceReload) {
 
     if (shouldFetchDB && visitViewEl) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var loadingTitle = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        var loadingDesc = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
-        
-        if (loadingTitleEl) loadingTitleEl.textContent = loadingTitle;
-        if (loadingDescEl) loadingDescEl.textContent = loadingDesc;
+        if (loadingTitleEl) loadingTitleEl.textContent = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+        if (loadingDescEl) loadingDescEl.textContent = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
 
+        // 🛡️ ล็อกหน้า Loading ไว้ก่อน ไม่ให้ Filter/Table หลุดออกมา
         visitViewEl.classList.add('is-loading');
     }
 
     try {
-        // ⚡ 1. ตั้งค่า User Info ก่อนเพื่อให้สิทธิ์ครบ
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
 
-        // 🚀 2. [SPEED BOOST] ยิงดึงข้อมูล Master Data, Visit Logs, และ Configs พร้อมกันแบบ Parallel 100%
-        var tasks = [];
-        
+        // 🔒 STEP 1: คำนวณสิทธิ์ & สร้าง Dropdowns / Indexes ให้เสร็จสมบูรณ์ 100% ก่อน
         if (typeof window.loadDropdowns === 'function') {
-            tasks.push(window.loadDropdowns(shouldFetchDB));
-        }
-        if (typeof window.loadVisits === 'function') {
-            tasks.push(window.loadVisits(shouldFetchDB));
-        }
-        if (typeof window.loadMasterSamplesList === 'function') {
-            tasks.push(window.loadMasterSamplesList());
-        }
-        if (typeof window.fetchVisitFeaturesConfig === 'function') {
-            tasks.push(window.fetchVisitFeaturesConfig());
-        }
-        if (typeof window.fetchDetailingMedia === 'function') {
-            tasks.push(window.fetchDetailingMedia());
+            await window.loadDropdowns(shouldFetchDB); 
         }
 
-        // รอนำเข้าข้อมูลทั้งหมดพร้อมกัน
-        await Promise.all(tasks);
+        // 🔒 STEP 2: เมื่อสิทธิ์ชัวร์แล้ว ค่อยยิงดึง Visits และ Master ข้อมูลอื่นต่อทันที
+        var subTasks = [];
+        if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(shouldFetchDB));
+        if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
+        if (typeof window.fetchVisitFeaturesConfig === 'function') subTasks.push(window.fetchVisitFeaturesConfig());
+        if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
+
+        await Promise.all(subTasks);
 
         if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
 
@@ -3401,7 +3389,7 @@ window.initVisitPage = async function(forceReload) {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
 
-        // 🌟 ปิดสถานะ Loading เปิด Filter + Table ออกมาพร้อมกันในวินาทีเดียวกัน
+        // 🌟 ปลดล็อกหน้า Loading ออกพร้อมกันในช็อตเดียว
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
