@@ -189,7 +189,14 @@ const i18nDictionary = {
     th_adoption: "ADOPTION",
     th_potential: "POTENTIAL",
     th_classification: "CLASSIFICATION",
-    th_target_call: "TARGET (CALL)"
+    th_target_call: "TARGET (CALL)",
+
+    title_add_tot: "Add TOT (Time Off Territory)",
+    lbl_tot_type: "TOT Type",
+    lbl_tot_remark: "Remark / Reason",
+    opt_tot_approved: "✅ Approved",
+    opt_tot_pending: "⏳ Pending",
+    btn_delete: "Delete"
   },
 
   th: {
@@ -378,7 +385,14 @@ const i18nDictionary = {
     th_adoption: "การยอมรับใช้ยา (Adoption)",
     th_potential: "ศักยภาพแพทย์ (Potential)",
     th_classification: "การจัดกลุ่มแพทย์ (Classification)",
-    th_target_call: "เป้าหมายการเข้าพบ (Target Call)"
+    th_target_call: "เป้าหมายการเข้าพบ (Target Call)",
+
+    title_add_tot: "เพิ่ม TOT (ลา/ประชุมนอกพื้นที่)",
+    lbl_tot_type: "ประเภท TOT",
+    lbl_tot_remark: "รายละเอียด / เหตุผล",
+    opt_tot_approved: "✅ อนุมัติแล้ว (Approved)",
+    opt_tot_pending: "⏳ รออนุมัติ (Pending)",
+    btn_delete: "ลบรายการ"
   }
 };
 
