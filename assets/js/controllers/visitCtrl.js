@@ -1527,6 +1527,7 @@ window.clearVisitFilters = function() {
  // ==========================================
 // 📥 LOAD VISITS WITH STATE PRESERVATION & FULL SMART SEARCH
 // ==========================================
+ 
 window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
@@ -1834,7 +1835,6 @@ window.loadVisits = async function(forceReload) {
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
-
 
 // ==========================================
 // 💾 HELPER: SAVE & RESTORE FILTER STATE
