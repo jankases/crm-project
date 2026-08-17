@@ -250,7 +250,7 @@ const i18nDictionary = {
     th_action: "จัดการ",
 
     // --- Visit Logs Module ---
-    kpi_total_visits: "จำนวนการเยี่ยมทั้งหมด",
+    kpi_total_visits: "การเยี่ยมทั้งหมด",
     kpi_pending_drafts: "ฉบับร่างรอยืนยัน",
     kpi_submitted_logs: "บันทึกที่ส่งแล้ว",
     visit_title: "บันทึกเยี่ยม",
