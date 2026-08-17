@@ -72,14 +72,12 @@ window.applySearchHighlight = function(text, searchKeyword) {
 
   return safeText;
 };
+
 // =========================================
-// 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว
-// =========================================
-// =========================================
-// 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว (เวอร์ชัน Fast-Cache)
+// 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว (เวอร์ชัน Fast-Cache & Safe Query)
 // =========================================
 window.fetchAllRecords = async function(tableName, queryModifier) {
-    // ⚡ เช็กก่อนว่ามีข้อมูลแคชเดิมอยู่ใน RAM หรือยัง ถ้ามีแล้วและไม่ได้สั่งบังคับ ให้ใช้ของเดิมทันที (ไม่ยิง DB ซ้ำ)
+    // ⚡ เช็กก่อนว่ามีข้อมูลแคชเดิมอยู่ใน RAM หรือยัง
     if (window.VisitManagerCache && window.VisitManagerCache[tableName] && !queryModifier) {
         return window.VisitManagerCache[tableName];
     }
@@ -88,10 +86,16 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     var start = 0;
     var step = 1000;
     while (true) {
-        var query = window.supabaseClient.from(tableName).select('*').range(start, start + step - 1);
-        if (queryModifier) query = queryModifier(query);
+        // 🚀 [FIXED]: แยกฐาน Query ออกมา เพื่อให้ queryModifier ประมวลผลก่อน .range()
+        var baseQuery = window.supabaseClient.from(tableName);
         
-        var res = await query;
+        if (typeof queryModifier === 'function') {
+            baseQuery = queryModifier(baseQuery);
+        } else {
+            baseQuery = baseQuery.select('*');
+        }
+
+        var res = await baseQuery.range(start, start + step - 1);
         if (res.error) throw res.error;
         
         allData = allData.concat(res.data || []);
