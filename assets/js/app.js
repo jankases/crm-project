@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('load', async () => {
     await loadLoginComponent();
-    checkSession();
+    await checkSession(); // 🌟 ใส่ await เพื่อรอให้คำนวณสิทธิ์และ Session นิ่งก่อน
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
     }
@@ -184,14 +184,14 @@ async function loadComponent(page) {
                 window.switchDoctorView('doctorListView');
             }
             if (typeof window.initDoctorPage === 'function') {
-                window.initDoctorPage(false);
+                await window.initDoctorPage(false);
             }
         } else if (page === 'visit') {
             if (typeof window.switchVisitView === 'function') {
                 window.switchVisitView('visitListView');
             }
             if (typeof window.initVisitPage === 'function') {
-                window.initVisitPage(false);
+                await window.initVisitPage(false);
             }
         }
 
@@ -215,22 +215,7 @@ async function loadComponent(page) {
 
         mainContent.appendChild(pageView);
 
-        if (page === 'doctor') {
-            if (typeof window.switchDoctorView === 'function') {
-                window.switchDoctorView('doctorListView');
-            }
-            if (typeof window.initDoctorPage === 'function') {
-                window.initDoctorPage(false);
-            }
-        } else if (page === 'visit') {
-            if (typeof window.switchVisitView === 'function') {
-                window.switchVisitView('visitListView');
-            }
-            if (typeof window.initVisitPage === 'function') {
-                window.initVisitPage(false);
-            }
-        }
-
+        // 🌟 [CRITICAL FIX] รัน script elements ก่อน เพื่อให้ Controller พร้อมใช้งานก่อนเรียก initPage
         const scriptElements = pageView.querySelectorAll('script');
         scriptElements.forEach(s => {
             if (s.src && s.src.includes('controllers/')) return;
@@ -243,6 +228,22 @@ async function loadComponent(page) {
             }
             document.head.appendChild(newScript).parentNode.removeChild(newScript);
         });
+
+        if (page === 'doctor') {
+            if (typeof window.switchDoctorView === 'function') {
+                window.switchDoctorView('doctorListView');
+            }
+            if (typeof window.initDoctorPage === 'function') {
+                await window.initDoctorPage(false);
+            }
+        } else if (page === 'visit') {
+            if (typeof window.switchVisitView === 'function') {
+                window.switchVisitView('visitListView');
+            }
+            if (typeof window.initVisitPage === 'function') {
+                await window.initVisitPage(false);
+            }
+        }
         
         const navbarCollapse = document.getElementById('navbarNav');
         if (navbarCollapse && navbarCollapse.classList.contains('show')) {
@@ -263,7 +264,7 @@ async function loadComponent(page) {
     }
 }
 
-function checkSession() {
+async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
     const appContainer = document.getElementById('appContainer');
@@ -294,7 +295,8 @@ function checkSession() {
             }
         });
 
-        loadComponent('visit');
+        // 🌟 [CRITICAL FIX] รอให้ loadComponent ทำงานเรียบร้อยเป็นขั้นตอน
+        await loadComponent('visit');
 
     } else {
         if (loginScreen) {
