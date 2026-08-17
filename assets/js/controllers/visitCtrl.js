@@ -1540,7 +1540,7 @@ window.clearVisitFilters = function() {
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
 
-    // 🚀 [ขยักเดียวจบ STEP 1] ซ่อนทั้งแผง Filter + Table ทันที แล้วโชว์ Loading Screen กล่องเดียว
+    // 🚀 [ขยักเดียวจบ STEP 1] ซ่อนทั้งแผง Filter + Table ทันที แล้วโชว์ Loading Screen กล่องเดียวกึ่งกลางจอ
     if (forceReload || !window.VisitManagerCache || !window.VisitManagerCache.isLoaded) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -1550,7 +1550,7 @@ window.clearVisitFilters = function() {
         if (tableLoadingEl) tableLoadingEl.classList.remove('d-none');
     }
 
-    // ดึง Master Data และ Visit Logs ทั้งหมดเบื้องหลัง
+    // ดึง Master Data และ Visit Logs เบื้องหลัง
     if (typeof window.loadMasterDataForVisits === 'function') {
         await window.loadMasterDataForVisits();
     }
@@ -1570,7 +1570,7 @@ window.clearVisitFilters = function() {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🚀 CACHE GUARD
+    // 🚀 CACHE GUARD: สลับ Tab แล้วมีข้อมูลเดิม -> ดึงมาเรนเดอร์ทันที 0 วินาที ไร้การกระพริบ
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         
@@ -1660,6 +1660,7 @@ window.clearVisitFilters = function() {
       if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
       if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
+      // 🔍 2. [FULL SMART SEARCH] รักษาระบบสแกนรายละเอียดเดิมทุกประการ
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       
       if (rawSearchVal) {
