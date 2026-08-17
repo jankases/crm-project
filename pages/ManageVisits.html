@@ -483,53 +483,53 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg visit-card">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold text-info" id="totModalTitle"><i class="fa-solid fa-umbrella-beach me-2"></i>Add TOT (Time Off Territory)</h5>
+        <h5 class="modal-title fw-bold text-info" id="totModalTitle"><i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="title_add_tot">Add TOT (Time Off Territory)</span></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form onsubmit="window.handleSaveTot(event)">
         <div class="modal-body p-4">
           <input type="hidden" id="totId">
           <div class="mb-3">
-            <label class="form-label fw-bold text-dark small">TOT Type <span class="text-danger">*</span></label>
+            <label class="form-label fw-bold text-dark small"><span data-i18n="lbl_tot_type">TOT Type</span> <span class="text-danger">*</span></label>
             <select class="form-select shadow-sm premium-radius" id="totType" required></select>
           </div>
           <div class="row mb-3 g-2">
             <div class="col-6">
-              <label class="form-label fw-bold text-dark small">Start Date <span class="text-danger">*</span></label>
+              <label class="form-label fw-bold text-dark small"><span data-i18n="lbl_start_date">Start Date</span> <span class="text-danger">*</span></label>
               <input type="date" class="form-control shadow-sm premium-radius" id="totStartDate" required>
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold text-dark small">End Date</label>
+              <label class="form-label fw-bold text-dark small" data-i18n="lbl_end_date">End Date</label>
               <input type="date" class="form-control shadow-sm premium-radius" id="totEndDate">
             </div>
           </div>
           <div class="row mb-3 g-2">
             <div class="col-6">
-              <label class="form-label fw-bold text-dark small">Start Time</label>
+              <label class="form-label fw-bold text-dark small" data-i18n="lbl_start_time">Start Time</label>
               <input type="time" class="form-control shadow-sm premium-radius" id="totStartTime">
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold text-dark small">End Time</label>
+              <label class="form-label fw-bold text-dark small" data-i18n="lbl_end_time">End Time</label>
               <input type="time" class="form-control shadow-sm premium-radius" id="totEndTime">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold text-dark small">Remark (เหตุผล/รายละเอียด)</label>
+            <label class="form-label fw-bold text-dark small" data-i18n="lbl_tot_remark">Remark (เหตุผล/รายละเอียด)</label>
             <textarea class="form-control shadow-sm premium-radius" id="totRemark" rows="2" style="resize: none;"></textarea>
           </div>
           <div class="mb-2">
-            <label class="form-label fw-bold text-dark small">Status</label>
+            <label class="form-label fw-bold text-dark small" data-i18n="lbl_status">Status</label>
             <select class="form-select shadow-sm fw-bold premium-radius" id="totStatus">
-              <option value="Approved" class="text-success">✅ Approved</option>
-              <option value="Pending" class="text-warning">⏳ Pending</option>
+              <option value="Approved" class="text-success" id="optTotApproved" data-i18n="opt_tot_approved">✅ Approved</option>
+              <option value="Pending" class="text-warning" id="optTotPending" data-i18n="opt_tot_pending">⏳ Pending</option>
             </select>
           </div>
         </div>
         <div class="modal-footer border-0 pt-0 d-flex justify-content-between gap-2">
-          <button type="button" class="btn btn-outline-danger fw-bold premium-radius px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
+          <button type="button" class="btn btn-outline-danger fw-bold premium-radius px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()" data-i18n="btn_delete">Delete</button>
           <div class="d-flex gap-2 ms-auto">
-              <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-premium-primary" id="saveTotBtn">💾 Save</button>
+              <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+              <button type="submit" class="btn btn-premium-primary" id="saveTotBtn">💾 <span data-i18n="btn_save">Save</span></button>
           </div>
         </div>
       </form>
