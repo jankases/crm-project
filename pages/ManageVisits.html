@@ -166,16 +166,16 @@
               <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">สถานะ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
             </tr>
           </thead>
-          <tbody id="visitTableBody" class="h-100">
-          <tr>
-            <td colspan="6" class="text-center border-0 p-0">
-              <div class="d-flex flex-column align-items-center justify-content-center w-100 h-100 py-5 my-auto">
-                <div class="spinner-border text-primary mb-3" style="width: 2.75rem; height: 2.75rem; border-width: 0.25rem;" role="status"></div>
-                <h5 class="text-dark fw-bold mb-1">Loading Data...</h5>
-                <span class="text-muted small">Processing your access rights and retrieving records.</span>
-              </div>
-            </td>
-          </tr>
+          <tbody id="visitTableBody">
+            <tr>
+              <td colspan="6" class="text-center border-0 py-5">
+                <div class="d-flex flex-column align-items-center justify-content-center py-5" style="min-height: 400px;">
+                  <div class="spinner-border text-primary mb-3" style="width: 2.75rem; height: 2.75rem; border-width: 0.25rem;" role="status"></div>
+                  <h5 class="text-dark fw-bold mb-1">Loading Data...</h5>
+                  <span class="text-muted small">Processing your access rights and retrieving records.</span>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
