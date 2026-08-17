@@ -697,3 +697,20 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding-bottom: 0.65rem !important;
   vertical-align: middle;
 }
+
+/* 🌟 UNIFIED SINGLE-STATE LOADING (บังคับซ่อน Filter + Table ไม่ให้เหลือหัวตารางโผล่) */
+#visitListView.is-loading #visitMainContentContainer {
+  display: none !important;
+}
+
+#visitListView.is-loading #visitTableLoading {
+  display: flex !important;
+}
+
+#visitListView:not(.is-loading) #visitMainContentContainer {
+  display: flex !important;
+}
+
+#visitListView:not(.is-loading) #visitTableLoading {
+  display: none !important;
+}
