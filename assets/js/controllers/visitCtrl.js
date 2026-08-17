@@ -2040,9 +2040,11 @@ window.filterVisits = function() {
 };
 
 window.debouncedFilterVisits = function() {
-    if (window.isInitialLoading) return; 
     if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
-    window.filterDebounceTimer = setTimeout(function() { window.filterVisits(); }, 300);
+    window.filterDebounceTimer = setTimeout(function() {
+        window.currentPage = 1;
+        if (typeof window.loadVisits === 'function') window.loadVisits(true);
+    }, 400); // ⚡ รอหยุดพิมพ์ 0.4 วินาทีค่อยยิงค้นหา
 };
 
 window.sortVisits = function(col) {
