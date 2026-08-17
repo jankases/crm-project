@@ -1534,13 +1534,13 @@ window.clearVisitFilters = function() {
         waitLimit++;
     }
 
-    // 🌟 ดึง Element ที่ต้องควบคุม
+    // 🌟 ดึง Element สำหรับสลับการแสดงผล
     var mainContentEl = document.getElementById('visitMainContentContainer');
     var tableLoadingEl = document.getElementById('visitTableLoading');
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
 
-    // 🚀 [ขยักเดียวจบ STEP 1] ซ่อนทั้งแผง Filter + Table ทันที แล้วโชว์ Loading Screen กล่องเดียวกึ่งกลางจอ
+    // 🚀 [ขยักเดียวจบ STEP 1] ซ่อนทั้งก้อน (Filter + Table) ทันที แล้วเปิดโชว์ Loading Screen กล่องเดียวกึ่งกลางจอ
     if (forceReload || !window.VisitManagerCache || !window.VisitManagerCache.isLoaded) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -1570,7 +1570,7 @@ window.clearVisitFilters = function() {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🚀 CACHE GUARD: สลับ Tab แล้วมีข้อมูลเดิม -> ดึงมาเรนเดอร์ทันที 0 วินาที ไร้การกระพริบ
+    // 🚀 CACHE GUARD: สลับ Tab แล้วมีข้อมูลเดิมใน RAM -> ดึงมาเรนเดอร์ทันที 0 วินาที
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         
@@ -1836,7 +1836,7 @@ window.clearVisitFilters = function() {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      // 🚀 [ขยักเดียวจบ STEP 2] ปิด Loading และเปิดการ์ดแสดงผล Filter + Table ออกมาพร้อมกัน 100%
+      // 🚀 [ขยักเดียวจบ STEP 2] ดึงข้อมูลและเซ็ตค่า Filter เสร็จสมบูรณ์แล้ว ค่อยเปิดการ์ดแสดงผล Filter + Table ออกมาพร้อมกัน 100%
       if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
       if (mainContentEl) mainContentEl.classList.remove('d-none');
     }
