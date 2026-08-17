@@ -252,22 +252,28 @@ window._visitProdIndex = {};
 window._userIndex = {}; 
 window._purposeIndex = {}; 
 
-window.buildDataIndexes = function() {
+ window.buildDataIndexes = function() {
   window._docIndex = {};
   (window.globalAllDoctors || []).forEach(function(d) {
     var id = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
-    if (id) window._docIndex[id] = d;
+    if (id) {
+      window._docIndex[id] = d;
+      if (d.Doc_ID) window._docIndex[String(d.Doc_ID).trim()] = d;
+    }
   });
 
   window._prodIndex = {};
   (window.globalProductsList || []).forEach(function(p) {
-    var id = String(p.Product_ID || p.id || '').trim().toLowerCase();
-    if (id) window._prodIndex[id] = p;
+    var id = String(p.Product_ID || p.id || p.product_id || '').trim().toLowerCase();
+    if (id) {
+      window._prodIndex[id] = p;
+      if (p.Product_ID) window._prodIndex[String(p.Product_ID).trim()] = p;
+    }
   });
 
   window._visitProdIndex = {};
   (window.globalVisitProducts || []).forEach(function(vp) {
-    var vid = String(vp.Visit_ID || '').trim().toLowerCase();
+    var vid = String(vp.Visit_ID || vp.visit_id || '').trim().toLowerCase();
     if (vid) {
       if (!window._visitProdIndex[vid]) window._visitProdIndex[vid] = [];
       window._visitProdIndex[vid].push(vp);
@@ -277,13 +283,20 @@ window.buildDataIndexes = function() {
   window._userIndex = {};
   (window.globalUsersList || []).forEach(function(u) {
     var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
-    if (uid) window._userIndex[uid] = u;
+    if (uid) {
+      window._userIndex[uid] = u;
+      if (u.Rep_ID) window._userIndex[String(u.Rep_ID).trim()] = u;
+    }
   });
 
   window._purposeIndex = {};
   if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
     window.VisitManagerCache.indexes.forEach(function(i) {
-      window._purposeIndex[String(i.Index_ID).toLowerCase()] = i;
+      var ixId = String(i.Index_ID || i.id || '').trim().toLowerCase();
+      if (ixId) {
+        window._purposeIndex[ixId] = i;
+        if (i.Index_ID) window._purposeIndex[String(i.Index_ID).trim()] = i;
+      }
     });
   }
 };
@@ -1912,8 +1925,11 @@ window.renderVisitTableServerSide = function() {
     }
 
     var dateShow = (typeof window.formatDateToLocal === 'function') ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
-    var docObj = window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()];
-    var docNameShow = window.getDoctorNameByLang(docObj, v.Doc_ID);
+    
+    // 🛡️ [FIX 1 - แก้ไขชื่อแพทย์หลุดเป็น UUID]: ค้นหา Doc_ID แบบครอบคลุมทุกคีย์ (ทั้งตัวเล็ก/ตัวใหญ่/UUID ตรงๆ)
+    var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
+    var docObj = (window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null;
+    var docNameShow = window.getDoctorNameByLang(docObj, rawDocId);
     
     var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
     var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
@@ -1938,18 +1954,21 @@ window.renderVisitTableServerSide = function() {
       }
     }
 
-    var purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose); 
+    var purposeShow = window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose); 
     var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
     var highlightedDoc = applyHighlight(docNameShow, smartSearchVal); 
     var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
     var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
 
-    var visitProds = window._visitProdIndex[String(v.Visit_ID).trim().toLowerCase()] || [];
+    // 🛡️ [FIX 2 - แก้ไขชื่อสินค้าหลุดเป็น UUID]: ค้นหา Visit_ID และ Product_ID จาก Index ให้แม่นยำขึ้น
+    var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
+    var visitProds = (window._visitProdIndex && cleanVid) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[v.Visit_ID] || []) : [];
     var prodBadges = '';
     if (visitProds.length > 0) {
       visitProds.forEach(function(vp) {
-          var pObj = window._prodIndex[String(vp.Product_ID).trim().toLowerCase()];
-          var pName = pObj ? pObj.Product : vp.Product_ID;
+          var rawPId = String(vp.Product_ID || vp.product_id || '').trim();
+          var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
+          var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
           prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applyHighlight(pName, smartSearchVal) + '</span>';
       });
     } else prodBadges = '<span class="text-muted small">-</span>';
