@@ -1537,6 +1537,10 @@ window.loadVisits = async function(forceReload) {
     if (typeof window.loadMasterDataForVisits === 'function') {
         await window.loadMasterDataForVisits();
     }
+    
+    // 🌟 ดึง Element สำหรับการควบคุม Full Card Loading Overlay
+    var tableLoadingEl = document.getElementById('visitTableLoading');
+    var tableContentEl = document.getElementById('visitTableContent');
     var tbody = document.getElementById('visitTableBody');
 
     var crmUser = null;
@@ -1557,6 +1561,11 @@ window.loadVisits = async function(forceReload) {
     // 🚀 1. CACHE GUARD: ถ้าสลับ Tab แล้วมีข้อมูลเดิมใน RAM อยู่แล้ว -> ดึงมาเรนเดอร์ทันที 0 วินาที ไม่ขึ้น Loading
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
+        
+        // 🌟 ปิด Loading และเปิดการ์ดแสดงตารางข้อมูลทันที
+        if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
+        if (tableContentEl) tableContentEl.classList.remove('d-none');
+
         window.renderVisitTableServerSide();
         if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
         if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
@@ -1565,21 +1574,37 @@ window.loadVisits = async function(forceReload) {
         return; 
     }
 
-    if ((forceReload || !hasData) && tbody) {
+    // 🌟 2. START LOADING STATE: แสดงหน้า Loading กึ่งกลางการ์ดสีขาวเต็มพื้นที่
+    if (forceReload || !hasData) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         var loadingTitle = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
         var loadingDesc = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
 
-        tbody.innerHTML = 
-        '<tr>' +
-          '<td colspan="6" class="text-center py-5">' +
-            '<div class="d-flex flex-column align-items-center justify-content-center my-4">' +
-              '<div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>' +
-              '<h5 class="text-dark fw-bold mb-1">' + loadingTitle + '</h5>' +
-              '<span class="text-muted small">' + loadingDesc + '</span>' +
-            '</div>' +
-          '</td>' +
-        '</tr>';
+        // ปรับปรุงการแสดงผล Loading ใน #visitTableLoading
+        if (tableLoadingEl) {
+            tableLoadingEl.innerHTML = 
+                '<div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem; border-width: 0.25rem;" role="status"></div>' +
+                '<h5 class="text-dark fw-bold mb-1" data-i18n="msg_loading_title">' + loadingTitle + '</h5>' +
+                '<span class="text-muted small" data-i18n="msg_loading_desc">' + loadingDesc + '</span>';
+            tableLoadingEl.classList.remove('d-none');
+        }
+        if (tableContentEl) {
+            tableContentEl.classList.add('d-none');
+        }
+
+        // Fallback กรณีหน้าจอไม่มี #visitTableLoading (สแน็ปลง tbody ดั้งเดิม)
+        if (tbody) {
+            tbody.innerHTML = 
+            '<tr>' +
+              '<td colspan="6" class="text-center py-5">' +
+                '<div class="d-flex flex-column align-items-center justify-content-center my-4">' +
+                  '<div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem; border-width: 0.25rem;" role="status"></div>' +
+                  '<h5 class="text-dark fw-bold mb-1">' + loadingTitle + '</h5>' +
+                  '<span class="text-muted small">' + loadingDesc + '</span>' +
+                '</div>' +
+              '</td>' +
+            '</tr>';
+        }
     }
 
     try {
@@ -1817,6 +1842,10 @@ window.loadVisits = async function(forceReload) {
           return matchDate && matchRep;
       });
         
+      // 🌟 3. FINISH LOADING STATE: ซ่อน Loading Overlay และคลี่ตารางออกมาแสดงผล
+      if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
+      if (tableContentEl) tableContentEl.classList.remove('d-none');
+
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
@@ -1828,6 +1857,11 @@ window.loadVisits = async function(forceReload) {
 
     } catch (err) {
       console.error("Load Visits Error:", err);
+      
+      // กรณีโหลดล้มเหลว: ปิด สปินเนอร์กึ่งกลางการ์ด เพื่อโชว์บรรทัด Error ในตารางแทน
+      if (tableLoadingEl) tableLoadingEl.classList.add('d-none');
+      if (tableContentEl) tableContentEl.classList.remove('d-none');
+
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
