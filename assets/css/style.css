@@ -682,18 +682,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 บังคับตารางยืดความสูงกึ่งกลางแนวตั้ง */
-.table-scroll-inside table {
-  height: 100% !important;
-  min-height: 350px;
-}
-
+/* 🌟 บังคับกึ่งกลางเฉพาะช่วงที่ขึ้นหน้า Loading (ไม่กระทบแถวปกติ) */
 #visitTableBody:has(.spinner-border) {
-  height: calc(100% - 45px) !important;
+  height: 350px !important;
 }
 
 #visitTableBody:has(.spinner-border) tr,
 #visitTableBody:has(.spinner-border) td {
   height: 100% !important;
   vertical-align: middle !important;
+}
+
+/* ปรับระยะความสูงของแถบตารางปกติให้กระชับ พอดีตา */
+.table-scroll-inside .table tbody tr td {
+  padding-top: 0.6rem !important;
+  padding-bottom: 0.6rem !important;
 }
