@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('load', async () => {
     await loadLoginComponent();
-    await checkSession(); // 🌟 ใส่ await เพื่อรอให้คำนวณสิทธิ์และ Session นิ่งก่อน
+    await checkSession();
     if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
         setLanguage(currentLang);
     }
@@ -85,12 +85,10 @@ function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const isVisible = (el) => el && !el.classList.contains('d-none');
 
-    // 1. เช็กการ "สร้างบันทึกการเยี่ยมใหม่" (New Visit Form)
     const visitPageView = document.getElementById('view_page_visit');
     const visitFormView = document.getElementById('visitFormView');
     const visitFormTitle = document.getElementById('visitFormTitle')?.innerText || '';
 
-    // เช็กว่าอยู่ในหน้า Visit, เปิดฟอร์มอยู่ และเป็นโหมดสร้างใหม่ (ไม่ใช่โหมดแก้ไข)
     if (isVisible(visitPageView) && isVisible(visitFormView) && !visitFormTitle.includes('Edit')) {
         const details = document.getElementById('visitDetails')?.value.trim();
         const insight = document.getElementById('visitInsight')?.value.trim();
@@ -103,7 +101,6 @@ function hasUnsavedChanges() {
         }
     }
 
-    // 2. เช็กการ "เพิ่มแพทย์ใหม่" (New Doctor Form)
     const doctorPageView = document.getElementById('view_page_doctor');
     const doctorAddView = document.getElementById('doctorAddView');
 
@@ -125,12 +122,11 @@ function hasUnsavedChanges() {
    ========================================= */
 
 async function loadComponent(page) {
-    // 🛡️ เช็กก่อนเปลี่ยนหน้าเฉพาะการสร้างใหม่ที่พิมพ์ค้างไว้
     const confirmMsg = hasUnsavedChanges();
     if (confirmMsg) {
         const userConfirmed = confirm(confirmMsg);
         if (!userConfirmed) {
-            return; // ยกเลิกการสลับหน้า ค้างไว้อย่างเดิม
+            return;
         }
     }
 
@@ -178,7 +174,6 @@ async function loadComponent(page) {
     if (pageView) {
         pageView.classList.remove('d-none');
 
-        // บังคับ Reset สลับกลับมาแสดงหน้า List View หลักเสมอ
         if (page === 'doctor') {
             if (typeof window.switchDoctorView === 'function') {
                 window.switchDoctorView('doctorListView');
@@ -215,7 +210,6 @@ async function loadComponent(page) {
 
         mainContent.appendChild(pageView);
 
-        // 🌟 [CRITICAL FIX] รัน script elements ก่อน เพื่อให้ Controller พร้อมใช้งานก่อนเรียก initPage
         const scriptElements = pageView.querySelectorAll('script');
         scriptElements.forEach(s => {
             if (s.src && s.src.includes('controllers/')) return;
@@ -295,7 +289,6 @@ async function checkSession() {
             }
         });
 
-        // 🌟 [CRITICAL FIX] รอให้ loadComponent ทำงานเรียบร้อยเป็นขั้นตอน
         await loadComponent('visit');
 
     } else {
