@@ -1115,18 +1115,18 @@ window.loadDropdowns = async function(forceReload) {
 
         // 🚀 [SPEED OPTIMIZATION]: ดึงเฉพาะ Columns ที่จำเป็นเพื่อลดขนาด Data Payload ข้าม Network
         var promises = [
-          fetchFn('Doctors', function(q) { return q.select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Territory_ID, Status, Workplaces_JSON'); }),
-          fetchFn('Products', function(q) { return q.select('Product_ID, Product, Product_TH').order('Product', { ascending: true }); }), 
-          fetchFn('Territory'),
-          fetchFn('Hospitals', function(q) { return q.select('Hospital_ID, Hospital, Hospital_TH, Known_As').order('Hospital', { ascending: true }); }),
-          fetchFn('Team'),            
-          fetchFn('BU'),            
-          fetchFn('Products_Team'),   
-          fetchFn('IndexType'),
-          fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
-          fetchFn('Rep_Users', function(q) { return q.select('Rep_ID, Rep_Name, Email, Role, Territory_ID, Team_ID, BU_ID'); }),
-          fetchFn('Assignment')
-        ];
+                  fetchFn('Doctors'),
+                  fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
+                  fetchFn('Territory'),
+                  fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
+                  fetchFn('Team'),            
+                  fetchFn('BU'),            
+                  fetchFn('Products_Team'),   
+                  fetchFn('IndexType'),
+                  fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
+                  fetchFn('Rep_Users'),
+                  fetchFn('Assignment')
+                ];
         var results = await Promise.all(promises);
 
         var allDoctors = results[0] || [];
