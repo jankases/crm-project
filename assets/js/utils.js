@@ -55,19 +55,19 @@ window.formatTimeString = function(timeStr) {
 
 // 5. ฟังก์ชันไฮไลท์คำค้นหา (Search Highlighter)
 window.applySearchHighlight = function(text, searchKeyword) {
-  if (!text) return '-';
+  if (!text || text === '-') return '-';
   if (!searchKeyword || searchKeyword.trim() === '') return text;
-  
+
   var div = document.createElement('div');
   div.innerText = text;
   var safeText = div.innerHTML;
 
-  var keywords = searchKeyword.trim().toLowerCase().split(' ').filter(function(k) { return k !== ''; });
+  var keywords = searchKeyword.trim().split(/\s+/).filter(function(k) { return k !== ''; });
 
   keywords.forEach(function(kw) {
     if (!kw) return;
-    var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![^<]*>)', 'gi');
-    safeText = safeText.replace(regex, '<mark class="highlight-text">$1</mark>');
+    var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    safeText = safeText.replace(regex, '<mark class="highlight-search">$1</mark>');
   });
 
   return safeText;
