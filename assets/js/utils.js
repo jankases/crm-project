@@ -77,7 +77,6 @@ window.applySearchHighlight = function(text, searchKeyword) {
 // 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว (เวอร์ชัน Fast-Cache & Safe Query)
 // =========================================
 window.fetchAllRecords = async function(tableName, queryModifier) {
-    // ⚡ เช็กก่อนว่ามีข้อมูลแคชเดิมอยู่ใน RAM หรือยัง
     if (window.VisitManagerCache && window.VisitManagerCache[tableName] && !queryModifier) {
         return window.VisitManagerCache[tableName];
     }
@@ -86,7 +85,6 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     var start = 0;
     var step = 1000;
     while (true) {
-        // 🚀 [FIXED]: แยกฐาน Query ออกมา เพื่อให้ queryModifier ประมวลผลก่อน .range()
         var baseQuery = window.supabaseClient.from(tableName);
         
         if (typeof queryModifier === 'function') {
@@ -103,7 +101,6 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
         start += step;
     }
 
-    // เก็บเข้า Memory Cache ไว้ใช้ซ้ำ
     if (window.VisitManagerCache && !queryModifier) {
         window.VisitManagerCache[tableName] = allData;
     }
@@ -119,14 +116,12 @@ window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChan
   if (!ul) return;
   if (totalPages === Infinity || isNaN(totalPages) || totalPages < 0) return;
 
-  // ดึงภาษาปัจจุบันของระบบ
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
   var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
 
   var html = '';
 
-  // ปุ่ม Prev
   html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
             '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + '); return false;">' + prevText + '</a>' +
           '</li>';
@@ -139,7 +134,6 @@ window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChan
     if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
   }
 
-  // ตัวเลขหน้า 1, 2, 3...
   for (var i = startPage; i <= endPage; i++) {
     html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
               '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + i + '); return false;">' + i + '</a>' +
@@ -151,7 +145,6 @@ window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChan
     html += '<li class="page-item"><a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + totalPages + '); return false;">' + totalPages + '</a></li>';
   }
 
-  // ปุ่ม Next
   html += '<li class="page-item ' + (currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '">' +
             '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + '); return false;">' + nextText + '</a>' +
           '</li>';
