@@ -85,12 +85,12 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     var start = 0;
     var step = 1000;
     while (true) {
-        var baseQuery = window.supabaseClient.from(tableName);
+        // 🚀 [FIX]: เรียก .select() ตั้งต้นก่อน เพื่อเปิดใช้งานฟัง์กชัน .order(), .eq(), .in() ใน queryModifier
+        var baseQuery = window.supabaseClient.from(tableName).select('*');
         
         if (typeof queryModifier === 'function') {
-            baseQuery = queryModifier(baseQuery);
-        } else {
-            baseQuery = baseQuery.select('*');
+            var modified = queryModifier(baseQuery);
+            if (modified) baseQuery = modified;
         }
 
         var res = await baseQuery.range(start, start + step - 1);
