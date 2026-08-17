@@ -112,19 +112,39 @@ html, body {
 /* ==========================================
    ✨ COMPACT ELEVATED KPI CARDS (ย่อขนาดกล่องลง + ขนาดเท่ากันเป๊ะ)
    ========================================== */
+ 
 .kpi-card-elevated {
   background: #ffffff !important;
   border-radius: 10px !important;
-  padding: 4px 12px 4px 8px !important;
-  height: 44px !important; /* ปรับลดความสูงให้กล่องกระชับ ไม่ดูแน่น */
+  padding: 5px 10px 5px 8px !important; /* ปรับ Padding ให้สมดุล */
+  height: 46px !important;              /* ขยายความสูงเพิ่ม 2px ป้องกันการตัดขอบ */
   display: inline-flex !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: 8px !important;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  width: 155px !important; /* ล็อกความยาวของกล่องทั้ง 3 ให้เท่ากันเป๊ะ */
+  width: 168px !important;
   flex-shrink: 0 !important;
 }
+
+.kpi-label-text {
+  font-size: 0.68rem !important;
+  color: #64748b !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.25 !important;        /* 🌟 แก้จาก 1 เป็น 1.25 เพื่อไม่ให้หางตัว g โดนตัด */
+  padding-bottom: 1px !important;      /* 🌟 เว้นพื้นที่ให้หางตัวอักษรล่างสุด */
+}
+
+.kpi-value-text {
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  margin-top: 1px !important;
+}
+ 
 
 .kpi-card-elevated:hover {
   transform: translateY(-1px) !important;
@@ -144,23 +164,8 @@ html, body {
   justify-content: center !important;
   flex-shrink: 0 !important;
 }
-
-.kpi-label-text {
-  font-size: 0.65rem !important;
-  color: #64748b !important;
-  font-weight: 600 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  line-height: 1 !important;
-}
-
-.kpi-value-text {
-  font-size: 1.05rem !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  margin-top: 2px !important;
-}
+ 
+ 
 
 /* 🌟 BORDERLESS CONTROL TOOLBAR */
 .visit-filter-compact .form-control,
