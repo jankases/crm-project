@@ -3295,22 +3295,23 @@ window.renderCalendarView = function() {
         setTimeout(function() {
           var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
           if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
-            // ปรับสไตล์ปุ่มให้กลมกลืนกับปุ่ม Month Week Day ของ FullCalendar
+            var isEN = appLang === 'en';
+            
             var legendDropdownHtml = `
               <div class="dropdown d-inline-block me-1" id="calHeaderLegendDropdown">
                 <button class="fc-button fc-button-primary dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #64748b; border-color: #64748b; font-size: 0.85rem; padding: 0.35em 0.65em;">
                   <i class="fa-solid fa-palette"></i>
-                  <span>${appLang === 'en' ? 'Legend' : 'สัญลักษณ์สี'}</span>
+                  <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
                 </button>
-                <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 210px; font-size: 0.8rem; z-index: 1055;">
-                  <div class="fw-bold text-dark border-bottom pb-1.5 mb-2">${appLang === 'en' ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span>Submitted Visit</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span>Pending Draft</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span>Pending Unlock</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span>Public Holiday</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span>Company Event</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span>TOT (Approved)</div>
-                  <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span>TOT (Pending)</div>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
+                  <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
+                  <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
+                  <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
                 </div>
               </div>
             `;
@@ -3319,6 +3320,37 @@ window.renderCalendarView = function() {
         }, 50);
        
   }
+};
+
+window.updateCalendarLegendLang = function() {
+  var isEN = window.getCurrentAppLang() === 'en';
+  
+  var elBtn = document.getElementById('txtLegendBtn');
+  var elHeader = document.getElementById('txtLegendHeader');
+  var elSub = document.getElementById('legTxtSubmitted');
+  var elPen = document.getElementById('legTxtPending');
+  var elUnl = document.getElementById('legTxtUnlock');
+  var elHol = document.getElementById('legTxtHoliday');
+  var elCom = document.getElementById('legTxtCompany');
+  var elTotApp = document.getElementById('legTxtTotAppr');
+  var elTotPen = document.getElementById('legTxtTotPend');
+
+  if (elBtn) elBtn.innerText = isEN ? 'Legend' : 'สัญลักษณ์สี';
+  if (elHeader) elHeader.innerText = isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี';
+  if (elSub) elSub.innerText = isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว';
+  if (elPen) elPen.innerText = isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง';
+  if (elUnl) elUnl.innerText = isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก';
+  if (elHol) elHol.innerText = isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์';
+  if (elCom) elCom.innerText = isEN ? 'Company Event' : 'กิจกรรมบริษัท';
+  if (elTotApp) elTotApp.innerText = isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)';
+  if (elTotPen) elTotPen.innerText = isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)';
+};
+
+// สั่งทำงานใน updateLangUI
+var originalUpdateLangUI = window.updateLangUI;
+window.updateLangUI = function() {
+  if (typeof originalUpdateLangUI === 'function') originalUpdateLangUI();
+  if (typeof window.updateCalendarLegendLang === 'function') window.updateCalendarLegendLang();
 };
 
 // ==========================================
