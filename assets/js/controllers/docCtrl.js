@@ -136,7 +136,11 @@ window.goBackFromDoctorProfile = function() {
 window.initMultiTomSelect = function(id, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
-  if(el.tomselect) el.tomselect.destroy();
+  if(el.tomselect) {
+    el.tomselect.settings.placeholder = placeholder;
+    el.tomselect.inputState();
+    return;
+  }
   
   if (typeof TomSelect !== 'undefined') {
     new TomSelect(`#${id}`, { 
@@ -151,12 +155,17 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
+// ⚡ REUSE TOMSELECT INSTANCES
 window.updateTomSelect = function(id, html, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
-  if(el.tomselect) el.tomselect.destroy();
-  el.innerHTML = html;
-  if (typeof TomSelect !== 'undefined') {
+  
+  if (el.tomselect) {
+    el.tomselect.clearOptions();
+    el.innerHTML = html;
+    el.tomselect.sync();
+  } else if (typeof TomSelect !== 'undefined') {
+    el.innerHTML = html;
     new TomSelect(`#${id}`, { 
       create: false, 
       searchField: ["text"],
@@ -240,7 +249,7 @@ window.stopSpeechSearch = function() {
 };
 
 // ==========================================
-// 🎯 HELPER RENDER FILTER DROPDOWNS (FROM validDocsData)
+// 🎯 HELPER RENDER FILTER DROPDOWNS
 // ==========================================
 window.renderFilterDropdowns = function(validDocsData) {
   if (!validDocsData || !Array.isArray(validDocsData)) return;
@@ -516,7 +525,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
         return html;
       };
 
-      // 🎯 Form Add/Edit ใช้ตัวเลือกเต็มจาก Index
       window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
 
@@ -526,7 +534,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.updateTomSelect('docType', getOptionsHtml('DoctorType', phType), phType);
       window.updateTomSelect('editDocType', getOptionsHtml('DoctorType', phType), phType);
 
-      // 🎯 Form Filter ใช้คำเฉพาะจาก validDocsData (แพทย์ที่มีอยู่จริง)
       window.renderFilterDropdowns(validDocsData);
     }
   } catch (err) {
@@ -572,7 +579,7 @@ window.getIndexValues = function(typeName) {
 };
 
 // ==========================================
-// 💾 HELPER: SAVE & RESTORE FILTER STATE (DOCTORS)
+// 💾 HELPER: SAVE & RESTORE FILTER STATE
 // ==========================================
 window.saveDocFilterState = function() {
   window.DocManagerCache = window.DocManagerCache || {};
@@ -1659,7 +1666,6 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   const usedProductIds = window.getSelectedRatingProductIds(selectId);
   
-  // 🌟 FIX: แปลภาษาสองภาษาของ Placeholder ใน Dropdown
   const selectProdText = appLang === 'en' ? '- Select Product -' : '- เลือกผลิตภัณฑ์ -';
   const selectOptText = appLang === 'en' ? '- Select -' : '- เลือก -';
 
@@ -1875,24 +1881,4 @@ if (!window._isDocLangListenerAttached) {
   window._isDocLangListenerAttached = true;
 }
 
-if (!window._docObserverAttached) {
-  const docObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.addedNodes) {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === 1 && (node.id === 'doctorTableBody' || (node.querySelector && node.querySelector('#doctorTableBody')))) {
-            window.initDoctorPage(false);
-          }
-        });
-      }
-    });
-  });
-  docObserver.observe(document.body, { childList: true, subtree: true });
-  window._docObserverAttached = true;
-}
-
-setTimeout(() => {
-  if (document.getElementById('doctorTableBody')) {
-    window.initDoctorPage(false);
-  }
-}, 100);
+// ⚡ ลบ MutationObserver ออกตามที่ตกลงกันไว้เพื่อป้องกันการโหลดข้อมูลซ้ำซ้อน
