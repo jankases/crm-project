@@ -413,63 +413,78 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
 
   window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'th';
+  
   var repNameShow = '-';
   var locNameShow = '-';
   var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
 
-  // 1. ค้นหา Object พนักงานจาก Rep_ID หรือ Whoupdated (Email)
+  // 1. ค้นหา User ใน Rep_Users โดยใช้อีเมล Whoupdated หรือ Rep_ID จาก Visit
   var targetUser = repObj;
   var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
 
-  if (!targetUser && visitData) {
-    var rawRepId = String(visitData.Rep_ID || visitData.rep_id || '').trim().toLowerCase();
+  if (visitData) {
     var rawWho = String(visitData.Whoupdated || visitData.whoupdated || '').trim().toLowerCase();
+    var rawRepId = String(visitData.Rep_ID || visitData.rep_id || '').trim().toLowerCase();
 
     targetUser = userList.find(function(u) {
-      var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
       var uem = String(u.Email || u.email || '').trim().toLowerCase();
-      return (rawRepId && uid === rawRepId) || (rawWho && uem === rawWho);
+      var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
+      return (rawWho && uem === rawWho) || (rawRepId && uid === rawRepId);
     });
   }
 
-  // 2. แปลง Email เป็นชื่อจริงเสมอ (ไม่โชว์ @roche.com บน UI)
+  // 2. ตั้งค่าชื่อพนักงานจาก Rep_Name
   if (targetUser) {
-    repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.rep_name || targetUser.name || '-';
+    repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.rep_name || '-';
   } else if (visitData) {
-    var directName = visitData.Rep_Name || visitData.Sales_Rep_Name;
-    if (directName && directName.indexOf('@') === -1) {
-      repNameShow = directName;
-    } else if (visitData.Whoupdated && visitData.Whoupdated.indexOf('@') !== -1) {
-      // Format email "surasak.jankasem4@roche.com" -> "Surasak Jankasem"
-      var cleanName = visitData.Whoupdated.split('@')[0].replace(/\./g, ' ').replace(/\d+/g, '');
-      repNameShow = cleanName.replace(/\b\w/g, function(l) { return l.toUpperCase(); }).trim();
-    }
+    repNameShow = visitData.Rep_Name || visitData.Sales_Rep_Name || '-';
   }
 
-  // 3. ดึงชื่อ BU / Territory ย้อนกลับตาม Hierarchy
-  if (typeof window.getBuTerritoryDisplayName === 'function' && visitData) {
-    locNameShow = window.getBuTerritoryDisplayName(visitData);
+  // 3. อ่าน Role และ Territory_ID จาก Rep_Users
+  var cache = window.VisitManagerCache || {};
+  var userRole = targetUser ? String(targetUser.Role || targetUser.role || '').trim() : '';
+  var userRoleLower = userRole.toLowerCase();
+  var rawTerrId = targetUser ? String(targetUser.Territory_ID || targetUser.territory_id || '').trim() : (visitData ? String(visitData.Territory_ID || '').trim() : '');
+
+  // 4. สวิตช์ดึงชื่อตามเงื่อนไข Role
+  if (userRoleLower === 'sales' || userRoleLower === 'sales rep' || userRoleLower === 'rep') {
+    // 🔹 Role: Sales -> ดึงจากตาราง Territory
+    labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
+    var terrs = cache.territories || window.globalTerritoryList || [];
+    var terObj = terrs.find(function(t) { return String(t.Territory_ID || t.id || t.Territory) === rawTerrId; });
+    locNameShow = terObj ? (terObj.Territory || terObj.Territory_Name) : '-';
+
+  } else if (userRoleLower === 'manager' || userRoleLower === 'sales manager') {
+    // 🔹 Role: Manager -> ดึงจากตาราง Team
+    labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
+    var teams = cache.teams || window.globalTeamList || [];
+    var tObj = teams.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team) === rawTerrId; });
+    locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : '-';
+
+  } else if (userRoleLower.indexOf('bu') !== -1 || userRoleLower.indexOf('head') !== -1) {
+    // 🔹 Role: BU Head -> ดึงจากตาราง BU
+    labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
+    var bus = cache.bus || window.globalBuList || [];
+    var bObj = bus.find(function(b) { return String(b.BU_ID || b.id || b.BU) === rawTerrId; });
+    locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : '-';
+
+  } else if (userRole !== '') {
+    // 🔹 Role อื่นๆ (Staff, Product Manager, Admin) -> เอาชื่อ Role มาแสดง
+    labelText = appLang === 'th' ? 'บทบาท (Role)' : 'Role';
+    locNameShow = userRole;
+
+  } else {
+    labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
+    locNameShow = '-';
   }
 
-  // 4. คำนวณ Label
-  if (targetUser) {
-    var role = String(targetUser.Role || targetUser.role || '').toLowerCase();
-    if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
-      labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit (BU)';
-    } else if (role.indexOf('manager') !== -1) {
-      labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
-    } else {
-      labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
-    }
-  }
-
-  // 5. แสดงผลบน Element
+  // 5. แสดงผลบน UI
   var repNameEl = document.getElementById('dispSalesRepName');
   var terNameEl = document.getElementById('dispTerritoryName');
   var terLabelEl = document.getElementById('dynamicTerritoryLabel');
 
   if (repNameEl) repNameEl.innerText = repNameShow || '-';
-  if (terNameEl) terNameEl.innerText = locNameShow !== '-' ? locNameShow : (visitData ? (visitData.BU_Name || visitData.Territory_Name || '-') : '-');
+  if (terNameEl) terNameEl.innerText = locNameShow || '-';
   if (terLabelEl) {
     terLabelEl.removeAttribute('data-i18n');
     terLabelEl.innerText = labelText;
