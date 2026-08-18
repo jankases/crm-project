@@ -178,18 +178,9 @@
       <span class="text-muted small" id="loadingDescText">Processing your access rights and retrieving records.</span>
     </div>
 
-    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 overflow-auto d-none">
-      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom flex-shrink-0" style="font-size: 0.8rem; font-weight: 600;">
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted" data-i18n="leg_submitted">Submitted Visit</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #f59e0b; border-radius: 50%; margin-right: 6px;"></span><span id="legPending" data-i18n="leg_pending">Pending Draft</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #64748b; border-radius: 50%; margin-right: 6px;"></span><span id="legUnlock" data-i18n="leg_unlock">Pending Unlock</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; margin-right: 6px;"></span><span id="legHoliday" data-i18n="leg_holiday">Public Holiday</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #8b5cf6; border-radius: 50%; margin-right: 6px;"></span><span id="legCompany" data-i18n="leg_company">Company Event</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #0ea5e9; border-radius: 50%; margin-right: 6px;"></span><span id="legTotAppr" data-i18n="leg_tot_appr">TOT (Approved)</span></div>
-        <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #94a3b8; border-radius: 50%; margin-right: 6px;"></span><span id="legTotPend" data-i18n="leg_tot_pend">TOT (Pending)</span></div>
-      </div>
-      <div id="calendar" class="w-100 flex-grow-1" style="position: relative; z-index: 10;"></div>
-    </div>
+    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 d-none" style="height: calc(100vh - 160px); min-height: 550px;">
+  <div id="calendar" class="w-100 h-100" style="position: relative; z-index: 10;"></div>
+</div>
 
   </div>
 
