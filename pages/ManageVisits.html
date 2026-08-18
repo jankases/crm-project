@@ -53,7 +53,7 @@
     margin-bottom: 2px;
   }
 
-  /* 🌟 ปุ่ม Feature แบบใหญ่ขึ้น กดง่าย */
+  /* 🌟 ปุ่ม Feature แบบ Dynamic Active Style */
   .feature-action-btn-lg {
     font-size: 0.82rem;
     font-weight: 600;
@@ -73,6 +73,20 @@
     color: #0d6efd;
     background: #eff6ff;
     transform: translateY(-1px);
+  }
+  .feature-action-btn-lg.has-data {
+    background-color: #e0f2fe;
+    border-color: #0284c7;
+    color: #0369a1;
+    font-weight: 700;
+  }
+
+  /* 🌟 Inline Samples Container */
+  .inline-sample-box {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
   }
 </style>
 
@@ -255,12 +269,12 @@
                 <div>
                   <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i>Visit Information</h6>
                   
-                  <div class="mb-2.5">
+                  <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center">
                       <label class="compact-label mb-0">Doctor Name <span class="text-danger">*</span></label>
-                      <!-- 🌟 ปุ่มเปิด Pop-up ประวัติย้อนหลัง แบบมีข้อความกำกับชัดเจน -->
-                      <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2 py-0.5 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.72rem;">
-                        <i class="fa-solid fa-clock-rotate-left"></i> <span>ประวัติย้อนหลัง</span>
+                      <!-- 🌟 ปุ่มเปิด Pop-up ประวัติย้อนหลัง (รองรับ i18n 2 ภาษา) -->
+                      <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2.5 py-0.5 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.73rem;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="btn_last_history">📜 ประวัติเยี่ยม</span>
                       </button>
                     </div>
                     <div class="input-group input-group-sm shadow-xs mt-1" style="border-radius: 8px;">
@@ -269,17 +283,17 @@
                     </div>
                   </div>
 
-                  <div class="mb-2.5">
+                  <div class="mb-2">
                     <label class="compact-label">Products <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                   </div>
 
-                  <div class="mb-2.5">
+                  <div class="mb-2">
                     <label class="compact-label">Purpose <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                   </div>
 
-                  <div class="row g-2 mb-3">
+                  <div class="row g-2 mb-2">
                     <div class="col-6">
                       <label class="compact-label">Date <span class="text-danger">*</span></label>
                       <input type="date" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDate" required>
@@ -300,38 +314,48 @@
                     </div>
                   </div>
 
-                  <!-- 🌟 กลุ่มปุ่ม Feature Actions ย้ายมาฝั่งซ้าย (แยก GPS กับ Signature ออกจากกันชัดเจน) -->
-                  <div class="pt-2 border-top">
-                    <label class="compact-label mb-2 text-secondary d-block"><i class="fa-solid fa-sliders me-1"></i>Features & Evidences</label>
-                    <div class="d-flex flex-wrap gap-2">
+                  <!-- 🌟 กลุ่มปุ่ม Feature Actions ย้ายมาฝั่งซ้าย (แยก GPS กับ Signature ออกจากกัน) -->
+                  <div class="pt-2 border-top mb-2">
+                    <label class="compact-label mb-1.5 text-secondary d-block"><i class="fa-solid fa-sliders me-1"></i>Features & Evidences</label>
+                    <div class="d-flex flex-wrap gap-1.5">
                       
                       <!-- 📍 GPS Check-in -->
                       <button type="button" class="feature-action-btn-lg" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-location-dot text-danger me-1.5"></i> GPS Check-in
+                        <i class="fa-solid fa-location-dot text-danger me-1"></i> <span id="btnGpsText">GPS Check-in</span>
                       </button>
 
                       <!-- ✍️ Doctor Signature (แยกปุ่มเดี่ยว) -->
                       <button type="button" class="feature-action-btn-lg" id="sectionSignature" onclick="window.openSignatureModal()">
-                        <i class="fa-solid fa-signature text-success me-1.5"></i> Signature
-                      </button>
-
-                      <!-- 🎁 Samples & Promo -->
-                      <button type="button" class="feature-action-btn-lg" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
-                        <i class="fa-solid fa-gifts text-warning me-1.5"></i> Samples
+                        <i class="fa-solid fa-signature text-success me-1"></i> <span id="btnSignatureText">Signature</span>
                       </button>
 
                       <!-- 📸 Attachments -->
                       <button type="button" class="feature-action-btn-lg" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-camera text-primary me-1.5"></i> Attachments
+                        <i class="fa-solid fa-camera text-primary me-1"></i> <span id="btnAttachmentsText">Attachments</span>
                       </button>
 
                       <!-- 🎬 e-Detailing -->
                       <div id="detailingMediaSection" class="d-inline-block d-none">
                         <button type="button" class="feature-action-btn-lg border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                          <i class="fa-solid fa-file-powerpoint me-1.5"></i> e-Detailing
+                          <i class="fa-solid fa-file-powerpoint me-1"></i> <span id="btnMediaText">e-Detailing</span>
                         </button>
                       </div>
 
+                    </div>
+                  </div>
+
+                  <!-- 🌟 Inline Samples Display Bar (แสดงผลตรงๆ บนฝั่งซ้าย) -->
+                  <div class="pt-2 border-top" id="sectionSamples">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <label class="compact-label mb-0"><i class="fa-solid fa-gifts text-warning me-1"></i>Samples & Promo Items</label>
+                      <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none text-primary fw-bold" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null" style="font-size:0.72rem;">
+                        + จัดการของแจก
+                      </button>
+                    </div>
+                    <div class="inline-sample-box d-flex align-items-center justify-content-between">
+                      <div id="sampleItemsContainer" class="d-flex flex-wrap gap-1 align-items-center">
+                        <small class="text-muted italic style-xs" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง</small>
+                      </div>
                     </div>
                   </div>
 
@@ -347,38 +371,38 @@
                   <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i>Activity Details</h6>
 
                   <!-- Details (ขยายโปร่ง พิมพ์สะดวก) -->
-                  <div class="mb-3 flex-grow-1 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="mb-2 flex-grow-1 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-0.5">
                       <label class="compact-label mb-0">Details</label>
                       <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
                         <i class="fa-solid fa-microphone me-1"></i>Dictate
                       </button>
                     </div>
-                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 160px; resize: none;"></textarea>
+                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 180px; resize: none;"></textarea>
                   </div>
 
                   <!-- Insight & Next Action -->
                   <div class="row g-2 mb-1">
                     <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
+                      <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0">Insight</label>
                         <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
                       </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 65px; resize: none;"></textarea>
+                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 52px; resize: none;"></textarea>
                     </div>
                     <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
+                      <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0">Next Action</label>
                         <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
                       </div>
-                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 65px;">
+                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 52px;">
                     </div>
                   </div>
 
                 </div>
 
                 <!-- 📌 Bottom Footer Bar -->
-                <div class="mb-0 pt-2 border-top mt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="mb-0 pt-2 border-top mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-2">
                     <label class="switch mb-0 me-1">
                       <input type="checkbox" id="visitIsCoaching">
@@ -472,8 +496,8 @@
           <span class="fw-bold text-dark small">รายการของแจก</span>
           <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()">+ เพิ่มรายการ</button>
         </div>
-        <div id="sampleItemsContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
-          <div class="text-muted small text-center italic" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง</div>
+        <div id="sampleItemsContainerDrawer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
+          <div class="text-muted small text-center italic">จัดการสินค้าตัวอย่างในฟอร์มหลัก</div>
         </div>
       </div>
     </div>
