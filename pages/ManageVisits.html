@@ -13,7 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
 <style>
-  /* 🎨 Fit-to-Screen Ultra-Clean Layout */
+  /* 🎨 Fit-to-Screen Balanced Layout */
   .visit-form-wrapper {
     height: calc(100vh - 75px);
     display: flex;
@@ -53,17 +53,17 @@
     margin-bottom: 2px;
   }
 
-  .feature-action-btn {
-    font-size: 0.8rem;
+  .feature-pill-btn {
+    font-size: 0.78rem;
     font-weight: 600;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
     border: 1px solid #cbd5e1;
-    background: #f8fafc;
+    background: #ffffff;
     color: #334155;
     transition: all 0.2s ease;
   }
-  .feature-action-btn:hover {
+  .feature-pill-btn:hover {
     border-color: #0d6efd;
     color: #0d6efd;
     background: #eff6ff;
@@ -213,7 +213,7 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Pro-Clean 100% Fit-to-Screen) ================= -->
+  <!-- ================= 2. FORM VIEW (Pro-Balanced 100% Fit-to-Screen) ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper">
     
     <!-- Top Header -->
@@ -243,7 +243,7 @@
         <div class="visit-form-body-scroll pe-1">
           <div class="row g-3 h-100 align-items-stretch">
             
-            <!-- 🔹 คอลัมน์ซ้าย (45% - Primary Context) -->
+            <!-- 🔹 คอลัมน์ซ้าย (42% - Primary Context) -->
             <div class="col-12 col-xl-5 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-light-subtle h-100 d-flex flex-column justify-content-between">
                 <div>
@@ -262,7 +262,7 @@
                     </div>
                   </div>
 
-                  <!-- กล่องประวัติการเยี่ยมย้อนหลัง (ซ่อนโดย Default เพื่อประหยัดพื้นที่) -->
+                  <!-- กล่องประวัติการเยี่ยมย้อนหลัง -->
                   <div id="lastVisitHistoryBox" class="mb-2 p-2 bg-primary-subtle border border-primary-subtle rounded-3 d-none shadow-xs">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                       <span class="fw-bold text-primary" style="font-size: 0.75rem;"><i class="fa-solid fa-history me-1"></i>ประวัติเยี่ยมล่าสุด</span>
@@ -306,60 +306,64 @@
               </div>
             </div>
 
-            <!-- 🔹 คอลัมน์ขวา (55% - Content & Dynamic Sub-feature Action Bar) -->
+            <!-- 🔹 คอลัมน์ขวา (58% - Expanded Text Area & Clean Actions) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
                 <div class="d-flex flex-column flex-grow-1">
-                  <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i>Activity Details</h6>
+                  
+                  <!-- Header + Feature Action Bar ในแถวเดียวกัน -->
+                  <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                    <h6 class="form-section-title mb-0 border-0 p-0"><i class="fa-solid fa-list-check me-1.5"></i>Activity Details</h6>
+                    
+                    <!-- 🌟 แถบปุ่มฟีเจอร์เสริมแบบ Pill Badge เรียบหรู -->
+                    <div class="d-flex align-items-center gap-1.5">
+                      <button type="button" class="feature-pill-btn" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                        <i class="fa-solid fa-location-dot text-danger me-1"></i>GPS & Sign
+                      </button>
 
-                  <div class="mb-2">
+                      <button type="button" class="feature-pill-btn" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                        <i class="fa-solid fa-gifts text-warning me-1"></i>Samples
+                      </button>
+
+                      <button type="button" class="feature-pill-btn" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                        <i class="fa-solid fa-camera text-primary me-1"></i>Attachments
+                      </button>
+
+                      <div id="detailingMediaSection" class="d-inline-block d-none">
+                        <button type="button" class="feature-pill-btn border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
+                          <i class="fa-solid fa-file-powerpoint me-1"></i>e-Detailing
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Details (ขยายโปร่ง พิมพ์สบาย) -->
+                  <div class="mb-2 flex-grow-1 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-0.5">
                       <label class="compact-label mb-0">Details</label>
                       <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
                         <i class="fa-solid fa-microphone me-1"></i>Dictate
                       </button>
                     </div>
-                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDetails" style="height: 75px; resize: none;"></textarea>
+                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 110px; resize: none;"></textarea>
                   </div>
 
-                  <div class="row g-2 mb-2">
+                  <!-- Insight & Next Action -->
+                  <div class="row g-2 mb-1">
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0">Insight</label>
                         <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
                       </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 48px; resize: none;"></textarea>
+                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 52px; resize: none;"></textarea>
                     </div>
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0">Next Action</label>
                         <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
                       </div>
-                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 48px;">
-                    </div>
-                  </div>
-
-                  <!-- 🌟 Dynamic Features Action Bar (เปิด/ปิดตาม System Settings) -->
-                  <div class="p-2 bg-light border rounded-3 mt-1 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                      <button type="button" class="feature-action-btn" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-location-dot text-danger me-1"></i> GPS & Sign
-                      </button>
-
-                      <button type="button" class="feature-action-btn" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
-                        <i class="fa-solid fa-gifts text-warning me-1"></i> Samples & Promo
-                      </button>
-
-                      <button type="button" class="feature-action-btn" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-camera text-primary me-1"></i> Attachments
-                      </button>
-
-                      <div id="detailingMediaSection" class="d-inline-block d-none">
-                        <button type="button" class="feature-action-btn border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                          <i class="fa-solid fa-file-powerpoint me-1"></i> e-Detailing
-                        </button>
-                      </div>
+                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 52px;">
                     </div>
                   </div>
 
@@ -528,10 +532,7 @@
       <form onsubmit="window.handleSaveTot(event)">
         <div class="modal-body p-4">
           <input type="hidden" id="totId">
-          <div class="mb-3">
-            <label class="form-label fw-bold text-dark small">TOT Type <span class="text-danger">*</span></label>
-            <select class="form-select shadow-sm premium-radius" id="totType" required></select>
-          </div>
+          <div class="mb-3"><label class="form-label fw-bold text-dark small">TOT Type <span class="text-danger">*</span></label><select class="form-select shadow-sm premium-radius" id="totType" required></select></div>
           <div class="row mb-3 g-2">
             <div class="col-6"><label class="form-label fw-bold text-dark small">Start Date <span class="text-danger">*</span></label><input type="date" class="form-control shadow-sm premium-radius" id="totStartDate" required></div>
             <div class="col-6"><label class="form-label fw-bold text-dark small">End Date</label><input type="date" class="form-control shadow-sm premium-radius" id="totEndDate"></div>
