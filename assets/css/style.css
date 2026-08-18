@@ -110,14 +110,13 @@ html, body {
 }
 
 /* ==========================================
-   ✨ COMPACT ELEVATED KPI CARDS (ย่อขนาดกล่องลง + ขนาดเท่ากันเป๊ะ)
+   ✨ COMPACT ELEVATED KPI CARDS
    ========================================== */
- 
 .kpi-card-elevated {
   background: #ffffff !important;
   border-radius: 10px !important;
-  padding: 5px 10px 5px 8px !important; /* ปรับ Padding ให้สมดุล */
-  height: 46px !important;              /* ขยายความสูงเพิ่ม 2px ป้องกันการตัดขอบ */
+  padding: 5px 10px 5px 8px !important;
+  height: 46px !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
@@ -134,8 +133,8 @@ html, body {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  line-height: 1.25 !important;        /* 🌟 แก้จาก 1 เป็น 1.25 เพื่อไม่ให้หางตัว g โดนตัด */
-  padding-bottom: 1px !important;      /* 🌟 เว้นพื้นที่ให้หางตัวอักษรล่างสุด */
+  line-height: 1.25 !important;
+  padding-bottom: 1px !important;
 }
 
 .kpi-value-text {
@@ -144,7 +143,6 @@ html, body {
   line-height: 1 !important;
   margin-top: 1px !important;
 }
- 
 
 .kpi-card-elevated:hover {
   transform: translateY(-1px) !important;
@@ -164,8 +162,6 @@ html, body {
   justify-content: center !important;
   flex-shrink: 0 !important;
 }
- 
- 
 
 /* 🌟 BORDERLESS CONTROL TOOLBAR */
 .visit-filter-compact .form-control,
@@ -248,6 +244,7 @@ input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transf
 .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
 @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
+/* 🌟 TOMSELECT STYLING */
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
 .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
 .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
@@ -288,37 +285,6 @@ mark.highlight-text { background-color: #fef08a !important; color: #854d0e !impo
 
 #pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
 #pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-/* 📅 FULLCALENDAR FIX & POINTER EVENTS */
-#calendar { min-height: 550px; font-family: inherit; position: relative; z-index: 10 !important; }
-.fc { position: relative; z-index: 10 !important; }
-.fc-event { 
-    cursor: pointer !important; 
-    border: none !important; 
-    padding: 3px 6px !important; 
-    border-radius: 6px !important; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-    margin-bottom: 3px !important; 
-    color: #ffffff !important; 
-    pointer-events: auto !important;
-}
-.fc-event-main {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    pointer-events: auto !important;
-}
-.fc-daygrid-event-dot { display: none !important; }
-.fc-event-title { font-weight: 600; font-size: 0.8rem; }
-.fc-event-time { font-weight: 700; font-size: 0.75rem; margin-right: 4px; }
-.fc-daygrid-day-number { color: #475569; font-weight: 600; text-decoration: none; cursor: pointer !important; pointer-events: auto !important; }
-.fc-daygrid-day-number:hover { color: #0d6efd; }
-.fc-col-header-cell { background-color: #f8fafc; color: #64748b; padding: 10px 0 !important; }
-.fc .fc-button-primary { background-color: #ffffff; border-color: #cbd5e1; color: #334155; font-weight: 600; text-transform: capitalize; cursor: pointer !important; }
-.fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
-.fc-toolbar-title { font-weight: 700 !important; color: #1e293b; font-size: 1.25rem !important; }
 
 /* 📅 DATEPICKER POPUP FIX */
 .cursor-pointer { cursor: pointer !important; }
@@ -687,7 +653,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 FULL-CARD CENTERED LOADING OVERLAY (จัดสปินเนอร์กึ่งกลางการ์ดสีขาวสมบูรณ์แบบ) */
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
 #visitTableLoading {
   min-height: 380px;
   display: flex;
@@ -703,7 +669,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   vertical-align: middle;
 }
 
-/* 🌟 UNIFIED SINGLE-STATE LOADING (บังคับซ่อน Filter + Table ไม่ให้เหลือหัวตารางโผล่) */
+/* 🌟 UNIFIED SINGLE-STATE LOADING */
 #visitListView.is-loading #visitMainContentContainer {
   display: none !important;
 }
@@ -724,7 +690,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
 
-/* 1. คอลัมน์โรงพยาบาล: ทำเป็น Plain Text สบายตา ไม่เป็นกล่องสี่เหลี่ยม */
+/* 1. คอลัมน์โรงพยาบาล */
 .table-hosp-text {
   color: #334155 !important;
   font-weight: 500 !important;
@@ -737,58 +703,44 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-size: 0.85rem;
 }
 
-/* 2. คอลัมน์ชื่อแพทย์: เด่นชัดเป็นจุดโฟกัสหลัก */
+/* 2. คอลัมน์ชื่อแพทย์ */
 .table-doc-name {
   color: #0f172a !important;
   font-weight: 600 !important;
 }
 
-/* 3. ปรับระยะบรรทัดและเส้นแบ่งตารางให้นุ่มนวลขึ้น */
+/* 3. ปรับระยะบรรทัดและเส้นแบ่งตาราง */
 .table-scroll-inside .table tbody tr td {
   padding-top: 0.75rem !important;
   padding-bottom: 0.75rem !important;
-  border-bottom: 1px solid #f1f5f9 !important; /* เส้นแบ่งนุ่มตา ไม่เป็นกรอบเข้ม */
+  border-bottom: 1px solid #f1f5f9 !important;
   vertical-align: middle;
 }
 
 .table-scroll-inside .table tbody tr:hover {
-  background-color: #f8fafc !important; /* Hilight แถวเวลานำเมาส์ไปชี้ */
+  background-color: #f8fafc !important;
 }
 
- 
-
-/* สไตล์ไฮไลท์คำค้นหาแบบเนียน สบายตา */
+/* สไตล์ไฮไลท์คำค้นหา */
 mark.highlight-search {
-    background-color: #fef08a !important; /* สีเหลืองพาสเทล */
+    background-color: #fef08a !important;
     color: #854d0e !important;
     padding: 0 2px;
     border-radius: 3px;
     font-weight: 600;
 }
 
-/* 🌟 จัดการกล่อง Popover ให้สากล มีเงา มิติ และลูกศรเชื่อม */
-.popover-advanced-filter {
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-    border-radius: 12px !important;
-    margin-top: 8px !important;
-}
-
-/* ⚡ ซ่อน Placeholder ของ TomSelect ทันทีเมื่อมีการเลือก Tag แล้ว */
+/* ==========================================
+   🌟 ADVANCED FILTERS DROPDOWN STYLING
+   ========================================== */
+.ts-wrapper.has-items .ts-control input::placeholder,
+.ts-wrapper.has-items .ts-input::placeholder,
 .ts-control.has-items .ts-input::placeholder,
 .ts-control.has-items input::placeholder {
     color: transparent !important;
     opacity: 0 !important;
 }
 
-/* 1. ซ่อน Placeholder ของ TomSelect แบบเด็ดขาดเมื่อมีการเลือก Item แล้ว */
-.ts-wrapper.has-items .ts-control input::placeholder,
-.ts-wrapper.has-items .ts-input::placeholder {
-    color: transparent !important;
-    opacity: 0 !important;
-}
-
-/* 2. ดัดการแสดงผล Dropdown ใน Advanced Filter ไม่ให้กล่องดันลอยทะลุขอบ */
 .dropdown-menu .ts-wrapper {
     position: relative !important;
 }
@@ -802,14 +754,9 @@ mark.highlight-search {
     margin-top: 2px !important;
 }
 
-/* 3. ปรับระยะเว้นวรรคภายในกล่อง Advanced Filters ให้โปร่งและไม่เบียดขอบล่าง */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
     padding: 1rem !important;
-    overflow: visible !important; /* ป้องกันกล่องตัวเลือกถูกตัดขอบ */
-}
-
-/* 🌟 บังคับกล่อง Advanced Filters ให้ชิดขอบขวาของปุ่ม Filters และปรับระยะห่างให้พอดี */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
+    overflow: visible !important;
     right: 0 !important;
     left: auto !important;
     margin-top: 6px !important;
@@ -817,27 +764,25 @@ mark.highlight-search {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* ป้องกันขอบกล่อง Area / Team เบียดชิดขอบล่างของป๊อบอัพเกินไป */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .mb-1 {
     margin-bottom: 0.25rem !important;
 }
 
-/* ล็อคความสูงของช่องเลือก TomSelect ใน Advanced Filters ไม่ให้ขยายเกิน 2 บรรทัด */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
     max-height: 82px !important;
     overflow-y: auto !important;
-    padding-right: 24px !important; /* เว้นพื้นที่ไม่ให้ Tag ทับลูกศร Dropdown */
+    padding-right: 24px !important;
 }
 
-/* ปรับแต่ง Scrollbar ให้นุ่มนวลสบายตา */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar {
     width: 4px;
 }
+
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 4px;
 }
-/* ปรับ Tag ใน Advanced Filters ให้เล็กลงแบบ Compact */
+
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control .item {
     font-size: 0.75rem !important;
     padding: 1px 6px !important;
@@ -845,14 +790,40 @@ mark.highlight-search {
     border-radius: 4px !important;
 }
 
-/* 🌟 ล็อคความสูงของช่องตาราง FullCalendar ไม่ให้ยืดล้น */
-#calendar .fc-daygrid-day-frame {
-    min-height: 100px !important;
-    max-height: 120px !important;
+/* ==========================================
+   📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
+   ========================================== */
+#visitCalendarZone {
+    height: calc(100vh - 130px) !important;
+    max-height: calc(100vh - 130px) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#calendar {
+    flex-grow: 1 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    position: relative;
+    z-index: 10 !important;
+}
+
+/* ปิด Scrollbar นอกและในของ FullCalendar */
+#calendar .fc-view-harness, 
+#calendar .fc-daygrid,
+#calendar .fc-scroller-harness,
+#calendar .fc-scroller {
+    height: 100% !important;
     overflow: hidden !important;
 }
 
-/* ตกแต่งป้ายลิงก์ +more ให้น่าใช้นุ่มนวลขึ้น */
+#calendar .fc-daygrid-day-frame {
+    min-height: 80px !important;
+    height: 100% !important;
+}
+
 #calendar .fc-daygrid-more-link {
     font-size: 0.75rem !important;
     font-weight: 700 !important;
@@ -862,23 +833,8 @@ mark.highlight-search {
     border-radius: 4px !important;
 }
 
-/* 🌟 ให้การ์ดปฏิทินคำนวณความสูงพอดีกับพื้นที่จอที่เหลือ */
-#visitCalendarZone {
-    height: calc(100vh - 180px) !important;
-    display: flex;
-    flex-column: column;
-    overflow: hidden !important; /* ปิด Scrollbar นอก */
-}
-
-/* ปรับแถบสัญลักษณ์ Legend ให้ตัวเล็กกระชับ อยู่บรรทัดเดียว */
-#visitCalendarZone .border-bottom {
-    padding-bottom: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
-    font-size: 0.72rem !important;
-}
-
-/* ล็อคความสูงวันและปฏิทิน */
-#calendar {
-    flex-grow: 1;
-    height: 100% !important;
+/* ปรับระยะไรน์ใน Header ของ FullCalendar */
+#calendar .fc-toolbar-chunk {
+    display: flex !important;
+    align-items: center !important;
 }
