@@ -821,3 +821,26 @@ mark.highlight-search {
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .mb-1 {
     margin-bottom: 0.25rem !important;
 }
+
+/* ล็อคความสูงของช่องเลือก TomSelect ใน Advanced Filters ไม่ให้ขยายเกิน 2 บรรทัด */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
+    max-height: 82px !important;
+    overflow-y: auto !important;
+    padding-right: 24px !important; /* เว้นพื้นที่ไม่ให้ Tag ทับลูกศร Dropdown */
+}
+
+/* ปรับแต่ง Scrollbar ให้นุ่มนวลสบายตา */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar {
+    width: 4px;
+}
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+/* ปรับ Tag ใน Advanced Filters ให้เล็กลงแบบ Compact */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control .item {
+    font-size: 0.75rem !important;
+    padding: 1px 6px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+}
