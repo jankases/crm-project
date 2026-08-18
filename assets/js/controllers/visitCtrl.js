@@ -412,70 +412,43 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
 };
 
 window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
-  var appLang = window.getCurrentAppLang();
-  var repNameShow = '-';
-  var locNameShow = '-';
-  var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory'; 
-
-  // 1. ดึงข้อมูล User จาก Visit หรือ Object ที่ส่งเข้ามา
-  var targetUser = repObj;
-  if (!targetUser && visitData && visitData.Rep_ID && window._userIndex) {
-    targetUser = window._userIndex[String(visitData.Rep_ID).trim().toLowerCase()];
-  }
-
-  if (targetUser) {
-      repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.name || targetUser.Email || '-';
-      var role = String(targetUser.Role || targetUser.role || '').toLowerCase();
-      
-      var userTerr = String(targetUser.Territory_ID || targetUser.territory_id || targetUser.Territory || '').trim();
-      var userTeam = String(targetUser.Team_ID || targetUser.team_id || targetUser.Team || '').trim();
-      var userBU = String(targetUser.BU_ID || targetUser.bu_id || targetUser.BU || '').trim();
-      
-      // ดึงค่า ID จากตัว Visit ถ้าในตัว User ไม่มี
-      if (visitData) {
-        if (!userTerr && visitData.Territory_ID) userTerr = String(visitData.Territory_ID).trim();
-        if (!userBU && visitData.BU_ID) userBU = String(visitData.BU_ID).trim();
-      }
-
-      var cache = window.VisitManagerCache || {};
-
-      // 2. คำนวณ Label และ Value ตาม Role ของเจ้าของ Visit
-      if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
-          labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
-          var bus = cache.bus || window.globalBuList || [];
-          var targetBu = userBU || fallbackTerrId; 
-          var bObj = bus.find(function(b) { return String(b.BU_ID || b.id) === targetBu || String(b.BU) === targetBu; });
-          locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : (targetBu || '-');
-
-      } else if (role.indexOf('manager') !== -1 || role.indexOf('team') !== -1) {
-          labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
-          var teams = cache.teams || window.globalTeamList || [];
-          var targetTeam = userTeam || fallbackTerrId;
-          var tObj = teams.find(function(t) { return String(t.Team_ID || t.id) === targetTeam || String(t.Team) === targetTeam; });
-          locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : (targetTeam || '-');
-
-      } else {
-          labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
-          var terrs = cache.territories || window.globalTerritoryList || [];
-          var targetTer = userTerr || fallbackTerrId;
-          var terObj = terrs.find(function(t) { return String(t.Territory_ID || t.id) === targetTer || String(t.Territory) === targetTer; });
-          locNameShow = terObj ? (terObj.Territory || terObj.Territory_Name) : (targetTer || '-');
-      }
-  }
-
-  // 3. ถ้าคำนวณชื่อไม่ได้ ให้ส่งไปแมปผ่าน Helper กลาง
-  if ((!locNameShow || locNameShow === '-') && visitData && typeof window.getBuTerritoryDisplayName === 'function') {
-    locNameShow = window.getBuTerritoryDisplayName(visitData);
-  }
-
-  // 4. อัปเดตลง Element บนหน้าจอ
+  var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'th';
+  
   var repNameEl = document.getElementById('dispSalesRepName');
   var terNameEl = document.getElementById('dispTerritoryName');
   var terLabelEl = document.getElementById('dynamicTerritoryLabel');
 
-  if (repNameEl) repNameEl.innerText = repNameShow;
+  // 1. หาชื่อ Sales Rep เจ้าของ Visit
+  var repNameShow = '-';
+  if (visitData) {
+    repNameShow = visitData.Rep_Name || visitData.Sales_Rep_Name;
+  }
+  if ((!repNameShow || repNameShow === '-') && repObj) {
+    repNameShow = repObj.Rep_Name || repObj.Name || repObj.Email;
+  }
+  if (!repNameShow || repNameShow === '-') {
+    try {
+      var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
+      if (crmUser) repNameShow = crmUser.Rep_Name || crmUser.Name || crmUser.Email;
+    } catch(e) {}
+  }
+
+  // 2. แกะรอยหาชื่อ BU / Team / Territory ผ่าน Hierarchy Lookup
+  var locNameShow = '-';
+  if (typeof window.getBuTerritoryDisplayName === 'function' && visitData) {
+    locNameShow = window.getBuTerritoryDisplayName(visitData);
+  }
+
+  // 3. กำหนด Label ให้สอดคล้อง
+  var labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit (BU)';
+
+  // 4. แสดงผลลง UI
+  if (repNameEl) repNameEl.innerText = repNameShow || '-';
   if (terNameEl) terNameEl.innerText = locNameShow !== '-' ? locNameShow : (visitData ? (visitData.BU_Name || visitData.Territory_Name || '-') : '-');
-  if (terLabelEl) { terLabelEl.removeAttribute('data-i18n'); terLabelEl.innerText = labelText; }
+  if (terLabelEl) { 
+    terLabelEl.removeAttribute('data-i18n'); 
+    terLabelEl.innerText = labelText; 
+  }
 };
 
 window.initUserInfo = function() {
@@ -4057,19 +4030,18 @@ window.isGuidFormat = function(str) {
   return str.length > 20 && str.indexOf('-') !== -1;
 }; 
 // ⚡ Centralized Cache Lookup สำหรับ BU / Territory (ปรับปรุงรองรับทุก Key)
+
+// ⚡ ฟังก์ชันแปลง ID หาชื่อ BU ตามโครงสร้าง Organization Structure
 window.getBuTerritoryDisplayName = function(visitData) {
   if (!visitData) return '-';
 
   var cache = window.VisitManagerCache || {};
-  var bus = cache.bus || [];
-  var teams = cache.teams || [];
-  var territories = cache.territories || [];
+  var bus = cache.bus || window.globalBuList || [];
+  var teams = cache.teams || window.globalTeamList || [];
+  var territories = cache.territories || window.globalTerritoryList || [];
 
+  // 1. ลองดูว่ามี BU_ID มาตรงๆ หรือไม่
   var rawBuId = visitData.BU_ID || visitData.BU;
-  var rawTerId = visitData.Territory_ID || visitData.Territory;
-  var rawTeamId = visitData.Team_ID || visitData.Team;
-
-  // 1. ถ้ามี BU_ID ตรงๆ ให้ดึงชื่อ BU จากตาราง BU ก่อนเลย
   if (rawBuId) {
     var foundBu = bus.find(function(b) {
       return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(rawBuId).trim().toLowerCase();
@@ -4077,39 +4049,39 @@ window.getBuTerritoryDisplayName = function(visitData) {
     if (foundBu && (foundBu.BU || foundBu.BU_Name)) return foundBu.BU || foundBu.BU_Name;
   }
 
-  // 2. ถ้าไม่มี BU_ID แต่มี Territory_ID (เช่น "L1") ให้ไล่ย้อนหา Team -> BU
+  // 2. แกะรอยตาม Hierarchy: Territory (L1) -> Team (LUNG1) -> BU (LUNG)
+  var rawTerId = visitData.Territory_ID || visitData.Territory;
   if (rawTerId) {
+    // ขั้น 2.1: หา Territory เพื่อเอา Team_ID
     var foundTer = territories.find(function(t) {
       return String(t.Territory_ID || t.id || t.Territory).trim().toLowerCase() === String(rawTerId).trim().toLowerCase();
     });
-    
-    // ดึง Team_ID จาก Territory
-    var targetTeamId = foundTer ? (foundTer.Team_ID || foundTer.Team) : rawTeamId;
-    
+
+    var targetTeamId = foundTer ? (foundTer.Team_ID || foundTer.Team) : visitData.Team_ID;
+
     if (targetTeamId) {
+      // ขั้น 2.2: หา Team เพื่อเอา BU_ID
       var foundTeam = teams.find(function(tm) {
         return String(tm.Team_ID || tm.id || tm.Team).trim().toLowerCase() === String(targetTeamId).trim().toLowerCase();
       });
-      
-      // ดึง BU_ID จาก Team
-      var targetBuIdFromTeam = foundTeam ? (foundTeam.BU_ID || foundTeam.BU) : null;
-      if (targetBuIdFromTeam) {
-        var foundBuFromTeam = bus.find(function(b) {
-          return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(targetBuIdFromTeam).trim().toLowerCase();
+
+      var targetBuId = foundTeam ? (foundTeam.BU_ID || foundTeam.BU) : null;
+
+      if (targetBuId) {
+        // ขั้น 2.3: หา BU เพื่อเอาชื่อ BU (เช่น LUNG)
+        var finalBu = bus.find(function(b) {
+          return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(targetBuId).trim().toLowerCase();
         });
-        if (foundBuFromTeam && (foundBuFromTeam.BU || foundBuFromTeam.BU_Name)) {
-          return foundBuFromTeam.BU || foundBuFromTeam.BU_Name;
-        }
+        if (finalBu && (finalBu.BU || finalBu.BU_Name)) return finalBu.BU || finalBu.BU_Name;
       }
     }
   }
 
-  // 3. Fallback: ถ้าเช็กแล้วไม่มี BU ในระบบเลย ให้ดึง BU จาก User Profile ปัจจุบัน
+  // 3. Fallback: ถ้าเป็น User Profile ของ Kai BU
   try {
     var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
     if (crmUser && (crmUser.BU_Name || crmUser.BU)) {
-      var userBu = crmUser.BU_Name || crmUser.BU;
-      if (!window.isGuidFormat(userBu)) return userBu;
+      return crmUser.BU_Name || crmUser.BU;
     }
   } catch(e) {}
 
