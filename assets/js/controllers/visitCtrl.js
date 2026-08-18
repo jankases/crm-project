@@ -3855,3 +3855,10 @@ window.bindDoctorChangeForHistory = function() {
         docSelect.setAttribute('data-history-attached', 'true');
     }
 };
+// 🚀 ฟังก์ชันสั่งค้นหาเมื่อกด Enter หรือกดแว่นขยาย
+window.triggerSmartSearch = function() {
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true);
+    }
+};
