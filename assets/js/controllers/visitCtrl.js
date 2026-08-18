@@ -3282,31 +3282,34 @@ window.renderCalendarView = function() {
     window.globalCalendarInstance.render();
 
     // ⚡ [จุดที่ปรับแก้ 2]: แทรก Dropdown สัญลักษณ์สี (Legend) ไว้ใน HeaderToolbar ด้านขวาของ FullCalendar
-    setTimeout(function() {
-      var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
-      if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
-        var legendBtnHtml = `
-          <div class="dropdown d-inline-block me-2" id="calHeaderLegendDropdown">
-            <button class="btn btn-sm btn-light border text-secondary premium-radius py-1 px-2.5 fs-7 d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fa-solid fa-palette text-primary me-1.5"></i>
-              <span class="fw-semibold small">${appLang === 'en' ? 'Legend' : 'สัญลักษณ์สี'}</span>
-              <i class="fa-solid fa-chevron-down ms-1.5 small text-muted"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end p-2.5 shadow-lg border-0 rounded-3" style="width: 210px; font-size: 0.78rem; z-index: 1055;">
-              <div class="fw-bold text-dark border-bottom pb-1 mb-2">${appLang === 'en' ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
-              <div class="d-flex align-items-center mb-1.5"><span class="badge bg-success me-2" style="width:10px; height:10px; padding:0; border-radius:50%;"></span>Submitted Visit</div>
-              <div class="d-flex align-items-center mb-1.5"><span class="badge bg-warning me-2" style="width:10px; height:10px; padding:0; border-radius:50%;"></span>Pending Draft</div>
-              <div class="d-flex align-items-center mb-1.5"><span class="badge bg-secondary me-2" style="width:10px; height:10px; padding:0; border-radius:50%;"></span>Pending Unlock</div>
-              <div class="d-flex align-items-center mb-1.5"><span class="badge bg-danger me-2" style="width:10px; height:10px; padding:0; border-radius:50%;"></span>Public Holiday</div>
-              <div class="d-flex align-items-center mb-1.5"><span class="badge me-2" style="width:10px; height:10px; padding:0; border-radius:50%; background-color:#8b5cf6;"></span>Company Event</div>
-              <div class="d-flex align-items-center mb-1.5"><span class="badge bg-info me-2" style="width:10px; height:10px; padding:0; border-radius:50%;"></span>TOT (Approved)</div>
-              <div class="d-flex align-items-center"><span class="badge me-2" style="width:10px; height:10px; padding:0; border-radius:50%; background-color:#94a3b8;"></span>TOT (Pending)</div>
-            </div>
-          </div>
-        `;
-        headerRight.insertAdjacentHTML('afterbegin', legendBtnHtml);
-      }
-    }, 100);
+
+      // ⚡ [แทนที่ท่อน setTimeout เดิมใน renderCalendarView ของ visitCtrl.js]
+        setTimeout(function() {
+          var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
+          if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
+            // ปรับสไตล์ปุ่มให้กลมกลืนกับปุ่ม Month Week Day ของ FullCalendar
+            var legendDropdownHtml = `
+              <div class="dropdown d-inline-block me-1" id="calHeaderLegendDropdown">
+                <button class="fc-button fc-button-primary dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #64748b; border-color: #64748b; font-size: 0.85rem; padding: 0.35em 0.65em;">
+                  <i class="fa-solid fa-palette"></i>
+                  <span>${appLang === 'en' ? 'Legend' : 'สัญลักษณ์สี'}</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 210px; font-size: 0.8rem; z-index: 1055;">
+                  <div class="fw-bold text-dark border-bottom pb-1.5 mb-2">${appLang === 'en' ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span>Submitted Visit</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span>Pending Draft</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span>Pending Unlock</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span>Public Holiday</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span>Company Event</div>
+                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span>TOT (Approved)</div>
+                  <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span>TOT (Pending)</div>
+                </div>
+              </div>
+            `;
+            headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
+          }
+        }, 50);
+       
   }
 };
 
