@@ -850,17 +850,20 @@ window.toggleMainView = function(viewName) {
   var btnCal = document.getElementById('btnToggleCal');
   var listZone = document.getElementById('visitListZone');
   var calZone = document.getElementById('visitCalendarZone');
+  var filterGroup = document.getElementById('visitFilterZoneGroup'); // ⚡ อ้างอิง Filter Bar
 
   if (viewName === 'calendar') {
       if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
       if (btnCal) btnCal.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
       if (listZone) listZone.classList.add('d-none');
+      if (filterGroup) filterGroup.classList.add('d-none'); // ⚡ ซ่อน Filter Bar ไม่ให้ลอยทับ
       if (calZone) calZone.classList.remove('d-none');
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (btnList) btnList.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
       if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
       if (calZone) calZone.classList.add('d-none');
+      if (filterGroup) filterGroup.classList.remove('d-none'); // ⚡ แสดง Filter Bar กลับมา
       if (listZone) listZone.classList.remove('d-none');
   }
 };
@@ -3255,10 +3258,12 @@ window.renderCalendarView = function() {
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: fcButtonText, 
         locale: appLang === 'th' ? 'th' : 'en', 
-        
-        // ⚡ [เพิ่ม 2 บรรทัดนี้]: ล็อคจำนวนเหตุการณ์ไม่ให้เกิน 2 รายการต่อวัน (รายการที่เกินจะถูกรวบเป็น +more)
-        dayMaxEvents: 2,
-        moreLinkClick: 'popover', // กดที่ปุ่ม +more แล้วเปิดเป็นป๊อบอัพแสดงรายการทั้งหมด
+
+        // ⚡ [SETTING ใหม่]: ยืดปฏิทินเต็มความสูงการ์ดแบบไม่มี Scrollbar
+        height: '100%', 
+        expandRows: true, // ขยายแถววันให้เต็มพื้นที่แนวตั้งอัตโนมัติ
+        dayMaxEvents: 2,  // ซ่อนป้ายเกินเป็น +more
+        moreLinkClick: 'popover', 
     
         events: allEvents,
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
