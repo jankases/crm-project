@@ -196,7 +196,10 @@ const i18nDictionary = {
     lbl_tot_remark: "Remark / Reason",
     opt_tot_approved: "✅ Approved",
     opt_tot_pending: "⏳ Pending",
-    btn_delete: "Delete"
+    btn_delete: "Delete",
+
+    btn_last_history: "📜 History"
+    
   },
 
   th: {
@@ -392,7 +395,9 @@ const i18nDictionary = {
     lbl_tot_remark: "รายละเอียด / เหตุผล",
     opt_tot_approved: "✅ อนุมัติแล้ว (Approved)",
     opt_tot_pending: "⏳ รออนุมัติ (Pending)",
-    btn_delete: "ลบรายการ"
+    btn_delete: "ลบรายการ",
+
+    btn_last_history: "📜 ประวัติเยี่ยม"
   }
 };
 
