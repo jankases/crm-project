@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: MAIN CONTENT CONTAINER (ครอบตั้งแต่ Filter bar + Table ทั้งหมด ไม่ให้หัวตารางหลุดออกมา) -->
+    <!-- 🌟 ROW 2: MAIN CONTENT CONTAINER -->
     <div id="visitMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden">
       
       <!-- Filter Toolbar Card -->
@@ -126,13 +126,13 @@
               <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
                 <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">ตัวกรอง</span>
               </button>
-              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 290px; z-index: 1050;">
+              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" aria-labelledby="btnAdvFilterDropdown" style="width: 320px; z-index: 1050;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6 d-flex align-items-center"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
                 <div class="mb-2">
                   <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterRep" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
                   <select class="form-select shadow-none fs-6" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
                 </div>
-                <div class="mb-3">
+                <div class="mb-1">
                   <label class="form-label fw-bold text-secondary small mb-1" id="lblFilterTerritory" data-i18n="lbl_area_team">Area / Team</label>
                   <select class="form-select shadow-none fs-6" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
                 </div> 
@@ -189,7 +189,7 @@
 
     </div>
 
-    <!-- 🌟 UNIFIED SINGLE LOADING SCREEN (วางไว้นอก #visitMainContentContainer เพื่อขึ้นแสดงทับเดี่ยวๆ ไร้หัวตารางลอย) -->
+    <!-- 🌟 UNIFIED SINGLE LOADING SCREEN -->
     <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column align-items-center justify-content-center my-auto d-none">
       <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem; border-width: 0.25rem;" role="status"></div>
       <h5 class="text-dark fw-bold mb-1" id="loadingTitleText">Loading Data...</h5>
