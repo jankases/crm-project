@@ -850,20 +850,28 @@ window.toggleMainView = function(viewName) {
   var btnCal = document.getElementById('btnToggleCal');
   var listZone = document.getElementById('visitListZone');
   var calZone = document.getElementById('visitCalendarZone');
-  var filterZone = document.getElementById('visitFilterZoneGroup'); // ⚡ อ้างอิง Filter Toolbar
+  var filterZone = document.getElementById('visitFilterZoneGroup');
 
   if (viewName === 'calendar') {
       if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
       if (btnCal) btnCal.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
+      
+      // ⚡ ซ่อนหน้า List และ Filter Bar
       if (listZone) listZone.classList.add('d-none');
-      if (filterZone) filterZone.classList.add('d-none'); // ⚡ ซ่อน Filter Bar ชั่วคราวเพื่อไม่ให้ลอยทับปฏิทิน
+      if (filterZone) filterZone.classList.add('d-none'); 
+      
+      // ⚡ แสดงหน้า Calendar
       if (calZone) calZone.classList.remove('d-none');
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (btnList) btnList.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
       if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
+      
+      // ⚡ ซ่อนหน้า Calendar
       if (calZone) calZone.classList.add('d-none');
-      if (filterZone) filterZone.classList.remove('d-none'); // ⚡ แสดง Filter Bar เมื่อกลับมาหน้า List
+      
+      // ⚡ แสดงหน้า List และ Filter Bar
+      if (filterZone) filterZone.classList.remove('d-none'); 
       if (listZone) listZone.classList.remove('d-none');
   }
 };
