@@ -755,9 +755,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background-color: #f8fafc !important; /* Hilight แถวเวลานำเมาส์ไปชี้ */
 }
 
-/* 🌟 สไตล์ไฮไลท์คำค้นหามาตรฐานแบบ CRM ระดับสากล */
+ 
+
+/* สไตล์ไฮไลท์คำค้นหาแบบเนียน สบายตา */
 mark.highlight-search {
-    background-color: #fef08a !important; /* สีเหลืองพาสเทลสบายตา */
+    background-color: #fef08a !important; /* สีเหลืองพาสเทล */
     color: #854d0e !important;
     padding: 0 2px;
     border-radius: 3px;
