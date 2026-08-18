@@ -66,6 +66,7 @@ window.applySearchHighlight = function(text, searchKeyword) {
 
   keywords.forEach(function(kw) {
     if (!kw) return;
+    // ใช้ Regex ไฮไลท์เฉพาะคำที่ตรงกัน โดยไม่ทำลายโครงสร้าง HTML
     var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
     safeText = safeText.replace(regex, '<mark class="highlight-search">$1</mark>');
   });
