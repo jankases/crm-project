@@ -841,3 +841,71 @@ mark.highlight-search {
     display: flex !important;
     align-items: center !important;
 }
+
+/* ==========================================
+   ✨ FULLCALENDAR PREMIUM BUTTONS STYLING
+   ========================================== */
+
+/* 1. ปุ่มทิศทาง (< > Today) และปุ่มทั่วไปของ FullCalendar */
+#calendar .fc-button-primary {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+#calendar .fc-button-primary:hover {
+    background-color: #f8fafc !important;
+    color: #1d4ed8 !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* 2. ปุ่มสภาวะกดอยู่ (Active / Selected - เช่น ปุ่ม Month ที่เลือก) */
+#calendar .fc-button-primary:not(:disabled):active, 
+#calendar .fc-button-primary:not(:disabled).fc-button-active {
+    background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
+    border-color: #1e40af !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.25) !important;
+}
+
+/* 3. ปุ่ม Legend สัญลักษณ์สี (ปรับเป็นโทนสีขาวคลีน ไม่กระโดด) */
+#calHeaderLegendDropdown .btn {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+#calHeaderLegendDropdown .btn:hover {
+    background-color: #f8fafc !important;
+    color: #1d4ed8 !important;
+    border-color: #cbd5e1 !important;
+}
+
+#calHeaderLegendDropdown .btn i.fa-palette {
+    color: #0ea5e9 !important; /* เปลี่ยนไอคอนจานสีเป็นสีฟ้าสดใส */
+}
+
+/* 4. กลุ่มปุ่มติดกัน (Button Group: Month/Week/Day) ให้เข้ามุมมนสวยงาม */
+#calendar .fc-button-group {
+    gap: 2px !important;
+    background-color: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+}
+
+#calendar .fc-button-group > .fc-button {
+    border-radius: 7px !important;
+    border: none !important;
+}
