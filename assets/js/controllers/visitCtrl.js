@@ -1536,26 +1536,33 @@ window.renderFormProductDropdown = async function() {
 window.handleFilterChange = function(source) { if (typeof window.filterVisits === 'function') window.filterVisits(); };
 
 window.clearVisitFilters = function() {
+    // 1. เคลียร์ค่า TomSelect
     if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
     if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
     if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue('', true);
     
-    var clearTs = function(id) { 
-        var el = document.getElementById(id); 
-        if (el && el.tomselect) el.tomselect.clear(); 
-        else if (el) el.value = ''; 
-    };
-    
-    clearTs('filterStartDate'); 
-    clearTs('filterEndDate'); 
+    // 2. เคลียร์ค่า Flatpickr (Date Filters) ⚡
+    if (window.fpStartInstance) window.fpStartInstance.clear();
+    if (window.fpEndInstance) window.fpEndInstance.clear();
 
+    // 3. Fallback เคลียร์ค่า Input วันที่กรณีไม่ได้ใช้ Flatpickr
+    var stDate = document.getElementById('filterStartDate');
+    var endDate = document.getElementById('filterEndDate');
+    if (stDate && !window.fpStartInstance) stDate.value = '';
+    if (endDate && !window.fpEndInstance) endDate.value = '';
+
+    // 4. เคลียร์ค่า Status Select
     var stEl = document.getElementById('filterVisitStatus');
     if (stEl && !window.tomSelectStatusInstance) { 
         stEl.value = ''; 
         stEl.classList.add('filter-placeholder-text'); 
     }
     
-    if (document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = '';
+    // 5. เคลียร์ค่า Smart Search
+    var searchEl = document.getElementById('smartSearchInput');
+    if (searchEl) searchEl.value = '';
+
+    // 6. โหลดข้อมูลตารางใหม่
     if (typeof window.filterVisits === 'function') window.filterVisits();
 };
 
