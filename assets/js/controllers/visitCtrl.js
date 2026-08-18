@@ -1389,13 +1389,30 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     if (typeof TomSelect !== 'undefined') {
         if (repSelect) {
             window.safeDestroyTs(window.tomSelectRepInstance);
-            window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', dropdownParent: 'body', onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } });
+            
+            window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
+                maxItems: null, 
+                plugins: ['remove_button'], 
+                create: false, 
+                hidePlaceholder: true, // ⚡ เพิ่มบรรทัดนี้เพื่อไม่ให้ Placeholder ค้าง
+                placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
+                dropdownParent: 'body', 
+                onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
+            });
             if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
         }
 
         if (terSelect) {
             window.safeDestroyTs(window.tomSelectTerInstance);
-            window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { maxItems: null, plugins: ['remove_button'], create: false, placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', dropdownParent: 'body', onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } });
+            window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
+                maxItems: null, 
+                plugins: ['remove_button'], 
+                create: false, 
+                hidePlaceholder: true, // ⚡ เพิ่มบรรทัดนี้เพื่อไม่ให้ Placeholder ค้าง
+                placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
+                dropdownParent: 'body', 
+                onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
+            });
             if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
         }
     }
