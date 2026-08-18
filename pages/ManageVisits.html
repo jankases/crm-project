@@ -7,6 +7,11 @@
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
+<!-- 📚 โหลด Flatpickr CSS & JS (พร้อมไฟล์ภาษาไทย) สำหรับ Date Filter 2 ภาษา -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
@@ -89,11 +94,12 @@
             </div>
 
             <div style="width: 250px;">
-              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer">
-                <span class="text-muted pe-1" onclick="document.getElementById('filterStartDate').showPicker()"><i class="fa-regular fa-calendar-days"></i></span>
-                <input type="date" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterStartDate" onchange="window.filterVisits()" onclick="this.showPicker()">
+              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer" id="dateFilterRangeWrapper">
+                <span class="text-muted pe-1" onclick="if(window.fpStartInstance) window.fpStartInstance.open();"><i class="fa-regular fa-calendar-days"></i></span>
+                <!-- ⚡ ปรับเป็น type="text" เพื่อให้ Flatpickr คุมภาษาปฏิทินป๊อบอัปทั้ง TH/EN -->
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterStartDate" placeholder="วว/ดด/ปปปป" readonly>
                 <span class="text-muted small px-1">-</span>
-                <input type="date" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterEndDate" onchange="window.filterVisits()" onclick="this.showPicker()">
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterEndDate" placeholder="วว/ดด/ปปปป" readonly>
               </div>
             </div>
 
@@ -178,9 +184,9 @@
       <span class="text-muted small" id="loadingDescText">Processing your access rights and retrieving records.</span>
     </div>
 
-    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 d-none" style="height: calc(100vh - 160px); min-height: 550px;">
-  <div id="calendar" class="w-100 h-100" style="position: relative; z-index: 10;"></div>
-</div>
+    <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 d-none">
+      <div id="calendar" class="w-100 h-100" style="position: relative; z-index: 10;"></div>
+    </div>
 
   </div>
 
