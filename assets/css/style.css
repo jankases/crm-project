@@ -797,8 +797,11 @@ mark.highlight-search {
     height: calc(100vh - 130px) !important;
     max-height: calc(100vh - 130px) !important;
     overflow: hidden !important;
-    display: flex !important;
     flex-direction: column !important;
+}
+
+#visitCalendarZone:not(.d-none) {
+    display: flex !important;
 }
 
 #calendar {
