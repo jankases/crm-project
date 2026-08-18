@@ -1,5 +1,5 @@
 // =========================================
-// CRM System - Utility Functions (ฟังก์ชันอเนกประสงค์) 
+// CRM System - Utility Functions
 // ========================================= 
 
 // 1. ฟังก์ชันโชว์แจ้งเตือนป๊อปอัป (Toast)
@@ -66,7 +66,6 @@ window.applySearchHighlight = function(text, searchKeyword) {
 
   keywords.forEach(function(kw) {
     if (!kw) return;
-    // ใช้ Regex ไฮไลท์เฉพาะคำที่ตรงกัน โดยไม่ทำลายโครงสร้าง HTML
     var regex = new RegExp('(' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
     safeText = safeText.replace(regex, '<mark class="highlight-search">$1</mark>');
   });
@@ -74,9 +73,7 @@ window.applySearchHighlight = function(text, searchKeyword) {
   return safeText;
 };
 
-// =========================================
 // 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว (เวอร์ชัน Fast-Cache & Safe Query)
-// =========================================
 window.fetchAllRecords = async function(tableName, queryModifier) {
     if (window.VisitManagerCache && window.VisitManagerCache[tableName] && !queryModifier) {
         return window.VisitManagerCache[tableName];
@@ -86,7 +83,6 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     var start = 0;
     var step = 1000;
     while (true) {
-        // 🚀 [FIX]: เรียก .select() ตั้งต้นก่อน เพื่อเปิดใช้งานฟัง์กชัน .order(), .eq(), .in() ใน queryModifier
         var baseQuery = window.supabaseClient.from(tableName).select('*');
         
         if (typeof queryModifier === 'function') {
@@ -109,9 +105,7 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     return allData;
 };
 
-// =========================================
 // 7. HELPER กลางสำหรับ Pagination (ใช้ร่วมกันทุกหน้า)
-// =========================================
 window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
   var ul = document.getElementById(ulId);
   if (!ul) return;
