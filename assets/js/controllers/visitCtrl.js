@@ -411,43 +411,74 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
   return '-';
 };
 
-window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
+ window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'th';
   
+  var repNameShow = '-';
+  var locNameShow = '-';
+  var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
+
+  // 1. ดึงผู้ใช้งานเจ้าของ Visit (ยึดจาก visitData ก่อน)
+  if (visitData) {
+    repNameShow = visitData.Rep_Name || visitData.Sales_Rep_Name || visitData.Whoupdated || '-';
+  }
+  
+  var targetUser = repObj;
+  if ((!repNameShow || repNameShow === '-') && visitData && visitData.Rep_ID && window._userIndex) {
+    targetUser = window._userIndex[String(visitData.Rep_ID).trim().toLowerCase()];
+  }
+
+  if (targetUser) {
+    if (!repNameShow || repNameShow === '-') {
+      repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.name || targetUser.Email || '-';
+    }
+    
+    var role = String(targetUser.Role || targetUser.role || '').toLowerCase();
+    var userTerr = String(targetUser.Territory_ID || targetUser.territory_id || targetUser.Territory || '').trim();
+    var userTeam = String(targetUser.Team_ID || targetUser.team_id || targetUser.Team || '').trim();
+    var userBU = String(targetUser.BU_ID || targetUser.bu_id || targetUser.BU || '').trim();
+
+    var scopeFromVisit = fallbackTerrId || (visitData ? (visitData.Territory_ID || visitData.BU_ID) : null);
+    var cache = window.VisitManagerCache || {};
+
+    if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
+      labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit (BU)';
+      var bus = cache.bus || window.globalBuList || [];
+      var targetBu = userBU || scopeFromVisit;
+      var bObj = bus.find(function(b) { return String(b.BU_ID || b.id || b.BU) === String(targetBu); });
+      locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : (targetBu || '-');
+
+    } else if (role.indexOf('manager') !== -1) {
+      labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
+      var teams = cache.teams || window.globalTeamList || [];
+      var targetTeam = userTeam || scopeFromVisit;
+      var tObj = teams.find(function(t) { return String(t.Team_ID || t.id || t.Team) === String(targetTeam); });
+      locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : (targetTeam || '-');
+
+    } else {
+      labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
+      var terrs = cache.territories || window.globalTerritoryList || [];
+      var targetTer = userTerr || scopeFromVisit;
+      var terObj = terrs.find(function(t) { return String(t.Territory_ID || t.id || t.Territory) === String(targetTer); });
+      locNameShow = terObj ? (terObj.Territory || terObj.Territory_Name) : (targetTer || '-');
+    }
+  }
+
+  // 2. Fallback: ถ้ายังได้ขีด (-) ให้วิ่งสแกนย้อน Hierarchy (Territory -> Team -> BU)
+  if ((!locNameShow || locNameShow === '-') && visitData && typeof window.getBuTerritoryDisplayName === 'function') {
+    locNameShow = window.getBuTerritoryDisplayName(visitData);
+  }
+
+  // 3. แสดงผลลง UI
   var repNameEl = document.getElementById('dispSalesRepName');
   var terNameEl = document.getElementById('dispTerritoryName');
   var terLabelEl = document.getElementById('dynamicTerritoryLabel');
 
-  // 1. หาชื่อ Sales Rep เจ้าของ Visit
-  var repNameShow = '-';
-  if (visitData) {
-    repNameShow = visitData.Rep_Name || visitData.Sales_Rep_Name;
-  }
-  if ((!repNameShow || repNameShow === '-') && repObj) {
-    repNameShow = repObj.Rep_Name || repObj.Name || repObj.Email;
-  }
-  if (!repNameShow || repNameShow === '-') {
-    try {
-      var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-      if (crmUser) repNameShow = crmUser.Rep_Name || crmUser.Name || crmUser.Email;
-    } catch(e) {}
-  }
-
-  // 2. แกะรอยหาชื่อ BU / Team / Territory ผ่าน Hierarchy Lookup
-  var locNameShow = '-';
-  if (typeof window.getBuTerritoryDisplayName === 'function' && visitData) {
-    locNameShow = window.getBuTerritoryDisplayName(visitData);
-  }
-
-  // 3. กำหนด Label ให้สอดคล้อง
-  var labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit (BU)';
-
-  // 4. แสดงผลลง UI
-  if (repNameEl) repNameEl.innerText = repNameShow || '-';
-  if (terNameEl) terNameEl.innerText = locNameShow !== '-' ? locNameShow : (visitData ? (visitData.BU_Name || visitData.Territory_Name || '-') : '-');
-  if (terLabelEl) { 
-    terLabelEl.removeAttribute('data-i18n'); 
-    terLabelEl.innerText = labelText; 
+  if (repNameEl) repNameEl.innerText = repNameShow;
+  if (terNameEl) terNameEl.innerText = locNameShow;
+  if (terLabelEl) {
+    terLabelEl.removeAttribute('data-i18n');
+    terLabelEl.innerText = labelText;
   }
 };
 
@@ -2173,13 +2204,23 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       var chkCoach = document.getElementById('visitIsCoaching');
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
 
-      // ⚡ [จุดที่ปรับแก้]: เรียกใช้ updateFormUserInfo เพื่ออัปเดต Label และชื่อ Scope (Team/BU/Territory) ให้ตรงกับ Visit
+      // ⚡ [จุดที่แก้ไข]: หา Object Sales Rep ที่สร้าง Visit แล้วส่งให้ updateFormUserInfo อย่างถูกต้อง
+      var targetRepObj = null;
+      if (window.globalUsersList && window.globalUsersList.length > 0) {
+          targetRepObj = window.globalUsersList.find(function(u) { 
+              return String(u.Rep_ID || u.User_ID || u.id).trim().toLowerCase() === String(v.Rep_ID || '').trim().toLowerCase(); 
+          });
+      }
+      if (!targetRepObj && window._userIndex && v.Rep_ID) {
+          targetRepObj = window._userIndex[String(v.Rep_ID).trim().toLowerCase()];
+      }
+
       if (typeof window.updateFormUserInfo === 'function') {
-          window.updateFormUserInfo(null, null, v);
+          window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
       } else {
           var dispRepEl = document.getElementById('dispSalesRepName');
           if (dispRepEl) {
-              dispRepEl.innerText = v.Rep_Name || v.Sales_Rep_Name || myName || '-';
+              dispRepEl.innerText = (targetRepObj ? (targetRepObj.Rep_Name || targetRepObj.Name) : null) || v.Rep_Name || v.Sales_Rep_Name || myName || '-';
           }
 
           var dispBuEl = document.getElementById('dispTerritoryName');
