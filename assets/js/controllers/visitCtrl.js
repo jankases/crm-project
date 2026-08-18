@@ -3255,6 +3255,11 @@ window.renderCalendarView = function() {
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: fcButtonText, 
         locale: appLang === 'th' ? 'th' : 'en', 
+        
+        // ⚡ [เพิ่ม 2 บรรทัดนี้]: ล็อคจำนวนเหตุการณ์ไม่ให้เกิน 2 รายการต่อวัน (รายการที่เกินจะถูกรวบเป็น +more)
+        dayMaxEvents: 2,
+        moreLinkClick: 'popover', // กดที่ปุ่ม +more แล้วเปิดเป็นป๊อบอัพแสดงรายการทั้งหมด
+    
         events: allEvents,
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
         eventClick: function(info) {
