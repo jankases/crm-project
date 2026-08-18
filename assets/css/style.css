@@ -861,3 +861,24 @@ mark.highlight-search {
     padding: 1px 6px !important;
     border-radius: 4px !important;
 }
+
+/* 🌟 ให้การ์ดปฏิทินคำนวณความสูงพอดีกับพื้นที่จอที่เหลือ */
+#visitCalendarZone {
+    height: calc(100vh - 180px) !important;
+    display: flex;
+    flex-column: column;
+    overflow: hidden !important; /* ปิด Scrollbar นอก */
+}
+
+/* ปรับแถบสัญลักษณ์ Legend ให้ตัวเล็กกระชับ อยู่บรรทัดเดียว */
+#visitCalendarZone .border-bottom {
+    padding-bottom: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 0.72rem !important;
+}
+
+/* ล็อคความสูงวันและปฏิทิน */
+#calendar {
+    flex-grow: 1;
+    height: 100% !important;
+}
