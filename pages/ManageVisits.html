@@ -13,7 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
 <style>
-  /* 🎨 Fit-to-Screen Balanced Layout */
+  /* 🎨 Fit-to-Screen Balanced Equal-Height Layout */
   .visit-form-wrapper {
     height: calc(100vh - 75px);
     display: flex;
@@ -30,6 +30,8 @@
   }
   .visit-form-body-scroll {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -53,20 +55,20 @@
     margin-bottom: 2px;
   }
 
-  /* 🌟 ปุ่ม Feature แบบ Dynamic Active Style */
+  /* 🌟 Dynamic Visual Indicators Button Styles */
   .feature-action-btn-lg {
     font-size: 0.82rem;
     font-weight: 600;
     padding: 6px 12px;
     border-radius: 10px;
     border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
+    background: #f8fafc;
+    color: #475569;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
   .feature-action-btn-lg:hover {
     border-color: #0d6efd;
@@ -74,19 +76,37 @@
     background: #eff6ff;
     transform: translateY(-1px);
   }
-  .feature-action-btn-lg.has-data {
-    background-color: #e0f2fe;
-    border-color: #0284c7;
-    color: #0369a1;
+
+  /* 🟢 Has Data Color Customizations */
+  .feature-action-btn-lg.has-data-gps {
+    background-color: #dcfce7 !important;
+    border-color: #16a34a !important;
+    color: #15803d !important;
     font-weight: 700;
   }
-
-  /* 🌟 Inline Samples Container */
-  .inline-sample-box {
-    background: #ffffff;
-    border: 1px dashed #cbd5e1;
-    border-radius: 8px;
-    padding: 6px 10px;
+  .feature-action-btn-lg.has-data-sig {
+    background-color: #dcfce7 !important;
+    border-color: #16a34a !important;
+    color: #15803d !important;
+    font-weight: 700;
+  }
+  .feature-action-btn-lg.has-data-attach {
+    background-color: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    color: #0369a1 !important;
+    font-weight: 700;
+  }
+  .feature-action-btn-lg.has-data-media {
+    background-color: #fee2e2 !important;
+    border-color: #dc2626 !important;
+    color: #b91c1c !important;
+    font-weight: 700;
+  }
+  .feature-action-btn-lg.has-data-samples {
+    background-color: #fef3c7 !important;
+    border-color: #d97706 !important;
+    color: #b45309 !important;
+    font-weight: 700;
   }
 </style>
 
@@ -169,9 +189,9 @@
 
             <div style="width: 190px;">
               <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
-                <option value="">- สถานะทั้งหมด -</option>
-                <option value="Pending">⏳ รอส่ง (Pending)</option>
-                <option value="Submitted">✅ ส่งแล้ว (Submitted)</option>
+                <option value="" data-i18n="opt_all_status">- สถานะทั้งหมด -</option>
+                <option value="Pending" data-i18n="opt_status_pending">⏳ รอส่ง (Pending)</option>
+                <option value="Submitted" data-i18n="opt_status_submitted">✅ ส่งแล้ว (Submitted)</option>
               </select>
             </div>
           </div>
@@ -179,17 +199,17 @@
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold">ตัวกรอง</span>
+                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">ตัวกรอง</span>
               </button>
               <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 1050;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
-                <div class="mb-2"><label class="form-label fw-bold text-secondary small mb-1">Employee / Sales Rep</label><select class="form-select shadow-none fs-6" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select></div>
-                <div class="mb-1"><label class="form-label fw-bold text-secondary small mb-1">Area / Team</label><select class="form-select shadow-none fs-6" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select></div>
+                <div class="mb-2"><label class="form-label fw-bold text-secondary small mb-1" data-i18n="lbl_filter_rep">Employee / Sales Rep</label><select class="form-select shadow-none fs-6" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select></div>
+                <div class="mb-1"><label class="form-label fw-bold text-secondary small mb-1" data-i18n="lbl_area_team">Area / Team</label><select class="form-select shadow-none fs-6" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select></div>
               </div>
             </div>
 
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold">ล้างตัวกรอง</span></button>
-            <button class="btn btn-outline-success border shadow-sm premium-radius px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()"><i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold">ส่งออก</span></button>
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">ล้างตัวกรอง</span></button>
+            <button class="btn btn-outline-success border shadow-sm premium-radius px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()"><i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold" data-i18n="btn_export">ส่งออก</span></button>
           </div>
         </div>
       </div>
@@ -199,12 +219,12 @@
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header text-center">
               <tr>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')">วันที่ <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')">แพทย์ <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')">โรงพยาบาล <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')">ผลิตภัณฑ์ <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')">วัตถุประสงค์ <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')">สถานะ <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">วันที่</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">แพทย์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">โรงพยาบาล</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">ผลิตภัณฑ์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">วัตถุประสงค์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">สถานะ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
               </tr>
             </thead>
             <tbody id="visitTableBody"></tbody>
@@ -213,7 +233,7 @@
 
         <div id="visitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
           <div class="d-flex align-items-center">
-            <label class="text-muted small fw-bold me-2 mb-0">แสดงแถว:</label>
+            <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">แสดงแถว:</label>
             <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
               <option value="10">10</option>
               <option value="20" selected>20</option>
@@ -233,7 +253,7 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Pro-Balanced 100% Fit-to-Screen) ================= -->
+  <!-- ================= 2. FORM VIEW (Pro Equal-Height 100% Fit-to-Screen) ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper">
     
     <!-- Top Header -->
@@ -247,7 +267,7 @@
 
       <div class="d-flex align-items-center gap-2">
         <span class="badge bg-light text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
-          <i class="fa-solid fa-user-tie text-primary me-1"></i>User: <strong id="dispSalesRepName" class="text-dark">-</strong>
+          <i class="fa-solid fa-user-tie text-primary me-1"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark">-</strong>
         </span>
         <span class="badge bg-light text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
           <i class="fa-solid fa-map-location-dot text-primary me-1"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark">-</strong>
@@ -263,16 +283,15 @@
         <div class="visit-form-body-scroll pe-1">
           <div class="row g-3 h-100 align-items-stretch">
             
-            <!-- 🔹 คอลัมน์ซ้าย (45% - Primary Context & Feature Buttons) -->
+            <!-- 🔹 คอลัมน์ซ้าย (45% - Primary Context & Dynamic Feature Buttons) -->
             <div class="col-12 col-xl-5 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-light-subtle h-100 d-flex flex-column justify-content-between">
                 <div>
-                  <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i>Visit Information</h6>
+                  <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                   
-                  <div class="mb-2">
+                  <div class="mb-2.5">
                     <div class="d-flex justify-content-between align-items-center">
-                      <label class="compact-label mb-0">Doctor Name <span class="text-danger">*</span></label>
-                      <!-- 🌟 ปุ่มเปิด Pop-up ประวัติย้อนหลัง (รองรับ i18n 2 ภาษา) -->
+                      <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                       <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2.5 py-0.5 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.73rem;">
                         <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="btn_last_history">📜 ประวัติเยี่ยม</span>
                       </button>
@@ -283,79 +302,69 @@
                     </div>
                   </div>
 
-                  <div class="mb-2">
-                    <label class="compact-label">Products <span class="text-danger">*</span></label>
+                  <div class="mb-2.5">
+                    <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                   </div>
 
-                  <div class="mb-2">
-                    <label class="compact-label">Purpose <span class="text-danger">*</span></label>
+                  <div class="mb-2.5">
+                    <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                   </div>
 
-                  <div class="row g-2 mb-2">
+                  <div class="row g-2 mb-3">
                     <div class="col-6">
-                      <label class="compact-label">Date <span class="text-danger">*</span></label>
+                      <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
                       <input type="date" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDate" required>
                     </div>
                     <div class="col-3">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-label mb-0">Start</label>
+                        <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
                         <button type="button" class="btn btn-link p-0 text-decoration-none" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)" style="font-size:0.68rem;">[Now]</button>
                       </div>
                       <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitStartTime">
                     </div>
                     <div class="col-3">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-label mb-0">End</label>
+                        <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
                         <button type="button" class="btn btn-link p-0 text-decoration-none" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)" style="font-size:0.68rem;">[+30m]</button>
                       </div>
                       <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitEndTime">
                     </div>
                   </div>
 
-                  <!-- 🌟 กลุ่มปุ่ม Feature Actions ย้ายมาฝั่งซ้าย (แยก GPS กับ Signature ออกจากกัน) -->
-                  <div class="pt-2 border-top mb-2">
-                    <label class="compact-label mb-1.5 text-secondary d-block"><i class="fa-solid fa-sliders me-1"></i>Features & Evidences</label>
-                    <div class="d-flex flex-wrap gap-1.5">
+                  <!-- 🌟 Dynamic Features Action Buttons (มี Active Class & Badges) -->
+                  <div class="pt-2 border-top">
+                    <label class="compact-label mb-2 text-secondary d-block"><i class="fa-solid fa-sliders me-1"></i>Features & Evidences</label>
+                    <div class="d-flex flex-wrap gap-2">
                       
                       <!-- 📍 GPS Check-in -->
                       <button type="button" class="feature-action-btn-lg" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-location-dot text-danger me-1"></i> <span id="btnGpsText">GPS Check-in</span>
+                        <i class="fa-solid fa-location-dot me-1"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                       </button>
 
-                      <!-- ✍️ Doctor Signature (แยกปุ่มเดี่ยว) -->
+                      <!-- ✍️ Doctor Signature -->
                       <button type="button" class="feature-action-btn-lg" id="sectionSignature" onclick="window.openSignatureModal()">
-                        <i class="fa-solid fa-signature text-success me-1"></i> <span id="btnSignatureText">Signature</span>
+                        <i class="fa-solid fa-signature me-1"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
+                      </button>
+
+                      <!-- 🎁 Samples & Promo (เพิ่ม Badge สภาวะมีข้อมูล) -->
+                      <button type="button" class="feature-action-btn-lg" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                        <i class="fa-solid fa-gifts me-1"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                       </button>
 
                       <!-- 📸 Attachments -->
                       <button type="button" class="feature-action-btn-lg" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-camera text-primary me-1"></i> <span id="btnAttachmentsText">Attachments</span>
+                        <i class="fa-solid fa-camera me-1"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                       </button>
 
                       <!-- 🎬 e-Detailing -->
                       <div id="detailingMediaSection" class="d-inline-block d-none">
                         <button type="button" class="feature-action-btn-lg border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                          <i class="fa-solid fa-file-powerpoint me-1"></i> <span id="btnMediaText">e-Detailing</span>
+                          <i class="fa-solid fa-file-powerpoint me-1"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing</span>
                         </button>
                       </div>
 
-                    </div>
-                  </div>
-
-                  <!-- 🌟 Inline Samples Display Bar (แสดงผลตรงๆ บนฝั่งซ้าย) -->
-                  <div class="pt-2 border-top" id="sectionSamples">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <label class="compact-label mb-0"><i class="fa-solid fa-gifts text-warning me-1"></i>Samples & Promo Items</label>
-                      <button type="button" class="btn btn-xs btn-link p-0 text-decoration-none text-primary fw-bold" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null" style="font-size:0.72rem;">
-                        + จัดการของแจก
-                      </button>
-                    </div>
-                    <div class="inline-sample-box d-flex align-items-center justify-content-between">
-                      <div id="sampleItemsContainer" class="d-flex flex-wrap gap-1 align-items-center">
-                        <small class="text-muted italic style-xs" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง</small>
-                      </div>
                     </div>
                   </div>
 
@@ -363,39 +372,39 @@
               </div>
             </div>
 
-            <!-- 🔹 คอลัมน์ขวา (55% - Details โปร่งเต็มพื้นที่) -->
+            <!-- 🔹 คอลัมน์ขวา (55% - Details) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
                 <div class="d-flex flex-column flex-grow-1">
-                  <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i>Activity Details</h6>
+                  <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                  <!-- Details (ขยายโปร่ง พิมพ์สะดวก) -->
-                  <div class="mb-2 flex-grow-1 d-flex flex-column">
+                  <!-- Details -->
+                  <div class="mb-2.5 flex-grow-1 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-0.5">
-                      <label class="compact-label mb-0">Details</label>
+                      <label class="compact-label mb-0" data-i18n="lbl_details">Details</label>
                       <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
-                        <i class="fa-solid fa-microphone me-1"></i>Dictate
+                        <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                       </button>
                     </div>
-                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 180px; resize: none;"></textarea>
+                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 200px; resize: none;"></textarea>
                   </div>
 
                   <!-- Insight & Next Action -->
                   <div class="row g-2 mb-1">
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-label mb-0">Insight</label>
-                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
+                        <label class="compact-label mb-0" data-i18n="lbl_insight">Insight</label>
+                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span></button>
                       </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 52px; resize: none;"></textarea>
+                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 55px; resize: none;"></textarea>
                     </div>
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-label mb-0">Next Action</label>
-                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
+                        <label class="compact-label mb-0" data-i18n="lbl_next_action">Next Action</label>
+                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span></button>
                       </div>
-                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 52px;">
+                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 55px;">
                     </div>
                   </div>
 
@@ -408,20 +417,20 @@
                       <input type="checkbox" id="visitIsCoaching">
                       <span class="slider"></span>
                     </label>
-                    <span id="lblCoachingMainText" class="fw-bold text-dark small">Joint Visit / Coaching</span>
+                    <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
                   </div>
 
                   <div class="d-flex align-items-center gap-2.5 ms-auto">
                     <div class="d-flex align-items-center gap-1.5" style="width: 170px;">
-                      <label class="compact-label mb-0">Status:</label>
+                      <label class="compact-label mb-0" data-i18n="lbl_status">Status:</label>
                       <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold premium-radius" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                         <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
                         <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
                       </select>
                     </div>
 
-                    <button type="button" class="btn btn-sm btn-premium-secondary px-3 py-1" onclick="window.cancelVisitForm()">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-1" id="saveVisitBtn" data-mode="save">💾 <span>Save</span></button>
+                    <button type="button" class="btn btn-sm btn-premium-secondary px-3 py-1" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-1" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
                   </div>
                 </div>
 
@@ -441,19 +450,19 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-primary mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเยี่ยมย้อนหลังล่าสุด</h6>
+        <h6 class="modal-title fw-bold text-primary mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="btn_last_history">ประวัติการเยี่ยมย้อนหลัง</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3" id="lastVisitHistoryBox">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-secondary small">วันที่เข้าพบล่าสุด</span>
+          <span class="fw-bold text-secondary small" data-i18n="th_date">วันที่เข้าพบล่าสุด</span>
           <span class="badge bg-primary text-white shadow-xs" id="lastVisitDateBadge">-</span>
         </div>
         <div class="p-2.5 bg-light border rounded-3 mb-2 small text-dark" style="line-height: 1.5;">
-          <strong>📝 Details:</strong> <span id="lastVisitDetails">-</span>
+          <strong>📝 <span data-i18n="lbl_details">Details</span>:</strong> <span id="lastVisitDetails">-</span>
         </div>
         <div class="p-2.5 bg-danger-subtle border border-danger-subtle rounded-3 small text-dark">
-          <strong>🎯 Next Action:</strong> <span id="lastVisitNextAction" class="text-danger fw-bold">-</span>
+          <strong>🎯 <span data-i18n="lbl_next_action">Next Action</span>:</strong> <span id="lastVisitNextAction" class="text-danger fw-bold">-</span>
         </div>
       </div>
     </div>
@@ -465,12 +474,12 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i>GPS Check-in</h6>
+        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i><span data-i18n="lbl_location">GPS Check-in</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i>พิกัดตำแหน่ง</span>
+          <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i><span data-i18n="lbl_location_coords">พิกัดตำแหน่ง</span></span>
           <button type="button" class="btn btn-xs btn-premium-secondary px-2 py-0.5" id="btnGpsCheckin" onclick="window.getLocationCheckin()">Get Location</button>
         </div>
         <div class="row g-2">
@@ -488,16 +497,16 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-gifts text-warning me-2"></i>Samples & Promo Items</h6>
+        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-gifts text-warning me-2"></i><span data-i18n="lbl_samples_title">Samples & Promo Items</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small">รายการของแจก</span>
-          <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()">+ เพิ่มรายการ</button>
+          <span class="fw-bold text-dark small" data-i18n="lbl_sample_items_title">รายการของแจก</span>
+          <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()" data-i18n="btn_add_sample">+ เพิ่มรายการ</button>
         </div>
-        <div id="sampleItemsContainerDrawer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
-          <div class="text-muted small text-center italic">จัดการสินค้าตัวอย่างในฟอร์มหลัก</div>
+        <div id="sampleItemsContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
+          <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">ไม่มีการจ่ายสินค้าตัวอย่าง</div>
         </div>
       </div>
     </div>
@@ -509,19 +518,19 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-camera text-primary me-2"></i>Attachments</h6>
+        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-camera text-primary me-2"></i><span data-i18n="lbl_attachments">Attachments</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small">รูปถ่าย/ไฟล์แนบ</span>
+          <span class="fw-bold text-dark small" data-i18n="lbl_attachments_title">รูปถ่าย/ไฟล์แนบ</span>
           <label class="btn btn-xs btn-outline-primary px-2 py-0.5 mb-0 cursor-pointer">
-            + แนบไฟล์/ถ่ายรูป
+            <span data-i18n="btn_add_file">+ แนบไฟล์/ถ่ายรูป</span>
             <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
           </label>
         </div>
         <div id="attachmentPreviewContainer" class="d-flex flex-wrap gap-2 overflow-auto" style="max-height: 200px;">
-          <small class="text-muted italic" id="noAttachmentText">ยังไม่มีไฟล์แนบ</small>
+          <small class="text-muted italic" id="noAttachmentText" data-i18n="txt_no_attachment">ยังไม่มีไฟล์แนบ</small>
         </div>
       </div>
     </div>
@@ -533,7 +542,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-file-powerpoint text-danger me-2"></i>e-Detailing</h6>
+        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-file-powerpoint text-danger me-2"></i><span data-i18n="sec_edetailing">e-Detailing</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3">
@@ -589,7 +598,7 @@
         </div>
         <div class="modal-footer border-0 pt-0 d-flex justify-content-between gap-2">
           <button type="button" class="btn btn-outline-danger fw-bold premium-radius px-4 d-none" id="btnDeleteTot" onclick="window.deleteTot()">Delete</button>
-          <div class="d-flex gap-2 ms-auto"><button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-premium-primary" id="saveTotBtn">💾 Save</button></div>
+          <div class="d-flex gap-2 ms-auto"><button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button><button type="submit" class="btn btn-premium-primary" id="saveTotBtn">💾 <span data-i18n="btn_save">Save</span></button></div>
         </div>
       </form>
     </div>
@@ -601,20 +610,20 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content premium-radius shadow-lg border-0">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-signature text-success me-2"></i>Doctor Signature</h6>
+        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-signature text-success me-2"></i><span data-i18n="lbl_signature">Doctor Signature</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3 text-center">
-        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง</p>
+        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> <span data-i18n="lbl_sign_instruction">ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง</span></p>
         <div class="position-relative bg-white border border-2 border-primary rounded-3 overflow-hidden shadow-inner mx-auto" style="width: 100%; height: 280px; touch-action: none;">
           <canvas id="modalSignatureCanvas" class="w-100 h-100" style="cursor: crosshair;"></canvas>
         </div>
       </div>
       <div class="modal-footer bg-light d-flex justify-content-between py-2">
-        <button type="button" class="btn btn-sm btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1"></i> ล้างกระดาน</button>
+        <button type="button" class="btn btn-sm btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1"></i> <span data-i18n="btn_clear_canvas">ล้างกระดาน</span></button>
         <div>
-          <button type="button" class="btn btn-sm btn-secondary px-3 me-1" data-bs-dismiss="modal">ยกเลิก</button>
-          <button type="button" class="btn btn-sm btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1"></i> ตกลง / บันทึก</button>
+          <button type="button" class="btn btn-sm btn-secondary px-3 me-1" data-bs-dismiss="modal" data-i18n="btn_cancel">ยกเลิก</button>
+          <button type="button" class="btn btn-sm btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_save_sig">ตกลง / บันทึก</span></button>
         </div>
       </div>
     </div>
