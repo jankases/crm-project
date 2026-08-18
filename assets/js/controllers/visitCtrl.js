@@ -411,71 +411,65 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
   return '-';
 };
 
- window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
+  window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'th';
-  
   var repNameShow = '-';
   var locNameShow = '-';
   var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
 
-  // 1. ดึงผู้ใช้งานเจ้าของ Visit (ยึดจาก visitData ก่อน)
-  if (visitData) {
-    repNameShow = visitData.Rep_Name || visitData.Sales_Rep_Name || visitData.Whoupdated || '-';
-  }
-  
+  // 1. ค้นหา Object พนักงานจาก Rep_ID หรือ Whoupdated (Email)
   var targetUser = repObj;
-  if ((!repNameShow || repNameShow === '-') && visitData && visitData.Rep_ID && window._userIndex) {
-    targetUser = window._userIndex[String(visitData.Rep_ID).trim().toLowerCase()];
+  var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
+
+  if (!targetUser && visitData) {
+    var rawRepId = String(visitData.Rep_ID || visitData.rep_id || '').trim().toLowerCase();
+    var rawWho = String(visitData.Whoupdated || visitData.whoupdated || '').trim().toLowerCase();
+
+    targetUser = userList.find(function(u) {
+      var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
+      var uem = String(u.Email || u.email || '').trim().toLowerCase();
+      return (rawRepId && uid === rawRepId) || (rawWho && uem === rawWho);
+    });
   }
 
+  // 2. แปลง Email เป็นชื่อจริงเสมอ (ไม่โชว์ @roche.com บน UI)
   if (targetUser) {
-    if (!repNameShow || repNameShow === '-') {
-      repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.name || targetUser.Email || '-';
-    }
-    
-    var role = String(targetUser.Role || targetUser.role || '').toLowerCase();
-    var userTerr = String(targetUser.Territory_ID || targetUser.territory_id || targetUser.Territory || '').trim();
-    var userTeam = String(targetUser.Team_ID || targetUser.team_id || targetUser.Team || '').trim();
-    var userBU = String(targetUser.BU_ID || targetUser.bu_id || targetUser.BU || '').trim();
-
-    var scopeFromVisit = fallbackTerrId || (visitData ? (visitData.Territory_ID || visitData.BU_ID) : null);
-    var cache = window.VisitManagerCache || {};
-
-    if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
-      labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit (BU)';
-      var bus = cache.bus || window.globalBuList || [];
-      var targetBu = userBU || scopeFromVisit;
-      var bObj = bus.find(function(b) { return String(b.BU_ID || b.id || b.BU) === String(targetBu); });
-      locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : (targetBu || '-');
-
-    } else if (role.indexOf('manager') !== -1) {
-      labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
-      var teams = cache.teams || window.globalTeamList || [];
-      var targetTeam = userTeam || scopeFromVisit;
-      var tObj = teams.find(function(t) { return String(t.Team_ID || t.id || t.Team) === String(targetTeam); });
-      locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : (targetTeam || '-');
-
-    } else {
-      labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
-      var terrs = cache.territories || window.globalTerritoryList || [];
-      var targetTer = userTerr || scopeFromVisit;
-      var terObj = terrs.find(function(t) { return String(t.Territory_ID || t.id || t.Territory) === String(targetTer); });
-      locNameShow = terObj ? (terObj.Territory || terObj.Territory_Name) : (targetTer || '-');
+    repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.rep_name || targetUser.name || '-';
+  } else if (visitData) {
+    var directName = visitData.Rep_Name || visitData.Sales_Rep_Name;
+    if (directName && directName.indexOf('@') === -1) {
+      repNameShow = directName;
+    } else if (visitData.Whoupdated && visitData.Whoupdated.indexOf('@') !== -1) {
+      // Format email "surasak.jankasem4@roche.com" -> "Surasak Jankasem"
+      var cleanName = visitData.Whoupdated.split('@')[0].replace(/\./g, ' ').replace(/\d+/g, '');
+      repNameShow = cleanName.replace(/\b\w/g, function(l) { return l.toUpperCase(); }).trim();
     }
   }
 
-  // 2. Fallback: ถ้ายังได้ขีด (-) ให้วิ่งสแกนย้อน Hierarchy (Territory -> Team -> BU)
-  if ((!locNameShow || locNameShow === '-') && visitData && typeof window.getBuTerritoryDisplayName === 'function') {
+  // 3. ดึงชื่อ BU / Territory ย้อนกลับตาม Hierarchy
+  if (typeof window.getBuTerritoryDisplayName === 'function' && visitData) {
     locNameShow = window.getBuTerritoryDisplayName(visitData);
   }
 
-  // 3. แสดงผลลง UI
+  // 4. คำนวณ Label
+  if (targetUser) {
+    var role = String(targetUser.Role || targetUser.role || '').toLowerCase();
+    if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
+      labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit (BU)';
+    } else if (role.indexOf('manager') !== -1) {
+      labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
+    } else {
+      labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
+    }
+  }
+
+  // 5. แสดงผลบน Element
   var repNameEl = document.getElementById('dispSalesRepName');
   var terNameEl = document.getElementById('dispTerritoryName');
   var terLabelEl = document.getElementById('dynamicTerritoryLabel');
 
-  if (repNameEl) repNameEl.innerText = repNameShow;
-  if (terNameEl) terNameEl.innerText = locNameShow;
+  if (repNameEl) repNameEl.innerText = repNameShow || '-';
+  if (terNameEl) terNameEl.innerText = locNameShow !== '-' ? locNameShow : (visitData ? (visitData.BU_Name || visitData.Territory_Name || '-') : '-');
   if (terLabelEl) {
     terLabelEl.removeAttribute('data-i18n');
     terLabelEl.innerText = labelText;
@@ -2136,62 +2130,45 @@ window.toggleVisitFormEditable = function(isEditable) {
 
 window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   window.applyVisitFeaturesUI();
+  
+  // ⚡ 1. สลับหน้าเปิดฟอร์มทันที 0s (ไม่มีอาการหน่วงสะดุด)
+  if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
+
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
   var v = (window.globalVisits && window.globalVisits.length > 0) 
     ? window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); }) 
     : null;
-  
-  if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
 
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
-  var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.rep_id || crmUser.id || crmUser.User_ID || '').toLowerCase().trim() : '';
+  var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
   var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
-  var myName = crmUser ? String(crmUser.Rep_Name || crmUser.rep_name || crmUser.Name || crmUser.name || '').toLowerCase().trim() : '';
+  var myName = crmUser ? String(crmUser.Rep_Name || crmUser.rep_name || crmUser.Name || crmUser.name || '').trim() : '';
 
   var isAdmin = (myRole === 'admin' || myRole === 'system admin');
-
-  var isCreator = false;
-  if (v) {
-      var creatorRepId = String(v.Rep_ID || v.rep_id || '').toLowerCase().trim();
-      var creatorWho = String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim();
-
-      if (myRepId && creatorRepId && myRepId === creatorRepId) {
-          isCreator = true;
-      } else if (myEmail && creatorWho && (creatorWho === myEmail || creatorWho.indexOf(myEmail) !== -1)) {
-          isCreator = true;
-      } else if (myName && creatorWho && (creatorWho.indexOf(myName) !== -1 || myName.indexOf(creatorWho) !== -1)) {
-          isCreator = true;
-      }
-  } else {
-      isCreator = true;
-  }
-
+  var creatorRepId = v ? String(v.Rep_ID || v.rep_id || '').trim() : '';
+  var creatorWho = v ? String(v.Whoupdated || v.whoupdated || '').toLowerCase().trim() : '';
+  var isCreator = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
   var canEdit = (isAdmin || isCreator);
 
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
-  if (targetDocId) {
-      var rawDocSelect = document.getElementById('visitDocId');
-      if (rawDocSelect) rawDocSelect.value = targetDocId;
-
-      if (window.tomSelectDocInstance) {
-          var tsDoc = window.tomSelectDocInstance;
-          tsDoc.enable();
-          if (!tsDoc.options[targetDocId]) {
-              var docObj = window._docIndex ? window._docIndex[String(targetDocId).toLowerCase()] : null;
-              var dName = docObj ? (docObj.Doc_Name || docObj.Doc_Name_TH) : targetDocId;
-              tsDoc.addOption({ value: targetDocId, text: dName });
-          }
-          tsDoc.setValue(targetDocId, true);
-      }
-  }
-
+  // ⚡ 2. อัปเดตข้อมูลผู้สร้าง + BU Name ผ่าน Cache
   if (v) {
+      var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
+      var targetRepObj = userList.find(function(u) {
+          var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
+          var uem = String(u.Email || u.email || '').trim().toLowerCase();
+          return (v.Rep_ID && uid === String(v.Rep_ID).trim().toLowerCase()) || (v.Whoupdated && uem === String(v.Whoupdated).trim().toLowerCase());
+      });
+
+      if (typeof window.updateFormUserInfo === 'function') {
+          window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
+      }
+
       document.getElementById('visitDate').value = v.Visit_Date || '';
       if (typeof window.formatTimeString === 'function') {
           document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
@@ -2203,73 +2180,25 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       document.getElementById('visitStatus').value = v.Status || 'Pending';
       var chkCoach = document.getElementById('visitIsCoaching');
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
+  }
 
-      // ⚡ [จุดที่แก้ไข]: หา Object Sales Rep ที่สร้าง Visit แล้วส่งให้ updateFormUserInfo อย่างถูกต้อง
-      var targetRepObj = null;
-      if (window.globalUsersList && window.globalUsersList.length > 0) {
-          targetRepObj = window.globalUsersList.find(function(u) { 
-              return String(u.Rep_ID || u.User_ID || u.id).trim().toLowerCase() === String(v.Rep_ID || '').trim().toLowerCase(); 
-          });
-      }
-      if (!targetRepObj && window._userIndex && v.Rep_ID) {
-          targetRepObj = window._userIndex[String(v.Rep_ID).trim().toLowerCase()];
-      }
-
-      if (typeof window.updateFormUserInfo === 'function') {
-          window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
-      } else {
-          var dispRepEl = document.getElementById('dispSalesRepName');
-          if (dispRepEl) {
-              dispRepEl.innerText = (targetRepObj ? (targetRepObj.Rep_Name || targetRepObj.Name) : null) || v.Rep_Name || v.Sales_Rep_Name || myName || '-';
-          }
-
-          var dispBuEl = document.getElementById('dispTerritoryName');
-          if (dispBuEl) {
-              dispBuEl.innerText = (typeof window.getBuTerritoryDisplayName === 'function') 
-                  ? window.getBuTerritoryDisplayName(v) 
-                  : (v.BU_Name || v.Territory_Name || '-');
-          }
-      }
+  // ⚡ 3. ยัดค่า Doctor & Purpose
+  var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
+  if (targetDocId && window.tomSelectDocInstance) {
+      window.tomSelectDocInstance.setValue(targetDocId, true);
   }
 
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
   var dbPurposeVal = String(rawPurpose || '').trim();
-
-  if (dbPurposeVal && dbPurposeVal !== '-' && dbPurposeVal !== 'null') {
-      var rawPurpSelect = document.getElementById('visitPurpose');
-      if (rawPurpSelect) rawPurpSelect.value = dbPurposeVal;
-
-      if (window.tomSelectPurposeInstance) {
-          var tsPurp = window.tomSelectPurposeInstance;
-          tsPurp.enable();
-
-          var targetIndexId = dbPurposeVal;
-          if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
-              var foundIndex = window.VisitManagerCache.indexes.find(function(i) {
-                  return String(i.Index_ID).toLowerCase() === dbPurposeVal.toLowerCase() ||
-                         String(i.Value || '').toLowerCase() === dbPurposeVal.toLowerCase() ||
-                         String(i.Value1 || '').toLowerCase() === dbPurposeVal.toLowerCase();
-              });
-              if (foundIndex) targetIndexId = foundIndex.Index_ID;
-          }
-
-          if (!tsPurp.options[targetIndexId]) {
-              tsPurp.addOption({ value: dbPurposeVal, text: dbPurposeVal });
-              targetIndexId = dbPurposeVal;
-          }
-
-          tsPurp.setValue(targetIndexId, true);
-
-          if (typeof window.updatePurposeDisplayLang === 'function') {
-              window.updatePurposeDisplayLang();
-          }
-      }
+  if (dbPurposeVal && dbPurposeVal !== '-' && window.tomSelectPurposeInstance) {
+      window.tomSelectPurposeInstance.setValue(dbPurposeVal, true);
   }
 
   if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
       window.fetchLastVisitHistory(targetDocId);
   }
 
+  // ⚡ 4. โหลด Product Dropdown เบื้องหลังแบบ Async
   if (typeof window.renderFormProductDropdown === 'function') {
       window.renderFormProductDropdown().then(function() {
           var visitProds = (window.globalVisitProducts && v) ? window.globalVisitProducts.filter(function(vp) { 
@@ -2280,14 +2209,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
               window.tomSelectProdInstance.setValue(visitProds, true);
           }
           if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
-
-          if (targetDocId && window.tomSelectDocInstance) {
-              window.tomSelectDocInstance.setValue(targetDocId, true);
-          }
-          if (dbPurposeVal && window.tomSelectPurposeInstance) {
-              var finalPurpId = targetIndexId || dbPurposeVal;
-              window.tomSelectPurposeInstance.setValue(finalPurpId, true);
-          }
       });
   }
 
@@ -2295,6 +2216,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       window.loadVisitSamplesForEdit(visitId);
   }
 
+  // GPS Location
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2325,6 +2247,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
     }
   }
 
+  // Attachments & Signatures
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
@@ -2352,6 +2275,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   }
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
+  // Mode & Action Buttons
   var isPendingUnlock = window.globalPendingUnlockVisits ? window.globalPendingUnlockVisits.indexOf(visitId) !== -1 : false;
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
