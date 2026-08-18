@@ -13,43 +13,61 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
 <style>
-  /* 🎨 Custom Layout Styles for Fit-to-Screen Experience */
-  .visit-form-container {
-    height: calc(100vh - 85px);
-    display: flex;
-    flex-direction: column;
-  }
-  .visit-form-card {
-    flex: 1;
+  /* 🎨 Fit-to-Screen Responsive Container */
+  .visit-form-wrapper {
+    height: calc(100vh - 75px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
-  .visit-form-body {
+  .visit-form-card-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 16px;
+  }
+  .visit-form-body-scroll {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   @media (min-width: 1200px) {
-    .visit-form-body {
-      overflow-y: hidden; /* ซ่อน Scrollbar บนคอมพิวเตอร์จอใหญ่ */
+    .visit-form-body-scroll {
+      overflow-y: hidden; /* ล็อกไร้ Scrollbar บนหน้าจอ PC/Mac */
     }
   }
+
+  .form-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0d6efd;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1.5px solid #e2e8f0;
+  }
+
+  .compact-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 2px;
+  }
+
+  /* Sub-feature Tabs */
   .sub-feature-tabs .nav-link {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: 5px 12px;
+    border-radius: 6px;
     color: #64748b;
+    background-color: #f1f5f9;
   }
   .sub-feature-tabs .nav-link.active {
     background-color: #0d6efd;
     color: #ffffff;
-  }
-  .compact-form-label {
-    font-size: 0.85rem;
-    font-weight: 700;
-    margin-bottom: 3px;
-    color: #1e293b;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
   }
 </style>
 
@@ -231,10 +249,10 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Fit-to-Screen / Modal-Style 50-50 Layout) ================= -->
-  <div id="visitFormView" class="d-none w-100 visit-form-container">
+  <!-- ================= 2. FORM VIEW (Pro-Balanced Clean 2-Column Layout) ================= -->
+  <div id="visitFormView" class="d-none w-100 visit-form-wrapper">
     
-    <!-- 🌟 Compact Top Header (รวม User & Territory) -->
+    <!-- 📌 Top Header Bar แบบโปร่งเรียบหรู -->
     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom flex-shrink-0">
       <div class="d-flex align-items-center">
         <button class="btn btn-sm btn-premium-secondary me-2.5" onclick="window.cancelVisitForm()">
@@ -243,14 +261,14 @@
         <h5 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h5>
       </div>
 
-      <!-- Badge แถบข้อมูลผู้ใช้งานแบบกระทัดรัด -->
+      <!-- แถบข้อมูล User / Territory กะทัดรัด -->
       <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-white text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
+        <span class="badge bg-light text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
           <i class="fa-solid fa-user-tie text-primary me-1"></i>
           <span class="text-muted small me-1" data-i18n="lbl_user">User:</span>
           <strong id="dispSalesRepName" class="text-dark">-</strong>
         </span>
-        <span class="badge bg-white text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
+        <span class="badge bg-light text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
           <i class="fa-solid fa-map-location-dot text-primary me-1"></i>
           <span class="text-muted small me-1" id="dynamicTerritoryLabel">Territory:</span>
           <strong id="dispTerritoryName" class="text-dark">-</strong>
@@ -258,22 +276,22 @@
       </div>
     </div>
 
-    <!-- 🌟 Form Card Container -->
-    <div class="card p-3 border-0 shadow-sm visit-card visit-form-card">
+    <!-- 📌 Form Main Card -->
+    <div class="card p-3 border-0 shadow-sm visit-form-card-main">
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
         <input type="hidden" id="visitId">
 
-        <div class="visit-form-body">
+        <div class="visit-form-body-scroll pe-1">
           <div class="row g-3 h-100 align-items-stretch">
             
-            <!-- 🔹 ฝั่งซ้าย (50% - Visit Information) -->
-            <div class="col-12 col-xl-6 d-flex flex-column">
-              <div class="p-3 rounded-3 border bg-white shadow-xs w-100 flex-grow-1 d-flex flex-column justify-content-between">
+            <!-- 🔹 คอลัมน์ซ้าย (42% - Primary Info) -->
+            <div class="col-12 col-xl-5 d-flex flex-column">
+              <div class="p-3 rounded-3 border bg-light-subtle h-100 d-flex flex-column justify-content-between">
                 <div>
-                  <h6 class="fw-bold text-primary mb-2.5 border-bottom pb-1.5"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
+                  <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                   
                   <div class="mb-2">
-                    <label class="compact-form-label"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
+                    <label class="compact-label"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                     <div class="input-group input-group-sm shadow-xs" style="border-radius: 8px;">
                       <select class="form-select bg-white" id="visitDocId" required></select>
                       <button class="btn btn-outline-danger bg-white border-start-0 px-2.5" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Search">
@@ -284,7 +302,7 @@
 
                   <div id="lastVisitHistoryBox" class="mb-2 p-2 bg-primary-subtle border border-primary-subtle rounded-3 d-none shadow-xs">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="fw-bold text-primary style-sm" style="font-size: 0.78rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i>ประวัติการเยี่ยมล่าสุด</span>
+                      <span class="fw-bold text-primary" style="font-size: 0.78rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i>ประวัติการเยี่ยมล่าสุด</span>
                       <span class="badge bg-primary text-white" id="lastVisitDateBadge" style="font-size:0.7rem;">-</span>
                     </div>
                     <div class="text-dark mb-0.5" style="font-size:0.78rem; line-height: 1.3;"><strong>📝 Details:</strong> <span id="lastVisitDetails">-</span></div>
@@ -292,31 +310,31 @@
                   </div>
 
                   <div class="mb-2">
-                    <label class="compact-form-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+                    <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                   </div>
 
                   <div class="mb-2">
-                    <label class="compact-form-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                    <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                   </div>
 
-                  <div class="row g-2 mb-1.5">
+                  <div class="row g-2 mb-1">
                     <div class="col-6">
-                      <label class="compact-form-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                      <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
                       <input type="date" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDate" required>
                     </div>
                     <div class="col-3">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-form-label mb-0" data-i18n="lbl_start_time">Start</label>
-                        <button type="button" class="btn btn-link p-0 text-decoration-none style-xs" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)" style="font-size:0.7rem;">[Now]</button>
+                        <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
+                        <button type="button" class="btn btn-link p-0 text-decoration-none" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)" style="font-size:0.68rem;">[Now]</button>
                       </div>
                       <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitStartTime">
                     </div>
                     <div class="col-3">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-form-label mb-0" data-i18n="lbl_end_time">End</label>
-                        <button type="button" class="btn btn-link p-0 text-decoration-none style-xs" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)" style="font-size:0.7rem;">[+30m]</button>
+                        <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
+                        <button type="button" class="btn btn-link p-0 text-decoration-none" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)" style="font-size:0.68rem;">[+30m]</button>
                       </div>
                       <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitEndTime">
                     </div>
@@ -325,46 +343,46 @@
               </div>
             </div>
 
-            <!-- 🔹 ฝั่งขวา (50% - Details & Sub-features Tab) -->
-            <div class="col-12 col-xl-6 d-flex flex-column">
-              <div class="p-3 rounded-3 border bg-white shadow-xs w-100 flex-grow-1 d-flex flex-column justify-content-between">
+            <!-- 🔹 คอลัมน์ขวา (58% - Activity Details & Expanded Tabs) -->
+            <div class="col-12 col-xl-7 d-flex flex-column">
+              <div class="p-3 rounded-3 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
                 <div class="d-flex flex-column flex-grow-1">
-                  <h6 class="fw-bold text-primary mb-2.5 border-bottom pb-1.5"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
+                  <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
                   <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-0.5">
-                      <label class="compact-form-label mb-0" data-i18n="lbl_details">Details</label>
+                      <label class="compact-label mb-0" data-i18n="lbl_details">Details</label>
                       <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
                         <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                       </button>
                     </div>
-                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDetails" style="height: 65px; resize: none;"></textarea>
+                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDetails" style="height: 60px; resize: none;"></textarea>
                   </div>
 
                   <div class="row g-2 mb-2">
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-form-label mb-0" data-i18n="lbl_insight">Insight</label>
+                        <label class="compact-label mb-0" data-i18n="lbl_insight">Insight</label>
                         <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;">
                           <i class="fa-solid fa-microphone me-1"></i>Dictate
                         </button>
                       </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 42px; resize: none;"></textarea>
+                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 38px; resize: none;"></textarea>
                     </div>
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
-                        <label class="compact-form-label mb-0" data-i18n="lbl_next_action">Next Action</label>
+                        <label class="compact-label mb-0" data-i18n="lbl_next_action">Next Action</label>
                         <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;">
                           <i class="fa-solid fa-microphone me-1"></i>Dictate
                         </button>
                       </div>
-                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 42px;">
+                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 38px;">
                     </div>
                   </div>
 
-                  <!-- 🌟 Tabbed Sub-features Section (รวม GPS, Samples, Attachments, e-Detailing ไว้ในแท็บ) -->
-                  <div class="border rounded-3 p-2 bg-light mt-1 flex-grow-1 d-flex flex-column">
+                  <!-- 🌟 Expanded Sub-features Tabs (ให้พื้นที่เต็มความกว้างฝั่งขวา) -->
+                  <div class="border rounded-3 p-2 bg-light-subtle flex-grow-1 d-flex flex-column" style="min-height: 120px;">
                     <ul class="nav nav-pills sub-feature-tabs gap-1 mb-2 border-bottom pb-1.5" id="subFeatureTabs" role="tablist">
                       <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="tab-gps-btn" data-bs-toggle="tab" data-bs-target="#tab-gps" type="button" role="tab"><i class="fa-solid fa-location-dot me-1 text-danger"></i>GPS & Sign</button>
@@ -382,12 +400,12 @@
 
                     <div class="tab-content flex-grow-1 overflow-auto" id="subFeatureTabContent">
                       
-                      <!-- Tab 1: GPS & Signature -->
+                      <!-- Tab 1: GPS & Signature (วางนอนกว้างไม่อัดแน่น) -->
                       <div class="tab-pane fade show active h-100" id="tab-gps" role="tabpanel">
-                        <div class="row g-2 align-items-center">
+                        <div class="row g-2 align-items-center h-100">
                           <div class="col-7" id="sectionGpsCheckin">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                              <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i>GPS Check-in</span>
+                              <span class="fw-bold text-dark style-sm"><i class="fa-solid fa-map-pin text-danger me-1"></i>GPS Check-in</span>
                               <button type="button" class="btn btn-xs btn-premium-secondary px-2 py-0.5" id="btnGpsCheckin" onclick="window.getLocationCheckin()" style="font-size:0.72rem;">Get Location</button>
                             </div>
                             <div class="row g-1">
@@ -399,11 +417,11 @@
 
                           <div class="col-5" id="sectionSignature">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                              <span class="fw-bold text-dark small"><i class="fa-solid fa-signature text-success me-1"></i>Signature</span>
+                              <span class="fw-bold text-dark style-sm"><i class="fa-solid fa-signature text-success me-1"></i>Signature</span>
                               <button type="button" class="btn btn-xs btn-link text-danger p-0 text-decoration-none" id="btnClearSig" onclick="window.clearSignature()" style="font-size:0.72rem;">ล้าง</button>
                             </div>
-                            <div id="sigPreviewBox" class="bg-white border rounded-2 p-1 text-center cursor-pointer shadow-xs d-flex align-items-center justify-content-center" style="height: 48px;" onclick="window.openSignatureModal()">
-                              <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 42px;" alt="Signature Preview" />
+                            <div id="sigPreviewBox" class="bg-white border rounded-2 p-1 text-center cursor-pointer shadow-xs d-flex align-items-center justify-content-center" style="height: 42px;" onclick="window.openSignatureModal()">
+                              <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 38px;" alt="Signature Preview" />
                               <div id="sigPlaceholder" class="text-muted style-xs" style="font-size:0.7rem;"><i class="fa-solid fa-pen-nib me-1 text-primary"></i>คลิกเพื่อเซ็นชื่อ</div>
                             </div>
                           </div>
@@ -417,7 +435,7 @@
                             <span class="fw-bold text-dark small"><i class="fa-solid fa-gifts text-warning me-1"></i>Samples & Promo Items</span>
                             <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()" style="font-size:0.72rem;">+ เพิ่มรายการ</button>
                           </div>
-                          <div id="sampleItemsContainer" class="d-flex flex-column gap-1 overflow-auto" style="max-height: 75px;">
+                          <div id="sampleItemsContainer" class="d-flex flex-column gap-1 overflow-auto" style="max-height: 70px;">
                             <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">ไม่มีการจ่ายสินค้าตัวอย่าง</div>
                           </div>
                         </div>
@@ -433,7 +451,7 @@
                               <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
                             </label>
                           </div>
-                          <div id="attachmentPreviewContainer" class="d-flex flex-wrap gap-1 overflow-auto" style="max-height: 75px;">
+                          <div id="attachmentPreviewContainer" class="d-flex flex-wrap gap-1 overflow-auto" style="max-height: 70px;">
                             <small class="text-muted italic" id="noAttachmentText">ยังไม่มีไฟล์แนบ</small>
                           </div>
                         </div>
@@ -445,40 +463,36 @@
                           <div class="d-flex justify-content-between align-items-center mb-1" id="detailingMediaHeader">
                             <span class="fw-bold text-primary small"><i class="fa-solid fa-file-powerpoint me-1"></i>e-Detailing</span>
                           </div>
-                          <div id="mediaListContainer" class="d-flex flex-column gap-1 overflow-auto" style="max-height: 75px;"></div>
+                          <div id="mediaListContainer" class="d-flex flex-column gap-1 overflow-auto" style="max-height: 70px;"></div>
                         </div>
                       </div>
 
                     </div>
                   </div>
 
-                  <!-- Coaching Switch Section -->
-                  <div class="mt-2 d-flex justify-content-between align-items-center bg-light p-2 rounded-3 border">
-                    <div>
-                      <label class="compact-form-label mb-0"><i class="fa-solid fa-users text-primary me-1"></i><span id="lblCoachingMainText" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span></label>
-                      <div class="text-muted style-xs" id="lblCoachingSubText" style="font-size:0.7rem;" data-i18n="lbl_coaching_sub">มีหัวหน้า/ผู้จัดการเข้าร่วม (Manager Coaching)</div>
-                    </div>
-                    <label class="switch mb-0">
+                </div>
+
+                <!-- 📌 Bottom Action & Status Footer Bar (บรรทัดเดียวชิดขอบล่าง) -->
+                <div class="mb-0 pt-2 border-top mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <label class="switch mb-0 me-1">
                       <input type="checkbox" id="visitIsCoaching">
                       <span class="slider"></span>
                     </label>
+                    <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
                   </div>
 
-                </div>
+                  <div class="d-flex align-items-center gap-2.5 ms-auto">
+                    <div class="d-flex align-items-center gap-1.5" style="width: 170px;">
+                      <label class="compact-label mb-0" data-i18n="lbl_status">Status:</label>
+                      <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold premium-radius" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
+                        <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
+                        <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
+                      </select>
+                    </div>
 
-                <!-- Footer Status & Actions -->
-                <div class="mb-0 pt-2 border-top mt-2 d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center gap-2" style="width: 220px;">
-                    <label class="compact-form-label mb-0" data-i18n="lbl_status">Status:</label>
-                    <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold premium-radius" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
-                      <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
-                      <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
-                    </select>
-                  </div>
-
-                  <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-premium-secondary px-3" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-premium-primary px-4" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
+                    <button type="button" class="btn btn-sm btn-premium-secondary px-3 py-1" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-1" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
                   </div>
                 </div>
 
