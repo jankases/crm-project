@@ -411,46 +411,70 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
   return '-';
 };
 
-window.updateFormUserInfo = function(repObj, fallbackTerrId) {
+window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
   var appLang = window.getCurrentAppLang();
   var repNameShow = '-';
   var locNameShow = '-';
   var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory'; 
 
-  if (repObj) {
-      repNameShow = repObj.Rep_Name || repObj.Name || repObj.name || repObj.Email || '-';
-      var role = String(repObj.Role || repObj.role || '').toLowerCase();
-      var userTerr = String(repObj.Territory_ID || repObj.territory_id || repObj.Territory || '').trim();
-      var userTeam = String(repObj.Team_ID || repObj.team_id || repObj.Team || '').trim();
-      var userBU = String(repObj.BU_ID || repObj.bu_id || repObj.BU || '').trim();
-      var genericScope = userBU || userTeam || userTerr;
-      var scopeFromVisit = fallbackTerrId || genericScope;
+  // 1. ดึงข้อมูล User จาก Visit หรือ Object ที่ส่งเข้ามา
+  var targetUser = repObj;
+  if (!targetUser && visitData && visitData.Rep_ID && window._userIndex) {
+    targetUser = window._userIndex[String(visitData.Rep_ID).trim().toLowerCase()];
+  }
 
-      if (role.indexOf('manager') !== -1) {
-          labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
-          var targetTeam = userTeam || scopeFromVisit;
-          var tObj = (window.globalTeamList || []).find(function(t) { return String(t.Team_ID) === targetTeam || String(t.Team) === targetTeam; });
-          locNameShow = tObj ? (tObj.Team || tObj.Team_Name || targetTeam) : (targetTeam || '-');
-      } else if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
+  if (targetUser) {
+      repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.name || targetUser.Email || '-';
+      var role = String(targetUser.Role || targetUser.role || '').toLowerCase();
+      
+      var userTerr = String(targetUser.Territory_ID || targetUser.territory_id || targetUser.Territory || '').trim();
+      var userTeam = String(targetUser.Team_ID || targetUser.team_id || targetUser.Team || '').trim();
+      var userBU = String(targetUser.BU_ID || targetUser.bu_id || targetUser.BU || '').trim();
+      
+      // ดึงค่า ID จากตัว Visit ถ้าในตัว User ไม่มี
+      if (visitData) {
+        if (!userTerr && visitData.Territory_ID) userTerr = String(visitData.Territory_ID).trim();
+        if (!userBU && visitData.BU_ID) userBU = String(visitData.BU_ID).trim();
+      }
+
+      var cache = window.VisitManagerCache || {};
+
+      // 2. คำนวณ Label และ Value ตาม Role ของเจ้าของ Visit
+      if (role.indexOf('bu') !== -1 || role.indexOf('head') !== -1 || role.indexOf('director') !== -1) {
           labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
-          var bus = window.VisitManagerCache ? window.VisitManagerCache.bus : [];
-          var targetBu = userBU || scopeFromVisit; 
-          var bObj = (bus || []).find(function(b) { return String(b.BU_ID) === targetBu || String(b.BU) === targetBu || String(b.BU_Name) === targetBu; });
-          locNameShow = bObj ? (bObj.BU || bObj.BU_Name || targetBu) : (targetBu || '-');
+          var bus = cache.bus || window.globalBuList || [];
+          var targetBu = userBU || fallbackTerrId; 
+          var bObj = bus.find(function(b) { return String(b.BU_ID || b.id) === targetBu || String(b.BU) === targetBu; });
+          locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : (targetBu || '-');
+
+      } else if (role.indexOf('manager') !== -1 || role.indexOf('team') !== -1) {
+          labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
+          var teams = cache.teams || window.globalTeamList || [];
+          var targetTeam = userTeam || fallbackTerrId;
+          var tObj = teams.find(function(t) { return String(t.Team_ID || t.id) === targetTeam || String(t.Team) === targetTeam; });
+          locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : (targetTeam || '-');
+
       } else {
-          labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
-          var targetTer = userTerr || scopeFromVisit;
-          var terObj = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === targetTer || String(t.Territory) === targetTer; });
-          locNameShow = terObj ? (terObj.Territory || targetTer) : (targetTer || '-');
+          labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
+          var terrs = cache.territories || window.globalTerritoryList || [];
+          var targetTer = userTerr || fallbackTerrId;
+          var terObj = terrs.find(function(t) { return String(t.Territory_ID || t.id) === targetTer || String(t.Territory) === targetTer; });
+          locNameShow = terObj ? (terObj.Territory || terObj.Territory_Name) : (targetTer || '-');
       }
   }
 
+  // 3. ถ้าคำนวณชื่อไม่ได้ ให้ส่งไปแมปผ่าน Helper กลาง
+  if ((!locNameShow || locNameShow === '-') && visitData && typeof window.getBuTerritoryDisplayName === 'function') {
+    locNameShow = window.getBuTerritoryDisplayName(visitData);
+  }
+
+  // 4. อัปเดตลง Element บนหน้าจอ
   var repNameEl = document.getElementById('dispSalesRepName');
   var terNameEl = document.getElementById('dispTerritoryName');
   var terLabelEl = document.getElementById('dynamicTerritoryLabel');
 
   if (repNameEl) repNameEl.innerText = repNameShow;
-  if (terNameEl) terNameEl.innerText = locNameShow;
+  if (terNameEl) terNameEl.innerText = locNameShow !== '-' ? locNameShow : (visitData ? (visitData.BU_Name || visitData.Territory_Name || '-') : '-');
   if (terLabelEl) { terLabelEl.removeAttribute('data-i18n'); terLabelEl.innerText = labelText; }
 };
 
@@ -2176,17 +2200,21 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       var chkCoach = document.getElementById('visitIsCoaching');
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
 
-      // ⚡ [เพิ่มเติม]: ใส่ค่าชื่อ Sales Rep และดึงชื่อ BU ผ่าน Cache Helper
-      var dispRepEl = document.getElementById('dispSalesRepName');
-      if (dispRepEl) {
-          dispRepEl.innerText = v.Rep_Name || v.Sales_Rep_Name || myName || '-';
-      }
+      // ⚡ [จุดที่ปรับแก้]: เรียกใช้ updateFormUserInfo เพื่ออัปเดต Label และชื่อ Scope (Team/BU/Territory) ให้ตรงกับ Visit
+      if (typeof window.updateFormUserInfo === 'function') {
+          window.updateFormUserInfo(null, null, v);
+      } else {
+          var dispRepEl = document.getElementById('dispSalesRepName');
+          if (dispRepEl) {
+              dispRepEl.innerText = v.Rep_Name || v.Sales_Rep_Name || myName || '-';
+          }
 
-      var dispBuEl = document.getElementById('dispTerritoryName');
-      if (dispBuEl) {
-          dispBuEl.innerText = (typeof window.getBuTerritoryDisplayName === 'function') 
-              ? window.getBuTerritoryDisplayName(v) 
-              : (v.BU_Name || v.Territory_Name || '-');
+          var dispBuEl = document.getElementById('dispTerritoryName');
+          if (dispBuEl) {
+              dispBuEl.innerText = (typeof window.getBuTerritoryDisplayName === 'function') 
+                  ? window.getBuTerritoryDisplayName(v) 
+                  : (v.BU_Name || v.Territory_Name || '-');
+          }
       }
   }
 
