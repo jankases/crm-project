@@ -765,3 +765,18 @@ mark.highlight-search {
     border-radius: 3px;
     font-weight: 600;
 }
+
+/* 🌟 จัดการกล่อง Popover ให้สากล มีเงา มิติ และลูกศรเชื่อม */
+.popover-advanced-filter {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    margin-top: 8px !important;
+}
+
+/* ⚡ ซ่อน Placeholder ของ TomSelect ทันทีเมื่อมีการเลือก Tag แล้ว */
+.ts-control.has-items .ts-input::placeholder,
+.ts-control.has-items input::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
+}
