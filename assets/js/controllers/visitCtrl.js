@@ -3958,3 +3958,47 @@ window.triggerSmartSearch = function() {
         window.loadVisits(true);
     }
 };
+
+window.fpStartInstance = null;
+window.fpEndInstance = null;
+
+// ⚡ ฟังก์ชันผูกและสลับภาษา Flatpickr ปฏิทินตัวกรอง
+window.initVisitDatePickers = function() {
+  var appLang = window.getCurrentAppLang();
+  var isEN = appLang === 'en';
+  var localeConfig = isEN ? 'default' : flatpickr.l10ns.th;
+  var placeholderText = isEN ? 'dd/mm/yyyy' : 'วว/ดด/ปปปป';
+
+  var startEl = document.getElementById('filterStartDate');
+  var endEl = document.getElementById('filterEndDate');
+
+  if (!startEl || !endEl) return;
+
+  // ทำลาย Instance เดิมถ้ามี เพื่อเปลี่ยน Locale ภาษาใหม่
+  if (window.fpStartInstance) window.fpStartInstance.destroy();
+  if (window.fpEndInstance) window.fpEndInstance.destroy();
+
+  startEl.placeholder = placeholderText;
+  endEl.placeholder = placeholderText;
+
+  var commonConfig = {
+    dateFormat: "Y-m-d",        // ฟอร์แมตส่งค่าให้ DB (2026-08-18)
+    altInput: true,             // เปิดใช้งานการแสดงผลฟอร์แมตสวยงาม
+    altFormat: isEN ? "m/d/Y" : "j M Y", // TH: 18 ส.ค. 2026 | EN: 08/18/2026
+    locale: localeConfig,       // ภาษาในป๊อบอัปปฏิทิน
+    allowInput: false,
+    onChange: function() {
+      if (typeof window.filterVisits === 'function') window.filterVisits();
+    }
+  };
+
+  window.fpStartInstance = flatpickr(startEl, commonConfig);
+  window.fpEndInstance = flatpickr(endEl, commonConfig);
+};
+
+// สั่งให้สลับภาษาเมื่อกดปุ่ม EN/TH
+var originalUpdateLangUIForFp = window.updateLangUI;
+window.updateLangUI = function() {
+  if (typeof originalUpdateLangUIForFp === 'function') originalUpdateLangUIForFp();
+  if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
+};
