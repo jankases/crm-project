@@ -53,20 +53,26 @@
     margin-bottom: 2px;
   }
 
-  .feature-pill-btn {
-    font-size: 0.78rem;
+  /* 🌟 ปุ่ม Feature แบบใหญ่ขึ้น กดง่าย */
+  .feature-action-btn-lg {
+    font-size: 0.82rem;
     font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 10px;
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #334155;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
-  .feature-pill-btn:hover {
+  .feature-action-btn-lg:hover {
     border-color: #0d6efd;
     color: #0d6efd;
     background: #eff6ff;
+    transform: translateY(-1px);
   }
 </style>
 
@@ -243,21 +249,21 @@
         <div class="visit-form-body-scroll pe-1">
           <div class="row g-3 h-100 align-items-stretch">
             
-            <!-- 🔹 คอลัมน์ซ้าย (42% - Primary Context) -->
+            <!-- 🔹 คอลัมน์ซ้าย (45% - Primary Context & Feature Buttons) -->
             <div class="col-12 col-xl-5 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-light-subtle h-100 d-flex flex-column justify-content-between">
                 <div>
                   <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i>Visit Information</h6>
                   
                   <div class="mb-2.5">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex justify-content-between align-items-center">
                       <label class="compact-label mb-0">Doctor Name <span class="text-danger">*</span></label>
-                      <!-- 🌟 ปุ่มเปิด Pop-up ประวัติย้อนหลัง -->
-                      <button type="button" class="btn btn-xs btn-outline-primary rounded-circle shadow-xs" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="width: 22px; height: 22px; padding: 0;" title="ดูประวัติการเยี่ยมย้อนหลัง">
-                        <i class="fa-solid fa-history" style="font-size:0.7rem;"></i>
+                      <!-- 🌟 ปุ่มเปิด Pop-up ประวัติย้อนหลัง แบบมีข้อความกำกับชัดเจน -->
+                      <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2 py-0.5 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.72rem;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> <span>ประวัติย้อนหลัง</span>
                       </button>
                     </div>
-                    <div class="input-group input-group-sm shadow-xs" style="border-radius: 8px;">
+                    <div class="input-group input-group-sm shadow-xs mt-1" style="border-radius: 8px;">
                       <select class="form-select bg-white" id="visitDocId" required></select>
                       <button class="btn btn-outline-danger bg-white border-start-0 px-2.5" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()"><i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i></button>
                     </div>
@@ -273,7 +279,7 @@
                     <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                   </div>
 
-                  <div class="row g-2 mb-1">
+                  <div class="row g-2 mb-3">
                     <div class="col-6">
                       <label class="compact-label">Date <span class="text-danger">*</span></label>
                       <input type="date" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDate" required>
@@ -293,75 +299,86 @@
                       <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitEndTime">
                     </div>
                   </div>
+
+                  <!-- 🌟 กลุ่มปุ่ม Feature Actions ย้ายมาฝั่งซ้าย (แยก GPS กับ Signature ออกจากกันชัดเจน) -->
+                  <div class="pt-2 border-top">
+                    <label class="compact-label mb-2 text-secondary d-block"><i class="fa-solid fa-sliders me-1"></i>Features & Evidences</label>
+                    <div class="d-flex flex-wrap gap-2">
+                      
+                      <!-- 📍 GPS Check-in -->
+                      <button type="button" class="feature-action-btn-lg" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                        <i class="fa-solid fa-location-dot text-danger me-1.5"></i> GPS Check-in
+                      </button>
+
+                      <!-- ✍️ Doctor Signature (แยกปุ่มเดี่ยว) -->
+                      <button type="button" class="feature-action-btn-lg" id="sectionSignature" onclick="window.openSignatureModal()">
+                        <i class="fa-solid fa-signature text-success me-1.5"></i> Signature
+                      </button>
+
+                      <!-- 🎁 Samples & Promo -->
+                      <button type="button" class="feature-action-btn-lg" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                        <i class="fa-solid fa-gifts text-warning me-1.5"></i> Samples
+                      </button>
+
+                      <!-- 📸 Attachments -->
+                      <button type="button" class="feature-action-btn-lg" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                        <i class="fa-solid fa-camera text-primary me-1.5"></i> Attachments
+                      </button>
+
+                      <!-- 🎬 e-Detailing -->
+                      <div id="detailingMediaSection" class="d-inline-block d-none">
+                        <button type="button" class="feature-action-btn-lg border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
+                          <i class="fa-solid fa-file-powerpoint me-1.5"></i> e-Detailing
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
 
-            <!-- 🔹 คอลัมน์ขวา (58% - Expanded Text Area & Clean Actions) -->
+            <!-- 🔹 คอลัมน์ขวา (55% - Details โปร่งเต็มพื้นที่) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
                 <div class="d-flex flex-column flex-grow-1">
-                  
-                  <!-- Header + Feature Action Bar ในแถวเดียวกัน -->
-                  <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
-                    <h6 class="form-section-title mb-0 border-0 p-0"><i class="fa-solid fa-list-check me-1.5"></i>Activity Details</h6>
-                    
-                    <!-- 🌟 แถบปุ่มฟีเจอร์เสริมแบบ Pill Badge เรียบหรู -->
-                    <div class="d-flex align-items-center gap-1.5">
-                      <button type="button" class="feature-pill-btn" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-location-dot text-danger me-1"></i>GPS & Sign
-                      </button>
+                  <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i>Activity Details</h6>
 
-                      <button type="button" class="feature-pill-btn" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
-                        <i class="fa-solid fa-gifts text-warning me-1"></i>Samples
-                      </button>
-
-                      <button type="button" class="feature-pill-btn" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-camera text-primary me-1"></i>Attachments
-                      </button>
-
-                      <div id="detailingMediaSection" class="d-inline-block d-none">
-                        <button type="button" class="feature-pill-btn border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                          <i class="fa-solid fa-file-powerpoint me-1"></i>e-Detailing
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Details (ขยายโปร่ง พิมพ์สบาย) -->
-                  <div class="mb-2.5 flex-grow-1 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-center mb-0.5">
+                  <!-- Details (ขยายโปร่ง พิมพ์สะดวก) -->
+                  <div class="mb-3 flex-grow-1 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="compact-label mb-0">Details</label>
-                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
                         <i class="fa-solid fa-microphone me-1"></i>Dictate
                       </button>
                     </div>
-                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 140px; resize: none;"></textarea>
+                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 160px; resize: none;"></textarea>
                   </div>
 
                   <!-- Insight & Next Action -->
                   <div class="row g-2 mb-1">
                     <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-0.5">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="compact-label mb-0">Insight</label>
-                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
+                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
                       </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 58px; resize: none;"></textarea>
+                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 65px; resize: none;"></textarea>
                     </div>
                     <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-0.5">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="compact-label mb-0">Next Action</label>
-                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
+                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i>Dictate</button>
                       </div>
-                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 58px;">
+                      <input type="text" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 65px;">
                     </div>
                   </div>
 
                 </div>
 
                 <!-- 📌 Bottom Footer Bar -->
-                <div class="mb-0 pt-2 border-top mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="mb-0 pt-2 border-top mt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-2">
                     <label class="switch mb-0 me-1">
                       <input type="checkbox" id="visitIsCoaching">
@@ -395,7 +412,7 @@
   </div>
 </div>
 
-<!-- 📜 Pop-up Modal 1: ประวัติการเยี่ยมย้อนหลัง (Last Visit History) -->
+<!-- 📜 Pop-up Modal 1: ประวัติการเยี่ยมย้อนหลัง -->
 <div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
@@ -419,37 +436,24 @@
   </div>
 </div>
 
-<!-- 📍 Floating Drawer 2: GPS & Signature -->
+<!-- 📍 Floating Drawer 2: GPS Check-in -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i>GPS & Signature</h6>
+        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i>GPS Check-in</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3">
-        <div class="mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i>GPS Check-in</span>
-            <button type="button" class="btn btn-xs btn-premium-secondary px-2 py-0.5" id="btnGpsCheckin" onclick="window.getLocationCheckin()">Get Location</button>
-          </div>
-          <div class="row g-2">
-            <div class="col-6"><input type="text" class="form-control form-control-sm bg-white text-primary fw-bold" id="visitLat" readonly placeholder="Lat"></div>
-            <div class="col-6"><input type="text" class="form-control form-control-sm bg-white text-primary fw-bold" id="visitLng" readonly placeholder="Lng"></div>
-          </div>
-          <div class="text-end mt-1 d-none" id="locationTimeWrapper"><small class="text-success fw-bold">Checked-in: <span id="visitCheckinTimeText"></span></small></div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i>พิกัดตำแหน่ง</span>
+          <button type="button" class="btn btn-xs btn-premium-secondary px-2 py-0.5" id="btnGpsCheckin" onclick="window.getLocationCheckin()">Get Location</button>
         </div>
-
-        <div class="pt-2 border-top">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="fw-bold text-dark small"><i class="fa-solid fa-signature text-success me-1"></i>Signature</span>
-            <button type="button" class="btn btn-xs btn-link text-danger p-0 text-decoration-none" id="btnClearSig" onclick="window.clearSignature()">ล้างลายเซ็น</button>
-          </div>
-          <div id="sigPreviewBox" class="bg-white border rounded-2 p-1 text-center cursor-pointer shadow-xs d-flex align-items-center justify-content-center" style="height: 60px;" onclick="window.openSignatureModal()">
-            <img id="sigPreviewImg" class="img-fluid d-none" style="max-height: 50px;" alt="Signature Preview" />
-            <div id="sigPlaceholder" class="text-muted small"><i class="fa-solid fa-pen-nib me-1 text-primary"></i>คลิกเพื่อเซ็นชื่อ</div>
-          </div>
+        <div class="row g-2">
+          <div class="col-6"><input type="text" class="form-control form-control-sm bg-white text-primary fw-bold" id="visitLat" readonly placeholder="Lat"></div>
+          <div class="col-6"><input type="text" class="form-control form-control-sm bg-white text-primary fw-bold" id="visitLng" readonly placeholder="Lng"></div>
         </div>
+        <div class="text-end mt-2 d-none" id="locationTimeWrapper"><small class="text-success fw-bold">Checked-in at: <span id="visitCheckinTimeText"></span></small></div>
       </div>
     </div>
   </div>
