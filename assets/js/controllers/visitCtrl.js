@@ -2175,6 +2175,19 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       document.getElementById('visitStatus').value = v.Status || 'Pending';
       var chkCoach = document.getElementById('visitIsCoaching');
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
+
+      // ⚡ [เพิ่มเติม]: ใส่ค่าชื่อ Sales Rep และดึงชื่อ BU ผ่าน Cache Helper
+      var dispRepEl = document.getElementById('dispSalesRepName');
+      if (dispRepEl) {
+          dispRepEl.innerText = v.Rep_Name || v.Sales_Rep_Name || myName || '-';
+      }
+
+      var dispBuEl = document.getElementById('dispTerritoryName');
+      if (dispBuEl) {
+          dispBuEl.innerText = (typeof window.getBuTerritoryDisplayName === 'function') 
+              ? window.getBuTerritoryDisplayName(v) 
+              : (v.BU_Name || v.Territory_Name || '-');
+      }
   }
 
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
@@ -4008,4 +4021,40 @@ var originalUpdateLangUIForFp = window.updateLangUI;
 window.updateLangUI = function() {
   if (typeof originalUpdateLangUIForFp === 'function') originalUpdateLangUIForFp();
   if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
+};
+
+// Check GUID format
+window.isGuidFormat = function(str) {
+  if (!str || typeof str !== 'string') return false;
+  return str.length > 20 && str.indexOf('-') !== -1;
+};
+
+// ⚡ Centralized Cache Lookup สำหรับ BU
+window.getBuTerritoryDisplayName = function(visitData) {
+  if (!visitData) return '-';
+
+  var buId = visitData.BU_ID || visitData.BU;
+
+  // 1. นำ BU_ID ไปค้นใน VisitManagerCache.bus (เทียบกับตาราง BU ใน Supabase)
+  if (buId && window.VisitManagerCache && Array.isArray(window.VisitManagerCache.bus)) {
+    var foundBu = window.VisitManagerCache.bus.find(function(b) {
+      return String(b.BU_ID || b.id || '').toLowerCase() === String(buId).toLowerCase();
+    });
+    if (foundBu && foundBu.BU) return foundBu.BU;
+  }
+
+  // 2. ถ้าหาใน Cache ไม่เจอ ให้เช็กว่า BU_Name ที่ส่งมาไม่ใช่ GUID หรือไม่
+  if (visitData.BU_Name && !window.isGuidFormat(visitData.BU_Name)) {
+    return visitData.BU_Name;
+  }
+  if (visitData.Territory_Name && !window.isGuidFormat(visitData.Territory_Name)) {
+    return visitData.Territory_Name;
+  }
+
+  // 3. Fallback จาก User Profile
+  if (window.globalUserProfile && window.globalUserProfile.BU_Name) {
+    return window.globalUserProfile.BU_Name;
+  }
+
+  return '-';
 };
