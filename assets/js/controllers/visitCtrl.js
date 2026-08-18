@@ -4006,3 +4006,51 @@ window.getBuTerritoryDisplayName = function(visitData) {
 
   return '-';
 };
+
+window.updateFeatureButtonIndicators = function(data) {
+  // 1. GPS Check-in
+  const gpsBtn = document.getElementById('sectionGpsCheckin');
+  const gpsText = document.getElementById('btnGpsText');
+  if (data && data.lat && data.lng) {
+    gpsBtn.classList.add('has-data-gps');
+    gpsText.innerHTML = `Checked-in (${data.checkinTime || ''}) ✓`;
+  } else {
+    gpsBtn.classList.remove('has-data-gps');
+    gpsText.innerText = 'GPS Check-in';
+  }
+
+  // 2. Signature
+  const sigBtn = document.getElementById('sectionSignature');
+  const sigText = document.getElementById('btnSignatureText');
+  if (data && data.signatureImg) {
+    sigBtn.classList.add('has-data-sig');
+    sigText.innerHTML = 'Signed ✓';
+  } else {
+    sigBtn.classList.remove('has-data-sig');
+    sigText.innerText = 'Signature';
+  }
+
+  // 3. Samples
+  const samplesBtn = document.getElementById('sectionSamples');
+  const samplesText = document.getElementById('btnSamplesText');
+  const samplesCount = data && data.samples ? data.samples.length : 0;
+  if (samplesCount > 0) {
+    samplesBtn.classList.add('has-data-samples');
+    samplesText.innerHTML = `Samples (${samplesCount}) ✓`;
+  } else {
+    samplesBtn.classList.remove('has-data-samples');
+    samplesText.innerText = 'Samples';
+  }
+
+  // 4. Attachments
+  const attachBtn = document.getElementById('sectionAttachments');
+  const attachText = document.getElementById('btnAttachmentsText');
+  const attachCount = data && data.attachments ? data.attachments.length : 0;
+  if (attachCount > 0) {
+    attachBtn.classList.add('has-data-attach');
+    attachText.innerHTML = `Attachments (${attachCount}) ✓`;
+  } else {
+    attachBtn.classList.remove('has-data-attach');
+    attachText.innerText = 'Attachments';
+  }
+};
