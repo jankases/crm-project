@@ -844,3 +844,20 @@ mark.highlight-search {
     margin: 2px !important;
     border-radius: 4px !important;
 }
+
+/* 🌟 ล็อคความสูงของช่องตาราง FullCalendar ไม่ให้ยืดล้น */
+#calendar .fc-daygrid-day-frame {
+    min-height: 100px !important;
+    max-height: 120px !important;
+    overflow: hidden !important;
+}
+
+/* ตกแต่งป้ายลิงก์ +more ให้น่าใช้นุ่มนวลขึ้น */
+#calendar .fc-daygrid-more-link {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+}
