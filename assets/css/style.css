@@ -807,3 +807,17 @@ mark.highlight-search {
     padding: 1rem !important;
     overflow: visible !important; /* ป้องกันกล่องตัวเลือกถูกตัดขอบ */
 }
+
+/* 🌟 บังคับกล่อง Advanced Filters ให้ชิดขอบขวาของปุ่ม Filters และปรับระยะห่างให้พอดี */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 6px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ป้องกันขอบกล่อง Area / Team เบียดชิดขอบล่างของป๊อบอัพเกินไป */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .mb-1 {
+    margin-bottom: 0.25rem !important;
+}
