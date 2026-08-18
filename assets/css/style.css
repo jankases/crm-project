@@ -780,3 +780,30 @@ mark.highlight-search {
     color: transparent !important;
     opacity: 0 !important;
 }
+
+/* 1. ซ่อน Placeholder ของ TomSelect แบบเด็ดขาดเมื่อมีการเลือก Item แล้ว */
+.ts-wrapper.has-items .ts-control input::placeholder,
+.ts-wrapper.has-items .ts-input::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
+}
+
+/* 2. ดัดการแสดงผล Dropdown ใน Advanced Filter ไม่ให้กล่องดันลอยทะลุขอบ */
+.dropdown-menu .ts-wrapper {
+    position: relative !important;
+}
+
+.dropdown-menu .ts-dropdown {
+    position: absolute !important;
+    z-index: 9999 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #e2e8f0 !important;
+    margin-top: 2px !important;
+}
+
+/* 3. ปรับระยะเว้นวรรคภายในกล่อง Advanced Filters ให้โปร่งและไม่เบียดขอบล่าง */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
+    padding: 1rem !important;
+    overflow: visible !important; /* ป้องกันกล่องตัวเลือกถูกตัดขอบ */
+}
