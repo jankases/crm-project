@@ -909,3 +909,31 @@ mark.highlight-search {
     border-radius: 7px !important;
     border: none !important;
 }
+
+/* 🌟 คุมหน้า Form View ให้พอดีจอ + เลื่อนได้เมื่อจอเล็ก */
+#visitFormView {
+    height: calc(100vh - 75px) !important;
+    max-height: calc(100vh - 75px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 2rem !important;
+}
+
+/* ปรับระยะ Textarea และกล่องในฟอร์มให้กระชับ ไม่ยืดความสูงล้น */
+#visitFormView .card {
+    margin-bottom: 1.5rem !important;
+}
+
+#visitDetails {
+    min-height: 100px !important;
+    max-height: 160px !important;
+}
+
+/* ปรับแต่ง Scrollbar ของหน้า Form ให้สวยงาม */
+#visitFormView::-webkit-scrollbar {
+    width: 6px;
+}
+#visitFormView::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
