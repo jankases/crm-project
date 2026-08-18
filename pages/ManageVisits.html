@@ -1,4 +1,3 @@
-<!-- 📚 โหลด PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
@@ -6,7 +5,6 @@
   }
 </script>
 
-<!-- 📚 โหลด FullCalendar Library -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
 <div id="draftToastContainer"></div>
@@ -14,15 +12,11 @@
 
 <div class="container-fluid p-0 visit-module-wrapper">
   
-  <!-- ================= 1. หน้ารายการบันทึกเยี่ยม ================= -->
   <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- 🌟 ROW 1: KPI Cards + Action Controls -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       
-      <!-- 📌 ฝั่งซ้าย: กล่อง KPI 3 อัน -->
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- Total Visits Card -->
         <div class="kpi-card-elevated kpi-border-blue">
           <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
@@ -31,7 +25,6 @@
           </div>
         </div>
 
-        <!-- Pending Drafts Card -->
         <div class="kpi-card-elevated kpi-border-amber">
           <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
@@ -40,7 +33,6 @@
           </div>
         </div>
 
-        <!-- Submitted Logs Card -->
         <div class="kpi-card-elevated kpi-border-emerald">
           <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
@@ -50,7 +42,6 @@
         </div>
       </div>
 
-      <!-- 📌 ฝั่งขวา: กลุ่มปุ่ม Action Controls -->
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
           <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1.5"></i> <span data-i18n="btn_list">รายการ</span></button>
@@ -73,14 +64,11 @@
       </div>
     </div>
 
-    <!-- 🌟 ROW 2: MAIN CONTENT CONTAINER -->
     <div id="visitMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden">
       
-      <!-- Filter Toolbar Card -->
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           
-          <!-- ฝั่งซ้าย: Smart Search + Date Range + Status -->
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             <div class="flex-grow-1" style="min-width: 320px; max-width: 480px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
@@ -100,7 +88,6 @@
                 </div>
             </div>
 
-            <!-- Date Range -->
             <div style="width: 250px;">
               <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer">
                 <span class="text-muted pe-1" onclick="document.getElementById('filterStartDate').showPicker()"><i class="fa-regular fa-calendar-days"></i></span>
@@ -110,7 +97,6 @@
               </div>
             </div>
 
-            <!-- Status -->
             <div style="width: 190px;">
               <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
                 <option value="" id="optAllStatus" data-i18n="opt_all_status">- สถานะทั้งหมด -</option>
@@ -120,7 +106,6 @@
             </div>
           </div>
 
-          <!-- ฝั่งขวา: กลุ่มปุ่ม Filters + Clear + Export -->
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               <button class="btn btn-light border shadow-sm text-secondary premium-radius d-flex align-items-center justify-content-center px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="More Filters">
@@ -151,7 +136,6 @@
         </div>
       </div>
 
-      <!-- List View Table Card -->
       <div id="visitListZone" class="card p-3 p-md-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
         <div class="table-responsive table-scroll-inside flex-grow-1">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
@@ -169,7 +153,6 @@
           </table>
         </div>
 
-        <!-- Pagination Footer -->
         <div id="visitPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
           <div class="d-flex align-items-center mb-2 mb-md-0">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">แสดงแถว:</label>
@@ -189,14 +172,12 @@
 
     </div>
 
-    <!-- 🌟 UNIFIED SINGLE LOADING SCREEN -->
     <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column align-items-center justify-content-center my-auto d-none">
       <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem; border-width: 0.25rem;" role="status"></div>
       <h5 class="text-dark fw-bold mb-1" id="loadingTitleText">Loading Data...</h5>
       <span class="text-muted small" id="loadingDescText">Processing your access rights and retrieving records.</span>
     </div>
 
-    <!-- Zone 2: Calendar View -->
     <div id="visitCalendarZone" class="card p-3 p-md-4 border-0 shadow-sm visit-card w-100 flex-grow-1 overflow-auto d-none">
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 mb-3 pb-3 border-bottom flex-shrink-0" style="font-size: 0.8rem; font-weight: 600;">
         <div class="d-flex align-items-center text-secondary"><span style="width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span><span id="legSubmitted" data-i18n="leg_submitted">Submitted Visit</span></div>
@@ -212,7 +193,6 @@
 
   </div>
 
-  <!-- ================= 2. หน้าสร้าง/แก้ไขบันทึกเยี่ยม ================= -->
   <div id="visitFormView" class="d-none w-100 overflow-auto">
     <div class="d-flex align-items-center mb-4">
       <button class="btn btn-premium-secondary me-3" onclick="window.cancelVisitForm()">
@@ -254,7 +234,6 @@
                   </div>
                 </div>
 
-                <!-- กล่องประวัติการเยี่ยมล่าสุด -->
                 <div id="lastVisitHistoryBox" class="mb-3 p-3 bg-primary-subtle border border-primary-subtle rounded-3 d-none shadow-sm">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold text-primary small"><i class="fa-solid fa-clock-rotate-left me-2"></i>ประวัติการเยี่ยมล่าสุด</span>
@@ -306,7 +285,6 @@
                   </div>
                 </div>
 
-                <!-- GPS Check-in -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius" id="sectionGpsCheckin">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i><span data-i18n="lbl_location">GPS Check-in</span></label>
@@ -333,7 +311,6 @@
                   </div>
                 </div>
 
-                <!-- Samples & Promo -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius d-none" id="sectionSamples">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
@@ -349,7 +326,6 @@
                   </div>
                 </div>
 
-                <!-- Attachments -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius" id="sectionAttachments">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
@@ -366,7 +342,6 @@
                   </div>
                 </div>
 
-                <!-- Doctor Signature -->
                 <div class="mb-3 p-3 bg-light border rounded-3 premium-radius" id="sectionSignature">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold text-dark mb-0">
@@ -438,7 +413,6 @@
 
               </div>
 
-              <!-- Status -->
               <div class="mb-0 pt-3 border-top mt-auto">
                 <label class="form-label fw-bold text-dark mb-1" data-i18n="lbl_status">Status</label>
                 <select class="form-select bg-white shadow-sm border-primary fw-bold premium-radius-lg" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
@@ -461,7 +435,6 @@
   </div>
 </div>
 
-<!-- 📺 Presentation Modal -->
 <div class="modal fade" id="mediaPresentationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
@@ -482,7 +455,6 @@
   </div>
 </div>
 
-<!-- 🏖️ TOT Modal -->
 <div class="modal fade" id="totModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg visit-card">
@@ -541,30 +513,29 @@
   </div>
 </div>
 
-<!-- 📱 Signature Modal -->
 <div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content premium-radius shadow-lg border-0">
       <div class="modal-header bg-light">
         <h5 class="modal-title fw-bold text-dark">
-          <i class="fa-solid fa-signature text-success me-2"></i>ลายเซ็นแพทย์ (Doctor Signature)
+          <i class="fa-solid fa-signature text-success me-2"></i><span data-i18n="lbl_signature_modal">ลายเซ็นแพทย์ (Doctor Signature)</span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-3 text-center">
-        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง</p>
+        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> <span data-i18n="txt_sign_instruction">ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง</span></p>
         <div class="position-relative bg-white border border-2 border-primary rounded-3 overflow-hidden shadow-inner mx-auto" style="width: 100%; height: 320px; touch-action: none;">
           <canvas id="modalSignatureCanvas" class="w-100 h-100" style="cursor: crosshair;"></canvas>
         </div>
       </div>
       <div class="modal-footer bg-light d-flex justify-content-between">
         <button type="button" class="btn btn-outline-danger px-3" onclick="window.clearModalCanvas()">
-          <i class="fa-solid fa-rotate-left me-1"></i> ล้างกระดาน
+          <i class="fa-solid fa-rotate-left me-1"></i> <span data-i18n="btn_clear_canvas">ล้างกระดาน</span>
         </button>
         <div>
-          <button type="button" class="btn btn-secondary px-4 me-1" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-secondary px-4 me-1" data-bs-dismiss="modal" data-i18n="btn_cancel">ยกเลิก</button>
           <button type="button" class="btn btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()">
-            <i class="fa-solid fa-check me-1"></i> ตกลง / บันทึก
+            <i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_save_sig">ตกลง / บันทึก</span>
           </button>
         </div>
       </div>
@@ -572,5 +543,4 @@
   </div>
 </div>
 
-<!-- โหลด Controller ฝั่ง JavaScript -->
 <script src="assets/js/controllers/visitCtrl.js"></script>
