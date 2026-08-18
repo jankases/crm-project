@@ -1396,7 +1396,7 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 create: false, 
                 hidePlaceholder: true, // ⚡ เพิ่มบรรทัดนี้เพื่อไม่ให้ Placeholder ค้าง
                 placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
-                dropdownParent: 'body', 
+                dropdownParent: null, 
                 onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
             });
             if (oldRepVal.length > 0) setTimeout(() => window.tomSelectRepInstance.setValue(oldRepVal, true), 50);
@@ -1410,7 +1410,7 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 create: false, 
                 hidePlaceholder: true, // ⚡ เพิ่มบรรทัดนี้เพื่อไม่ให้ Placeholder ค้าง
                 placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
-                dropdownParent: 'body', 
+                dropdownParent: null,
                 onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
             });
             if (oldTerVal.length > 0) setTimeout(() => window.tomSelectTerInstance.setValue(oldTerVal, true), 50);
