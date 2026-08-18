@@ -2143,11 +2143,10 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
-  window.applyVisitFeaturesUI();
-  
-  // ⚡ 1. สลับหน้าเปิดฟอร์มทันที 0s (ไม่มีอาการหน่วงสะดุด)
+ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+  // ⚡ 1. สลับ View ขึ้นมาก่อนทันทีในเฟรมแรก (0ms Response)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
+  window.applyVisitFeaturesUI();
 
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2160,7 +2159,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toLowerCase().trim() : '';
   var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
   var myEmail = crmUser ? String(crmUser.Email || crmUser.email || '').toLowerCase().trim() : '';
-  var myName = crmUser ? String(crmUser.Rep_Name || crmUser.rep_name || crmUser.Name || crmUser.name || '').trim() : '';
 
   var isAdmin = (myRole === 'admin' || myRole === 'system admin');
   var creatorRepId = v ? String(v.Rep_ID || v.rep_id || '').trim() : '';
@@ -2171,7 +2169,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  // ⚡ 2. อัปเดตข้อมูลผู้สร้าง + BU Name ผ่าน Cache
+  // ⚡ 2. ยัดค่าลง Plain Text Elements ทันที ไม่ต้องรอ TomSelect
   if (v) {
       var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
       var targetRepObj = userList.find(function(u) {
@@ -2197,7 +2195,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
   }
 
-  // ⚡ 3. ยัดค่า Doctor & Purpose
+  // ⚡ 3. ยัดค่า TomSelect (Doctor & Purpose) แบบ Silent
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
   if (targetDocId && window.tomSelectDocInstance) {
       window.tomSelectDocInstance.setValue(targetDocId, true);
@@ -2209,29 +2207,31 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       window.tomSelectPurposeInstance.setValue(dbPurposeVal, true);
   }
 
-  if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
-      window.fetchLastVisitHistory(targetDocId);
-  }
+  // ⚡ 4. ย้ายการทำงานหนักๆ (Heavy Operations) ไปรันผ่าน requestAnimationFrame เบื้องหลัง
+  requestAnimationFrame(function() {
+      if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
+          window.fetchLastVisitHistory(targetDocId);
+      }
 
-  // ⚡ 4. โหลด Product Dropdown เบื้องหลังแบบ Async
-  if (typeof window.renderFormProductDropdown === 'function') {
-      window.renderFormProductDropdown().then(function() {
-          var visitProds = (window.globalVisitProducts && v) ? window.globalVisitProducts.filter(function(vp) { 
-              return String(vp.Visit_ID) === String(visitId); 
-          }).map(function(vp) { return String(vp.Product_ID); }) : [];
-          
-          if (window.tomSelectProdInstance && visitProds.length > 0) {
-              window.tomSelectProdInstance.setValue(visitProds, true);
-          }
-          if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
-      });
-  }
+      if (typeof window.renderFormProductDropdown === 'function') {
+          window.renderFormProductDropdown().then(function() {
+              var visitProds = (window.globalVisitProducts && v) ? window.globalVisitProducts.filter(function(vp) { 
+                  return String(vp.Visit_ID) === String(visitId); 
+              }).map(function(vp) { return String(vp.Product_ID); }) : [];
+              
+              if (window.tomSelectProdInstance && visitProds.length > 0) {
+                  window.tomSelectProdInstance.setValue(visitProds, true);
+              }
+              if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
+          });
+      }
 
-  if (typeof window.loadVisitSamplesForEdit === 'function') {
-      window.loadVisitSamplesForEdit(visitId);
-  }
+      if (typeof window.loadVisitSamplesForEdit === 'function') {
+          window.loadVisitSamplesForEdit(visitId);
+      }
+  });
 
-  // GPS Location
+  // GPS & Signature Elements
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2262,7 +2262,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
     }
   }
 
-  // Attachments & Signatures
   window.currentAttachments = [];
   window.newlyUploadedFiles = [];
   window.pendingDeleteFiles = [];
@@ -2290,7 +2289,7 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   }
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
-  // Mode & Action Buttons
+  // Button States
   var isPendingUnlock = window.globalPendingUnlockVisits ? window.globalPendingUnlockVisits.indexOf(visitId) !== -1 : false;
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
