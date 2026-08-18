@@ -198,7 +198,16 @@ const i18nDictionary = {
     opt_tot_pending: "⏳ Pending",
     btn_delete: "Delete",
 
-    btn_last_history: "📜 History"
+    btn_last_history: "📜 History",
+    lbl_location_coords: "Location Coordinates",
+    lbl_sign_instruction: "Use finger or stylus to sign within the box below",
+    lbl_sample_items_title: "Sample & Promo Items List",
+    lbl_attachments_title: "Photos / Attachments",
+    btn_clear_canvas: "Clear Canvas",
+    btn_add_sample: "+ Add Item",
+    btn_add_file: "+ Attach File/Photo",
+    btn_present: "Present",
+    txt_no_attachment: "No attachments yet"
     
   },
 
@@ -397,7 +406,16 @@ const i18nDictionary = {
     opt_tot_pending: "⏳ รออนุมัติ (Pending)",
     btn_delete: "ลบรายการ",
 
-    btn_last_history: "📜 ประวัติเยี่ยม"
+    btn_last_history: "📜 ประวัติเยี่ยม",
+    lbl_location_coords: "พิกัดตำแหน่ง",
+    lbl_sign_instruction: "ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง",
+    lbl_sample_items_title: "รายการของแจก / สินค้าตัวอย่าง",
+    lbl_attachments_title: "รูปถ่าย / ไฟล์แนบ",
+    btn_clear_canvas: "ล้างกระดาน",
+    btn_add_sample: "+ เพิ่มรายการ",
+    btn_add_file: "+ แนบไฟล์/ถ่ายรูป",
+    btn_present: "นำเสนอ",
+    txt_no_attachment: "ยังไม่มีไฟล์แนบ"
   }
 };
 
