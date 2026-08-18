@@ -252,7 +252,7 @@ window._visitProdIndex = {};
 window._userIndex = {}; 
 window._purposeIndex = {}; 
 
- window.buildDataIndexes = function() {
+window.buildDataIndexes = function() {
   window._docIndex = {};
   (window.globalAllDoctors || []).forEach(function(d) {
     var id = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
@@ -411,14 +411,13 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
   return '-';
 };
 
-  window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
+window.updateFormUserInfo = function(repObj, fallbackTerrId, visitData) {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'th';
   
   var repNameShow = '-';
   var locNameShow = '-';
   var labelText = appLang === 'th' ? 'เขตพื้นที่' : 'Territory';
 
-  // 1. ค้นหา User ใน Rep_Users โดยใช้อีเมล Whoupdated หรือ Rep_ID จาก Visit
   var targetUser = repObj;
   var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
 
@@ -433,43 +432,36 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
     });
   }
 
-  // 2. ตั้งค่าชื่อพนักงานจาก Rep_Name
   if (targetUser) {
     repNameShow = targetUser.Rep_Name || targetUser.Name || targetUser.rep_name || '-';
   } else if (visitData) {
     repNameShow = visitData.Rep_Name || visitData.Sales_Rep_Name || '-';
   }
 
-  // 3. อ่าน Role และ Territory_ID จาก Rep_Users
   var cache = window.VisitManagerCache || {};
   var userRole = targetUser ? String(targetUser.Role || targetUser.role || '').trim() : '';
   var userRoleLower = userRole.toLowerCase();
   var rawTerrId = targetUser ? String(targetUser.Territory_ID || targetUser.territory_id || '').trim() : (visitData ? String(visitData.Territory_ID || '').trim() : '');
 
-  // 4. สวิตช์ดึงชื่อตามเงื่อนไข Role
   if (userRoleLower === 'sales' || userRoleLower === 'sales rep' || userRoleLower === 'rep') {
-    // 🔹 Role: Sales -> ดึงจากตาราง Territory
     labelText = appLang === 'th' ? 'เขตพื้นที่ (Territory)' : 'Territory';
     var terrs = cache.territories || window.globalTerritoryList || [];
     var terObj = terrs.find(function(t) { return String(t.Territory_ID || t.id || t.Territory) === rawTerrId; });
     locNameShow = terObj ? (terObj.Territory || terObj.Territory_Name) : '-';
 
   } else if (userRoleLower === 'manager' || userRoleLower === 'sales manager') {
-    // 🔹 Role: Manager -> ดึงจากตาราง Team
     labelText = appLang === 'th' ? 'ทีมที่ดูแล (Team)' : 'Team';
     var teams = cache.teams || window.globalTeamList || [];
     var tObj = teams.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team) === rawTerrId; });
     locNameShow = tObj ? (tObj.Team || tObj.Team_Name) : '-';
 
   } else if (userRoleLower.indexOf('bu') !== -1 || userRoleLower.indexOf('head') !== -1) {
-    // 🔹 Role: BU Head -> ดึงจากตาราง BU
     labelText = appLang === 'th' ? 'หน่วยธุรกิจ (BU)' : 'Business Unit';
     var bus = cache.bus || window.globalBuList || [];
     var bObj = bus.find(function(b) { return String(b.BU_ID || b.id || b.BU) === rawTerrId; });
     locNameShow = bObj ? (bObj.BU || bObj.BU_Name) : '-';
 
   } else if (userRole !== '') {
-    // 🔹 Role อื่นๆ (Staff, Product Manager, Admin) -> เอาชื่อ Role มาแสดง
     labelText = appLang === 'th' ? 'บทบาท (Role)' : 'Role';
     locNameShow = userRole;
 
@@ -478,7 +470,6 @@ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
     locNameShow = '-';
   }
 
-  // 5. แสดงผลบน UI
   var repNameEl = document.getElementById('dispSalesRepName');
   var terNameEl = document.getElementById('dispTerritoryName');
   var terLabelEl = document.getElementById('dynamicTerritoryLabel');
@@ -893,21 +884,17 @@ window.toggleMainView = function(viewName) {
       if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
       if (btnCal) btnCal.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
       
-      // ⚡ ซ่อนหน้า List และ Filter Bar
       if (listZone) listZone.classList.add('d-none');
       if (filterZone) filterZone.classList.add('d-none'); 
       
-      // ⚡ แสดงหน้า Calendar
       if (calZone) calZone.classList.remove('d-none');
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (btnList) btnList.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
       if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
       
-      // ⚡ ซ่อนหน้า Calendar
       if (calZone) calZone.classList.add('d-none');
       
-      // ⚡ แสดงหน้า List และ Filter Bar
       if (filterZone) filterZone.classList.remove('d-none'); 
       if (listZone) listZone.classList.remove('d-none');
   }
@@ -1442,7 +1429,7 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 maxItems: null, 
                 plugins: ['remove_button'], 
                 create: false, 
-                hidePlaceholder: true, // ⚡ เพิ่มบรรทัดนี้เพื่อไม่ให้ Placeholder ค้าง
+                hidePlaceholder: true, 
                 placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
                 dropdownParent: null, 
                 onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
@@ -1456,7 +1443,7 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 maxItems: null, 
                 plugins: ['remove_button'], 
                 create: false, 
-                hidePlaceholder: true, // ⚡ เพิ่มบรรทัดนี้เพื่อไม่ให้ Placeholder ค้าง
+                hidePlaceholder: true, 
                 placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
                 dropdownParent: null,
                 onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
@@ -1573,33 +1560,27 @@ window.renderFormProductDropdown = async function() {
 window.handleFilterChange = function(source) { if (typeof window.filterVisits === 'function') window.filterVisits(); };
 
 window.clearVisitFilters = function() {
-    // 1. เคลียร์ค่า TomSelect
     if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
     if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
     if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue('', true);
     
-    // 2. เคลียร์ค่า Flatpickr (Date Filters) ⚡
     if (window.fpStartInstance) window.fpStartInstance.clear();
     if (window.fpEndInstance) window.fpEndInstance.clear();
 
-    // 3. Fallback เคลียร์ค่า Input วันที่กรณีไม่ได้ใช้ Flatpickr
     var stDate = document.getElementById('filterStartDate');
     var endDate = document.getElementById('filterEndDate');
     if (stDate && !window.fpStartInstance) stDate.value = '';
     if (endDate && !window.fpEndInstance) endDate.value = '';
 
-    // 4. เคลียร์ค่า Status Select
     var stEl = document.getElementById('filterVisitStatus');
     if (stEl && !window.tomSelectStatusInstance) { 
         stEl.value = ''; 
         stEl.classList.add('filter-placeholder-text'); 
     }
     
-    // 5. เคลียร์ค่า Smart Search
     var searchEl = document.getElementById('smartSearchInput');
     if (searchEl) searchEl.value = '';
 
-    // 6. โหลดข้อมูลตารางใหม่
     if (typeof window.filterVisits === 'function') window.filterVisits();
 };
 
@@ -1998,7 +1979,6 @@ window.renderVisitTableServerSide = function() {
 
     var dateShow = (typeof window.formatDateToLocal === 'function') ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
     
-    // 🛡️ [FIX 1 - แก้ไขชื่อแพทย์หลุดเป็น UUID]: ค้นหา Doc_ID แบบครอบคลุมทุกคีย์ (ทั้งตัวเล็ก/ตัวใหญ่/UUID ตรงๆ)
     var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
     var docObj = (window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null;
     var docNameShow = window.getDoctorNameByLang(docObj, rawDocId);
@@ -2032,7 +2012,6 @@ window.renderVisitTableServerSide = function() {
     var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
     var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
 
-    // 🛡️ [FIX 2 - แก้ไขชื่อสินค้าหลุดเป็น UUID]: ค้นหา Visit_ID และ Product_ID จาก Index ให้แม่นยำขึ้น
     var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
     var visitProds = (window._visitProdIndex && cleanVid) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[v.Visit_ID] || []) : [];
     var prodBadges = '';
@@ -2116,7 +2095,7 @@ window.debouncedFilterVisits = function() {
     window.filterDebounceTimer = setTimeout(function() {
         window.currentPage = 1;
         if (typeof window.loadVisits === 'function') window.loadVisits(true);
-    }, 400); // ⚡ รอหยุดพิมพ์ 0.4 วินาทีค่อยยิงค้นหา
+    }, 400);
 };
 
 window.sortVisits = function(col) {
@@ -2143,7 +2122,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
- window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   // ⚡ 1. สลับ View ขึ้นมาก่อนทันทีในเฟรมแรก (0ms Response)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   window.applyVisitFeaturesUI();
@@ -3265,10 +3244,9 @@ window.renderCalendarView = function() {
         buttonText: fcButtonText, 
         locale: appLang === 'th' ? 'th' : 'en', 
 
-        // ⚡ [จุดที่ปรับแก้ 1]: ปรับให้ปฏิทินยืดเต็มความสูงการ์ดแบบไม่มี Scrollbar
         height: '100%', 
-        expandRows: true, // ขยายแถววันให้เต็มพื้นที่แนวตั้งอัตโนมัติ
-        dayMaxEvents: 2,  // ซ่อนป้ายเกินเป็น +more
+        expandRows: true, 
+        dayMaxEvents: 2, 
         moreLinkClick: 'popover', 
     
         events: allEvents,
@@ -3289,36 +3267,32 @@ window.renderCalendarView = function() {
     
     window.globalCalendarInstance.render();
 
-    // ⚡ [จุดที่ปรับแก้ 2]: แทรก Dropdown สัญลักษณ์สี (Legend) ไว้ใน HeaderToolbar ด้านขวาของ FullCalendar
-
-      // ⚡ [แทนที่ท่อน setTimeout เดิมใน renderCalendarView ของ visitCtrl.js]
-        setTimeout(function() {
-          var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
-          if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
-            var isEN = appLang === 'en';
-            
-            var legendDropdownHtml = `
-              <div class="dropdown d-inline-block me-1" id="calHeaderLegendDropdown">
-                <button class="fc-button fc-button-primary dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #64748b; border-color: #64748b; font-size: 0.85rem; padding: 0.35em 0.65em;">
-                  <i class="fa-solid fa-palette"></i>
-                  <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
-                  <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
-                  <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
-                  <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
-                  <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
-                </div>
-              </div>
-            `;
-            headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
-          }
-        }, 50);
-       
+    setTimeout(function() {
+      var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
+      if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
+        var isEN = appLang === 'en';
+        
+        var legendDropdownHtml = `
+          <div class="dropdown d-inline-block me-1" id="calHeaderLegendDropdown">
+            <button class="fc-button fc-button-primary dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #64748b; border-color: #64748b; font-size: 0.85rem; padding: 0.35em 0.65em;">
+              <i class="fa-solid fa-palette"></i>
+              <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
+              <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
+              <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (รออนุมัติ)' : 'TOT (Pending)'}</span></div>
+            </div>
+          </div>
+        `;
+        headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
+      }
+    }, 50);
   }
 };
 
@@ -3346,7 +3320,6 @@ window.updateCalendarLegendLang = function() {
   if (elTotPen) elTotPen.innerText = isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)';
 };
 
-// สั่งทำงานใน updateLangUI
 var originalUpdateLangUI = window.updateLangUI;
 window.updateLangUI = function() {
   if (typeof originalUpdateLangUI === 'function') originalUpdateLangUI();
@@ -3497,27 +3470,6 @@ window.initVisitPage = async function(forceReload) {
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
-
-// ==========================================
-// 👁️ SPA DOM WATCHER 
-// ==========================================
-if (!window._visitObserverAttached) {
-    var visitObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.addedNodes) {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) {
-                        if (node.id === 'visitTableBody' && !window.VisitManagerCache?.isLoaded) {
-                            if (typeof window.initVisitPage === 'function') window.initVisitPage(false);
-                        }
-                    }
-                });
-            }
-        });
-    });
-    visitObserver.observe(document.body, { childList: true, subtree: true });
-    window._visitObserverAttached = true;
-}
 
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
@@ -3951,7 +3903,7 @@ window.bindDoctorChangeForHistory = function() {
         docSelect.setAttribute('data-history-attached', 'true');
     }
 };
-// 🚀 ฟังก์ชันสั่งค้นหาเมื่อกด Enter หรือกดแว่นขยาย
+
 window.triggerSmartSearch = function() {
     window.currentPage = 1;
     if (typeof window.loadVisits === 'function') {
@@ -3962,7 +3914,6 @@ window.triggerSmartSearch = function() {
 window.fpStartInstance = null;
 window.fpEndInstance = null;
 
-// ⚡ ฟังก์ชันผูกและสลับภาษา Flatpickr ปฏิทินตัวกรอง
 window.initVisitDatePickers = function() {
   var appLang = window.getCurrentAppLang();
   var isEN = appLang === 'en';
@@ -3974,7 +3925,6 @@ window.initVisitDatePickers = function() {
 
   if (!startEl || !endEl) return;
 
-  // ทำลาย Instance เดิมถ้ามี เพื่อเปลี่ยน Locale ภาษาใหม่
   if (window.fpStartInstance) window.fpStartInstance.destroy();
   if (window.fpEndInstance) window.fpEndInstance.destroy();
 
@@ -3982,10 +3932,10 @@ window.initVisitDatePickers = function() {
   endEl.placeholder = placeholderText;
 
   var commonConfig = {
-    dateFormat: "Y-m-d",        // ฟอร์แมตส่งค่าให้ DB (2026-08-18)
-    altInput: true,             // เปิดใช้งานการแสดงผลฟอร์แมตสวยงาม
-    altFormat: isEN ? "m/d/Y" : "j M Y", // TH: 18 ส.ค. 2026 | EN: 08/18/2026
-    locale: localeConfig,       // ภาษาในป๊อบอัปปฏิทิน
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: isEN ? "m/d/Y" : "j M Y",
+    locale: localeConfig,
     allowInput: false,
     onChange: function() {
       if (typeof window.filterVisits === 'function') window.filterVisits();
@@ -3996,21 +3946,17 @@ window.initVisitDatePickers = function() {
   window.fpEndInstance = flatpickr(endEl, commonConfig);
 };
 
-// สั่งให้สลับภาษาเมื่อกดปุ่ม EN/TH
 var originalUpdateLangUIForFp = window.updateLangUI;
 window.updateLangUI = function() {
   if (typeof originalUpdateLangUIForFp === 'function') originalUpdateLangUIForFp();
   if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
 };
 
-// Check GUID format
 window.isGuidFormat = function(str) {
   if (!str || typeof str !== 'string') return false;
   return str.length > 20 && str.indexOf('-') !== -1;
 }; 
-// ⚡ Centralized Cache Lookup สำหรับ BU / Territory (ปรับปรุงรองรับทุก Key)
 
-// ⚡ ฟังก์ชันแปลง ID หาชื่อ BU ตามโครงสร้าง Organization Structure
 window.getBuTerritoryDisplayName = function(visitData) {
   if (!visitData) return '-';
 
@@ -4019,7 +3965,6 @@ window.getBuTerritoryDisplayName = function(visitData) {
   var teams = cache.teams || window.globalTeamList || [];
   var territories = cache.territories || window.globalTerritoryList || [];
 
-  // 1. ลองดูว่ามี BU_ID มาตรงๆ หรือไม่
   var rawBuId = visitData.BU_ID || visitData.BU;
   if (rawBuId) {
     var foundBu = bus.find(function(b) {
@@ -4028,10 +3973,8 @@ window.getBuTerritoryDisplayName = function(visitData) {
     if (foundBu && (foundBu.BU || foundBu.BU_Name)) return foundBu.BU || foundBu.BU_Name;
   }
 
-  // 2. แกะรอยตาม Hierarchy: Territory (L1) -> Team (LUNG1) -> BU (LUNG)
   var rawTerId = visitData.Territory_ID || visitData.Territory;
   if (rawTerId) {
-    // ขั้น 2.1: หา Territory เพื่อเอา Team_ID
     var foundTer = territories.find(function(t) {
       return String(t.Territory_ID || t.id || t.Territory).trim().toLowerCase() === String(rawTerId).trim().toLowerCase();
     });
@@ -4039,7 +3982,6 @@ window.getBuTerritoryDisplayName = function(visitData) {
     var targetTeamId = foundTer ? (foundTer.Team_ID || foundTer.Team) : visitData.Team_ID;
 
     if (targetTeamId) {
-      // ขั้น 2.2: หา Team เพื่อเอา BU_ID
       var foundTeam = teams.find(function(tm) {
         return String(tm.Team_ID || tm.id || tm.Team).trim().toLowerCase() === String(targetTeamId).trim().toLowerCase();
       });
@@ -4047,7 +3989,6 @@ window.getBuTerritoryDisplayName = function(visitData) {
       var targetBuId = foundTeam ? (foundTeam.BU_ID || foundTeam.BU) : null;
 
       if (targetBuId) {
-        // ขั้น 2.3: หา BU เพื่อเอาชื่อ BU (เช่น LUNG)
         var finalBu = bus.find(function(b) {
           return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(targetBuId).trim().toLowerCase();
         });
@@ -4056,7 +3997,6 @@ window.getBuTerritoryDisplayName = function(visitData) {
     }
   }
 
-  // 3. Fallback: ถ้าเป็น User Profile ของ Kai BU
   try {
     var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
     if (crmUser && (crmUser.BU_Name || crmUser.BU)) {
