@@ -4027,34 +4027,51 @@ window.updateLangUI = function() {
 window.isGuidFormat = function(str) {
   if (!str || typeof str !== 'string') return false;
   return str.length > 20 && str.indexOf('-') !== -1;
-};
-
-// ⚡ Centralized Cache Lookup สำหรับ BU
+}; 
+// ⚡ Centralized Cache Lookup สำหรับ BU / Territory (ปรับปรุงรองรับทุก Key)
 window.getBuTerritoryDisplayName = function(visitData) {
   if (!visitData) return '-';
 
-  var buId = visitData.BU_ID || visitData.BU;
+  // 1. ดึง ID ของ BU / Territory หรือ Team จากวัตถุ Visit (ลองอ่านทุกคีย์ที่เป็นไปได้)
+  var targetId = visitData.BU_ID || visitData.BU || visitData.Territory_ID || visitData.Territory || visitData.Team_ID || visitData.Team;
+  var cache = window.VisitManagerCache || {};
 
-  // 1. นำ BU_ID ไปค้นใน VisitManagerCache.bus (เทียบกับตาราง BU ใน Supabase)
-  if (buId && window.VisitManagerCache && Array.isArray(window.VisitManagerCache.bus)) {
-    var foundBu = window.VisitManagerCache.bus.find(function(b) {
-      return String(b.BU_ID || b.id || '').toLowerCase() === String(buId).toLowerCase();
+  // 2. ถ้ามี ID ให้สแกนหาใน Cache ตาราง BU ก่อน
+  if (targetId && Array.isArray(cache.bus) && cache.bus.length > 0) {
+    var foundBu = cache.bus.find(function(b) {
+      return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === String(targetId).trim().toLowerCase();
     });
-    if (foundBu && foundBu.BU) return foundBu.BU;
+    if (foundBu && (foundBu.BU || foundBu.BU_Name)) return foundBu.BU || foundBu.BU_Name;
   }
 
-  // 2. ถ้าหาใน Cache ไม่เจอ ให้เช็กว่า BU_Name ที่ส่งมาไม่ใช่ GUID หรือไม่
-  if (visitData.BU_Name && !window.isGuidFormat(visitData.BU_Name)) {
-    return visitData.BU_Name;
-  }
-  if (visitData.Territory_Name && !window.isGuidFormat(visitData.Territory_Name)) {
-    return visitData.Territory_Name;
+  // 3. ถ้าหาในตาราง BU ไม่เจอ สแกนหาใน Cache ตาราง Territory
+  if (targetId && Array.isArray(cache.territories) && cache.territories.length > 0) {
+    var foundTer = cache.territories.find(function(t) {
+      return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === String(targetId).trim().toLowerCase();
+    });
+    if (foundTer && foundTer.Territory) return foundTer.Territory;
   }
 
-  // 3. Fallback จาก User Profile
-  if (window.globalUserProfile && window.globalUserProfile.BU_Name) {
-    return window.globalUserProfile.BU_Name;
+  // 4. ถ้าหาในตาราง Territory ไม่เจอ สแกนหาใน Cache ตาราง Team
+  if (targetId && Array.isArray(cache.teams) && cache.teams.length > 0) {
+    var foundTeam = cache.teams.find(function(tm) {
+      return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === String(targetId).trim().toLowerCase();
+    });
+    if (foundTeam && (foundTeam.Team || foundTeam.Team_Name)) return foundTeam.Team || foundTeam.Team_Name;
   }
+
+  // 5. เช็กชื่อตรงที่ติดมากับ Visit (ต้องไม่ใช่ GUID)
+  if (visitData.BU_Name && !window.isGuidFormat(visitData.BU_Name)) return visitData.BU_Name;
+  if (visitData.Territory_Name && !window.isGuidFormat(visitData.Territory_Name)) return visitData.Territory_Name;
+
+  // 6. Fallback ดึงจาก Session User Profile ปัจจุบัน
+  try {
+    var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
+    if (crmUser) {
+      var userBu = crmUser.BU_Name || crmUser.BU || crmUser.Territory || crmUser.Team;
+      if (userBu && !window.isGuidFormat(userBu)) return userBu;
+    }
+  } catch(e) {}
 
   return '-';
 };
