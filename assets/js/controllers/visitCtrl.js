@@ -4032,44 +4032,56 @@ window.isGuidFormat = function(str) {
 window.getBuTerritoryDisplayName = function(visitData) {
   if (!visitData) return '-';
 
-  // 1. ดึง ID ของ BU / Territory หรือ Team จากวัตถุ Visit (ลองอ่านทุกคีย์ที่เป็นไปได้)
-  var targetId = visitData.BU_ID || visitData.BU || visitData.Territory_ID || visitData.Territory || visitData.Team_ID || visitData.Team;
   var cache = window.VisitManagerCache || {};
+  var bus = cache.bus || [];
+  var teams = cache.teams || [];
+  var territories = cache.territories || [];
 
-  // 2. ถ้ามี ID ให้สแกนหาใน Cache ตาราง BU ก่อน
-  if (targetId && Array.isArray(cache.bus) && cache.bus.length > 0) {
-    var foundBu = cache.bus.find(function(b) {
-      return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === String(targetId).trim().toLowerCase();
+  var rawBuId = visitData.BU_ID || visitData.BU;
+  var rawTerId = visitData.Territory_ID || visitData.Territory;
+  var rawTeamId = visitData.Team_ID || visitData.Team;
+
+  // 1. ถ้ามี BU_ID ตรงๆ ให้ดึงชื่อ BU จากตาราง BU ก่อนเลย
+  if (rawBuId) {
+    var foundBu = bus.find(function(b) {
+      return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(rawBuId).trim().toLowerCase();
     });
     if (foundBu && (foundBu.BU || foundBu.BU_Name)) return foundBu.BU || foundBu.BU_Name;
   }
 
-  // 3. ถ้าหาในตาราง BU ไม่เจอ สแกนหาใน Cache ตาราง Territory
-  if (targetId && Array.isArray(cache.territories) && cache.territories.length > 0) {
-    var foundTer = cache.territories.find(function(t) {
-      return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === String(targetId).trim().toLowerCase();
+  // 2. ถ้าไม่มี BU_ID แต่มี Territory_ID (เช่น "L1") ให้ไล่ย้อนหา Team -> BU
+  if (rawTerId) {
+    var foundTer = territories.find(function(t) {
+      return String(t.Territory_ID || t.id || t.Territory).trim().toLowerCase() === String(rawTerId).trim().toLowerCase();
     });
-    if (foundTer && foundTer.Territory) return foundTer.Territory;
+    
+    // ดึง Team_ID จาก Territory
+    var targetTeamId = foundTer ? (foundTer.Team_ID || foundTer.Team) : rawTeamId;
+    
+    if (targetTeamId) {
+      var foundTeam = teams.find(function(tm) {
+        return String(tm.Team_ID || tm.id || tm.Team).trim().toLowerCase() === String(targetTeamId).trim().toLowerCase();
+      });
+      
+      // ดึง BU_ID จาก Team
+      var targetBuIdFromTeam = foundTeam ? (foundTeam.BU_ID || foundTeam.BU) : null;
+      if (targetBuIdFromTeam) {
+        var foundBuFromTeam = bus.find(function(b) {
+          return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(targetBuIdFromTeam).trim().toLowerCase();
+        });
+        if (foundBuFromTeam && (foundBuFromTeam.BU || foundBuFromTeam.BU_Name)) {
+          return foundBuFromTeam.BU || foundBuFromTeam.BU_Name;
+        }
+      }
+    }
   }
 
-  // 4. ถ้าหาในตาราง Territory ไม่เจอ สแกนหาใน Cache ตาราง Team
-  if (targetId && Array.isArray(cache.teams) && cache.teams.length > 0) {
-    var foundTeam = cache.teams.find(function(tm) {
-      return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === String(targetId).trim().toLowerCase();
-    });
-    if (foundTeam && (foundTeam.Team || foundTeam.Team_Name)) return foundTeam.Team || foundTeam.Team_Name;
-  }
-
-  // 5. เช็กชื่อตรงที่ติดมากับ Visit (ต้องไม่ใช่ GUID)
-  if (visitData.BU_Name && !window.isGuidFormat(visitData.BU_Name)) return visitData.BU_Name;
-  if (visitData.Territory_Name && !window.isGuidFormat(visitData.Territory_Name)) return visitData.Territory_Name;
-
-  // 6. Fallback ดึงจาก Session User Profile ปัจจุบัน
+  // 3. Fallback: ถ้าเช็กแล้วไม่มี BU ในระบบเลย ให้ดึง BU จาก User Profile ปัจจุบัน
   try {
     var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-    if (crmUser) {
-      var userBu = crmUser.BU_Name || crmUser.BU || crmUser.Territory || crmUser.Team;
-      if (userBu && !window.isGuidFormat(userBu)) return userBu;
+    if (crmUser && (crmUser.BU_Name || crmUser.BU)) {
+      var userBu = crmUser.BU_Name || crmUser.BU;
+      if (!window.isGuidFormat(userBu)) return userBu;
     }
   } catch(e) {}
 
