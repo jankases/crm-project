@@ -124,9 +124,25 @@ window.loadMasterSamplesList = async function() {
     }
 };
 
- 
+window.addSampleRow = function(sampleId = '', qty = 1) {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    if (noText) noText.style.display = 'none';
 
-    // 📱 ปรับแต่ง Grid (7-3-2) พร้อมผูกระบบเช็กตัวเลือกซ้ำ และอัปเดตตัวนับหน้าหลักทันทีเมื่อลบ
+    const rowId = 'sampleRow_' + Date.now();
+    var btnEN = document.getElementById('btnLangEN');
+    var isEN = btnEN && btnEN.classList.contains('btn-primary');
+    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
+
+    let optionsHTML = `<option value="">${placeholderText}</option>`;
+    if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
+        window.globalMasterSamples.forEach(item => {
+            const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
+            const isSelected = String(item.Index_ID) === String(sampleId) ? 'selected' : '';
+            optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
+        });
+    }
+
     const rowHTML = `
         <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
             <div class="col-7">
@@ -147,7 +163,6 @@ window.loadMasterSamplesList = async function() {
     container.insertAdjacentHTML('beforeend', rowHTML);
 };
 
-// 🌟 ฟังก์ชันตรวจสอบและป้องกันการเลือกสินค้าซ้ำ
 window.validateSampleSelection = function(selectEl) {
     const selectedVal = selectEl.value;
     if (!selectedVal) return;
@@ -170,41 +185,11 @@ window.validateSampleSelection = function(selectEl) {
         if (window.showToast) window.showToast(msg, "warning");
         else alert(msg);
 
-        // รีเซ็ตตัวเลือกกลับเป็นค่าว่าง
         selectEl.value = "";
     } else {
-        // อัปเดตสถานะปุ่มตัวนับ Samples (X) บนหน้าหลักทันทีที่มีการเลือก
         if (typeof window.updateFeatureButtonIndicators === 'function') {
             window.updateFeatureButtonIndicators(null);
         }
-    }
-};
-
-// 🌟 ฟังก์ชันตรวจสอบและป้องกันการเลือกสินค้าซ้ำ
-window.validateSampleSelection = function(selectEl) {
-    const selectedVal = selectEl.value;
-    if (!selectedVal) return;
-
-    const allSelects = document.querySelectorAll('#sampleItemsContainer .sample-id-select');
-    let duplicateCount = 0;
-
-    allSelects.forEach(sel => {
-        if (sel !== selectEl && sel.value === selectedVal) {
-            duplicateCount++;
-        }
-    });
-
-    if (duplicateCount > 0) {
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var msg = appLang === 'en' 
-            ? "⚠️ This item has already been selected. Please choose another item or adjust the quantity."
-            : "⚠️ รายการนี้ถูกเลือกไปแล้ว กรุณาเลือกรายการอื่น หรือปรับจำนวนในแถวเดิม";
-
-        if (window.showToast) window.showToast(msg, "warning");
-        else alert(msg);
-
-        // รีเซ็ตตัวเลือกกลับเป็นค่าว่าง
-        selectEl.value = "";
     }
 };
 
