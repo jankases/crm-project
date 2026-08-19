@@ -143,24 +143,86 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
         });
     }
 
+    // 📱 ปรับแต่ง Grid (7-3-2) พร้อมผูกระบบเช็กตัวเลือกซ้ำ และอัปเดตตัวนับหน้าหลักทันทีเมื่อลบ
     const rowHTML = `
         <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
             <div class="col-7">
-                <select class="form-select form-select-sm bg-white shadow-sm sample-id-select" required>
+                <select class="form-select bg-white shadow-xs sample-id-select" onchange="window.validateSampleSelection(this)" required>
                     ${optionsHTML}
                 </select>
             </div>
             <div class="col-3">
-                <input type="number" class="form-control form-control-sm bg-white shadow-sm text-center sample-qty" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
+                <input type="number" class="form-control bg-white shadow-xs text-center sample-qty" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
             </div>
             <div class="col-2 text-end">
-                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples();">
-                    <i class="fa-solid fa-trash"></i>
+                <button type="button" class="btn btn-outline-danger border-0 btn-delete-sample w-100" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples(); if(typeof window.updateFeatureButtonIndicators==='function') window.updateFeatureButtonIndicators(null);">
+                    <i class="fa-solid fa-trash-can fs-5"></i>
                 </button>
             </div>
         </div>
     `;
     container.insertAdjacentHTML('beforeend', rowHTML);
+};
+
+// 🌟 ฟังก์ชันตรวจสอบและป้องกันการเลือกสินค้าซ้ำ
+window.validateSampleSelection = function(selectEl) {
+    const selectedVal = selectEl.value;
+    if (!selectedVal) return;
+
+    const allSelects = document.querySelectorAll('#sampleItemsContainer .sample-id-select');
+    let duplicateCount = 0;
+
+    allSelects.forEach(sel => {
+        if (sel !== selectEl && sel.value === selectedVal) {
+            duplicateCount++;
+        }
+    });
+
+    if (duplicateCount > 0) {
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var msg = appLang === 'en' 
+            ? "⚠️ This item has already been selected. Please choose another item or adjust the quantity."
+            : "⚠️ รายการนี้ถูกเลือกไปแล้ว กรุณาเลือกรายการอื่น หรือปรับจำนวนในแถวเดิม";
+
+        if (window.showToast) window.showToast(msg, "warning");
+        else alert(msg);
+
+        // รีเซ็ตตัวเลือกกลับเป็นค่าว่าง
+        selectEl.value = "";
+    } else {
+        // อัปเดตสถานะปุ่มตัวนับ Samples (X) บนหน้าหลักทันทีที่มีการเลือก
+        if (typeof window.updateFeatureButtonIndicators === 'function') {
+            window.updateFeatureButtonIndicators(null);
+        }
+    }
+};
+
+// 🌟 ฟังก์ชันตรวจสอบและป้องกันการเลือกสินค้าซ้ำ
+window.validateSampleSelection = function(selectEl) {
+    const selectedVal = selectEl.value;
+    if (!selectedVal) return;
+
+    const allSelects = document.querySelectorAll('#sampleItemsContainer .sample-id-select');
+    let duplicateCount = 0;
+
+    allSelects.forEach(sel => {
+        if (sel !== selectEl && sel.value === selectedVal) {
+            duplicateCount++;
+        }
+    });
+
+    if (duplicateCount > 0) {
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var msg = appLang === 'en' 
+            ? "⚠️ This item has already been selected. Please choose another item or adjust the quantity."
+            : "⚠️ รายการนี้ถูกเลือกไปแล้ว กรุณาเลือกรายการอื่น หรือปรับจำนวนในแถวเดิม";
+
+        if (window.showToast) window.showToast(msg, "warning");
+        else alert(msg);
+
+        // รีเซ็ตตัวเลือกกลับเป็นค่าว่าง
+        selectEl.value = "";
+    }
 };
 
 window.refreshSampleDropdownLang = function() {
