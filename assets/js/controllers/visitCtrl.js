@@ -1072,7 +1072,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
- window.loadDropdowns = async function(forceReload) {
+window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1664,7 +1664,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
- window.loadVisits = async function(forceReload) {
+window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -3431,7 +3431,7 @@ window.renderCalendarView = function() {
               <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
               <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
               <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
-              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (รออนุมัติ)' : 'TOT (Pending)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
             </div>
           </div>
         `;
@@ -3466,70 +3466,6 @@ window.updateCalendarLegendLang = function() {
 };
 
 // ==========================================
-// 🌐 CENTRALIZED LANGUAGE UI UPDATE
-// ==========================================
-window.updateLangUI = function() {
-    if (window.isInitialLoading) return;
-
-    var isEN = window.getCurrentAppLang ? (window.getCurrentAppLang() === 'en') : false;
-
-    // 1. อัปเดต Placeholder ของ Smart Search จาก i18n
-    var searchInput = document.getElementById('smartSearchInput');
-    if (searchInput) {
-        var lang = isEN ? 'en' : 'th';
-        if (window.i18nData && window.i18nData[lang] && window.i18nData[lang].opt_smart_search_ph) {
-            searchInput.placeholder = window.i18nData[lang].opt_smart_search_ph;
-        } else if (typeof window.getTranslation === 'function') {
-            searchInput.placeholder = window.getTranslation('opt_smart_search_ph');
-        } else {
-            searchInput.placeholder = isEN 
-                ? 'Search Doctor, Hospital or Products...' 
-                : 'ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...';
-        }
-    }
-
-    // 2. อัปเดต Flatpickr และ Legend บนปฏิทิน
-    if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
-    if (typeof window.updateCalendarLegendLang === 'function') window.updateCalendarLegendLang();
-
-    // 3. อัปเดต Dropdown และ Form Draft
-    var formView = document.getElementById('visitFormView');
-    if (formView && !formView.classList.contains('d-none')) {
-        var visitIdEl = document.getElementById('visitId');
-        var currentVisitId = visitIdEl ? visitIdEl.value : '';
-        if (!currentVisitId || currentVisitId === 'NEW') {
-            if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
-        }
-    }
-
-    if (typeof window.loadDropdowns === 'function') {
-        window.loadDropdowns(false).then(function() {
-            if (formView && !formView.classList.contains('d-none')) {
-                var vId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-                if (vId && vId !== 'NEW') {
-                    if (typeof window.openEditVisitView === 'function') window.openEditVisitView(vId); 
-                } else {
-                    if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
-                    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
-                }
-            }
-        });
-    }
-
-    if (typeof window.renderVisitTableServerSide === 'function') {
-        window.renderVisitTableServerSide();
-    }
-
-    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-        if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
-    }
-
-    if (typeof window.refreshSampleDropdownLang === 'function') {
-        window.refreshSampleDropdownLang();
-    }
-};
-
-// ==========================================
 // 🔗 11. INITIALIZE & EVENT LISTENERS
 // ==========================================
 
@@ -3549,9 +3485,40 @@ window.debouncedFilterVisits = function() {
     }, 300); 
 };
 
+// ==========================================
+// 🌐 CENTRALIZED LANGUAGE UI UPDATE (SINGLE CONSOLIDATED FUNCTION)
+// ==========================================
 window.updateLangUI = function() {
-    if (window.isInitialLoading) return; 
+    if (window.isInitialLoading) return;
 
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+    var isEN = (appLang === 'en');
+
+    // 1. อัปเดต Placeholder ของ Smart Search ให้เปลี่ยนภาษาตามจริง (Default เป็น EN)
+    var searchInput = document.getElementById('smartSearchInput');
+    if (searchInput) {
+        if (window.i18nData && window.i18nData[appLang] && window.i18nData[appLang].opt_smart_search_ph) {
+            searchInput.placeholder = window.i18nData[appLang].opt_smart_search_ph;
+        } else if (typeof window.getTranslation === 'function') {
+            searchInput.placeholder = window.getTranslation('opt_smart_search_ph');
+        } else {
+            searchInput.placeholder = isEN 
+                ? 'Search Doctor, Hospital or Products...' 
+                : 'ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...';
+        }
+    }
+
+    // 2. อัปเดต Flatpickr ปฏิทินและ Placeholder วันที่
+    if (typeof window.initVisitDatePickers === 'function') {
+        window.initVisitDatePickers();
+    }
+
+    // 3. อัปเดต Legend สัญลักษณ์สีปฏิทิน
+    if (typeof window.updateCalendarLegendLang === 'function') {
+        window.updateCalendarLegendLang();
+    }
+
+    // 4. บันทึกและดึงข้อมูล Form Draft
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
@@ -3560,8 +3527,10 @@ window.updateLangUI = function() {
             if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
         }
     }
+
+    // 5. โหลดดร็อปดาวน์ตามภาษาใหม่
     if (typeof window.loadDropdowns === 'function') {
-        window.loadDropdowns(false).then(() => {
+        window.loadDropdowns(false).then(function() {
             if (formView && !formView.classList.contains('d-none')) {
                 var vId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
                 if (vId && vId !== 'NEW') {
@@ -3573,16 +3542,20 @@ window.updateLangUI = function() {
             }
         });
     } 
-    
+
+    // 6. อัปเดตการแสดงผลตารางฝั่ง Server-Side
     if (typeof window.renderVisitTableServerSide === 'function') {
         window.renderVisitTableServerSide();
     } else if (typeof window.renderVisitTable === 'function') {
         window.renderVisitTable();
     }
-    
+
+    // 7. อัปเดตมุมมอง Calendar
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
+
+    // 8. อัปเดตภาษาดร็อปดาวน์ Samples
     if (typeof window.refreshSampleDropdownLang === 'function') {
         window.refreshSampleDropdownLang();
     }
@@ -3665,7 +3638,7 @@ window.initVisitPage = async function(forceReload) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var msgErr = appLang === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
         var tbody = document.getElementById('visitTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + '</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
@@ -4149,12 +4122,6 @@ window.initVisitDatePickers = function() {
   window.fpEndInstance = flatpickr(endEl, commonConfig);
 };
 
-var originalUpdateLangUIForFp = window.updateLangUI;
-window.updateLangUI = function() {
-  if (typeof originalUpdateLangUIForFp === 'function') originalUpdateLangUIForFp();
-  if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
-};
-
 window.isGuidFormat = function(str) {
   if (!str || typeof str !== 'string') return false;
   return str.length > 20 && str.indexOf('-') !== -1;
@@ -4257,23 +4224,20 @@ window.updateFeatureButtonIndicators = function(data) {
     attachText.innerText = 'Attachments';
   }
 };
- 
+
 // ⚡ Quick Filter สั่งงานร่วมกันระหว่าง KPI Cards และ Advanced Filters Status Dropdown
 window.quickFilterKpi = function(targetStatus) {
     var statusEl = document.getElementById('filterVisitStatus');
     var currentVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
 
-    // ถ้ากดการ์ดเดิมซ้ำ ให้ทำการ Toggle เป็นการเลือก "All Status"
     var finalStatus = (currentVal === targetStatus && targetStatus !== '') ? '' : targetStatus;
 
-    // 1. อัปเดตค่าไปยัง Dropdown Status
     if (window.tomSelectStatusInstance) {
         window.tomSelectStatusInstance.setValue(finalStatus, false);
     } else if (statusEl) {
         statusEl.value = finalStatus;
     }
 
-    // 2. ปรับแต่ง Visual Active Class บนการ์ด KPI ด้านบน
     var cardAll = document.getElementById('kpiCardAll');
     var cardPending = document.getElementById('kpiCardPending');
     var cardSubmitted = document.getElementById('kpiCardSubmitted');
@@ -4282,7 +4246,6 @@ window.quickFilterKpi = function(targetStatus) {
     if (cardPending) cardPending.classList.toggle('active-kpi', finalStatus === 'Pending');
     if (cardSubmitted) cardSubmitted.classList.toggle('active-kpi', finalStatus === 'Submitted');
 
-    // 3. รีเซ็ตหน้ากลับหน้าแรกและโหลดตารางใหม่
     window.currentPage = 1;
     if (typeof window.loadVisits === 'function') {
         window.loadVisits(true);
