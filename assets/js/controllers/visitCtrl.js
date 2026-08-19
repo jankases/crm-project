@@ -1320,10 +1320,14 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var terSelect = document.getElementById('filterVisitTerritory');
 
     var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
-    if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
+    if (!Array.isArray(oldRepVal)) {
+        oldRepVal = oldRepVal ? [oldRepVal] : [];
+    }
     
     var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
-    if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
+    if (!Array.isArray(oldTerVal)) {
+        oldTerVal = oldTerVal ? [oldTerVal] : [];
+    }
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
@@ -1345,20 +1349,35 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
 
         if (isBuHead) {
             var busList = window.VisitManagerCache.bus || [];
-            var matchedBu = busList.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope; });
+            var matchedBu = busList.find(function(b) { 
+                return String(b.BU_ID) === rawScope || String(b.BU) === rawScope; 
+            });
             var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-            var buTeams = window.globalTeamList.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope; });
+            var buTeams = window.globalTeamList.filter(function(t) { 
+                return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope; 
+            });
+            
             buTeams.forEach(function(t) {
                 myAllowedTeamIds.push(String(t.Team_ID));
-                var terrs = window.globalTerritoryList.filter(function(ter) { return String(ter.Team_ID) === String(t.Team_ID); });
-                terrs.forEach(function(ter) { myAllowedTerIds.push(String(ter.Territory_ID)); });
+                var terrs = window.globalTerritoryList.filter(function(ter) { 
+                    return String(ter.Team_ID) === String(t.Team_ID); 
+                });
+                terrs.forEach(function(ter) { 
+                    myAllowedTerIds.push(String(ter.Territory_ID)); 
+                });
             });
         } else if (isManager) {
-            var matchedTeam = window.globalTeamList.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
+            var matchedTeam = window.globalTeamList.find(function(t) { 
+                return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; 
+            });
             if (matchedTeam) {
                 myAllowedTeamIds.push(String(matchedTeam.Team_ID));
-                var terrs = window.globalTerritoryList.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                terrs.forEach(function(t) { myAllowedTerIds.push(String(t.Territory_ID)); });
+                var terrs = window.globalTerritoryList.filter(function(t) { 
+                    return String(t.Team_ID) === String(matchedTeam.Team_ID); 
+                });
+                terrs.forEach(function(t) { 
+                    myAllowedTerIds.push(String(t.Territory_ID)); 
+                });
             } else if (rawScope) {
                 window.myAllowedTeamIds = window.myAllowedTeamIds || []; 
                 window.myAllowedTeamIds.push(rawScope);
@@ -1399,13 +1418,17 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     });
     
     if (isSales && fullAllowedUsers.length === 0 && uRepId) {
-        var me = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === uRepId; });
+        var me = window.globalUsersList.find(function(u) { 
+            return String(u.Rep_ID || u.User_ID || u.id) === uRepId; 
+        });
         if (me) fullAllowedUsers = [me];
     }
     
     fullAllowedUsers.forEach(function(u) {
         var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-        if (id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
+        if (id && id !== 'undefined' && id !== 'null') {
+            uniqueUsersMap.set(id, u);
+        }
     });
 
     if (repSelect) {
@@ -1422,15 +1445,20 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
             var tid = String(t.Team_ID); 
             var tnm = String(t.Team || t.Team_Name || tid);
             if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tnm) !== -1) {
-                if (tid && !terMap.has(tid)) terMap.set(tid, tnm + ' (Team)');
+                if (tid && !terMap.has(tid)) {
+                    terMap.set(tid, tnm + ' (Team)');
+                }
             }
         });
     }
+
     window.globalTerritoryList.forEach(function(t) {
         var tid = String(t.Territory_ID); 
         var tnm = String(t.Territory);
         if (isGlobalViewer || myAllowedTerIds.indexOf(tid) !== -1 || myAllowedTerIds.indexOf(tnm) !== -1) {
-            if (tid && !terMap.has(tid)) terMap.set(tid, tnm);
+            if (tid && !terMap.has(tid)) {
+                terMap.set(tid, tnm);
+            }
         }
     });
 
@@ -1458,10 +1486,16 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
                 dropdownParent: null, 
                 onChange: function() { 
-                    if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); 
+                    if (typeof window.handleFilterChange === 'function') {
+                        window.handleFilterChange('rep'); 
+                    }
                 } 
             });
-            if (oldRepVal.length > 0) setTimeout(function() { window.tomSelectRepInstance.setValue(oldRepVal, true); }, 50);
+            if (oldRepVal.length > 0) {
+                setTimeout(function() { 
+                    window.tomSelectRepInstance.setValue(oldRepVal, true); 
+                }, 50);
+            }
         }
 
         if (terSelect) {
@@ -1474,12 +1508,19 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
                 dropdownParent: null,
                 onChange: function() { 
-                    if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); 
+                    if (typeof window.handleFilterChange === 'function') {
+                        window.handleFilterChange('territory'); 
+                    }
                 } 
             });
-            if (oldTerVal.length > 0) setTimeout(function() { window.tomSelectTerInstance.setValue(oldTerVal, true); }, 50);
+            if (oldTerVal.length > 0) {
+                setTimeout(function() { 
+                    window.tomSelectTerInstance.setValue(oldTerVal, true); 
+                }, 50);
+            }
         }
     }
+    
     window.isPermissionCalculated = true; 
 };
 
@@ -1587,9 +1628,6 @@ window.renderFormProductDropdown = async function() {
 };
  
 window.handleFilterChange = function(source) { 
-    if (window.isInitialLoading) return; 
-    
-    // รีเซ็ตกลับไปหน้า 1 และสั่งโหลดข้อมูลใหม่ทันทีที่ Filter เปลี่ยนค่า
     window.currentPage = 1;
     if (typeof window.loadVisits === 'function') {
         window.loadVisits(true); 
