@@ -1599,12 +1599,10 @@ window.clearVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🌟 1. แสดง Loading Card และซ่อนเนื้อหาตารางทันทีที่สั่งดึงข้อมูล
     if (loadingCard) loadingCard.classList.remove('d-none');
     if (mainContentContainer) mainContentContainer.classList.add('d-none');
 
     try {
-      // โหลด Master Data & Permissions
       if (forceReload || !window.VisitManagerCache || !window.VisitManagerCache.dropdownsLoaded) {
           if (typeof window.loadDropdowns === 'function') {
               await window.loadDropdowns(forceReload);
@@ -1627,15 +1625,47 @@ window.clearVisitFilters = function() {
           }
       }
 
-      // Filters & Range
+      // 🎯 1. ดึงค่าจากตัวกรองพื้นฐาน (Status & Date)
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
       
+      // 🎯 2. ดึงค่าจาก Advanced Filters (Employee / Sales Rep & Area / Team)
+      var repEl = document.getElementById('filterVisitRep');
+      var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
+      if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
+
+      var terEl = document.getElementById('filterVisitTerritory');
+      var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
+      if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+
+      // 🚀 3. ยัดเงื่อนไขการกรองทั้งหมดลง Supabase Query
       if (statusTerm) query = query.eq('Status', statusTerm);
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
+      if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps); // 👈 กรองพนักงาน/ฝ่ายขาย
+      if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers); // 👈 กรองพื้นที่/ทีม
+
+      // 🎯 4. Smart Search
+      var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+      if (rawSearchVal) {
+          var matchedDocIds = [];
+          for (var key in window._docIndex) {
+              var doc = window._docIndex[key];
+              var dNameEn = String(doc.Doc_Name || doc.doc_name || '').toLowerCase();
+              var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
+              if (dNameEn.indexOf(rawSearchVal) !== -1 || dNameTh.indexOf(rawSearchVal) !== -1) {
+                  matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
+              }
+          }
+
+          if (matchedDocIds.length > 0) {
+              query = query.in('Doc_ID', matchedDocIds.slice(0, 100));
+          } else {
+              query = query.ilike('Details', `%${rawSearchVal}%`);
+          }
+      }
 
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
@@ -1680,7 +1710,6 @@ window.clearVisitFilters = function() {
           window.buildDataIndexes();
       }
 
-      // วาดตาราง
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
 
@@ -1691,7 +1720,6 @@ window.clearVisitFilters = function() {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      // 🌟 2. ปิด Loading Card และแสดงตารางเมื่อโหลดเสร็จเรียบร้อยแล้ว
       if (loadingCard) loadingCard.classList.add('d-none');
       if (mainContentContainer) mainContentContainer.classList.remove('d-none');
     }
