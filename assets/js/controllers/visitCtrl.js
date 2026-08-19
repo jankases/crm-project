@@ -91,189 +91,6 @@ window.applyVisitFeaturesUI = function() {
 };
 
 // ==========================================
-// 🎁 SAMPLES & PROMO ITEMS ENGINE
-// ==========================================
-window.globalMasterSamples = [];
-
-window.loadMasterSamplesList = async function() {
-    try {
-        const { data: typeData, error: typeErr } = await window.supabaseClient
-            .from('IndexType')
-            .select('IndexType_ID, Name');
-
-        if (typeErr) throw typeErr;
-
-        const sampleType = (typeData || []).find(t => {
-            const name = (t.Name || '').toLowerCase().trim();
-            return name === 'samples' || name === 'sample' || name === 'promo item' || name === 'samples & promo items';
-        });
-
-        if (sampleType) {
-            const { data: indexData, error: idxErr } = await window.supabaseClient
-                .from('Index')
-                .select('Index_ID, Value, Value1')
-                .eq('IndexType_ID', sampleType.IndexType_ID)
-                .order('Value', { ascending: true });
-
-            if (!idxErr && indexData) {
-                window.globalMasterSamples = indexData;
-            }
-        }
-    } catch (e) {
-        console.error("Error loading samples from Index table:", e);
-    }
-};
-
-window.addSampleRow = function(sampleId = '', qty = 1) {
-    const container = document.getElementById('sampleItemsContainer');
-    const noText = document.getElementById('noSampleText');
-    if (noText) noText.style.display = 'none';
-
-    const rowId = 'sampleRow_' + Date.now();
-    var btnEN = document.getElementById('btnLangEN');
-    var isEN = btnEN && btnEN.classList.contains('btn-primary');
-    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
-
-    let optionsHTML = `<option value="">${placeholderText}</option>`;
-    if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
-        window.globalMasterSamples.forEach(item => {
-            const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
-            const isSelected = String(item.Index_ID) === String(sampleId) ? 'selected' : '';
-            optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
-        });
-    }
-
-    const rowHTML = `
-        <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
-            <div class="col-7">
-                <select class="form-select bg-white shadow-xs sample-id-select" onchange="window.validateSampleSelection(this)" required>
-                    ${optionsHTML}
-                </select>
-            </div>
-            <div class="col-3">
-                <input type="number" class="form-control bg-white shadow-xs text-center sample-qty" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
-            </div>
-            <div class="col-2 text-end">
-                <button type="button" class="btn btn-outline-danger border-0 btn-delete-sample w-100" onclick="document.getElementById('${rowId}').remove(); window.checkEmptySamples(); if(typeof window.updateFeatureButtonIndicators==='function') window.updateFeatureButtonIndicators(null);">
-                    <i class="fa-solid fa-trash-can fs-5"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', rowHTML);
-};
-
-window.validateSampleSelection = function(selectEl) {
-    const selectedVal = selectEl.value;
-    if (!selectedVal) return;
-
-    const allSelects = document.querySelectorAll('#sampleItemsContainer .sample-id-select');
-    let duplicateCount = 0;
-
-    allSelects.forEach(sel => {
-        if (sel !== selectEl && sel.value === selectedVal) {
-            duplicateCount++;
-        }
-    });
-
-    if (duplicateCount > 0) {
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var msg = appLang === 'en' 
-            ? "⚠️ This item has already been selected. Please choose another item or adjust the quantity."
-            : "⚠️ รายการนี้ถูกเลือกไปแล้ว กรุณาเลือกรายการอื่น หรือปรับจำนวนในแถวเดิม";
-
-        if (window.showToast) window.showToast(msg, "warning");
-        else alert(msg);
-
-        selectEl.value = "";
-    } else {
-        if (typeof window.updateFeatureButtonIndicators === 'function') {
-            window.updateFeatureButtonIndicators(null);
-        }
-    }
-};
-
-window.refreshSampleDropdownLang = function() {
-    const rows = document.querySelectorAll('#sampleItemsContainer .sample-item-row');
-    if (!rows || rows.length === 0) return;
-
-    var btnEN = document.getElementById('btnLangEN');
-    var isEN = btnEN && btnEN.classList.contains('btn-primary');
-    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
-
-    rows.forEach(row => {
-        const select = row.querySelector('.sample-id-select');
-        if (select) {
-            const currentVal = select.value;
-            let optionsHTML = `<option value="">${placeholderText}</option>`;
-            
-            if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
-                window.globalMasterSamples.forEach(item => {
-                    const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
-                    const isSelected = String(item.Index_ID) === String(currentVal) ? 'selected' : '';
-                    optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
-                });
-            }
-            select.innerHTML = optionsHTML;
-        }
-    });
-};
-
-window.checkEmptySamples = function() {
-    const container = document.getElementById('sampleItemsContainer');
-    const noText = document.getElementById('noSampleText');
-    const rows = container ? container.querySelectorAll('.sample-item-row') : [];
-    if (rows.length === 0 && noText) noText.style.display = 'block';
-};
-
-window.collectVisitSamplesPayload = function(visitId, whoUpdated) {
-    const rows = document.querySelectorAll('#sampleItemsContainer .sample-item-row');
-    const samplePayloads = [];
-
-    rows.forEach(row => {
-        const sampleSelect = row.querySelector('.sample-id-select');
-        const qtyInput = row.querySelector('.sample-qty');
-        
-        const sampleId = sampleSelect ? sampleSelect.value : '';
-        const qty = qtyInput ? (parseInt(qtyInput.value) || 0) : 0;
-
-        if (sampleId && qty > 0) {
-            samplePayloads.push({
-                Visit_ID: visitId,
-                Sample_ID: sampleId,
-                Quantity: qty,
-                Whoupdated: whoUpdated,
-                Whenupdated: new Date().toISOString()
-            });
-        }
-    });
-
-    return samplePayloads;
-};
-
-window.loadVisitSamplesForEdit = async function(visitId) {
-    const container = document.getElementById('sampleItemsContainer');
-    if (!container) return;
-    
-    container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>';
-
-    try {
-        const { data, error } = await window.supabaseClient
-            .from('Visit_Samples')
-            .select('Sample_ID, Quantity')
-            .eq('Visit_ID', visitId);
-
-        if (!error && data && data.length > 0) {
-            data.forEach(item => {
-                window.addSampleRow(item.Sample_ID, item.Quantity);
-            });
-        }
-    } catch (e) {
-        console.error("Error loading Visit_Samples:", e);
-    }
-};
-
-// ==========================================
 // 🚀 2. DICTIONARY INDEXING
 // ==========================================
 window._docIndex = {}; 
@@ -747,7 +564,6 @@ window.loadProductMedia = async function() {
   });
   container.innerHTML = html;
 };
-
 window.openMediaPresentation = async function(mediaId, isPreview) {
   window.globalIsMediaPreviewMode = isPreview || false;
   var media = window.globalAllMediaList.find(function(m) { return String(m.Media_ID) === String(mediaId); });
@@ -1344,7 +1160,6 @@ window.loadDropdowns = async function(forceReload) {
 
   } catch (err) { console.error("Error loading dropdowns:", err.message); }
 };
-
 window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
@@ -1784,13 +1599,11 @@ window.loadVisits = async function(forceReload) {
           }
       }
 
-      // 🎯 1. ตัวกรองพื้นฐาน (Status & Date)
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
       
-      // 🎯 2. Advanced Filters (Sales Rep & Area/Team)
       var repEl = document.getElementById('filterVisitRep');
       var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
@@ -1803,7 +1616,6 @@ window.loadVisits = async function(forceReload) {
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
 
-      // 🎯 3. Filter Reps (รองรับทั้ง Rep_ID และ Whoupdated Email)
       if (selectedReps.length > 0) {
           var targetRepIds = [...selectedReps];
           var targetEmails = [];
@@ -1822,7 +1634,6 @@ window.loadVisits = async function(forceReload) {
           }
       }
 
-      // 🎯 4. Filter Territory / Team / BU (Cascade Lookup)
       if (selectedTers.length > 0) {
           var matchedTerIds = [...selectedTers];
           var cache = window.VisitManagerCache || {};
@@ -1876,7 +1687,6 @@ window.loadVisits = async function(forceReload) {
           }
       }
 
-      // 🌟 5. SMART SEARCH (Logic ตัวเต็มดั้งเดิม - ค้นหาครบทั้ง หมอ, โรงพยาบาล, สินค้า, Details)
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       
       if (rawSearchVal) {
@@ -1888,7 +1698,6 @@ window.loadVisits = async function(forceReload) {
               var matchedDocIds = [];
               var matchedVisitIds = [];
 
-              // ก. ค้นหาชื่อโรงพยาบาล (เช่น Rama, Chula)
               var matchedHospIds = [];
               (window.globalAllHospitals || []).forEach(function(h) {
                   var hEn = String(h.Hospital || h.Hospital_Name || h.Known_As || '').toLowerCase();
@@ -1898,7 +1707,6 @@ window.loadVisits = async function(forceReload) {
                   }
               });
 
-              // ข. ค้นหาชื่อแพทย์ + แพทย์ที่สังกัดโรงพยาบาลที่ค้นเจอ
               for (var key in window._docIndex) {
                   var doc = window._docIndex[key];
                   var isMatch = false;
@@ -1930,7 +1738,6 @@ window.loadVisits = async function(forceReload) {
                   if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
               }
 
-              // ค. ค้นหาชื่อสินค้า (Products)
               var matchedProductIds = [];
               var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
               allProds.forEach(function(p) {
@@ -1950,7 +1757,6 @@ window.loadVisits = async function(forceReload) {
                   } catch (e) { console.error("Search Product Error:", e); }
               }
 
-              // ง. ประกอบ Supabase OR Query
               if (matchedDocIds.length > 0 || matchedVisitIds.length > 0) {
                   var safeDocIds = matchedDocIds.slice(0, 60); 
                   var safeVisitIds = matchedVisitIds.slice(0, 60);
@@ -2060,13 +1866,12 @@ window.loadVisits = async function(forceReload) {
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
-
-// Helper ฟังก์ชันลบ ID ซ้ำ
 function matchedTerAndUnique(arr) {
     return arr.filter(function(item, pos) {
         return item && item !== 'null' && item !== 'undefined' && arr.indexOf(item) === pos;
     });
 }
+
 // ==========================================
 // 💾 HELPER: SAVE & RESTORE FILTER STATE
 // ==========================================
@@ -2655,9 +2460,19 @@ window.handleSaveVisit = async function(e) {
     Doctor_Signature: sigData
   };
 
+  // 🌟 ดึงข้อมูล Samples ล่าสุดเฉพาะแถวที่มีการเลือกสินค้าจริง
   var samplePayloads = [];
-  if (window.globalVisitConfigs && window.globalVisitConfigs.samples && typeof window.collectVisitSamplesPayload === 'function') {
-      samplePayloads = window.collectVisitSamplesPayload(targetVisitId, whoUpdated);
+  if (window.globalVisitConfigs && window.globalVisitConfigs.samples && typeof window.getSamplesData === 'function') {
+      var validSamples = window.getSamplesData();
+      samplePayloads = validSamples.map(function(item) {
+          return {
+              Visit_ID: targetVisitId,
+              Sample_ID: item.sample_id,
+              Quantity: item.quantity,
+              Whoupdated: whoUpdated,
+              Whenupdated: new Date().toISOString()
+          };
+      });
   }
 
   var isOfflineMode = !navigator.onLine;
@@ -3014,7 +2829,6 @@ window.getLocationCheckin = function() {
 
       if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
       
-      // ⚡ อัปเดตสถานะปุ่ม Feature Buttons ทันที
       if (typeof window.updateFeatureButtonIndicators === 'function') {
           window.updateFeatureButtonIndicators({ lat: lat, lng: lng, checkinTime: timeString });
       }
@@ -3098,7 +2912,6 @@ window.handleFileUpload = async function(event) {
 
       if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
       
-      // ⚡ อัปเดตสถานะปุ่ม Feature Buttons ทันที
       if (typeof window.updateFeatureButtonIndicators === 'function') {
           window.updateFeatureButtonIndicators(null);
       }
@@ -3162,7 +2975,6 @@ window.removeAttachment = function(index) {
   window.currentAttachments.splice(index, 1);
   if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
 
-  // ⚡ อัปเดตสถานะปุ่ม Feature Buttons ทันที
   if (typeof window.updateFeatureButtonIndicators === 'function') {
       window.updateFeatureButtonIndicators(null);
   }
@@ -3260,7 +3072,6 @@ window.saveSignatureFromModal = function() {
 
   if(typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
   
-  // ⚡ อัปเดตสถานะปุ่ม Feature Buttons ทันที
   if (typeof window.updateFeatureButtonIndicators === 'function') {
       window.updateFeatureButtonIndicators(null);
   }
@@ -3289,7 +3100,6 @@ window.clearSignature = function() {
   window.savedSignatureData = null;
   if(typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
   
-  // ⚡ อัปเดตสถานะปุ่ม Feature Buttons ทันที
   if (typeof window.updateFeatureButtonIndicators === 'function') {
       window.updateFeatureButtonIndicators(null);
   }
@@ -3488,7 +3298,7 @@ window.renderCalendarView = function() {
               <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
               <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
               <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
-              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (รออนุมัติ)' : 'TOT (รออนุมัติ)'}</span></div>
             </div>
           </div>
         `;
@@ -3523,27 +3333,7 @@ window.updateCalendarLegendLang = function() {
 };
 
 // ==========================================
-// 🔗 11. INITIALIZE & EVENT LISTENERS
-// ==========================================
-
-window.isInitialLoading = true;
-window._isInitRunning = false; 
-
-window.handleFilterChange = function(source) { 
-    if (window.isInitialLoading) return; 
-    if (typeof window.filterVisits === 'function') window.filterVisits(); 
-};
-
-window.debouncedFilterVisits = function() {
-    if (window.isInitialLoading) return; 
-    if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
-    window.filterDebounceTimer = setTimeout(function() { 
-        if (typeof window.filterVisits === 'function') window.filterVisits(); 
-    }, 300); 
-};
-
-// ==========================================
-// 🌟 12. DYNAMIC FEATURE BUTTON INDICATORS
+// 🌟 16. DYNAMIC FEATURE BUTTON INDICATORS
 // ==========================================
 window.updateFeatureButtonIndicators = function(v) {
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
@@ -3581,12 +3371,7 @@ window.updateFeatureButtonIndicators = function(v) {
   var samplesBtn = document.getElementById('sectionSamples');
   var samplesText = document.getElementById('btnSamplesText');
   if (samplesBtn && samplesText) {
-    var vidClean = v ? String(v.Visit_ID || '').trim().toLowerCase() : '';
-    var sampleItems = (window._visitSampleIndex && window._visitSampleIndex[vidClean]) 
-                      ? window._visitSampleIndex[vidClean] 
-                      : (v ? (v.Visit_Samples || v.samples || []) : []);
-    
-    var activeSamples = Array.isArray(sampleItems) ? sampleItems.filter(s => (s.Quantity || s.qty || 0) > 0) : [];
+    var activeSamples = typeof window.getSamplesData === 'function' ? window.getSamplesData() : [];
     
     if (activeSamples.length > 0) {
       samplesBtn.classList.add('has-data-samples');
@@ -3612,7 +3397,6 @@ window.updateFeatureButtonIndicators = function(v) {
   }
 };
 
-// ⚡ Quick Filter สั่งงานร่วมกันระหว่าง KPI Cards และ Advanced Filters Status Dropdown
 window.quickFilterKpi = function(targetStatus) {
     var statusEl = document.getElementById('filterVisitStatus');
     var currentVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
@@ -3648,7 +3432,6 @@ window.updateLangUI = function() {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
     var isEN = (appLang === 'en');
 
-    // ⚡ 1. อัปเดต Placeholder ช่อง Smart Search
     var searchInput = document.getElementById('smartSearchInput');
     if (searchInput) {
         if (window.i18nData && window.i18nData[appLang] && window.i18nData[appLang].opt_smart_search_ph) {
@@ -3662,7 +3445,6 @@ window.updateLangUI = function() {
         }
     }
 
-    // ⚡ 2. อัปเดต Placeholder ของฟอร์มบันทึกเยี่ยม (Details, Insight, Next Action)
     var detailsEl = document.getElementById('visitDetails');
     var insightEl = document.getElementById('visitInsight');
     var nextActionEl = document.getElementById('visitNextAction');
@@ -3683,17 +3465,14 @@ window.updateLangUI = function() {
             : 'ระบุแผนการติดตามผลหรือการดำเนินการถัดไป...';
     }
 
-    // ⚡ 3. อัปเดต Flatpickr ปฏิทินและ Placeholder วันที่
     if (typeof window.initVisitDatePickers === 'function') {
         window.initVisitDatePickers();
     }
 
-    // ⚡ 4. อัปเดต Legend สัญลักษณ์สีปฏิทิน
     if (typeof window.updateCalendarLegendLang === 'function') {
         window.updateCalendarLegendLang();
     }
 
-    // ⚡ 5. บันทึกและดึงข้อมูล Form Draft
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
@@ -3703,7 +3482,6 @@ window.updateLangUI = function() {
         }
     }
 
-    // ⚡ 6. โหลดดร็อปดาวน์ตามภาษาใหม่
     if (typeof window.loadDropdowns === 'function') {
         window.loadDropdowns(false).then(function() {
             if (formView && !formView.classList.contains('d-none')) {
@@ -3718,19 +3496,16 @@ window.updateLangUI = function() {
         });
     } 
 
-    // ⚡ 7. อัปเดตการแสดงผลตารางฝั่ง Server-Side
     if (typeof window.renderVisitTableServerSide === 'function') {
         window.renderVisitTableServerSide();
     } else if (typeof window.renderVisitTable === 'function') {
         window.renderVisitTable();
     }
 
-    // ⚡ 8. อัปเดตมุมมอง Calendar
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
 
-    // ⚡ 9. อัปเดตภาษาดร็อปดาวน์ Samples
     if (typeof window.refreshSampleDropdownLang === 'function') {
         window.refreshSampleDropdownLang();
     }
@@ -3827,9 +3602,6 @@ if (btnRef) {
     btnRef.onclick = function() { window.initVisitPage(true); };
 }
 
-// ==========================================
-// 📥 ฟังก์ชันโหลดข้อมูล Team และ Territory
-// ==========================================
 window.loadMasterDataForVisits = async function() {
     if (!window.globalTerritories || window.globalTerritories.length === 0) {
         try {
@@ -3850,9 +3622,6 @@ window.loadMasterDataForVisits = async function() {
     }
 };
 
-// ==========================================
-// 🔄 16. OFFLINE SYNC ENGINE
-// ==========================================
 window.syncOfflineVisits = async function() {
     if (!navigator.onLine) return;
     var queue = JSON.parse(localStorage.getItem('crmOfflineQueue') || '[]');
@@ -3909,9 +3678,6 @@ window.syncOfflineVisits = async function() {
 window.addEventListener('online', window.syncOfflineVisits);
 setTimeout(function() { window.syncOfflineVisits(); }, 2000);
 
-// ==========================================
-// 📥 EXPORT TO CSV FUNCTION
-// ==========================================
 window.exportVisitsToCSV = function() {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     var sourceData = window.filteredVisits || window.globalVisits || [];
@@ -4297,43 +4063,41 @@ window.initVisitDatePickers = function() {
   window.fpEndInstance = flatpickr(endEl, commonConfig);
 };
 
+// ==========================================
+// 🎁 SAMPLES & PROMO ITEMS ENGINE (NO DUPLICATE & NO EMPTY ROWS)
+// ==========================================
 
-// 🧹 ลบแถว Samples ที่ไม่ได้เลือกรายการ (แถวว่าง) ออกโดยอัตโนมัติ
-window.cleanEmptySampleRows = function() {
-    const container = document.getElementById('sampleItemsContainer');
-    if (!container) return;
+window.globalMasterSamples = [];
 
-    const rows = container.querySelectorAll('.sample-item-row');
-    rows.forEach(row => {
-        const selectEl = row.querySelector('.sample-id-select');
-        // ถ้าไม่ได้เลือกสินค้า (ค่าเป็นว่าง) ให้ลบแถวนั้นทิ้งทันที
-        if (selectEl && !selectEl.value) {
-            row.remove();
+window.loadMasterSamplesList = async function() {
+    try {
+        const { data: typeData, error: typeErr } = await window.supabaseClient
+            .from('IndexType')
+            .select('IndexType_ID, Name');
+
+        if (typeErr) throw typeErr;
+
+        const sampleType = (typeData || []).find(t => {
+            const name = (t.Name || '').toLowerCase().trim();
+            return name === 'samples' || name === 'sample' || name === 'promo item' || name === 'samples & promo items';
+        });
+
+        if (sampleType) {
+            const { data: indexData, error: idxErr } = await window.supabaseClient
+                .from('Index')
+                .select('Index_ID, Value, Value1')
+                .eq('IndexType_ID', sampleType.IndexType_ID)
+                .order('Value', { ascending: true });
+
+            if (!idxErr && indexData) {
+                window.globalMasterSamples = indexData;
+            }
         }
-    });
-
-    window.checkEmptySamples();
-    if (typeof window.updateFeatureButtonIndicators === 'function') {
-        window.updateFeatureButtonIndicators(null);
+    } catch (e) {
+        console.error("Error loading samples from Index table:", e);
     }
 };
 
-// 📌 สั่งให้เคลียร์แถวว่างทันทีเมื่อ Modal ถูกปิดลง (Bootstrap Modal Hidden Event)
-document.addEventListener('DOMContentLoaded', function() {
-    const samplesModalEl = document.getElementById('samplesDrawerModal');
-    if (samplesModalEl) {
-        samplesModalEl.addEventListener('hidden.bs.modal', function () {
-            window.cleanEmptySampleRows();
-        });
-    }
-});
-
-
-// ==========================================
-// 🎁 SAMPLES & PROMO ITEMS ENGINE
-// ==========================================
-
-// 1. ดึงเฉพาะแถวที่มีการเลือกสินค้าไปบันทึกลงฐานข้อมูล
 window.getSamplesData = function() {
     const container = document.getElementById('sampleItemsContainer');
     if (!container) return [];
@@ -4345,7 +4109,6 @@ window.getSamplesData = function() {
         const selectEl = row.querySelector('.sample-id-select');
         const qtyEl = row.querySelector('.sample-qty');
 
-        // 🌟 ดึงเฉพาะแถวที่มีการเลือก Item ID แล้วเท่านั้น
         if (selectEl && selectEl.value) {
             samples.push({
                 sample_id: selectEl.value,
@@ -4357,11 +4120,9 @@ window.getSamplesData = function() {
     return samples;
 };
 
-// 2. Render ตัวเลือกใน Dropdown ใหม่ ซ่อนรายการที่ถูกเลือกไปแล้วในแถวอื่น
 window.renderAllSampleDropdowns = function() {
     const allSelects = document.querySelectorAll('#sampleItemsContainer .sample-id-select');
     
-    // รวบรวม ID สินค้าที่ถูกเลือกอยู่ ณ ปัจจุบันในทุกแถว
     const selectedIds = Array.from(allSelects)
         .map(select => select.value)
         .filter(val => val !== '');
@@ -4380,7 +4141,6 @@ window.renderAllSampleDropdowns = function() {
                 const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
                 const isCurrentSelected = itemIdStr === String(currentValue);
 
-                // แสดง Option ถ้าเป็นรายการของแถวตัวเอง หรือ ยังไม่เคยถูกเลือกในแถวอื่น
                 if (isCurrentSelected || !selectedIds.includes(itemIdStr)) {
                     const selectedAttr = isCurrentSelected ? 'selected' : '';
                     optionsHTML += `<option value="${itemIdStr}" ${selectedAttr}>${displayName}</option>`;
@@ -4392,7 +4152,6 @@ window.renderAllSampleDropdowns = function() {
     });
 };
 
-// 3. เพิ่มแถว Samples ใหม่
 window.addSampleRow = function(sampleId = '', qty = 1) {
     const container = document.getElementById('sampleItemsContainer');
     const noText = document.getElementById('noSampleText');
@@ -4428,7 +4187,6 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     window.renderAllSampleDropdowns();
 };
 
-// 4. เมื่อเปลี่ยนตัวเลือกใน Dropdown
 window.handleSampleSelectChange = function(selectEl) {
     window.renderAllSampleDropdowns();
     if (typeof window.updateFeatureButtonIndicators === 'function') {
@@ -4436,7 +4194,6 @@ window.handleSampleSelectChange = function(selectEl) {
     }
 };
 
-// 5. เมื่อลบแถว
 window.handleSampleRowRemoved = function() {
     window.checkEmptySamples();
     window.renderAllSampleDropdowns();
@@ -4445,26 +4202,75 @@ window.handleSampleRowRemoved = function() {
     }
 };
 
-// 6. เคลียร์แถวว่างทิ้งอัตโนมัติเมื่อปิด Modal
+window.refreshSampleDropdownLang = function() {
+    window.renderAllSampleDropdowns();
+};
+
+window.checkEmptySamples = function() {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    const rows = container ? container.querySelectorAll('.sample-item-row') : [];
+    if (rows.length === 0 && noText) noText.style.display = 'block';
+};
+
+window.cleanEmptySampleRows = function() {
+    const container = document.getElementById('sampleItemsContainer');
+    if (!container) return;
+
+    const rows = container.querySelectorAll('.sample-item-row');
+    rows.forEach(row => {
+        const selectEl = row.querySelector('.sample-id-select');
+        if (selectEl && !selectEl.value) {
+            row.remove();
+        }
+    });
+
+    window.checkEmptySamples();
+    window.renderAllSampleDropdowns();
+    if (typeof window.updateFeatureButtonIndicators === 'function') {
+        window.updateFeatureButtonIndicators(null);
+    }
+};
+
+window.collectVisitSamplesPayload = function(visitId, whoUpdated) {
+    const validSamples = window.getSamplesData();
+    return validSamples.map(item => ({
+        Visit_ID: visitId,
+        Sample_ID: item.sample_id,
+        Quantity: item.quantity,
+        Whoupdated: whoUpdated,
+        Whenupdated: new Date().toISOString()
+    }));
+};
+
+window.loadVisitSamplesForEdit = async function(visitId) {
+    const container = document.getElementById('sampleItemsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>';
+
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('Visit_Samples')
+            .select('Sample_ID, Quantity')
+            .eq('Visit_ID', visitId);
+
+        if (!error && data && data.length > 0) {
+            data.forEach(item => {
+                window.addSampleRow(item.Sample_ID, item.Quantity);
+            });
+            window.renderAllSampleDropdowns();
+        }
+    } catch (e) {
+        console.error("Error loading Visit_Samples:", e);
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const samplesModalEl = document.getElementById('samplesDrawerModal');
     if (samplesModalEl) {
         samplesModalEl.addEventListener('hidden.bs.modal', function () {
-            const container = document.getElementById('sampleItemsContainer');
-            if (container) {
-                const rows = container.querySelectorAll('.sample-item-row');
-                rows.forEach(row => {
-                    const selectEl = row.querySelector('.sample-id-select');
-                    if (selectEl && !selectEl.value) {
-                        row.remove();
-                    }
-                });
-                window.checkEmptySamples();
-                window.renderAllSampleDropdowns();
-                if (typeof window.updateFeatureButtonIndicators === 'function') {
-                    window.updateFeatureButtonIndicators(null);
-                }
-            }
+            window.cleanEmptySampleRows();
         });
     }
 });
