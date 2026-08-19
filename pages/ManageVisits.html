@@ -13,27 +13,42 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
 <style>
-  /* 🎨 Fit-to-Screen Balanced Equal-Height Layout */
+  /* 🔒 ล็อกหน้าจอ Fit-to-Screen ไร้ Scrollbar บน iPad */
+  body, html {
+    overflow-x: hidden !important;
+  }
+
   .visit-form-wrapper {
-    min-height: calc(100vh - 85px);
+    max-height: calc(100vh - 75px) !important;
     height: auto !important;
     display: flex;
     flex-direction: column;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
   .visit-form-card-main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: visible !important;
+    overflow: hidden !important;
     background: #ffffff;
     border-radius: 16px;
   }
+
+  /* ปรับระยะขอบภายในให้กระชับพอดีหน้าจอ iPad */
   .visit-form-body-scroll {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: visible !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: calc(100vh - 150px) !important;
+    padding-right: 4px;
+  }
+
+  /* ลบ Scrollbar รบกวนสายตาแต่ยังไถ Touch ได้ */
+  .visit-form-body-scroll::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
   }
 
   .form-section-title {
@@ -345,7 +360,7 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Spacious & Vertical Layout) ================= -->
+  <!-- ================= 2. FORM VIEW (Spacious & Vertical Layout - Fit-to-Screen) ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-3">
     
     <!-- Top Header Bar -->
@@ -478,50 +493,50 @@
               </div>
             </div>
 
-            <!-- 🔹 Right Column (Activity Details - Vertical Sequence with 2-Lang Placeholders) -->
+            <!-- 🔹 Right Column (Activity Details - Compact Height Fit-to-Screen) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
-              <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+              <div class="p-3.5 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
                 <div class="d-flex flex-column flex-grow-1">
-                  <h6 class="form-section-title mb-3"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
+                  <h6 class="form-section-title mb-2.5"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
                   <!-- 1. Details (Top Area) -->
-                  <div class="mb-3.5 flex-grow-1 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                  <div class="mb-2.5 flex-grow-1 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="compact-label mb-0" data-i18n="lbl_details">Details</label>
-                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-1 shadow-xs" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.75rem;">
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-0.5 shadow-xs" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.75rem;">
                         <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                       </button>
                     </div>
-                    <textarea class="form-control bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 120px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 90px; height: 110px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
                   </div>
 
                   <!-- 2. Insight (Middle Area) -->
-                  <div class="mb-3.5">
-                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                  <div class="mb-2.5">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="compact-label mb-0" data-i18n="lbl_insight">Insight</label>
-                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-1 shadow-xs" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.75rem;">
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-0.5 shadow-xs" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.75rem;">
                         <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                       </button>
                     </div>
-                    <textarea class="form-control bg-white shadow-xs premium-radius" id="visitInsight" style="height: 60px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs premium-radius" id="visitInsight" style="height: 50px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
                   </div>
 
                   <!-- 3. Next Action (Bottom Area) -->
-                  <div class="mb-2">
-                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                  <div class="mb-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
                       <label class="compact-label mb-0" data-i18n="lbl_next_action">Next Action</label>
-                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-1 shadow-xs" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.75rem;">
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-0.5 shadow-xs" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.75rem;">
                         <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                       </button>
                     </div>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 40px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 38px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
                   </div>
 
                 </div>
 
-                <!-- 📌 Bottom Footer Bar (Balanced & Spaced Action Buttons) -->
-                <div class="pt-3 border-top mt-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <!-- 📌 Bottom Footer Bar -->
+                <div class="pt-2.5 border-top mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-2">
                     <label class="switch mb-0 me-1">
                       <input type="checkbox" id="visitIsCoaching">
@@ -530,8 +545,8 @@
                     <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
                   </div>
 
-                  <div class="d-flex align-items-center gap-3 ms-auto">
-                    <div class="d-flex align-items-center gap-2" style="width: 190px;">
+                  <div class="d-flex align-items-center gap-2.5 ms-auto">
+                    <div class="d-flex align-items-center gap-2" style="width: 170px;">
                       <label class="compact-label mb-0 fw-bold text-secondary" data-i18n="lbl_status">Status:</label>
                       <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold premium-radius" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                         <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
@@ -613,8 +628,6 @@
     </div>
   </div>
 </div>
-
- 
 
 <!-- 🎁 Floating Modal 3: Samples & Promo (iPad Touch Optimized - No Duplicate & No Scrollbar) -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
