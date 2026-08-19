@@ -1591,61 +1591,25 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
- window.loadVisits = async function(forceReload) {
-    var visitViewEl = document.getElementById('visitListView');
-    var loadingTitleEl = document.getElementById('loadingTitleText');
-    var loadingDescEl = document.getElementById('loadingDescText');
+  window.loadVisits = async function(forceReload) {
+    var mainContentContainer = document.getElementById('visitMainContentContainer');
+    var loadingCard = document.getElementById('visitTableLoading');
 
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    if (!window.VisitManagerCache) window.VisitManagerCache = {};
-    if (window.VisitManagerCache.ownerId !== myRepId) {
-        window.VisitManagerCache.isLoaded = false; 
-        window.VisitManagerCache.ownerId = myRepId; 
-        window.globalVisits = []; 
-        window.globalTotLogs = [];
-        forceReload = true; 
-    }
-
-    var hasData = (window.globalVisits && window.globalVisits.length > 0);
-
-    // 🌟 แสดง Loading
-    if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
-        var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
-
-        if (visitViewEl) visitViewEl.classList.add('is-loading');
-    }
-
-    if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
-        if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
-        if (visitViewEl) visitViewEl.classList.remove('is-loading');
-
-        window.renderVisitTableServerSide();
-        if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
-        if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
-            window.renderCalendarView();
-        }
-        return; 
-    }
+    // 🌟 1. แสดง Loading Card และซ่อนเนื้อหาตารางทันทีที่สั่งดึงข้อมูล
+    if (loadingCard) loadingCard.classList.remove('d-none');
+    if (mainContentContainer) mainContentContainer.classList.add('d-none');
 
     try {
-      if (forceReload || !window.VisitManagerCache.isLoaded) {
-          var promises = [
-              window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-              (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
-              (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
-          ];
-          var additionalRes = await Promise.all(promises);
-          window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
-          window.VisitManagerCache.totLogs = additionalRes[1] || [];
-          window.VisitManagerCache.isLoaded = true;
+      // โหลด Master Data & Permissions
+      if (forceReload || !window.VisitManagerCache || !window.VisitManagerCache.dropdownsLoaded) {
+          if (typeof window.loadDropdowns === 'function') {
+              await window.loadDropdowns(forceReload);
+          }
       }
-      window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
-      window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
       var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
       var isGlobalAdmin = window.myIsGlobalViewer; 
@@ -1658,43 +1622,20 @@ window.clearVisitFilters = function() {
       if (!isGlobalAdmin) {
           if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
               query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-          } else {
-              var allowedIds = [];
-              if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                  allowedIds = [...window.myAllowedRepIds];
-              } else if (myRepId) {
-                  allowedIds = [myRepId];
-              }
-
-              if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-              
-              if (allowedIds.length > 0) {
-                  query = query.in('Rep_ID', allowedIds);
-              } else {
-                  query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-              }
+          } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
+              query = query.in('Rep_ID', window.myAllowedRepIds);
           }
       }
 
+      // Filters & Range
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
-      
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
       
-      var repEl = document.getElementById('filterVisitRep');
-      var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
-      if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
-
-      var terEl = document.getElementById('filterVisitTerritory');
-      var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
-      if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
-
       if (statusTerm) query = query.eq('Status', statusTerm);
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
-      if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
-      if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
@@ -1708,8 +1649,8 @@ window.clearVisitFilters = function() {
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
 
+      // Sub-queries
       window._visitSampleIndex = {};
-
       if (window.globalVisits.length > 0) {
         var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
 
@@ -1718,9 +1659,7 @@ window.clearVisitFilters = function() {
             window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds),
             window.supabaseClient.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds)
           ];
-
           var results = await Promise.all(subPromises);
-          
           window.globalVisitProducts = (results[0] && results[0].data) ? results[0].data : [];
           
           if (results[1] && results[1].data) {
@@ -1734,19 +1673,16 @@ window.clearVisitFilters = function() {
           }
         } catch (subErr) {
           console.warn("Sub-tables fetch error:", subErr);
-          window.globalVisitProducts = [];
         }
-      } else {
-        window.globalVisitProducts = [];
       }
 
-      if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
+      if (typeof window.buildDataIndexes === 'function') {
+          window.buildDataIndexes();
+      }
 
+      // วาดตาราง
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
-      if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-          if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
-      }
 
     } catch (err) {
       console.error("Load Visits Error:", err);
@@ -1755,7 +1691,9 @@ window.clearVisitFilters = function() {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      if (visitViewEl) visitViewEl.classList.remove('is-loading');
+      // 🌟 2. ปิด Loading Card และแสดงตารางเมื่อโหลดเสร็จเรียบร้อยแล้ว
+      if (loadingCard) loadingCard.classList.add('d-none');
+      if (mainContentContainer) mainContentContainer.classList.remove('d-none');
     }
 };
 
