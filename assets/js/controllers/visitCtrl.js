@@ -764,13 +764,24 @@ window.switchVisitView = function(viewId) {
 };
 
 window.updateStatCards = function(filteredVisits) {
-  var total = window.totalVisitsCount || filteredVisits.length;
-  var pending = filteredVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
-  var submitted = filteredVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
+    // 🌟 Total Visits ต้องใช้จำนวนทั้งหมดจริง ไม่เปลี่ยนตามการฟิลเตอร์
+    var total = window.totalVisitsCount || (window.globalVisits ? window.globalVisits.length : 0);
+    
+    // 🌟 คำนวณ Pending และ Submitted จากข้อมูลตั้งต้นทั้งหมด (window.globalVisits)
+    var allVisits = window.globalVisits || [];
+    var pending = allVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
+    var submitted = allVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
 
-  if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
-  if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
-  if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
+    // อัปเดตตัวเลขลงกล่อง KPI
+    if (document.getElementById('statTotalVisits')) {
+        document.getElementById('statTotalVisits').innerText = total;
+    }
+    if (document.getElementById('statPendingVisits')) {
+        document.getElementById('statPendingVisits').innerText = pending;
+    }
+    if (document.getElementById('statSubmittedVisits')) {
+        document.getElementById('statSubmittedVisits').innerText = submitted;
+    }
 };
 
 // ==========================================
