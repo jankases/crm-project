@@ -2935,36 +2935,52 @@ window.handleFileUpload = async function(event) {
   }
 };
 
-window.renderAttachmentPreviews = function() {
+ window.renderAttachmentPreviews = function() {
   var container = document.getElementById('attachmentPreviewContainer');
   if (!container) return;   
   
   if (!window.currentAttachments || window.currentAttachments.length === 0) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    var noText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
-    container.innerHTML = '<small class="text-muted italic py-4 w-100 text-center" id="noAttachmentText">' + noText + '</small>';
+    var noText = appLang === 'en' ? 'No attachments uploaded yet' : 'ยังไม่มีไฟล์แนบ';
+    container.innerHTML = 
+      '<div class="col-12 text-center py-4" id="noAttachmentText">' +
+        '<i class="fa-regular fa-images fs-1 text-muted opacity-50 mb-2 d-block"></i>' +
+        '<span class="text-muted small">' + noText + '</span>' +
+      '</div>';
     return;
   } 
 
   var html = '';
   window.currentAttachments.forEach(function(item, idx) {
     var isImg = item.url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
-    
-    // 📱 ปรับการ์ดพรีวิวให้ใหญ่ขึ้น (90x90px) และจัดตำแหน่งปุ่มลบให้พอดีขอบ
-    html += '<div class="position-relative d-inline-block border border-2 rounded-4 p-1.5 bg-white shadow-xs" style="width: 96px; height: 96px;">';
-    
+    var fileName = item.name || 'Attachment_' + (idx + 1);
+
+    // 📱 ปรับการ์ดสไตล์ Grid Col (Col-4 บน iPad) การ์ดใหญ่ กดง่าย พร้อมปุ่มลบตรงมุม
+    html += 
+      '<div class="col-6 col-md-4">' +
+        '<div class="position-relative bg-light border rounded-4 p-2 shadow-xs d-flex flex-column align-items-center h-100">' +
+          '<div class="w-100 bg-white rounded-3 overflow-hidden d-flex align-items-center justify-content-center cursor-pointer mb-2" style="height: 110px;" onclick="window.open(\'' + item.url + '\', \'_blank\')">';
+          
     if (isImg) {
-      html += '<img src="' + item.url + '" class="w-100 h-100 object-fit-cover rounded-3 cursor-pointer" onclick="window.open(\'' + item.url + '\', \'_blank\')">';
+      html += '<img src="' + item.url + '" class="w-100 h-100 object-fit-cover">';
     } else {
-      html += '<div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light rounded-3 cursor-pointer" onclick="window.open(\'' + item.url + '\', \'_blank\')">' +
-                '<i class="fa-solid fa-file-pdf fs-2 text-danger"></i>' +
-                '<span class="tiny text-muted mt-1 text-truncate w-100 text-center px-1" style="font-size: 0.65rem;">PDF</span>' +
-              '</div>';
+      html += 
+        '<div class="text-center p-2">' +
+          '<i class="fa-solid fa-file-pdf fs-1 text-danger mb-1"></i>' +
+          '<span class="d-block fw-bold text-dark text-truncate" style="font-size: 0.75rem; max-width: 120px;">' + fileName + '</span>' +
+        '</div>';
     }
     
-    // ปุ่มลบกากบาทแบบ Touch-Friendly อยู่มุมบนขวาในกล่อง
-    html += '<button type="button" class="btn btn-danger position-absolute top-0 end-0 translate-middle-y me-1 mt-1 p-0 rounded-circle shadow-xs d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; border: 2px solid #ffffff; font-size: 0.85rem;" onclick="window.removeAttachment(' + idx + ')">&times;</button>';
-    html += '</div>';
+    html += 
+          '</div>' +
+          '<div class="w-100 text-truncate px-1 text-center" style="font-size: 0.8rem; font-weight: 600; color: #334155;" title="' + fileName + '">' + 
+            fileName + 
+          '</div>' +
+          
+          // ปุ่มกากบาทสีแดงกลม วางซ้อนมุมขวาบนพอดี
+          '<button type="button" class="btn btn-danger position-absolute p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="top: -6px; right: -6px; width: 28px; height: 28px; border: 2px solid #ffffff; font-size: 0.9rem; z-index: 10;" onclick="window.removeAttachment(' + idx + ')">&times;</button>' +
+        '</div>' +
+      '</div>';
   });
   
   container.innerHTML = html;
