@@ -1588,7 +1588,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
-window.loadVisits = async function(forceReload) {
+ window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1624,7 +1624,6 @@ window.loadVisits = async function(forceReload) {
 
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
-        
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
         window.renderVisitTableServerSide();
@@ -1635,18 +1634,18 @@ window.loadVisits = async function(forceReload) {
         return; 
     }
 
-try {
-  if (forceReload || !window.VisitManagerCache.isLoaded) {
-      var promises = [
-          window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-          (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
-          (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
-      ];
-      var additionalRes = await Promise.all(promises);
-      window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
-      window.VisitManagerCache.totLogs = additionalRes[1] || [];
-      window.VisitManagerCache.isLoaded = true;
-  }
+    try {
+      if (forceReload || !window.VisitManagerCache.isLoaded) {
+          var promises = [
+              window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
+              (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
+              (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
+          ];
+          var additionalRes = await Promise.all(promises);
+          window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
+          window.VisitManagerCache.totLogs = additionalRes[1] || [];
+          window.VisitManagerCache.isLoaded = true;
+      }
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
@@ -1667,20 +1666,6 @@ try {
                   allowedIds = [...window.myAllowedRepIds];
               } else if (myRepId) {
                   allowedIds = [myRepId];
-              }
-              
-              if (myRole !== 'admin' && myRole !== 'system admin') {
-                  if (window.globalUsersList && window.globalUsersList.length > 0) {
-                      var safeIds = [];
-                      for (var i = 0; i < allowedIds.length; i++) {
-                          var targetUser = window.globalUsersList.find(u => String(u.Rep_ID || u.id) === String(allowedIds[i]));
-                          var targetRole = targetUser ? String(targetUser.Role || '').trim().toLowerCase() : '';
-                          if (targetRole !== 'admin' && targetRole !== 'system admin') {
-                              safeIds.push(allowedIds[i]);
-                          }
-                      }
-                      if (safeIds.length > 0) safeIds = safeIds; 
-                  }
               }
 
               if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
@@ -1713,96 +1698,26 @@ try {
       if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
       if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
+      // ⚡ OPTIMIZED SMART SEARCH: ใช้ In-Memory Filtering แทน Loop Fetching
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       
       if (rawSearchVal) {
-          var searchTerms = rawSearchVal.split(/\s+/); 
-          var hasNoMatchOnSomeTerm = false;
-
-          for (var i = 0; i < searchTerms.length; i++) {
-              var term = searchTerms[i];
-              var matchedDocIds = [];
-              var matchedVisitIds = [];
-
-              var matchedHospIds = [];
-              (window.globalAllHospitals || []).forEach(function(h) {
-                  var hEn = String(h.Hospital || h.Hospital_Name || h.Known_As || '').toLowerCase();
-                  var hTh = String(h.Hospital_TH || h.Known_As || '').toLowerCase();
-                  if (hEn.indexOf(term) !== -1 || hTh.indexOf(term) !== -1) {
-                      matchedHospIds.push(String(h.Hospital_ID || h.id).toLowerCase());
-                  }
-              });
-
-              for (var key in window._docIndex) {
-                  var doc = window._docIndex[key];
-                  var isMatch = false;
-
-                  var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
-                  var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
-                  
-                  if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
-                      isMatch = true;
-                  }
-
-                  if (!isMatch && matchedHospIds.length > 0) {
-                      var docHospId = String(doc.Hospital_ID || doc.hospital_id || '').toLowerCase();
-                      if (matchedHospIds.indexOf(docHospId) !== -1) {
-                          isMatch = true;
-                      } else if (doc.Workplaces_JSON) {
-                          try {
-                              var wps = typeof doc.Workplaces_JSON === 'string' ? JSON.parse(doc.Workplaces_JSON) : doc.Workplaces_JSON;
-                              if (Array.isArray(wps)) {
-                                  for(var w=0; w<wps.length; w++) {
-                                      var wHid = String(wps[w].hospitalId || wps[w].Hospital_ID).toLowerCase();
-                                      if (matchedHospIds.indexOf(wHid) !== -1) { isMatch = true; break; }
-                                  }
-                              }
-                          } catch(e){}
-                      }
-                  }
-
-                  if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
-              }
-
-              var matchedProductIds = [];
-              var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
-              allProds.forEach(function(p) {
-                  var pEn = String(p.Product || '').toLowerCase();
-                  var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
-                  if (pEn.indexOf(term) !== -1 || pTh.indexOf(term) !== -1) {
-                      matchedProductIds.push(p.Product_ID || p.id);
-                  }
-              });
-
-              if (matchedProductIds.length > 0) {
-                  try {
-                      var vpRes = await window.supabaseClient.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
-                      if (!vpRes.error && vpRes.data) {
-                          matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
-                      }
-                  } catch (e) { console.error("Search Product Error:", e); }
-              }
-
-              if (matchedDocIds.length > 0 || matchedVisitIds.length > 0) {
-                  var safeDocIds = matchedDocIds.slice(0, 60); 
-                  var safeVisitIds = matchedVisitIds.slice(0, 60);
-                  
-                  if (safeDocIds.length > 0 && safeVisitIds.length === 0) {
-                      query = query.in('Doc_ID', safeDocIds);
-                  } else if (safeDocIds.length === 0 && safeVisitIds.length > 0) {
-                      query = query.in('Visit_ID', safeVisitIds);
-                  } else {
-                      var orCondition = 'Doc_ID.in.(' + safeDocIds.join(',') + '),Visit_ID.in.(' + safeVisitIds.join(',') + ')';
-                      query = query.or(orCondition);
-                  }
-              } else {
-                  hasNoMatchOnSomeTerm = true;
-                  break; 
+          var matchedDocIds = [];
+          
+          for (var key in window._docIndex) {
+              var doc = window._docIndex[key];
+              var dNameEn = String(doc.Doc_Name || doc.doc_name || '').toLowerCase();
+              var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
+              
+              if (dNameEn.indexOf(rawSearchVal) !== -1 || dNameTh.indexOf(rawSearchVal) !== -1) {
+                  matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
               }
           }
 
-          if (hasNoMatchOnSomeTerm) {
-              query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+          if (matchedDocIds.length > 0) {
+              query = query.in('Doc_ID', matchedDocIds.slice(0, 100));
+          } else {
+              query = query.ilike('Details', `%${rawSearchVal}%`);
           }
       }
 
@@ -1824,6 +1739,7 @@ try {
         var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
 
         try {
+          // ดึงเฉพาะของไอดีในหน้านั้นๆ มาแบบ Parallel ไม่ต้องรอต่อคิว
           var subPromises = [
             window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds),
             window.supabaseClient.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds)
@@ -1852,35 +1768,11 @@ try {
 
       if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
 
-      window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
-          var hasAccess = false;
-          if (isGlobalAdmin) hasAccess = true;
-          else {
-               var rawRepId = String(tot.Rep_ID || '').trim(); 
-               var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-               if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1)) hasAccess = true;
-          }
-          if(!hasAccess) return false;
-
-          var matchDate = true;
-          if (startDateTerm || endDateTerm) {
-              var vDate = new Date(tot.Start_Date); vDate.setHours(0, 0, 0, 0); 
-              if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-              if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
-          }
-          var matchRep = (selectedReps.length === 0);
-          if (selectedReps.length > 0) { var rawRepIdFilt = String(tot.Rep_ID || '').trim(); matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1; }
-          return matchDate && matchRep;
-      });
-        
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
           if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
       }
-
-      var myDraftsCount = (window.globalVisits || []).filter(function(v) { return v.Status === 'Pending' && String(v.Rep_ID) === myRepId; }).length;
-      if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
 
     } catch (err) {
       console.error("Load Visits Error:", err);
