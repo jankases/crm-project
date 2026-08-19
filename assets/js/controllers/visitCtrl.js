@@ -3465,10 +3465,36 @@ window.updateCalendarLegendLang = function() {
   if (elTotPen) elTotPen.innerText = isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)';
 };
 
-var originalUpdateLangUI = window.updateLangUI;
+// ==========================================
+// 🌐 LANGUAGE UI UPDATE & i18n
+// ==========================================
+var originalUpdateLangUIForFp = window.updateLangUI;
+
 window.updateLangUI = function() {
-  if (typeof originalUpdateLangUI === 'function') originalUpdateLangUI();
-  if (typeof window.updateCalendarLegendLang === 'function') window.updateCalendarLegendLang();
+    if (typeof originalUpdateLangUIForFp === 'function') {
+        originalUpdateLangUIForFp();
+    }
+    
+    // ⚡ 1. อัปเดต Flatpickr ปฏิทิน
+    if (typeof window.initVisitDatePickers === 'function') {
+        window.initVisitDatePickers();
+    }
+
+    // ⚡ 2. อัปเดต Legend ปฏิทิน
+    if (typeof window.updateCalendarLegendLang === 'function') {
+        window.updateCalendarLegendLang();
+    }
+
+    // ⚡ 3. อัปเดต Placeholder ของ Smart Search จากระบบ i18n กลาง (opt_smart_search_ph)
+    var searchInput = document.getElementById('smartSearchInput');
+    if (searchInput) {
+        var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        if (window.i18nData && window.i18nData[lang] && window.i18nData[lang].opt_smart_search_ph) {
+            searchInput.placeholder = window.i18nData[lang].opt_smart_search_ph;
+        } else if (typeof window.getTranslation === 'function') {
+            searchInput.placeholder = window.getTranslation('opt_smart_search_ph');
+        }
+    }
 };
 
 // ==========================================
