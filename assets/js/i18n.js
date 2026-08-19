@@ -207,7 +207,8 @@ const i18nDictionary = {
     btn_add_sample: "+ Add Item",
     btn_add_file: "+ Attach File/Photo",
     btn_present: "Present",
-    txt_no_attachment: "No attachments yet"
+    txt_no_attachment: "No attachments yet",
+    sec_features_evidences: "Features & Evidences"
     
   },
 
@@ -415,7 +416,9 @@ const i18nDictionary = {
     btn_add_sample: "+ เพิ่มรายการ",
     btn_add_file: "+ แนบไฟล์/ถ่ายรูป",
     btn_present: "นำเสนอ",
-    txt_no_attachment: "ยังไม่มีไฟล์แนบ"
+    txt_no_attachment: "ยังไม่มีไฟล์แนบ",
+    sec_features_evidences: "คุณสมบัติและหลักฐาน"
+  
   }
 };
 
