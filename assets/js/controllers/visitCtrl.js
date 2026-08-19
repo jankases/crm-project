@@ -3607,10 +3607,10 @@ window.quickFilterKpi = function(targetStatus) {
     if (typeof window.loadVisits === 'function') {
         window.loadVisits(true);
     }
-};
+}; 
 
 // ==========================================
-// 🌐 CENTRALIZED LANGUAGE UI UPDATE (SINGLE CONSOLIDATED FUNCTION)
+// 🌐 CENTRALIZED LANGUAGE UI UPDATE
 // ==========================================
 window.updateLangUI = function() {
     if (window.isInitialLoading) return;
@@ -3618,7 +3618,7 @@ window.updateLangUI = function() {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
     var isEN = (appLang === 'en');
 
-    // 1. อัปเดต Placeholder ของ Smart Search ให้เปลี่ยนภาษาตามจริง (Default เป็น EN)
+    // ⚡ 1. อัปเดต Placeholder ช่อง Smart Search
     var searchInput = document.getElementById('smartSearchInput');
     if (searchInput) {
         if (window.i18nData && window.i18nData[appLang] && window.i18nData[appLang].opt_smart_search_ph) {
@@ -3632,17 +3632,38 @@ window.updateLangUI = function() {
         }
     }
 
-    // 2. อัปเดต Flatpickr ปฏิทินและ Placeholder วันที่
+    // ⚡ 2. อัปเดต Placeholder ของฟอร์มบันทึกเยี่ยม (Details, Insight, Next Action)
+    var detailsEl = document.getElementById('visitDetails');
+    var insightEl = document.getElementById('visitInsight');
+    var nextActionEl = document.getElementById('visitNextAction');
+
+    if (detailsEl) {
+        detailsEl.placeholder = isEN 
+            ? 'Enter call discussion details...' 
+            : 'ระบุรายละเอียดการพูดคุยหรือการเยี่ยม...';
+    }
+    if (insightEl) {
+        insightEl.placeholder = isEN 
+            ? 'Key feedback or doctor insights...' 
+            : 'ระบุข้อคิดเห็นเพิ่มเติมหรือข้อมูลเชิงลึกจากแพทย์...';
+    }
+    if (nextActionEl) {
+        nextActionEl.placeholder = isEN 
+            ? 'Next follow-up plan or action items...' 
+            : 'ระบุแผนการติดตามผลหรือการดำเนินการถัดไป...';
+    }
+
+    // ⚡ 3. อัปเดต Flatpickr ปฏิทินและ Placeholder วันที่
     if (typeof window.initVisitDatePickers === 'function') {
         window.initVisitDatePickers();
     }
 
-    // 3. อัปเดต Legend สัญลักษณ์สีปฏิทิน
+    // ⚡ 4. อัปเดต Legend สัญลักษณ์สีปฏิทิน
     if (typeof window.updateCalendarLegendLang === 'function') {
         window.updateCalendarLegendLang();
     }
 
-    // 4. บันทึกและดึงข้อมูล Form Draft
+    // ⚡ 5. บันทึกและดึงข้อมูล Form Draft
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
@@ -3652,7 +3673,7 @@ window.updateLangUI = function() {
         }
     }
 
-    // 5. โหลดดร็อปดาวน์ตามภาษาใหม่
+    // ⚡ 6. โหลดดร็อปดาวน์ตามภาษาใหม่
     if (typeof window.loadDropdowns === 'function') {
         window.loadDropdowns(false).then(function() {
             if (formView && !formView.classList.contains('d-none')) {
@@ -3667,19 +3688,19 @@ window.updateLangUI = function() {
         });
     } 
 
-    // 6. อัปเดตการแสดงผลตารางฝั่ง Server-Side
+    // ⚡ 7. อัปเดตการแสดงผลตารางฝั่ง Server-Side
     if (typeof window.renderVisitTableServerSide === 'function') {
         window.renderVisitTableServerSide();
     } else if (typeof window.renderVisitTable === 'function') {
         window.renderVisitTable();
     }
 
-    // 7. อัปเดตมุมมอง Calendar
+    // ⚡ 8. อัปเดตมุมมอง Calendar
     if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
 
-    // 8. อัปเดตภาษาดร็อปดาวน์ Samples
+    // ⚡ 9. อัปเดตภาษาดร็อปดาวน์ Samples
     if (typeof window.refreshSampleDropdownLang === 'function') {
         window.refreshSampleDropdownLang();
     }
