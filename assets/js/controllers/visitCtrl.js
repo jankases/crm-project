@@ -3466,34 +3466,66 @@ window.updateCalendarLegendLang = function() {
 };
 
 // ==========================================
-// 🌐 LANGUAGE UI UPDATE & i18n
+// 🌐 CENTRALIZED LANGUAGE UI UPDATE
 // ==========================================
-var originalUpdateLangUIForFp = window.updateLangUI;
-
 window.updateLangUI = function() {
-    if (typeof originalUpdateLangUIForFp === 'function') {
-        originalUpdateLangUIForFp();
-    }
-    
-    // ⚡ 1. อัปเดต Flatpickr ปฏิทิน
-    if (typeof window.initVisitDatePickers === 'function') {
-        window.initVisitDatePickers();
-    }
+    if (window.isInitialLoading) return;
 
-    // ⚡ 2. อัปเดต Legend ปฏิทิน
-    if (typeof window.updateCalendarLegendLang === 'function') {
-        window.updateCalendarLegendLang();
-    }
+    var isEN = window.getCurrentAppLang ? (window.getCurrentAppLang() === 'en') : false;
 
-    // ⚡ 3. อัปเดต Placeholder ของ Smart Search จากระบบ i18n กลาง (opt_smart_search_ph)
+    // 1. อัปเดต Placeholder ของ Smart Search จาก i18n
     var searchInput = document.getElementById('smartSearchInput');
     if (searchInput) {
-        var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var lang = isEN ? 'en' : 'th';
         if (window.i18nData && window.i18nData[lang] && window.i18nData[lang].opt_smart_search_ph) {
             searchInput.placeholder = window.i18nData[lang].opt_smart_search_ph;
         } else if (typeof window.getTranslation === 'function') {
             searchInput.placeholder = window.getTranslation('opt_smart_search_ph');
+        } else {
+            searchInput.placeholder = isEN 
+                ? 'Search Doctor, Hospital or Products...' 
+                : 'ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...';
         }
+    }
+
+    // 2. อัปเดต Flatpickr และ Legend บนปฏิทิน
+    if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
+    if (typeof window.updateCalendarLegendLang === 'function') window.updateCalendarLegendLang();
+
+    // 3. อัปเดต Dropdown และ Form Draft
+    var formView = document.getElementById('visitFormView');
+    if (formView && !formView.classList.contains('d-none')) {
+        var visitIdEl = document.getElementById('visitId');
+        var currentVisitId = visitIdEl ? visitIdEl.value : '';
+        if (!currentVisitId || currentVisitId === 'NEW') {
+            if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+        }
+    }
+
+    if (typeof window.loadDropdowns === 'function') {
+        window.loadDropdowns(false).then(function() {
+            if (formView && !formView.classList.contains('d-none')) {
+                var vId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
+                if (vId && vId !== 'NEW') {
+                    if (typeof window.openEditVisitView === 'function') window.openEditVisitView(vId); 
+                } else {
+                    if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
+                    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
+                }
+            }
+        });
+    }
+
+    if (typeof window.renderVisitTableServerSide === 'function') {
+        window.renderVisitTableServerSide();
+    }
+
+    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
+        if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
+    }
+
+    if (typeof window.refreshSampleDropdownLang === 'function') {
+        window.refreshSampleDropdownLang();
     }
 };
 
