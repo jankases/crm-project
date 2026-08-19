@@ -108,6 +108,22 @@
     color: #b45309 !important;
     font-weight: 700;
   }
+
+  /* ⚡ KPI Quick Filter Interactive Styles */
+  .kpi-card-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+  }
+  .kpi-card-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+  .kpi-card-clickable.active-kpi {
+    border-width: 2px !important;
+    background-color: #f8fafc !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+  }
 </style>
 
 <div id="draftToastContainer"></div>
@@ -120,26 +136,26 @@
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <div class="kpi-card-elevated kpi-border-blue">
+        <div class="kpi-card-elevated kpi-border-blue kpi-card-clickable active-kpi" id="kpiCardAll" onclick="window.quickFilterKpi('')">
           <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
-            <span class="kpi-label-text" data-i18n="kpi_total_visits">จำนวนการเยี่ยมทั้งหมด</span>
+            <span class="kpi-label-text" data-i18n="kpi_total_visits">Total Visits</span>
             <span class="kpi-value-text text-primary" id="statTotalVisits">-</span>
           </div>
         </div>
 
-        <div class="kpi-card-elevated kpi-border-amber">
+        <div class="kpi-card-elevated kpi-border-amber kpi-card-clickable" id="kpiCardPending" onclick="window.quickFilterKpi('Pending')">
           <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
-            <span class="kpi-label-text" data-i18n="kpi_pending_drafts">ฉบับร่างรอยืนยัน</span>
+            <span class="kpi-label-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
             <span class="kpi-value-text text-warning-emphasis" id="statPendingVisits">-</span>
           </div>
         </div>
 
-        <div class="kpi-card-elevated kpi-border-emerald">
+        <div class="kpi-card-elevated kpi-border-emerald kpi-card-clickable" id="kpiCardSubmitted" onclick="window.quickFilterKpi('Submitted')">
           <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
-            <span class="kpi-label-text" data-i18n="kpi_submitted_logs">บันทึกที่ส่งแล้ว</span>
+            <span class="kpi-label-text" data-i18n="kpi_submitted_logs">Submitted Logs</span>
             <span class="kpi-value-text text-success" id="statSubmittedVisits">-</span>
           </div>
         </div>
@@ -147,8 +163,8 @@
 
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="btn-group shadow-xs bg-white p-1 border me-1 premium-radius">
-          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1.5"></i> <span data-i18n="btn_list">รายการ</span></button>
-          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1.5"></i> <span data-i18n="btn_calendar">ปฏิทิน</span></button>
+          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1.5"></i> <span data-i18n="btn_list">List</span></button>
+          <button class="btn btn-sm btn-light text-secondary premium-radius px-3 py-1.5 fw-bold border-0" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1.5"></i> <span data-i18n="btn_calendar">Calendar</span></button>
         </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
@@ -156,16 +172,16 @@
         </button>
 
         <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
-          <i class="fa-solid fa-umbrella-beach me-1.5"></i><span data-i18n="btn_add_tot">เพิ่ม TOT</span>
+          <i class="fa-solid fa-umbrella-beach me-1.5"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
 
         <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddVisitView()">
-          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_visit">สร้างบันทึกเยี่ยมใหม่</span>
+          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
 
-    <!-- 🌟 Card Loading Spinner (เพิ่มกลับเข้ามาเพื่อให้แสดงผลตอนกำลังโหลด) -->
+    <!-- 🌟 Card Loading Spinner -->
     <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column align-items-center justify-content-center my-auto d-none">
       <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem; border-width: 0.25rem;" role="status"></div>
       <h5 class="text-dark fw-bold mb-1" id="loadingTitleText" data-i18n="msg_loading">Loading Data...</h5>
@@ -180,7 +196,7 @@
             <div class="flex-grow-1" style="min-width: 320px; max-width: 480px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์..." onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }">
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }">
                 <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')"><i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i></button>
               </div>
             </div>
@@ -188,17 +204,17 @@
             <div style="width: 250px;">
               <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer" id="dateFilterRangeWrapper">
                 <span class="text-muted pe-1" onclick="if(window.fpStartInstance) window.fpStartInstance.open();"><i class="fa-regular fa-calendar-days"></i></span>
-                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterStartDate" placeholder="วว/ดด/ปปปป" readonly>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterStartDate" placeholder="dd/mm/yyyy" readonly>
                 <span class="text-muted small px-1">-</span>
-                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterEndDate" placeholder="วว/ดด/ปปปป" readonly>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer" id="filterEndDate" placeholder="dd/mm/yyyy" readonly>
               </div>
             </div>
 
             <div style="width: 190px;">
               <select class="form-select border shadow-none filter-placeholder-text premium-radius bg-light-subtle" id="filterVisitStatus" onchange="this.classList.toggle('filter-placeholder-text', this.value === ''); window.filterVisits();">
-                <option value="" data-i18n="opt_all_status">- สถานะทั้งหมด -</option>
-                <option value="Pending" data-i18n="opt_status_pending">⏳ รอส่ง (Pending)</option>
-                <option value="Submitted" data-i18n="opt_status_submitted">✅ ส่งแล้ว (Submitted)</option>
+                <option value="" data-i18n="opt_all_status">- All Status -</option>
+                <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
+                <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
               </select>
             </div>
           </div>
@@ -206,7 +222,7 @@
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">ตัวกรอง</span>
+                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
               </button>
               <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 1050;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
@@ -215,8 +231,8 @@
               </div>
             </div>
 
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">ล้างตัวกรอง</span></button>
-            <button class="btn btn-outline-success border shadow-sm premium-radius px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()"><i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold" data-i18n="btn_export">ส่งออก</span></button>
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear Filters</span></button>
+            <button class="btn btn-outline-success border shadow-sm premium-radius px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()"><i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold" data-i18n="btn_export">Export</span></button>
           </div>
         </div>
       </div>
@@ -226,12 +242,12 @@
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header text-center">
               <tr>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">วันที่</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">แพทย์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">โรงพยาบาล</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">ผลิตภัณฑ์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">วัตถุประสงค์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">สถานะ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
               </tr>
             </thead>
             <tbody id="visitTableBody"></tbody>
@@ -240,7 +256,7 @@
 
         <div id="visitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
           <div class="d-flex align-items-center">
-            <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">แสดงแถว:</label>
+            <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
             <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
               <option value="10">10</option>
               <option value="20" selected>20</option>
@@ -290,7 +306,7 @@
         <div class="visit-form-body-scroll pe-1">
           <div class="row g-3 h-100 align-items-stretch">
             
-            <!-- 🔹 คอลัมน์ซ้าย (45% - Primary Context & Dynamic Feature Buttons) -->
+            <!-- 🔹 Left Column (45% - Primary Context & Dynamic Feature Buttons) -->
             <div class="col-12 col-xl-5 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-light-subtle h-100 d-flex flex-column justify-content-between">
                 <div>
@@ -300,7 +316,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                       <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                       <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2.5 py-0.5 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.73rem;">
-                        <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="btn_last_history">📜 ประวัติเยี่ยม</span>
+                        <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="btn_last_history">📜 Visit History</span>
                       </button>
                     </div>
                     <div class="input-group input-group-sm shadow-xs mt-1" style="border-radius: 8px;">
@@ -379,7 +395,7 @@
               </div>
             </div>
 
-            <!-- 🔹 คอลัมน์ขวา (55% - Details) -->
+            <!-- 🔹 Right Column (55% - Details) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
               <div class="p-3 rounded-3 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
@@ -452,17 +468,17 @@
   </div>
 </div>
 
-<!-- 📜 Pop-up Modal 1: ประวัติการเยี่ยมย้อนหลัง -->
+<!-- 📜 Pop-up Modal 1: Visit History -->
 <div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-primary mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="btn_last_history">ประวัติการเยี่ยมย้อนหลัง</span></h6>
+        <h6 class="modal-title fw-bold text-primary mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="btn_last_history">Visit History</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3" id="lastVisitHistoryBox">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-secondary small" data-i18n="th_date">วันที่เข้าพบล่าสุด</span>
+          <span class="fw-bold text-secondary small" data-i18n="th_date">Last Visit Date</span>
           <span class="badge bg-primary text-white shadow-xs" id="lastVisitDateBadge">-</span>
         </div>
         <div class="p-2.5 bg-light border rounded-3 mb-2 small text-dark" style="line-height: 1.5;">
@@ -486,7 +502,7 @@
       </div>
       <div class="modal-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i><span data-i18n="lbl_location_coords">พิกัดตำแหน่ง</span></span>
+          <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i><span data-i18n="lbl_location_coords">Coordinates</span></span>
           <button type="button" class="btn btn-xs btn-premium-secondary px-2 py-0.5" id="btnGpsCheckin" onclick="window.getLocationCheckin()">Get Location</button>
         </div>
         <div class="row g-2">
@@ -509,11 +525,11 @@
       </div>
       <div class="modal-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small" data-i18n="lbl_sample_items_title">รายการของแจก</span>
-          <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()" data-i18n="btn_add_sample">+ เพิ่มรายการ</button>
+          <span class="fw-bold text-dark small" data-i18n="lbl_sample_items_title">Sample Items List</span>
+          <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()" data-i18n="btn_add_sample">+ Add Item</button>
         </div>
         <div id="sampleItemsContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
-          <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">ไม่มีการจ่ายสินค้าตัวอย่าง</div>
+          <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
         </div>
       </div>
     </div>
@@ -530,14 +546,14 @@
       </div>
       <div class="modal-body p-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small" data-i18n="lbl_attachments_title">รูปถ่าย/ไฟล์แนบ</span>
+          <span class="fw-bold text-dark small" data-i18n="lbl_attachments_title">Photos / Attachments</span>
           <label class="btn btn-xs btn-outline-primary px-2 py-0.5 mb-0 cursor-pointer">
-            <span data-i18n="btn_add_file">+ แนบไฟล์/ถ่ายรูป</span>
+            <span data-i18n="btn_add_file">+ Attach File / Take Photo</span>
             <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
           </label>
         </div>
         <div id="attachmentPreviewContainer" class="d-flex flex-wrap gap-2 overflow-auto" style="max-height: 200px;">
-          <small class="text-muted italic" id="noAttachmentText" data-i18n="txt_no_attachment">ยังไม่มีไฟล์แนบ</small>
+          <small class="text-muted italic" id="noAttachmentText" data-i18n="txt_no_attachment">No attachments yet</small>
         </div>
       </div>
     </div>
@@ -566,9 +582,9 @@
       <div class="modal-header bg-dark text-white py-2 px-3">
         <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
         <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
-          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> ถอย</button>
-          <span class="text-white small fw-bold mx-2">หน้า <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="window.jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
-          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.nextPdfPage()">ถัดไป <i class="fa-solid fa-chevron-right ms-1"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> Prev</button>
+          <span class="text-white small fw-bold mx-2">Page <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="window.jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
+          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.nextPdfPage()">Next <i class="fa-solid fa-chevron-right ms-1"></i></button>
         </div>
         <div class="d-flex align-items-center gap-3">
           <span class="badge bg-warning text-dark px-3 py-2 premium-radius fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
@@ -621,16 +637,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3 text-center">
-        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> <span data-i18n="lbl_sign_instruction">ใช้นิ้วหรือปากกา Stylus วาดลายเซ็นภายในกรอบด้านล่าง</span></p>
+        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> <span data-i18n="lbl_sign_instruction">Draw doctor signature inside the box using finger or stylus</span></p>
         <div class="position-relative bg-white border border-2 border-primary rounded-3 overflow-hidden shadow-inner mx-auto" style="width: 100%; height: 280px; touch-action: none;">
           <canvas id="modalSignatureCanvas" class="w-100 h-100" style="cursor: crosshair;"></canvas>
         </div>
       </div>
       <div class="modal-footer bg-light d-flex justify-content-between py-2">
-        <button type="button" class="btn btn-sm btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1"></i> <span data-i18n="btn_clear_canvas">ล้างกระดาน</span></button>
+        <button type="button" class="btn btn-sm btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1"></i> <span data-i18n="btn_clear_canvas">Clear Canvas</span></button>
         <div>
-          <button type="button" class="btn btn-sm btn-secondary px-3 me-1" data-bs-dismiss="modal" data-i18n="btn_cancel">ยกเลิก</button>
-          <button type="button" class="btn btn-sm btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_save_sig">ตกลง / บันทึก</span></button>
+          <button type="button" class="btn btn-sm btn-secondary px-3 me-1" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+          <button type="button" class="btn btn-sm btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_save_sig">Save Signature</span></button>
         </div>
       </div>
     </div>
