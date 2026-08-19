@@ -121,6 +121,62 @@
     background-color: #f8fafc !important;
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
   }
+
+  /* 📱 iPad Touch-Optimized Modals & Touch Targets */
+  .modal-content {
+    border-radius: 20px !important;
+    border: none !important;
+  }
+
+  .modal-header {
+    padding: 1rem 1.25rem !important;
+  }
+
+  /* ปรับปุ่มใน Modal ให้มีความสูงอย่างน้อย 44px เพื่อให้กดง่ายด้วยนิ้วสัมผัส */
+  .modal-body .btn,
+  .modal-footer .btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    padding: 8px 18px !important;
+  }
+
+  /* ปรับขนาด Input ใน Modal ให้ใหญ่เต็มมือ */
+  .modal-body .form-control,
+  .modal-body .form-select {
+    min-height: 44px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+  }
+
+  /* ป้องกันไม่ให้มี Scrollbar แนวนอนโผล่ใน Samples Container */
+  #sampleItemsContainer {
+    overflow-x: hidden !important;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  /* ปรับแถวของสินค้าตัวอย่างให้โปร่งและกดลบง่าย */
+  .sample-item-row {
+    background: #f8fafc;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 8px;
+  }
+
+  .sample-item-row .btn-delete-sample {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 </style>
 
 <div id="draftToastContainer"></div>
@@ -525,44 +581,56 @@
   </div>
 </div>
 
-<!-- 📍 Floating Drawer 2: GPS Check-in -->
+<!-- 📍 Floating Modal 2: GPS Check-in (iPad Optimized) -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg premium-radius">
-      <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i><span data-i18n="lbl_location">GPS Check-in</span></h6>
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-light py-3 px-4">
+        <h6 class="modal-title fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-location-dot text-danger me-2 fs-5"></i><span data-i18n="lbl_location">GPS Check-in</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small"><i class="fa-solid fa-map-pin text-danger me-1"></i><span data-i18n="lbl_location_coords">Coordinates</span></span>
-          <button type="button" class="btn btn-xs btn-premium-secondary px-2 py-0.5" id="btnGpsCheckin" onclick="window.getLocationCheckin()">Get Location</button>
+      <div class="modal-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="fw-bold text-dark fs-6"><i class="fa-solid fa-map-pin text-danger me-1.5"></i><span data-i18n="lbl_location_coords">Coordinates</span></span>
+          <button type="button" class="btn btn-premium-secondary px-3" id="btnGpsCheckin" onclick="window.getLocationCheckin()">
+            <i class="fa-solid fa-crosshairs me-1.5"></i>Get Location
+          </button>
         </div>
-        <div class="row g-2">
-          <div class="col-6"><input type="text" class="form-control form-control-sm bg-white text-primary fw-bold" id="visitLat" readonly placeholder="Lat"></div>
-          <div class="col-6"><input type="text" class="form-control form-control-sm bg-white text-primary fw-bold" id="visitLng" readonly placeholder="Lng"></div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="compact-label mb-1 text-muted">Latitude</label>
+            <input type="text" class="form-control bg-white text-primary fw-bold" id="visitLat" readonly placeholder="Lat">
+          </div>
+          <div class="col-6">
+            <label class="compact-label mb-1 text-muted">Longitude</label>
+            <input type="text" class="form-control bg-white text-primary fw-bold" id="visitLng" readonly placeholder="Lng">
+          </div>
         </div>
-        <div class="text-end mt-2 d-none" id="locationTimeWrapper"><small class="text-success fw-bold">Checked-in at: <span id="visitCheckinTimeText"></span></small></div>
+        <div class="text-end mt-3 d-none" id="locationTimeWrapper">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Checked-in at: <span id="visitCheckinTimeText"></span></span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 🎁 Floating Drawer 3: Samples & Promo -->
+<!-- 🎁 Floating Modal 3: Samples & Promo (iPad Optimized - No Horizontal Scroll) -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg premium-radius">
-      <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-gifts text-warning me-2"></i><span data-i18n="lbl_samples_title">Samples & Promo Items</span></h6>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-light py-3 px-4">
+        <h6 class="modal-title fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-gifts text-warning me-2 fs-5"></i><span data-i18n="lbl_samples_title">Samples & Promo Items</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark small" data-i18n="lbl_sample_items_title">Sample Items List</span>
-          <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0.5" onclick="window.addSampleRow()" data-i18n="btn_add_sample">+ Add Item</button>
+      <div class="modal-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="fw-bold text-dark fs-6" data-i18n="lbl_sample_items_title">Sample Items List</span>
+          <button type="button" class="btn btn-outline-primary px-3" onclick="window.addSampleRow()" data-i18n="btn_add_sample"><i class="fa-solid fa-plus me-1"></i> Add Item</button>
         </div>
-        <div id="sampleItemsContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
-          <div class="text-muted small text-center italic" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
+        
+        <!-- Container แบบไม่มี Scrollbar แนวนอน -->
+        <div id="sampleItemsContainer" style="max-height: 280px;">
+          <div class="text-muted small text-center italic py-4" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
         </div>
       </div>
     </div>
@@ -661,25 +729,25 @@
   </div>
 </div>
 
-<!-- Signature Canvas Modal -->
+<!-- Signature Canvas Modal (iPad Touch Canvas Optimized) -->
 <div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content premium-radius shadow-lg border-0">
-      <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-signature text-success me-2"></i><span data-i18n="lbl_signature">Doctor Signature</span></h6>
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-light py-3 px-4">
+        <h6 class="modal-title fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-signature text-success me-2 fs-5"></i><span data-i18n="lbl_signature">Doctor Signature</span></h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-3 text-center">
-        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1"></i> <span data-i18n="lbl_sign_instruction">Draw doctor signature inside the box using finger or stylus</span></p>
-        <div class="position-relative bg-white border border-2 border-primary rounded-3 overflow-hidden shadow-inner mx-auto" style="width: 100%; height: 280px; touch-action: none;">
+      <div class="modal-body p-4 text-center">
+        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1.5 text-primary"></i> <span data-i18n="lbl_sign_instruction">Draw doctor signature inside the box using finger or Apple Pencil / Stylus</span></p>
+        <div class="position-relative bg-white border border-2 border-primary rounded-4 overflow-hidden shadow-xs mx-auto" style="width: 100%; height: 320px; touch-action: none;">
           <canvas id="modalSignatureCanvas" class="w-100 h-100" style="cursor: crosshair;"></canvas>
         </div>
       </div>
-      <div class="modal-footer bg-light d-flex justify-content-between py-2">
-        <button type="button" class="btn btn-sm btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1"></i> <span data-i18n="btn_clear_canvas">Clear Canvas</span></button>
-        <div>
-          <button type="button" class="btn btn-sm btn-secondary px-3 me-1" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-          <button type="button" class="btn btn-sm btn-success px-4 fw-bold" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_save_sig">Save Signature</span></button>
+      <div class="modal-footer bg-light d-flex justify-content-between py-3 px-4">
+        <button type="button" class="btn btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1.5"></i> <span data-i18n="btn_clear_canvas">Clear Canvas</span></button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+          <button type="button" class="btn btn-success px-4" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1.5"></i> <span data-i18n="btn_save_sig">Save Signature</span></button>
         </div>
       </div>
     </div>
