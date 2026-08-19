@@ -764,15 +764,15 @@ window.switchVisitView = function(viewId) {
 };
 
 window.updateStatCards = function(filteredVisits) {
-    // 🌟 Total Visits ต้องใช้จำนวนทั้งหมดจริง ไม่เปลี่ยนตามการฟิลเตอร์
-    var total = window.totalVisitsCount || (window.globalVisits ? window.globalVisits.length : 0);
+    // 🌟 ล็อคให้อ้างอิง masterTotalVisitsCount เสมอ ตัวเลข Total Visits จะได้ไม่เพี้ยนเวลาใส่ฟิลเตอร์
+    var total = window.masterTotalVisitsCount || window.totalVisitsCount || (window.globalVisits ? window.globalVisits.length : 0);
     
-    // 🌟 คำนวณ Pending และ Submitted จากข้อมูลตั้งต้นทั้งหมด (window.globalVisits)
+    // คำนวณ Pending และ Submitted จากข้อมูลใน globalVisits
     var allVisits = window.globalVisits || [];
     var pending = allVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
     var submitted = allVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
 
-    // อัปเดตตัวเลขลงกล่อง KPI
+    // อัปเดตตัวเลขลงกล่อง KPI บน UI
     if (document.getElementById('statTotalVisits')) {
         document.getElementById('statTotalVisits').innerText = total;
     }
@@ -1809,9 +1809,14 @@ window.loadVisits = async function(forceReload) {
       var res = await query;
       if (res.error) throw res.error;
 
-      window.globalVisits = res.data || [];
-      window.totalVisitsCount = res.count || 0;
+      if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
+    window.globalVisits = res.data || [];
 
+    // 🌟 ถ้าไม่มีการใส่ฟิลเตอร์ใดๆ ให้ล็อคยอดรวมตั้งต้นเก็บไว้ใน Master Variable
+    if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
+        window.masterTotalVisitsCount = res.count || 0;
+    }
+    window.totalVisitsCount = window.masterTotalVisitsCount || res.count || 0;
       window._visitSampleIndex = {};
 
       if (window.globalVisits.length > 0) {
@@ -3464,11 +3469,12 @@ window.quickFilterKpi = function(targetStatus) {
     if (cardPending) cardPending.classList.toggle('active-kpi', finalStatus === 'Pending');
     if (cardSubmitted) cardSubmitted.classList.toggle('active-kpi', finalStatus === 'Submitted');
 
+    // 🌟 สั่งฟิลเตอร์ตารางฝั่งหน้าจอ ไม่ต้องยิงขอข้อมูล DB ใหม่ให้ยอดรวมเพี้ยน
     window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true);
+    if (typeof window.filterVisits === 'function') {
+        window.filterVisits();
     }
-}; 
+};
 
 // ==========================================
 // 🌐 CENTRALIZED LANGUAGE UI UPDATE
