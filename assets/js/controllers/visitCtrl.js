@@ -1529,7 +1529,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
-window.loadVisits = async function(forceReload) {
+ window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1809,14 +1809,13 @@ window.loadVisits = async function(forceReload) {
       var res = await query;
       if (res.error) throw res.error;
 
-      if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
-    window.globalVisits = res.data || [];
+      window.globalVisits = res.data || [];
 
-    // 🌟 ถ้าไม่มีการใส่ฟิลเตอร์ใดๆ ให้ล็อคยอดรวมตั้งต้นเก็บไว้ใน Master Variable
-    if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
-        window.masterTotalVisitsCount = res.count || 0;
-    }
-    window.totalVisitsCount = window.masterTotalVisitsCount || res.count || 0;
+      // 🌟 ถ้าไม่มีการใส่ฟิลเตอร์ใดๆ ให้ล็อคยอดรวมตั้งต้นเก็บไว้ใน Master Variable
+      if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
+          window.masterTotalVisitsCount = res.count || 0;
+      }
+      window.totalVisitsCount = window.masterTotalVisitsCount || res.count || 0;
       window._visitSampleIndex = {};
 
       if (window.globalVisits.length > 0) {
