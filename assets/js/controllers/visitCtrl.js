@@ -1850,9 +1850,9 @@ window.renderVisitTableServerSide = function() {
                       ? window._visitSampleIndex[vidClean] 
                       : (v.Visit_Samples || []);
                       
-    if (sampleItems && sampleItems.length > 0) {
+     if (sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
-      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-box-archive text-warning"></i></span>';
+      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
     htmlBuffer += '<tr>' +
