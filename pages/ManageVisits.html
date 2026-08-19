@@ -644,7 +644,7 @@
   </div>
 </div>
 
-<!-- 📸 Floating Modal 4: Attachments (iPad Touch-Optimized) -->
+<!-- 📸 Floating Modal 4: Attachments (iPad Premium Touch UX) -->
 <div class="modal fade" id="attachmentsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -657,17 +657,23 @@
       </div>
       <div class="modal-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="fw-bold text-dark fs-6" data-i18n="lbl_attachments_title">Photos / Attachments</span>
-          <label class="btn btn-outline-primary px-3 shadow-xs d-flex align-items-center gap-2 cursor-pointer" style="min-height: 44px; border-radius: 12px; font-weight: 600;">
-            <i class="fa-solid fa-plus fs-6"></i>
-            <span data-i18n="btn_add_file">Attach File / Take Photo</span>
+          <div>
+            <span class="fw-bold text-dark fs-6 d-block" data-i18n="lbl_attachments_title">Photos / Attachments</span>
+            <small class="text-muted" style="font-size: 0.8rem;">Supported formats: JPG, PNG, PDF</small>
+          </div>
+          <label class="btn btn-primary px-3 shadow-xs d-flex align-items-center gap-2 cursor-pointer" style="min-height: 44px; border-radius: 12px; font-weight: 600;">
+            <i class="fa-solid fa-cloud-arrow-up fs-6"></i>
+            <span data-i18n="btn_add_file">Attach File / Photo</span>
             <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
           </label>
         </div>
         
-        <!-- Container แสดงรูปพรีวิวขนาดใหญ่บน iPad -->
-        <div id="attachmentPreviewContainer" class="d-flex flex-wrap gap-3 pt-2 overflow-auto pe-1" style="max-height: 320px;">
-          <small class="text-muted italic py-4 w-100 text-center" id="noAttachmentText" data-i18n="txt_no_attachment">No attachments yet</small>
+        <!-- Container รูปพรีวิวการ์ดใหญ่ -->
+        <div id="attachmentPreviewContainer" class="row g-3 pt-2 overflow-auto" style="max-height: 340px; overflow-x: hidden !important;">
+          <div class="col-12 text-center py-4" id="noAttachmentText">
+            <i class="fa-regular fa-images fs-1 text-muted opacity-50 mb-2 d-block"></i>
+            <span class="text-muted small" data-i18n="txt_no_attachment">No attachments uploaded yet</span>
+          </div>
         </div>
       </div>
     </div>
