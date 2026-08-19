@@ -373,7 +373,7 @@
                     </div>
                   </div>
 
-                  <!-- 🌟 Features & Evidences Section Header -->
+                  <!-- 🌟 Features & Evidences Section Header & Colored Action Buttons -->
                   <div class="pt-3 border-top mt-2">
                     <label class="compact-label mb-2.5 d-flex align-items-center gap-2 text-primary fw-bold" style="font-size: 0.9rem;">
                       <i class="fa-solid fa-sliders"></i>
@@ -381,30 +381,35 @@
                     </label>
                     
                     <div class="row g-2">
-                      <div class="col-6" id="sectionGpsCheckin">
-                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                      <!-- 📍 GPS Check-in -->
+                      <div class="col-6">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                           <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                         </button>
                       </div>
 
-                      <div class="col-6" id="sectionSignature">
-                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="window.openSignatureModal()">
+                      <!-- ✍️ Doctor Signature -->
+                      <div class="col-6">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionSignature" onclick="window.openSignatureModal()">
                           <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                         </button>
                       </div>
 
-                      <div class="col-6" id="sectionSamples">
-                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                      <!-- 🎁 Samples & Promo -->
+                      <div class="col-6">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
                           <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                         </button>
                       </div>
 
-                      <div class="col-6" id="sectionAttachments">
-                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                      <!-- 📸 Attachments -->
+                      <div class="col-6">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
                           <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                         </button>
                       </div>
 
+                      <!-- 🎬 e-Detailing -->
                       <div class="col-12 d-none" id="detailingMediaSection">
                         <button type="button" class="feature-action-btn-lg w-100 py-2 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
                           <i class="fa-solid fa-file-powerpoint me-1.5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
@@ -417,7 +422,7 @@
               </div>
             </div>
 
-            <!-- 🔹 Right Column (Activity Details - Vertical Sequence with i18n Placeholders) -->
+            <!-- 🔹 Right Column (Activity Details - Vertical Sequence with 2-Lang Placeholders) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
               <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
