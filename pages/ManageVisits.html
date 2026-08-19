@@ -614,22 +614,29 @@
   </div>
 </div>
 
-<!-- 🎁 Floating Modal 3: Samples & Promo (iPad Optimized - No Horizontal Scroll) -->
+ 
+
+<!-- 🎁 Floating Modal 3: Samples & Promo (iPad Touch Optimized - No Duplicate & No Scrollbar) -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-light py-3 px-4">
-        <h6 class="modal-title fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-gifts text-warning me-2 fs-5"></i><span data-i18n="lbl_samples_title">Samples & Promo Items</span></h6>
+        <h6 class="modal-title fw-bold text-dark mb-0 fs-6">
+          <i class="fa-solid fa-gifts text-warning me-2 fs-5"></i>
+          <span data-i18n="lbl_samples_title">Samples & Promo Items</span>
+        </h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <span class="fw-bold text-dark fs-6" data-i18n="lbl_sample_items_title">Sample Items List</span>
-          <button type="button" class="btn btn-outline-primary px-3" onclick="window.addSampleRow()" data-i18n="btn_add_sample"><i class="fa-solid fa-plus me-1"></i> Add Item</button>
+          <button type="button" class="btn btn-outline-primary px-3" onclick="window.addSampleRow()" data-i18n="btn_add_sample">
+            <i class="fa-solid fa-plus me-1"></i> Add Item
+          </button>
         </div>
         
-        <!-- Container แบบไม่มี Scrollbar แนวนอน -->
-        <div id="sampleItemsContainer" style="max-height: 280px;">
+        <!-- Container ควบคุมให้พอดี ไม่มี Scrollbar แนวนอน -->
+        <div id="sampleItemsContainer" class="px-1" style="max-height: 360px; overflow-x: hidden; overflow-y: auto;">
           <div class="text-muted small text-center italic py-4" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
         </div>
       </div>
