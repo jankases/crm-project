@@ -1,8 +1,4 @@
-// =========================================
-// CRM System - Utility Functions
-// ========================================= 
-
-// 1. ฟังก์ชันโชว์แจ้งเตือนป๊อปอัป (Toast)
+// assets/js/utils.js
 window.showToast = function(message, type = 'success') {
   var container = document.getElementById('toastContainer');
   if (!container) return;
@@ -25,7 +21,6 @@ window.showToast = function(message, type = 'success') {
   toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
 };
 
-// 2. ฟังก์ชันสุ่มรหัส ID (UUID Generator)
 window.generateUUID = function() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -34,7 +29,6 @@ window.generateUUID = function() {
   });
 };
 
-// 3. ฟังก์ชันแปลงวันที่ให้สวยงาม (Date Formatter)
 window.formatDateToLocal = function(dateStr) {
   if (!dateStr) return '-';
   var d = new Date(dateStr);
@@ -42,7 +36,6 @@ window.formatDateToLocal = function(dateStr) {
   return d.toLocaleDateString(); 
 };
 
-// 4. ฟังก์ชันแปลงเวลา (Time Formatter)
 window.formatTimeString = function(timeStr) {
   if (!timeStr) return '';
   var str = String(timeStr).trim();
@@ -53,7 +46,6 @@ window.formatTimeString = function(timeStr) {
   return str;
 };
 
-// 5. ฟังก์ชันไฮไลท์คำค้นหา (Search Highlighter)
 window.applySearchHighlight = function(text, searchKeyword) {
   if (!text || text === '-') return '-';
   if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -73,15 +65,19 @@ window.applySearchHighlight = function(text, searchKeyword) {
   return safeText;
 };
 
-// 6. ฟังก์ชันดูดข้อมูลจาก Supabase แบบทะลุ Limit 1000 แถว (เวอร์ชัน Fast-Cache & Safe Query)
+// ⚡ 6. Optimized Fast-Fetch All Records with Memory Cache
+window.globalDataCache = window.globalDataCache || {};
+
 window.fetchAllRecords = async function(tableName, queryModifier) {
-    if (window.VisitManagerCache && window.VisitManagerCache[tableName] && !queryModifier) {
-        return window.VisitManagerCache[tableName];
+    // ใช้ Cache ในหน่วยความจำหากไม่มีการใช้ Query Modifier พิเศษ
+    if (window.globalDataCache[tableName] && !queryModifier) {
+        return window.globalDataCache[tableName];
     }
 
     var allData = [];
     var start = 0;
     var step = 1000;
+    
     while (true) {
         var baseQuery = window.supabaseClient.from(tableName).select('*');
         
@@ -98,14 +94,13 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
         start += step;
     }
 
-    if (window.VisitManagerCache && !queryModifier) {
-        window.VisitManagerCache[tableName] = allData;
+    if (!queryModifier) {
+        window.globalDataCache[tableName] = allData;
     }
 
     return allData;
 };
 
-// 7. HELPER กลางสำหรับ Pagination (ใช้ร่วมกันทุกหน้า)
 window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
   var ul = document.getElementById(ulId);
   if (!ul) return;
