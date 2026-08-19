@@ -4328,3 +4328,34 @@ window.initVisitDatePickers = function() {
   window.fpStartInstance = flatpickr(startEl, commonConfig);
   window.fpEndInstance = flatpickr(endEl, commonConfig);
 };
+
+
+// 🧹 ลบแถว Samples ที่ไม่ได้เลือกรายการ (แถวว่าง) ออกโดยอัตโนมัติ
+window.cleanEmptySampleRows = function() {
+    const container = document.getElementById('sampleItemsContainer');
+    if (!container) return;
+
+    const rows = container.querySelectorAll('.sample-item-row');
+    rows.forEach(row => {
+        const selectEl = row.querySelector('.sample-id-select');
+        // ถ้าไม่ได้เลือกสินค้า (ค่าเป็นว่าง) ให้ลบแถวนั้นทิ้งทันที
+        if (selectEl && !selectEl.value) {
+            row.remove();
+        }
+    });
+
+    window.checkEmptySamples();
+    if (typeof window.updateFeatureButtonIndicators === 'function') {
+        window.updateFeatureButtonIndicators(null);
+    }
+};
+
+// 📌 สั่งให้เคลียร์แถวว่างทันทีเมื่อ Modal ถูกปิดลง (Bootstrap Modal Hidden Event)
+document.addEventListener('DOMContentLoaded', function() {
+    const samplesModalEl = document.getElementById('samplesDrawerModal');
+    if (samplesModalEl) {
+        samplesModalEl.addEventListener('hidden.bs.modal', function () {
+            window.cleanEmptySampleRows();
+        });
+    }
+});
