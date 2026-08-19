@@ -165,6 +165,13 @@
       </div>
     </div>
 
+    <!-- 🌟 Card Loading Spinner (เพิ่มกลับเข้ามาเพื่อให้แสดงผลตอนกำลังโหลด) -->
+    <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column align-items-center justify-content-center my-auto d-none">
+      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem; border-width: 0.25rem;" role="status"></div>
+      <h5 class="text-dark fw-bold mb-1" id="loadingTitleText" data-i18n="msg_loading">Loading Data...</h5>
+      <span class="text-muted small" id="loadingDescText">Processing your access rights and retrieving records.</span>
+    </div>
+
     <div id="visitMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden">
       
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
@@ -333,7 +340,7 @@
                     </div>
                   </div>
 
-                  <!-- 🌟 Dynamic Features Action Buttons (มี Active Class & Badges) -->
+                  <!-- 🌟 Dynamic Features Action Buttons -->
                   <div class="pt-2 border-top">
                     <label class="compact-label mb-2 text-secondary d-block"><i class="fa-solid fa-sliders me-1"></i>Features & Evidences</label>
                     <div class="d-flex flex-wrap gap-2">
@@ -348,7 +355,7 @@
                         <i class="fa-solid fa-signature me-1"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                       </button>
 
-                      <!-- 🎁 Samples & Promo (เพิ่ม Badge สภาวะมีข้อมูล) -->
+                      <!-- 🎁 Samples & Promo -->
                       <button type="button" class="feature-action-btn-lg" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
                         <i class="fa-solid fa-gifts me-1"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                       </button>
@@ -629,5 +636,5 @@
     </div>
   </div>
 </div>
- 
+
 <script src="assets/js/controllers/visitCtrl.js?v=20260819_fast"></script>
