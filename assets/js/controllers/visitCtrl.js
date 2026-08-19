@@ -1653,23 +1653,78 @@ window.clearVisitFilters = function() {
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
       
-      // 🟢 กรอง Sales Rep / Employee
+      // 🔍 Filter Rep: แมปหาทั้ง Rep_ID และ Email จาก Rep_Users
       if (selectedReps.length > 0) {
-          query = query.in('Rep_ID', selectedReps);
+          var targetRepIds = [...selectedReps];
+          var targetEmails = [];
+
+          (window.globalUsersList || []).forEach(function(u) {
+              var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+              if (selectedReps.indexOf(uid) !== -1) {
+                  if (u.Email) targetEmails.push(u.Email.toLowerCase().trim());
+              }
+          });
+
+          if (targetEmails.length > 0) {
+              query = query.or('Rep_ID.in.(' + targetRepIds.join(',') + '),Whoupdated.in.(' + targetEmails.join(',') + ')');
+          } else {
+              query = query.in('Rep_ID', targetRepIds);
+          }
       }
 
-      // 🟢 กรอง Area / Team (คำนวณหาทั้ง Team_ID และ Territory_ID ลูกที่เกี่ยวข้อง)
+      // 🔍 Filter Territory/Team/BU: Fallback Cascade Logic
       if (selectedTers.length > 0) {
-          var matchedTerAndTeamIds = [...selectedTers];
-          if (window.globalTerritoryList && window.globalTerritoryList.length > 0) {
-              window.globalTerritoryList.forEach(function(ter) {
-                  // ถ้าเลือก Team_ID ให้ดึง Territory_ID ทุกตัวในทีมนั้นมาเข้าเงื่อนไข Query ด้วย
-                  if (selectedTers.indexOf(String(ter.Team_ID)) !== -1 || selectedTers.indexOf(String(ter.Team)) !== -1) {
-                      matchedTerAndTeamIds.push(String(ter.Territory_ID));
+          var matchedTerIds = [...selectedTers];
+          var cache = window.VisitManagerCache || {};
+          var terrList = cache.territories || window.globalTerritoryList || [];
+          var teamList = cache.teams || window.globalTeamList || [];
+
+          selectedTers.forEach(function(selId) {
+              // 1. ถ้าตรงกับ Team_ID ให้หา Territory_ID ทั้งหมดในทีมนั้น
+              teamList.forEach(function(tm) {
+                  if (String(tm.Team_ID) === selId || String(tm.Team) === selId) {
+                      terrList.forEach(function(tr) {
+                          if (String(tr.Team_ID) === String(tm.Team_ID)) {
+                              matchedTerIds.push(String(tr.Territory_ID));
+                          }
+                      });
                   }
               });
+
+              // 2. ถ้าตรงกับ BU_ID ให้ไล่ลงมาหา Team -> Territory
+              var busList = cache.bus || [];
+              busList.forEach(function(bu) {
+                  if (String(bu.BU_ID) === selId || String(bu.BU) === selId) {
+                      teamList.forEach(function(tm) {
+                          if (String(tm.BU_ID) === String(bu.BU_ID)) {
+                              terrList.forEach(function(tr) {
+                                  if (String(tr.Team_ID) === String(tm.Team_ID)) {
+                                      matchedTerIds.push(String(tr.Territory_ID));
+                                  }
+                              });
+                          }
+                      });
+                  }
+              });
+          });
+
+          // ดึงผู้ใช้งานที่สังกัดอยู่ในพื้นที่เหล่านี้ เพื่อแก้ปัญหาแถวที่เป็น NULL ใน Visit_Logs
+          var repIdsInTerr = [];
+          (window.globalUsersList || []).forEach(function(u) {
+              var uTer = String(u.Territory_ID || u.Territory || '').trim();
+              var uTeam = String(u.Team_ID || u.Team || '').trim();
+              var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+              
+              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTerIds.indexOf(uTeam) !== -1) {
+                  if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
+              }
+          });
+
+          if (repIdsInTerr.length > 0) {
+              query = query.or('Territory_ID.in.(' + matchedTerAndUnique(matchedTerIds).join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')');
+          } else {
+              query = query.in('Territory_ID', matchedTerAndUnique(matchedTerIds));
           }
-          query = query.in('Territory_ID', matchedTerAndTeamIds);
       }
 
       // 🎯 4. Smart Search
@@ -1749,6 +1804,13 @@ window.clearVisitFilters = function() {
       if (mainContentContainer) mainContentContainer.classList.remove('d-none');
     }
 };
+
+// Helper ฟังก์ชันลบ ID ซ้ำ
+function matchedTerAndUnique(arr) {
+    return arr.filter(function(item, pos) {
+        return item && item !== 'null' && item !== 'undefined' && arr.indexOf(item) === pos;
+    });
+}
 
 // ==========================================
 // 💾 HELPER: SAVE & RESTORE FILTER STATE
