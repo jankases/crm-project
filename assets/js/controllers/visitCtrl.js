@@ -1559,8 +1559,16 @@ window.renderFormProductDropdown = async function() {
         if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
     }
 };
-
-window.handleFilterChange = function(source) { if (typeof window.filterVisits === 'function') window.filterVisits(); };
+ 
+window.handleFilterChange = function(source) { 
+    if (window.isInitialLoading) return; 
+    
+    // reset หน้ากลับไปหน้า 1 แล้วสั่งโหลดข้อมูลใหม่ทันทีที่เลือกค่าเปลี่ยน
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true); 
+    }
+};
 
 window.clearVisitFilters = function() {
     if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
@@ -1645,21 +1653,23 @@ window.clearVisitFilters = function() {
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
       
+      // 🟢 กรอง Sales Rep / Employee
       if (selectedReps.length > 0) {
           query = query.in('Rep_ID', selectedReps);
       }
 
+      // 🟢 กรอง Area / Team (คำนวณหาทั้ง Team_ID และ Territory_ID ลูกที่เกี่ยวข้อง)
       if (selectedTers.length > 0) {
-          // คำนวณหา Territory_ID ลูกที่สังกัดภายใต้ Team_ID นั้นๆ
-          var matchedTerritoryIds = [...selectedTers];
+          var matchedTerAndTeamIds = [...selectedTers];
           if (window.globalTerritoryList && window.globalTerritoryList.length > 0) {
               window.globalTerritoryList.forEach(function(ter) {
-                  if (selectedTers.indexOf(String(ter.Team_ID)) !== -1) {
-                      matchedTerritoryIds.push(String(ter.Territory_ID));
+                  // ถ้าเลือก Team_ID ให้ดึง Territory_ID ทุกตัวในทีมนั้นมาเข้าเงื่อนไข Query ด้วย
+                  if (selectedTers.indexOf(String(ter.Team_ID)) !== -1 || selectedTers.indexOf(String(ter.Team)) !== -1) {
+                      matchedTerAndTeamIds.push(String(ter.Territory_ID));
                   }
               });
           }
-          query = query.in('Territory_ID', matchedTerritoryIds);
+          query = query.in('Territory_ID', matchedTerAndTeamIds);
       }
 
       // 🎯 4. Smart Search
