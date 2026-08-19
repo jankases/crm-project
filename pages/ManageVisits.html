@@ -668,16 +668,22 @@
   </div>
 </div>
 
-<!-- 🎬 Floating Drawer 5: e-Detailing -->
+<!-- 🎬 Floating Modal 5: e-Detailing (iPad Touch-Optimized) -->
 <div class="modal fade" id="mediaDrawerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg premium-radius">
-      <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-dark mb-0"><i class="fa-solid fa-file-powerpoint text-danger me-2"></i><span data-i18n="sec_edetailing">e-Detailing</span></h6>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+      <div class="modal-header bg-light py-3 px-4">
+        <div class="d-flex align-items-center justify-content-between w-100 me-3" id="detailingMediaHeader">
+          <h6 class="modal-title fw-bold text-dark mb-0 fs-6">
+            <i class="fa-solid fa-file-powerpoint text-danger me-2 fs-5"></i>
+            <span data-i18n="sec_edetailing">e-Detailing / Presentation</span>
+          </h6>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-3">
-        <div id="mediaListContainer" class="d-flex flex-column gap-2 overflow-auto" style="max-height: 250px;"></div>
+      <div class="modal-body p-4">
+        <!-- Container แสดงรายการสื่อ ปรับความสูงให้พอดี ไม่ขึ้น Scrollbar แนวนอน -->
+        <div id="mediaListContainer" class="d-flex flex-column gap-3 overflow-auto pe-1" style="max-height: 420px; overflow-x: hidden !important;"></div>
       </div>
     </div>
   </div>
