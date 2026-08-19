@@ -4225,3 +4225,34 @@ window.updateFeatureButtonIndicators = function(data) {
     attachText.innerText = 'Attachments';
   }
 };
+
+// ⚡ Quick Filter จากการกดการ์ด KPI ด้านบน
+window.quickFilterKpi = function(targetStatus) {
+    var statusEl = document.getElementById('filterVisitStatus');
+    var currentVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
+
+    // ถ้ากดการ์ดเดิมซ้ำ ให้ทำการ Toggle เป็นการเลือก "ทั้งหมด"
+    var finalStatus = (currentVal === targetStatus && targetStatus !== '') ? '' : targetStatus;
+
+    // 1. อัปเดตค่าไปยัง TomSelect / Native Select
+    if (window.tomSelectStatusInstance) {
+        window.tomSelectStatusInstance.setValue(finalStatus, false);
+    } else if (statusEl) {
+        statusEl.value = finalStatus;
+    }
+
+    // 2. ปรับแต่ง Visual Active Class บนการ์ด KPI
+    var cardAll = document.getElementById('kpiCardAll');
+    var cardPending = document.getElementById('kpiCardPending');
+    var cardSubmitted = document.getElementById('kpiCardSubmitted');
+
+    if (cardAll) cardAll.classList.toggle('active-kpi', finalStatus === '');
+    if (cardPending) cardPending.classList.toggle('active-kpi', finalStatus === 'Pending');
+    if (cardSubmitted) cardSubmitted.classList.toggle('active-kpi', finalStatus === 'Submitted');
+
+    // 3. รีเซ็ตหน้ากลับหน้าแรกและโหลดตารางใหม่
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true);
+    }
+};
