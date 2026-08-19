@@ -124,24 +124,7 @@ window.loadMasterSamplesList = async function() {
     }
 };
 
-window.addSampleRow = function(sampleId = '', qty = 1) {
-    const container = document.getElementById('sampleItemsContainer');
-    const noText = document.getElementById('noSampleText');
-    if (noText) noText.style.display = 'none';
-
-    const rowId = 'sampleRow_' + Date.now();
-    var btnEN = document.getElementById('btnLangEN');
-    var isEN = btnEN && btnEN.classList.contains('btn-primary');
-    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
-
-    let optionsHTML = `<option value="">${placeholderText}</option>`;
-    if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
-        window.globalMasterSamples.forEach(item => {
-            const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
-            const isSelected = String(item.Index_ID) === String(sampleId) ? 'selected' : '';
-            optionsHTML += `<option value="${item.Index_ID}" ${isSelected}>${displayName}</option>`;
-        });
-    }
+ 
 
     // 📱 ปรับแต่ง Grid (7-3-2) พร้อมผูกระบบเช็กตัวเลือกซ้ำ และอัปเดตตัวนับหน้าหลักทันทีเมื่อลบ
     const rowHTML = `
@@ -4356,6 +4339,147 @@ document.addEventListener('DOMContentLoaded', function() {
     if (samplesModalEl) {
         samplesModalEl.addEventListener('hidden.bs.modal', function () {
             window.cleanEmptySampleRows();
+        });
+    }
+});
+
+
+// ==========================================
+// 🎁 SAMPLES & PROMO ITEMS ENGINE
+// ==========================================
+
+// 1. ดึงเฉพาะแถวที่มีการเลือกสินค้าไปบันทึกลงฐานข้อมูล
+window.getSamplesData = function() {
+    const container = document.getElementById('sampleItemsContainer');
+    if (!container) return [];
+
+    const rows = container.querySelectorAll('.sample-item-row');
+    const samples = [];
+
+    rows.forEach(row => {
+        const selectEl = row.querySelector('.sample-id-select');
+        const qtyEl = row.querySelector('.sample-qty');
+
+        // 🌟 ดึงเฉพาะแถวที่มีการเลือก Item ID แล้วเท่านั้น
+        if (selectEl && selectEl.value) {
+            samples.push({
+                sample_id: selectEl.value,
+                quantity: qtyEl ? parseInt(qtyEl.value, 10) || 1 : 1
+            });
+        }
+    });
+
+    return samples;
+};
+
+// 2. Render ตัวเลือกใน Dropdown ใหม่ ซ่อนรายการที่ถูกเลือกไปแล้วในแถวอื่น
+window.renderAllSampleDropdowns = function() {
+    const allSelects = document.querySelectorAll('#sampleItemsContainer .sample-id-select');
+    
+    // รวบรวม ID สินค้าที่ถูกเลือกอยู่ ณ ปัจจุบันในทุกแถว
+    const selectedIds = Array.from(allSelects)
+        .map(select => select.value)
+        .filter(val => val !== '');
+
+    var btnEN = document.getElementById('btnLangEN');
+    var isEN = btnEN && btnEN.classList.contains('btn-primary');
+    var placeholderText = isEN ? '-- Select Sample / Promo Item --' : '-- เลือกสินค้าตัวอย่าง / Promo --';
+
+    allSelects.forEach(currentSelect => {
+        const currentValue = currentSelect.value;
+        let optionsHTML = `<option value="">${placeholderText}</option>`;
+
+        if (window.globalMasterSamples && window.globalMasterSamples.length > 0) {
+            window.globalMasterSamples.forEach(item => {
+                const itemIdStr = String(item.Index_ID);
+                const displayName = (isEN && item.Value1) ? item.Value1 : item.Value;
+                const isCurrentSelected = itemIdStr === String(currentValue);
+
+                // แสดง Option ถ้าเป็นรายการของแถวตัวเอง หรือ ยังไม่เคยถูกเลือกในแถวอื่น
+                if (isCurrentSelected || !selectedIds.includes(itemIdStr)) {
+                    const selectedAttr = isCurrentSelected ? 'selected' : '';
+                    optionsHTML += `<option value="${itemIdStr}" ${selectedAttr}>${displayName}</option>`;
+                }
+            });
+        }
+
+        currentSelect.innerHTML = optionsHTML;
+    });
+};
+
+// 3. เพิ่มแถว Samples ใหม่
+window.addSampleRow = function(sampleId = '', qty = 1) {
+    const container = document.getElementById('sampleItemsContainer');
+    const noText = document.getElementById('noSampleText');
+    if (noText) noText.style.display = 'none';
+
+    const rowId = 'sampleRow_' + Date.now();
+    var btnEN = document.getElementById('btnLangEN');
+    var isEN = btnEN && btnEN.classList.contains('btn-primary');
+
+    const rowHTML = `
+        <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
+            <div class="col-7">
+                <select class="form-select bg-white shadow-xs sample-id-select" onchange="window.handleSampleSelectChange(this)" required>
+                </select>
+            </div>
+            <div class="col-3">
+                <input type="number" class="form-control bg-white shadow-xs text-center sample-qty" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
+            </div>
+            <div class="col-2 text-end">
+                <button type="button" class="btn btn-outline-danger border-0 btn-delete-sample w-100" onclick="document.getElementById('${rowId}').remove(); window.handleSampleRowRemoved();">
+                    <i class="fa-solid fa-trash-can fs-5"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', rowHTML);
+
+    if (sampleId) {
+        const newSelect = container.querySelector(`#${rowId} .sample-id-select`);
+        if (newSelect) newSelect.value = sampleId;
+    }
+
+    window.renderAllSampleDropdowns();
+};
+
+// 4. เมื่อเปลี่ยนตัวเลือกใน Dropdown
+window.handleSampleSelectChange = function(selectEl) {
+    window.renderAllSampleDropdowns();
+    if (typeof window.updateFeatureButtonIndicators === 'function') {
+        window.updateFeatureButtonIndicators(null);
+    }
+};
+
+// 5. เมื่อลบแถว
+window.handleSampleRowRemoved = function() {
+    window.checkEmptySamples();
+    window.renderAllSampleDropdowns();
+    if (typeof window.updateFeatureButtonIndicators === 'function') {
+        window.updateFeatureButtonIndicators(null);
+    }
+};
+
+// 6. เคลียร์แถวว่างทิ้งอัตโนมัติเมื่อปิด Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const samplesModalEl = document.getElementById('samplesDrawerModal');
+    if (samplesModalEl) {
+        samplesModalEl.addEventListener('hidden.bs.modal', function () {
+            const container = document.getElementById('sampleItemsContainer');
+            if (container) {
+                const rows = container.querySelectorAll('.sample-item-row');
+                rows.forEach(row => {
+                    const selectEl = row.querySelector('.sample-id-select');
+                    if (selectEl && !selectEl.value) {
+                        row.remove();
+                    }
+                });
+                window.checkEmptySamples();
+                window.renderAllSampleDropdowns();
+                if (typeof window.updateFeatureButtonIndicators === 'function') {
+                    window.updateFeatureButtonIndicators(null);
+                }
+            }
         });
     }
 });
