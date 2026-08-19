@@ -764,15 +764,38 @@ window.switchVisitView = function(viewId) {
 };
 
 window.updateStatCards = function(filteredVisits) {
-    // 🌟 ล็อคให้อ้างอิง masterTotalVisitsCount เสมอ ตัวเลข Total Visits จะได้ไม่เพี้ยนเวลาใส่ฟิลเตอร์
-    var total = window.masterTotalVisitsCount || window.totalVisitsCount || (window.globalVisits ? window.globalVisits.length : 0);
-    
-    // คำนวณ Pending และ Submitted จากข้อมูลใน globalVisits
-    var allVisits = window.globalVisits || [];
-    var pending = allVisits.filter(function(v) { return v.Status === 'Pending'; }).length;
-    var submitted = allVisits.filter(function(v) { return v.Status === 'Submitted'; }).length;
+    // 1. ดึงค่า Filter ปัจจุบันของ Employee และ Area
+    var repEl = document.getElementById('filterVisitRep');
+    var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(o => o.value) : []);
+    if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
-    // อัปเดตตัวเลขลงกล่อง KPI บน UI
+    var terEl = document.getElementById('filterVisitTerritory');
+    var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(o => o.value) : []);
+    if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+
+    // 2. กำหนด Scope ข้อมูลตั้งต้น
+    // ถ้า Manager เลือกลูกน้อง/เขต -> คำนวณ KPI จากกลุ่มลูกน้องที่เลือก
+    // ถ้าไม่ได้เลือก -> คำนวณ KPI ภาพรวมทั้งหมดตามสิทธิ์
+    var sourceData = window.globalVisits || [];
+
+    if (selectedReps.length > 0) {
+        sourceData = sourceData.filter(function(v) {
+            return selectedReps.indexOf(String(v.Rep_ID)) !== -1;
+        });
+    }
+
+    if (selectedTers.length > 0) {
+        sourceData = sourceData.filter(function(v) {
+            return selectedTers.indexOf(String(v.Territory_ID)) !== -1;
+        });
+    }
+
+    // 3. คำนวณ ยอดรวม, Pending, และ Submitted ตาม Scope ใหม่
+    var total = sourceData.length;
+    var pending = sourceData.filter(function(v) { return v.Status === 'Pending'; }).length;
+    var submitted = sourceData.filter(function(v) { return v.Status === 'Submitted'; }).length;
+
+    // 4. แสดงผลลงกล่อง KPI
     if (document.getElementById('statTotalVisits')) {
         document.getElementById('statTotalVisits').innerText = total;
     }
@@ -3468,7 +3491,6 @@ window.quickFilterKpi = function(targetStatus) {
     if (cardPending) cardPending.classList.toggle('active-kpi', finalStatus === 'Pending');
     if (cardSubmitted) cardSubmitted.classList.toggle('active-kpi', finalStatus === 'Submitted');
 
-    // 🌟 สั่งฟิลเตอร์ตารางฝั่งหน้าจอ ไม่ต้องยิงขอข้อมูล DB ใหม่ให้ยอดรวมเพี้ยน
     window.currentPage = 1;
     if (typeof window.filterVisits === 'function') {
         window.filterVisits();
