@@ -2938,24 +2938,35 @@ window.handleFileUpload = async function(event) {
 window.renderAttachmentPreviews = function() {
   var container = document.getElementById('attachmentPreviewContainer');
   if (!container) return;   
-  if (window.currentAttachments.length === 0) {
+  
+  if (!window.currentAttachments || window.currentAttachments.length === 0) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     var noText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
-    container.innerHTML = '<small class="text-muted italic" id="noAttachmentText">' + noText + '</small>';
+    container.innerHTML = '<small class="text-muted italic py-4 w-100 text-center" id="noAttachmentText">' + noText + '</small>';
     return;
   } 
+
   var html = '';
   window.currentAttachments.forEach(function(item, idx) {
     var isImg = item.url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
-    html += '<div class="position-relative d-inline-block border rounded-3 p-1 bg-white shadow-xs me-1 mb-1" style="width:70px; height:70px;">';
+    
+    // 📱 ปรับการ์ดพรีวิวให้ใหญ่ขึ้น (90x90px) และจัดตำแหน่งปุ่มลบให้พอดีขอบ
+    html += '<div class="position-relative d-inline-block border border-2 rounded-4 p-1.5 bg-white shadow-xs" style="width: 96px; height: 96px;">';
+    
     if (isImg) {
-      html += '<img src="' + item.url + '" class="w-100 h-100 object-fit-cover rounded-2" onclick="window.open(\'' + item.url + '\', \'_blank\')">';
+      html += '<img src="' + item.url + '" class="w-100 h-100 object-fit-cover rounded-3 cursor-pointer" onclick="window.open(\'' + item.url + '\', \'_blank\')">';
     } else {
-      html += '<div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light rounded-2" onclick="window.open(\'' + item.url + '\', \'_blank\')"><i class="fa-solid fa-file-pdf fs-3 text-danger"></i></div>';
+      html += '<div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light rounded-3 cursor-pointer" onclick="window.open(\'' + item.url + '\', \'_blank\')">' +
+                '<i class="fa-solid fa-file-pdf fs-2 text-danger"></i>' +
+                '<span class="tiny text-muted mt-1 text-truncate w-100 text-center px-1" style="font-size: 0.65rem;">PDF</span>' +
+              '</div>';
     }
-    html += '<button type="button" class="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle p-0 rounded-circle d-flex align-items-center justify-content-center" style="width:18px; height:18px;" onclick="window.removeAttachment(' + idx + ')">&times;</button>';
+    
+    // ปุ่มลบกากบาทแบบ Touch-Friendly อยู่มุมบนขวาในกล่อง
+    html += '<button type="button" class="btn btn-danger position-absolute top-0 end-0 translate-middle-y me-1 mt-1 p-0 rounded-circle shadow-xs d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; border: 2px solid #ffffff; font-size: 0.85rem;" onclick="window.removeAttachment(' + idx + ')">&times;</button>';
     html += '</div>';
   });
+  
   container.innerHTML = html;
 };
 
