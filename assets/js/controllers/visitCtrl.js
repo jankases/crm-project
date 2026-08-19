@@ -1161,8 +1161,15 @@ window.loadDropdowns = async function(forceReload) {
                 return r.data || []; 
             };
 
+        // ⚡ ดึงเฉพาะคอลัมน์สำคัญของ Doctors เพื่อโหลดเร็วมหาศาล ไม่ติดขัด
+        var fetchDoctorsFast = function() {
+          return window.supabaseClient.from('Doctors')
+            .select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Territory_ID, Status')
+            .eq('Status', 'Active');
+        };
+
         var promises = [
-          fetchFn('Doctors'),
+          fetchDoctorsFast(),
           fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
           fetchFn('Territory'),
           fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
@@ -1176,18 +1183,21 @@ window.loadDropdowns = async function(forceReload) {
         ];
         var results = await Promise.all(promises);
 
-        var allDoctors = results[0] || [];
+        var allDoctors = (results[0] && results[0].data) ? results[0].data : [];
         var allHospitals = results[3] || [];
         var allAssignments = results[10] || [];
         var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : ((results[2] && results[2].data) ? results[2].data : []);
         var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : ((results[4] && results[4].data) ? results[4].data : []);
         var globalBuListLocal = Array.isArray(results[5]) ? results[5] : ((results[5] && results[5].data) ? results[5].data : []);
 
-        window.VisitManagerCache.assignments = allAssignments; window.VisitManagerCache.allHospitals = allHospitals; window.VisitManagerCache.bus = globalBuListLocal || [];
+        window.VisitManagerCache.assignments = allAssignments; 
+        window.VisitManagerCache.allHospitals = allHospitals; 
+        window.VisitManagerCache.bus = globalBuListLocal || [];
 
         var allowedTerIds = []; var allowedDocIds = []; var explicitHospIds = [];
         if (window.myIsGlobalViewer) {
-            window.VisitManagerCache.assignedDoctors = allDoctors; window.VisitManagerCache.assignedHospitals = allHospitals;
+            window.VisitManagerCache.assignedDoctors = allDoctors; 
+            window.VisitManagerCache.assignedHospitals = allHospitals;
         } else {
             if (window.myIsBuHead) {
                 var matchedBu = globalBuListLocal.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
@@ -1588,7 +1598,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
- window.loadVisits = async function(forceReload) {
+window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1698,7 +1708,7 @@ window.clearVisitFilters = function() {
       if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
       if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
-      // ⚡ OPTIMIZED SMART SEARCH: ใช้ In-Memory Filtering แทน Loop Fetching
+      // Smart Search Logic
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       
       if (rawSearchVal) {
@@ -1727,6 +1737,7 @@ window.clearVisitFilters = function() {
       var to = from + limit - 1;
       query = query.range(from, to);
 
+      // ⚡ 1. ดึงข้อมูล Visit Logs 20 แถวแรก
       var res = await query;
       if (res.error) throw res.error;
 
@@ -1737,20 +1748,30 @@ window.clearVisitFilters = function() {
 
       if (window.globalVisits.length > 0) {
         var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
+        var vDocIds = [...new Set(window.globalVisits.map(function(v) { return v.Doc_ID; }).filter(Boolean))];
 
         try {
-          // ดึงเฉพาะของไอดีในหน้านั้นๆ มาแบบ Parallel ไม่ต้องรอต่อคิว
+          // ⚡ 2. ดึงชื่อแพทย์เฉพาะ ID ใน 20 แถวนี้ + Visit Products + Visit Samples พร้อมกันแบบ Fast Parallel
           var subPromises = [
+            window.supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Workplaces_JSON').in('Doc_ID', vDocIds),
             window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds),
             window.supabaseClient.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds)
           ];
 
           var results = await Promise.all(subPromises);
           
-          window.globalVisitProducts = (results[0] && results[0].data) ? results[0].data : [];
+          // ทำ Index หมอเฉพาะในหน้านี้ (แสดงชื่อหมอถูกต้อง)
+          window._docIndex = window._docIndex || {};
+          if (results[0] && results[0].data) {
+            results[0].data.forEach(function(d) {
+              window._docIndex[String(d.Doc_ID).toLowerCase()] = d;
+            });
+          }
+
+          window.globalVisitProducts = (results[1] && results[1].data) ? results[1].data : [];
           
-          if (results[1] && results[1].data) {
-            results[1].data.forEach(function(s) {
+          if (results[2] && results[2].data) {
+            results[2].data.forEach(function(s) {
               if (s.Visit_ID) {
                 var vid = String(s.Visit_ID).trim().toLowerCase();
                 if (!window._visitSampleIndex[vid]) window._visitSampleIndex[vid] = [];
@@ -1768,11 +1789,37 @@ window.clearVisitFilters = function() {
 
       if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
 
+      // ⚡ 3. กรองข้อมูล TOT สำหรับ Calendar
+      window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
+          var hasAccess = false;
+          if (isGlobalAdmin) hasAccess = true;
+          else {
+               var rawRepId = String(tot.Rep_ID || '').trim(); 
+               var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
+               if (window.myAllowedRepIds && (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1))) hasAccess = true;
+          }
+          if(!hasAccess) return false;
+
+          var matchDate = true;
+          if (startDateTerm || endDateTerm) {
+              var vDate = new Date(tot.Start_Date); vDate.setHours(0, 0, 0, 0); 
+              if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
+              if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
+          }
+          var matchRep = (selectedReps.length === 0);
+          if (selectedReps.length > 0) { var rawRepIdFilt = String(tot.Rep_ID || '').trim(); matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1; }
+          return matchDate && matchRep;
+      });
+
+      // ⚡ 4. วาดตาราง + อัปเดตการ์ด + แจ้งเตือนฉบับร่าง
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
           if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
       }
+
+      var myDraftsCount = (window.globalVisits || []).filter(function(v) { return v.Status === 'Pending' && String(v.Rep_ID) === myRepId; }).length;
+      if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
 
     } catch (err) {
       console.error("Load Visits Error:", err);
