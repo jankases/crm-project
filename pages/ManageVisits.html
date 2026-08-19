@@ -292,121 +292,127 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Pro Equal-Height 100% Fit-to-Screen) ================= -->
-  <div id="visitFormView" class="d-none w-100 visit-form-wrapper">
+  <!-- ================= 2. FORM VIEW (Spacious & Vertical Layout) ================= -->
+  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-3">
     
-    <!-- Top Header -->
-    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom flex-shrink-0">
+    <!-- Top Header Bar -->
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-shrink-0">
       <div class="d-flex align-items-center">
-        <button class="btn btn-sm btn-premium-secondary me-2.5" onclick="window.cancelVisitForm()">
-          <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+        <button class="btn btn-sm btn-premium-secondary me-3 shadow-xs" onclick="window.cancelVisitForm()">
+          <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
         </button>
         <h5 class="text-primary fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h5>
       </div>
 
       <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-light text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
-          <i class="fa-solid fa-user-tie text-primary me-1"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark">-</strong>
+        <span class="badge bg-light text-dark border px-3 py-2 shadow-xs rounded-pill">
+          <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark me-1">-</strong>
         </span>
-        <span class="badge bg-light text-dark border px-2.5 py-1.5 shadow-xs rounded-pill">
-          <i class="fa-solid fa-map-location-dot text-primary me-1"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark">-</strong>
+        <span class="badge bg-light text-dark border px-3 py-2 shadow-xs rounded-pill">
+          <i class="fa-solid fa-map-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark me-1">-</strong>
         </span>
       </div>
     </div>
 
-    <!-- Main Card -->
-    <div class="card p-3 border-0 shadow-sm visit-form-card-main">
+    <!-- Main Card Container -->
+    <div class="card p-4 border-0 shadow-sm visit-form-card-main">
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
         <input type="hidden" id="visitId">
 
-        <div class="visit-form-body-scroll pe-1">
-          <div class="row g-3 h-100 align-items-stretch">
+        <div class="visit-form-body-scroll pe-2">
+          <div class="row g-4 h-100 align-items-stretch">
             
             <!-- 🔹 Left Column (Visit Information & Evidences) -->
             <div class="col-12 col-xl-5 d-flex flex-column">
-              <div class="p-3.5 rounded-3 border bg-light-subtle h-100 d-flex flex-column justify-content-between">
+              <div class="p-4 rounded-4 border bg-light-subtle h-100 d-flex flex-column justify-content-between shadow-xs">
                 <div>
-                  <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
+                  <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                   
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
+                  <!-- Doctor Selection -->
+                  <div class="mb-3.5">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
                       <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
-                      <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2.5 py-0.5 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.73rem;">
+                      <button type="button" class="btn btn-xs btn-outline-primary fw-bold rounded-pill px-2.5 py-1 shadow-xs d-flex align-items-center gap-1" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null" style="font-size: 0.75rem;">
                         <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="btn_last_history">📜 Visit History</span>
                       </button>
                     </div>
-                    <div class="input-group input-group-sm shadow-xs mt-1" style="border-radius: 8px;">
+                    <div class="input-group shadow-xs" style="border-radius: 10px;">
                       <select class="form-select bg-white" id="visitDocId" required></select>
-                      <button class="btn btn-outline-danger bg-white border-start-0 px-2.5" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()"><i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i></button>
+                      <button class="btn btn-outline-danger bg-white border-start-0 px-3" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()"><i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i></button>
                     </div>
                   </div>
 
-                  <div class="mb-3">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                    <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
+                  <!-- Products -->
+                  <div class="mb-3.5">
+                    <label class="compact-label mb-1.5"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                   </div>
 
-                  <div class="mb-3">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                    <select class="form-select form-select-sm bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
+                  <!-- Purpose -->
+                  <div class="mb-3.5">
+                    <label class="compact-label mb-1.5"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                   </div>
 
-                  <div class="row g-2 mb-3">
+                  <!-- Date & Time -->
+                  <div class="row g-2 mb-4">
                     <div class="col-6">
-                      <label class="compact-label mb-1"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-                      <input type="date" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitDate" required>
+                      <label class="compact-label mb-1.5"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                      <input type="date" class="form-control bg-white shadow-xs premium-radius" id="visitDate" required>
                     </div>
                     <div class="col-3">
                       <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
-                        <button type="button" class="btn btn-link p-0 text-decoration-none" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)" style="font-size:0.68rem;">[Now]</button>
+                        <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
                       </div>
-                      <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitStartTime">
+                      <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitStartTime">
                     </div>
                     <div class="col-3">
                       <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
-                        <button type="button" class="btn btn-link p-0 text-decoration-none" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)" style="font-size:0.68rem;">[+30m]</button>
+                        <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
                       </div>
-                      <input type="time" class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitEndTime">
+                      <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitEndTime">
                     </div>
                   </div>
 
-                  <!-- 🌟 Features & Evidences Section Header -->
-                  <div class="pt-3 border-top mt-3">
+                  <!-- 🌟 Features & Evidences Section -->
+                  <div class="pt-3 border-top mt-2">
                     <label class="compact-label mb-2.5 d-flex align-items-center gap-2 text-primary fw-bold" style="font-size: 0.9rem;">
                       <i class="fa-solid fa-sliders"></i>
                       <span data-i18n="sec_features_evidences">Features & Evidences</span>
                     </label>
-                    <div class="d-flex flex-wrap gap-2">
-                      
-                      <!-- 📍 GPS Check-in -->
-                      <button type="button" class="feature-action-btn-lg flex-fill" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
-                      </button>
-
-                      <!-- ✍️ Doctor Signature -->
-                      <button type="button" class="feature-action-btn-lg flex-fill" id="sectionSignature" onclick="window.openSignatureModal()">
-                        <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
-                      </button>
-
-                      <!-- 🎁 Samples & Promo -->
-                      <button type="button" class="feature-action-btn-lg flex-fill" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
-                        <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
-                      </button>
-
-                      <!-- 📸 Attachments -->
-                      <button type="button" class="feature-action-btn-lg flex-fill" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
-                      </button>
-
-                      <!-- 🎬 e-Detailing -->
-                      <div id="detailingMediaSection" class="flex-fill d-none">
-                        <button type="button" class="feature-action-btn-lg w-100 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                          <i class="fa-solid fa-file-powerpoint me-1.5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing</span>
+                    
+                    <div class="row g-2">
+                      <div class="col-6" id="sectionGpsCheckin">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                          <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                         </button>
                       </div>
 
+                      <div class="col-6" id="sectionSignature">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="window.openSignatureModal()">
+                          <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
+                        </button>
+                      </div>
+
+                      <div class="col-6" id="sectionSamples">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                          <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
+                        </button>
+                      </div>
+
+                      <div class="col-6" id="sectionAttachments">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                          <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
+                        </button>
+                      </div>
+
+                      <div class="col-12 d-none" id="detailingMediaSection">
+                        <button type="button" class="feature-action-btn-lg w-100 py-2 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
+                          <i class="fa-solid fa-file-powerpoint me-1.5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -414,46 +420,50 @@
               </div>
             </div>
 
-            <!-- 🔹 Right Column (Activity Details) -->
+            <!-- 🔹 Right Column (Activity Details - เรียงแนวตั้ง: Details -> Insight -> Next Action) -->
             <div class="col-12 col-xl-7 d-flex flex-column">
-              <div class="p-3.5 rounded-3 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+              <div class="p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                 
                 <div class="d-flex flex-column flex-grow-1">
-                  <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
+                  <h6 class="form-section-title mb-3"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                  <!-- Details -->
-                  <div class="mb-3 flex-grow-1 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
+                  <!-- 1. Details (ใหญ่ที่สุดด้านบน) -->
+                  <div class="mb-3.5 flex-grow-1 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
                       <label class="compact-label mb-0" data-i18n="lbl_details">Details</label>
-                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.72rem;">
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-1 shadow-xs" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" style="font-size:0.75rem;">
                         <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                       </button>
                     </div>
-                    <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 180px; resize: none;"></textarea>
+                    <textarea class="form-control bg-white shadow-xs premium-radius flex-grow-1" id="visitDetails" style="min-height: 140px; resize: none;" placeholder="Enter call discussion details..."></textarea>
                   </div>
 
-                  <!-- Insight & Next Action -->
-                  <div class="row g-2 mb-1">
-                    <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="compact-label mb-0" data-i18n="lbl_insight">Insight</label>
-                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span></button>
-                      </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitInsight" style="height: 48px; resize: none;"></textarea>
+                  <!-- 2. Insight (เรียงลงมาตรงกลาง) -->
+                  <div class="mb-3.5">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                      <label class="compact-label mb-0" data-i18n="lbl_insight">Insight</label>
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-1 shadow-xs" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" style="font-size:0.75rem;">
+                        <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
+                      </button>
                     </div>
-                    <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="compact-label mb-0" data-i18n="lbl_next_action">Next Action</label>
-                        <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.72rem;"><i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span></button>
-                      </div>
-                      <textarea class="form-control form-control-sm bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 48px; resize: none;"></textarea>
+                    <textarea class="form-control bg-white shadow-xs premium-radius" id="visitInsight" style="height: 65px; resize: none;" placeholder="Key feedback or doctor insights..."></textarea>
+                  </div>
+
+                  <!-- 3. Next Action (เรียงล่างสุด) -->
+                  <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                      <label class="compact-label mb-0" data-i18n="lbl_next_action">Next Action</label>
+                      <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-3 py-1 shadow-xs" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" style="font-size:0.75rem;">
+                        <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
+                      </button>
                     </div>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="visitNextAction" style="height: 42px;" placeholder="Next follow-up plan or action items...">
                   </div>
 
                 </div>
 
                 <!-- 📌 Bottom Footer Bar -->
-                <div class="mb-0 pt-2.5 border-top mt-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="pt-3 border-top mt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-2">
                     <label class="switch mb-0 me-1">
                       <input type="checkbox" id="visitIsCoaching">
@@ -462,8 +472,8 @@
                     <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
                   </div>
 
-                  <div class="d-flex align-items-center gap-2.5 ms-auto">
-                    <div class="d-flex align-items-center gap-1.5" style="width: 170px;">
+                  <div class="d-flex align-items-center gap-3 ms-auto">
+                    <div class="d-flex align-items-center gap-2" style="width: 180px;">
                       <label class="compact-label mb-0" data-i18n="lbl_status">Status:</label>
                       <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold premium-radius" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                         <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
@@ -471,8 +481,8 @@
                       </select>
                     </div>
 
-                    <button type="button" class="btn btn-sm btn-premium-secondary px-3 py-1" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-1" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
+                    <button type="button" class="btn btn-premium-secondary px-4 py-1.5" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-premium-primary px-4 py-1.5" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
                   </div>
                 </div>
 
