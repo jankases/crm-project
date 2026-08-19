@@ -1598,13 +1598,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
-window.loadVisits = async function(forceReload) {
-    var waitLimit = 0;
-    while (!window.isPermissionCalculated && waitLimit < 50) {
-        await new Promise(r => setTimeout(r, 100));
-        waitLimit++;
-    }
-
+ window.loadVisits = async function(forceReload) {
     var visitViewEl = document.getElementById('visitListView');
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
@@ -1613,51 +1607,19 @@ window.loadVisits = async function(forceReload) {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    if (!window.VisitManagerCache) window.VisitManagerCache = {};
-    if (window.VisitManagerCache.ownerId !== myRepId) {
-        window.VisitManagerCache.isLoaded = false; 
-        window.VisitManagerCache.ownerId = myRepId; 
-        window.globalVisits = []; 
-        window.globalTotLogs = [];
-        forceReload = true; 
-    }
-
-    var hasData = (window.globalVisits && window.globalVisits.length > 0);
-
-    if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
-        var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
-
-        if (visitViewEl) visitViewEl.classList.add('is-loading');
-    }
-
-    if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
-        if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
-        if (visitViewEl) visitViewEl.classList.remove('is-loading');
-
-        window.renderVisitTableServerSide();
-        if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
-        if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
-            window.renderCalendarView();
-        }
-        return; 
-    }
+    // 🌟 1. แสดง Loading Spinner ทันทีที่เริ่มทำงาน
+    if (visitViewEl) visitViewEl.classList.add('is-loading');
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
+    if (loadingTitleEl) loadingTitleEl.textContent = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+    if (loadingDescEl) loadingDescEl.textContent = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
 
     try {
-      if (forceReload || !window.VisitManagerCache.isLoaded) {
-          var promises = [
-              window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
-              (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
-              (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
-          ];
-          var additionalRes = await Promise.all(promises);
-          window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
-          window.VisitManagerCache.totLogs = additionalRes[1] || [];
-          window.VisitManagerCache.isLoaded = true;
+      // 🌟 2. โหลด Master Data & Permissions ให้ครบถ้วน
+      if (forceReload || !window.VisitManagerCache || !window.VisitManagerCache.dropdownsLoaded) {
+          if (typeof window.loadDropdowns === 'function') {
+              await window.loadDropdowns(forceReload);
+          }
       }
-      window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
-      window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
       var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
       var isGlobalAdmin = window.myIsGlobalViewer; 
@@ -1670,108 +1632,50 @@ window.loadVisits = async function(forceReload) {
       if (!isGlobalAdmin) {
           if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
               query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-          } else {
-              var allowedIds = [];
-              if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                  allowedIds = [...window.myAllowedRepIds];
-              } else if (myRepId) {
-                  allowedIds = [myRepId];
-              }
-
-              if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-              
-              if (allowedIds.length > 0) {
-                  query = query.in('Rep_ID', allowedIds);
-              } else {
-                  query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-              }
+          } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
+              query = query.in('Rep_ID', window.myAllowedRepIds);
           }
       }
 
+      // Filters
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
-      
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
       
-      var repEl = document.getElementById('filterVisitRep');
-      var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
-      if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
-
-      var terEl = document.getElementById('filterVisitTerritory');
-      var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
-      if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
-
       if (statusTerm) query = query.eq('Status', statusTerm);
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
-      if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps);
-      if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers);
 
-      // Smart Search Logic
-      var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-      
-      if (rawSearchVal) {
-          var matchedDocIds = [];
-          
-          for (var key in window._docIndex) {
-              var doc = window._docIndex[key];
-              var dNameEn = String(doc.Doc_Name || doc.doc_name || '').toLowerCase();
-              var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
-              
-              if (dNameEn.indexOf(rawSearchVal) !== -1 || dNameTh.indexOf(rawSearchVal) !== -1) {
-                  matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
-              }
-          }
-
-          if (matchedDocIds.length > 0) {
-              query = query.in('Doc_ID', matchedDocIds.slice(0, 100));
-          } else {
-              query = query.ilike('Details', `%${rawSearchVal}%`);
-          }
-      }
-
+      // Pagination Range
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
       var from = (page - 1) * limit;
       var to = from + limit - 1;
       query = query.range(from, to);
 
-      // ⚡ 1. ดึงข้อมูล Visit Logs 20 แถวแรก
+      // 🌟 3. ยิงดึง Visit Logs
       var res = await query;
       if (res.error) throw res.error;
 
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
 
+      // 🌟 4. ดึง Visit Products & Samples ของแถวในหน้านี้
       window._visitSampleIndex = {};
-
       if (window.globalVisits.length > 0) {
         var vIds = window.globalVisits.map(function(v) { return v.Visit_ID; });
-        var vDocIds = [...new Set(window.globalVisits.map(function(v) { return v.Doc_ID; }).filter(Boolean))];
 
         try {
-          // ⚡ 2. ดึงชื่อแพทย์เฉพาะ ID ใน 20 แถวนี้ + Visit Products + Visit Samples พร้อมกันแบบ Fast Parallel
           var subPromises = [
-            window.supabaseClient.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Workplaces_JSON').in('Doc_ID', vDocIds),
             window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds),
             window.supabaseClient.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds)
           ];
-
           var results = await Promise.all(subPromises);
+          window.globalVisitProducts = (results[0] && results[0].data) ? results[0].data : [];
           
-          // ทำ Index หมอเฉพาะในหน้านี้ (แสดงชื่อหมอถูกต้อง)
-          window._docIndex = window._docIndex || {};
-          if (results[0] && results[0].data) {
-            results[0].data.forEach(function(d) {
-              window._docIndex[String(d.Doc_ID).toLowerCase()] = d;
-            });
-          }
-
-          window.globalVisitProducts = (results[1] && results[1].data) ? results[1].data : [];
-          
-          if (results[2] && results[2].data) {
-            results[2].data.forEach(function(s) {
+          if (results[1] && results[1].data) {
+            results[1].data.forEach(function(s) {
               if (s.Visit_ID) {
                 var vid = String(s.Visit_ID).trim().toLowerCase();
                 if (!window._visitSampleIndex[vid]) window._visitSampleIndex[vid] = [];
@@ -1781,53 +1685,25 @@ window.loadVisits = async function(forceReload) {
           }
         } catch (subErr) {
           console.warn("Sub-tables fetch error:", subErr);
-          window.globalVisitProducts = [];
         }
-      } else {
-        window.globalVisitProducts = [];
       }
 
-      if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
+      // 🌟 5. สร้าง Index เพื่อจับคู่ชื่อหมอภาษาไทย/อังกฤษ ให้ถูกต้อง 100%
+      if (typeof window.buildDataIndexes === 'function') {
+          window.buildDataIndexes();
+      }
 
-      // ⚡ 3. กรองข้อมูล TOT สำหรับ Calendar
-      window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
-          var hasAccess = false;
-          if (isGlobalAdmin) hasAccess = true;
-          else {
-               var rawRepId = String(tot.Rep_ID || '').trim(); 
-               var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-               if (window.myAllowedRepIds && (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1))) hasAccess = true;
-          }
-          if(!hasAccess) return false;
-
-          var matchDate = true;
-          if (startDateTerm || endDateTerm) {
-              var vDate = new Date(tot.Start_Date); vDate.setHours(0, 0, 0, 0); 
-              if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-              if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
-          }
-          var matchRep = (selectedReps.length === 0);
-          if (selectedReps.length > 0) { var rawRepIdFilt = String(tot.Rep_ID || '').trim(); matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1; }
-          return matchDate && matchRep;
-      });
-
-      // ⚡ 4. วาดตาราง + อัปเดตการ์ด + แจ้งเตือนฉบับร่าง
+      // 🌟 6. วาดตารางข้อมูล
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
-      if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-          if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
-      }
-
-      var myDraftsCount = (window.globalVisits || []).filter(function(v) { return v.Status === 'Pending' && String(v.Rep_ID) === myRepId; }).length;
-      if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
 
     } catch (err) {
       console.error("Load Visits Error:", err);
-      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
+      // 🌟 7. ปิด Loading สวยงามหลังจากข้อมูลทุกอย่างวาดลงตารางเสร็จแล้ว
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
