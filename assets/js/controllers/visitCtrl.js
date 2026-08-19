@@ -2037,7 +2037,6 @@ function matchedTerAndUnique(arr) {
         return item && item !== 'null' && item !== 'undefined' && arr.indexOf(item) === pos;
     });
 }
-
 // ==========================================
 // 💾 HELPER: SAVE & RESTORE FILTER STATE
 // ==========================================
@@ -2268,7 +2267,6 @@ window.toggleVisitFormEditable = function(isEditable) {
 };
 
 window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
-  // ⚡ 1. สลับ View ขึ้นมาก่อนทันทีในเฟรมแรก (0ms Response)
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   window.applyVisitFeaturesUI();
 
@@ -2293,7 +2291,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   document.getElementById('visitId').value = visitId;
   document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
 
-  // ⚡ 2. ยัดค่าลง Plain Text Elements ทันที ไม่ต้องรอ TomSelect
   if (v) {
       var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
       var targetRepObj = userList.find(function(u) {
@@ -2319,7 +2316,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
   }
 
-  // ⚡ 3. ยัดค่า TomSelect (Doctor & Purpose) แบบ Silent
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
   if (targetDocId && window.tomSelectDocInstance) {
       window.tomSelectDocInstance.setValue(targetDocId, true);
@@ -2331,7 +2327,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       window.tomSelectPurposeInstance.setValue(dbPurposeVal, true);
   }
 
-  // ⚡ 4. ย้ายการทำงานหนักๆ (Heavy Operations) ไปรันผ่าน requestAnimationFrame เบื้องหลัง
   requestAnimationFrame(function() {
       if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
           window.fetchLastVisitHistory(targetDocId);
@@ -2354,13 +2349,11 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
           window.loadVisitSamplesForEdit(visitId);
       }
 
-      // ⚡ 5. อัปเดตสถานะปุ่ม Feature & Evidence Indicators ทันที
       if (typeof window.updateFeatureButtonIndicators === 'function') {
           window.updateFeatureButtonIndicators(v);
       }
   });
 
-  // GPS & Signature Elements
   var latInput = document.getElementById('visitLat');
   var lngInput = document.getElementById('visitLng');
   var btnGps = document.getElementById('btnGpsCheckin');
@@ -2418,7 +2411,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   }
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
-  // Button States
   var isPendingUnlock = window.globalPendingUnlockVisits ? window.globalPendingUnlockVisits.indexOf(visitId) !== -1 : false;
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -2519,7 +2511,6 @@ window.openAddVisitView = async function(presetDate) {
   if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown();
   if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
 
-  // ⚡ รีเซ็ตปุ่ม Feature Indicators สภาพเริ่มต้น
   if (typeof window.updateFeatureButtonIndicators === 'function') {
       window.updateFeatureButtonIndicators(null);
   }
@@ -4254,497 +4245,3 @@ window.initVisitDatePickers = function() {
   window.fpStartInstance = flatpickr(startEl, commonConfig);
   window.fpEndInstance = flatpickr(endEl, commonConfig);
 };
-
-window.isGuidFormat = function(str) {
-  if (!str || typeof str !== 'string') return false;
-  return str.length > 20 && str.indexOf('-') !== -1;
-}; 
-
-window.getBuTerritoryDisplayName = function(visitData) {
-  if (!visitData) return '-';
-
-  var cache = window.VisitManagerCache || {};
-  var bus = cache.bus || window.globalBuList || [];
-  var teams = cache.teams || window.globalTeamList || [];
-  var territories = cache.territories || window.globalTerritoryList || [];
-
-  var rawBuId = visitData.BU_ID || visitData.BU;
-  if (rawBuId) {
-    var foundBu = bus.find(function(b) {
-      return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(rawBuId).trim().toLowerCase();
-    });
-    if (foundBu && (foundBu.BU || foundBu.BU_Name)) return foundBu.BU || foundBu.BU_Name;
-  }
-
-  var rawTerId = visitData.Territory_ID || visitData.Territory;
-  if (rawTerId) {
-    var foundTer = territories.find(function(t) {
-      return String(t.Territory_ID || t.id || t.Territory).trim().toLowerCase() === String(rawTerId).trim().toLowerCase();
-    });
-
-    var targetTeamId = foundTer ? (foundTer.Team_ID || foundTer.Team) : visitData.Team_ID;
-
-    if (targetTeamId) {
-      var foundTeam = teams.find(function(tm) {
-        return String(tm.Team_ID || tm.id || tm.Team).trim().toLowerCase() === String(targetTeamId).trim().toLowerCase();
-      });
-
-      var targetBuId = foundTeam ? (foundTeam.BU_ID || foundTeam.BU) : null;
-
-      if (targetBuId) {
-        var finalBu = bus.find(function(b) {
-          return String(b.BU_ID || b.id || b.BU).trim().toLowerCase() === String(targetBuId).trim().toLowerCase();
-        });
-        if (finalBu && (finalBu.BU || finalBu.BU_Name)) return finalBu.BU || finalBu.BU_Name;
-      }
-    }
-  }
-
-  try {
-    var crmUser = JSON.parse(sessionStorage.getItem('crmUser'));
-    if (crmUser && (crmUser.BU_Name || crmUser.BU)) {
-      return crmUser.BU_Name || crmUser.BU;
-    }
-  } catch(e) {}
-
-  return '-';
-};
-
-window.updateFeatureButtonIndicators = function(v) {
-  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-  var isEN = appLang === 'en';
-
-  // 1. GPS Check-in
-  var gpsBtn = document.getElementById('sectionGpsCheckin');
-  var gpsText = document.getElementById('btnGpsText');
-  if (gpsBtn && gpsText) {
-    if (v && (v.CheckIn_Lat || v.lat) && (v.CheckIn_Long || v.lng)) {
-      gpsBtn.classList.add('has-data-gps');
-      var cTime = v.CheckIn_Time ? new Date(v.CheckIn_Time) : null;
-      var timeStr = cTime ? (cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0')) : '';
-      gpsText.innerHTML = (isEN ? 'Checked-in' : 'เช็คอินแล้ว') + (timeStr ? ' (' + timeStr + ')' : '') + ' ✓';
-    } else {
-      gpsBtn.classList.remove('has-data-gps');
-      gpsText.innerText = isEN ? 'GPS Check-in' : 'GPS เช็คอิน';
-    }
-  }
-
-  // 2. Doctor Signature
-  var sigBtn = document.getElementById('sectionSignature');
-  var sigText = document.getElementById('btnSignatureText');
-  if (sigBtn && sigText) {
-    if ((v && (v.Doctor_Signature || v.signatureImg)) || window.savedSignatureData) {
-      sigBtn.classList.add('has-data-sig');
-      sigText.innerHTML = (isEN ? 'Signed' : 'เซ็นแล้ว') + ' ✓';
-    } else {
-      sigBtn.classList.remove('has-data-sig');
-      sigText.innerText = isEN ? 'Signature' : 'ลายเซ็นแพทย์';
-    }
-  }
-
-  // 3. Samples & Promo Items
-  var samplesBtn = document.getElementById('sectionSamples');
-  var samplesText = document.getElementById('btnSamplesText');
-  if (samplesBtn && samplesText) {
-    var vidClean = v ? String(v.Visit_ID || '').trim().toLowerCase() : '';
-    var sampleItems = (window._visitSampleIndex && window._visitSampleIndex[vidClean]) 
-                      ? window._visitSampleIndex[vidClean] 
-                      : (v ? (v.Visit_Samples || v.samples || []) : []);
-    
-    var activeSamples = Array.isArray(sampleItems) ? sampleItems.filter(s => (s.Quantity || s.qty || 0) > 0) : [];
-    
-    if (activeSamples.length > 0) {
-      samplesBtn.classList.add('has-data-samples');
-      samplesText.innerHTML = (isEN ? 'Samples' : 'สินค้าตัวอย่าง') + ' (' + activeSamples.length + ') ✓';
-    } else {
-      samplesBtn.classList.remove('has-data-samples');
-      samplesText.innerText = isEN ? 'Samples' : 'สินค้าตัวอย่าง';
-    }
-  }
-
-  // 4. Attachments
-  var attachBtn = document.getElementById('sectionAttachments');
-  var attachText = document.getElementById('btnAttachmentsText');
-  if (attachBtn && attachText) {
-    var attachCount = window.currentAttachments ? window.currentAttachments.length : 0;
-    if (attachCount > 0) {
-      attachBtn.classList.add('has-data-attach');
-      attachText.innerHTML = (isEN ? 'Attachments' : 'ไฟล์แนบ') + ' (' + attachCount + ') ✓';
-    } else {
-      attachBtn.classList.remove('has-data-attach');
-      attachText.innerText = isEN ? 'Attachments' : 'ไฟล์แนบ/รูปถ่าย';
-    }
-  }
-};
-
-// ⚡ Quick Filter สั่งงานร่วมกันระหว่าง KPI Cards และ Advanced Filters Status Dropdown
-window.quickFilterKpi = function(targetStatus) {
-    var statusEl = document.getElementById('filterVisitStatus');
-    var currentVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
-
-    var finalStatus = (currentVal === targetStatus && targetStatus !== '') ? '' : targetStatus;
-
-    if (window.tomSelectStatusInstance) {
-        window.tomSelectStatusInstance.setValue(finalStatus, false);
-    } else if (statusEl) {
-        statusEl.value = finalStatus;
-    }
-
-    var cardAll = document.getElementById('kpiCardAll');
-    var cardPending = document.getElementById('kpiCardPending');
-    var cardSubmitted = document.getElementById('kpiCardSubmitted');
-
-    if (cardAll) cardAll.classList.toggle('active-kpi', finalStatus === '');
-    if (cardPending) cardPending.classList.toggle('active-kpi', finalStatus === 'Pending');
-    if (cardSubmitted) cardSubmitted.classList.toggle('active-kpi', finalStatus === 'Submitted');
-
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true);
-    }
-};
-
-// ==========================================
-// 🌐 CENTRALIZED LANGUAGE UI UPDATE (SINGLE CONSOLIDATED FUNCTION)
-// ==========================================
-window.updateLangUI = function() {
-    if (window.isInitialLoading) return;
-
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-    var isEN = (appLang === 'en');
-
-    // 1. อัปเดต Placeholder ของ Smart Search ให้เปลี่ยนภาษาตามจริง (Default เป็น EN)
-    var searchInput = document.getElementById('smartSearchInput');
-    if (searchInput) {
-        if (window.i18nData && window.i18nData[appLang] && window.i18nData[appLang].opt_smart_search_ph) {
-            searchInput.placeholder = window.i18nData[appLang].opt_smart_search_ph;
-        } else if (typeof window.getTranslation === 'function') {
-            searchInput.placeholder = window.getTranslation('opt_smart_search_ph');
-        } else {
-            searchInput.placeholder = isEN 
-                ? 'Search Doctor, Hospital or Products...' 
-                : 'ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...';
-        }
-    }
-
-    // 2. อัปเดต Flatpickr ปฏิทินและ Placeholder วันที่
-    if (typeof window.initVisitDatePickers === 'function') {
-        window.initVisitDatePickers();
-    }
-
-    // 3. อัปเดต Legend สัญลักษณ์สีปฏิทิน
-    if (typeof window.updateCalendarLegendLang === 'function') {
-        window.updateCalendarLegendLang();
-    }
-
-    // 4. บันทึกและดึงข้อมูล Form Draft
-    var formView = document.getElementById('visitFormView');
-    if (formView && !formView.classList.contains('d-none')) {
-        var visitIdEl = document.getElementById('visitId');
-        var currentVisitId = visitIdEl ? visitIdEl.value : '';
-        if (!currentVisitId || currentVisitId === 'NEW') {
-            if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
-        }
-    }
-
-    // 5. โหลดดร็อปดาวน์ตามภาษาใหม่
-    if (typeof window.loadDropdowns === 'function') {
-        window.loadDropdowns(false).then(function() {
-            if (formView && !formView.classList.contains('d-none')) {
-                var vId = document.getElementById('visitId') ? document.getElementById('visitId').value : '';
-                if (vId && vId !== 'NEW') {
-                    if (typeof window.openEditVisitView === 'function') window.openEditVisitView(vId); 
-                } else {
-                    if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
-                    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
-                }
-            }
-        });
-    } 
-
-    // 6. อัปเดตการแสดงผลตารางฝั่ง Server-Side
-    if (typeof window.renderVisitTableServerSide === 'function') {
-        window.renderVisitTableServerSide();
-    } else if (typeof window.renderVisitTable === 'function') {
-        window.renderVisitTable();
-    }
-
-    // 7. อัปเดตมุมมอง Calendar
-    if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
-        if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
-    }   
-
-    // 8. อัปเดตภาษาดร็อปดาวน์ Samples
-    if (typeof window.refreshSampleDropdownLang === 'function') {
-        window.refreshSampleDropdownLang();
-    }
-};
-
-if (!window._isAppLangListenerAttached) {
-    window.addEventListener('appLanguageChanged', function() {
-        if (typeof window.updateLangUI === 'function') window.updateLangUI();
-    });
-    window._isAppLangListenerAttached = true;
-}
-
-var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-var btnGps = document.getElementById('btnGpsCheckin');
-if (btnGps) {
-    if (btnGps.classList.contains('btn-success')) {
-        btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
-    } else {
-        btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
-    }
-}
-var noAttachmentText = document.getElementById('noAttachmentText');
-if (noAttachmentText) {
-    noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
-}
-
-window.initVisitPage = async function(forceReload) {
-    if (window._isInitRunning) return;
-
-    var formView = document.getElementById('visitFormView');
-    if (formView && !formView.classList.contains('d-none')) return;
-
-    window._isInitRunning = true; 
-    window.isInitialLoading = true; 
-
-    var domWaitCount = 0;
-    while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
-        await new Promise(r => setTimeout(r, 20));
-        domWaitCount++;
-    }
-
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0);
-    var shouldFetchDB = forceReload === true ? true : !hasCache;
-
-    var visitViewEl = document.getElementById('visitListView');
-    var loadingTitleEl = document.getElementById('loadingTitleText');
-    var loadingDescEl = document.getElementById('loadingDescText');
-
-    if (shouldFetchDB && visitViewEl) {
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        if (loadingTitleEl) loadingTitleEl.textContent = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
-
-        visitViewEl.classList.add('is-loading');
-    }
-
-    try {
-        if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-
-        if (typeof window.loadDropdowns === 'function') {
-            await window.loadDropdowns(shouldFetchDB); 
-        }
-
-        var subTasks = [];
-        if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(shouldFetchDB));
-        if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
-        if (typeof window.fetchVisitFeaturesConfig === 'function') subTasks.push(window.fetchVisitFeaturesConfig());
-        if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
-
-        await Promise.all(subTasks);
-
-        if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
-
-        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-            setLanguage(currentLang);
-        }
-
-    } catch(err) {
-        console.error("Init Visits Failed:", err);
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var msgErr = appLang === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
-        var tbody = document.getElementById('visitTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
-    } finally {
-        window.isInitialLoading = false; 
-        window._isInitRunning = false;  
-
-        if (visitViewEl) visitViewEl.classList.remove('is-loading');
-    }
-};
-
-var btnRef = document.getElementById('btnRefreshVisits');
-if (btnRef) {
-    btnRef.onclick = function() { window.initVisitPage(true); };
-}
-
-// ==========================================
-// 📥 ฟังก์ชันโหลดข้อมูล Team และ Territory
-// ==========================================
-window.loadMasterDataForVisits = async function() {
-    if (!window.globalTerritories || window.globalTerritories.length === 0) {
-        try {
-            var terrRes = await window.supabaseClient.from('Territory').select('*').eq('Status', 'Active');
-            if (!terrRes.error && terrRes.data) {
-                window.globalTerritories = terrRes.data;
-            }
-        } catch(e) { console.error("Error loading Territories:", e); }
-    }
-
-    if (!window.globalTeams || window.globalTeams.length === 0) {
-        try {
-            var teamRes = await window.supabaseClient.from('Team').select('*').eq('Status', 'Active');
-            if (!teamRes.error && teamRes.data) {
-                window.globalTeams = teamRes.data;
-            }
-        } catch(e) { console.error("Error loading Teams:", e); }
-    }
-};
-
-// ==========================================
-// 🔄 16. OFFLINE SYNC ENGINE
-// ==========================================
-window.syncOfflineVisits = async function() {
-    if (!navigator.onLine) return;
-    var queue = JSON.parse(localStorage.getItem('crmOfflineQueue') || '[]');
-    if (queue.length === 0) return;
-
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    var msgSyncing = appLang === 'en' 
-        ? "🔄 Back Online: Syncing offline data to server..." 
-        : "🔄 กลับมาออนไลน์: กำลังซิงค์ข้อมูลออฟไลน์ไปยังเซิร์ฟเวอร์...";
-
-    if (window.showToast) window.showToast(msgSyncing, "info");
-    
-    var remainingQueue = [];
-    var successCount = 0;
-
-    for (var i = 0; i < queue.length; i++) {
-        var item = queue[i];
-        try {
-            if (item.existingVisitId) {
-                await window.supabaseClient.from('Visit_Logs').update(item.payload).eq('Visit_ID', item.existingVisitId);
-                await window.supabaseClient.from('Visit_Products').delete().eq('Visit_ID', item.existingVisitId);
-                await window.supabaseClient.from('Visit_Samples').delete().eq('Visit_ID', item.existingVisitId);
-            } else {
-                await window.supabaseClient.from('Visit_Logs').insert([item.payload]);
-            }
-
-            if (item.selectedProducts && item.selectedProducts.length > 0) {
-                var vpPayload = item.selectedProducts.map(function(p) { return { Visit_ID: item.targetVisitId, Product_ID: p, Whoupdated: item.payload.Whoupdated }; });
-                await window.supabaseClient.from('Visit_Products').insert(vpPayload);
-            }
-
-            if (item.samplePayloads && item.samplePayloads.length > 0) {
-                await window.supabaseClient.from('Visit_Samples').insert(item.samplePayloads);
-            }
-
-            successCount++;
-        } catch (err) {
-            console.error("Offline sync failed for item:", item, err);
-            remainingQueue.push(item);
-        }
-    }
-
-    localStorage.setItem('crmOfflineQueue', JSON.stringify(remainingQueue));
-    if (successCount > 0) {
-        var msgSuccess = appLang === 'en' 
-            ? "✅ Successfully synced " + successCount + " offline records." 
-            : "✅ ซิงค์ข้อมูลออฟไลน์สำเร็จ " + successCount + " รายการ";
-            
-        if (window.showToast) window.showToast(msgSuccess, "success");
-        if (typeof window.loadVisits === 'function') window.loadVisits(true);
-    }
-};
-
-window.addEventListener('online', window.syncOfflineVisits);
-setTimeout(function() { window.syncOfflineVisits(); }, 2000);
-
-// ==========================================
-// 📥 EXPORT TO CSV FUNCTION
-// ==========================================
-window.exportVisitsToCSV = function() {
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    var sourceData = window.filteredVisits || window.globalVisits || [];
-    
-    if (sourceData.length === 0) {
-        var msgNoData = appLang === 'en' ? "No data to export." : "ไม่มีข้อมูลสำหรับ Export";
-        if (window.showToast) window.showToast(msgNoData, "warning");
-        return;
-    }
-
-    if (window.showToast) {
-        window.showToast(appLang === 'en' ? "Preparing export file..." : "กำลังเตรียมไฟล์ Export...", "info");
-    }
-
-    var isSamplesEnabled = window.globalVisitConfigs && window.globalVisitConfigs.samples !== false;
-
-    var csvContent = "\uFEFF"; 
-    var headers = ["Visit Date", "Start Time", "End Time", "Rep Name", "Area / Team", "Doctor Name", "Hospital", "Products", "Purpose", "Coaching", "Status", "Details", "Insight", "Next Action"];
-    
-    if (isSamplesEnabled) {
-        headers.splice(10, 0, "Samples / Promo Items");
-    }
-
-    csvContent += headers.join(",") + "\n";
-
-    var escapeCsv = function(str) {
-        if (str === null || str === undefined) return '""';
-        var safeStr = String(str).replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '');
-        return '"' + safeStr + '"';
-    };
-
-    sourceData.forEach(function(v) {
-        var date = v.Visit_Date || "-";
-        if (date.indexOf('T') !== -1) date = date.split('T')[0];
-
-        var sTime = v.Start_Time || "-";
-        var eTime = v.End_Time || "-";
-        
-        var repName = v.Rep_ID || "-";
-        if (window._userIndex) {
-            var userObj = window._userIndex[String(v.Rep_ID).trim().toLowerCase()];
-            if (userObj) repName = userObj.Rep_Name || userObj.Name || userObj.Email || v.Rep_ID;
-        }
-
-        var areaName = v.Territory_ID || "-";
-        if (window.globalTerritoryList) {
-            var terObj = window.globalTerritoryList.find(function(t) { return String(t.Territory_ID) === String(v.Territory_ID); });
-            if (terObj) areaName = terObj.Territory || terObj.Territory_Name || v.Territory_ID;
-        }
-        if (areaName === v.Territory_ID && window.globalTeamList) {
-            var tmObj = window.globalTeamList.find(function(t) { return String(t.Team_ID) === String(v.Territory_ID); });
-            if (tmObj) areaName = tmObj.Team || tmObj.Team_Name || v.Territory_ID;
-        }
-        if (areaName === v.Territory_ID && window.VisitManagerCache && window.VisitManagerCache.bus) {
-            var buObj = window.VisitManagerCache.bus.find(function(b) { return String(b.BU_ID || b.id) === String(v.Territory_ID); });
-            if (buObj) areaName = buObj.BU_Name || buObj.BU || buObj.Name_EN || v.Territory_ID;
-        }
-
-        var docIdClean = String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase();
-        var docObj = window._docIndex ? window._docIndex[docIdClean] : null;
-        
-        var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, v.Doc_ID) : (v.Doc_ID || "-");
-        var hospName = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : "-";
-
-        var prods = "-";
-        if (v.Products_List) {
-            prods = v.Products_List; 
-        } else if (window._visitProdIndex) {
-            var visitProds = window._visitProdIndex[String(v.Visit_ID).trim().toLowerCase()] || [];
-            if (visitProds.length > 0) {
-                var pNames = [];
-                visitProds.forEach(function(vp) {
-                    var pObj = window._prodIndex ? window._prodIndex[String(vp.Product_ID).trim().toLowerCase()] : null;
-                    pNames.push(pObj ? pObj.Product : vp.Product_ID);
-                });
-                prods = pNames.join(", ");
-            }
-        }
-
-        var purpose = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : (v.Purpose_ID || "-");
-
-        var coachingText = v.Is_Coaching ? (appLang === 'en' ? "Yes" : "ใช่") : (appLang === 'en' ? "No" : "ไม่ใช่");
-
-        var status = v.Status || "-";
-        var details = v.Details || "-";
-        var insight = v.Insight || "-";
-        var nextAction = v.Next_Action || "-";
-
-        var samplesText = "-";
-        if (isSamplesEnabled) {
-            var vidClean = String(v.Visit_ID || '').trim().toLowerCase();
-            var sampleItems = (window._visitSampleIndex && window._I encountered an error doing what you asked. Could you try again?
