@@ -4257,23 +4257,23 @@ window.updateFeatureButtonIndicators = function(data) {
     attachText.innerText = 'Attachments';
   }
 };
-
-// ⚡ Quick Filter จากการกดการ์ด KPI ด้านบน
+ 
+// ⚡ Quick Filter สั่งงานร่วมกันระหว่าง KPI Cards และ Advanced Filters Status Dropdown
 window.quickFilterKpi = function(targetStatus) {
     var statusEl = document.getElementById('filterVisitStatus');
     var currentVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
 
-    // ถ้ากดการ์ดเดิมซ้ำ ให้ทำการ Toggle เป็นการเลือก "ทั้งหมด"
+    // ถ้ากดการ์ดเดิมซ้ำ ให้ทำการ Toggle เป็นการเลือก "All Status"
     var finalStatus = (currentVal === targetStatus && targetStatus !== '') ? '' : targetStatus;
 
-    // 1. อัปเดตค่าไปยัง TomSelect / Native Select
+    // 1. อัปเดตค่าไปยัง Dropdown Status
     if (window.tomSelectStatusInstance) {
         window.tomSelectStatusInstance.setValue(finalStatus, false);
     } else if (statusEl) {
         statusEl.value = finalStatus;
     }
 
-    // 2. ปรับแต่ง Visual Active Class บนการ์ด KPI
+    // 2. ปรับแต่ง Visual Active Class บนการ์ด KPI ด้านบน
     var cardAll = document.getElementById('kpiCardAll');
     var cardPending = document.getElementById('kpiCardPending');
     var cardSubmitted = document.getElementById('kpiCardSubmitted');
