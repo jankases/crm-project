@@ -208,7 +208,10 @@ const i18nDictionary = {
     btn_add_file: "+ Attach File/Photo",
     btn_present: "Present",
     txt_no_attachment: "No attachments yet",
-    sec_features_evidences: "Features & Evidences"
+    sec_features_evidences: "Features & Evidences",
+    ph_visit_details: "Enter call discussion details...",
+    ph_visit_insight: "Key feedback or doctor insights...",
+    ph_visit_next_action: "Next follow-up plan or action items..."
     
   },
 
@@ -417,7 +420,10 @@ const i18nDictionary = {
     btn_add_file: "+ แนบไฟล์/ถ่ายรูป",
     btn_present: "นำเสนอ",
     txt_no_attachment: "ยังไม่มีไฟล์แนบ",
-    sec_features_evidences: "คุณสมบัติและหลักฐาน"
+    sec_features_evidences: "คุณสมบัติและหลักฐาน",
+    ph_visit_details: "ระบุรายละเอียดการพูดคุยหรือการเยี่ยม...",
+    ph_visit_insight: "ระบุข้อคิดเห็นเพิ่มเติมหรือข้อมูลเชิงลึกจากแพทย์...",
+    ph_visit_next_action: "ระบุแผนการติดตามผลหรือการดำเนินการถัดไป..."
   
   }
 };
