@@ -1591,7 +1591,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
-  window.loadVisits = async function(forceReload) {
+ window.loadVisits = async function(forceReload) {
     var mainContentContainer = document.getElementById('visitMainContentContainer');
     var loadingCard = document.getElementById('visitTableLoading');
 
@@ -1625,13 +1625,13 @@ window.clearVisitFilters = function() {
           }
       }
 
-      // 🎯 1. ดึงค่าจากตัวกรองพื้นฐาน (Status & Date)
+      // 🎯 1. ตัวกรองพื้นฐาน (Status & Date)
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
       
-      // 🎯 2. ดึงค่าจาก Advanced Filters (Employee / Sales Rep & Area / Team)
+      // 🎯 2. Advanced Filters (Sales Rep & Area/Team)
       var repEl = document.getElementById('filterVisitRep');
       var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
@@ -1640,12 +1640,27 @@ window.clearVisitFilters = function() {
       var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
-      // 🚀 3. ยัดเงื่อนไขการกรองทั้งหมดลง Supabase Query
+      // 🚀 3. เงื่อนไข Supabase Query
       if (statusTerm) query = query.eq('Status', statusTerm);
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
-      if (selectedReps.length > 0) query = query.in('Rep_ID', selectedReps); // 👈 กรองพนักงาน/ฝ่ายขาย
-      if (selectedTers.length > 0) query = query.in('Territory_ID', selectedTers); // 👈 กรองพื้นที่/ทีม
+      
+      if (selectedReps.length > 0) {
+          query = query.in('Rep_ID', selectedReps);
+      }
+
+      if (selectedTers.length > 0) {
+          // คำนวณหา Territory_ID ลูกที่สังกัดภายใต้ Team_ID นั้นๆ
+          var matchedTerritoryIds = [...selectedTers];
+          if (window.globalTerritoryList && window.globalTerritoryList.length > 0) {
+              window.globalTerritoryList.forEach(function(ter) {
+                  if (selectedTers.indexOf(String(ter.Team_ID)) !== -1) {
+                      matchedTerritoryIds.push(String(ter.Territory_ID));
+                  }
+              });
+          }
+          query = query.in('Territory_ID', matchedTerritoryIds);
+      }
 
       // 🎯 4. Smart Search
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
