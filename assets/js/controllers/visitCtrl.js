@@ -535,33 +535,42 @@ window.loadProductMedia = async function() {
 
   if (headerEl) {
     headerEl.innerHTML = 
-      '<span><i class="fa-solid fa-file-powerpoint me-1"></i> <span>' + titleText + '</span></span>' +
-      '<span class="badge bg-primary rounded-pill fw-bold" style="font-size:0.75rem;">' + matchedMedia.length + ' ' + unitText + '</span>';
+      '<div class="d-flex align-items-center justify-content-between w-100 me-2">' +
+        '<h6 class="modal-title fw-bold text-dark mb-0 fs-6">' +
+          '<i class="fa-solid fa-file-powerpoint text-danger me-2 fs-5"></i>' +
+          '<span>' + titleText + '</span>' +
+        '</h6>' +
+        '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fw-bold px-3 py-1.5" style="font-size:0.82rem;">' + matchedMedia.length + ' ' + unitText + '</span>' +
+      '</div>';
   }
 
   var html = '';
-  var btnClass = isPreviewMode ? 'btn-premium-secondary' : 'btn-premium-primary';
+  var btnClass = isPreviewMode ? 'btn-outline-secondary' : 'btn-primary';
   var btnIcon = isPreviewMode ? 'fa-eye' : 'fa-display';
-  
   var btnText = isPreviewMode ? (appLang === 'en' ? 'Preview' : 'เปิดดู') : (appLang === 'en' ? 'Present' : 'นำเสนอ');
 
+  // 📱 การ์ดสไตล์ iPad Touch-Friendly
   matchedMedia.forEach(function(m) {
     var icon = m.Type === 'Video' ? 'fa-circle-play text-danger' : 'fa-file-pdf text-danger';
     var typeText = m.Type || 'PDF';
+    
     html += 
-      '<div class="media-card d-flex justify-content-between align-items-center shadow-xs mt-2">' +
-        '<div class="d-flex align-items-center me-2 overflow-hidden">' +
-          '<i class="fa-solid ' + icon + ' fs-5 me-2.5"></i>' +
-          '<div class="text-truncate">' +
-            '<div class="fw-bold text-dark small text-truncate" style="max-width: 175px;" title="' + m.Title + '">' + m.Title + '</div>' +
-            '<span class="badge bg-secondary-subtle text-secondary" style="font-size:0.62rem; padding: 2px 6px;">' + typeText + '</span>' +
+      '<div class="p-3 bg-light border rounded-4 d-flex align-items-center justify-content-between gap-3 shadow-xs">' +
+        '<div class="d-flex align-items-center gap-3 overflow-hidden flex-grow-1">' +
+          '<div class="bg-white rounded-3 p-2.5 shadow-xs d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">' +
+            '<i class="fa-solid ' + icon + ' fs-3"></i>' +
+          '</div>' +
+          '<div class="overflow-hidden">' +
+            '<div class="fw-bold text-dark fs-6 text-truncate mb-0.5" title="' + m.Title + '">' + m.Title + '</div>' +
+            '<span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5" style="font-size: 0.72rem;">' + typeText + '</span>' +
           '</div>' +
         '</div>' +
-        '<button type="button" class="btn ' + btnClass + ' btn-sm" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
-          '<i class="fa-solid ' + btnIcon + ' me-1"></i> ' + btnText +
+        '<button type="button" class="btn ' + btnClass + ' px-4 fw-bold shadow-xs d-flex align-items-center justify-content-center gap-2 flex-shrink-0" style="min-height: 46px; border-radius: 12px; font-size: 0.95rem;" onclick="window.openMediaPresentation(\'' + m.Media_ID + '\', ' + isPreviewMode + ')">' +
+          '<i class="fa-solid ' + btnIcon + ' fs-6"></i> ' + btnText +
         '</button>' +
       '</div>';
   });
+  
   container.innerHTML = html;
 };
 window.openMediaPresentation = async function(mediaId, isPreview) {
