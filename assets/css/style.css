@@ -96,7 +96,7 @@ html, body {
 }
 
 .form-control, .form-select { 
-  min-height: 44px;
+  min-height: 42px;
   border-radius: 12px; 
 }
 
@@ -125,6 +125,32 @@ html, body {
   width: 168px !important;
   flex-shrink: 0 !important;
   cursor: pointer !important;
+}
+
+.kpi-card-elevated:focus, .kpi-card-elevated:active { 
+  outline: none !important; 
+  box-shadow: none !important; 
+}
+
+.kpi-card-elevated.active-total { 
+  background-color: #f0f9ff !important; 
+  border-color: #0284c7 !important; 
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important; 
+  transform: translateY(-1px) !important; 
+}
+
+.kpi-card-elevated.active-pending { 
+  background-color: #fffbeb !important; 
+  border-color: #d97706 !important; 
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important; 
+  transform: translateY(-1px) !important; 
+}
+
+.kpi-card-elevated.active-submitted { 
+  background-color: #ecfdf5 !important; 
+  border-color: #059669 !important; 
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important; 
+  transform: translateY(-1px) !important; 
 }
 
 .kpi-label-text {
@@ -956,242 +982,184 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW (REFINED SPACING & PADDING)
+   ✨ DYNAMIC VISUAL INDICATORS BUTTON BASE STYLES
    ========================================== */
-#visitFormView {
-    height: calc(100vh - 75px) !important;
-    max-height: calc(100vh - 75px) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    padding: 1.25rem 1.5rem 2.5rem 1.5rem !important;
+.feature-action-btn-lg {
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  padding: 8px 12px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  transition: all 0.2s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
 
-/* การ์ดซ้าย-ขวา เพิ่ม Padding ภายใน และระยะห่างภายนอก */
-#visitFormView .card {
-    border-radius: 18px !important;
-    padding: 1.5rem !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
-    margin-bottom: 1.5rem !important;
+.feature-action-btn-lg:hover {
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  background: #f0f9ff !important;
+  transform: translateY(-1px);
 }
 
-/* เพิ่มระยะห่างระหว่างคอลัมน์การ์ดฝั่งซ้ายและฝั่งขวา */
-#visitFormView .row.g-3,
-#visitFormView .row.g-4 {
-    --bs-gutter-x: 1.75rem !important;
-    --bs-gutter-y: 1.75rem !important;
+/* 🟢 🎨 คืนค่าสีปุ่ม Features เมื่อมีข้อมูล */
+.feature-action-btn-lg.has-data-gps {
+  background-color: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+.feature-action-btn-lg.has-data-sig {
+  background-color: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+.feature-action-btn-lg.has-data-attach {
+  background-color: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+}
+.feature-action-btn-lg.has-data-media {
+  background-color: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+.feature-action-btn-lg.has-data-samples {
+  background-color: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #b45309 !important;
+  font-weight: 700 !important;
 }
 
-/* ปรับระยะห่างระหว่างแต่ละฟิลด์ให้โปร่ง ไม่กระจุกตัว */
-#visitFormView .mb-3 {
-    margin-bottom: 1.35rem !important;
-}
-
-#visitFormView .mb-2 {
-    margin-bottom: 1rem !important;
-}
-
-/* ปรับปรุงความสูงและ Padding ช่อง Textarea รายละเอียดฝั่งขวา */
-#visitDetails {
-    min-height: 120px !important;
-    max-height: 180px !important;
-    padding: 0.85rem 1rem !important;
-    line-height: 1.6 !important;
-    border-radius: 12px !important;
-}
-
-#visitInsight, 
-#visitNextAction {
-    padding: 0.75rem 1rem !important;
-    line-height: 1.5 !important;
-    border-radius: 12px !important;
-}
-
-/* ปรับปรุงกลุ่มปุ่ม Features & Evidences 4 ปุ่มให้ดูนุ่มนวลและโปร่งสบายตา */
-#sectionGpsCheckin, 
-#sectionSignature, 
-#sectionSamples, 
-#sectionAttachments {
-    padding: 0.65rem 0.85rem !important;
-    font-size: 0.88rem !important;
-    border-radius: 12px !important;
-    min-height: 44px !important;
-    margin-bottom: 0.5rem !important;
-}
-
-/* ปุ่ม e-Detailing แถบล่างสุดของฝั่งซ้าย */
-#detailingMediaSection .btn {
-    padding: 0.65rem 1rem !important;
-    border-radius: 12px !important;
-}
-
-/* ปรับแต่ง Scrollbar ของหน้า Form */
-#visitFormView::-webkit-scrollbar {
-    width: 6px;
-}
-#visitFormView::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+/* 🌟 ปุ่ม e-Detailing หนานุ่มกดยอดเยี่ยมบน iPad */
+.btn-edetailing-touch {
+  min-height: 46px !important;
+  height: 46px !important;
+  border-radius: 12px !important;
+  font-size: 0.88rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
 /* ==========================================
-   ✨ ULTRA-CLEAN FORM LAYOUT OVERRIDES
+   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
    ========================================== */
-
-/* 1. ขยายพื้นที่ขอบนอกของการ์ดให้ลอยโปร่ง */
 #visitFormView {
-    padding: 1.5rem 2rem 3rem 2rem !important;
+  height: calc(100vh - 80px) !important;
+  max-height: calc(100vh - 80px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 0.85rem 1.5rem 1.75rem 1.5rem !important;
+  background-color: #f8fafc !important;
 }
 
 #visitFormView .visit-form-card-main {
-    padding: 1.75rem !important;
-    background: transparent !important;
-    box-shadow: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-top: 0.75rem !important; /* 🌟 ขยับการ์ดลงมาเว้นระยะห่างจาก Edit Visit สวยงาม */
 }
 
-/* 2. เพิ่มระยะห่างระหว่างการ์ดฝั่งซ้ายและฝั่งขวา */
 #visitFormView .row.g-3 {
-    --bs-gutter-x: 2rem !important;
-    --bs-gutter-y: 1.5rem !important;
+  --bs-gutter-x: 1.5rem !important;
+  --bs-gutter-y: 1.25rem !important;
 }
 
-/* 3. การ์ดซ้าย-ขวา เติม Padding ภายในให้กว้าง ไม่ชิดขอบ */
-#visitFormView .col-12 > .border {
-    padding: 1.75rem !important;
-    border-radius: 20px !important;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04) !important;
-    border-color: #e2e8f0 !important;
+/* 🌟 เพิ่มระยะห่างช่องไฟของกลุ่มปุ่ม Features ให้โปร่งสวย ไม่เบียด */
+#visitFormView .row.g-2.5 {
+  --bs-gutter-x: 0.85rem !important;
+  --bs-gutter-y: 0.85rem !important;
 }
 
-/* 4. เพิ่มระยะห่างระหว่างฟิลด์ Input */
+#visitFormView .col-12 > .border,
+#visitFormView .col-12 > div {
+  padding: 1.25rem 1.5rem !important;
+  border-radius: 20px !important;
+  border: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.03) !important;
+}
+
+#visitFormView .mb-2,
 #visitFormView .mb-2.5,
 #visitFormView .mb-3 {
-    margin-bottom: 1.5rem !important;
+  margin-bottom: 0.85rem !important;
 }
 
-/* 5. ปุ่มไมค์จิ๋ว ย้ายเข้าไปซ้อนมุมขวาบนใน Textarea */
+/* 🌟 ฝั่งขวา: พิมพ์ได้จุใจ คุ้มค่าพื้นที่การ์ด */
+#visitDetails {
+  min-height: 95px !important;
+  height: 110px !important;
+  max-height: 150px !important;
+  padding: 0.65rem 0.85rem !important;
+  line-height: 1.45 !important;
+  border-radius: 12px !important;
+}
+
+#visitInsight {
+  min-height: 65px !important;
+  height: 70px !important;
+  padding: 0.65rem 0.85rem !important;
+  line-height: 1.45 !important;
+  border-radius: 12px !important;
+  resize: none !important;
+}
+
+#visitNextAction {
+  min-height: 60px !important;
+  height: 65px !important;
+  padding: 0.65rem 0.85rem !important;
+  line-height: 1.45 !important;
+  border-radius: 12px !important;
+  resize: none !important;
+}
+
+/* ไมค์จิ๋วซ้อนมุมขวาบนใน Textarea */
 .textarea-dictate-wrapper {
-    position: relative !important;
-    width: 100%;
+  position: relative !important;
+  width: 100%;
 }
 
 .btn-dictate-corner {
-    position: absolute !important;
-    top: 8px !important;
-    right: 8px !important;
-    z-index: 5 !important;
-    background-color: #ffffff !important;
-    border: 1px solid #fee2e2 !important;
-    color: #dc2626 !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    padding: 3px 10px !important;
-    border-radius: 20px !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  position: absolute !important;
+  top: 7px !important;
+  right: 7px !important;
+  z-index: 5 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #fee2e2 !important;
+  color: #dc2626 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  padding: 2px 9px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  transition: all 0.2s ease !important;
 }
 
 .btn-dictate-corner:hover {
-    background-color: #fef2f2 !important;
-    border-color: #fca5a5 !important;
+  background-color: #fef2f2 !important;
+  border-color: #fca5a5 !important;
 }
 
-/* เพิ่ม Padding ขวาให้ Textarea ป้องกันตัวหนังสือทับปุ่มไมค์ */
 .textarea-dictate-wrapper textarea,
 .textarea-dictate-wrapper input {
-    padding-right: 80px !important;
+  padding-right: 80px !important;
 }
 
-/* 6. ปรับกลุ่มปุ่ม Features 4 ปุ่มให้ดูนุ่มนวล ไม่ติดกัน */
-.feature-action-btn-lg {
-    padding: 0.75rem 1rem !important;
-    min-height: 48px !important;
-    border-radius: 12px !important;
-    font-size: 0.88rem !important;
-}
-
-/* 7. Footer บาร์ล่างสุด */
 .sticky-action-footer {
-    border-top: 1px solid #f1f5f9 !important;
-    padding-top: 1.25rem !important;
-    margin-top: 1.25rem !important;
-}
-
-/* ==========================================
-   📱 IPAD & TOUCH-OPTIMIZED FINAL OVERRIDES
-   ========================================== */
-
-/* 1. คืนค่าสีปุ่ม Features (เขียว/ฟ้า/ส้ม) เมื่อมีข้อมูล */
-.feature-action-btn-lg.has-data-gps {
-    background-color: #dcfce7 !important;
-    border-color: #16a34a !important;
-    color: #15803d !important;
-    font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-sig {
-    background-color: #dcfce7 !important;
-    border-color: #16a34a !important;
-    color: #15803d !important;
-    font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-attach {
-    background-color: #e0f2fe !important;
-    border-color: #0284c7 !important;
-    color: #0369a1 !important;
-    font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-media {
-    background-color: #fee2e2 !important;
-    border-color: #dc2626 !important;
-    color: #b91c1c !important;
-    font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-samples {
-    background-color: #fef3c7 !important;
-    border-color: #d97706 !important;
-    color: #b45309 !important;
-    font-weight: 700 !important;
-}
-
-/* 2. ดันการ์ดลงมาเว้นระยะห่างจากแถบ Edit Visit สวยงาม */
-#visitFormView .visit-form-card-main {
-    margin-top: 0.75rem !important;
-}
-
-/* 3. ปรับระยะห่างปุ่ม Features ให้โปร่ง ไม่เบียดแน่น */
-#visitFormView .row.g-2.5 {
-    --bs-gutter-x: 0.85rem !important;
-    --bs-gutter-y: 0.85rem !important;
-}
-
-/* 4. ปรับปุ่ม e-Detailing ให้หนานุ่มกดง่าย */
-.btn-edetailing-touch {
-    min-height: 46px !important;
-    height: 46px !important;
-    border-radius: 12px !important;
-    font-size: 0.88rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-/* 5. ปรับ TomSelect ข้อความกึ่งกลาง ไม่ล้นทับลูกศร */
-.ts-control {
-    border-radius: 12px !important;
-    min-height: 42px !important;
-    height: 42px !important;
-    display: flex !important;
-    align-items: center !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    padding-right: 36px !important;
-}
-
-.ts-control > .item {
-    line-height: 1.2 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: calc(100% - 20px) !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 0.85rem !important;
+  margin-top: 0.85rem !important;
 }
