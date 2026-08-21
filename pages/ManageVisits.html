@@ -41,7 +41,7 @@
     font-size: 0.88rem;
     font-weight: 700;
     color: #0d6efd;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     padding-bottom: 4px;
     border-bottom: 1.5px solid #e2e8f0;
   }
@@ -50,29 +50,32 @@
     font-size: 0.8rem;
     font-weight: 700;
     color: #334155;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
 
   /* 🌟 Dynamic Visual Indicators Button Styles */
   .feature-action-btn-lg {
-    font-size: 0.8rem !important;
+    font-size: 0.82rem !important;
     font-weight: 600;
-    padding: 4px 8px !important;
-    min-height: 38px !important;
-    border-radius: 10px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    color: #475569;
+    padding: 6px 10px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #f8fafc !important;
+    color: #475569 !important;
     transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
   }
   .feature-action-btn-lg:hover {
-    border-color: #0d6efd;
-    color: #0d6efd;
-    background: #eff6ff;
+    border-color: #0284c7 !important;
+    color: #0284c7 !important;
+    background: #f0f9ff !important;
+    transform: translateY(-1px);
   }
 
   /* 🟢 Has Data Color Customizations */
@@ -98,7 +101,6 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    flex: 1;
   }
 
   .btn-dictate-corner {
@@ -138,8 +140,8 @@
 
   .sticky-action-footer {
     border-top: 1px solid #f1f5f9;
-    padding-top: 8px;
-    margin-top: 6px;
+    padding-top: 10px;
+    margin-top: 10px;
     flex-shrink: 0;
   }
 </style>
@@ -309,8 +311,8 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Fit-to-Screen Ultra-Clean Layout) ================= -->
-  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
+  <!-- ================= 2. FORM VIEW (Fit-to-Screen Balanced Layout) ================= -->
+  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3" style="height: calc(100vh - 70px) !important; max-height: calc(100vh - 70px) !important;">
     
     <!-- Top Header Bar -->
     <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom flex-shrink-0">
@@ -336,11 +338,11 @@
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
         <input type="hidden" id="visitId">
 
-        <div class="row g-2.5 flex-grow-1 align-items-stretch" style="min-height: 0;">
+        <div class="row g-3 flex-grow-1 align-items-stretch" style="min-height: 0;">
           
           <!-- 🔹 Left Column (Visit Information & Evidences) -->
           <div class="col-12 col-xl-5 d-flex flex-column">
-            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
+            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important; border-color: #e2e8f0 !important;">
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
@@ -353,7 +355,7 @@
                     </button>
                   </div>
                   <div class="input-group shadow-xs rounded-3">
-                    <select class="form-select bg-white" id="visitDocId" required></select>
+                    <select class="form-select bg-white" id="visitDocId" required style="min-height: 40px !important; height: 40px !important;"></select>
                     <button class="btn btn-outline-danger bg-white border-start-0 px-2.5" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()"><i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i></button>
                   </div>
                 </div>
@@ -361,20 +363,20 @@
                 <!-- Products -->
                 <div class="mb-2">
                   <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()" style="min-height: 40px !important;"></select>
                 </div>
 
                 <!-- Purpose -->
                 <div class="mb-2">
                   <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required style="min-height: 40px !important; height: 40px !important;"></select>
                 </div>
 
-                <!-- 🌟 Date & Start/End Time (จัด Grid ข้างกันเป๊ะ 5:7) -->
+                <!-- 🌟 Date & Start/End Time (จัด Grid ข้างกัน 5:7) -->
                 <div class="row g-2 align-items-end mb-2.5">
                   <div class="col-5">
                     <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control bg-white shadow-xs premium-radius px-1.5" id="visitDate" required>
+                    <input type="date" class="form-control bg-white shadow-xs premium-radius px-1.5" id="visitDate" required style="height: 40px !important; min-height: 40px !important;">
                   </div>
 
                   <div class="col-7">
@@ -384,7 +386,7 @@
                           <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
                           <button type="button" class="btn btn-link p-0 text-decoration-none tiny fw-bold" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
                         </div>
-                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime">
+                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime" style="height: 40px !important; min-height: 40px !important;">
                       </div>
 
                       <div class="col-6">
@@ -392,7 +394,7 @@
                           <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
                           <button type="button" class="btn btn-link p-0 text-decoration-none tiny fw-bold" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
                         </div>
-                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime">
+                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime" style="height: 40px !important; min-height: 40px !important;">
                       </div>
                     </div>
                   </div>
@@ -405,7 +407,7 @@
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
                   </label>
                   
-                  <div class="row g-1.5">
+                  <div class="row g-2">
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                         <i class="fa-solid fa-location-dot me-1"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
@@ -442,32 +444,32 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - Dictate ไมค์จิ๋วใน Textarea) -->
+          <!-- 🔹 Right Column (Activity Details - Dictate ซ้อนใน Textarea + ปรับความสูงบาลานซ์) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
-            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
+            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important; border-color: #e2e8f0 !important;">
               
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
                 <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                <!-- 1. Details (Textarea ยืด-หดได้) -->
-                <div class="mb-2 d-flex flex-column flex-grow-1">
+                <!-- 1. Details (ลดขนาดลงมาเหลือ 100px พอดีๆ) -->
+                <div class="mb-2 d-flex flex-column">
                   <label class="compact-label" data-i18n="lbl_details">Details</label>
-                  <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
+                  <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" style="min-height: 60px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitDetails" style="min-height: 95px !important; height: 105px !important; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
                   </div>
                 </div>
 
-                <!-- 2. Insight -->
+                <!-- 2. Insight (🌟 ขยายพื้นที่เพิ่มให้กรอกได้ 2-3 บรรทัดสูง 75px) -->
                 <div class="mb-2">
                   <label class="compact-label" data-i18n="lbl_insight">Insight</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 42px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 75px !important; min-height: 75px !important; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
                   </div>
                 </div>
 
@@ -478,7 +480,7 @@
                     <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <input type="text" class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" style="height: 38px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
+                    <input type="text" class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" style="height: 40px !important;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
                   </div>
                 </div>
 
