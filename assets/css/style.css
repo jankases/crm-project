@@ -96,7 +96,7 @@ html, body {
 }
 
 .form-control, .form-select { 
-  min-height: 42px;
+  min-height: 44px;
   border-radius: 12px; 
 }
 
@@ -125,32 +125,6 @@ html, body {
   width: 168px !important;
   flex-shrink: 0 !important;
   cursor: pointer !important;
-}
-
-.kpi-card-elevated:focus, .kpi-card-elevated:active { 
-  outline: none !important; 
-  box-shadow: none !important; 
-}
-
-.kpi-card-elevated.active-total { 
-  background-color: #f0f9ff !important; 
-  border-color: #0284c7 !important; 
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important; 
-  transform: translateY(-1px) !important; 
-}
-
-.kpi-card-elevated.active-pending { 
-  background-color: #fffbeb !important; 
-  border-color: #d97706 !important; 
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important; 
-  transform: translateY(-1px) !important; 
-}
-
-.kpi-card-elevated.active-submitted { 
-  background-color: #ecfdf5 !important; 
-  border-color: #059669 !important; 
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important; 
-  transform: translateY(-1px) !important; 
 }
 
 .kpi-label-text {
@@ -271,38 +245,9 @@ input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transf
 .mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
 @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-/* 🌟 TOMSELECT STYLING (จัดกึ่งกลางแนวตั้งเป๊ะ) */
-.ts-control { 
-  border-radius: 12px !important; 
-  min-height: 42px !important; 
-  height: 42px !important;
-  display: flex !important; 
-  align-items: center !important; 
-  background-color: #ffffff !important; 
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  padding-right: 36px !important;
-}
-
-.ts-control > .item {
-  line-height: 1.2 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-width: calc(100% - 20px) !important;
-}
-
-.ts-wrapper.multi .ts-control > .item { 
-  background-color: #f0f5ff; 
-  border: 1px solid #cfe2ff; 
-  color: #084298; 
-  border-radius: 6px; 
-  padding: 2px 8px; 
-  font-weight: 500; 
-}
-
+/* 🌟 TOMSELECT STYLING */
+.ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
+.ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
 .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
 .ts-wrapper.single .ts-control > .item[data-value=""] { color: #6c757d !important; font-weight: 400 !important; }
 .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
@@ -310,8 +255,709 @@ input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transf
 .ts-wrapper.disabled .ts-control { opacity: 1 !important; background-color: #f1f5f9 !important; }
 .ts-wrapper.disabled.single .ts-control > .item { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; font-weight: 600 !important; }
 .ts-wrapper.disabled.multi .ts-control > .item { background-color: #cbd5e1 !important; border-color: #94a3b8 !important; color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; font-weight: 600 !important; }
+.filter-placeholder-text { color: #6c757d !important; }
+.filter-placeholder-text option { color: #212529 !important; }
 
-/* 🌟 Dynamic Visual Indicators Button Base Styles */
+.sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+.sortable-th:hover { color: #0d6efd; }
+
+.custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
+.custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+
+mark.highlight-text { background-color: #fef08a !important; color: #854d0e !important; padding: 0 3px; border-radius: 4px; font-weight: 700; }
+.quick-time-btn { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+
+.draft-toast {
+  position: fixed; top: 80px; right: 20px; z-index: 9999; background: #ffffff;
+  border-left: 4px solid #f59e0b; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  padding: 12px 18px; display: flex; align-items: center; gap: 12px;
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+#detailingMediaSection { margin-top: 10px; position: relative; z-index: 1; }
+#mediaListContainer { max-height: 200px; overflow-y: auto; padding-right: 4px; }
+#mediaListContainer::-webkit-scrollbar { width: 5px; }
+#mediaListContainer::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+#mediaListContainer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+#mediaListContainer::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.media-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; background: #ffffff; transition: all 0.2s ease; }
+.media-card:hover { border-color: #0d6efd; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08); }
+
+#pdfCanvasContainer { width: 100%; height: calc(100vh - 60px); overflow: auto; display: flex; justify-content: center; align-items: center; background: #1e1e1e; }
+#pdfRenderCanvas { max-width: 95%; max-height: 95vh; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+/* 📅 DATEPICKER POPUP FIX */
+.cursor-pointer { cursor: pointer !important; }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0;
+  margin: 0;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* =========================================
+   Navbar & Navigation Menu Styles
+   ========================================= */
+.navbar { 
+  background-color: #ffffff !important; 
+  border-bottom: 1px solid #e9ecef; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.nav-menu-item {
+  color: #475569; 
+  font-weight: 600;
+  padding: 8px 18px !important; 
+  border-radius: 50px; 
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 2px;
+  text-decoration: none;
+  white-space: nowrap; 
+  font-size: 0.92rem;
+}
+
+.nav-menu-item i {
+  color: #0d6efd;
+  transition: color 0.2s ease;
+}
+
+.nav-menu-item:hover { 
+  background-color: #f0f5ff; 
+  color: #0d6efd; 
+}
+
+.nav-menu-item.active { 
+  background-color: #0d6efd !important; 
+  color: #ffffff !important; 
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.nav-menu-item.active i { 
+  color: #ffffff !important; 
+}
+
+.admin-dropdown-menu {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  padding: 8px;
+  min-width: 240px;
+}
+.admin-dropdown-menu .dropdown-item {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 500;
+  color: #334155;
+  transition: all 0.2s;
+}
+.admin-dropdown-menu .dropdown-item:hover {
+  background-color: #f0f5ff;
+  color: #0d6efd;
+}
+.admin-dropdown-menu .dropdown-item i {
+  width: 22px;
+  color: #0d6efd;
+}
+
+.lang-btn-group .btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.user-profile-pill {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 50px;
+  padding: 4px 12px 4px 8px;
+}
+
+/* ==========================================
+   ✨ HIGH-END PREMIUM BUTTON STYLES (GLOBAL)
+   ========================================== */
+.premium-radius { border-radius: 8px !important; }
+.premium-radius-lg { border-radius: 10px !important; }
+
+.btn-premium-primary {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.2px;
+  border-radius: 8px !important; 
+  padding: 6px 14px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
+              0 4px 12px rgba(30, 64, 175, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-primary:hover {
+  background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12),
+              0 6px 16px rgba(30, 64, 175, 0.4),
+              inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+.btn-premium-primary:active {
+  transform: translateY(0) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-premium-secondary {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+              inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-secondary i { color: #0284c7 !important; }
+.btn-premium-secondary:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.btn-premium-icon {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+  border-radius: 8px !important;
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-icon:hover {
+  background: #f8fafc !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ==========================================
+   🎨 MODERN UNDERLINE SUB-TABS
+   ========================================== */
+#docProfileTabs, .nav-tabs-custom {
+  border-bottom: 2px solid #e2e8f0 !important;
+  gap: 8px;
+}
+
+#docProfileTabs .nav-link, .nav-tabs-custom .nav-link {
+  color: #64748b !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  border-radius: 0 !important;
+  font-weight: 600 !important;
+  font-size: 0.92rem !important;
+  padding: 10px 16px !important;
+  margin-bottom: -2px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+#docProfileTabs .nav-link:hover, .nav-tabs-custom .nav-link:hover {
+  color: #2563eb !important;
+  background-color: transparent !important;
+}
+
+#docProfileTabs .nav-link.active, .nav-tabs-custom .nav-link.active {
+  color: #1d4ed8 !important;
+  background-color: transparent !important;
+  border-bottom: 3px solid #2563eb !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.btn-premium-warning {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.2px;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
+              0 4px 12px rgba(245, 158, 11, 0.25),
+              inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-premium-warning:hover {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
+              0 6px 16px rgba(245, 158, 11, 0.35),
+              inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+}
+
+.btn-premium-warning:active {
+  transform: translateY(0) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn-premium-locked {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+  cursor: not-allowed !important;
+}
+
+/* ==========================================
+   ✨ PREMIUM TABLE ELEMENTS
+   ========================================== */
+.table-visit-link {
+  color: #2563eb !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.table-visit-link:hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
+
+.badge-soft-pending {
+  background-color: #fffbeb !important;
+  color: #d97706 !important;
+  border: 1px solid #fde68a !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+}
+
+.badge-soft-product {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-weight: 500 !important;
+}
+
+.badge-soft-danger {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+}
+
+/* ==========================================
+   ✨ PREMIUM PAGINATION
+   ========================================== */
+.pagination {
+  gap: 5px;
+}
+.pagination .page-link {
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+  min-width: 36px;
+  text-align: center;
+}
+.pagination .page-link:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+}
+.pagination .page-item.active .page-link {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border-color: transparent !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+}
+.pagination .page-item.disabled .page-link {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ==========================================
+   ✨ PREMIUM SOFT BADGES
+   ========================================== */
+.badge-soft-info {
+  background-color: #e0f2fe !important;
+  border: 1px solid #bae6fd !important;
+  border-radius: 8px !important;
+  padding: 4px 7px !important;
+}
+
+.badge-soft-secondary {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 4px 7px !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+.badge-soft-success {
+  background-color: #d1fae5 !important;
+  border: 1px solid #a7f3d0 !important;
+  border-radius: 8px !important;
+  padding: 4px 7px !important;
+  color: #059669 !important;
+  font-weight: 600 !important;
+}
+
+.badge-soft-warning {
+  background-color: #fef3c7 !important;
+  border: 1px solid #fde68a !important;
+  border-radius: 8px !important;
+  padding: 4px 7px !important;
+  color: #d97706 !important;
+  font-weight: 600 !important;
+}
+
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
+#visitTableLoading {
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🌟 คลีน CSS ตารางปกติให้แถวกะทัดรัด สวยงาม */
+.table-scroll-inside .table tbody tr td {
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+  vertical-align: middle;
+}
+
+/* 🌟 UNIFIED SINGLE-STATE LOADING */
+#visitListView.is-loading #visitMainContentContainer {
+  display: none !important;
+}
+
+#visitListView.is-loading #visitTableLoading {
+  display: flex !important;
+}
+
+#visitListView:not(.is-loading) #visitMainContentContainer {
+  display: flex !important;
+}
+
+#visitListView:not(.is-loading) #visitTableLoading {
+  display: none !important;
+}
+
+/* ==========================================
+   ✨ PREMIUM TABLE & VISUAL REFINEMENTS
+   ========================================== */
+
+/* 1. คอลัมน์โรงพยาบาล */
+.table-hosp-text {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.table-hosp-text i {
+  color: #0284c7 !important;
+  font-size: 0.85rem;
+}
+
+/* 2. คอลัมน์ชื่อแพทย์ */
+.table-doc-name {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* 3. ปรับระยะบรรทัดและเส้นแบ่งตาราง */
+.table-scroll-inside .table tbody tr td {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle;
+}
+
+.table-scroll-inside .table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* สไตล์ไฮไลท์คำค้นหา */
+mark.highlight-search {
+    background-color: #fef08a !important;
+    color: #854d0e !important;
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+/* ==========================================
+   🌟 ADVANCED FILTERS DROPDOWN STYLING
+   ========================================== */
+.ts-wrapper.has-items .ts-control input::placeholder,
+.ts-wrapper.has-items .ts-input::placeholder,
+.ts-control.has-items .ts-input::placeholder,
+.ts-control.has-items input::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
+}
+
+.dropdown-menu .ts-wrapper {
+    position: relative !important;
+}
+
+.dropdown-menu .ts-dropdown {
+    position: absolute !important;
+    z-index: 9999 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #e2e8f0 !important;
+    margin-top: 2px !important;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
+    padding: 1rem !important;
+    overflow: visible !important;
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 6px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .mb-1 {
+    margin-bottom: 0.25rem !important;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
+    max-height: 82px !important;
+    overflow-y: auto !important;
+    padding-right: 24px !important;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control .item {
+    font-size: 0.75rem !important;
+    padding: 1px 6px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+}
+
+/* ==========================================
+   📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
+   ========================================== */
+#visitCalendarZone {
+    height: calc(100vh - 130px) !important;
+    max-height: calc(100vh - 130px) !important;
+    overflow: hidden !important;
+    flex-direction: column !important;
+}
+
+#visitCalendarZone:not(.d-none) {
+    display: flex !important;
+}
+
+#calendar {
+    flex-grow: 1 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    position: relative;
+    z-index: 10 !important;
+}
+
+#calendar .fc-view-harness, 
+#calendar .fc-daygrid,
+#calendar .fc-scroller-harness,
+#calendar .fc-scroller {
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+#calendar .fc-daygrid-day-frame {
+    min-height: 80px !important;
+    height: 100% !important;
+}
+
+#calendar .fc-daygrid-more-link {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+}
+
+#calendar .fc-toolbar-chunk {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* ==========================================
+   ✨ FULLCALENDAR PREMIUM BUTTONS STYLING
+   ========================================== */
+#calendar .fc-button-primary {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+#calendar .fc-button-primary:hover {
+    background-color: #f8fafc !important;
+    color: #1d4ed8 !important;
+    border-color: #cbd5e1 !important;
+}
+
+#calendar .fc-button-primary:not(:disabled):active, 
+#calendar .fc-button-primary:not(:disabled).fc-button-active {
+    background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
+    border-color: #1e40af !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.25) !important;
+}
+
+#calHeaderLegendDropdown .btn {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+#calHeaderLegendDropdown .btn:hover {
+    background-color: #f8fafc !important;
+    color: #1d4ed8 !important;
+    border-color: #cbd5e1 !important;
+}
+
+#calHeaderLegendDropdown .btn i.fa-palette {
+    color: #0ea5e9 !important;
+}
+
+#calendar .fc-button-group {
+    gap: 2px !important;
+    background-color: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+}
+
+#calendar .fc-button-group > .fc-button {
+    border-radius: 7px !important;
+    border: none !important;
+}
+
+/* ==========================================
+   ✨ KPI CARD CLICKABLE & ACTIVE STATES
+   ========================================== */
+.kpi-card-elevated {
+    cursor: pointer !important;
+}
+
+.kpi-card-elevated:focus, 
+.kpi-card-elevated:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.kpi-card-elevated.active-total {
+    background-color: #f0f9ff !important;
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+.kpi-card-elevated.active-pending {
+    background-color: #fffbeb !important;
+    border-color: #d97706 !important;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+.kpi-card-elevated.active-submitted {
+    background-color: #ecfdf5 !important;
+    border-color: #059669 !important;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* 🌟 HIGHLIGHT TODAY CELL IN FULLCALENDAR */
+#calendar .fc-day-today {
+    background-color: #f0f9ff !important;
+}
+
+#calendar .fc-day-today .fc-daygrid-day-number {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700 !important;
+}
+
+/* ==========================================
+   ✨ DYNAMIC VISUAL INDICATORS BUTTON BASE STYLES
+   ========================================== */
 .feature-action-btn-lg {
   font-size: 0.85rem !important;
   font-weight: 600;
@@ -381,7 +1027,9 @@ input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transf
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
-/* 🌟 PERFECT BALANCED FORM LAYOUT (เพิ่มเว้นระยะขอบบนการ์ด) */
+/* ==========================================
+   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
+   ========================================== */
 #visitFormView {
   height: calc(100vh - 80px) !important;
   max-height: calc(100vh - 80px) !important;
@@ -395,7 +1043,7 @@ input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transf
   background: transparent !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin-top: 0.5rem !important; /* 🌟 ขยับตัวการ์ดลงมาเพื่อแก้ปัญหาติดแถบ Edit Visit */
+  margin-top: 0.65rem !important; /* 🌟 ขยับการ์ดลงมาเว้นระยะห่างจาก Edit Visit สวยงาม */
 }
 
 #visitFormView .row.g-3 {
