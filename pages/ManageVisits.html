@@ -177,24 +177,24 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Touch Optimized Layout) ================= -->
+  <!-- ================= 2. FORM VIEW (Clean Header Without Bottom Border) ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
-    <!-- Top Header Bar -->
-    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom flex-shrink-0">
+    <!-- Top Header Bar (🌟 ลบ border-bottom ออกเพื่อความคลีนโปร่งสบายตา) -->
+    <div class="d-flex align-items-center justify-content-between mb-3.5 flex-shrink-0">
       <div class="d-flex align-items-center">
-        <button class="btn btn-sm btn-outline-secondary me-2 rounded-3 shadow-xs fw-semibold" onclick="window.cancelVisitForm()">
-          <i class="fa-solid fa-arrow-left me-1"></i> <span data-i18n="btn_back">Back</span>
+        <button class="btn btn-sm btn-outline-secondary me-3 rounded-3 shadow-xs fw-semibold" onclick="window.cancelVisitForm()">
+          <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <h6 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">📝 Visit Details</h6>
+        <h5 class="text-dark fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h5>
       </div>
 
       <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-light text-secondary border px-2.5 py-1.5 rounded-pill" style="font-size:0.75rem;">
-          <i class="fa-solid fa-user-tie text-primary me-1"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark me-1">-</strong>
+        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill">
+          <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark me-1">-</strong>
         </span>
-        <span class="badge bg-light text-secondary border px-2.5 py-1.5 rounded-pill" style="font-size:0.75rem;">
-          <i class="fa-solid fa-location-dot text-primary me-1"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark me-1">-</strong>
+        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill">
+          <i class="fa-solid fa-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark me-1">-</strong>
         </span>
       </div>
     </div>
@@ -213,8 +213,8 @@
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
                 <!-- Doctor Selection -->
-                <div class="mb-2">
-                  <div class="d-flex justify-content-between align-items-center mb-0.5">
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="compact-label"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                     <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
                       <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
@@ -227,19 +227,19 @@
                 </div>
 
                 <!-- Products -->
-                <div class="mb-2">
+                <div class="mb-3">
                   <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                 </div>
 
                 <!-- Purpose -->
-                <div class="mb-2">
+                <div class="mb-3">
                   <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                 </div>
 
                 <!-- Date & Start/End Time -->
-                <div class="row g-2 align-items-end mb-2.5">
+                <div class="row g-2 align-items-end mb-3">
                   <div class="col-5">
                     <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
                     <input type="date" class="form-control bg-white shadow-xs premium-radius px-1.5" id="visitDate" required>
@@ -266,9 +266,9 @@
                   </div>
                 </div>
 
-                <!-- Features & Evidences (ลบเส้นลอยรบกวน) -->
+                <!-- Features & Evidences (ลบเส้นคั่น border-top เพื่อลุคคลีน) -->
                 <div class="pt-2">
-                  <label class="compact-label mb-2 d-flex align-items-center gap-1.5 text-primary fw-bold">
+                  <label class="compact-label mb-2 d-flex align-items-center gap-1.5 text-primary fw-bold fs-6">
                     <i class="fa-solid fa-sliders"></i>
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
                   </label>
@@ -276,29 +276,28 @@
                   <div class="row g-2.5">
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-location-dot me-1"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
+                        <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                       </button>
                     </div>
 
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionSignature" onclick="window.openSignatureModal()">
-                        <i class="fa-solid fa-signature me-1"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
+                        <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                       </button>
                     </div>
 
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
-                        <i class="fa-solid fa-gifts me-1"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
+                        <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                       </button>
                     </div>
 
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                        <i class="fa-solid fa-camera me-1"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
+                        <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                       </button>
                     </div>
 
-                    <!-- 🌟 ปุ่ม e-Detailing หนา ใหญ่ กดง่ายบน iPad -->
                     <div class="col-12 d-none" id="detailingMediaSection">
                       <button type="button" class="feature-action-btn-lg btn-edetailing-touch w-100 border-danger text-danger fw-bold" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
                         <i class="fa-solid fa-file-powerpoint me-1.5 fs-5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
@@ -311,7 +310,7 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - Next Action เป็น Textarea เต็มพื้นที่) -->
+          <!-- 🔹 Right Column (Activity Details) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
@@ -319,7 +318,7 @@
                 <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
                 <!-- 1. Details -->
-                <div class="mb-2 d-flex flex-column flex-grow-1">
+                <div class="mb-3 d-flex flex-column flex-grow-1">
                   <label class="compact-label" data-i18n="lbl_details">Details</label>
                   <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
@@ -330,7 +329,7 @@
                 </div>
 
                 <!-- 2. Insight -->
-                <div class="mb-2">
+                <div class="mb-3">
                   <label class="compact-label" data-i18n="lbl_insight">Insight</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
@@ -340,8 +339,8 @@
                   </div>
                 </div>
 
-                <!-- 3. Next Action (🌟 เป็น Textarea กรอกแผนงานยืดหยุ่นเต็มพื้นที่) -->
-                <div class="mb-1">
+                <!-- 3. Next Action (เป็น Textarea ขยายได้) -->
+                <div class="mb-2">
                   <label class="compact-label" data-i18n="lbl_next_action">Next Action</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
@@ -353,7 +352,7 @@
 
               </div>
 
-              <!-- 📌 Sticky Action Footer Bar (🌟 ขยายระยะ Status ให้ข้อความเต็ม ไม่ถูกตัดคำ) -->
+              <!-- 📌 Sticky Action Footer Bar -->
               <div class="sticky-action-footer d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                   <label class="switch mb-0 me-1">
@@ -364,7 +363,7 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 ms-auto">
-                  <div class="d-flex align-items-center gap-2" style="min-width: 180px;">
+                  <div class="d-flex align-items-center gap-2" style="min-width: 185px;">
                     <label class="compact-label mb-0 text-secondary" data-i18n="lbl_status">Status:</label>
                     <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold rounded-3 flex-grow-1" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                       <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
@@ -388,7 +387,7 @@
   </div>
 </div>
 
-<!-- 📜 Modals ทั้งหมด 5 ตัวคงเดิม -->
+<!-- 📜 Pop-up Modals ทั้งหมด 5 ตัว -->
 <div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
