@@ -4289,24 +4289,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง Stat
+// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง KPI
 window.clickStatCard = function(status) {
+    // 1. เปลี่ยนค่าใน Dropdown Status (แบบ Silent เพื่อไม่ให้มันโหลดซ้ำซ้อน)
     if (window.tomSelectStatusInstance) {
-        // สั่งให้ TomSelect เปลี่ยนค่า ซึ่งมันจะไปสั่งโหลดตารางให้เราอัตโนมัติ
-        window.tomSelectStatusInstance.setValue(status, true);
+        window.tomSelectStatusInstance.setValue(status, true); 
     } else {
         var statusEl = document.getElementById('filterVisitStatus');
         if (statusEl) statusEl.value = status;
-        if (typeof window.filterVisits === 'function') window.filterVisits();
+    }
+
+    // 2. สั่งเปลี่ยนสีกล่องให้เป็น Active ทันที
+    if (typeof window.updateStatCardActiveUI === 'function') {
+        window.updateStatCardActiveUI(status);
+    }
+
+    // 3. บังคับโหลดตารางใหม่ให้ตรงกับกล่องที่กด
+    if (typeof window.filterVisits === 'function') {
+        window.filterVisits();
+    } else if (typeof window.loadVisits === 'function') {
+        window.currentPage = 1;
+        window.loadVisits(true);
     }
 };
 
-// 🌟 2. ฟังก์ชันสลับสี Active ของกล่อง
+// 🌟 2. ฟังก์ชันสลับสี Active ของกล่อง KPI
 window.updateStatCardActiveUI = function(status) {
     // หากล่องผ่าน ID ของตัวเลขที่อยู่ด้านใน
-    var elTotal = document.getElementById('statTotalVisits') ? document.getElementById('statTotalVisits').closest('.stat-card-btn') : null;
-    var elPending = document.getElementById('statPendingVisits') ? document.getElementById('statPendingVisits').closest('.stat-card-btn') : null;
-    var elSubmitted = document.getElementById('statSubmittedVisits') ? document.getElementById('statSubmittedVisits').closest('.stat-card-btn') : null;
+    var elTotal = document.getElementById('statTotalVisits') ? document.getElementById('statTotalVisits').closest('.kpi-card-elevated') : null;
+    var elPending = document.getElementById('statPendingVisits') ? document.getElementById('statPendingVisits').closest('.kpi-card-elevated') : null;
+    var elSubmitted = document.getElementById('statSubmittedVisits') ? document.getElementById('statSubmittedVisits').closest('.kpi-card-elevated') : null;
 
     // เคลียร์คลาส active เก่าออกให้หมด
     if (elTotal) elTotal.classList.remove('active-total');
