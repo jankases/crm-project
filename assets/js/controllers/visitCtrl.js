@@ -1551,31 +1551,23 @@ window.clearVisitFilters = function() {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
-      var isGlobalAdmin = window.myIsGlobalViewer; 
-
       var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       query = query.order(dbSortCol, { ascending: window.currentSortAsc });
-   
-      if (!isGlobalAdmin) {
-          if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-              query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-          } else {
-              var allowedIds = [];
-              if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                  allowedIds = [...window.myAllowedRepIds];
-              } else if (myRepId) {
-                  allowedIds = [myRepId];
-              }
 
-              if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
-              
-              if (allowedIds.length > 0) {
-                  query = query.in('Rep_ID', allowedIds);
-              } else {
-                  query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
+      // 🌟 1. LOGIC กรองสิทธิ์บทบาทผู้ใช้งาน (FIXED: แก้ไขปัญหาดึงเฉพาะ ID ตัวเองขึ้น 2 รายการ)
+      if (!window.myIsGlobalViewer) {
+          if (window.myIsSalesRole) {
+              // Sales Rep ทั่วไป เห็นเฉพาะเคสของตนเอง
+              query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
+          } else if (window.myIsBuHead || window.myIsManager) {
+              // BU Head และ Manager ดึงเคสของลูกน้องทั้งหมดในทีม/หน่วยธุรกิจ
+              var allowedRepIds = window.myAllowedRepIds || [];
+              if (allowedRepIds.length > 0) {
+                  query = query.in('Rep_ID', allowedRepIds);
+              } else if (myRepId) {
+                  query = query.eq('Rep_ID', myRepId);
               }
           }
       }
@@ -1584,7 +1576,7 @@ window.clearVisitFilters = function() {
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
-      
+
       var repEl = document.getElementById('filterVisitRep');
       var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
@@ -1653,7 +1645,7 @@ window.clearVisitFilters = function() {
               var uTer = String(u.Territory_ID || u.Territory || '').trim();
               var uTeam = String(u.Team_ID || u.Team || '').trim();
               var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-              
+
               if (matchedTerIds.indexOf(uTer) !== -1 || matchedTerIds.indexOf(uTeam) !== -1) {
                   if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
               }
@@ -1669,7 +1661,7 @@ window.clearVisitFilters = function() {
       }
 
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-      
+
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
           var hasNoMatchOnSomeTerm = false;
@@ -1694,7 +1686,7 @@ window.clearVisitFilters = function() {
 
                   var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
                   var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
-                  
+
                   if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
                       isMatch = true;
                   }
@@ -1741,7 +1733,7 @@ window.clearVisitFilters = function() {
               if (matchedDocIds.length > 0 || matchedVisitIds.length > 0) {
                   var safeDocIds = matchedDocIds.slice(0, 60); 
                   var safeVisitIds = matchedVisitIds.slice(0, 60);
-                  
+
                   if (safeDocIds.length > 0 && safeVisitIds.length === 0) {
                       query = query.in('Doc_ID', safeDocIds);
                   } else if (safeDocIds.length === 0 && safeVisitIds.length > 0) {
@@ -1772,7 +1764,7 @@ window.clearVisitFilters = function() {
 
       window.globalVisits = res.data || [];
 
-      // 🌟 ถ้าไม่มีการใส่ฟิลเตอร์ใดๆ ให้ล็อคยอดรวมตั้งต้นเก็บไว้ใน Master Variable
+      // 🌟 2. ล็อคยอดรวมตั้งต้นเก็บไว้ใน Master Variable เมื่อไม่มีการใส่ฟิลเตอร์ค้นหา
       if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
           window.masterTotalVisitsCount = res.count || 0;
       }
@@ -1789,9 +1781,9 @@ window.clearVisitFilters = function() {
           ];
 
           var results = await Promise.all(subPromises);
-          
+
           window.globalVisitProducts = (results[0] && results[0].data) ? results[0].data : [];
-          
+
           if (results[1] && results[1].data) {
             results[1].data.forEach(function(s) {
               if (s.Visit_ID) {
@@ -1813,7 +1805,7 @@ window.clearVisitFilters = function() {
 
       window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
           var hasAccess = false;
-          if (isGlobalAdmin) hasAccess = true;
+          if (window.myIsGlobalViewer) hasAccess = true;
           else {
                var rawRepId = String(tot.Rep_ID || '').trim(); 
                var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
@@ -1831,7 +1823,7 @@ window.clearVisitFilters = function() {
           if (selectedReps.length > 0) { var rawRepIdFilt = String(tot.Rep_ID || '').trim(); matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1; }
           return matchDate && matchRep;
       });
-        
+
       window.renderVisitTableServerSide();
       if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
