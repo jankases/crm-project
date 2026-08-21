@@ -1574,7 +1574,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
-window.loadVisits = async function(forceReload) {
+ window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1643,7 +1643,6 @@ window.loadVisits = async function(forceReload) {
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       query = query.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // 🌟 สิทธิ์การมองเห็นข้อมูลตั้งต้น
       if (!isGlobalAdmin) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
@@ -1670,70 +1669,67 @@ window.loadVisits = async function(forceReload) {
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
 
-      // 🌟 1. กรองตาม Employee: เช็กทั้ง Rep_ID และ Territory_ID (รองรับการลงบันทึกในระดับ BU/Team)
       if (selectedReps.length > 0) {
-          var targetRepIds = [...selectedReps];
-          var targetBuTeamIds = [];
-
-          (window.globalUsersList || []).forEach(function(u) {
-              var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-              if (selectedReps.indexOf(uid) !== -1) {
-                  var uBu = String(u.BU_ID || u.BU || '').trim();
-                  var uTeam = String(u.Team_ID || u.Team || '').trim();
-                  var uTer = String(u.Territory_ID || u.Territory || '').trim();
-                  if (uBu) targetBuTeamIds.push(uBu);
-                  if (uTeam) targetBuTeamIds.push(uTeam);
-                  if (uTer) targetBuTeamIds.push(uTer);
-              }
-          });
-
-          var cleanBuTeamIds = targetBuTeamIds.filter((v, i, a) => v && v !== 'null' && a.indexOf(v) === i);
-
-          if (cleanBuTeamIds.length > 0) {
-              query = query.or('Rep_ID.in.(' + targetRepIds.join(',') + '),Territory_ID.in.(' + cleanBuTeamIds.join(',') + ')');
-          } else {
-              query = query.in('Rep_ID', targetRepIds);
-          }
+          query = query.in('Rep_ID', selectedReps);
       }
 
-      // 🌟 2. กรองตาม Area / Team: ค้นหาแมตช์ตรงคอลัมน์ Territory_ID ใน Visit_Logs ทุกระดับ
+      // 🌟 แปลง BU/Team/Territory ให้ดึงงานของลูกน้องในสายงานนั้นมาให้ถูกต้อง
       if (selectedTers.length > 0) {
           var matchedTerIds = [];
           var matchedTeamIds = [];
+          var matchedBuIds = [];
 
           var terrList = window.globalTerritoryList || [];
           var teamList = window.globalTeamList || [];
+          var buList = window.globalBuList || (window.VisitManagerCache && window.VisitManagerCache.bus) || [];
 
           selectedTers.forEach(function(selId) {
               var selIdClean = String(selId).trim();
-              matchedTerIds.push(selIdClean);
+              matchedTerIds.push(selIdClean); // ใส่ไว้ก่อนเผื่อตรงกับช่อง Territory ตรงๆ
 
-              teamList.forEach(function(tm) {
-                  var tId = String(tm.Team_ID || tm.id || tm.Team).trim();
-                  if (tId === selIdClean || String(tm.Team).trim() === selIdClean) {
-                      matchedTeamIds.push(tId);
-                      terrList.forEach(function(tr) {
-                          if (String(tr.Team_ID || tr.Team).trim() === tId) {
-                              var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
-                              if (trId) matchedTerIds.push(trId);
-                          }
-                      });
+              // เช็กว่าเป็น BU หรือไม่
+              buList.forEach(function(b) {
+                  var bId = String(b.BU_ID || b.id || b.BU).trim();
+                  if (bId === selIdClean || String(b.BU_Name || b.BU).trim() === selIdClean) {
+                      if (matchedBuIds.indexOf(bId) === -1) matchedBuIds.push(bId);
                   }
               });
           });
 
-          var repIdsInTerr = [];
-          (window.globalUsersList || []).forEach(function(u) {
-              var uTer = String(u.Territory_ID || u.Territory || '').trim();
-              var uTeam = String(u.Team_ID || u.Team || '').trim();
-              var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+          // ดึง Team ที่อยู่ใต้ BU ที่เลือก (หรือถูกเลือกมาตรงๆ)
+          teamList.forEach(function(tm) {
+              var tId = String(tm.Team_ID || tm.id || tm.Team).trim();
+              var tBuId = String(tm.BU_ID || tm.BU).trim();
+              var isSelectedDirectly = selectedTers.indexOf(tId) !== -1 || selectedTers.indexOf(String(tm.Team).trim()) !== -1;
 
-              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTeamIds.indexOf(uTeam) !== -1) {
-                  if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
+              if (isSelectedDirectly || matchedBuIds.indexOf(tBuId) !== -1) {
+                  if (matchedTeamIds.indexOf(tId) === -1) matchedTeamIds.push(tId);
+                  matchedTerIds.push(tId); // เผื่อตารางเซฟ Team_ID ลงช่อง Territory_ID
+              }
+          });
+
+          // ดึง Territory ที่อยู่ใต้ Team ที่เลือก
+          terrList.forEach(function(tr) {
+              var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
+              var trTeamId = String(tr.Team_ID || tr.Team).trim();
+              if (matchedTeamIds.indexOf(trTeamId) !== -1) {
+                  if (matchedTerIds.indexOf(trId) === -1) matchedTerIds.push(trId);
               }
           });
 
           var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
+          
+          var repIdsInTerr = [];
+          (window.globalUsersList || []).forEach(function(u) {
+              var uTer = String(u.Territory_ID || u.Territory || '').trim();
+              var uTeam = String(u.Team_ID || u.Team || '').trim();
+              var uBu = String(u.BU_ID || u.BU || '').trim();
+              
+              if (cleanTerIds.includes(uTer) || cleanTerIds.includes(uTeam) || matchedTeamIds.includes(uTeam) || matchedBuIds.includes(uBu)) {
+                  var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+                  if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
+              }
+          });
 
           if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
               query = query.or('Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')');
@@ -1741,6 +1737,8 @@ window.loadVisits = async function(forceReload) {
               query = query.in('Rep_ID', repIdsInTerr);
           } else if (cleanTerIds.length > 0) {
               query = query.in('Territory_ID', cleanTerIds);
+          } else {
+              query = query.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
           }
       }
 
