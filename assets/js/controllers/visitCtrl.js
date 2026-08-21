@@ -1031,15 +1031,18 @@ window.deleteTot = async function() {
     var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
-    window.myIsGlobalViewer = false; window.myIsBuHead = false; window.myIsManager = false; window.myIsSalesRole = true;
-
-    var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-    if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
-        window.myIsGlobalViewer = true; window.myIsSalesRole = false;
-    } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
-        window.myIsBuHead = true; window.myIsSalesRole = false;
-    } else if (uRoleUpper.indexOf('MANAGER') !== -1) {
-        window.myIsManager = true; window.myIsSalesRole = false;
+    // 🌟 [แก้สิทธิ์โดนล้างค่า]: ล็อกสิทธิ์ที่คำนวณจาก app.js ไว้ ห้ามเขียนทับด้วย Sales
+    if (typeof window.myIsBuHead === 'undefined' || !window.myIsBuHead) {
+        var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+        if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
+            window.myIsGlobalViewer = true; window.myIsSalesRole = false;
+        } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
+            window.myIsBuHead = true; window.myIsSalesRole = false;
+        } else if (uRoleUpper.indexOf('MANAGER') !== -1) {
+            window.myIsManager = true; window.myIsSalesRole = false;
+        } else {
+            window.myIsSalesRole = true;
+        }
     }
     
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -1091,7 +1094,6 @@ window.deleteTot = async function() {
             window.VisitManagerCache.assignedDoctors = allDoctors; 
             window.VisitManagerCache.assignedHospitals = allHospitals;
         } else {
-            // 🌟 แก้ไขจุดนี้: ไล่ Hierarchy ตาม DB จริง (BU -> Team -> Territory)
             if (window.myIsBuHead) {
                 var matchedBu = globalBuListLocal.find(function(b) { 
                     var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
@@ -1100,14 +1102,12 @@ window.deleteTot = async function() {
                 });
                 var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id) : rawScope;
                 
-                // 1. หา Team_ID ใต้ BU_ID
                 var matchedTeams = globalTeamListLocal.filter(function(t) { 
                     var tBu = String(t.BU_ID || t.BU || '').trim().toLowerCase();
                     return tBu === String(targetBuId).toLowerCase() || tBu === rawScope.toLowerCase();
                 });
                 var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID || t.id || t.Team); });
 
-                // 2. หา Territory_ID ใต้ Team_ID เหล่านั้น
                 var terrs = globalTerritoryListLocal.filter(function(ter) { 
                     return matchedTeamIds.indexOf(String(ter.Team_ID || ter.Team)) !== -1; 
                 });
