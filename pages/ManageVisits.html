@@ -177,10 +177,10 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Clean Header Without Bottom Border) ================= -->
+  <!-- ================= 2. FORM VIEW ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
-    <!-- Top Header Bar (🌟 ลบ border-bottom ออกเพื่อความคลีนโปร่งสบายตา) -->
+    <!-- Top Header Bar -->
     <div class="d-flex align-items-center justify-content-between mb-3.5 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button class="btn btn-sm btn-outline-secondary me-3 rounded-3 shadow-xs fw-semibold" onclick="window.cancelVisitForm()">
@@ -212,7 +212,7 @@
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
-                <!-- Doctor Selection -->
+                <!-- Doctor Selection (แก้ไขโครงสร้างตรงนี้แล้ว) -->
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="compact-label"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
@@ -220,9 +220,11 @@
                       <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
                     </button>
                   </div>
-                  <div class="input-group shadow-xs rounded-3">
-                    <select class="form-select bg-white" id="visitDocId" required></select>
-                    <button class="btn btn-outline-danger bg-white border-start-0 px-2.5" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()"><i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i></button>
+                  <div class="position-relative">
+                    <select class="form-select bg-white" id="visitDocId" required style="min-height: 42px !important;"></select>
+                    <button class="btn btn-sm btn-outline-danger border-0 position-absolute end-0 top-50 translate-middle-y me-2" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" style="z-index: 10;">
+                      <i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -266,7 +268,7 @@
                   </div>
                 </div>
 
-                <!-- Features & Evidences (ลบเส้นคั่น border-top เพื่อลุคคลีน) -->
+                <!-- Features & Evidences -->
                 <div class="pt-2">
                   <label class="compact-label mb-2 d-flex align-items-center gap-1.5 text-primary fw-bold fs-6">
                     <i class="fa-solid fa-sliders"></i>
@@ -339,7 +341,7 @@
                   </div>
                 </div>
 
-                <!-- 3. Next Action (เป็น Textarea ขยายได้) -->
+                <!-- 3. Next Action -->
                 <div class="mb-2">
                   <label class="compact-label" data-i18n="lbl_next_action">Next Action</label>
                   <div class="textarea-dictate-wrapper">
@@ -387,7 +389,7 @@
   </div>
 </div>
 
-<!-- 📜 Pop-up Modals ทั้งหมด 5 ตัว -->
+<!-- 📜 Modals ทั้งหมด 5 ตัว -->
 <div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
