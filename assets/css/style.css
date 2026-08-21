@@ -905,86 +905,7 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW (REFINED SPACING & PADDING)
-   ========================================== */
-#visitFormView {
-    height: calc(100vh - 75px) !important;
-    max-height: calc(100vh - 75px) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    padding: 1.25rem 1.5rem 2.5rem 1.5rem !important;
-}
-
-/* การ์ดซ้าย-ขวา เพิ่ม Padding ภายใน และระยะห่างภายนอก */
-#visitFormView .card {
-    border-radius: 18px !important;
-    padding: 1.5rem !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
-    margin-bottom: 1.5rem !important;
-}
-
-/* เพิ่มระยะห่างระหว่างคอลัมน์การ์ดฝั่งซ้ายและฝั่งขวา */
-#visitFormView .row.g-3,
-#visitFormView .row.g-4 {
-    --bs-gutter-x: 1.75rem !important;
-    --bs-gutter-y: 1.75rem !important;
-}
-
-/* ปรับระยะห่างระหว่างแต่ละฟิลด์ให้โปร่ง ไม่กระจุกตัว */
-#visitFormView .mb-3 {
-    margin-bottom: 1.35rem !important;
-}
-
-#visitFormView .mb-2 {
-    margin-bottom: 1rem !important;
-}
-
-/* ปรับปรุงความสูงและ Padding ช่อง Textarea รายละเอียดฝั่งขวา */
-#visitDetails {
-    min-height: 120px !important;
-    max-height: 180px !important;
-    padding: 0.85rem 1rem !important;
-    line-height: 1.6 !important;
-    border-radius: 12px !important;
-}
-
-#visitInsight, 
-#visitNextAction {
-    padding: 0.75rem 1rem !important;
-    line-height: 1.5 !important;
-    border-radius: 12px !important;
-}
-
-/* ปรับปรุงกลุ่มปุ่ม Features & Evidences 4 ปุ่มให้ดูนุ่มนวลและโปร่งสบายตา */
-#sectionGpsCheckin, 
-#sectionSignature, 
-#sectionSamples, 
-#sectionAttachments {
-    padding: 0.65rem 0.85rem !important;
-    font-size: 0.88rem !important;
-    border-radius: 12px !important;
-    min-height: 44px !important;
-    margin-bottom: 0.5rem !important;
-}
-
-/* ปุ่ม e-Detailing แถบล่างสุดของฝั่งซ้าย */
-#detailingMediaSection .btn {
-    padding: 0.65rem 1rem !important;
-    border-radius: 12px !important;
-}
-
-/* ปรับแต่ง Scrollbar ของหน้า Form */
-#visitFormView::-webkit-scrollbar {
-    width: 6px;
-}
-#visitFormView::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-}
-
-/* ==========================================
-   ✨ KPI CARD CLICKABLE & ACTIVE STATES (FIXED)
+   ✨ KPI CARD CLICKABLE & ACTIVE STATES
    ========================================== */
 .kpi-card-elevated {
     cursor: pointer !important;
@@ -1034,74 +955,102 @@ mark.highlight-search {
     font-weight: 700 !important;
 }
 
-/* 🌟 MINIMAL CORNER DICTATE BUTTON */
-.textarea-dictate-wrapper {
-    position: relative;
-}
-
-.btn-dictate-corner {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 5;
-    background-color: #ffffff !important;
-    border: 1px solid #f1f5f9 !important;
-    color: #ef4444 !important;
-    font-size: 0.75rem !important;
-    font-weight: 700 !important;
-    padding: 3px 10px !important;
-    border-radius: 20px !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
-    transition: all 0.2s ease !important;
-}
-
-.btn-dictate-corner:hover {
-    background-color: #fef2f2 !important;
-    border-color: #fca5a5 !important;
-    transform: scale(1.03);
-}
-
-/* เพิ่ม Padding ขวาให้ Textarea ไม่ให้พิมพ์ตัวหนังสือไปทับปุ่มไมค์ */
-.textarea-dictate-wrapper textarea {
-    padding-right: 85px !important;
-}
-
 /* ==========================================
-   ✨ ULTRA-CLEAN FORM LAYOUT OVERRIDES
+   📱 IPAD FLEX-FIT LAYOUT (100% NO SCROLLBAR)
    ========================================== */
-
-/* 1. ขยายพื้นที่ขอบนอกของการ์ดให้ลอยโปร่ง */
 #visitFormView {
-    padding: 1.5rem 2rem 3rem 2rem !important;
+    height: calc(100vh - 65px) !important;
+    max-height: calc(100vh - 65px) !important;
+    overflow: hidden !important;
+    padding: 0.75rem 1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 #visitFormView .visit-form-card-main {
-    padding: 1.75rem !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
     background: transparent !important;
     box-shadow: none !important;
+    padding: 0 !important;
 }
 
-/* 2. เพิ่มระยะห่างระหว่างการ์ดฝั่งซ้ายและฝั่งขวา */
-#visitFormView .row.g-3 {
-    --bs-gutter-x: 2rem !important;
-    --bs-gutter-y: 1.5rem !important;
+#visitForm {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
 }
 
-/* 3. การ์ดซ้าย-ขวา เติม Padding ภายในให้กว้าง ไม่ชิดขอบ */
-#visitFormView .col-12 > .border {
-    padding: 1.75rem !important;
-    border-radius: 20px !important;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04) !important;
+#visitFormView .row.g-3,
+#visitFormView .row.g-4 {
+    --bs-gutter-x: 1rem !important;
+    --bs-gutter-y: 0.75rem !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+#visitFormView .col-12 > .border,
+#visitFormView .col-12 > div {
+    padding: clamp(0.75rem, 1.5vh, 1.25rem) !important;
+    border-radius: 16px !important;
     border-color: #e2e8f0 !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
 }
 
-/* 4. เพิ่มระยะห่างระหว่างฟิลด์ Input */
 #visitFormView .mb-2.5,
 #visitFormView .mb-3 {
-    margin-bottom: 1.5rem !important;
+    margin-bottom: clamp(0.4rem, 1vh, 0.85rem) !important;
 }
 
-/* 5. ปุ่มไมค์จิ๋ว ย้ายเข้าไปซ้อนมุมขวาบนใน Textarea */
+#visitFormView .form-control,
+#visitFormView .form-select {
+    min-height: clamp(36px, 4.5vh, 42px) !important;
+    height: clamp(36px, 4.5vh, 42px) !important;
+    font-size: 0.85rem !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+}
+
+#visitDetails {
+    flex: 1 !important;
+    min-height: 60px !important;
+    height: 100% !important;
+    resize: none !important;
+    padding: 0.6rem 0.85rem !important;
+    line-height: 1.4 !important;
+}
+
+#visitInsight {
+    height: clamp(38px, 4.5vh, 46px) !important;
+    min-height: 38px !important;
+    resize: none !important;
+}
+
+#visitNextAction {
+    height: clamp(36px, 4vh, 40px) !important;
+}
+
+.feature-action-btn-lg {
+    min-height: clamp(36px, 4.2vh, 42px) !important;
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+    border-radius: 10px !important;
+}
+
+.sticky-action-footer {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 0.5rem !important;
+    margin-top: 0.5rem !important;
+    flex-shrink: 0 !important;
+}
+
 .textarea-dictate-wrapper {
     position: relative !important;
     width: 100%;
@@ -1109,15 +1058,15 @@ mark.highlight-search {
 
 .btn-dictate-corner {
     position: absolute !important;
-    top: 8px !important;
-    right: 8px !important;
+    top: 6px !important;
+    right: 6px !important;
     z-index: 5 !important;
     background-color: #ffffff !important;
     border: 1px solid #fee2e2 !important;
     color: #dc2626 !important;
     font-size: 0.72rem !important;
     font-weight: 700 !important;
-    padding: 3px 10px !important;
+    padding: 2px 8px !important;
     border-radius: 20px !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
 }
@@ -1127,23 +1076,7 @@ mark.highlight-search {
     border-color: #fca5a5 !important;
 }
 
-/* เพิ่ม Padding ขวาให้ Textarea ป้องกันตัวหนังสือทับปุ่มไมค์ */
 .textarea-dictate-wrapper textarea,
 .textarea-dictate-wrapper input {
     padding-right: 80px !important;
-}
-
-/* 6. ปรับกลุ่มปุ่ม Features 4 ปุ่มให้ดูนุ่มนวล ไม่ติดกัน */
-.feature-action-btn-lg {
-    padding: 0.75rem 1rem !important;
-    min-height: 48px !important;
-    border-radius: 12px !important;
-    font-size: 0.88rem !important;
-}
-
-/* 7. Footer บาร์ล่างสุด */
-.sticky-action-footer {
-    border-top: 1px solid #f1f5f9 !important;
-    padding-top: 1.25rem !important;
-    margin-top: 1.25rem !important;
 }
