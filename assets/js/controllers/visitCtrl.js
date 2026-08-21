@@ -3203,7 +3203,7 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
 // 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
 // ==========================================  
  // 🌟 ตัวแปร Global จำค่าที่ถูกเลือก
-window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
+ window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
 
 window.renderCalendarView = function() {
   var calendarEl = document.getElementById('calendar');
@@ -3267,7 +3267,7 @@ window.renderCalendarView = function() {
   });
 
   // ==========================================
-  // 2. Public Holidays & Company Events
+  // 🌟 2. Public Holidays & Company Events (ปรับเป็น Background)
   // ==========================================
   var holidayEvents = []; var companyEvents = []; 
   
@@ -3282,7 +3282,6 @@ window.renderCalendarView = function() {
           holidayEvents = holidayData.map(function(h) {
               var hDate = h.Value ? h.Value.split('T')[0] : '';
               if (hDate.indexOf('/') !== -1) { var dParts = hDate.split('/'); if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0]; }
-              
               var hTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || h.Value2 || 'วันหยุด');
 
               return {
@@ -3290,10 +3289,8 @@ window.renderCalendarView = function() {
                   title: '🌴 ' + hTitle, 
                   start: hDate, 
                   allDay: true, 
-                  backgroundColor: '#ef4444', 
-                  borderColor: '#ef4444', 
-                  textColor: '#ffffff', 
-                  display: 'block',
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)', // 🌟 สีแดงอ่อนจาง
+                  display: 'background',                       // 🌟 ย้อมพื้นหลัง ไม่แย่งพื้นที่การ์ด
                   extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
               };
           });
@@ -3309,7 +3306,6 @@ window.renderCalendarView = function() {
           companyEvents = companyData.map(function(c) {
               var cDate = c.Value ? c.Value.split('T')[0] : '';
               if (cDate.indexOf('/') !== -1) { var dParts2 = cDate.split('/'); if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0]; }
-              
               var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || c.Value2 || 'กิจกรรมบริษัท');
 
               return {
@@ -3403,8 +3399,36 @@ window.renderCalendarView = function() {
             }
             if (typeof window.openEditVisitView === 'function') window.openEditVisitView(info.event.id);
         },
+        // 🌟 [ข้อ 2]: คลิกที่วันที่แล้วแสดง Quick Actions (Add Visit / Add TOT)
         dateClick: function(info) { 
-            if (typeof window.openAddVisitView === 'function') window.openAddVisitView(info.dateStr); 
+            var isEN = window.getCurrentAppLang() === 'en';
+            var existingPopover = document.getElementById('calQuickAddPopover');
+            if (existingPopover) existingPopover.remove();
+
+            var popoverHtml = `
+              <div id="calQuickAddPopover" class="card shadow-lg border-0 p-2 position-absolute rounded-3" style="z-index: 1060; min-width: 170px;">
+                <div class="fw-bold text-secondary tiny mb-1 text-center border-bottom pb-1">📅 ${info.dateStr}</div>
+                <button class="btn btn-sm btn-light text-primary text-start fw-bold mb-1 rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddVisitView==='function') window.openAddVisitView('${info.dateStr}');">
+                  <i class="fa-solid fa-plus me-1.5"></i>${isEN ? 'Add Visit' : 'บันทึกเยี่ยม'}
+                </button>
+                <button class="btn btn-sm btn-light text-info text-start fw-bold rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddTotModal==='function') { window.openAddTotModal(); document.getElementById('totStartDate').value='${info.dateStr}'; }">
+                  <i class="fa-solid fa-umbrella-beach me-1.5"></i>${isEN ? 'Add TOT' : 'แจ้ง TOT / วันลา'}
+                </button>
+              </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', popoverHtml);
+            var popoverEl = document.getElementById('calQuickAddPopover');
+            popoverEl.style.top = (info.jsEvent.pageY - 20) + 'px';
+            popoverEl.style.left = (info.jsEvent.pageX - 80) + 'px';
+
+            var closeHandler = function(e) {
+                if (!popoverEl.contains(e.target)) {
+                    popoverEl.remove();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            setTimeout(function() { document.addEventListener('click', closeHandler); }, 100);
         },
         displayEventTime: false 
     });
@@ -3412,7 +3436,7 @@ window.renderCalendarView = function() {
     window.globalCalendarInstance.render();
 
     // ==========================================
-    // 🌟 เสกปุ่ม Legend & Filter เข้ารวมใน Toolbar ด้านขวา
+    // เสกปุ่ม Legend & Filter เข้ารวมใน Toolbar ด้านขวา
     // ==========================================
     setTimeout(function() {
       var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
@@ -3420,7 +3444,6 @@ window.renderCalendarView = function() {
 
       var isEN = appLang === 'en';
 
-      // 1. เสกปุ่ม Legend (สัญลักษณ์สี)
       if (!document.getElementById('calHeaderLegendDropdown')) {
         var legendDropdownHtml = `
           <div class="dropdown d-inline-block me-2" id="calHeaderLegendDropdown">
@@ -3443,7 +3466,6 @@ window.renderCalendarView = function() {
         headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
       }
 
-      // 2. เสก Dropdown เลือกลูกน้อง (สำหรับ Manager/Admin)
       if (!document.getElementById('calRepFilterContainer')) {
         var userList = window.globalUsersList || [];
         if (isManagerOrAdmin && userList.length > 0) {
