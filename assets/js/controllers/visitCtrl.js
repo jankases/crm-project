@@ -3267,7 +3267,7 @@ window.renderCalendarView = function() {
   });
 
   // ==========================================
-  // 🌟 2. Public Holidays & Company Events (ปรับเป็น Background)
+  // 🌟 2. Public Holidays (ปรับแต่ง Watermark แดงพาสเทล อ่านง่าย) & Company Events
   // ==========================================
   var holidayEvents = []; var companyEvents = []; 
   
@@ -3289,8 +3289,10 @@ window.renderCalendarView = function() {
                   title: '🌴 ' + hTitle, 
                   start: hDate, 
                   allDay: true, 
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)', // 🌟 สีแดงอ่อนจาง
-                  display: 'background',                       // 🌟 ย้อมพื้นหลัง ไม่แย่งพื้นที่การ์ด
+                  backgroundColor: '#fef2f2', // 🌟 สีแดงพาสเทลจางๆ สวยงาม
+                  borderColor: '#fca5a5',     // 🌟 กรอบสีชมพู/แดงอ่อน
+                  textColor: '#dc2626',       // 🌟 ตัวอักษรสีแดงเข้ม เด่นชัด อ่านง่าย
+                  display: 'block',
                   extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
               };
           });
@@ -3399,7 +3401,6 @@ window.renderCalendarView = function() {
             }
             if (typeof window.openEditVisitView === 'function') window.openEditVisitView(info.event.id);
         },
-        // 🌟 [ข้อ 2]: คลิกที่วันที่แล้วแสดง Quick Actions (Add Visit / Add TOT)
         dateClick: function(info) { 
             var isEN = window.getCurrentAppLang() === 'en';
             var existingPopover = document.getElementById('calQuickAddPopover');
@@ -3435,9 +3436,6 @@ window.renderCalendarView = function() {
     
     window.globalCalendarInstance.render();
 
-    // ==========================================
-    // เสกปุ่ม Legend & Filter เข้ารวมใน Toolbar ด้านขวา
-    // ==========================================
     setTimeout(function() {
       var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
       if (!headerRight) return;
@@ -3459,7 +3457,7 @@ window.renderCalendarView = function() {
               <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
               <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
               <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
-              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (รออนุมัติ)' : 'TOT (Pending)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
             </div>
           </div>
         `;
