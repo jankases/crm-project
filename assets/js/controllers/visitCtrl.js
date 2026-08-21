@@ -1634,6 +1634,7 @@ window.clearVisitFilters = function() {
 
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
+     if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -4287,3 +4288,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง Stat
+window.clickStatCard = function(status) {
+    if (window.tomSelectStatusInstance) {
+        // สั่งให้ TomSelect เปลี่ยนค่า ซึ่งมันจะไปสั่งโหลดตารางให้เราอัตโนมัติ
+        window.tomSelectStatusInstance.setValue(status, true);
+    } else {
+        var statusEl = document.getElementById('filterVisitStatus');
+        if (statusEl) statusEl.value = status;
+        if (typeof window.filterVisits === 'function') window.filterVisits();
+    }
+};
+
+// 🌟 2. ฟังก์ชันสลับสี Active ของกล่อง
+window.updateStatCardActiveUI = function(status) {
+    // หากล่องผ่าน ID ของตัวเลขที่อยู่ด้านใน
+    var elTotal = document.getElementById('statTotalVisits') ? document.getElementById('statTotalVisits').closest('.stat-card-btn') : null;
+    var elPending = document.getElementById('statPendingVisits') ? document.getElementById('statPendingVisits').closest('.stat-card-btn') : null;
+    var elSubmitted = document.getElementById('statSubmittedVisits') ? document.getElementById('statSubmittedVisits').closest('.stat-card-btn') : null;
+
+    // เคลียร์คลาส active เก่าออกให้หมด
+    if (elTotal) elTotal.classList.remove('active-total');
+    if (elPending) elPending.classList.remove('active-pending');
+    if (elSubmitted) elSubmitted.classList.remove('active-submitted');
+
+    // เติมคลาส active ให้กล่องที่ตรงกับสถานะปัจจุบัน
+    if (!status || status === '') {
+        if (elTotal) elTotal.classList.add('active-total');
+    } else if (status === 'Pending') {
+        if (elPending) elPending.classList.add('active-pending');
+    } else if (status === 'Submitted') {
+        if (elSubmitted) elSubmitted.classList.add('active-submitted');
+    }
+};
