@@ -1569,6 +1569,15 @@ window.clearVisitFilters = function() {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
+    // 🌟 เช็กเพิ่ม: ถ้าไม่ใช่การโหลดแบบ isBackground ถึงจะสั่งแปะคลาส is-loading
+    if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
+        var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
+        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
+        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+
+        if (visitViewEl) visitViewEl.classList.add('is-loading');
+    }
+
     if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
@@ -4443,9 +4452,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง KPI 
+// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง KPI  
 window.clickStatCard = function(status) {
-    // 1. เปลี่ยนค่าใน Dropdown Status (แบบ Silent)
     if (window.tomSelectStatusInstance) {
         window.tomSelectStatusInstance.setValue(status, true); 
     } else {
@@ -4453,27 +4461,19 @@ window.clickStatCard = function(status) {
         if (statusEl) statusEl.value = status;
     }
 
-    // 2. สั่งเปลี่ยนสีกล่องให้เป็น Active ทันที
     if (typeof window.updateStatCardActiveUI === 'function') {
         window.updateStatCardActiveUI(status);
     }
 
-    // 3. ตรวจสอบว่าปัจจุบันกำลังเปิดหน้าไหนอยู่ (List หรือ Calendar)
     var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
         ? window.VisitManagerCache.currentMainView 
         : 'list';
 
-    // 4. บังคับโหลดข้อมูลตารางใหม่โดยไม่สลับ View หนี
     window.currentPage = 1;
     if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true).then(function() {
-            // ถ้าระหว่างกดกล่อง ยูสเซอร์ยังคงยืนอยู่ที่หน้า Calendar ให้วาด Calendar ใหม่ในหน้านั้นต่อ ไม่ต้องเด้งไป List
-            if (currentMainView === 'calendar') {
-                if (typeof window.toggleMainView === 'function') {
-                    window.toggleMainView('calendar');
-                }
-            }
-        });
+        // ส่ง flag isBackground = true ไปถ้าอยู่หน้า calendar เพื่อไม่ให้ขึ้นหน้าจอ Loading
+        var isBg = (currentMainView === 'calendar');
+        window.loadVisits(true, isBg);
     }
 };
 
