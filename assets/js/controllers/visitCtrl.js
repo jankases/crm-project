@@ -3214,11 +3214,6 @@ window.renderCalendarView = function() {
       window.currentCalendarRepFilter = calRepFilter.value;
   }
   var selectedRepId = window.currentCalendarRepFilter || '';
-
-  if (window.globalCalendarInstance) { 
-      window.globalCalendarInstance.destroy(); 
-      window.globalCalendarInstance = null; 
-  }
   
   var appLang = window.getCurrentAppLang();
   var crmUser = null; 
@@ -3267,7 +3262,7 @@ window.renderCalendarView = function() {
   });
 
   // ==========================================
-  // 🌟 2. Public Holidays (ปรับแต่ง Watermark แดงพาสเทล อ่านง่าย) & Company Events
+  // 🌟 2. Public Holidays (พื้นหลังสีแดงพาสเทลจาง + ตัวหนังสือสีแดงเข้มอ่านง่าย) & Company Events
   // ==========================================
   var holidayEvents = []; var companyEvents = []; 
   
@@ -3289,9 +3284,9 @@ window.renderCalendarView = function() {
                   title: '🌴 ' + hTitle, 
                   start: hDate, 
                   allDay: true, 
-                  backgroundColor: '#fef2f2', // 🌟 สีแดงพาสเทลจางๆ สวยงาม
-                  borderColor: '#fca5a5',     // 🌟 กรอบสีชมพู/แดงอ่อน
-                  textColor: '#dc2626',       // 🌟 ตัวอักษรสีแดงเข้ม เด่นชัด อ่านง่าย
+                  backgroundColor: '#fef2f2', 
+                  borderColor: '#fca5a5',     
+                  textColor: '#dc2626',       
                   display: 'block',
                   extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
               };
@@ -3371,6 +3366,14 @@ window.renderCalendarView = function() {
 
   var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
   
+  // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งเคลียร์และใส่อีเวนต์ใหม่ได้เลย
+  if (window.globalCalendarInstance) {
+      window.globalCalendarInstance.removeAllEvents();
+      window.globalCalendarInstance.addEventSource(allEvents);
+      return;
+  }
+
+  // 🌟 ถ้ายังไม่มี Instance ค่อยวาด FullCalendar ใหม่
   if (typeof FullCalendar !== 'undefined') {
     var fcButtonText = appLang === 'th' ? {
         today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
