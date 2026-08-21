@@ -956,13 +956,13 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   📱 IPAD FLEX-FIT LAYOUT (100% NO SCROLLBAR)
+   📱 IPAD FLEX-FIT LAYOUT (WITH BOTTOM MARGIN)
    ========================================== */
 #visitFormView {
-    height: calc(100vh - 65px) !important;
-    max-height: calc(100vh - 65px) !important;
+    height: calc(100vh - 120px) !important;      /* 🌟 ปรับเพิ่มเป็น 120px เพื่อเผื่อพื้นที่ Header Bar */
+    max-height: calc(100vh - 120px) !important;
     overflow: hidden !important;
-    padding: 0.5rem 0.75rem !important;
+    padding: 0.5rem 1rem 1rem 1rem !important;  /* 🌟 เพิ่ม Padding ด้านล่าง 1rem ให้มีขอบล่างสวยงาม */
     display: flex !important;
     flex-direction: column !important;
 }
@@ -988,18 +988,18 @@ mark.highlight-search {
 #visitFormView .row.g-2.5,
 #visitFormView .row.g-3,
 #visitFormView .row.g-4 {
-    --bs-gutter-x: 0.75rem !important;
-    --bs-gutter-y: 0.5rem !important;
+    --bs-gutter-x: 1rem !important;
+    --bs-gutter-y: 0.75rem !important;
     flex: 1 !important;
     min-height: 0 !important;
 }
 
 #visitFormView .col-12 > .border,
 #visitFormView .col-12 > div {
-    padding: clamp(0.6rem, 1.2vh, 1rem) !important;
-    border-radius: 14px !important;
+    padding: clamp(0.75rem, 1.5vh, 1.25rem) !important;
+    border-radius: 16px !important;
     border-color: #e2e8f0 !important;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
@@ -1008,7 +1008,7 @@ mark.highlight-search {
 #visitFormView .mb-2,
 #visitFormView .mb-2.5,
 #visitFormView .mb-3 {
-    margin-bottom: clamp(0.35rem, 0.8vh, 0.65rem) !important;
+    margin-bottom: clamp(0.35rem, 1vh, 0.75rem) !important;
 }
 
 #visitFormView .form-control,
@@ -1020,9 +1020,10 @@ mark.highlight-search {
     padding-bottom: 2px !important;
 }
 
+/* ช่อง Details ฝั่งขวารับหน้าที่ยืด-หดขนาดตามความสูงจอที่เหลือ */
 #visitDetails {
     flex: 1 !important;
-    min-height: 50px !important;
+    min-height: 60px !important;
     height: 100% !important;
     resize: none !important;
     padding: 0.5rem 0.75rem !important;
@@ -1048,8 +1049,8 @@ mark.highlight-search {
 
 .sticky-action-footer {
     border-top: 1px solid #f1f5f9 !important;
-    padding-top: 0.4rem !important;
-    margin-top: 0.4rem !important;
+    padding-top: 0.5rem !important;
+    margin-top: 0.5rem !important;
     flex-shrink: 0 !important;
 }
 
@@ -1066,7 +1067,7 @@ mark.highlight-search {
     background-color: #ffffff !important;
     border: 1px solid #fee2e2 !important;
     color: #dc2626 !important;
-    font-size: 0.7rem !important;
+    font-size: 0.72rem !important;
     font-weight: 700 !important;
     padding: 1px 7px !important;
     border-radius: 20px !important;
