@@ -1245,8 +1245,6 @@ window.deleteTot = async function() {
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
     var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-    
-    // 🌟 ดึงค่า Scope จากทุกช่องที่เป็นไปได้ (รวมถึง Territory_ID ที่เก็บ BU_ID หรือ Team_ID)
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.Territory_ID || crmUser.territory_id || '').trim().toLowerCase() : '';
 
     var isGlobalViewer = window.myIsGlobalViewer || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(userRole) !== -1;
@@ -1261,7 +1259,7 @@ window.deleteTot = async function() {
 
     if (!isGlobalViewer) {
         if (isBuHead) {
-            // 🌟 1. BU Head: หา BU_ID จากตาราง BU (แมตช์กับ rawScope)
+            // 🌟 1. หา BU_ID ที่เกี่ยวข้อง
             var busList = (window.VisitManagerCache && window.VisitManagerCache.bus) ? window.VisitManagerCache.bus : (window.globalBuList || []);
             var matchedBu = busList.find(function(b) { 
                 var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
@@ -1270,7 +1268,7 @@ window.deleteTot = async function() {
             });
             var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id || matchedBu.BU).trim().toLowerCase() : rawScope;
 
-            // 🌟 2. ดึง Team_ID ทั้งหมดใต้ BU นี้
+            // 🌟 2. หา Team ทั้งหมดใต้ BU_ID นี้
             (window.globalTeamList || []).forEach(function(t) {
                 var tBuId = String(t.BU_ID || t.BU || '').trim().toLowerCase();
                 var tid = String(t.Team_ID || t.id || t.Team).trim();
@@ -1279,7 +1277,7 @@ window.deleteTot = async function() {
                 }
             });
 
-            // 🌟 3. ดึง Territory_ID ทั้งหมดใต้ Team เหล่านี้
+            // 🌟 3. หา Territory ทั้งหมดใต้ Team เหล่านี้
             (window.globalTerritoryList || []).forEach(function(ter) {
                 var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
                 var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
@@ -1287,33 +1285,26 @@ window.deleteTot = async function() {
                     if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
                 }
             });
-
         } else if (isManager) {
-            // 🌟 1. Manager: หา Team_ID จากตาราง Team (แมตช์ rawScope กับ Team_ID / Team)
-            var matchedTeam = (window.globalTeamList || []).find(function(t) {
-                var tId = String(t.Team_ID || t.id || t.Team || '').trim().toLowerCase();
-                var tName = String(t.Team || t.Team_Name || '').trim().toLowerCase();
-                return tId === rawScope || tName === rawScope || rawScope.includes(tId);
+            (window.globalTeamList || []).forEach(function(t) {
+                var tid = String(t.Team_ID || t.id || t.Team || '').trim();
+                var tnm = String(t.Team || t.Team_Name || '').trim().toLowerCase();
+                if (tid && (tid.toLowerCase() === rawScope || tnm === rawScope || rawScope.includes(tid.toLowerCase()))) {
+                    if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
+                }
             });
-            var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID || matchedTeam.id || matchedTeam.Team).trim() : rawScope;
-
-            if (targetTeamId) {
-                myAllowedTeamIds.push(targetTeamId);
-                // ดึง Territory_ID ทั้งหมดใต้ Team นี้
-                (window.globalTerritoryList || []).forEach(function(ter) {
-                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
-                    var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
-                    if (trTeamId.toLowerCase() === targetTeamId.toLowerCase()) {
-                        if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
-                    }
-                });
-            }
-
+            (window.globalTerritoryList || []).forEach(function(ter) {
+                var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
+                var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
+                if (myAllowedTeamIds.indexOf(trTeamId) !== -1) {
+                    if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
+                }
+            });
         } else if (isSales) {
             if (rawScope) myAllowedTerIds.push(rawScope);
         }
 
-        // 🌟 4. ดึงพนักงานทุกคนใน Rep_Users ที่ตรงกับ BU_ID, Team_ID หรือ Territory_ID
+        // 🌟 4. ดึงลูกทีมทุกคนใน Rep_Users ที่ตรงกับ BU_ID, Team_ID หรือ Territory_ID
         (window.globalUsersList || []).forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var uteam = String(u.Team_ID || u.Team || '').trim();
@@ -1343,7 +1334,6 @@ window.deleteTot = async function() {
     window.myAllowedRepIds = myAllowedRepIds; 
     window.myAllowedEmails = myAllowedEmails;
 
-    // เติมรายชื่อพนักงานลง Dropdown
     var uniqueUsersMap = new Map();
     var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
@@ -1356,11 +1346,13 @@ window.deleteTot = async function() {
     });
 
     if (repSelect) {
-        var repHtml = ''; uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
+        var repHtml = ''; 
+        uniqueUsersMap.forEach(function(u, id) { 
+            repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; 
+        });
         repSelect.innerHTML = repHtml;
     }
 
-    // เติมพื้นที่/ทีมลง Dropdown
     var terMap = new Map();
     if (isGlobalViewer || isBuHead || isManager) {
         (window.globalTeamList || []).forEach(function(t) {
@@ -1408,7 +1400,6 @@ window.deleteTot = async function() {
     }
     window.isPermissionCalculated = true; 
 };
-
 window.renderFormProductDropdown = async function() {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -1649,8 +1640,7 @@ window.clearVisitFilters = function() {
           query = query.in('Rep_ID', selectedReps);
       }
 
-      // 🌟 [แก้ปัญหาตารางว่างเปล่าเมื่อเลือก Area]:
-      // สแกนหาทั้ง Territory_ID ตรงๆ และหา Rep_ID ของทุกคนที่ผูกกับ Team/Territory นั้น
+      // 🌟 [แก้อาการกรอง Area แล้วตารางว่าง]: แปลง Team_ID และ Territory_ID ให้เป็นไอดีของเขตและพนักงานอย่างแม่นยำ
       if (selectedTers.length > 0) {
           var matchedTerIds = [];
           var matchedTeamIds = [];
@@ -1659,10 +1649,12 @@ window.clearVisitFilters = function() {
           var teamList = window.globalTeamList || [];
 
           selectedTers.forEach(function(selId) {
-              matchedTerIds.push(selId);
+              var selIdClean = String(selId).trim();
+              matchedTerIds.push(selIdClean);
+
               teamList.forEach(function(tm) {
                   var tId = String(tm.Team_ID || tm.id || tm.Team).trim();
-                  if (tId === selId || String(tm.Team).trim() === selId) {
+                  if (tId === selIdClean || String(tm.Team).trim() === selIdClean) {
                       matchedTeamIds.push(tId);
                       terrList.forEach(function(tr) {
                           if (String(tr.Team_ID || tr.Team).trim() === tId) {
@@ -1680,16 +1672,14 @@ window.clearVisitFilters = function() {
               var uTeam = String(u.Team_ID || u.Team || '').trim();
               var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
 
-              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTeamIds.indexOf(uTeam) !== -1) {
+              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTeamIds.indexOf(uTeam) !== -1 || matchedTerIds.indexOf(uTeam) !== -1) {
                   if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
               }
           });
 
           var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
 
-          if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
-              query = query.or('Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')');
-          } else if (repIdsInTerr.length > 0) {
+          if (repIdsInTerr.length > 0) {
               query = query.in('Rep_ID', repIdsInTerr);
           } else if (cleanTerIds.length > 0) {
               query = query.in('Territory_ID', cleanTerIds);
