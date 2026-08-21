@@ -978,6 +978,14 @@ window.deleteTot = async function() {
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
 
   try {
+    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+
+    // 🌟 [CRITICAL FIX]: คำนวณสิทธิ์ลูกทีมตั้งแต่วินาทีแรก เพื่อให้ loadVisits นำ myAllowedRepIds ไปใช้ได้ทันที
+    if (crmUser && typeof window.setupFiltersDropdowns === 'function') {
+        window.setupFiltersDropdowns(crmUser, []);
+    }
+
     var appLang = window.getCurrentAppLang();
     var statusSelect = document.getElementById('filterVisitStatus');
     if (statusSelect) {
@@ -1024,14 +1032,10 @@ window.deleteTot = async function() {
         }
     }
  
-    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
     var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
-    // 🌟 [แก้สิทธิ์โดนล้างค่า]: ล็อกสิทธิ์ที่คำนวณจาก app.js ไว้ ห้ามเขียนทับด้วย Sales
     if (typeof window.myIsBuHead === 'undefined' || !window.myIsBuHead) {
         var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
         if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
@@ -1176,6 +1180,7 @@ window.deleteTot = async function() {
       }
     }
 
+    // 🌟 เรียกสร้าง Dropdown เพิ่มเติมหลังจากโหลดข้อมูลเสร็จ
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
     var purposeSelect = document.getElementById('visitPurpose');
