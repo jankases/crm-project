@@ -3201,18 +3201,26 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
 // ==========================================
 // 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
 // ==========================================
+// 🌟 เพิ่มตัวแปร Global ไว้จำค่าที่ถูกเลือก (ป้องกันค่าหายตอนปฏิทินถูก Destroy เพื่อวาดใหม่)
+window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
+
 window.renderCalendarView = function() {
   var calendarEl = document.getElementById('calendar');
   if (!calendarEl) return;
+
+  // 1. ดึง ID ของลูกน้องที่ถูกเลือกจาก Filter Dropdown บน Calendar (ทำก่อน Destroy Calendar)
+  var calRepFilter = document.getElementById('calRepFilterSelect');
+  if (calRepFilter) {
+      window.currentCalendarRepFilter = calRepFilter.value;
+  }
+  var selectedRepId = window.currentCalendarRepFilter || '';
+
+  // ทำลายปฏิทินเก่าทิ้งเพื่อวาดใหม่
   if (window.globalCalendarInstance) { window.globalCalendarInstance.destroy(); window.globalCalendarInstance = null; }
   
   var appLang = window.getCurrentAppLang();
   var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
-
-  // 1. ดึง ID ของลูกน้องที่ถูกเลือกจาก Filter Dropdown บน Calendar
-  var calRepFilter = document.getElementById('calRepFilterSelect');
-  var selectedRepId = calRepFilter ? calRepFilter.value : '';
 
   // 2. กรองข้อมูล Visits ตาม Sales Rep ที่หัวหน้าเลือก
   var visitsSource = window.globalVisits || [];
@@ -3295,17 +3303,25 @@ window.renderCalendarView = function() {
         
         // ถ้าเป็น Manager ให้สร้าง Dropdown เลือกลูกน้อง
         if (isManagerOrAdmin && userList.length > 0) {
+          // 🌟 ปรับปรุง: กรองเอาเฉพาะคนที่มองเห็นได้ และกันข้อมูลซ้ำซ้อน
+          var allowedReps = window.myAllowedRepIds || [];
+          var uniqueReps = new Map();
+          
           var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม') + '</option>';
           userList.forEach(function(u) {
-            var uId = String(u.Rep_ID || u.User_ID || u.id || '');
-            var uName = u.Rep_Name || u.Name || u.Email || uId;
-            var isSel = (uId === selectedRepId) ? 'selected' : '';
-            repOptionsHtml += '<option value="' + uId + '" ' + isSel + '>' + uName + '</option>';
+            var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+            if (uId && allowedReps.indexOf(uId) !== -1 && !uniqueReps.has(uId)) {
+                uniqueReps.set(uId, true);
+                var uName = u.Rep_Name || u.Name || u.Email || uId;
+                var isSel = (uId === selectedRepId) ? 'selected' : '';
+                repOptionsHtml += '<option value="' + uId + '" ' + isSel + '>👤 ' + uName + '</option>';
+            }
           });
 
+          // 🌟 ปรับปรุง: เพิ่ม onchange ให้อัปเดตค่าตัวแปร Global ด้วย
           var filterDropdownHtml = `
             <div class="d-inline-block me-2" id="calRepFilterContainer">
-              <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs" id="calRepFilterSelect" style="font-size: 0.82rem; height: 33px; min-width: 180px;" onchange="window.renderCalendarView();">
+              <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs premium-radius text-primary cursor-pointer" id="calRepFilterSelect" style="font-size: 0.85rem; height: 34px; min-width: 180px;" onchange="window.currentCalendarRepFilter = this.value; window.renderCalendarView();">
                 ${repOptionsHtml}
               </select>
             </div>
@@ -4328,5 +4344,15 @@ window.updateStatCardActiveUI = function(status) {
         if (elPending) elPending.classList.add('active-pending');
     } else if (status === 'Submitted') {
         if (elSubmitted) elSubmitted.classList.add('active-submitted');
+    }
+};
+
+// 🌟 1. ตัวแปรและฟังก์ชันสำหรับรับค่าจาก Dropdown ปฏิทิน
+window.currentCalendarRepFilter = '';
+
+window.changeCalendarRepFilter = function(repId) {
+    window.currentCalendarRepFilter = repId;
+    if (typeof window.renderCalendarView === 'function') {
+        window.renderCalendarView(); // สั่งวาดปฏิทินใหม่เมื่อเลือกชื่อ
     }
 };
