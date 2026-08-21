@@ -3201,21 +3201,19 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
 // ==========================================
 // 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
 // ==========================================  
-// 🌟 เพิ่มตัวแปร Global ไว้จำค่าที่ถูกเลือก (ป้องกันค่าหายตอนปฏิทินถูก Destroy เพื่อวาดใหม่)
+ // 🌟 ตัวแปร Global จำค่าที่ถูกเลือก
 window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
 
 window.renderCalendarView = function() {
   var calendarEl = document.getElementById('calendar');
   if (!calendarEl) return;
 
-  // 1. ดึง ID ของลูกน้องที่ถูกเลือกจาก Filter Dropdown บน Calendar (ทำก่อน Destroy Calendar)
   var calRepFilter = document.getElementById('calRepFilterSelect');
   if (calRepFilter) {
       window.currentCalendarRepFilter = calRepFilter.value;
   }
   var selectedRepId = window.currentCalendarRepFilter || '';
 
-  // ทำลายปฏิทินเก่าทิ้งเพื่อวาดใหม่
   if (window.globalCalendarInstance) { 
       window.globalCalendarInstance.destroy(); 
       window.globalCalendarInstance = null; 
@@ -3227,7 +3225,7 @@ window.renderCalendarView = function() {
   var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
 
   // ==========================================
-  // 🌟 2. กรองข้อมูล Visits ตาม Sales Rep ที่เลือก
+  // 1. Visit Logs
   // ==========================================
   var visitsSource = window.globalVisits || [];
   if (selectedRepId) {
@@ -3242,7 +3240,6 @@ window.renderCalendarView = function() {
       var hospName = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
       var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-';
 
-      // ดึงชื่อ Sales Rep มาแสดงถ้าเป็นการดูภาพรวมทีม
       var repObj = (window._userIndex && v.Rep_ID) ? window._userIndex[String(v.Rep_ID).trim().toLowerCase()] : null;
       var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
 
@@ -3268,13 +3265,12 @@ window.renderCalendarView = function() {
       };
   });
 
+  // ==========================================
+  // 2. Public Holidays & Company Events
+  // ==========================================
   var holidayEvents = []; var companyEvents = []; 
   
   if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
-      
-      // ==========================================
-      // 🌟 3. ดึงข้อมูล Public Holiday (อิงตามโครงสร้าง Index ตรงเป๊ะ)
-      // ==========================================
       var holidayType = window.VisitManagerCache.indexTypes.find(function(t) { 
           var n = (t.Name || '').trim().toLowerCase();
           return n.indexOf('holiday') !== -1 && n.indexOf('company') === -1 && n.indexOf('corporate') === -1; 
@@ -3283,11 +3279,9 @@ window.renderCalendarView = function() {
       if (holidayType) {
           var holidayData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === holidayType.IndexType_ID; });
           holidayEvents = holidayData.map(function(h) {
-              // ดึงวันที่จาก Value
               var hDate = h.Value ? h.Value.split('T')[0] : '';
               if (hDate.indexOf('/') !== -1) { var dParts = hDate.split('/'); if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0]; }
               
-              // ดึงชื่อ: ภาษาอังกฤษใช้ Value2, ภาษาไทยใช้ Value1
               var hTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || h.Value2 || 'วันหยุด');
 
               return {
@@ -3298,15 +3292,12 @@ window.renderCalendarView = function() {
                   backgroundColor: '#ef4444', 
                   borderColor: '#ef4444', 
                   textColor: '#ffffff', 
-                  display: 'block', // 🌟 โชว์เป็นบล็อกทึบสีแดง
+                  display: 'block',
                   extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
               };
           });
       }
 
-      // ==========================================
-      // 🌟 4. ดึงข้อมูล Company Event (อิงตามโครงสร้าง Index ตรงเป๊ะ)
-      // ==========================================
       var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) { 
           var n = (t.Name || '').trim().toLowerCase();
           return n.indexOf('company event') !== -1 || n.indexOf('corporate') !== -1; 
@@ -3315,11 +3306,9 @@ window.renderCalendarView = function() {
       if (companyEventType) {
           var companyData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === companyEventType.IndexType_ID; });
           companyEvents = companyData.map(function(c) {
-              // ดึงวันที่จาก Value
               var cDate = c.Value ? c.Value.split('T')[0] : '';
               if (cDate.indexOf('/') !== -1) { var dParts2 = cDate.split('/'); if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0]; }
               
-              // ดึงชื่อ: ภาษาอังกฤษใช้ Value2, ภาษาไทยใช้ Value1
               var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || c.Value2 || 'กิจกรรมบริษัท');
 
               return {
@@ -3327,7 +3316,7 @@ window.renderCalendarView = function() {
                   title: '🏢 ' + cTitle, 
                   start: cDate, 
                   allDay: true, 
-                  backgroundColor: '#8b5cf6', // 🌟 โชว์เป็นบล็อกทึบสีม่วง
+                  backgroundColor: '#8b5cf6', 
                   borderColor: '#8b5cf6', 
                   textColor: '#ffffff', 
                   display: 'block',
@@ -3338,7 +3327,7 @@ window.renderCalendarView = function() {
   }
 
   // ==========================================
-  // 🌟 5. กรองข้อมูล TOT ให้เปลี่ยนตาม Dropdown ที่เลือกด้วย
+  // 3. TOT Logs
   // ==========================================
   var totSource = window.globalFilteredTotLogs || [];
   if (selectedRepId) {
@@ -3357,7 +3346,7 @@ window.renderCalendarView = function() {
           var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
           if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
       }
-      var baseTitle = repNamePrefix + timePrefix + '[TOT] ' + displayType;
+      var baseTitle = repNamePrefix + timePrefix + '⛱️ ' + displayType;
       var fullTooltipText = baseTitle + (t.Remark ? '\n' + (appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ') + t.Remark : '');
       var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
 
@@ -3421,14 +3410,41 @@ window.renderCalendarView = function() {
     
     window.globalCalendarInstance.render();
 
+    // ==========================================
+    // 🌟 เสกปุ่ม Legend & Filter เข้ารวมใน Toolbar ด้านขวา
+    // ==========================================
     setTimeout(function() {
       var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
-      
-      // แทรก Dropdown Filter ลูกน้อง
-      if (headerRight && !document.getElementById('calRepFilterContainer')) {
-        var isEN = appLang === 'en';
+      if (!headerRight) return;
+
+      var isEN = appLang === 'en';
+
+      // 1. เสกปุ่ม Legend (สัญลักษณ์สี)
+      if (!document.getElementById('calHeaderLegendDropdown')) {
+        var legendDropdownHtml = `
+          <div class="dropdown d-inline-block me-2" id="calHeaderLegendDropdown">
+            <button class="btn btn-sm btn-light border shadow-sm text-secondary fw-bold dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="height: 34px; font-size: 0.85rem;">
+              <i class="fa-solid fa-palette text-info"></i>
+              <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
+              <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
+              <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (รออนุมัติ)' : 'TOT (Pending)'}</span></div>
+            </div>
+          </div>
+        `;
+        headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
+      }
+
+      // 2. เสก Dropdown เลือกลูกน้อง (สำหรับ Manager/Admin)
+      if (!document.getElementById('calRepFilterContainer')) {
         var userList = window.globalUsersList || [];
-        
         if (isManagerOrAdmin && userList.length > 0) {
           var allowedReps = window.myAllowedRepIds || [];
           var uniqueReps = new Map();
@@ -3455,29 +3471,6 @@ window.renderCalendarView = function() {
         }
       }
 
-      // แทรกสัญลักษณ์สี (Legend)
-      if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
-        var isEN = appLang === 'en';
-        var legendDropdownHtml = `
-          <div class="dropdown d-inline-block me-1" id="calHeaderLegendDropdown">
-            <button class="fc-button fc-button-primary dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #64748b; border-color: #64748b; font-size: 0.85rem; padding: 0.35em 0.65em;">
-              <i class="fa-solid fa-palette"></i>
-              <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
-              <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
-              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
-              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
-              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
-              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
-              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
-              <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
-              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
-            </div>
-          </div>
-        `;
-        headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
-      }
     }, 50);
   }
 };
