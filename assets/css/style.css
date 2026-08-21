@@ -124,7 +124,7 @@ html, body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   width: 168px !important;
   flex-shrink: 0 !important;
-  cursor: pointer !important; /* เพิ่มให้รู้ว่ากดได้ */
+  cursor: pointer !important;
 }
 
 .kpi-label-text {
@@ -814,7 +814,6 @@ mark.highlight-search {
     z-index: 10 !important;
 }
 
-/* ปิด Scrollbar นอกและในของ FullCalendar */
 #calendar .fc-view-harness, 
 #calendar .fc-daygrid,
 #calendar .fc-scroller-harness,
@@ -837,7 +836,6 @@ mark.highlight-search {
     border-radius: 4px !important;
 }
 
-/* ปรับระยะไรน์ใน Header ของ FullCalendar */
 #calendar .fc-toolbar-chunk {
     display: flex !important;
     align-items: center !important;
@@ -846,8 +844,6 @@ mark.highlight-search {
 /* ==========================================
    ✨ FULLCALENDAR PREMIUM BUTTONS STYLING
    ========================================== */
-
-/* 1. ปุ่มทิศทาง (< > Today) และปุ่มทั่วไปของ FullCalendar */
 #calendar .fc-button-primary {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -866,7 +862,6 @@ mark.highlight-search {
     border-color: #cbd5e1 !important;
 }
 
-/* 2. ปุ่มสภาวะกดอยู่ (Active / Selected - เช่น ปุ่ม Month ที่เลือก) */
 #calendar .fc-button-primary:not(:disabled):active, 
 #calendar .fc-button-primary:not(:disabled).fc-button-active {
     background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
@@ -875,7 +870,6 @@ mark.highlight-search {
     box-shadow: 0 2px 6px rgba(30, 64, 175, 0.25) !important;
 }
 
-/* 3. ปุ่ม Legend สัญลักษณ์สี (ปรับเป็นโทนสีขาวคลีน ไม่กระโดด) */
 #calHeaderLegendDropdown .btn {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -895,10 +889,9 @@ mark.highlight-search {
 }
 
 #calHeaderLegendDropdown .btn i.fa-palette {
-    color: #0ea5e9 !important; /* เปลี่ยนไอคอนจานสีเป็นสีฟ้าสดใส */
+    color: #0ea5e9 !important;
 }
 
-/* 4. กลุ่มปุ่มติดกัน (Button Group: Month/Week/Day) ให้เข้ามุมมนสวยงาม */
 #calendar .fc-button-group {
     gap: 2px !important;
     background-color: #f1f5f9;
@@ -911,26 +904,77 @@ mark.highlight-search {
     border: none !important;
 }
 
-/* 🌟 คุมหน้า Form View ให้พอดีจอ + เลื่อนได้เมื่อจอเล็ก */
+/* ==========================================
+   ✨ EDIT/ADD VISIT FORM VIEW (REFINED SPACING & PADDING)
+   ========================================== */
 #visitFormView {
     height: calc(100vh - 75px) !important;
     max-height: calc(100vh - 75px) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding-bottom: 2rem !important;
+    padding: 1.25rem 1.5rem 2.5rem 1.5rem !important;
 }
 
-/* ปรับระยะ Textarea และกล่องในฟอร์มให้กระชับ ไม่ยืดความสูงล้น */
+/* การ์ดซ้าย-ขวา เพิ่ม Padding ภายใน และระยะห่างภายนอก */
 #visitFormView .card {
+    border-radius: 18px !important;
+    padding: 1.5rem !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
     margin-bottom: 1.5rem !important;
 }
 
-#visitDetails {
-    min-height: 100px !important;
-    max-height: 160px !important;
+/* เพิ่มระยะห่างระหว่างคอลัมน์การ์ดฝั่งซ้ายและฝั่งขวา */
+#visitFormView .row.g-3,
+#visitFormView .row.g-4 {
+    --bs-gutter-x: 1.75rem !important;
+    --bs-gutter-y: 1.75rem !important;
 }
 
-/* ปรับแต่ง Scrollbar ของหน้า Form ให้สวยงาม */
+/* ปรับระยะห่างระหว่างแต่ละฟิลด์ให้โปร่ง ไม่กระจุกตัว */
+#visitFormView .mb-3 {
+    margin-bottom: 1.35rem !important;
+}
+
+#visitFormView .mb-2 {
+    margin-bottom: 1rem !important;
+}
+
+/* ปรับปรุงความสูงและ Padding ช่อง Textarea รายละเอียดฝั่งขวา */
+#visitDetails {
+    min-height: 120px !important;
+    max-height: 180px !important;
+    padding: 0.85rem 1rem !important;
+    line-height: 1.6 !important;
+    border-radius: 12px !important;
+}
+
+#visitInsight, 
+#visitNextAction {
+    padding: 0.75rem 1rem !important;
+    line-height: 1.5 !important;
+    border-radius: 12px !important;
+}
+
+/* ปรับปรุงกลุ่มปุ่ม Features & Evidences 4 ปุ่มให้ดูนุ่มนวลและโปร่งสบายตา */
+#sectionGpsCheckin, 
+#sectionSignature, 
+#sectionSamples, 
+#sectionAttachments {
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.88rem !important;
+    border-radius: 12px !important;
+    min-height: 44px !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* ปุ่ม e-Detailing แถบล่างสุดของฝั่งซ้าย */
+#detailingMediaSection .btn {
+    padding: 0.65rem 1rem !important;
+    border-radius: 12px !important;
+}
+
+/* ปรับแต่ง Scrollbar ของหน้า Form */
 #visitFormView::-webkit-scrollbar {
     width: 6px;
 }
@@ -942,8 +986,6 @@ mark.highlight-search {
 /* ==========================================
    ✨ KPI CARD CLICKABLE & ACTIVE STATES (FIXED)
    ========================================== */
-
-/* 1. สั่งให้กล่อง KPI ขึ้นรูปมือ (Pointer) และลบเงาสีฟ้าของเบราว์เซอร์ออก */
 .kpi-card-elevated {
     cursor: pointer !important;
 }
@@ -954,37 +996,34 @@ mark.highlight-search {
     box-shadow: none !important;
 }
 
-/* 2. สไตล์ตอนเลือกกล่อง Total Visits (ฟ้า) */
 .kpi-card-elevated.active-total {
-    background-color: #f0f9ff !important; /* ฟ้าอ่อนพรีเมียม */
-    border-color: #0284c7 !important;     /* ขอบฟ้าเข้ม */
+    background-color: #f0f9ff !important;
+    border-color: #0284c7 !important;
     box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important;
     transform: translateY(-1px) !important;
 }
 
-/* 3. สไตล์ตอนเลือกกล่อง Pending Drafts (ส้ม) */
 .kpi-card-elevated.active-pending {
-    background-color: #fffbeb !important; /* ส้มอ่อนพรีเมียม */
-    border-color: #d97706 !important;     /* ขอบส้มเข้ม */
+    background-color: #fffbeb !important;
+    border-color: #d97706 !important;
     box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important;
     transform: translateY(-1px) !important;
 }
 
-/* 4. สไตล์ตอนเลือกกล่อง Submitted Logs (เขียว) */
 .kpi-card-elevated.active-submitted {
-    background-color: #ecfdf5 !important; /* เขียวอ่อนพรีเมียม */
-    border-color: #059669 !important;     /* ขอบเขียวเข้ม */
+    background-color: #ecfdf5 !important;
+    border-color: #059669 !important;
     box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important;
     transform: translateY(-1px) !important;
 }
 
 /* 🌟 HIGHLIGHT TODAY CELL IN FULLCALENDAR */
 #calendar .fc-day-today {
-    background-color: #f0f9ff !important; /* สีฟ้าอ่อนพรีเมียม */
+    background-color: #f0f9ff !important;
 }
 
 #calendar .fc-day-today .fc-daygrid-day-number {
-    background-color: #0284c7 !important; /* วงกลมสีฟ้าเข้มเน้นตัวเลข */
+    background-color: #0284c7 !important;
     color: #ffffff !important;
     border-radius: 50%;
     width: 24px;
