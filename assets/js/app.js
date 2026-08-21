@@ -280,9 +280,16 @@ async function checkSession() {
         if(nameDisplay) nameDisplay.innerText = dName; 
         if(roleDisplay) roleDisplay.innerText = uRole;
         
+        // 🌟 [แก้สิทธิ์หลุด]: กำหนดค่า Flags สิทธิ์ระดับผู้บริหารให้ถูกต้องตั้งแต่เริ่มเปิดเว็บ
+        const roleUpper = String(uRole).toUpperCase().trim();
+        window.myIsGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(roleUpper) !== -1;
+        window.myIsBuHead = roleUpper.indexOf('BU') !== -1 || roleUpper.indexOf('HEAD') !== -1;
+        window.myIsManager = roleUpper.indexOf('MANAGER') !== -1;
+        window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsBuHead && !window.myIsManager;
+
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
-            if (String(uRole).toLowerCase() === 'admin') {
+            if (window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager) {
                 el.style.setProperty('display', 'block', 'important');
             } else {
                 el.style.setProperty('display', 'none', 'important');
