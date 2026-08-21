@@ -4443,9 +4443,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง KPI
+// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง KPI 
 window.clickStatCard = function(status) {
-    // 1. เปลี่ยนค่าใน Dropdown Status (แบบ Silent เพื่อไม่ให้มันโหลดซ้ำซ้อน)
+    // 1. เปลี่ยนค่าใน Dropdown Status (แบบ Silent)
     if (window.tomSelectStatusInstance) {
         window.tomSelectStatusInstance.setValue(status, true); 
     } else {
@@ -4458,12 +4458,22 @@ window.clickStatCard = function(status) {
         window.updateStatCardActiveUI(status);
     }
 
-    // 3. บังคับโหลดตารางใหม่ให้ตรงกับกล่องที่กด
-    if (typeof window.filterVisits === 'function') {
-        window.filterVisits();
-    } else if (typeof window.loadVisits === 'function') {
-        window.currentPage = 1;
-        window.loadVisits(true);
+    // 3. ตรวจสอบว่าปัจจุบันกำลังเปิดหน้าไหนอยู่ (List หรือ Calendar)
+    var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
+        ? window.VisitManagerCache.currentMainView 
+        : 'list';
+
+    // 4. บังคับโหลดข้อมูลตารางใหม่โดยไม่สลับ View หนี
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true).then(function() {
+            // ถ้าระหว่างกดกล่อง ยูสเซอร์ยังคงยืนอยู่ที่หน้า Calendar ให้วาด Calendar ใหม่ในหน้านั้นต่อ ไม่ต้องเด้งไป List
+            if (currentMainView === 'calendar') {
+                if (typeof window.toggleMainView === 'function') {
+                    window.toggleMainView('calendar');
+                }
+            }
+        });
     }
 };
 
