@@ -1213,134 +1213,149 @@ window.loadDropdowns = async function(forceReload) {
 
   } catch (err) { console.error("Error loading dropdowns:", err.message); }
 };
- window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
 
-    if (!repSelect && !terSelect) return;
-
-    var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
-    if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
-    
-    var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
-    if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
+    var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
+    var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || '').trim().toLowerCase() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim().toLowerCase() : '';
 
     var isGlobalViewer = window.myIsGlobalViewer;
     var isBuHead = window.myIsBuHead;
     var isManager = window.myIsManager;
     var isSales = window.myIsSalesRole;
 
-    // 🌟 คำนวณหา Team และ Territory ในดูแลแบบยืดหยุ่น
-    var myAllowedTeamIds = [];
-    var myAllowedTerIds = [];
-    var myAllowedRepIds = [uRepId]; // ใส่ตัวเองไว้เสมอ
+    var myAllowedTeamIds = []; var myAllowedTerIds = []; var myAllowedRepIds = []; var myAllowedEmails = [];
 
-    if (isBuHead) {
-        // หา Team ที่สังกัด BU เดียวกัน
-        (window.globalTeamList || []).forEach(function(t) {
-            var tBu = String(t.BU_ID || t.BU || t.Business_Unit_ID || '').trim().toLowerCase();
-            if (tBu && (tBu === rawScope || rawScope.includes(tBu) || tBu.includes(rawScope))) {
-                myAllowedTeamIds.push(String(t.Team_ID || t.id || t.Team));
+    if (!isGlobalViewer) {
+        if (uRepId) myAllowedRepIds.push(uRepId); if (uEmail) myAllowedEmails.push(uEmail);
+
+        if (isBuHead) {
+            var busList = window.VisitManagerCache.bus || window.globalBuList || [];
+            var matchedBu = busList.find(function(b) { 
+                var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
+                var bName = String(b.BU_Name || b.BU || '').trim().toLowerCase();
+                return bId === rawScope || bName === rawScope || rawScope.includes(bId) || rawScope.includes(bName);
+            });
+            var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id || matchedBu.BU) : crmUser.BU_ID || crmUser.BU || rawScope;
+            
+            var buTeams = (window.globalTeamList || []).filter(function(t) { 
+                var tBu = String(t.BU_ID || t.BU || '').trim().toLowerCase();
+                return tBu === String(targetBuId).toLowerCase() || tBu === rawScope || rawScope.includes(tBu);
+            });
+            buTeams.forEach(function(t) {
+                var tid = String(t.Team_ID || t.id || t.Team).trim();
+                if (tid && myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
+                
+                var terrs = (window.globalTerritoryList || []).filter(function(ter) { 
+                    return String(ter.Team_ID || ter.Team) === tid || String(ter.BU_ID || ter.BU).toLowerCase() === String(targetBuId).toLowerCase(); 
+                });
+                terrs.forEach(function(ter) { 
+                    var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
+                    if (trId && myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId); 
+                });
+            });
+        } else if (isManager) {
+            var matchedTeam = (window.globalTeamList || []).find(function(t) { 
+                var tid = String(t.Team_ID || t.id || t.Team).trim().toLowerCase();
+                return tid === rawScope;
+            });
+            if (matchedTeam) {
+                var tid = String(matchedTeam.Team_ID || matchedTeam.id || matchedTeam.Team).trim();
+                myAllowedTeamIds.push(tid);
+                var terrs = (window.globalTerritoryList || []).filter(function(t) { return String(t.Team_ID || t.Team) === tid; });
+                terrs.forEach(function(t) { 
+                    var trId = String(t.Territory_ID || t.id || t.Territory).trim();
+                    if (trId && myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId); 
+                });
+            } else if (rawScope) {
+                myAllowedTeamIds.push(rawScope);
             }
-        });
-        // หา Territory ที่อยู่ใน Team เหล่านั้น
-        (window.globalTerritoryList || []).forEach(function(tr) {
-            var trTeam = String(tr.Team_ID || tr.Team || '').trim();
-            var trBu = String(tr.BU_ID || tr.BU || '').trim().toLowerCase();
-            if (myAllowedTeamIds.indexOf(trTeam) !== -1 || (trBu && trBu === rawScope)) {
-                myAllowedTerIds.push(String(tr.Territory_ID || tr.id || tr.Territory));
-            }
-        });
-    } else if (isManager) {
-        (window.globalTeamList || []).forEach(function(t) {
-            var tid = String(t.Team_ID || t.id || t.Team).trim().toLowerCase();
-            if (tid && (tid === rawScope || rawScope.includes(tid))) {
-                myAllowedTeamIds.push(String(t.Team_ID || t.id || t.Team));
-            }
-        });
-        (window.globalTerritoryList || []).forEach(function(tr) {
-            var trTeam = String(tr.Team_ID || tr.Team || '').trim();
-            if (myAllowedTeamIds.indexOf(trTeam) !== -1) {
-                myAllowedTerIds.push(String(tr.Territory_ID || tr.id || tr.Territory));
+        } else if (isSales) {
+            var userTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim() : rawScope;
+            if (userTerrId) myAllowedTerIds.push(userTerrId);
+        }
+
+        // 🌟 ดึงลูกทีมยึดตาม BU_ID, Team_ID หรือ Territory_ID
+        (window.globalUsersList || []).forEach(function(u) {
+            var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+            var uteam = String(u.Team_ID || u.Team || '').trim();
+            var uter = String(u.Territory_ID || u.Territory || '').trim(); 
+            var ubu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
+            var uem = String(u.Email || u.email || '').toLowerCase().trim();
+            
+            if (!isSales) {
+                var isMatchedBU = isBuHead && ubu && (ubu === rawScope || rawScope.includes(ubu));
+                var isMatchedTeam = myAllowedTeamIds.indexOf(uteam) !== -1;
+                var isMatchedTer = myAllowedTerIds.indexOf(uter) !== -1;
+
+                if (isMatchedBU || isMatchedTeam || isMatchedTer) {
+                    var targetRole = String(u.Role || u.role || '').toUpperCase();
+                    var targetIsAdmin = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(targetRole) !== -1;
+                    if (!targetIsAdmin) {
+                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+                    }
+                }
             }
         });
     }
 
-    // 🌟 ดึงลูกทีมที่ตรงเงื่อนไขสิทธิ์
-    var fullAllowedUsers = (window.globalUsersList || []).filter(function(u) {
-        var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-        var uteam = String(u.Team_ID || u.Team || '').trim();
-        var uter = String(u.Territory_ID || u.Territory || '').trim();
-        var ubu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
+    window.myAllowedTeamIds = myAllowedTeamIds; window.myAllowedTerIds = myAllowedTerIds;
+    window.myAllowedRepIds = myAllowedRepIds; window.myAllowedEmails = myAllowedEmails;
 
-        if (isGlobalViewer) return true;
-        if (isSales) return uid === uRepId;
-        
-        // ถ้าเป็น BU Head / Manager เช็กว่าสังกัด BU เดียวกัน หรืออยู่ใน Team/Territory เดียวกัน
-        var isMatchBU = isBuHead && ubu && (ubu === rawScope || rawScope.includes(ubu));
-        var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1;
-        var isMatchTer = myAllowedTerIds.indexOf(uter) !== -1;
-
-        if (isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) {
-            if (myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-            return true;
-        }
-        return false;
-    });
-
-    // เซ็ตค่าวาไรเอเบิลกลาง
-    window.myAllowedTeamIds = myAllowedTeamIds;
-    window.myAllowedTerIds = myAllowedTerIds;
-    window.myAllowedRepIds = myAllowedRepIds;
-
-    // เติมตัวเลือกใน Dropdown Sales Rep
     var uniqueUsersMap = new Map();
+    var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
+        var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+        return isSales ? (uid === uRepId) : (myAllowedRepIds.indexOf(uid) !== -1);
+    });
+    
+    if (isSales && fullAllowedUsers.length === 0 && uRepId) {
+        var me = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID || u.User_ID || u.id) === uRepId; });
+        if (me) fullAllowedUsers = [me];
+    }
+    
     fullAllowedUsers.forEach(function(u) {
         var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-        if (id && id !== 'undefined' && id !== 'null') {
-            uniqueUsersMap.set(id, u.Rep_Name || u.Name || u.Email || id);
-        }
+        if (id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
     });
 
     if (repSelect) {
-        var repHtml = ''; 
-        uniqueUsersMap.forEach(function(name, id) { 
-            repHtml += '<option value="' + id + '">' + name + '</option>'; 
-        });
+        var repHtml = ''; uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
         repSelect.innerHTML = repHtml;
     }
 
-    // เติมตัวเลือกใน Dropdown Area / Team
     var terMap = new Map();
-    (window.globalTeamList || []).forEach(function(t) {
-        var tid = String(t.Team_ID || t.id || ''); 
-        var tnm = String(t.Team || t.Team_Name || tid);
-        if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1) {
-            if (tid) terMap.set(tid, tnm + ' (Team)');
-        }
-    });
-
+    if (isGlobalViewer || isBuHead || isManager) {
+        (window.globalTeamList || []).forEach(function(t) {
+            var tid = String(t.Team_ID || t.id || t.Team).trim(); 
+            var tnm = String(t.Team || t.Team_Name || tid).trim();
+            if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tnm) !== -1) {
+                if (tid && !terMap.has(tid)) terMap.set(tid, tnm + ' (Team)');
+            }
+        });
+    }
     (window.globalTerritoryList || []).forEach(function(t) {
-        var tid = String(t.Territory_ID || t.id || ''); 
-        var tnm = String(t.Territory || t.Territory_Name || tid);
-        if (isGlobalViewer || myAllowedTerIds.indexOf(tid) !== -1) {
+        var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
+        var tnm = String(t.Territory || t.Territory_Name || tid).trim();
+        if (isGlobalViewer || myAllowedTerIds.indexOf(tid) !== -1 || myAllowedTerIds.indexOf(tnm) !== -1) {
             if (tid && !terMap.has(tid)) terMap.set(tid, tnm);
         }
     });
 
+    if (isSales && terMap.size === 0 && crmUser && (crmUser.Territory_ID || crmUser.Territory)) {
+        terMap.set(String(crmUser.Territory_ID || crmUser.Territory), String(crmUser.Territory || crmUser.Territory_ID));
+    }
+
     if (terSelect) {
-        var tHtml = ''; 
-        terMap.forEach(function(text, id) { 
-            tHtml += '<option value="' + id + '">' + text + '</option>'; 
-        }); 
+        var tHtml = ''; terMap.forEach(function(text, id) { tHtml += '<option value="' + id + '">' + text + '</option>'; }); 
         terSelect.innerHTML = tHtml;
     }
 
-    // สั่ง TomSelect วาดหน้าจอใหม่
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     if (typeof TomSelect !== 'undefined') {
         if (repSelect) {
@@ -1349,12 +1364,10 @@ window.loadDropdowns = async function(forceReload) {
                 maxItems: null, 
                 plugins: ['remove_button'], 
                 create: false, 
-                hidePlaceholder: true, 
-                placeholder: appLang === 'th' ? '- พนักงานในทีม -' : '- Select Rep -', 
+                hidePlaceholder: true,
+                placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
                 dropdownParent: null, 
-                onChange: function() { 
-                    if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); 
-                } 
+                onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
             });
             if (oldRepVal.length > 0) setTimeout(function() { window.tomSelectRepInstance.setValue(oldRepVal, true); }, 50);
         }
@@ -1365,16 +1378,15 @@ window.loadDropdowns = async function(forceReload) {
                 maxItems: null, 
                 plugins: ['remove_button'], 
                 create: false, 
-                hidePlaceholder: true, 
-                placeholder: appLang === 'th' ? '- พื้นที่ในทีม -' : '- Select Area -', 
-                dropdownParent: null, 
-                onChange: function() { 
-                    if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); 
-                } 
+                hidePlaceholder: true,
+                placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
+                dropdownParent: null,
+                onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
             });
             if (oldTerVal.length > 0) setTimeout(function() { window.tomSelectTerInstance.setValue(oldTerVal, true); }, 50);
         }
     }
+    window.isPermissionCalculated = true; 
 };
 
 window.renderFormProductDropdown = async function() {
@@ -1517,7 +1529,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
- window.loadVisits = async function(forceReload) {
+window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1578,25 +1590,29 @@ window.clearVisitFilters = function() {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
+      var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
+      var isGlobalAdmin = window.myIsGlobalViewer; 
+
       var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       query = query.order(dbSortCol, { ascending: window.currentSortAsc });
- 
-      // 🌟 ท่อนกำหนดสิทธิ์ภายใน window.loadVisits
-            if (!window.myIsGlobalViewer) {
-                if (window.myIsSalesRole) {
-                    query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-                } else if (window.myIsBuHead || window.myIsManager) {
-                    // ใช้ ID ของลูกทีมทั้งหมดที่คำนวณได้จาก setupFiltersDropdowns
-                    var allowedRepIds = window.myAllowedRepIds || [];
-                    if (allowedRepIds.length > 0) {
-                        query = query.in('Rep_ID', allowedRepIds);
-                    } else if (myRepId) {
-                        query = query.eq('Rep_ID', myRepId);
-                    }
-                }
-            }
+
+      // 🌟 สิทธิ์การมองเห็นข้อมูลตั้งต้น
+      if (!isGlobalAdmin) {
+          if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
+              query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
+          } else {
+              var allowedIds = window.myAllowedRepIds || [];
+              if (myRepId && allowedIds.indexOf(myRepId) === -1) allowedIds.push(myRepId);
+              
+              if (allowedIds.length > 0) {
+                  query = query.in('Rep_ID', allowedIds);
+              } else {
+                  query = query.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
+              }
+          }
+      }
 
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
@@ -1633,33 +1649,21 @@ window.clearVisitFilters = function() {
           }
       }
 
+      // 🌟 [แก้ปัญหาตารางว่างเปล่า]: ค้นหาทั้ง Territory_ID, Team_ID และ Rep_ID ที่ผูกกับเขตที่เลือก
       if (selectedTers.length > 0) {
           var matchedTerIds = [...selectedTers];
           var cache = window.VisitManagerCache || {};
           var terrList = cache.territories || window.globalTerritoryList || [];
           var teamList = cache.teams || window.globalTeamList || [];
-          var busList = cache.bus || [];
 
           selectedTers.forEach(function(selId) {
               teamList.forEach(function(tm) {
-                  if (String(tm.Team_ID) === selId || String(tm.Team) === selId) {
+                  var tId = String(tm.Team_ID || tm.id || tm.Team).trim();
+                  if (tId === selId || String(tm.Team) === selId) {
                       terrList.forEach(function(tr) {
-                          if (String(tr.Team_ID) === String(tm.Team_ID)) {
-                              matchedTerIds.push(String(tr.Territory_ID));
-                          }
-                      });
-                  }
-              });
-
-              busList.forEach(function(bu) {
-                  if (String(bu.BU_ID) === selId || String(bu.BU) === selId) {
-                      teamList.forEach(function(tm) {
-                          if (String(tm.BU_ID) === String(bu.BU_ID)) {
-                              terrList.forEach(function(tr) {
-                                  if (String(tr.Team_ID) === String(tm.Team_ID)) {
-                                      matchedTerIds.push(String(tr.Territory_ID));
-                                  }
-                              });
+                          if (String(tr.Team_ID || tr.Team) === tId) {
+                              var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
+                              if (trId) matchedTerIds.push(trId);
                           }
                       });
                   }
@@ -1790,7 +1794,6 @@ window.clearVisitFilters = function() {
 
       window.globalVisits = res.data || [];
 
-      // 🌟 2. ล็อคยอดรวมตั้งต้นเก็บไว้ใน Master Variable เมื่อไม่มีการใส่ฟิลเตอร์ค้นหา
       if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
           window.masterTotalVisitsCount = res.count || 0;
       }
