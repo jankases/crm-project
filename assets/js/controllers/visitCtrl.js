@@ -1643,6 +1643,7 @@ window.clearVisitFilters = function() {
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       query = query.order(dbSortCol, { ascending: window.currentSortAsc });
 
+      // สิทธิ์การมองเห็นข้อมูลตั้งต้น (ดึงตาม Rep_ID ของลูกทีมทุกคนที่คำนวณไว้)
       if (!isGlobalAdmin) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
@@ -1669,77 +1670,15 @@ window.clearVisitFilters = function() {
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
 
+      // 🌟 1. กรองตาม Employee (Exact Match: เลือกคนไหน หาคอลัมน์ Rep_ID ของคนนั้นตรงๆ)
       if (selectedReps.length > 0) {
           query = query.in('Rep_ID', selectedReps);
       }
 
-      // 🌟 แปลง BU/Team/Territory ให้ดึงงานของลูกน้องในสายงานนั้นมาให้ถูกต้อง
+      // 🌟 2. กรองตาม Area/Team (Exact Match: เลือก Area ไหน หาคอลัมน์ Territory_ID อันนั้นตรงๆ)
+      // ลบระบบกวาดหาลูกน้องอัตโนมัติทิ้งทั้งหมด เพื่อให้ค่าสัมพันธกับสิ่งที่เลือก 100%
       if (selectedTers.length > 0) {
-          var matchedTerIds = [];
-          var matchedTeamIds = [];
-          var matchedBuIds = [];
-
-          var terrList = window.globalTerritoryList || [];
-          var teamList = window.globalTeamList || [];
-          var buList = window.globalBuList || (window.VisitManagerCache && window.VisitManagerCache.bus) || [];
-
-          selectedTers.forEach(function(selId) {
-              var selIdClean = String(selId).trim();
-              matchedTerIds.push(selIdClean); // ใส่ไว้ก่อนเผื่อตรงกับช่อง Territory ตรงๆ
-
-              // เช็กว่าเป็น BU หรือไม่
-              buList.forEach(function(b) {
-                  var bId = String(b.BU_ID || b.id || b.BU).trim();
-                  if (bId === selIdClean || String(b.BU_Name || b.BU).trim() === selIdClean) {
-                      if (matchedBuIds.indexOf(bId) === -1) matchedBuIds.push(bId);
-                  }
-              });
-          });
-
-          // ดึง Team ที่อยู่ใต้ BU ที่เลือก (หรือถูกเลือกมาตรงๆ)
-          teamList.forEach(function(tm) {
-              var tId = String(tm.Team_ID || tm.id || tm.Team).trim();
-              var tBuId = String(tm.BU_ID || tm.BU).trim();
-              var isSelectedDirectly = selectedTers.indexOf(tId) !== -1 || selectedTers.indexOf(String(tm.Team).trim()) !== -1;
-
-              if (isSelectedDirectly || matchedBuIds.indexOf(tBuId) !== -1) {
-                  if (matchedTeamIds.indexOf(tId) === -1) matchedTeamIds.push(tId);
-                  matchedTerIds.push(tId); // เผื่อตารางเซฟ Team_ID ลงช่อง Territory_ID
-              }
-          });
-
-          // ดึง Territory ที่อยู่ใต้ Team ที่เลือก
-          terrList.forEach(function(tr) {
-              var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
-              var trTeamId = String(tr.Team_ID || tr.Team).trim();
-              if (matchedTeamIds.indexOf(trTeamId) !== -1) {
-                  if (matchedTerIds.indexOf(trId) === -1) matchedTerIds.push(trId);
-              }
-          });
-
-          var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
-          
-          var repIdsInTerr = [];
-          (window.globalUsersList || []).forEach(function(u) {
-              var uTer = String(u.Territory_ID || u.Territory || '').trim();
-              var uTeam = String(u.Team_ID || u.Team || '').trim();
-              var uBu = String(u.BU_ID || u.BU || '').trim();
-              
-              if (cleanTerIds.includes(uTer) || cleanTerIds.includes(uTeam) || matchedTeamIds.includes(uTeam) || matchedBuIds.includes(uBu)) {
-                  var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-                  if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
-              }
-          });
-
-          if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
-              query = query.or('Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')');
-          } else if (repIdsInTerr.length > 0) {
-              query = query.in('Rep_ID', repIdsInTerr);
-          } else if (cleanTerIds.length > 0) {
-              query = query.in('Territory_ID', cleanTerIds);
-          } else {
-              query = query.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-          }
+          query = query.in('Territory_ID', selectedTers);
       }
 
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
