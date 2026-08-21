@@ -735,29 +735,25 @@ window.toggleMainView = function(viewName) {
   var calZone = document.getElementById('visitCalendarZone');
   var filterZone = document.getElementById('visitFilterZoneGroup');
 
-  // 🌟 กำหนด Class ให้ปุ่มทั้งสองฝั่งมีความโค้ง (rounded-2) เท่ากัน เพื่อไม่ให้ขอบขี่กัน
-  var activeClass = 'btn btn-sm btn-premium-primary px-3 fw-bold rounded-2 shadow-sm';
-  var inactiveClass = 'btn btn-sm text-secondary px-3 fw-bold border-0 bg-transparent rounded-2';
+  // 🌟 ปรับคลาสให้มี premium-radius และ py-1.5 ตรงกับ HTML
+  var activeClass = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius shadow-sm';
+  var inactiveClass = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
 
   if (viewName === 'calendar') {
       if (btnList) btnList.className = inactiveClass;
       if (btnCal) btnCal.className = activeClass;
       
-      // ⚡ ซ่อนหน้า List และ Filter Bar
       if (listZone) listZone.classList.add('d-none');
       if (filterZone) filterZone.classList.add('d-none'); 
       
-      // ⚡ แสดงหน้า Calendar
       if (calZone) calZone.classList.remove('d-none');
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (btnList) btnList.className = activeClass;
       if (btnCal) btnCal.className = inactiveClass;
       
-      // ⚡ ซ่อนหน้า Calendar
       if (calZone) calZone.classList.add('d-none');
       
-      // ⚡ แสดงหน้า List และ Filter Bar
       if (filterZone) filterZone.classList.remove('d-none'); 
       if (listZone) listZone.classList.remove('d-none');
   }
