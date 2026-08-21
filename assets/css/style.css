@@ -127,32 +127,6 @@ html, body {
   cursor: pointer !important;
 }
 
-.kpi-card-elevated:focus, .kpi-card-elevated:active { 
-  outline: none !important; 
-  box-shadow: none !important; 
-}
-
-.kpi-card-elevated.active-total { 
-  background-color: #f0f9ff !important; 
-  border-color: #0284c7 !important; 
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important; 
-  transform: translateY(-1px) !important; 
-}
-
-.kpi-card-elevated.active-pending { 
-  background-color: #fffbeb !important; 
-  border-color: #d97706 !important; 
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important; 
-  transform: translateY(-1px) !important; 
-}
-
-.kpi-card-elevated.active-submitted { 
-  background-color: #ecfdf5 !important; 
-  border-color: #059669 !important; 
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important; 
-  transform: translateY(-1px) !important; 
-}
-
 .kpi-label-text {
   font-size: 0.68rem !important;
   color: #64748b !important;
@@ -982,76 +956,55 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ DYNAMIC VISUAL INDICATORS BUTTON BASE STYLES
+   🌈 VIBRANT FORM HEADERS & VISUAL STYLING
    ========================================== */
-.feature-action-btn-lg {
-  font-size: 0.85rem !important;
-  font-weight: 600;
-  padding: 8px 12px !important;
-  min-height: 44px !important;
-  height: 44px !important;
-  border-radius: 12px !important;
-  border: 1px solid #cbd5e1 !important;
-  background: #f8fafc !important;
-  color: #475569 !important;
-  transition: all 0.2s ease;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
-}
 
-.feature-action-btn-lg:hover {
-  border-color: #0284c7 !important;
-  color: #0284c7 !important;
-  background: #f0f9ff !important;
-  transform: translateY(-1px);
-}
-
-/* 🟢 🎨 คืนค่าสีปุ่ม Features เมื่อมีข้อมูล */
-.feature-action-btn-lg.has-data-gps {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
+/* 1. คืนสีฟ้าสดใส + ไอคอนให้หัวข้อหลักของการ์ดทั้งสองฝั่ง */
+.form-section-title {
+  font-size: 0.92rem !important;
   font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-sig {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-attach {
-  background-color: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #0369a1 !important;
-  font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-media {
-  background-color: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #b91c1c !important;
-  font-weight: 700 !important;
-}
-.feature-action-btn-lg.has-data-samples {
-  background-color: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #b45309 !important;
-  font-weight: 700 !important;
-}
-
-/* 🌟 ปุ่ม e-Detailing หนานุ่มกดยอดเยี่ยมบน iPad */
-.btn-edetailing-touch {
-  min-height: 46px !important;
-  height: 46px !important;
-  border-radius: 12px !important;
-  font-size: 0.88rem !important;
+  color: #0284c7 !important; /* สีฟ้าเข้ม CRM */
+  margin-bottom: 10px !important;
+  padding-bottom: 6px !important;
+  border-bottom: 1.5px solid #e2e8f0 !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
+  gap: 6px !important;
 }
+
+.form-section-title i {
+  color: #0284c7 !important;
+  font-size: 1rem !important;
+}
+
+/* 2. หัวข้อ Features & Evidences คืนสีฟ้าสวยงาม */
+#visitFormView .compact-label.text-primary,
+#visitFormView label[data-i18n="sec_features_evidences"] {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+}
+
+/* 3. คืนสีสดใสให้ปุ่ม Back */
+#visitFormView .btn-outline-secondary {
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+#visitFormView .btn-outline-secondary:hover {
+  background-color: #f8fafc !important;
+  color: #0284c7 !important;
+  border-color: #0284c7 !important;
+}
+
+/* 4. 🎨 คืนสีไอคอนให้ปุ่ม Features ทั้งหมด (เมื่อยังไม่มีข้อมูล) */
+#sectionGpsCheckin i { color: #ef4444 !important; }     /* GPS สีแดง */
+#sectionSignature i { color: #10b981 !important; }    /* Signature สีเขียว */
+#sectionSamples i { color: #f59e0b !important; }      /* Samples สีส้ม */
+#sectionAttachments i { color: #0284c7 !important; }  /* Attachments สีฟ้า */
 
 /* ==========================================
    ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
@@ -1069,7 +1022,7 @@ mark.highlight-search {
   background: transparent !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin-top: 0.75rem !important; /* 🌟 ขยับการ์ดลงมาเว้นระยะห่างจาก Edit Visit สวยงาม */
+  margin-top: 0.5rem !important;
 }
 
 #visitFormView .row.g-3 {
@@ -1077,10 +1030,9 @@ mark.highlight-search {
   --bs-gutter-y: 1.25rem !important;
 }
 
-/* 🌟 เพิ่มระยะห่างช่องไฟของกลุ่มปุ่ม Features ให้โปร่งสวย ไม่เบียด */
 #visitFormView .row.g-2.5 {
-  --bs-gutter-x: 0.85rem !important;
-  --bs-gutter-y: 0.85rem !important;
+  --bs-gutter-x: 0.75rem !important;
+  --bs-gutter-y: 0.75rem !important;
 }
 
 #visitFormView .col-12 > .border,
@@ -1098,7 +1050,7 @@ mark.highlight-search {
   margin-bottom: 0.85rem !important;
 }
 
-/* 🌟 ฝั่งขวา: พิมพ์ได้จุใจ คุ้มค่าพื้นที่การ์ด */
+/* 🌟 สัดส่วนฝั่งขวา */
 #visitDetails {
   min-height: 95px !important;
   height: 110px !important;
@@ -1124,6 +1076,76 @@ mark.highlight-search {
   line-height: 1.45 !important;
   border-radius: 12px !important;
   resize: none !important;
+}
+
+/* 🎨 ปุ่มกลุ่ม Features & Evidences Base Style */
+.feature-action-btn-lg {
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  padding: 8px 12px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #475569;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.feature-action-btn-lg:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+  background-color: #f0f9ff;
+  transform: translateY(-1px);
+}
+
+/* 🟢 🎨 คืนค่าสีเต็มปุ่ม Features เมื่อมีข้อมูล */
+button.feature-action-btn-lg.has-data-gps {
+  background-color: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-sig {
+  background-color: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-attach {
+  background-color: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-media {
+  background-color: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-samples {
+  background-color: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+
+/* 🌟 ปุ่ม e-Detailing หนานุ่มกดยอดเยี่ยมบน iPad */
+.btn-edetailing-touch {
+  min-height: 46px !important;
+  height: 46px !important;
+  border-radius: 12px !important;
+  font-size: 0.88rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
 /* ไมค์จิ๋วซ้อนมุมขวาบนใน Textarea */
