@@ -1033,3 +1033,35 @@ mark.highlight-search {
     justify-content: center;
     font-weight: 700 !important;
 }
+
+/* 🌟 MINIMAL CORNER DICTATE BUTTON */
+.textarea-dictate-wrapper {
+    position: relative;
+}
+
+.btn-dictate-corner {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    background-color: #ffffff !important;
+    border: 1px solid #f1f5f9 !important;
+    color: #ef4444 !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    padding: 3px 10px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-dictate-corner:hover {
+    background-color: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+    transform: scale(1.03);
+}
+
+/* เพิ่ม Padding ขวาให้ Textarea ไม่ให้พิมพ์ตัวหนังสือไปทับปุ่มไมค์ */
+.textarea-dictate-wrapper textarea {
+    padding-right: 85px !important;
+}
