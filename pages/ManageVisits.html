@@ -31,13 +31,13 @@
     display: flex;
     flex-direction: column;
     overflow: hidden !important;
-    background: #ffffff;
+    background: transparent !important;
     border-radius: 20px;
-    padding: 1.25rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+    padding: 0 !important;
+    box-shadow: none !important;
   }
 
-  /* ปรับระยะขอบภายในให้กระชับพอดีหน้าจอ iPad */
+  /* ปรับระยะขอบภายในให้กระชับและโปร่งพอดีหน้าจอ */
   .visit-form-body-scroll {
     flex: 1;
     display: flex;
@@ -48,34 +48,34 @@
     padding-right: 4px;
   }
 
-  /* ลบ Scrollbar รบกวนสายตาแต่ยังไถ Touch ได้ */
   .visit-form-body-scroll::-webkit-scrollbar {
     width: 0px;
     background: transparent;
   }
 
   .form-section-title {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: #0d6efd;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
     border-bottom: 1.5px solid #e2e8f0;
   }
 
   .compact-label {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: #334155;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
   }
 
   /* 🌟 Dynamic Visual Indicators Button Styles */
   .feature-action-btn-lg {
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 10px;
+    padding: 10px 14px;
+    min-height: 46px;
+    border-radius: 12px;
     border: 1px solid #cbd5e1;
     background: #f8fafc;
     color: #475569;
@@ -140,7 +140,6 @@
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
   }
 
-  /* 🌟 เพิ่ม CSS สี Active ของแต่ละกล่อง KPI (ใหม่) */
   .kpi-card-clickable:focus, .kpi-card-clickable:active { 
     outline: none !important; 
     box-shadow: none !important; 
@@ -162,6 +161,39 @@
     border-color: #059669 !important; 
     box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important; 
     transform: translateY(-1px) !important; 
+  }
+
+  /* 🎙️ Minimal Dictate Button Overlay */
+  .textarea-dictate-wrapper {
+    position: relative !important;
+    width: 100%;
+  }
+
+  .btn-dictate-corner {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    z-index: 5 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #fee2e2 !important;
+    color: #dc2626 !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 3px 10px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .btn-dictate-corner:hover {
+    background-color: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+    transform: scale(1.03);
+  }
+
+  .textarea-dictate-wrapper textarea,
+  .textarea-dictate-wrapper input {
+    padding-right: 80px !important;
   }
 
   /* 📱 iPad Touch-Optimized Modals & Touch Targets */
@@ -218,8 +250,8 @@
 
   .sticky-action-footer {
     border-top: 1px solid #f1f5f9;
-    padding-top: 10px;
-    margin-top: 8px;
+    padding-top: 12px;
+    margin-top: 12px;
   }
 </style>
 
@@ -388,11 +420,11 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (iPad Premium Layout - Refined Spacing & Minimal Dictate) ================= -->
-  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-3">
+  <!-- ================= 2. FORM VIEW (Modern Minimal Spacing Layout) ================= -->
+  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-4">
     
     <!-- Top Header Bar -->
-    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom flex-shrink-0">
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-shrink-0">
       <div class="d-flex align-items-center">
         <button class="btn btn-sm btn-outline-secondary me-3 rounded-3 shadow-xs fw-semibold" onclick="window.cancelVisitForm()">
           <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
@@ -415,16 +447,16 @@
       <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
         <input type="hidden" id="visitId">
 
-        <div class="row g-3 flex-grow-1 align-items-stretch" style="min-height: 0;">
+        <div class="row g-4 flex-grow-1 align-items-stretch" style="min-height: 0;">
           
           <!-- 🔹 Left Column (Visit Information & Evidences) -->
           <div class="col-12 col-xl-5 d-flex flex-column">
-            <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
+            <div class="p-4 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               <div>
-                <h6 class="form-section-title mb-2.5"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
+                <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-2"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
                 <!-- Doctor Selection -->
-                <div class="mb-2.5">
+                <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                     <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
@@ -438,30 +470,30 @@
                 </div>
 
                 <!-- Products -->
-                <div class="mb-2.5">
-                  <label class="compact-label mb-1"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+                <div class="mb-3">
+                  <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                 </div>
 
                 <!-- Purpose -->
-                <div class="mb-2.5">
-                  <label class="compact-label mb-1"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                <div class="mb-3">
+                  <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                 </div>
 
-                <!-- 🌟 Date & Start/End Time (จัดระเบียบใหม่แยก 5:7 ไม่ขี่กัน) -->
-                <div class="row g-2 align-items-end mb-3">
+                <!-- 🌟 Date & Start/End Time (จัดวางโปร่ง สบายตา) -->
+                <div class="row g-3 align-items-end mb-4">
                   <div class="col-12 col-md-5">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                    <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
                     <input type="date" class="form-control bg-white shadow-xs premium-radius" id="visitDate" required>
                   </div>
 
                   <div class="col-12 col-md-7">
-                    <div class="row g-1">
+                    <div class="row g-2">
                       <div class="col-6">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                           <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
-                          <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
+                          <button type="button" class="btn btn-link p-0 text-decoration-none tiny fw-bold" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
                         </div>
                         <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitStartTime">
                       </div>
@@ -469,7 +501,7 @@
                       <div class="col-6">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                           <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
-                          <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
+                          <button type="button" class="btn btn-link p-0 text-decoration-none tiny fw-bold" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
                         </div>
                         <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitEndTime">
                       </div>
@@ -478,39 +510,39 @@
                 </div>
 
                 <!-- Features & Evidences Section Header & Colored Action Buttons -->
-                <div class="pt-2 border-top">
-                  <label class="compact-label mb-2 d-flex align-items-center gap-2 text-primary fw-bold">
+                <div class="pt-3 border-top">
+                  <label class="compact-label mb-2.5 d-flex align-items-center gap-2 text-primary fw-bold fs-6">
                     <i class="fa-solid fa-sliders"></i>
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
                   </label>
                   
-                  <div class="row g-2">
+                  <div class="row g-2.5">
                     <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                      <button type="button" class="feature-action-btn-lg w-100 py-2.5" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                         <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                       </button>
                     </div>
 
                     <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionSignature" onclick="window.openSignatureModal()">
+                      <button type="button" class="feature-action-btn-lg w-100 py-2.5" id="sectionSignature" onclick="window.openSignatureModal()">
                         <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                       </button>
                     </div>
 
                     <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                      <button type="button" class="feature-action-btn-lg w-100 py-2.5" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
                         <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                       </button>
                     </div>
 
                     <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                      <button type="button" class="feature-action-btn-lg w-100 py-2.5" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
                         <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                       </button>
                     </div>
 
                     <div class="col-12 d-none" id="detailingMediaSection">
-                      <button type="button" class="feature-action-btn-lg w-100 py-2 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
+                      <button type="button" class="feature-action-btn-lg w-100 py-2.5 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
                         <i class="fa-solid fa-file-powerpoint me-1.5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
                       </button>
                     </div>
@@ -521,43 +553,43 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - Minimal Corner Dictate Wrapper) -->
+          <!-- 🔹 Right Column (Activity Details - Dictate ซ้อนใน Textarea) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
-            <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between">
+            <div class="p-4 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
-                <h6 class="form-section-title mb-2.5"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
+                <h6 class="form-section-title"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                <!-- 1. Details (Top Area - Minimal Corner Dictate) -->
-                <div class="mb-2.5 d-flex flex-column flex-grow-1">
-                  <label class="compact-label mb-1" data-i18n="lbl_details">Details</label>
+                <!-- 1. Details (Dictate ซ้อนใน Textarea มุมขวาบน) -->
+                <div class="mb-3 d-flex flex-column flex-grow-1">
+                  <label class="compact-label" data-i18n="lbl_details">Details</label>
                   <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" style="min-height: 90px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" style="min-height: 100px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
                   </div>
                 </div>
 
-                <!-- 2. Insight (Middle Area - Minimal Corner Dictate) -->
-                <div class="mb-2.5">
-                  <label class="compact-label mb-1" data-i18n="lbl_insight">Insight</label>
+                <!-- 2. Insight -->
+                <div class="mb-3">
+                  <label class="compact-label" data-i18n="lbl_insight">Insight</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 52px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 58px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
                   </div>
                 </div>
 
-                <!-- 3. Next Action (Bottom Area - Minimal Corner Dictate) -->
+                <!-- 3. Next Action -->
                 <div class="mb-2">
-                  <label class="compact-label mb-1" data-i18n="lbl_next_action">Next Action</label>
+                  <label class="compact-label" data-i18n="lbl_next_action">Next Action</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <input type="text" class="form-control bg-white shadow-xs rounded-3 pe-5" id="visitNextAction" style="height: 42px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
+                    <input type="text" class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" style="height: 44px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
                   </div>
                 </div>
 
@@ -622,7 +654,7 @@
   </div>
 </div>
 
-<!-- 📍 Floating Modal 2: GPS Check-in (iPad Optimized) -->
+<!-- 📍 Floating Modal 2: GPS Check-in -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content border-0 shadow-lg">
@@ -655,7 +687,7 @@
   </div>
 </div>
 
-<!-- 🎁 Floating Modal 3: Samples & Promo (iPad Touch Optimized - No Duplicate & No Scrollbar) -->
+<!-- 🎁 Floating Modal 3: Samples & Promo -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg">
@@ -682,7 +714,7 @@
   </div>
 </div>
 
-<!-- 📸 Floating Modal 4: Attachments (iPad Premium Touch UX) -->
+<!-- 📸 Floating Modal 4: Attachments -->
 <div class="modal fade" id="attachmentsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -717,7 +749,7 @@
   </div>
 </div>
 
-<!-- 🎬 Floating Modal 5: e-Detailing (iPad Touch-Optimized) -->
+<!-- 🎬 Floating Modal 5: e-Detailing -->
 <div class="modal fade" id="mediaDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -790,7 +822,7 @@
   </div>
 </div>
 
-<!-- Signature Canvas Modal (iPad Touch Canvas Optimized) -->
+<!-- Signature Canvas Modal -->
 <div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content shadow-lg border-0">
