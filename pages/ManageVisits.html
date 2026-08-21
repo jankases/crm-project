@@ -177,7 +177,7 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Balanced Full-Height Layout) ================= -->
+  <!-- ================= 2. FORM VIEW (Touch Optimized Layout) ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
     <!-- Top Header Bar -->
@@ -208,7 +208,7 @@
           
           <!-- 🔹 Left Column (Visit Information & Evidences) -->
           <div class="col-12 col-xl-5 d-flex flex-column">
-            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
+            <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
@@ -266,14 +266,14 @@
                   </div>
                 </div>
 
-                <!-- Features & Evidences (ลบเส้น border-top ออก) -->
-                <div class="pt-1">
-                  <label class="compact-label mb-1.5 d-flex align-items-center gap-1.5 text-primary fw-bold">
+                <!-- Features & Evidences (ลบเส้นลอยรบกวน) -->
+                <div class="pt-2">
+                  <label class="compact-label mb-2 d-flex align-items-center gap-1.5 text-primary fw-bold">
                     <i class="fa-solid fa-sliders"></i>
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
                   </label>
                   
-                  <div class="row g-2">
+                  <div class="row g-2.5">
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                         <i class="fa-solid fa-location-dot me-1"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
@@ -298,9 +298,10 @@
                       </button>
                     </div>
 
+                    <!-- 🌟 ปุ่ม e-Detailing หนา ใหญ่ กดง่ายบน iPad -->
                     <div class="col-12 d-none" id="detailingMediaSection">
-                      <button type="button" class="feature-action-btn-lg w-100 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                        <i class="fa-solid fa-file-powerpoint me-1"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
+                      <button type="button" class="feature-action-btn-lg btn-edetailing-touch w-100 border-danger text-danger fw-bold" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
+                        <i class="fa-solid fa-file-powerpoint me-1.5 fs-5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
                       </button>
                     </div>
                   </div>
@@ -310,9 +311,9 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - เปลี่ยน Next Action เป็น Textarea เพิ่มพื้นที่กรอกแผนงาน) -->
+          <!-- 🔹 Right Column (Activity Details - Next Action เป็น Textarea เต็มพื้นที่) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
-            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
+            <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
                 <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
@@ -339,7 +340,7 @@
                   </div>
                 </div>
 
-                <!-- 3. Next Action (🌟 เปลี่ยนเป็น Textarea เพื่อใช้พื้นที่อย่างคุ้มค่า) -->
+                <!-- 3. Next Action (🌟 เป็น Textarea กรอกแผนงานยืดหยุ่นเต็มพื้นที่) -->
                 <div class="mb-1">
                   <label class="compact-label" data-i18n="lbl_next_action">Next Action</label>
                   <div class="textarea-dictate-wrapper">
@@ -352,7 +353,7 @@
 
               </div>
 
-              <!-- 📌 Sticky Action Footer Bar -->
+              <!-- 📌 Sticky Action Footer Bar (🌟 ขยายระยะ Status ให้ข้อความเต็ม ไม่ถูกตัดคำ) -->
               <div class="sticky-action-footer d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                   <label class="switch mb-0 me-1">
@@ -363,9 +364,9 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 ms-auto">
-                  <div class="d-flex align-items-center gap-1.5" style="width: 150px;">
+                  <div class="d-flex align-items-center gap-2" style="min-width: 180px;">
                     <label class="compact-label mb-0 text-secondary" data-i18n="lbl_status">Status:</label>
-                    <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold rounded-3" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
+                    <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold rounded-3 flex-grow-1" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
                       <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
                       <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
                     </select>
@@ -387,7 +388,7 @@
   </div>
 </div>
 
-<!-- 📜 Pop-up Modal 1: Visit History -->
+<!-- 📜 Modals ทั้งหมด 5 ตัวคงเดิม -->
 <div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
@@ -411,7 +412,6 @@
   </div>
 </div>
 
-<!-- 📍 Floating Modal 2: GPS Check-in -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content border-0 shadow-lg">
@@ -444,7 +444,6 @@
   </div>
 </div>
 
-<!-- 🎁 Floating Modal 3: Samples & Promo -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg">
@@ -471,7 +470,6 @@
   </div>
 </div>
 
-<!-- 📸 Floating Modal 4: Attachments -->
 <div class="modal fade" id="attachmentsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -506,7 +504,6 @@
   </div>
 </div>
 
-<!-- 🎬 Floating Modal 5: e-Detailing -->
 <div class="modal fade" id="mediaDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -526,7 +523,6 @@
   </div>
 </div>
 
-<!-- Presentation Modal -->
 <div class="modal fade" id="mediaPresentationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
@@ -547,7 +543,6 @@
   </div>
 </div>
 
-<!-- TOT Modal -->
 <div class="modal fade" id="totModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg visit-card">
@@ -579,7 +574,6 @@
   </div>
 </div>
 
-<!-- Signature Canvas Modal -->
 <div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content shadow-lg border-0">
