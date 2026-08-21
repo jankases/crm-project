@@ -1065,3 +1065,85 @@ mark.highlight-search {
 .textarea-dictate-wrapper textarea {
     padding-right: 85px !important;
 }
+
+/* ==========================================
+   ✨ ULTRA-CLEAN FORM LAYOUT OVERRIDES
+   ========================================== */
+
+/* 1. ขยายพื้นที่ขอบนอกของการ์ดให้ลอยโปร่ง */
+#visitFormView {
+    padding: 1.5rem 2rem 3rem 2rem !important;
+}
+
+#visitFormView .visit-form-card-main {
+    padding: 1.75rem !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* 2. เพิ่มระยะห่างระหว่างการ์ดฝั่งซ้ายและฝั่งขวา */
+#visitFormView .row.g-3 {
+    --bs-gutter-x: 2rem !important;
+    --bs-gutter-y: 1.5rem !important;
+}
+
+/* 3. การ์ดซ้าย-ขวา เติม Padding ภายในให้กว้าง ไม่ชิดขอบ */
+#visitFormView .col-12 > .border {
+    padding: 1.75rem !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04) !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* 4. เพิ่มระยะห่างระหว่างฟิลด์ Input */
+#visitFormView .mb-2.5,
+#visitFormView .mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* 5. ปุ่มไมค์จิ๋ว ย้ายเข้าไปซ้อนมุมขวาบนใน Textarea */
+.textarea-dictate-wrapper {
+    position: relative !important;
+    width: 100%;
+}
+
+.btn-dictate-corner {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    z-index: 5 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #fee2e2 !important;
+    color: #dc2626 !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 3px 10px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+}
+
+.btn-dictate-corner:hover {
+    background-color: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+}
+
+/* เพิ่ม Padding ขวาให้ Textarea ป้องกันตัวหนังสือทับปุ่มไมค์ */
+.textarea-dictate-wrapper textarea,
+.textarea-dictate-wrapper input {
+    padding-right: 80px !important;
+}
+
+/* 6. ปรับกลุ่มปุ่ม Features 4 ปุ่มให้ดูนุ่มนวล ไม่ติดกัน */
+.feature-action-btn-lg {
+    padding: 0.75rem 1rem !important;
+    min-height: 48px !important;
+    border-radius: 12px !important;
+    font-size: 0.88rem !important;
+}
+
+/* 7. Footer บาร์ล่างสุด */
+.sticky-action-footer {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 1.25rem !important;
+    margin-top: 1.25rem !important;
+}
