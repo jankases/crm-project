@@ -1226,12 +1226,11 @@ window.loadDropdowns = async function(forceReload) {
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
     
-    // ดึง BU_ID / Team_ID / Territory_ID ของผู้ใช้ที่ล็อกอิน
+    var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
     var userBuId = crmUser ? String(crmUser.BU_ID || crmUser.BU || crmUser.Business_Unit_ID || '').trim().toLowerCase() : '';
     var userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.Team || '').trim().toLowerCase() : '';
     var userTerId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim().toLowerCase() : '';
 
-    var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
     var isGlobalViewer = window.myIsGlobalViewer || ['admin', 'staff', 'director', 'executive', 'product manager'].indexOf(userRole) !== -1;
     var isBuHead = window.myIsBuHead || userRole.indexOf('bu') !== -1 || userRole.indexOf('head') !== -1;
     var isManager = window.myIsManager || userRole.indexOf('manager') !== -1;
@@ -1244,7 +1243,7 @@ window.loadDropdowns = async function(forceReload) {
 
     if (!isGlobalViewer) {
         if (isBuHead) {
-            // 🌟 ขั้นที่ 1: หา BU_ID จากตาราง BU
+            // 🌟 1. หา BU_ID
             var busList = window.VisitManagerCache.bus || window.globalBuList || [];
             var matchedBu = busList.find(function(b) { 
                 var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
@@ -1253,7 +1252,7 @@ window.loadDropdowns = async function(forceReload) {
             });
             var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id || matchedBu.BU).trim().toLowerCase() : userBuId;
 
-            // 🌟 ขั้นที่ 2: หา Team_ID ทั้งหมดใต้ BU นี้ (ยึดตาม Schema DB)
+            // 🌟 2. หา Team_ID ใต้ BU นี้
             (window.globalTeamList || []).forEach(function(t) {
                 var tBuId = String(t.BU_ID || t.BU || '').trim().toLowerCase();
                 var tid = String(t.Team_ID || t.id || t.Team).trim();
@@ -1262,7 +1261,7 @@ window.loadDropdowns = async function(forceReload) {
                 }
             });
 
-            // 🌟 ขั้นที่ 3: หา Territory_ID ทั้งหมดใต้ Team เหล่านี้
+            // 🌟 3. หา Territory_ID ใต้ Team เหล่านี้
             (window.globalTerritoryList || []).forEach(function(ter) {
                 var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
                 var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
@@ -1288,7 +1287,7 @@ window.loadDropdowns = async function(forceReload) {
             if (userTerId) myAllowedTerIds.push(userTerId);
         }
 
-        // 🌟 ขั้นที่ 4: ดึงลูกทีมทุกคนใน Rep_Users ที่ตรงกับ BU_ID, Team_ID หรือ Territory_ID
+        // 🌟 4. ดึงลูกทีมทุกคนใน Rep_Users ที่ตรงกับ BU_ID, Team_ID หรือ Territory_ID
         (window.globalUsersList || []).forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var uteam = String(u.Team_ID || u.Team || '').trim();
@@ -1318,7 +1317,6 @@ window.loadDropdowns = async function(forceReload) {
     window.myAllowedRepIds = myAllowedRepIds; 
     window.myAllowedEmails = myAllowedEmails;
 
-    // เติมรายชื่อพนักงานลง Dropdown
     var uniqueUsersMap = new Map();
     var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
@@ -1335,7 +1333,6 @@ window.loadDropdowns = async function(forceReload) {
         repSelect.innerHTML = repHtml;
     }
 
-    // เติมพื้นที่/ทีมลง Dropdown
     var terMap = new Map();
     if (isGlobalViewer || isBuHead || isManager) {
         (window.globalTeamList || []).forEach(function(t) {
