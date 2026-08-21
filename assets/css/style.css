@@ -124,6 +124,7 @@ html, body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   width: 168px !important;
   flex-shrink: 0 !important;
+  cursor: pointer !important; /* เพิ่มให้รู้ว่ากดได้ */
 }
 
 .kpi-label-text {
@@ -938,25 +939,41 @@ mark.highlight-search {
     border-radius: 4px;
 }
 
-/* ยกเลิกเงาสีฟ้าตอนคลิก */
-.stat-card:focus {
+/* ==========================================
+   ✨ KPI CARD CLICKABLE & ACTIVE STATES (FIXED)
+   ========================================== */
+
+/* 1. สั่งให้กล่อง KPI ขึ้นรูปมือ (Pointer) และลบเงาสีฟ้าของเบราว์เซอร์ออก */
+.kpi-card-elevated {
+    cursor: pointer !important;
+}
+
+.kpi-card-elevated:focus, 
+.kpi-card-elevated:active {
+    outline: none !important;
     box-shadow: none !important;
 }
 
-/* 1. สไตล์ตอนเลือกกล่อง Total Visits */
-.stat-card.active-total {
-    background-color: #f0f8ff !important; /* พื้นหลังสีฟ้าอ่อนมาก */
-    border-color: #0d6efd !important; /* ขอบสีฟ้าเข้ม */
+/* 2. สไตล์ตอนเลือกกล่อง Total Visits (ฟ้า) */
+.kpi-card-elevated.active-total {
+    background-color: #f0f9ff !important; /* ฟ้าอ่อนพรีเมียม */
+    border-color: #0284c7 !important;     /* ขอบฟ้าเข้ม */
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* 2. สไตล์ตอนเลือกกล่อง Pending Drafts */
-.stat-card.active-pending {
-    background-color: #fffbeb !important; /* พื้นหลังสีส้ม/เหลืองอ่อนมาก */
-    border-color: #f59e0b !important; /* ขอบสีส้มเข้ม */
+/* 3. สไตล์ตอนเลือกกล่อง Pending Drafts (ส้ม) */
+.kpi-card-elevated.active-pending {
+    background-color: #fffbeb !important; /* ส้มอ่อนพรีเมียม */
+    border-color: #d97706 !important;     /* ขอบส้มเข้ม */
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* 3. สไตล์ตอนเลือกกล่อง Submitted Logs */
-.stat-card.active-submitted {
-    background-color: #ecfdf5 !important; /* พื้นหลังสีเขียวอ่อนมาก */
-    border-color: #10b981 !important; /* ขอบสีเขียวเข้ม */
+/* 4. สไตล์ตอนเลือกกล่อง Submitted Logs (เขียว) */
+.kpi-card-elevated.active-submitted {
+    background-color: #ecfdf5 !important; /* เขียวอ่อนพรีเมียม */
+    border-color: #059669 !important;     /* ขอบเขียวเข้ม */
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important;
+    transform: translateY(-1px) !important;
 }
