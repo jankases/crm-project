@@ -1551,7 +1551,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
-  window.loadVisits = async function(forceReload) {
+window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1620,7 +1620,7 @@ window.clearVisitFilters = function() {
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       query = query.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // 🌟 สิทธิ์การมองเห็นข้อมูลตั้งต้น (ดึงตาม Rep_ID ของลูกทีมทุกคนที่คำนวณไว้)
+      // 🌟 สิทธิ์การมองเห็นข้อมูลตั้งต้น
       if (!isGlobalAdmin) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
@@ -1647,40 +1647,33 @@ window.clearVisitFilters = function() {
       if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
       if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
 
-      // 🌟 1. กรองตามตัวเลือกพนักงาน (ถ้าเลือก BU Head/Manager ให้ดึงงานของลูกทีมขึ้นมา)
+      // 🌟 1. กรองตาม Employee: เช็กทั้ง Rep_ID และ Territory_ID (รองรับการลงบันทึกในระดับ BU/Team)
       if (selectedReps.length > 0) {
-          var filteredRepIds = [];
-          selectedReps.forEach(function(sRepId) {
-              filteredRepIds.push(sRepId);
-              // ถ้าพนักงานที่เลือกเป็นระดับบริหาร ให้ดึง ID ของลูกทีมคนนั้นพ่วงเข้ามาด้วย
-              (window.globalUsersList || []).forEach(function(u) {
-                  var uRole = String(u.Role || u.role || '').toUpperCase();
+          var targetRepIds = [...selectedReps];
+          var targetBuTeamIds = [];
+
+          (window.globalUsersList || []).forEach(function(u) {
+              var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+              if (selectedReps.indexOf(uid) !== -1) {
                   var uBu = String(u.BU_ID || u.BU || '').trim();
                   var uTeam = String(u.Team_ID || u.Team || '').trim();
-                  var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-
-                  if (sRepId === uId) {
-                      (window.globalUsersList || []).forEach(function(subU) {
-                          var subId = String(subU.Rep_ID || subU.User_ID || subU.id || '').trim();
-                          var subTeam = String(subU.Team_ID || subU.Team || '').trim();
-                          var subBu = String(subU.BU_ID || subU.BU || '').trim();
-                          if (uRole.indexOf('BU') !== -1 || uRole.indexOf('HEAD') !== -1) {
-                              if (subBu === uBu || subBu === uId || subTeam === uTeam) {
-                                  if (filteredRepIds.indexOf(subId) === -1) filteredRepIds.push(subId);
-                              }
-                          } else if (uRole.indexOf('MANAGER') !== -1) {
-                              if (subTeam === uTeam || subTeam === uId) {
-                                  if (filteredRepIds.indexOf(subId) === -1) filteredRepIds.push(subId);
-                              }
-                          }
-                      });
-                  }
-              });
+                  var uTer = String(u.Territory_ID || u.Territory || '').trim();
+                  if (uBu) targetBuTeamIds.push(uBu);
+                  if (uTeam) targetBuTeamIds.push(uTeam);
+                  if (uTer) targetBuTeamIds.push(uTer);
+              }
           });
-          query = query.in('Rep_ID', filteredRepIds);
+
+          var cleanBuTeamIds = targetBuTeamIds.filter((v, i, a) => v && v !== 'null' && a.indexOf(v) === i);
+
+          if (cleanBuTeamIds.length > 0) {
+              query = query.or('Rep_ID.in.(' + targetRepIds.join(',') + '),Territory_ID.in.(' + cleanBuTeamIds.join(',') + ')');
+          } else {
+              query = query.in('Rep_ID', targetRepIds);
+          }
       }
 
-      // 🌟 2. กรองตามตัวเลือกพื้นที่ Area / Team (แปลงรหัสพื้นที่เป็น Rep_ID ของคนในเขะนั้นๆ)
+      // 🌟 2. กรองตาม Area / Team: ค้นหาแมตช์ตรงคอลัมน์ Territory_ID ใน Visit_Logs ทุกระดับ
       if (selectedTers.length > 0) {
           var matchedTerIds = [];
           var matchedTeamIds = [];
@@ -1712,14 +1705,16 @@ window.clearVisitFilters = function() {
               var uTeam = String(u.Team_ID || u.Team || '').trim();
               var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
 
-              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTeamIds.indexOf(uTeam) !== -1 || matchedTerIds.indexOf(uTeam) !== -1) {
+              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTeamIds.indexOf(uTeam) !== -1) {
                   if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
               }
           });
 
           var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
 
-          if (repIdsInTerr.length > 0) {
+          if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
+              query = query.or('Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')');
+          } else if (repIdsInTerr.length > 0) {
               query = query.in('Rep_ID', repIdsInTerr);
           } else if (cleanTerIds.length > 0) {
               query = query.in('Territory_ID', cleanTerIds);
@@ -1908,6 +1903,7 @@ window.clearVisitFilters = function() {
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
+
 function matchedTerAndUnique(arr) {
     return arr.filter(function(item, pos) {
         return item && item !== 'null' && item !== 'undefined' && arr.indexOf(item) === pos;
