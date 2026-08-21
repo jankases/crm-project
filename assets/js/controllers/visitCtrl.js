@@ -3200,7 +3200,7 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
 
 // ==========================================
 // 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
-// ==========================================
+// ========================================== 
 // 🌟 เพิ่มตัวแปร Global ไว้จำค่าที่ถูกเลือก (ป้องกันค่าหายตอนปฏิทินถูก Destroy เพื่อวาดใหม่)
 window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
 
@@ -3216,13 +3216,19 @@ window.renderCalendarView = function() {
   var selectedRepId = window.currentCalendarRepFilter || '';
 
   // ทำลายปฏิทินเก่าทิ้งเพื่อวาดใหม่
-  if (window.globalCalendarInstance) { window.globalCalendarInstance.destroy(); window.globalCalendarInstance = null; }
+  if (window.globalCalendarInstance) { 
+      window.globalCalendarInstance.destroy(); 
+      window.globalCalendarInstance = null; 
+  }
   
   var appLang = window.getCurrentAppLang();
-  var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+  var crmUser = null; 
+  try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
 
-  // 2. กรองข้อมูล Visits ตาม Sales Rep ที่หัวหน้าเลือก
+  // ==========================================
+  // 🌟 2. กรองข้อมูล Visits ตาม Sales Rep ที่เลือก
+  // ==========================================
   var visitsSource = window.globalVisits || [];
   if (selectedRepId) {
       visitsSource = visitsSource.filter(function(v) {
@@ -3261,9 +3267,68 @@ window.renderCalendarView = function() {
       };
   });
 
-  // (ส่วนของ Holiday & TOT คงเดิม...)
-  var holidayEvents = []; var companyEvents = []; var totEvents = []; 
+  // ==========================================
+  // 🌟 3. ดึงข้อมูลวันหยุด (Public Holidays)
+  // ==========================================
+  var holidayEvents = (window.globalHolidays || (window.VisitManagerCache && window.VisitManagerCache.holidays) || []).map(function(h) {
+      var hDate = h.Holiday_Date || h.Date || h.start;
+      var hName = h.Holiday_Name || h.Name || h.title || 'Holiday';
+      return {
+          id: 'hol_' + (h.id || Math.random()),
+          title: '🌴 ' + hName,
+          start: hDate,
+          allDay: true,
+          backgroundColor: '#ef4444', 
+          borderColor: '#ef4444',
+          textColor: '#ffffff',
+          display: 'background', 
+          extendedProps: { isHoliday: true, fullTooltip: '🌴 ' + hName }
+      };
+  });
+
+  // ==========================================
+  // 🌟 4. ดึงข้อมูลกิจกรรม / ลา / ประชุม (TOT Logs)
+  // ==========================================
+  var totSource = window.globalFilteredTotLogs || window.globalTotLogs || [];
   
+  if (selectedRepId) {
+      totSource = totSource.filter(function(tot) {
+          return String(tot.Rep_ID) === String(selectedRepId) || String(tot.Whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
+      });
+  }
+
+  var totEvents = totSource.map(function(tot) {
+      var repObj = (window._userIndex && tot.Rep_ID) ? window._userIndex[String(tot.Rep_ID).trim().toLowerCase()] : null;
+      var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
+      
+      var tType = tot.TOT_Type || 'TOT';
+      var isPending = tot.Status === 'Pending';
+      var bgColor = isPending ? '#f59e0b' : '#0ea5e9'; 
+      
+      var endDateStr = null;
+      if (tot.End_Date) {
+          var eDate = new Date(tot.End_Date);
+          eDate.setDate(eDate.getDate() + 1);
+          endDateStr = eDate.toISOString().split('T')[0];
+      }
+
+      return {
+          id: 'tot_' + (tot.TOT_ID || tot.id),
+          title: repNamePrefix + '⛱️ ' + tType,
+          start: tot.Start_Date ? tot.Start_Date.split('T')[0] : '',
+          end: endDateStr,
+          allDay: true,
+          backgroundColor: bgColor,
+          borderColor: bgColor,
+          textColor: '#ffffff',
+          display: 'block',
+          extendedProps: { isTot: true, totId: tot.TOT_ID || tot.id, status: tot.Status, fullTooltip: repNamePrefix + '⛱️ ' + tType + '\nStatus: ' + tot.Status }
+      };
+  });
+
+  var companyEvents = []; 
+  
+  // 🌟 รวม Events ทั้งหมด
   var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
 
   if (typeof FullCalendar !== 'undefined') {
@@ -3293,7 +3358,9 @@ window.renderCalendarView = function() {
     
     window.globalCalendarInstance.render();
 
-    // 🌟 สร้าง Filter Dropdown สำหรับ Manager บน Header ปฏิทิน
+    // ==========================================
+    // 🌟 5. สร้าง Filter Dropdown บน Header ปฏิทิน
+    // ==========================================
     setTimeout(function() {
       var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
       if (headerRight && !document.getElementById('calRepFilterContainer')) {
@@ -3303,7 +3370,6 @@ window.renderCalendarView = function() {
         
         // ถ้าเป็น Manager ให้สร้าง Dropdown เลือกลูกน้อง
         if (isManagerOrAdmin && userList.length > 0) {
-          // 🌟 ปรับปรุง: กรองเอาเฉพาะคนที่มองเห็นได้ และกันข้อมูลซ้ำซ้อน
           var allowedReps = window.myAllowedRepIds || [];
           var uniqueReps = new Map();
           
@@ -3318,7 +3384,6 @@ window.renderCalendarView = function() {
             }
           });
 
-          // 🌟 ปรับปรุง: เพิ่ม onchange ให้อัปเดตค่าตัวแปร Global ด้วย
           var filterDropdownHtml = `
             <div class="d-inline-block me-2" id="calRepFilterContainer">
               <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs premium-radius text-primary cursor-pointer" id="calRepFilterSelect" style="font-size: 0.85rem; height: 34px; min-width: 180px;" onchange="window.currentCalendarRepFilter = this.value; window.renderCalendarView();">
