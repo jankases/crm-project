@@ -763,58 +763,23 @@ window.switchVisitView = function(viewId) {
   window.scrollTo(0, 0);
 };
 
-window.updateStatCards = async function() {
-    try {
-        var crmUser = null;
-        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-        var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-        var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
-        var isGlobalAdmin = window.myIsGlobalViewer;
-
-        // 1. ดึงยอดรวม Total ทั้งหมด
-        var qTotal = window.supabaseClient.from('Visit_Logs').select('Visit_ID', { count: 'exact', head: true });
-        if (!isGlobalAdmin) {
-            if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-                qTotal = qTotal.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                qTotal = qTotal.in('Rep_ID', window.myAllowedRepIds);
-            }
-        }
-
-        // 2. ดึงยอด Pending ทั้งหมด
-        var qPending = window.supabaseClient.from('Visit_Logs').select('Visit_ID', { count: 'exact', head: true }).eq('Status', 'Pending');
-        if (!isGlobalAdmin) {
-            if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-                qPending = qPending.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                qPending = qPending.in('Rep_ID', window.myAllowedRepIds);
-            }
-        }
-
-        // 3. ดึงยอด Submitted ทั้งหมด
-        var qSubmitted = window.supabaseClient.from('Visit_Logs').select('Visit_ID', { count: 'exact', head: true }).eq('Status', 'Submitted');
-        if (!isGlobalAdmin) {
-            if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-                qSubmitted = qSubmitted.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                qSubmitted = qSubmitted.in('Rep_ID', window.myAllowedRepIds);
-            }
-        }
-
-        var results = await Promise.all([qTotal, qPending, qSubmitted]);
-
-        var total = results[0].count || 0;
-        var pending = results[1].count || 0;
-        var submitted = results[2].count || 0;
-
-        // อัปเดตลงกล่อง KPI
-        if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
-        if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
-        if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
-
-    } catch (e) {
-        console.error("Error updating stat cards:", e);
+window.updateStatCards = function(totalOrArray, pendingCount, submittedCount) {
+    var total = 0, pending = 0, submitted = 0;
+    
+    // ตรวจสอบว่ารับค่ามาเป็น Array (แบบเก่า) หรือรับเป็นตัวเลขที่คำนวณมาแล้ว (แบบใหม่)
+    if (Array.isArray(totalOrArray)) {
+        total = window.totalVisitsCount || totalOrArray.length;
+        pending = totalOrArray.filter(function(v) { return v.Status === 'Pending'; }).length;
+        submitted = totalOrArray.filter(function(v) { return v.Status === 'Submitted'; }).length;
+    } else {
+        total = totalOrArray || 0;
+        pending = pendingCount || 0;
+        submitted = submittedCount || 0;
     }
+
+    if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
+    if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
+    if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
 };
 
 // ==========================================
@@ -1574,7 +1539,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
  
- window.loadVisits = async function(forceReload) {
+  window.loadVisits = async function(forceReload) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1613,7 +1578,6 @@ window.clearVisitFilters = function() {
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
         window.renderVisitTableServerSide();
-        if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
         if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
             window.renderCalendarView();
         }
@@ -1638,18 +1602,25 @@ window.clearVisitFilters = function() {
       var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
       var isGlobalAdmin = window.myIsGlobalViewer || ['admin', 'staff', 'director', 'executive', 'product manager'].indexOf(userRole) !== -1;
 
-      var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
+      // 🌟 แยก Query ออกเป็น 2 ตัว
+      // 1. dataQuery: ดึงข้อมูลจริงเข้าตาราง (มีแบ่งหน้า มีการเรียงลำดับ)
+      var dataQuery = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
+      // 2. countQuery: ดึงเฉพาะคอลัมน์ Status มานับเลขเพื่ออัปเดตกล่อง Stat ด้านบน
+      var countQuery = window.supabaseClient.from('Visit_Logs').select('Status');
+
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
-      query = query.order(dbSortCol, { ascending: window.currentSortAsc });
+      dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // สิทธิ์การมองเห็นข้อมูลตั้งต้น (ดึงตาม Rep_ID ของลูกทีมทุกคนที่คำนวณไว้)
+      // สิทธิ์ตั้งต้น (เพิ่มเงื่อนไขลงไปทั้ง 2 Query)
       if (!isGlobalAdmin) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
-              query = query.in('Rep_ID', allowedIds);
+              dataQuery = dataQuery.in('Rep_ID', allowedIds);
+              countQuery = countQuery.in('Rep_ID', allowedIds);
           } else if (myRepId) {
-              query = query.eq('Rep_ID', myRepId);
+              dataQuery = dataQuery.eq('Rep_ID', myRepId);
+              countQuery = countQuery.eq('Rep_ID', myRepId);
           }
       }
 
@@ -1666,19 +1637,68 @@ window.clearVisitFilters = function() {
       var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
-      if (statusTerm) query = query.eq('Status', statusTerm);
-      if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
-      if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
-
-      // 🌟 1. กรองตาม Employee (Exact Match: เลือกคนไหน หาคอลัมน์ Rep_ID ของคนนั้นตรงๆ)
-      if (selectedReps.length > 0) {
-          query = query.in('Rep_ID', selectedReps);
+      // 🌟 Status Filter: ใส่เฉพาะใน dataQuery (เพื่อให้ตารางกรอง แต่กล่อง Stat ไม่เปลี่ยน)
+      if (statusTerm) {
+          dataQuery = dataQuery.eq('Status', statusTerm);
       }
 
-      // 🌟 2. กรองตาม Area/Team (Exact Match: เลือก Area ไหน หาคอลัมน์ Territory_ID อันนั้นตรงๆ)
-      // ลบระบบกวาดหาลูกน้องอัตโนมัติทิ้งทั้งหมด เพื่อให้ค่าสัมพันธกับสิ่งที่เลือก 100%
+      // Filter อื่นๆ: ใส่ทั้งคู่
+      if (startDateTerm) {
+          dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
+          countQuery = countQuery.gte('Visit_Date', startDateTerm);
+      }
+      if (endDateTerm) {
+          dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
+          countQuery = countQuery.lte('Visit_Date', endDateTerm);
+      }
+
+      if (selectedReps.length > 0) {
+          dataQuery = dataQuery.in('Rep_ID', selectedReps);
+          countQuery = countQuery.in('Rep_ID', selectedReps);
+      }
+
       if (selectedTers.length > 0) {
-          query = query.in('Territory_ID', selectedTers);
+          var matchedTerIds = [];
+          var terrList = window.globalTerritoryList || [];
+
+          selectedTers.forEach(function(selId) {
+              var selIdClean = String(selId).trim();
+              matchedTerIds.push(selIdClean);
+
+              terrList.forEach(function(tr) {
+                  if (String(tr.Team_ID || tr.Team).trim() === selIdClean) {
+                      var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
+                      if (trId) matchedTerIds.push(trId);
+                  }
+              });
+          });
+
+          var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
+          
+          var repIdsInTerr = [];
+          (window.globalUsersList || []).forEach(function(u) {
+              var uTer = String(u.Territory_ID || u.Territory || '').trim();
+              var uTeam = String(u.Team_ID || u.Team || '').trim();
+              if (cleanTerIds.includes(uTer) || cleanTerIds.includes(uTeam)) {
+                  var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+                  if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
+              }
+          });
+
+          if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
+              var orCond = 'Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')';
+              dataQuery = dataQuery.or(orCond);
+              countQuery = countQuery.or(orCond);
+          } else if (repIdsInTerr.length > 0) {
+              dataQuery = dataQuery.in('Rep_ID', repIdsInTerr);
+              countQuery = countQuery.in('Rep_ID', repIdsInTerr);
+          } else if (cleanTerIds.length > 0) {
+              dataQuery = dataQuery.in('Territory_ID', cleanTerIds);
+              countQuery = countQuery.in('Territory_ID', cleanTerIds);
+          } else {
+              dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+              countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+          }
       }
 
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
@@ -1756,12 +1776,15 @@ window.clearVisitFilters = function() {
                   var safeVisitIds = matchedVisitIds.slice(0, 60);
 
                   if (safeDocIds.length > 0 && safeVisitIds.length === 0) {
-                      query = query.in('Doc_ID', safeDocIds);
+                      dataQuery = dataQuery.in('Doc_ID', safeDocIds);
+                      countQuery = countQuery.in('Doc_ID', safeDocIds);
                   } else if (safeDocIds.length === 0 && safeVisitIds.length > 0) {
-                      query = query.in('Visit_ID', safeVisitIds);
+                      dataQuery = dataQuery.in('Visit_ID', safeVisitIds);
+                      countQuery = countQuery.in('Visit_ID', safeVisitIds);
                   } else {
                       var orCondition = 'Doc_ID.in.(' + safeDocIds.join(',') + '),Visit_ID.in.(' + safeVisitIds.join(',') + ')';
-                      query = query.or(orCondition);
+                      dataQuery = dataQuery.or(orCondition);
+                      countQuery = countQuery.or(orCondition);
                   }
               } else {
                   hasNoMatchOnSomeTerm = true;
@@ -1770,25 +1793,37 @@ window.clearVisitFilters = function() {
           }
 
           if (hasNoMatchOnSomeTerm) {
-              query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+              dataQuery = dataQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+              countQuery = countQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
           }
+      }
+
+      // 🌟 ยิงคำสั่งนับยอด (เฉพาะเพื่ออัปเดตกล่อง Stat) แบบไม่อิง Status
+      var countRes = await countQuery;
+      var totalC = 0, pendingC = 0, submittedC = 0;
+      if (!countRes.error && countRes.data) {
+          totalC = countRes.data.length;
+          pendingC = countRes.data.filter(function(d) { return d.Status === 'Pending'; }).length;
+          submittedC = countRes.data.filter(function(d) { return d.Status === 'Submitted'; }).length;
+      }
+      if (typeof window.updateStatCards === 'function') {
+          window.updateStatCards(totalC, pendingC, submittedC); // อัปเดตตัวเลขเข้ากล่อง
       }
 
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
       var from = (page - 1) * limit;
       var to = from + limit - 1;
-      query = query.range(from, to);
+      dataQuery = dataQuery.range(from, to);
 
-      var res = await query;
+      var res = await dataQuery;
       if (res.error) throw res.error;
 
       window.globalVisits = res.data || [];
-
-      if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
-          window.masterTotalVisitsCount = res.count || 0;
-      }
-      window.totalVisitsCount = window.masterTotalVisitsCount || res.count || 0;
+      
+      // 🌟 แก้ตัวเลข Showing 1 to 2 of 12 ให้กลายเป็น Showing 1 to 2 of 2 (นับเป๊ะตามฟิลเตอร์)
+      window.totalVisitsCount = res.count || 0;
+      
       window._visitSampleIndex = {};
 
       if (window.globalVisits.length > 0) {
@@ -1845,7 +1880,7 @@ window.clearVisitFilters = function() {
       });
 
       window.renderVisitTableServerSide();
-      if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
+      
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
           if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
       }
