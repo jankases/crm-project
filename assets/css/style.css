@@ -956,38 +956,115 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ FIX DROPDOWN OVERFLOW & FEATURES SPACING
+   ✨ BALANCED & AIRY FORM LAYOUT (PERFECT RATIO)
    ========================================== */
 
-/* 1. แก้ไขข้อความใน Dropdown (TomSelect) ล้นเบียดลูกศรขวา */
+/* 1. คุมคอนเทนเนอร์หลักให้มีขอบลอยโปร่ง และบาลานซ์พอดีจอ */
+#visitFormView {
+  height: calc(100vh - 85px) !important;
+  max-height: calc(100vh - 85px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 0.85rem 1.5rem 1.75rem 1.5rem !important;
+  background-color: #f8fafc !important;
+}
+
+#visitFormView .visit-form-card-main {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 2. ระยะห่างช่องไฟการ์ดซ้าย-ขวา */
+#visitFormView .row.g-2.5,
+#visitFormView .row.g-3,
+#visitFormView .row.g-4 {
+  --bs-gutter-x: 1.5rem !important;
+  --bs-gutter-y: 1.25rem !important;
+}
+
+/* 3. สไตล์การ์ดซ้าย-ขวา เพิ่ม Padding ภายในให้กว้างเท่ากันสองฝั่ง */
+#visitFormView .col-12 > .border,
+#visitFormView .col-12 > div {
+  padding: 1.35rem 1.5rem !important;
+  border-radius: 20px !important;
+  border: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.03) !important;
+}
+
+/* 4. ระยะห่างฟิลด์กรอกข้อมูล */
+#visitFormView .mb-2,
+#visitFormView .mb-2.5,
+#visitFormView .mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+#visitFormView .form-control,
+#visitFormView .form-select {
+  min-height: 42px !important;
+  height: 42px !important;
+  font-size: 0.88rem !important;
+  border-radius: 12px !important;
+  padding: 0.5rem 0.85rem !important;
+}
+
+/* 🌟 5. ปรับสัดส่วนฝั่งขวาให้สมดุล (ลด Details -> เพิ่ม Insight 2-3 บรรทัด) */
+#visitDetails {
+  min-height: 90px !important;
+  height: 110px !important;
+  max-height: 150px !important;
+  padding: 0.65rem 0.85rem !important;
+  line-height: 1.45 !important;
+  border-radius: 12px !important;
+}
+
+#visitInsight {
+  min-height: 72px !important;
+  height: 78px !important;
+  padding: 0.65rem 0.85rem !important;
+  line-height: 1.45 !important;
+  border-radius: 12px !important;
+  resize: none !important;
+}
+
+#visitNextAction {
+  height: 42px !important;
+  border-radius: 12px !important;
+}
+
+/* 🌟 6. แก้ไขลูกศร Dropdown ทับข้อความ และการ์ดล้นขวา */
 .ts-control {
-  padding-right: 36px !important; /* เว้นพื้นที่ขวาไม่ให้ตัวหนังสือทับลูกศร */
+  padding-right: 36px !important;
+  border-radius: 12px !important;
+  min-height: 42px !important;
 }
 
 .ts-control > .item {
   white-space: nowrap !important;
   overflow: hidden !important;
-  text-overflow: ellipsis !important; /* ถ้าข้อความยาว ให้ใส่ ... ต่อท้ายสวยงาม */
-  max-width: calc(100% - 15px) !important;
+  text-overflow: ellipsis !important;
+  max-width: calc(100% - 20px) !important;
 }
 
-/* 2. จัดระเบียบปุ่มกลุ่ม Features & Evidences ให้โปร่ง มีมิติ */
+/* 🌟 7. จัดระเบียบปุ่ม Features 4 ปุ่มฝั่งซ้ายให้มีช่องไฟ นุ่มนวล */
 #sectionGpsCheckin,
 #sectionSignature,
 #sectionSamples,
 #sectionAttachments {
-  min-height: 42px !important;
-  height: 42px !important;
+  min-height: 44px !important;
+  height: 44px !important;
   padding: 8px 12px !important;
   font-size: 0.82rem !important;
+  font-weight: 600 !important;
   border-radius: 12px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 6px !important;
-  border-color: #cbd5e1 !important;
+  border: 1px solid #cbd5e1 !important;
   background-color: #f8fafc !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
   transition: all 0.2s ease !important;
 }
 
@@ -1001,18 +1078,49 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
 }
 
-/* เพิ่มระยะห่างแถวของปุ่ม Features */
+/* เพิ่มช่องไฟระหว่างปุ่ม Features */
 .pt-2.border-top .row.g-2,
 .pt-3.border-top .row.g-2,
 .pt-2.border-top .row.g-2.5 {
-  --bs-gutter-y: 0.65rem !important;
-  --bs-gutter-x: 0.65rem !important;
+  --bs-gutter-y: 0.75rem !important;
+  --bs-gutter-x: 0.75rem !important;
 }
 
-/* 3. ปรับแต่งปุ่ม e-Detailing ล่างสุดให้โค้งมน โปร่งตา */
-#detailingMediaSection .btn {
-  min-height: 42px !important;
-  border-radius: 12px !important;
-  font-size: 0.85rem !important;
-  font-weight: 600 !important;
+/* 8. จัดตำแหน่งปุ่ม Dictate ไมค์จิ๋วใน Textarea */
+.textarea-dictate-wrapper {
+  position: relative !important;
+  width: 100%;
+}
+
+.btn-dictate-corner {
+  position: absolute !important;
+  top: 7px !important;
+  right: 7px !important;
+  z-index: 5 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #fee2e2 !important;
+  color: #dc2626 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  padding: 2px 9px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-dictate-corner:hover {
+  background-color: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+}
+
+.textarea-dictate-wrapper textarea,
+.textarea-dictate-wrapper input {
+  padding-right: 80px !important;
+}
+
+/* 9. แถบ Sticky Footer ปุ่ม Save / Cancel ลอยโปร่งก้นการ์ด */
+.sticky-action-footer {
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 0.85rem !important;
+  margin-top: 0.85rem !important;
 }
