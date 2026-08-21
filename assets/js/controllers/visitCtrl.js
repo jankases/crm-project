@@ -971,7 +971,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
-window.loadDropdowns = async function(forceReload) {
+ window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1091,13 +1091,27 @@ window.loadDropdowns = async function(forceReload) {
             window.VisitManagerCache.assignedDoctors = allDoctors; 
             window.VisitManagerCache.assignedHospitals = allHospitals;
         } else {
+            // 🌟 แก้ไขจุดนี้: ไล่ Hierarchy ตาม DB จริง (BU -> Team -> Territory)
             if (window.myIsBuHead) {
-                var matchedBu = globalBuListLocal.find(function(b) { return String(b.BU_ID) === rawScope || String(b.BU) === rawScope || String(b.BU_Name) === rawScope; });
-                var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-                var matchedTeams = globalTeamListLocal.filter(function(t) { return String(t.BU_ID) === targetBuId || String(t.BU) === rawScope || String(t.BU_ID) === String(rawScope); });
-                var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID); });
-                var terrs = globalTerritoryListLocal.filter(function(ter) { return matchedTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId; });
-                terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID)); });
+                var matchedBu = globalBuListLocal.find(function(b) { 
+                    var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
+                    var bName = String(b.BU || b.BU_Name || '').trim().toLowerCase();
+                    return bId === rawScope.toLowerCase() || bName === rawScope.toLowerCase();
+                });
+                var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id) : rawScope;
+                
+                // 1. หา Team_ID ใต้ BU_ID
+                var matchedTeams = globalTeamListLocal.filter(function(t) { 
+                    var tBu = String(t.BU_ID || t.BU || '').trim().toLowerCase();
+                    return tBu === String(targetBuId).toLowerCase() || tBu === rawScope.toLowerCase();
+                });
+                var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID || t.id || t.Team); });
+
+                // 2. หา Territory_ID ใต้ Team_ID เหล่านั้น
+                var terrs = globalTerritoryListLocal.filter(function(ter) { 
+                    return matchedTeamIds.indexOf(String(ter.Team_ID || ter.Team)) !== -1; 
+                });
+                terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID || ter.id || ter.Territory)); });
             } else if (window.myIsManager) {
                 var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
                 if (matchedTeam) {
