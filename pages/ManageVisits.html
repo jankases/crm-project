@@ -12,140 +12,6 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<style>
-  /* 🔒 ล็อกหน้าจอ Fit-to-Screen ไร้ Scrollbar */
-  body, html {
-    overflow-x: hidden !important;
-  }
-
-  .visit-form-wrapper {
-    height: calc(100vh - 65px) !important;
-    max-height: calc(100vh - 65px) !important;
-    overflow: hidden !important;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .visit-form-card-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden !important;
-    background: transparent !important;
-    border-radius: 20px;
-    padding: 0 !important;
-    box-shadow: none !important;
-  }
-
-  .form-section-title {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #0d6efd;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1.5px solid #e2e8f0;
-  }
-
-  .compact-label {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 3px;
-  }
-
-  /* 🌟 Dynamic Visual Indicators Button Styles */
-  .feature-action-btn-lg {
-    font-size: 0.82rem !important;
-    font-weight: 600;
-    padding: 6px 10px !important;
-    min-height: 42px !important;
-    height: 42px !important;
-    border-radius: 12px !important;
-    border: 1px solid #cbd5e1 !important;
-    background: #f8fafc !important;
-    color: #475569 !important;
-    transition: all 0.2s ease;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
-  }
-  .feature-action-btn-lg:hover {
-    border-color: #0284c7 !important;
-    color: #0284c7 !important;
-    background: #f0f9ff !important;
-    transform: translateY(-1px);
-  }
-
-  /* 🟢 Has Data Color Customizations */
-  .feature-action-btn-lg.has-data-gps { background-color: #dcfce7 !important; border-color: #16a34a !important; color: #15803d !important; font-weight: 700; }
-  .feature-action-btn-lg.has-data-sig { background-color: #dcfce7 !important; border-color: #16a34a !important; color: #15803d !important; font-weight: 700; }
-  .feature-action-btn-lg.has-data-attach { background-color: #e0f2fe !important; border-color: #0284c7 !important; color: #0369a1 !important; font-weight: 700; }
-  .feature-action-btn-lg.has-data-media { background-color: #fee2e2 !important; border-color: #dc2626 !important; color: #b91c1c !important; font-weight: 700; }
-  .feature-action-btn-lg.has-data-samples { background-color: #fef3c7 !important; border-color: #d97706 !important; color: #b45309 !important; font-weight: 700; }
-
-  /* ⚡ KPI Quick Filter Interactive Styles */
-  .kpi-card-clickable { cursor: pointer; transition: all 0.2s ease-in-out; user-select: none; }
-  .kpi-card-clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important; }
-  .kpi-card-clickable.active-kpi { border-width: 2px !important; background-color: #f8fafc !important; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important; }
-
-  .kpi-card-clickable:focus, .kpi-card-clickable:active { outline: none !important; box-shadow: none !important; }
-  .kpi-card-elevated.active-total { background-color: #f0f9ff !important; border-color: #0284c7 !important; box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important; transform: translateY(-1px) !important; }
-  .kpi-card-elevated.active-pending { background-color: #fffbeb !important; border-color: #d97706 !important; box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important; transform: translateY(-1px) !important; }
-  .kpi-card-elevated.active-submitted { background-color: #ecfdf5 !important; border-color: #059669 !important; box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important; transform: translateY(-1px) !important; }
-
-  /* 🎙️ Minimal Dictate Overlay Button Inside Textarea */
-  .textarea-dictate-wrapper {
-    position: relative !important;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .btn-dictate-corner {
-    position: absolute !important;
-    top: 6px !important;
-    right: 6px !important;
-    z-index: 10 !important;
-    background-color: #ffffff !important;
-    border: 1px solid #fee2e2 !important;
-    color: #dc2626 !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    padding: 2px 8px !important;
-    border-radius: 20px !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-  }
-
-  .btn-dictate-corner:hover {
-    background-color: #fef2f2 !important;
-    border-color: #fca5a5 !important;
-  }
-
-  .textarea-dictate-wrapper textarea,
-  .textarea-dictate-wrapper input {
-    padding-right: 75px !important;
-  }
-
-  /* 📱 Modal & Touch Optimization */
-  .modal-content { border-radius: 20px !important; border: none !important; }
-  .modal-header { padding: 1rem 1.25rem !important; }
-  .modal-body .btn, .modal-footer .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.92rem !important; font-weight: 600 !important; border-radius: 12px !important; padding: 8px 18px !important; }
-  .modal-body .form-control, .modal-body .form-select { min-height: 44px; font-size: 0.95rem; border-radius: 12px; }
-
-  #sampleItemsContainer { overflow-x: hidden !important; overflow-y: auto; padding-right: 4px; }
-  .sample-item-row { background: #f8fafc; padding: 8px 10px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 8px; }
-  .sample-item-row .btn-delete-sample { width: 44px; height: 44px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
-
-  .sticky-action-footer {
-    border-top: 1px solid #f1f5f9;
-    padding-top: 10px;
-    margin-top: 10px;
-    flex-shrink: 0;
-  }
-</style>
-
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
@@ -311,8 +177,8 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (Fit-to-Screen Balanced Layout) ================= -->
-  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3" style="height: calc(100vh - 70px) !important; max-height: calc(100vh - 70px) !important;">
+  <!-- ================= 2. FORM VIEW (Balanced Full-Height Layout) ================= -->
+  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
     <!-- Top Header Bar -->
     <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom flex-shrink-0">
@@ -342,7 +208,7 @@
           
           <!-- 🔹 Left Column (Visit Information & Evidences) -->
           <div class="col-12 col-xl-5 d-flex flex-column">
-            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important; border-color: #e2e8f0 !important;">
+            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
@@ -355,7 +221,7 @@
                     </button>
                   </div>
                   <div class="input-group shadow-xs rounded-3">
-                    <select class="form-select bg-white" id="visitDocId" required style="min-height: 40px !important; height: 40px !important;"></select>
+                    <select class="form-select bg-white" id="visitDocId" required></select>
                     <button class="btn btn-outline-danger bg-white border-start-0 px-2.5" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()"><i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i></button>
                   </div>
                 </div>
@@ -363,20 +229,20 @@
                 <!-- Products -->
                 <div class="mb-2">
                   <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()" style="min-height: 40px !important;"></select>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                 </div>
 
                 <!-- Purpose -->
                 <div class="mb-2">
                   <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required style="min-height: 40px !important; height: 40px !important;"></select>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                 </div>
 
-                <!-- 🌟 Date & Start/End Time (จัด Grid ข้างกัน 5:7) -->
+                <!-- Date & Start/End Time -->
                 <div class="row g-2 align-items-end mb-2.5">
                   <div class="col-5">
                     <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-                    <input type="date" class="form-control bg-white shadow-xs premium-radius px-1.5" id="visitDate" required style="height: 40px !important; min-height: 40px !important;">
+                    <input type="date" class="form-control bg-white shadow-xs premium-radius px-1.5" id="visitDate" required>
                   </div>
 
                   <div class="col-7">
@@ -386,7 +252,7 @@
                           <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
                           <button type="button" class="btn btn-link p-0 text-decoration-none tiny fw-bold" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
                         </div>
-                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime" style="height: 40px !important; min-height: 40px !important;">
+                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime">
                       </div>
 
                       <div class="col-6">
@@ -394,14 +260,14 @@
                           <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
                           <button type="button" class="btn btn-link p-0 text-decoration-none tiny fw-bold" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
                         </div>
-                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime" style="height: 40px !important; min-height: 40px !important;">
+                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime">
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Features & Evidences -->
-                <div class="pt-2 border-top">
+                <!-- Features & Evidences (ลบเส้น border-top ออก) -->
+                <div class="pt-1">
                   <label class="compact-label mb-1.5 d-flex align-items-center gap-1.5 text-primary fw-bold">
                     <i class="fa-solid fa-sliders"></i>
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
@@ -444,43 +310,43 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - Dictate ซ้อนใน Textarea + ปรับความสูงบาลานซ์) -->
+          <!-- 🔹 Right Column (Activity Details - เปลี่ยน Next Action เป็น Textarea เพิ่มพื้นที่กรอกแผนงาน) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
-            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important; border-color: #e2e8f0 !important;">
+            <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
                 <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                <!-- 1. Details (ลดขนาดลงมาเหลือ 100px พอดีๆ) -->
-                <div class="mb-2 d-flex flex-column">
+                <!-- 1. Details -->
+                <div class="mb-2 d-flex flex-column flex-grow-1">
                   <label class="compact-label" data-i18n="lbl_details">Details</label>
-                  <div class="textarea-dictate-wrapper">
+                  <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitDetails" style="min-height: 95px !important; height: 105px !important; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
                   </div>
                 </div>
 
-                <!-- 2. Insight (🌟 ขยายพื้นที่เพิ่มให้กรอกได้ 2-3 บรรทัดสูง 75px) -->
+                <!-- 2. Insight -->
                 <div class="mb-2">
                   <label class="compact-label" data-i18n="lbl_insight">Insight</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 75px !important; min-height: 75px !important; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
                   </div>
                 </div>
 
-                <!-- 3. Next Action -->
+                <!-- 3. Next Action (🌟 เปลี่ยนเป็น Textarea เพื่อใช้พื้นที่อย่างคุ้มค่า) -->
                 <div class="mb-1">
                   <label class="compact-label" data-i18n="lbl_next_action">Next Action</label>
                   <div class="textarea-dictate-wrapper">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <input type="text" class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" style="height: 40px !important;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
+                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items..."></textarea>
                   </div>
                 </div>
 
