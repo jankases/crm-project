@@ -937,3 +937,26 @@ mark.highlight-search {
     background: #cbd5e1;
     border-radius: 4px;
 }
+
+/* ยกเลิกเงาสีฟ้าตอนคลิก */
+.stat-card:focus {
+    box-shadow: none !important;
+}
+
+/* 1. สไตล์ตอนเลือกกล่อง Total Visits */
+.stat-card.active-total {
+    background-color: #f0f8ff !important; /* พื้นหลังสีฟ้าอ่อนมาก */
+    border-color: #0d6efd !important; /* ขอบสีฟ้าเข้ม */
+}
+
+/* 2. สไตล์ตอนเลือกกล่อง Pending Drafts */
+.stat-card.active-pending {
+    background-color: #fffbeb !important; /* พื้นหลังสีส้ม/เหลืองอ่อนมาก */
+    border-color: #f59e0b !important; /* ขอบสีส้มเข้ม */
+}
+
+/* 3. สไตล์ตอนเลือกกล่อง Submitted Logs */
+.stat-card.active-submitted {
+    background-color: #ecfdf5 !important; /* พื้นหลังสีเขียวอ่อนมาก */
+    border-color: #10b981 !important; /* ขอบสีเขียวเข้ม */
+}
