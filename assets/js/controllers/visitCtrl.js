@@ -1542,8 +1542,8 @@ window.clearVisitFilters = function() {
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
- 
-  window.loadVisits = async function(forceReload, isBackground) {
+
+window.loadVisits = async function(forceReload, isBackground) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1569,16 +1569,8 @@ window.clearVisitFilters = function() {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🌟 เช็กเพิ่ม: ถ้าไม่ใช่การโหลดแบบ isBackground ถึงจะสั่งแปะคลาส is-loading
+    // 🌟 [FIXED] เช็ก !isBackground เพียงจุดเดียว และลบบล็อก if ซ้ำซ้อนด้านล่างทิ้ง
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
-        var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
-
-        if (visitViewEl) visitViewEl.classList.add('is-loading');
-    }
-
-    if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
         if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
