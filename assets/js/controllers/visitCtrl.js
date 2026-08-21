@@ -1227,7 +1227,7 @@ window.loadDropdowns = async function(forceReload) {
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || '').trim() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || '').trim() : '';
 
     var isGlobalViewer = window.myIsGlobalViewer;
     var isBuHead = window.myIsBuHead;
@@ -1238,7 +1238,7 @@ window.loadDropdowns = async function(forceReload) {
     var myAllowedTerIds = window.myAllowedTerIds || []; 
     var myAllowedRepIds = window.myAllowedRepIds || []; 
 
-    // 🌟 1. ดึงรายชื่อพนักงาน (Users List Fallback)
+    // 🌟 1. ดึงเฉพาะรายชื่อพนักงานที่ได้รับสิทธิ์ตามบทบาทจริง (ไม่มี Fallback เอาคนทั้งหมดมาโชว์แล้ว)
     var fullAllowedUsers = [];
     if (isGlobalViewer) {
         fullAllowedUsers = window.globalUsersList || [];
@@ -1247,15 +1247,21 @@ window.loadDropdowns = async function(forceReload) {
             var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
             var uteam = String(u.Team_ID || u.Team || '').trim();
             var uter = String(u.Territory_ID || u.Territory || '').trim();
+            var ubu = String(u.BU_ID || u.BU || '').trim();
             
-            if (isSales) return uid === uRepId;
-            return (myAllowedRepIds.indexOf(uid) !== -1 || myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTerIds.indexOf(uter) !== -1);
+            if (isSales) {
+                return uid === uRepId;
+            }
+            if (isBuHead) {
+                // BU Head เห็นเฉพาะคนที่มี BU_ID ตรงกัน หรืออยู่ในทีม/เขตของ BU นั้น
+                return (ubu && ubu === rawScope) || myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTerIds.indexOf(uter) !== -1 || myAllowedRepIds.indexOf(uid) !== -1;
+            }
+            if (isManager) {
+                // Manager เห็นเฉพาะคนในทีมดูแล
+                return myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTerIds.indexOf(uter) !== -1 || myAllowedRepIds.indexOf(uid) !== -1;
+            }
+            return false;
         });
-    }
-
-    // Fallback: ถ้าหาไม่เจอเลย ให้แสดง Users ทั้งหมดในระบบป้องกัน Dropdown ว่าง
-    if (fullAllowedUsers.length === 0) {
-        fullAllowedUsers = window.globalUsersList || [];
     }
 
     var uniqueUsersMap = new Map();
@@ -1274,12 +1280,14 @@ window.loadDropdowns = async function(forceReload) {
         repSelect.innerHTML = repHtml;
     }
 
-    // 🌟 2. ดึงรายชื่อพื้นที่/ทีม (Territory List Fallback)
+    // 🌟 2. ดึงเฉพาะทีม/เขตพื้นที่ภายใต้การดูแล
     var terMap = new Map();
     (window.globalTeamList || []).forEach(function(t) {
         var tid = String(t.Team_ID || t.id || ''); 
         var tnm = String(t.Team || t.Team_Name || tid);
-        if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tnm) !== -1) {
+        var tbu = String(t.BU_ID || t.BU || '');
+        
+        if (isGlobalViewer || (isBuHead && tbu === rawScope) || myAllowedTeamIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tnm) !== -1) {
             if (tid) terMap.set(tid, tnm + ' (Team)');
         }
     });
@@ -1292,15 +1300,6 @@ window.loadDropdowns = async function(forceReload) {
         }
     });
 
-    // Fallback: ถ้า terMap ว่างเปล่า ให้เอารายการ Territory ทั้งหมดมาโชว์
-    if (terMap.size === 0) {
-        (window.globalTerritoryList || []).forEach(function(t) {
-            var tid = String(t.Territory_ID || t.id || '');
-            var tnm = String(t.Territory || t.Territory_Name || tid);
-            if (tid) terMap.set(tid, tnm);
-        });
-    }
-
     if (terSelect) {
         var tHtml = ''; 
         terMap.forEach(function(text, id) { 
@@ -1309,7 +1308,7 @@ window.loadDropdowns = async function(forceReload) {
         terSelect.innerHTML = tHtml;
     }
 
-    // 🌟 3. Re-initialize TomSelect เพื่ออัปเดต UI ให้เห็นค่าล่าสุด
+    // 🌟 3. Re-initialize TomSelect เพื่ออัปเดตตัวเลือกใน Dropdown
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     if (typeof TomSelect !== 'undefined') {
         if (repSelect) {
@@ -1319,7 +1318,7 @@ window.loadDropdowns = async function(forceReload) {
                 plugins: ['remove_button'], 
                 create: false, 
                 hidePlaceholder: true, 
-                placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
+                placeholder: appLang === 'th' ? '- พนักงานในทีม -' : '- Select Rep -', 
                 dropdownParent: null, 
                 onChange: function() { 
                     if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); 
@@ -1337,7 +1336,7 @@ window.loadDropdowns = async function(forceReload) {
                 plugins: ['remove_button'], 
                 create: false, 
                 hidePlaceholder: true, 
-                placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
+                placeholder: appLang === 'th' ? '- พื้นที่ในทีม -' : '- Select Area -', 
                 dropdownParent: null, 
                 onChange: function() { 
                     if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); 
