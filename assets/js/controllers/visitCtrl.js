@@ -3200,7 +3200,7 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
 
 // ==========================================
 // 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
-// ========================================== 
+// ==========================================  
 // 🌟 เพิ่มตัวแปร Global ไว้จำค่าที่ถูกเลือก (ป้องกันค่าหายตอนปฏิทินถูก Destroy เพื่อวาดใหม่)
 window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
 
@@ -3256,6 +3256,7 @@ window.renderCalendarView = function() {
       var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
       var baseTitle = repNamePrefix + timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
       var fullTooltipText = baseTitle + '\n' + (appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ') + purposeShow;
+      if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
 
       var isPending = (v.Status === 'Pending');
       var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
@@ -3267,79 +3268,141 @@ window.renderCalendarView = function() {
       };
   });
 
-  // ==========================================
-  // 🌟 3. ดึงข้อมูลวันหยุด (Public Holidays)
-  // ==========================================
-  var holidayEvents = (window.globalHolidays || (window.VisitManagerCache && window.VisitManagerCache.holidays) || []).map(function(h) {
-      var hDate = h.Holiday_Date || h.Date || h.start;
-      var hName = h.Holiday_Name || h.Name || h.title || 'Holiday';
-      return {
-          id: 'hol_' + (h.id || Math.random()),
-          title: '🌴 ' + hName,
-          start: hDate,
-          allDay: true,
-          backgroundColor: '#ef4444', 
-          borderColor: '#ef4444',
-          textColor: '#ffffff',
-          display: 'background', 
-          extendedProps: { isHoliday: true, fullTooltip: '🌴 ' + hName }
-      };
-  });
+  var holidayEvents = []; var companyEvents = []; 
+  
+  if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+      
+      // ==========================================
+      // 🌟 3. ดึงข้อมูล Public Holiday (อิงตามโครงสร้าง Index ตรงเป๊ะ)
+      // ==========================================
+      var holidayType = window.VisitManagerCache.indexTypes.find(function(t) { 
+          var n = (t.Name || '').trim().toLowerCase();
+          return n.indexOf('holiday') !== -1 && n.indexOf('company') === -1 && n.indexOf('corporate') === -1; 
+      });
+      
+      if (holidayType) {
+          var holidayData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === holidayType.IndexType_ID; });
+          holidayEvents = holidayData.map(function(h) {
+              // ดึงวันที่จาก Value
+              var hDate = h.Value ? h.Value.split('T')[0] : '';
+              if (hDate.indexOf('/') !== -1) { var dParts = hDate.split('/'); if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0]; }
+              
+              // ดึงชื่อ: ภาษาอังกฤษใช้ Value2, ภาษาไทยใช้ Value1
+              var hTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || h.Value2 || 'วันหยุด');
+
+              return {
+                  id: 'hol_' + h.Index_ID, 
+                  title: '🌴 ' + hTitle, 
+                  start: hDate, 
+                  allDay: true, 
+                  backgroundColor: '#ef4444', 
+                  borderColor: '#ef4444', 
+                  textColor: '#ffffff', 
+                  display: 'block', // 🌟 โชว์เป็นบล็อกทึบสีแดง
+                  extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
+              };
+          });
+      }
+
+      // ==========================================
+      // 🌟 4. ดึงข้อมูล Company Event (อิงตามโครงสร้าง Index ตรงเป๊ะ)
+      // ==========================================
+      var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) { 
+          var n = (t.Name || '').trim().toLowerCase();
+          return n.indexOf('company event') !== -1 || n.indexOf('corporate') !== -1; 
+      });
+
+      if (companyEventType) {
+          var companyData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === companyEventType.IndexType_ID; });
+          companyEvents = companyData.map(function(c) {
+              // ดึงวันที่จาก Value
+              var cDate = c.Value ? c.Value.split('T')[0] : '';
+              if (cDate.indexOf('/') !== -1) { var dParts2 = cDate.split('/'); if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0]; }
+              
+              // ดึงชื่อ: ภาษาอังกฤษใช้ Value2, ภาษาไทยใช้ Value1
+              var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || c.Value2 || 'กิจกรรมบริษัท');
+
+              return {
+                  id: 'ce_' + c.Index_ID, 
+                  title: '🏢 ' + cTitle, 
+                  start: cDate, 
+                  allDay: true, 
+                  backgroundColor: '#8b5cf6', // 🌟 โชว์เป็นบล็อกทึบสีม่วง
+                  borderColor: '#8b5cf6', 
+                  textColor: '#ffffff', 
+                  display: 'block',
+                  extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: '🏢 ' + cTitle }
+              };
+          });
+      }
+  }
 
   // ==========================================
-  // 🌟 4. ดึงข้อมูลกิจกรรม / ลา / ประชุม (TOT Logs)
+  // 🌟 5. กรองข้อมูล TOT ให้เปลี่ยนตาม Dropdown ที่เลือกด้วย
   // ==========================================
-  var totSource = window.globalFilteredTotLogs || window.globalTotLogs || [];
-  
+  var totSource = window.globalFilteredTotLogs || [];
   if (selectedRepId) {
       totSource = totSource.filter(function(tot) {
           return String(tot.Rep_ID) === String(selectedRepId) || String(tot.Whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
       });
   }
 
-  var totEvents = totSource.map(function(tot) {
-      var repObj = (window._userIndex && tot.Rep_ID) ? window._userIndex[String(tot.Rep_ID).trim().toLowerCase()] : null;
+  var totEvents = totSource.map(function(t) {
+      var repObj = (window._userIndex && t.Rep_ID) ? window._userIndex[String(t.Rep_ID).trim().toLowerCase()] : null;
       var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
       
-      var tType = tot.TOT_Type || 'TOT';
-      var isPending = tot.Status === 'Pending';
-      var bgColor = isPending ? '#f59e0b' : '#0ea5e9'; 
-      
-      var endDateStr = null;
-      if (tot.End_Date) {
-          var eDate = new Date(tot.End_Date);
-          eDate.setDate(eDate.getDate() + 1);
-          endDateStr = eDate.toISOString().split('T')[0];
+      var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+      var displayType = t.TOT_Type || 'Time Off';
+      if (appLang === 'en' && window.VisitManagerCache.indexes) {
+          var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+          if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+      }
+      var baseTitle = repNamePrefix + timePrefix + '[TOT] ' + displayType;
+      var fullTooltipText = baseTitle + (t.Remark ? '\n' + (appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ') + t.Remark : '');
+      var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+
+      var startDate = '';
+      if (t.Start_Date) {
+          startDate = t.Start_Date.split('T')[0];
+          if (startDate.indexOf('/') !== -1) { var p1 = startDate.split('/'); if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0]; }
+      }
+      var endDateStr = '';
+      if (t.End_Date && t.End_Date !== t.Start_Date) {
+          endDateStr = t.End_Date.split('T')[0];
+          if (endDateStr.indexOf('/') !== -1) { var p2 = endDateStr.split('/'); if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0]; }
+          var eDate = new Date(endDateStr); eDate.setDate(eDate.getDate() + 1); endDateStr = eDate.toISOString().split('T')[0];
       }
 
-      return {
-          id: 'tot_' + (tot.TOT_ID || tot.id),
-          title: repNamePrefix + '⛱️ ' + tType,
-          start: tot.Start_Date ? tot.Start_Date.split('T')[0] : '',
-          end: endDateStr,
-          allDay: true,
-          backgroundColor: bgColor,
-          borderColor: bgColor,
-          textColor: '#ffffff',
-          display: 'block',
-          extendedProps: { isTot: true, totId: tot.TOT_ID || tot.id, status: tot.Status, fullTooltip: repNamePrefix + '⛱️ ' + tType + '\nStatus: ' + tot.Status }
+      var ev = {
+          id: 'tot_' + t.TOT_ID, title: baseTitle, start: startDate, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block',
+          extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
       };
+      if (endDateStr) ev.end = endDateStr;
+      return ev;
   });
 
-  var companyEvents = []; 
-  
-  // 🌟 รวม Events ทั้งหมด
   var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
-
+  
   if (typeof FullCalendar !== 'undefined') {
-    var fcButtonText = appLang === 'th' ? { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' } : { today: 'Today', month: 'Month', week: 'Week', day: 'Day' };
+    var fcButtonText = appLang === 'th' ? {
+        today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
+    } : {
+        today: 'Today', month: 'Month', week: 'Week', day: 'Day'
+    };
 
     window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth', 
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+        headerToolbar: { 
+          left: 'prev,next today', 
+          center: 'title', 
+          right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+        },
         buttonText: fcButtonText, 
         locale: appLang === 'th' ? 'th' : 'en', 
-        height: '100%', expandRows: true, dayMaxEvents: 2, moreLinkClick: 'popover', 
+        height: '100%', 
+        expandRows: true, 
+        dayMaxEvents: 2, 
+        moreLinkClick: 'popover', 
         events: allEvents,
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
         eventClick: function(info) {
@@ -3358,17 +3421,14 @@ window.renderCalendarView = function() {
     
     window.globalCalendarInstance.render();
 
-    // ==========================================
-    // 🌟 5. สร้าง Filter Dropdown บน Header ปฏิทิน
-    // ==========================================
     setTimeout(function() {
       var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
+      
+      // แทรก Dropdown Filter ลูกน้อง
       if (headerRight && !document.getElementById('calRepFilterContainer')) {
-        
         var isEN = appLang === 'en';
         var userList = window.globalUsersList || [];
         
-        // ถ้าเป็น Manager ให้สร้าง Dropdown เลือกลูกน้อง
         if (isManagerOrAdmin && userList.length > 0) {
           var allowedReps = window.myAllowedRepIds || [];
           var uniqueReps = new Map();
@@ -3393,6 +3453,30 @@ window.renderCalendarView = function() {
           `;
           headerRight.insertAdjacentHTML('afterbegin', filterDropdownHtml);
         }
+      }
+
+      // แทรกสัญลักษณ์สี (Legend)
+      if (headerRight && !document.getElementById('calHeaderLegendDropdown')) {
+        var isEN = appLang === 'en';
+        var legendDropdownHtml = `
+          <div class="dropdown d-inline-block me-1" id="calHeaderLegendDropdown">
+            <button class="fc-button fc-button-primary dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #64748b; border-color: #64748b; font-size: 0.85rem; padding: 0.35em 0.65em;">
+              <i class="fa-solid fa-palette"></i>
+              <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
+              <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
+              <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
+            </div>
+          </div>
+        `;
+        headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
       }
     }, 50);
   }
