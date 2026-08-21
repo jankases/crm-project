@@ -174,7 +174,6 @@
     padding: 1rem 1.25rem !important;
   }
 
-  /* ปรับปุ่มใน Modal ให้มีความสูงอย่างน้อย 44px เพื่อให้กดง่ายด้วยนิ้วสัมผัส */
   .modal-body .btn,
   .modal-footer .btn {
     min-height: 44px;
@@ -187,7 +186,6 @@
     padding: 8px 18px !important;
   }
 
-  /* ปรับขนาด Input ใน Modal ให้ใหญ่เต็มมือ */
   .modal-body .form-control,
   .modal-body .form-select {
     min-height: 44px;
@@ -195,14 +193,12 @@
     border-radius: 12px;
   }
 
-  /* ป้องกันไม่ให้มี Scrollbar แนวนอนโผล่ใน Samples Container */
   #sampleItemsContainer {
     overflow-x: hidden !important;
     overflow-y: auto;
     padding-right: 4px;
   }
 
-  /* ปรับแถวของสินค้าตัวอย่างให้โปร่งและกดลบง่าย */
   .sample-item-row {
     background: #f8fafc;
     padding: 8px 10px;
@@ -237,7 +233,6 @@
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- 🌟 แก้คำสั่ง onclick และ Class เริ่มต้น (Total Active) -->
         <div class="kpi-card-elevated kpi-border-blue kpi-card-clickable active-total" id="kpiCardAll" onclick="window.clickStatCard('')">
           <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-6"></i></div>
           <div class="d-flex flex-column justify-content-center overflow-hidden">
@@ -265,9 +260,9 @@
 
       <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
         <div class="d-flex bg-white p-1 border me-1 premium-radius shadow-xs">
-        <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1.5"></i> <span data-i18n="btn_list">List</span></button>
-        <button class="btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1.5"></i> <span data-i18n="btn_calendar">Calendar</span></button>
-      </div>
+          <button class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-1.5"></i> <span data-i18n="btn_list">List</span></button>
+          <button class="btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-1.5"></i> <span data-i18n="btn_calendar">Calendar</span></button>
+        </div>
 
         <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate fs-6"></i>
@@ -324,7 +319,6 @@
                 <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
               </button>
               
-              <!-- Pop-up Advanced Filters -->
               <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 1050;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
                 
@@ -394,7 +388,7 @@
 
   </div>
 
-  <!-- ================= 2. FORM VIEW (iPad Premium Layout - Fit-to-Screen) ================= -->
+  <!-- ================= 2. FORM VIEW (iPad Premium Layout - Refined Spacing & Minimal Dictate) ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-3">
     
     <!-- Top Header Bar -->
@@ -455,25 +449,31 @@
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                 </div>
 
-                <!-- Date & Time -->
-                <div class="row g-2 mb-3">
-                  <div class="col-6">
+                <!-- 🌟 Date & Start/End Time (จัดระเบียบใหม่แยก 5:7 ไม่ขี่กัน) -->
+                <div class="row g-2 align-items-end mb-3">
+                  <div class="col-12 col-md-5">
                     <label class="compact-label mb-1"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
                     <input type="date" class="form-control bg-white shadow-xs premium-radius" id="visitDate" required>
                   </div>
-                  <div class="col-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
-                      <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
+
+                  <div class="col-12 col-md-7">
+                    <div class="row g-1">
+                      <div class="col-6">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                          <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
+                          <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">[Now]</button>
+                        </div>
+                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitStartTime">
+                      </div>
+
+                      <div class="col-6">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                          <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
+                          <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
+                        </div>
+                        <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitEndTime">
+                      </div>
                     </div>
-                    <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitStartTime">
-                  </div>
-                  <div class="col-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
-                      <button type="button" class="btn btn-link p-0 text-decoration-none tiny" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">[+30m]</button>
-                    </div>
-                    <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-1" id="visitEndTime">
                   </div>
                 </div>
 
@@ -485,35 +485,30 @@
                   </label>
                   
                   <div class="row g-2">
-                    <!-- 📍 GPS Check-in -->
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                         <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                       </button>
                     </div>
 
-                    <!-- ✍️ Doctor Signature -->
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionSignature" onclick="window.openSignatureModal()">
                         <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                       </button>
                     </div>
 
-                    <!-- 🎁 Samples & Promo -->
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
                         <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                       </button>
                     </div>
 
-                    <!-- 📸 Attachments -->
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100 py-2" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
                         <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                       </button>
                     </div>
 
-                    <!-- 🎬 e-Detailing -->
                     <div class="col-12 d-none" id="detailingMediaSection">
                       <button type="button" class="feature-action-btn-lg w-100 py-2 border-danger text-danger" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
                         <i class="fa-solid fa-file-powerpoint me-1.5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
@@ -526,44 +521,44 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - Compact Height Fit-to-Screen) -->
+          <!-- 🔹 Right Column (Activity Details - Minimal Corner Dictate Wrapper) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between">
               
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
                 <h6 class="form-section-title mb-2.5"><i class="fa-solid fa-list-check me-2"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                <!-- 1. Details (Top Area) -->
-                <div class="mb-2 d-flex flex-column flex-grow-1">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="compact-label mb-0" data-i18n="lbl_details">Details</label>
-                    <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
+                <!-- 1. Details (Top Area - Minimal Corner Dictate) -->
+                <div class="mb-2.5 d-flex flex-column flex-grow-1">
+                  <label class="compact-label mb-1" data-i18n="lbl_details">Details</label>
+                  <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
+                    <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
+                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" style="min-height: 90px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
                   </div>
-                  <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" style="min-height: 80px; resize: none;" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
                 </div>
 
-                <!-- 2. Insight (Middle Area) -->
+                <!-- 2. Insight (Middle Area - Minimal Corner Dictate) -->
+                <div class="mb-2.5">
+                  <label class="compact-label mb-1" data-i18n="lbl_insight">Insight</label>
+                  <div class="textarea-dictate-wrapper">
+                    <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
+                      <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
+                    </button>
+                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 52px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                  </div>
+                </div>
+
+                <!-- 3. Next Action (Bottom Area - Minimal Corner Dictate) -->
                 <div class="mb-2">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="compact-label mb-0" data-i18n="lbl_insight">Insight</label>
-                    <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
+                  <label class="compact-label mb-1" data-i18n="lbl_next_action">Next Action</label>
+                  <div class="textarea-dictate-wrapper">
+                    <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
+                    <input type="text" class="form-control bg-white shadow-xs rounded-3 pe-5" id="visitNextAction" style="height: 42px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
                   </div>
-                  <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" style="height: 48px; resize: none;" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
-                </div>
-
-                <!-- 3. Next Action (Bottom Area) -->
-                <div class="mb-1">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="compact-label mb-0" data-i18n="lbl_next_action">Next Action</label>
-                    <button type="button" class="btn btn-xs btn-outline-danger fw-bold rounded-pill px-2.5 py-0.5" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
-                      <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
-                    </button>
-                  </div>
-                  <input type="text" class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" style="height: 38px;" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items...">
                 </div>
 
               </div>
@@ -679,7 +674,6 @@
           </button>
         </div>
         
-        <!-- Container ควบคุมให้พอดี ไม่มี Scrollbar แนวนอน -->
         <div id="sampleItemsContainer" class="px-1" style="max-height: 360px; overflow-x: hidden; overflow-y: auto;">
           <div class="text-muted small text-center italic py-4" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
         </div>
@@ -712,7 +706,6 @@
           </label>
         </div>
         
-        <!-- Container รูปพรีวิวการ์ดใหญ่ -->
         <div id="attachmentPreviewContainer" class="row g-3 pt-2 overflow-auto" style="max-height: 340px; overflow-x: hidden !important;">
           <div class="col-12 text-center py-4" id="noAttachmentText">
             <i class="fa-regular fa-images fs-1 text-muted opacity-50 mb-2 d-block"></i>
@@ -738,7 +731,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
-        <!-- Container แสดงรายการสื่อ ปรับความสูงให้พอดี ไม่ขึ้น Scrollbar แนวนอน -->
         <div id="mediaListContainer" class="d-flex flex-column gap-3 overflow-auto pe-1" style="max-height: 420px; overflow-x: hidden !important;"></div>
       </div>
     </div>
