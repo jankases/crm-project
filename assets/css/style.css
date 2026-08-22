@@ -23,21 +23,35 @@ html, body {
 }
 
 /* 📊 3. FIXED TABLE-ONLY SCROLL ENGINE */
+#visitListView {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#visitMainContentContainer {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
 #visitListZone, 
 #doctorListView .card,
 #hospListView .card {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 .table-scroll-inside {
   width: 100%;
-  height: auto !important;
-  max-height: calc(100vh - 210px) !important;
-  min-height: 250px;
+  flex: 1 1 auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: auto;
   border-radius: 8px;
@@ -56,7 +70,7 @@ html, body {
   box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
-/* ✨ 4. MODERN MINIMAL SCROLLBAR (ซ่อนแถบเมื่อไม่สโครลล์) */
+/* ✨ 4. MODERN MINIMAL SCROLLBAR */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
@@ -474,81 +488,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   🎨 MODERN UNDERLINE SUB-TABS
-   ========================================== */
-#docProfileTabs, .nav-tabs-custom {
-  border-bottom: 2px solid #e2e8f0 !important;
-  gap: 8px;
-}
-
-#docProfileTabs .nav-link, .nav-tabs-custom .nav-link {
-  color: #64748b !important;
-  background-color: transparent !important;
-  border: none !important;
-  border-bottom: 3px solid transparent !important;
-  border-radius: 0 !important;
-  font-weight: 600 !important;
-  font-size: 0.92rem !important;
-  padding: 10px 16px !important;
-  margin-bottom: -2px !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-#docProfileTabs .nav-link:hover, .nav-tabs-custom .nav-link:hover {
-  color: #2563eb !important;
-  background-color: transparent !important;
-}
-
-#docProfileTabs .nav-link.active, .nav-tabs-custom .nav-link.active {
-  color: #1d4ed8 !important;
-  background-color: transparent !important;
-  border-bottom: 3px solid #2563eb !important;
-  font-weight: 700 !important;
-  box-shadow: none !important;
-}
-
-.btn-premium-warning {
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
-  letter-spacing: 0.2px;
-  border-radius: 8px !important;
-  padding: 6px 14px !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
-              0 4px 12px rgba(245, 158, 11, 0.25),
-              inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.btn-premium-warning:hover {
-  background: linear-gradient(180deg, #d97706 0%, #b45309 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08),
-              0 6px 16px rgba(245, 158, 11, 0.35),
-              inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
-  color: #ffffff !important;
-}
-
-.btn-premium-warning:active {
-  transform: translateY(0) !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
-.btn-premium-locked {
-  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #f8fafc !important;
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
-  border-radius: 8px !important;
-  padding: 6px 14px !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
-  cursor: not-allowed !important;
-}
-
-/* ==========================================
    ✨ PREMIUM TABLE ELEMENTS
    ========================================== */
 .table-visit-link {
@@ -601,7 +540,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding-bottom: 0 !important;
 }
 
-/* 🌟 คืนค่าขนาดช่อง Show rows Dropdown ให้กะทัดรัดพอดี */
 #visitRowsPerPage {
   width: 70px !important;
   min-width: 70px !important;
@@ -714,7 +652,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   cursor: pointer;
 }
 
-/* ปรับ Badge ในตาราง (Status, Products) ให้กะทัดรัดตามแถว ไม่ดันแถวให้โย่ง */
 .table-scroll-inside .badge {
   padding: 2px 7px !important;
   font-size: 0.75rem !important;
@@ -723,7 +660,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   margin-bottom: 0 !important;
 }
 
-/* ปรับไอคอนและข้อความในตารางไม่ให้ดึงความสูง */
 .table-scroll-inside .table-doc-name,
 .table-scroll-inside .table-hosp-text,
 .table-scroll-inside .table-visit-link {
@@ -753,7 +689,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
 
-/* 1. คอลัมน์โรงพยาบาล */
 .table-hosp-text {
   color: #334155 !important;
   font-weight: 500 !important;
@@ -766,13 +701,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-size: 0.85rem;
 }
 
-/* 2. คอลัมน์ชื่อแพทย์ */
 .table-doc-name {
   color: #0f172a !important;
   font-weight: 600 !important;
 }
 
-/* สไตล์ไฮไลท์คำค้นหา */
 mark.highlight-search {
     background-color: #fef08a !important;
     color: #854d0e !important;
@@ -1006,42 +939,7 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   🌈 VIBRANT FORM HEADERS & VISUAL STYLING
-   ========================================== */
-
-#visitFormView .compact-label.text-primary,
-#visitFormView label[data-i18n="sec_features_evidences"] {
-  color: #0284c7 !important;
-  font-weight: 700 !important;
-  font-size: 0.88rem !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin-bottom: 0.75rem !important;
-}
-
-.btn-back-pill {
-  border-radius: 50px !important;
-  padding: 6px 18px !important;
-  font-size: 0.88rem !important;
-  background-color: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  color: #334155 !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.btn-back-pill:hover {
-  background-color: #f0f9ff !important;
-  border-color: #0284c7 !important;
-  color: #0284c7 !important;
-  transform: translateY(-1px) !important;
-}
-
-/* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
+   🌈 FORM VIEW ISOLATED STYLING
    ========================================== */
 
 #visitFormView {
@@ -1059,11 +957,6 @@ mark.highlight-search {
   margin-top: 0.2rem !important;
 }
 
-#visitFormView .row.g-3 {
-  --bs-gutter-x: 1.25rem !important;
-  --bs-gutter-y: 1rem !important;
-}
-
 #visitFormView .col-12 > .border,
 #visitFormView .col-12 > div {
   padding: 1.15rem 1.35rem !important;
@@ -1073,10 +966,39 @@ mark.highlight-search {
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
 }
 
-#visitFormView .mb-2,
-#visitFormView .mb-2.5,
-#visitFormView .mb-3 {
-  margin-bottom: 0.65rem !important;
+.form-section-title,
+#visitFormView .form-section-title {
+  color: #0284c7 !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+#visitFormView .form-control,
+#visitFormView .form-select,
+#visitDetails,
+#visitInsight,
+#visitNextAction {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+#visitFormView .form-control:focus,
+#visitFormView .form-select:focus,
+#visitDetails:focus,
+#visitInsight:focus,
+#visitNextAction:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12) !important;
 }
 
 #visitFormView .field-wrapper-details { flex: 1.8 1 0% !important; }
@@ -1109,6 +1031,70 @@ mark.highlight-search {
   border-top: 1px solid #f1f5f9 !important;
   padding-top: 0.65rem !important;
   margin-top: 0.65rem !important;
+}
+
+/* 🌟 FEATURES & EVIDENCES BUTTONS - ISOLATED FIX */
+
+/* ปรับระยะห่างคู่ปุ่ม ซ้าย-ขวา / บน-ล่าง */
+#visitFormView .row.g-2.5,
+#visitFormView .row.g-3 {
+  --bs-gutter-x: 0.85rem !important;
+  --bs-gutter-y: 0.85rem !important;
+}
+
+#visitFormView label[data-i18n="sec_features_evidences"] {
+  margin-bottom: 0.85rem !important;
+}
+
+.feature-action-btn-lg {
+  min-height: 48px !important;
+  height: 48px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+  border-radius: 12px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.feature-action-btn-lg:hover,
+.feature-action-btn-lg:active {
+  background-color: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  transform: translateY(-1px) !important;
+}
+
+#sectionGpsCheckin i  { color: #ef4444 !important; }
+#sectionSignature i   { color: #10b981 !important; }
+#sectionSamples i     { color: #f59e0b !important; }
+#sectionAttachments i { color: #0284c7 !important; }
+
+.btn-edetailing-touch {
+  min-height: 48px !important;
+  height: 48px !important;
+  font-size: 0.9rem !important;
+  border-radius: 12px !important;
+  margin-top: 14px !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #fca5a5 !important;
+  color: #dc2626 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.06) !important;
+}
+
+.btn-edetailing-touch:hover,
+.btn-edetailing-touch:active {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
 }
 
 /* ==========================================
@@ -1164,94 +1150,4 @@ mark.highlight-search {
   0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-/* ==========================================
-   📱 RESPONSIVE ADJUSTMENTS (iPad, Tablet & Desktop)
-   ========================================== */
-
-@media (min-width: 768px) and (max-width: 1199px) {
-  .visit-module-wrapper {
-    height: calc(100vh - 65px) !important;
-    max-height: calc(100vh - 65px) !important;
-    padding-bottom: 0.5rem !important;
-  }
-
-  #visitListView { height: 100% !important; }
-  #visitMainContentContainer { flex: 1 1 auto !important; display: flex !important; flex-direction: column !important; }
-  #visitListZone { flex: 1 1 auto !important; height: 100% !important; }
-  .table-scroll-inside { max-height: calc(100vh - 170px) !important; flex-grow: 1 !important; }
-}
-
-@media (min-width: 1200px) {
-  .visit-module-wrapper {
-    height: calc(100vh - 65px) !important;
-    padding-bottom: 0.5rem !important;
-  }
-
-  #visitListView { height: 100% !important; }
-  #visitMainContentContainer { flex: 1 1 auto !important; display: flex !important; flex-direction: column !important; }
-  #visitListZone { flex: 1 1 auto !important; height: 100% !important; }
-  .table-scroll-inside { max-height: calc(100vh - 210px) !important; flex-grow: 1 !important; }
-}
-
-/* 🌟 [FEATURES & EVIDENCES SPACING PERFECT FIX] บังคับขยายระยะห่างระหว่างปุ่มให้โปร่ง สวยงาม */
-
-/* 1. ดันระยะห่างระหว่างหัวข้อกับปุ่มแถวแรก */
-#visitFormView label[data-i18n="sec_features_evidences"] {
-  margin-bottom: 0.85rem !important;
-}
-
-/* 2. ดันระยะห่างแนวนอนและแนวตั้งของคู่ปุ่ม */
-#visitFormView .row.g-2.5,
-#visitFormView .row.g-3 {
-  --bs-gutter-x: 0.85rem !important; /* ระยะห่างซ้าย-ขวา ระหว่างปุ่ม */
-  --bs-gutter-y: 0.85rem !important; /* ระยะห่างบน-ล่าง ระหว่างคู่ปุ่ม */
-}
-
-/* 3. ปุ่ม Features ขยายสูงแตะง่ายขึ้น และมีขอบเขตชัดเจน */
-.feature-action-btn-lg {
-  min-height: 48px !important;
-  height: 48px !important;
-  font-size: 0.9rem !important;
-  font-weight: 600 !important;
-  padding: 8px 12px !important;
-  border-radius: 12px !important;
-  background-color: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  color: #334155 !important;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.feature-action-btn-lg:hover,
-.feature-action-btn-lg:active {
-  background-color: #f0f9ff !important;
-  border-color: #0284c7 !important;
-  color: #0284c7 !important;
-  transform: translateY(-1px) !important;
-}
-
-/* 4. ดันปุ่ม e-Detailing ด้านล่างทิ้งระยะห่างลงมาจากกลุ่มปุ่มบน */
-.btn-edetailing-touch {
-  min-height: 48px !important;
-  height: 48px !important;
-  font-size: 0.9rem !important;
-  border-radius: 12px !important;
-  margin-top: 14px !important; /* ระยะห่างดันลงมาจากปุ่มบน */
-  background-color: #ffffff !important;
-  border: 1.5px solid #fca5a5 !important;
-  color: #dc2626 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.06) !important;
-}
-
-.btn-edetailing-touch:hover,
-.btn-edetailing-touch:active {
-  background-color: #fef2f2 !important;
-  border-color: #ef4444 !important;
 }
