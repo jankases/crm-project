@@ -1212,3 +1212,17 @@ button.feature-action-btn-lg.has-data-samples {
   padding-top: 0.65rem !important;
   margin-top: 0.65rem !important;
 }
+
+/* ==========================================
+   📱 🌟 ปรับแต่งระยะขอบล่างให้การ์ดขยายเต็มจอพอดีสำหรับ iPad / Tablet
+   ========================================== */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .visit-module-wrapper {
+    height: 100vh !important;
+    padding-bottom: 0.85rem !important;
+  }
+
+  .table-scroll-inside {
+    max-height: calc(100vh - 175px) !important;
+  }
+}
