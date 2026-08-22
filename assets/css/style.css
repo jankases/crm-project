@@ -1235,3 +1235,30 @@ button.feature-action-btn-lg.has-data-samples {
   font-size: 0.85rem !important;
   font-weight: 700 !important;
 }
+
+/* ==========================================
+   ✨ PREMIUM MICRO-DETAILS REFINEMENT
+   ========================================== */
+
+/* 1. แถวตารางนุ่มนวล มิติใหม่เวลากด/วางเมาส์ */
+.table-scroll-inside .table tbody tr {
+  transition: all 0.15s ease-in-out !important;
+}
+
+.table-scroll-inside .table tbody tr:hover {
+  background-color: #f0f9ff !important;
+  box-shadow: inset 3px 0 0 #0284c7, 0 2px 6px rgba(2, 132, 199, 0.05) !important;
+}
+
+/* 2. ตัวเลข KPI หนาเด่นคมชัด */
+.kpi-value-text {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px !important;
+}
+
+/* 3. เส้นแบ่งหัวตารางละมุนตา */
+.table-custom-header th {
+  border-bottom: 2px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
