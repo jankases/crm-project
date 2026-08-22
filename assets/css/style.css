@@ -1009,24 +1009,6 @@ mark.highlight-search {
    🌈 VIBRANT FORM HEADERS & VISUAL STYLING
    ========================================== */
 
-.form-section-title {
-  font-size: 0.92rem !important;
-  font-weight: 700 !important;
-  color: #0284c7 !important;
-  margin-bottom: 10px !important;
-  padding-bottom: 6px !important;
-  border-bottom: 1.5px solid #e2e8f0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.form-section-title i {
-  color: #0284c7 !important;
-  font-size: 1rem !important;
-  margin-right: 4px !important;
-}
-
 #visitFormView .compact-label.text-primary,
 #visitFormView label[data-i18n="sec_features_evidences"] {
   color: #0284c7 !important;
@@ -1135,74 +1117,6 @@ mark.highlight-search {
   line-height: 1.4 !important;
   border-radius: 12px !important;
   resize: none !important;
-}
-
-.feature-action-btn-lg {
-  font-size: 0.85rem !important;
-  font-weight: 600;
-  padding: 8px 12px !important;
-  min-height: 44px !important;
-  height: 44px !important;
-  border-radius: 12px !important;
-  border: 1px solid #cbd5e1;
-  background-color: #f8fafc;
-  color: #475569;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-}
-
-.feature-action-btn-lg:hover {
-  border-color: #0284c7;
-  color: #0284c7;
-  background-color: #f0f9ff;
-  transform: translateY(-1px);
-}
-
-button.feature-action-btn-lg.has-data-gps {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-sig {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-attach {
-  background-color: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #0369a1 !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-media {
-  background-color: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #b91c1c !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-samples {
-  background-color: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #b45309 !important;
-  font-weight: 700 !important;
-}
-
-.btn-edetailing-touch {
-  min-height: 46px !important;
-  height: 46px !important;
-  border-radius: 12px !important;
-  font-size: 0.88rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin-top: 14px !important;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
 .textarea-dictate-wrapper {
@@ -1338,19 +1252,39 @@ button.feature-action-btn-lg.has-data-samples {
   }
 }
 
-/* 🌟 [ULTRA-PREMIUM CRM FORM UI] สไตล์เรียบหรู คลีน สบายตา ระดับสากล */
+/* ==========================================
+   🌟 [DOCTOR-THEME MATCHING] ปรับสไตล์หน้า Edit Visit ให้สดใสเหมือนหน้า Edit Doctor
+   ========================================== */
 
-/* 1. คืนความคลีนให้การ์ดใหญ่ ลบเส้นขอบสีหนาๆ ออก */
-#visitFormView .col-12 > .border,
-#visitFormView .col-12 > div {
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-top: none !important;
-  border-radius: 16px !important;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
+/* 1. ปรับหัวข้อ Section ให้เป็นสีฟ้าสด เด่นชัด */
+.form-section-title,
+#visitFormView .form-section-title {
+  color: #0d6efd !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  border-bottom: none !important;
+  margin-bottom: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }
 
-/* 2. ช่อง Input / Textarea ให้เป็นสีขาวบริสุทธิ์ คลีน คมชัด */
+.form-section-title i {
+  color: #0d6efd !important;
+  font-size: 1.15rem !important;
+}
+
+/* 2. สร้างกล่องซ้อนพื้นหลังสีฟ้าพาสเทลนุ่มๆ (Soft Blue Container) แบบโซน Workplace */
+#visitFormView .col-12 > .border,
+#visitFormView .col-12 > div {
+  background-color: #f4f8ff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 1.25rem !important;
+  box-shadow: none !important;
+}
+
+/* 3. ช่องกรอกข้อมูล (Inputs/Selects/Textareas) สีขาวเนียน ตัดกับพื้นหลังฟ้าพาสเทล */
 #visitFormView .form-control,
 #visitFormView .form-select,
 #visitDetails,
@@ -1358,7 +1292,8 @@ button.feature-action-btn-lg.has-data-samples {
 #visitNextAction {
   background-color: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  color: #0f172a !important;
+  border-radius: 10px !important;
+  color: #1e293b !important;
   font-weight: 500 !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
 }
@@ -1368,56 +1303,37 @@ button.feature-action-btn-lg.has-data-samples {
 #visitDetails:focus,
 #visitInsight:focus,
 #visitNextAction:focus {
-  border-color: #0284c7 !important;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12) !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
 }
 
-/* 3. ปุ่ม Features & Evidences สไตล์ Clean Minimal (พื้นขาว ขอบบาง เติมสีเฉพาะไอคอน) */
+/* 4. ปรับปุ่ม Features & Evidences ให้เป็นสีขาวตัดกับพื้นหลังฟ้า */
 .feature-action-btn-lg {
   background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 10px !important;
-  padding: 9px 12px !important;
-  font-size: 0.85rem !important;
+  color: #334155 !important;
   font-weight: 600 !important;
-  color: #475569 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
   transition: all 0.2s ease !important;
 }
 
 .feature-action-btn-lg:hover {
-  background-color: #f8fafc !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  background-color: #e0f2fe !important;
+  border-color: #38bdf8 !important;
+  color: #0369a1 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* ใส่สีเน้นเฉพาะไอคอนข้างใน ให้ดูมีคลาส */
-#sectionGpsCheckin i { color: #ef4444 !important; }
-#sectionSignature i  { color: #10b981 !important; }
-#sectionSamples i    { color: #f59e0b !important; }
-#sectionAttachments i{ color: #0284c7 !important; }
-
-/* 4. ปุ่ม e-Detailing สไตล์ Minimal Accent */
+/* 5. ปุ่ม e-Detailing สไตล์สว่างสดใส */
 .btn-edetailing-touch {
   background-color: #ffffff !important;
   border: 1px solid #fca5a5 !important;
   color: #dc2626 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.05) !important;
+  font-weight: 700 !important;
 }
 
 .btn-edetailing-touch:hover {
   background-color: #fef2f2 !important;
-  border-color: #f87171 !important;
-  color: #b91c1c !important;
-  transform: translateY(-1px) !important;
-}
-
-/* 5. แถบ Action Footer ด้านล่าง คลีน สบายตา */
-.sticky-action-footer {
-  background-color: transparent !important;
-  padding-top: 0.75rem !important;
-  border-top: 1px solid #f1f5f9 !important;
+  border-color: #ef4444 !important;
 }
