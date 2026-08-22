@@ -2080,12 +2080,20 @@ window.renderVisitTableServerSide = function() {
     '</tr>';
   });
 
-  tbody.innerHTML = htmlBuffer;
-  window.renderPaginationControls(totalPages);
-};
+ 
+tbody.innerHTML = htmlBuffer;
+    window.renderPaginationControls(totalPages);
 
-window.renderPaginationControls = function(totalPages) {
-  window.renderGlobalPagination('visitPagination', window.currentPage, totalPages, 'goToPage');
+    // 🌟 [CRITICAL FIX] คืนค่า Focus ให้ช่องค้นหาเสมอหลัง Render ตารางเสร็จ
+    var searchInput = document.getElementById('smartSearchInput');
+    if (searchInput && document.activeElement !== searchInput) {
+        var cursorDocPos = searchInput.value.length;
+        // หากผู้ใช้กำลังพิมพ์อยู่ในช่องค้นหา ให้คงค่า Cursor และ Focus ไว้ไม่ให้หลุด
+        if (searchInput.value.trim() !== '') {
+            searchInput.focus();
+            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
+        }
+    }
 };
 
 window.goToPage = function(page) {
@@ -4530,28 +4538,33 @@ window.changeCalendarRepFilter = function(repId) {
 // ==========================================
 window.searchDebounceTimer = null;
 
-// ฟังก์ชัน Auto-Search เมื่อหยุดพิมพ์ 400ms บน iPad
+// ==========================================
+// 🔍 SMART AUTO-SEARCH & CLEAR ENGINE FOR IPAD (FIXED LOST FOCUS)
+// ==========================================
+window.searchDebounceTimer = null;
+
 window.handleSearchInput = function(inputEl) {
     var clearBtn = document.getElementById('btnClearSmartSearch');
-    var val = inputEl ? inputEl.value.trim() : '';
+    var val = inputEl ? inputEl.value : '';
 
     // แสดง/ซ่อน ปุ่ม (x) ล้างข้อความ
     if (clearBtn) {
-        if (val.length > 0) {
+        if (val.trim().length > 0) {
             clearBtn.classList.remove('d-none');
         } else {
             clearBtn.classList.add('d-none');
         }
     }
 
-    // หน่วงเวลา 400ms หลังจิ้มพิมพ์เสร็จ แล้วคิวรีให้อัตโนมัติ ไร้การกระตุก
+    // หน่วงเวลา 500ms ป้องกันการค้นหารัวขณะกำลังพิมพ์
     clearTimeout(window.searchDebounceTimer);
     window.searchDebounceTimer = setTimeout(function() {
         window.currentPage = 1;
         if (typeof window.loadVisits === 'function') {
-            window.loadVisits(true);
+            // 🌟 ส่ง flag isBackground = true เพื่อไม่ให้หน้าจอเปิดตัว Loading มาบังจน Lost Focus
+            window.loadVisits(true, true);
         }
-    }, 400);
+    }, 500);
 };
 
 // ฟังก์ชันแตะปุ่ม (x) ล้างข้อความค้นหา
