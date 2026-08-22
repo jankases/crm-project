@@ -1256,9 +1256,11 @@ button.feature-action-btn-lg.has-data-samples {
 /* ==========================================
    📱 RESPONSIVE ADJUSTMENTS (iPad & Tablet)
    ========================================== */
+/* 🌟 [iPad/Tablet Full-Height Fix] ดึงการ์ดตารางลงมาเต็มก้นหน้าจอ iPad พอดี */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
-    height: calc(100vh - 65px) !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
     padding-bottom: 0.5rem !important;
   }
 
@@ -1268,6 +1270,8 @@ button.feature-action-btn-lg.has-data-samples {
 
   #visitMainContentContainer {
     flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   #visitListZone {
@@ -1276,13 +1280,7 @@ button.feature-action-btn-lg.has-data-samples {
   }
 
   .table-scroll-inside {
-    max-height: calc(100vh - 225px) !important;
+    max-height: calc(100vh - 170px) !important;
     flex-grow: 1 !important;
-  }
-}
-
-@media (min-width: 1200px) {
-  .table-scroll-inside {
-    max-height: calc(100vh - 200px) !important;
   }
 }
