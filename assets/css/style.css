@@ -1195,58 +1195,27 @@ mark.highlight-search {
   .table-scroll-inside { max-height: calc(100vh - 210px) !important; flex-grow: 1 !important; }
 }
 
-/* ==========================================
-   🌟 [FEATURES & EVIDENCES SPACING & TOUCH PERFECT]
-   ========================================== */
+/* 🌟 [FEATURES & EVIDENCES SPACING PERFECT FIX] บังคับขยายระยะห่างระหว่างปุ่มให้โปร่ง สวยงาม */
 
-.form-section-title,
-#visitFormView .form-section-title {
-  color: #0284c7 !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  border-bottom: 1px solid #f1f5f9 !important;
-  padding-bottom: 8px !important;
-  margin-bottom: 14px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
+/* 1. ดันระยะห่างระหว่างหัวข้อกับปุ่มแถวแรก */
+#visitFormView label[data-i18n="sec_features_evidences"] {
+  margin-bottom: 0.85rem !important;
 }
 
-#visitFormView .form-control,
-#visitFormView .form-select,
-#visitDetails,
-#visitInsight,
-#visitNextAction {
-  background-color: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 10px !important;
-  color: #0f172a !important;
-  font-weight: 500 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+/* 2. ดันระยะห่างแนวนอนและแนวตั้งของคู่ปุ่ม */
+#visitFormView .row.g-2.5,
+#visitFormView .row.g-3 {
+  --bs-gutter-x: 0.85rem !important; /* ระยะห่างซ้าย-ขวา ระหว่างปุ่ม */
+  --bs-gutter-y: 0.85rem !important; /* ระยะห่างบน-ล่าง ระหว่างคู่ปุ่ม */
 }
 
-#visitFormView .form-control:focus,
-#visitFormView .form-select:focus,
-#visitDetails:focus,
-#visitInsight:focus,
-#visitNextAction:focus {
-  border-color: #0284c7 !important;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12) !important;
-}
-
-/* ขยายระยะห่างระหว่างคู่ปุ่ม Features บน-ล่าง */
-#visitFormView .row.g-2.5 {
-  row-gap: 14px !important;
-  column-gap: 0px !important;
-}
-
-/* ปุ่มกด Features ขนาดพอดีนิ้วสัมผัส 48px */
+/* 3. ปุ่ม Features ขยายสูงแตะง่ายขึ้น และมีขอบเขตชัดเจน */
 .feature-action-btn-lg {
   min-height: 48px !important;
   height: 48px !important;
   font-size: 0.9rem !important;
   font-weight: 600 !important;
-  padding: 8px 14px !important;
+  padding: 8px 12px !important;
   border-radius: 12px !important;
   background-color: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
@@ -1256,7 +1225,6 @@ mark.highlight-search {
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
-  white-space: nowrap !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -1266,26 +1234,15 @@ mark.highlight-search {
   border-color: #0284c7 !important;
   color: #0284c7 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12) !important;
 }
 
-.feature-action-btn-lg i {
-  font-size: 1.05rem !important;
-}
-
-/* ไอคอนสีเน้นเฉพาะฟีเจอร์ */
-#sectionGpsCheckin i  { color: #ef4444 !important; }
-#sectionSignature i   { color: #10b981 !important; }
-#sectionSamples i     { color: #f59e0b !important; }
-#sectionAttachments i { color: #0284c7 !important; }
-
-/* ปุ่ม e-Detailing ดันระยะห่างลงมา 14px */
+/* 4. ดันปุ่ม e-Detailing ด้านล่างทิ้งระยะห่างลงมาจากกลุ่มปุ่มบน */
 .btn-edetailing-touch {
   min-height: 48px !important;
   height: 48px !important;
   font-size: 0.9rem !important;
   border-radius: 12px !important;
-  margin-top: 14px !important;
+  margin-top: 14px !important; /* ระยะห่างดันลงมาจากปุ่มบน */
   background-color: #ffffff !important;
   border: 1.5px solid #fca5a5 !important;
   color: #dc2626 !important;
@@ -1297,6 +1254,4 @@ mark.highlight-search {
 .btn-edetailing-touch:active {
   background-color: #fef2f2 !important;
   border-color: #ef4444 !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12) !important;
 }
