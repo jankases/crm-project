@@ -245,9 +245,6 @@ input:checked + .slider { background-color: #0ea5e9; }
 input:focus + .slider { box-shadow: 0 0 1px #0ea5e9; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
-.mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
-@keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-
 /* 🌟 TOMSELECT STYLING */
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
 .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
@@ -1216,37 +1213,6 @@ button.feature-action-btn-lg.has-data-samples {
   flex-direction: column !important;
 }
 
-.btn-dictate-corner {
-  position: absolute !important;
-  top: 6px !important;
-  right: 6px !important;
-  z-index: 5 !important;
-  width: 30px !important;
-  height: 30px !important;
-  padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background-color: #ffffff !important;
-  border: 1px solid #fee2e2 !important;
-  color: #dc2626 !important;
-  font-size: 0.8rem !important;
-  border-radius: 50% !important;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.06) !important;
-  transition: all 0.2s ease !important;
-}
-
-.btn-dictate-corner:hover {
-  background-color: #fef2f2 !important;
-  border-color: #fca5a5 !important;
-  transform: scale(1.08);
-}
-
-.textarea-dictate-wrapper textarea,
-.textarea-dictate-wrapper input {
-  padding-right: 42px !important;
-}
-
 .sticky-action-footer {
   border-top: 1px solid #f1f5f9 !important;
   padding-top: 0.65rem !important;
@@ -1254,13 +1220,72 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   📱 RESPONSIVE ADJUSTMENTS (iPad & Tablet)
+   🌟 UNIFIED PREMIUM MIC BUTTONS (GLOBAL)
    ========================================== */
-/* 🌟 [iPad/Tablet Full-Height Fix] ดึงการ์ดตารางลงมาเต็มก้นหน้าจอ iPad พอดี */
+
+/* 1. ปุ่มไมค์ในหน้าค้นหาหลัก (Smart Search) */
+#btnMicSmartSearch {
+  color: #0284c7 !important;
+  transition: all 0.2s ease !important;
+}
+#btnMicSmartSearch:hover {
+  color: #0369a1 !important;
+  transform: scale(1.1);
+}
+
+/* 2. ปุ่มไมค์ในช่องกรอกฟอร์ม (Corner Dictation Buttons) */
+.btn-dictate-corner {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  z-index: 5 !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0284c7 !important;
+  font-size: 0.82rem !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-dictate-corner:hover {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15) !important;
+}
+
+/* 3. สถานะขณะกำลังบันทึกเสียง (Active State - กะพริบสีแดงเฉพาะตอนพูด) */
+.mic-active, 
+.btn-dictate-corner.mic-active {
+  animation: pulse-red-premium 1.5s infinite !important;
+  border-color: #ef4444 !important;
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+@keyframes pulse-red-premium {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ==========================================
+   📱 RESPONSIVE ADJUSTMENTS (iPad, Tablet & Desktop)
+   ========================================== */
+
+/* 🌟 iPad / Tablet (768px - 1199px): ยืดการ์ดตารางเต็มก้นหน้าจอ */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: calc(100vh - 65px) !important;
+    max-height: calc(100vh - 65px) !important;
     padding-bottom: 0.5rem !important;
   }
 
@@ -1285,7 +1310,7 @@ button.feature-action-btn-lg.has-data-samples {
   }
 }
 
-/* 🌟 [Desktop Full-Height Fix] บังคับให้การ์ดตารางยืดเต็มก้นจอตามมาตรฐาน CRM (แบบ A) */
+/* 🌟 Desktop (1200px+): ยืดการ์ดตารางเต็มก้นหน้าจอมาตรฐาน CRM (แบบ A) */
 @media (min-width: 1200px) {
   .visit-module-wrapper {
     height: calc(100vh - 65px) !important;
