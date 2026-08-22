@@ -964,8 +964,8 @@ mark.highlight-search {
   font-size: 0.92rem !important;
   font-weight: 700 !important;
   color: #0284c7 !important;
-  margin-bottom: 8px !important;
-  padding-bottom: 5px !important;
+  margin-bottom: 10px !important;
+  padding-bottom: 6px !important;
   border-bottom: 1.5px solid #e2e8f0 !important;
   display: flex !important;
   align-items: center !important;
@@ -1022,14 +1022,13 @@ mark.highlight-search {
 #sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }  /* Attachments สีฟ้า */
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES (NO SCROLLBAR)
+   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES (GAP REFINED)
    ========================================== */
 
-/* 🌟 🔒 แก้ปัญหากำจัด SCROLLBAR สั่งยึดความสูงพอดี 100vh ไร้การเลื่อนขึ้นลง */
 #visitFormView {
   height: calc(100vh - 95px) !important;
   max-height: calc(100vh - 95px) !important;
-  overflow: hidden !important; /* กำจัด Scrollbar */
+  overflow: hidden !important;
   padding: 0.5rem 1.5rem 1.25rem 1.5rem !important;
   background-color: #f8fafc !important;
 }
@@ -1046,15 +1045,12 @@ mark.highlight-search {
   --bs-gutter-y: 1rem !important;
 }
 
-/* 🌟 เพิ่มระยะห่างระหว่างปุ่ม Features แยกแถวชัดเจน */
+/* 🌟 สั่งเว้นระยะห่างแนวตั้งและแนวนอนของกลุ่มปุ่ม Features ให้แยกออกจากกันชัดเจน */
 #visitFormView .row.g-2.5 {
-  --bs-gutter-x: 0.85rem !important;
-  --bs-gutter-y: 0.85rem !important;
-}
-
-/* 🌟 เว้นระยะห่างแถวของปุ่ม GPS/Signature กับ Samples/Attachments */
-#visitFormView .row.g-2.5 > div:nth-child(-n+2) {
-  margin-bottom: 12px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  row-gap: 12px !important; /* เว้นระยะห่างแถวบน-ล่าง 12px */
+  column-gap: 0px !important;
 }
 
 #visitFormView .col-12 > .border,
@@ -1164,7 +1160,7 @@ button.feature-action-btn-lg.has-data-samples {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 10px !important;
+  margin-top: 14px !important; /* เว้นระยะห่างด้านบนปุ่ม e-Detailing 14px */
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
