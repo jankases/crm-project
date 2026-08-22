@@ -35,7 +35,7 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 215px) !important;
+  max-height: calc(100vh - 200px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -50,6 +50,8 @@ html, body {
   top: 0;
   z-index: 10;
   background-color: #f8fafc !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  color: #475569 !important;
   box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
@@ -138,8 +140,9 @@ html, body {
 }
 
 .kpi-value-text {
-  font-size: 1.05rem !important;
+  font-size: 1.15rem !important;
   font-weight: 800 !important;
+  letter-spacing: -0.5px !important;
   line-height: 1 !important;
   margin-top: 1px !important;
 }
@@ -308,6 +311,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important;
   padding-top: 8px;
   padding-bottom: 8px;
+}
+
+#mainNavbar .border-top,
+#navbarNav .border-top,
+#navbarNav > div.d-flex {
+  border-top: none !important;
+  padding-top: 0 !important;
 }
 
 .nav-menu-item {
@@ -585,10 +595,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   ✨ PREMIUM PAGINATION (เพิ่ม Bottom Padding ล่างสุดสำหรับ iPad)
+   ✨ PREMIUM PAGINATION
    ========================================== */
 #visitPaginationContainer {
   padding-bottom: 10px !important;
+}
+
+#visitRowsPerPage {
+  width: 60px !important;
+  min-width: 60px !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding-left: 6px !important;
+  padding-right: 18px !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  background-position: right 4px center !important;
 }
 
 .pagination {
@@ -596,7 +618,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 .pagination .page-link {
   border-radius: 8px !important;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dee2e6;
   color: #475569;
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
@@ -672,10 +694,21 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* 🌟 คลีน CSS ตารางปกติให้แถวกะทัดรัด สวยงาม */
+.table-scroll-inside .table tbody tr {
+  transition: all 0.15s ease-in-out !important;
+}
+
 .table-scroll-inside .table tbody tr td {
-  padding-top: 0.65rem !important;
-  padding-bottom: 0.65rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid #f1f5f9 !important;
   vertical-align: middle;
+}
+
+.table-scroll-inside .table tbody tr:hover {
+  background-color: #f0f9ff !important;
+  box-shadow: inset 3px 0 0 #0284c7, 0 2px 6px rgba(2, 132, 199, 0.05) !important;
+  cursor: pointer;
 }
 
 /* 🌟 UNIFIED SINGLE-STATE LOADING */
@@ -716,19 +749,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .table-doc-name {
   color: #0f172a !important;
   font-weight: 600 !important;
-}
-
-/* 3. ปรับระยะบรรทัดและเส้นแบ่งตาราง */
-.table-scroll-inside .table tbody tr td {
-  padding-top: 0.75rem !important;
-  padding-bottom: 0.75rem !important;
-  border-bottom: 1px solid #f1f5f9 !important;
-  vertical-align: middle;
-}
-
-.table-scroll-inside .table tbody tr:hover {
-  background-color: #f8fafc !important;
-  cursor: pointer;
 }
 
 /* สไตล์ไฮไลท์คำค้นหา */
@@ -968,7 +988,6 @@ mark.highlight-search {
    🌈 VIBRANT FORM HEADERS & VISUAL STYLING
    ========================================== */
 
-/* 1. คืนสีฟ้าสดใส + ไอคอนให้หัวข้อหลักของการ์ดทั้งสองฝั่ง */
 .form-section-title {
   font-size: 0.92rem !important;
   font-weight: 700 !important;
@@ -987,7 +1006,6 @@ mark.highlight-search {
   margin-right: 4px !important;
 }
 
-/* 2. หัวข้อ Features & Evidences */
 #visitFormView .compact-label.text-primary,
 #visitFormView label[data-i18n="sec_features_evidences"] {
   color: #0284c7 !important;
@@ -1003,7 +1021,6 @@ mark.highlight-search {
   margin-right: 8px !important;
 }
 
-/* 3. ปุ่ม Back ทรงแคปซูล Pill Radius */
 .btn-back-pill {
   border-radius: 50px !important;
   padding: 6px 18px !important;
@@ -1024,14 +1041,13 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
 }
 
-/* 4. 🎨 คืนสีไอคอนให้ปุ่ม Features ทั้งหมด */
-#sectionGpsCheckin i { color: #ef4444 !important; margin-right: 4px !important; }     /* GPS สีแดง */
-#sectionSignature i { color: #10b981 !important; margin-right: 4px !important; }    /* Signature สีเขียว */
-#sectionSamples i { color: #f59e0b !important; margin-right: 4px !important; }      /* Samples สีส้ม */
-#sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }  /* Attachments สีฟ้า */
+#sectionGpsCheckin i { color: #ef4444 !important; margin-right: 4px !important; }
+#sectionSignature i { color: #10b981 !important; margin-right: 4px !important; }
+#sectionSamples i { color: #f59e0b !important; margin-right: 4px !important; }
+#sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES (GAP REFINED)
+   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
    ========================================== */
 
 #visitFormView {
@@ -1214,7 +1230,7 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   📱 🌟 ปรับแต่งระยะขอบล่างให้การ์ดขยายเต็มจอพอดีสำหรับ iPad / Tablet
+   📱 RESPONSIVE ADJUSTMENTS (iPad & Desktop)
    ========================================== */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
@@ -1226,39 +1242,9 @@ button.feature-action-btn-lg.has-data-samples {
     max-height: calc(100vh - 175px) !important;
   }
 }
-/* 🌟 กระชับขนาดช่อง Show Rows ให้พอดีกับตัวเลข */
-#visitRowsPerPage {
-  width: 68px !important;
-  min-height: 32px !important;
-  padding-left: 8px !important;
-  padding-right: 22px !important;
-  font-size: 0.85rem !important;
-  font-weight: 700 !important;
-}
 
-/* ==========================================
-   ✨ PREMIUM MICRO-DETAILS REFINEMENT
-   ========================================== */
-
-/* 1. แถวตารางนุ่มนวล มิติใหม่เวลากด/วางเมาส์ */
-.table-scroll-inside .table tbody tr {
-  transition: all 0.15s ease-in-out !important;
-}
-
-.table-scroll-inside .table tbody tr:hover {
-  background-color: #f0f9ff !important;
-  box-shadow: inset 3px 0 0 #0284c7, 0 2px 6px rgba(2, 132, 199, 0.05) !important;
-}
-
-/* 2. ตัวเลข KPI หนาเด่นคมชัด */
-.kpi-value-text {
-  font-size: 1.15rem !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.5px !important;
-}
-
-/* 3. เส้นแบ่งหัวตารางละมุนตา */
-.table-custom-header th {
-  border-bottom: 2px solid #e2e8f0 !important;
-  color: #475569 !important;
+@media (min-width: 1200px) {
+  .table-scroll-inside {
+    max-height: calc(100vh - 200px) !important;
+  }
 }
