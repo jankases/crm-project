@@ -1171,3 +1171,49 @@ mark.highlight-search {
   70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
+
+/* 🌟 [CRITICAL FIX] บังคับโครงสร้างตารางหลักยืดตึงชิดก้นจอ 100% ไม่ให้แหว่ง */
+.visit-module-wrapper {
+  height: calc(100vh - 65px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  padding-bottom: 0.5rem !important;
+}
+
+#visitListView { 
+  height: 100% !important; 
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+#visitMainContentContainer { 
+  flex: 1 1 auto !important; 
+  display: flex !important; 
+  flex-direction: column !important; 
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+#visitListZone { 
+  flex: 1 1 auto !important; 
+  height: 100% !important; 
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 0 !important;
+}
+
+.table-scroll-inside { 
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  max-height: none !important; 
+  min-height: 0 !important;
+}
+
+#visitPaginationContainer {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
