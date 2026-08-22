@@ -180,13 +180,13 @@
   <!-- ================= 2. FORM VIEW ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
-    <!-- Top Header Bar -->
-    <div class="d-flex align-items-center justify-content-between mb-3.5 flex-shrink-0">
+    <!-- Top Header Bar (🌟 ปรับปุ่ม Back ทรงแคปซูล Pill Radius เหมือน Doctor Profile) -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
       <div class="d-flex align-items-center">
-        <button class="btn btn-sm btn-outline-secondary me-3 rounded-3 shadow-xs fw-semibold" onclick="window.cancelVisitForm()">
-          <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
+        <button class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.cancelVisitForm()">
+          <i class="fa-solid fa-arrow-left me-1.5"></i><span data-i18n="btn_back">Back</span>
         </button>
-        <h5 class="text-dark fw-bold mb-0" id="formVisitTitle">📝 Visit Details</h5>
+        <h5 class="text-dark fw-bold mb-0" id="formVisitTitle">📝 Edit Visit</h5>
       </div>
 
       <div class="d-flex align-items-center gap-2">
@@ -212,7 +212,7 @@
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
-                <!-- Doctor Selection (แก้ไขโครงสร้างตรงนี้แล้ว) -->
+                <!-- Doctor Selection -->
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="compact-label"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
@@ -319,8 +319,8 @@
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
                 <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
-                <!-- 1. Details -->
-                <div class="mb-3 d-flex flex-column flex-grow-1">
+                <!-- 1. Details (ยืด Flexbox) -->
+                <div class="mb-3 d-flex flex-column field-wrapper-details">
                   <label class="compact-label" data-i18n="lbl_details">Details</label>
                   <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')">
@@ -330,25 +330,25 @@
                   </div>
                 </div>
 
-                <!-- 2. Insight -->
-                <div class="mb-3">
+                <!-- 2. Insight (ยืด Flexbox) -->
+                <div class="mb-3 d-flex flex-column field-wrapper-insight">
                   <label class="compact-label" data-i18n="lbl_insight">Insight</label>
-                  <div class="textarea-dictate-wrapper">
+                  <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitInsight" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitInsight" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
                   </div>
                 </div>
 
-                <!-- 3. Next Action -->
-                <div class="mb-2">
+                <!-- 3. Next Action (ยืด Flexbox) -->
+                <div class="mb-2 d-flex flex-column field-wrapper-nextaction">
                   <label class="compact-label" data-i18n="lbl_next_action">Next Action</label>
-                  <div class="textarea-dictate-wrapper">
+                  <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')">
                       <i class="fa-solid fa-microphone me-1"></i><span data-i18n="btn_dictate">Dictate</span>
                     </button>
-                    <textarea class="form-control bg-white shadow-xs rounded-3" id="visitNextAction" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items..."></textarea>
+                    <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitNextAction" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items..."></textarea>
                   </div>
                 </div>
 
