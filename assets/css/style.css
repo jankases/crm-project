@@ -1226,3 +1226,12 @@ button.feature-action-btn-lg.has-data-samples {
     max-height: calc(100vh - 175px) !important;
   }
 }
+/* 🌟 กระชับขนาดช่อง Show Rows ให้พอดีกับตัวเลข */
+#visitRowsPerPage {
+  width: 68px !important;
+  min-height: 32px !important;
+  padding-left: 8px !important;
+  padding-right: 22px !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+}
