@@ -28,8 +28,7 @@ html, body {
 #hospListView .card {
   display: flex;
   flex-direction: column;
-  flex: 0 1 auto;
-  height: auto !important;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
@@ -1255,16 +1254,30 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   📱 RESPONSIVE ADJUSTMENTS (iPad & Desktop)
+   📱 RESPONSIVE ADJUSTMENTS (iPad & Tablet)
    ========================================== */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
-    height: 100vh !important;
-    padding-bottom: 0.85rem !important;
+    height: calc(100vh - 65px) !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  #visitListView {
+    height: 100% !important;
+  }
+
+  #visitMainContentContainer {
+    flex: 1 1 auto !important;
+  }
+
+  #visitListZone {
+    flex: 1 1 auto !important;
+    height: 100% !important;
   }
 
   .table-scroll-inside {
-    max-height: calc(100vh - 175px) !important;
+    max-height: calc(100vh - 225px) !important;
+    flex-grow: 1 !important;
   }
 }
 
