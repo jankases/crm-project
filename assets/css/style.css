@@ -16,6 +16,7 @@ html, body {
 .doc-module-wrapper,
 .hosp-module-wrapper {
   height: calc(100vh - 65px) !important;
+  min-height: calc(100vh - 65px) !important;
   width: 100% !important;
   overflow: hidden !important;
   padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
@@ -32,6 +33,7 @@ html, body {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
+  flex: 1 1 auto !important;
   min-height: 0 !important;
 }
 
@@ -57,6 +59,14 @@ html, body {
   min-height: 0 !important;
   overflow: hidden !important;
   justify-content: space-between !important;
+}
+
+/* บังคับหน้า Loading ขยายเต็มการ์ดตาราง ชิดก้นจอตั้งแต่เริ่มหมุน */
+#visitTableLoading {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 /* พื้นที่ตารางข้างในขยายกินพื้นที่ว่าง และสโครลล์เฉพาะภายใน */
@@ -643,16 +653,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
-#visitTableLoading {
-  min-height: 380px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
+/* 🌟 BORDERLESS TABLE ROW HOVER STYLING */
 .table-scroll-inside .table tbody tr {
   transition: all 0.15s ease-in-out !important;
   height: 36px !important;
@@ -1056,7 +1057,6 @@ mark.highlight-search {
 }
 
 /* 🌟 FEATURES & EVIDENCES BUTTONS */
-#visitFormView .row.g-2.5,
 #visitFormView .row.g-3 {
   --bs-gutter-x: 0.85rem !important;
   --bs-gutter-y: 0.85rem !important;
@@ -1170,53 +1170,4 @@ mark.highlight-search {
   0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-/* ==========================================
-   📱 RESPONSIVE ADJUSTMENTS (CRITICAL FIX FOR FULL-HEIGHT LIST)
-   ========================================== */
-
-/* บังคับยืดเต็มพื้นที่แม่ 100% โดยไม่จำกัด max-height ให้การ์ดลอยขึ้นมา */
-.visit-module-wrapper {
-  height: calc(100vh - 65px) !important;
-  padding-bottom: 0.5rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-#visitListView { 
-  height: 100% !important; 
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-}
-
-#visitMainContentContainer { 
-  flex: 1 1 auto !important; 
-  display: flex !important; 
-  flex-direction: column !important; 
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-#visitListZone { 
-  flex: 1 1 auto !important; 
-  height: 100% !important; 
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  min-height: 0 !important;
-}
-
-.table-scroll-inside { 
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  max-height: none !important; 
-  min-height: 0 !important;
-}
-
-#visitPaginationContainer {
-  margin-top: auto !important;
-  flex-shrink: 0 !important;
 }
