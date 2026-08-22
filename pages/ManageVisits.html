@@ -101,7 +101,7 @@
 
           </div>
 
-          <!-- Action Buttons & Advanced Filters Dropdown -->
+          <!-- Action Buttons & Advanced Filters Dropdown (ตัดปุ่ม Export ออกตามที่ตกลงกันไว้) -->
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
@@ -133,7 +133,6 @@
             </div>
 
             <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear Filters</span></button>
-            <button class="btn btn-outline-success border shadow-sm premium-radius px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()"><i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold" data-i18n="btn_export">Export</span></button>
           </div>
         </div>
       </div>
@@ -180,7 +179,7 @@
   <!-- ================= 2. FORM VIEW ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
-    <!-- Top Header Bar (ปุ่ม Back ทรงแคปซูล Pill Radius นุ่มนวล) -->
+    <!-- Top Header Bar -->
     <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.cancelVisitForm()">
@@ -312,7 +311,7 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - ปุ่มไมค์วงกลมมินิมอล) -->
+          <!-- 🔹 Right Column (Activity Details) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
