@@ -1333,3 +1333,59 @@ mark.highlight-search {
   background-color: #fef2f2 !important;
   border-color: #ef4444 !important;
 }
+/* 🌟 [TOUCH-FRIENDLY FEATURE BUTTONS FOR IPAD] ปรับปุ่ม Features ให้ใหญ่ โปร่ง กดง่าย */
+
+/* 1. ขยายความสูงปุ่ม และเพิ่มระยะเว้นบรรทัด */
+.feature-action-btn-lg {
+  min-height: 50px !important;
+  height: 50px !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  padding: 10px 16px !important;
+  border-radius: 14px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* 2. Effect เวลาใช้นิ้วแตะ/กดลงไป (Touch State) */
+.feature-action-btn-lg:active,
+.feature-action-btn-lg:hover {
+  background-color: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
+}
+
+/* 3. ปรับขนาดไอคอนข้างในให้ใหญ่พอดีสายตา */
+.feature-action-btn-lg i {
+  font-size: 1.1rem !important;
+}
+
+/* 4. ปรับปุ่ม e-Detailing ให้ใหญ่และโปร่งตามกลุ่ม */
+.btn-edetailing-touch {
+  min-height: 52px !important;
+  height: 52px !important;
+  font-size: 0.95rem !important;
+  border-radius: 14px !important;
+  margin-top: 10px !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #fca5a5 !important;
+  color: #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.06) !important;
+}
+
+.btn-edetailing-touch:active,
+.btn-edetailing-touch:hover {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.15) !important;
+}
