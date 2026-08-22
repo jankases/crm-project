@@ -35,7 +35,7 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 200px) !important;
+  max-height: calc(100vh - 215px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -53,28 +53,27 @@ html, body {
   box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
-/* ✨ 4. MODERN MINIMAL SCROLLBAR */
+/* ✨ 4. MODERN MINIMAL SCROLLBAR (ซ่อนแถบเมื่อไม่สโครลล์) */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .table-scroll-inside::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: transparent;
 }
 
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
@@ -82,7 +81,7 @@ html, body {
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #94a3b8;
 }
 
 /* -----------------------------------------
@@ -301,7 +300,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* =========================================
-   Navbar & Navigation Menu Styles (🌐 ล็อคปุ่มภาษาแสดงผล 100% บน iPad)
+   Navbar & Navigation Menu Styles
    ========================================= */
 .navbar { 
   background-color: #ffffff !important; 
@@ -368,7 +367,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #0d6efd;
 }
 
-/* 🌐 บังคับให้กลุ่มปุ่มเปลี่ยนภาษา [ EN | TH ] แสดงผลตลอดเวลาใน iPad และทุกขนาดหน้าจอ */
 .lang-btn-group {
   display: inline-flex !important;
   align-items: center !important;
@@ -587,8 +585,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   ✨ PREMIUM PAGINATION
+   ✨ PREMIUM PAGINATION (เพิ่ม Bottom Padding ล่างสุดสำหรับ iPad)
    ========================================== */
+#visitPaginationContainer {
+  padding-bottom: 10px !important;
+}
+
 .pagination {
   gap: 5px;
 }
@@ -726,6 +728,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .table-scroll-inside .table tbody tr:hover {
   background-color: #f8fafc !important;
+  cursor: pointer;
 }
 
 /* สไตล์ไฮไลท์คำค้นหา */
@@ -1051,11 +1054,10 @@ mark.highlight-search {
   --bs-gutter-y: 1rem !important;
 }
 
-/* 🌟 สั่งเว้นระยะห่างแนวตั้งและแนวนอนของกลุ่มปุ่ม Features ให้แยกออกจากกันชัดเจน */
 #visitFormView .row.g-2.5 {
   display: flex !important;
   flex-wrap: wrap !important;
-  row-gap: 12px !important; /* เว้นระยะห่างแถวบน-ล่าง 12px */
+  row-gap: 12px !important;
   column-gap: 0px !important;
 }
 
@@ -1074,7 +1076,6 @@ mark.highlight-search {
   margin-bottom: 0.65rem !important;
 }
 
-/* 🌟 FLEXBOX ยืดความสูงช่องฝั่งขวาพอดี ไร้โหว่ก้นการ์ด */
 #visitFormView .field-wrapper-details {
   flex: 1.8 1 0% !important;
 }
@@ -1099,7 +1100,6 @@ mark.highlight-search {
   resize: none !important;
 }
 
-/* 🎨 ปุ่มกลุ่ม Features & Evidences Base Style */
 .feature-action-btn-lg {
   font-size: 0.85rem !important;
   font-weight: 600;
@@ -1125,7 +1125,6 @@ mark.highlight-search {
   transform: translateY(-1px);
 }
 
-/* 🟢 🎨 คืนค่าสีเต็มปุ่ม Features เมื่อมีข้อมูล */
 button.feature-action-btn-lg.has-data-gps {
   background-color: #dcfce7 !important;
   border-color: #16a34a !important;
@@ -1157,7 +1156,6 @@ button.feature-action-btn-lg.has-data-samples {
   font-weight: 700 !important;
 }
 
-/* 🌟 ปุ่ม e-Detailing หนานุ่มกดยอดเยี่ยมบน iPad (ดันระยะห่างด้านบน) */
 .btn-edetailing-touch {
   min-height: 46px !important;
   height: 46px !important;
@@ -1170,7 +1168,6 @@ button.feature-action-btn-lg.has-data-samples {
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
-/* 🎙️ ปุ่มไมค์วงกลมมินิมอล ซ้อนมุมขวาบนใน Textarea */
 .textarea-dictate-wrapper {
   position: relative !important;
   width: 100%;
