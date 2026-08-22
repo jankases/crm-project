@@ -1193,3 +1193,53 @@ mark.highlight-search {
     max-height: none !important; 
   }
 }
+
+/* 🌟 [CRITICAL FIX] บังคับการ์ดตารางหลักยืดตึงชิดก้นจอ 100% หายแหว่งทันที */
+
+.visit-module-wrapper {
+  height: calc(100vh - 65px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  padding-bottom: 0.75rem !important;
+}
+
+#visitListView {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+#visitMainContentContainer {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+/* บังคับการ์ดตารางยืดเต็มพื้นที่แม่ 100% */
+#visitListZone {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 0 !important;
+}
+
+/* บังคับพื้นที่สโครลล์ตารางขยายกินพื้นที่ว่างทั้งหมด */
+.table-scroll-inside {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+}
+
+/* ดันแถบ Pagination ลงไปตรึงก้นการ์ดล่างสุดเสมอ */
+#visitPaginationContainer {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
