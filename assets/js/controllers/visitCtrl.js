@@ -4536,11 +4536,7 @@ window.changeCalendarRepFilter = function(repId) {
     }
 };
 
-// ==========================================
-// 🔍 SMART AUTO-SEARCH & CLEAR ENGINE FOR IPAD
-// ==========================================
-window.searchDebounceTimer = null;
-
+ 
 // ==========================================
 // 🔍 SMART AUTO-SEARCH & CLEAR ENGINE FOR IPAD (FIXED LOST FOCUS)
 // ==========================================
