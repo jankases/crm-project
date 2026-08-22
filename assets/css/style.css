@@ -601,22 +601,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding-bottom: 10px !important;
 }
 
-/* 🌟 บังคับบีบขนาดช่อง Show rows ให้กระชับพอดีตัวเลข 2 หลัก */
-select#visitRowsPerPage.form-select,
-select#visitRowsPerPage.form-select-sm,
+/* 🌟 คืนค่าขนาดช่อง Show rows Dropdown ให้กะทัดรัดพอดี */
 #visitRowsPerPage {
-  width: 64px !important;
-  min-width: 64px !important;
-  max-width: 64px !important;
-  height: 30px !important;
-  min-height: 30px !important;
-  padding-left: 8px !important;
-  padding-right: 20px !important;
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  background-position: right 5px center !important;
-  background-size: 10px 10px !important;
-  border-radius: 8px !important;
+  width: 70px !important;
+  min-width: 70px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  padding: 2px 20px 2px 8px !important;
 }
 
 .pagination {
@@ -699,14 +692,14 @@ select#visitRowsPerPage.form-select-sm,
   justify-content: center;
 }
 
-/* 🌟 คลีน CSS ตารางปกติให้แถวกะทัดรัด สวยงาม */
+/* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
 .table-scroll-inside .table tbody tr {
   transition: all 0.15s ease-in-out !important;
 }
 
 .table-scroll-inside .table tbody tr td {
-  padding-top: 0.75rem !important;
-  padding-bottom: 0.75rem !important;
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
   border-bottom: 1px solid #f1f5f9 !important;
   vertical-align: middle;
 }
@@ -1253,21 +1246,4 @@ button.feature-action-btn-lg.has-data-samples {
   .table-scroll-inside {
     max-height: calc(100vh - 200px) !important;
   }
-}
-
-/* 🌟 ล็อกขนาดช่อง Show rows ในระดับน้ำหนักสูงสุด หายขาด 100% */
-.visit-module-wrapper #visitPaginationContainer select#visitRowsPerPage,
-#visitListView #visitRowsPerPage,
-select#visitRowsPerPage {
-  display: inline-block !important;
-  width: 58px !important;
-  min-width: 58px !important;
-  max-width: 58px !important;
-  height: 30px !important;
-  min-height: 30px !important;
-  padding-left: 6px !important;
-  padding-right: 18px !important;
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  flex: 0 0 58px !important;
 }
