@@ -601,19 +601,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding-bottom: 10px !important;
 }
 
+/* 🌟 บังคับบีบขนาดช่อง Show rows ให้กระชับพอดีตัวเลข 2 หลัก */
 select#visitRowsPerPage.form-select,
+select#visitRowsPerPage.form-select-sm,
 #visitRowsPerPage {
-  width: 62px !important;
-  min-width: 62px !important;
-  max-width: 62px !important;
-  height: 32px !important;
-  min-height: 32px !important;
-  padding-left: 10px !important;
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding-left: 8px !important;
   padding-right: 20px !important;
-  font-size: 0.85rem !important;
+  font-size: 0.82rem !important;
   font-weight: 700 !important;
   background-position: right 5px center !important;
   background-size: 10px 10px !important;
+  border-radius: 8px !important;
 }
 
 .pagination {
