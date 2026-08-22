@@ -1950,6 +1950,7 @@ window.restoreVisitFilterState = function() {
     if (sf.page) window.currentPage = sf.page;
 };
 
+// ✅ ฟังก์ชัน renderVisitTableServerSide ฉบับแก้ไขโครงสร้างยืดตึงก้นจอ 100%
 window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
@@ -1963,13 +1964,14 @@ window.renderVisitTableServerSide = function() {
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
   if (data.length === 0) {
-      if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
       var msgNoData = appLang === 'en' ? 'No visit records found.' : 'ไม่พบข้อมูลบันทึกเยี่ยม';
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
+      
+      var pageInfoEl = document.getElementById('visitPageInfo');
+      if (pageInfoEl) pageInfoEl.innerText = appLang === 'en' ? 'Showing 0 entries' : 'แสดง 0 รายการ';
+      window.renderPaginationControls(0);
       return;
   }
-
-  if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
   var startIndex = ((window.currentPage - 1) * rows) + 1;
   var endIndex = Math.min(startIndex + data.length - 1, totalItems);
@@ -2064,39 +2066,33 @@ window.renderVisitTableServerSide = function() {
                       ? window._visitSampleIndex[vidClean] 
                       : (v.Visit_Samples || []);
                       
-     if (sampleItems && sampleItems.length > 0) {
+    if (sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-  
-
-      // ✅ แก้เป็นแบบนี้ (ถอด py-2.5 ออก)
-htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
-  '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-  '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-  '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
-  '<td>' + prodBadges + '</td>' +
-  '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-  '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-  '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
-'</tr>';
+    htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" class="cursor-pointer">' +
+      '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+      '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
+      '<td>' + prodBadges + '</td>' +
+      '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+      '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+      '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
+    '</tr>';
   });
 
- 
-tbody.innerHTML = htmlBuffer;
-    window.renderPaginationControls(totalPages);
+  tbody.innerHTML = htmlBuffer;
+  window.renderPaginationControls(totalPages);
 
-    // 🌟 [CRITICAL FIX] คืนค่า Focus ให้ช่องค้นหาเสมอหลัง Render ตารางเสร็จ
-    var searchInput = document.getElementById('smartSearchInput');
-    if (searchInput && document.activeElement !== searchInput) {
-        var cursorDocPos = searchInput.value.length;
-        // หากผู้ใช้กำลังพิมพ์อยู่ในช่องค้นหา ให้คงค่า Cursor และ Focus ไว้ไม่ให้หลุด
-        if (searchInput.value.trim() !== '') {
-            searchInput.focus();
-            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
-        }
-    }
+  var searchInput = document.getElementById('smartSearchInput');
+  if (searchInput && document.activeElement !== searchInput) {
+      var cursorDocPos = searchInput.value.length;
+      if (searchInput.value.trim() !== '') {
+          searchInput.focus();
+          searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
+      }
+  }
 };
 
 window.goToPage = function(page) {
