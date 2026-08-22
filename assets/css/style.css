@@ -301,7 +301,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* =========================================
-   Navbar & Navigation Menu Styles
+   Navbar & Navigation Menu Styles (🌐 ล็อคปุ่มภาษาแสดงผล 100% บน iPad)
    ========================================= */
 .navbar { 
   background-color: #ffffff !important; 
@@ -368,11 +368,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #0d6efd;
 }
 
+/* 🌐 บังคับให้กลุ่มปุ่มเปลี่ยนภาษา [ EN | TH ] แสดงผลตลอดเวลาใน iPad และทุกขนาดหน้าจอ */
+.lang-btn-group {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
 .lang-btn-group .btn {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  padding: 4px 12px !important;
+  border-radius: 20px !important;
 }
 
 .user-profile-pill {
@@ -1074,7 +1080,7 @@ mark.highlight-search {
 }
 
 #visitFormView .field-wrapper-insight {
-  flex: 1.2 1 0% !important;
+  flex: 1.3 1 0% !important;
 }
 
 #visitFormView .field-wrapper-nextaction {
@@ -1160,7 +1166,7 @@ button.feature-action-btn-lg.has-data-samples {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 14px !important; /* เว้นระยะห่างด้านบนปุ่ม e-Detailing 14px */
+  margin-top: 14px !important;
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
