@@ -101,7 +101,7 @@
 
           </div>
 
-          <!-- Action Buttons & Advanced Filters Dropdown (ตัดปุ่ม Export ออกตามที่ตกลงกันไว้) -->
+          <!-- Action Buttons & Advanced Filters Dropdown -->
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
@@ -148,6 +148,7 @@
                 <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
                 <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
                 <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
+                <th class="py-2.5" style="width: 40px;"></th> <!-- 🌟 คอลัมน์ลูกศร > -->
               </tr>
             </thead>
             <tbody id="visitTableBody"></tbody>
