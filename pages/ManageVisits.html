@@ -169,11 +169,11 @@
           <div class="d-flex align-items-center">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
             <!-- 🌟 ปรับปรุง: ถอด Inline Style ออก ให้ CSS คุมความกว้าง 62px แทน -->
-            <select class="form-select form-select-sm shadow-sm premium-radius text-center px-1" id="visitRowsPerPage" onchange="window.changeRowsPerPage()">
-              <option value="10">10</option>
-              <option value="20" selected>20</option>
-              <option value="50">50</option>
-            </select>
+            <select class="form-select-sm shadow-sm premium-radius text-center mini-rows-select" id="visitRowsPerPage" onchange="window.changeRowsPerPage()">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
             <span class="text-muted small ms-3" id="visitPageInfo">-</span>
           </div>
           <nav><ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination"></ul></nav>
