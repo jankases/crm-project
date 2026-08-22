@@ -80,12 +80,22 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
-            <!-- Smart Search Input -->
+            <!-- 🌟 Smart Search Input (iPad Friendly - Auto Search & Clear Button) -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
-              <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
-                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }">
-                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')"><i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i></button>
+              <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center position-relative">
+                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()" title="Search">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-5 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." oninput="window.handleSearchInput(this)" onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }">
+                
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent p-0 position-absolute d-none" type="button" id="btnClearSmartSearch" onclick="window.clearSmartSearchInput()" style="right: 40px; z-index: 10;">
+                  <i class="fa-solid fa-circle-xmark fs-6"></i>
+                </button>
+
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')">
+                  <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
+                </button>
               </div>
             </div>
 
@@ -148,7 +158,7 @@
                 <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
                 <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
                 <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
-                <th class="py-2.5" style="width: 40px;"></th> <!-- 🌟 คอลัมน์ลูกศร > -->
+                <th class="py-2.5" style="width: 40px;"></th>
               </tr>
             </thead>
             <tbody id="visitTableBody"></tbody>
