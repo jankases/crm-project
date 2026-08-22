@@ -1337,3 +1337,85 @@ button.feature-action-btn-lg.has-data-samples {
     flex-grow: 1 !important;
   }
 }
+
+/* 🌟 [PREMIUM FORM UI UPGRADE] ปรับแต่งหน้าฟอร์มบันทึกให้สดใส มีมิติ และพรีเมียม */
+
+/* 1. ยกระดับการ์ดฝั่งซ้ายและขวาให้ลอยเด่น */
+#visitFormView .col-12 > .border,
+#visitFormView .col-12 > div {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-top: 4px solid #0284c7 !important; /* เส้นไฮไลท์แบรนด์ด้านบน */
+  border-radius: 20px !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* 2. ช่องกรอกข้อมูล (Input, Select, Textarea) ให้เป็นสีขาว คลีน เด่นชัด */
+#visitFormView .form-control,
+#visitFormView .form-select,
+#visitDetails,
+#visitInsight,
+#visitNextAction {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
+  transition: all 0.2s ease !important;
+}
+
+#visitFormView .form-control:focus,
+#visitFormView .form-select:focus,
+#visitDetails:focus,
+#visitInsight:focus,
+#visitNextAction:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12) !important;
+  background-color: #ffffff !important;
+}
+
+/* 3. ปรับโฉมปุ่มกลุ่ม Features & Evidences ให้สดใสและกดง่าย */
+.feature-action-btn-lg {
+  background-color: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.feature-action-btn-lg:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ใส่โทนสี Soft Pastel เด่นชัดเฉพาะปุ่ม */
+#sectionGpsCheckin { background-color: #fef2f2 !important; border-color: #fca5a5 !important; color: #991b1b !important; }
+#sectionSignature  { background-color: #f0fdf4 !important; border-color: #86efac !important; color: #166534 !important; }
+#sectionSamples    { background-color: #fffbeb !important; border-color: #fde68a !important; color: #92400e !important; }
+#sectionAttachments{ background-color: #f0f9ff !important; border-color: #bae6fd !important; color: #075985 !important; }
+
+/* 4. ปรับปุ่ม e-Detailing ให้ลอยเด่นเป็นพิเศษ */
+.btn-edetailing-touch {
+  background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%) !important;
+  border: 1.5px solid #fca5a5 !important;
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08) !important;
+}
+.btn-edetailing-touch:hover {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.15) !important;
+}
+
+/* 5. แถบ Action Footer ชัดเจน */
+.sticky-action-footer {
+  background-color: #f8fafc !important;
+  padding: 10px 16px !important;
+  border-radius: 14px !important;
+  border: 1px solid #e2e8f0 !important;
+}
