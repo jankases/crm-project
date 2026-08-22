@@ -1463,3 +1463,35 @@ mark.highlight-search {
 #visitFormView label[data-i18n="sec_features_evidences"] {
   margin-bottom: 10px !important;
 }
+
+/* 🌟 [FEATURES & EVIDENCES SPACING & TOUCH FIX] ปรับความสูงปุ่มและช่องไฟให้โปร่ง สวยงาม พอดีสายตา */
+
+/* 1. เพิ่มระยะห่างบน-ล่าง ระหว่างคู่ปุ่ม Features */
+#visitFormView .row.g-2.5 {
+  row-gap: 12px !important;
+  column-gap: 0px !important;
+}
+
+/* 2. ปรับขนาดความสูงและ Padding ของปุ่ม ให้แตะง่าย ไม่ชิดกัน */
+.feature-action-btn-lg {
+  min-height: 46px !important;
+  height: 46px !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+}
+
+/* 3. ดันระยะห่างปุ่ม e-Detailing ลงมาจากปุ่มชุดบน */
+.btn-edetailing-touch {
+  min-height: 46px !important;
+  height: 46px !important;
+  font-size: 0.9rem !important;
+  border-radius: 12px !important;
+  margin-top: 12px !important;
+}
+
+/* 4. เพิ่มระยะห่างส่วนหัวข้อ Features & Evidences */
+#visitFormView label[data-i18n="sec_features_evidences"] {
+  margin-bottom: 12px !important;
+}
