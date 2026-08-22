@@ -1255,30 +1255,19 @@ button.feature-action-btn-lg.has-data-samples {
   }
 }
 
-/* 🌟 บังคับแก้รูปทรง Show Rows แบบเบ็ดเสร็จ (แก้ปัญหา Bootstrap ล็อกขนาด) */
-select#visitRowsPerPage.mini-rows-select,
-#visitRowsPerPage {
+/* 🌟 ล็อกขนาดช่อง Show rows ในระดับน้ำหนักสูงสุด หายขาด 100% */
+.visit-module-wrapper #visitPaginationContainer select#visitRowsPerPage,
+#visitListView #visitRowsPerPage,
+select#visitRowsPerPage {
   display: inline-block !important;
-  width: 52px !important;
-  min-width: 52px !important;
-  max-width: 52px !important;
-  height: 28px !important;
-  min-height: 28px !important;
-  line-height: 1 !important;
-  padding: 2px 18px 2px 6px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding-left: 6px !important;
+  padding-right: 18px !important;
   font-size: 0.82rem !important;
   font-weight: 700 !important;
-  color: #334155 !important;
-  background-color: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  /* สร้างไอคอนลูกศรลงสีเข้มแบบกำหนดขนาดได้เองชิดขวา */
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%3c334155' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 4px center !important;
-  background-size: 9px 9px !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
+  flex: 0 0 58px !important;
 }
