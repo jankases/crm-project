@@ -14,19 +14,22 @@ html, body {
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 65px);
-  width: 100%;
+  height: calc(100vh - 65px) !important;
+  width: 100% !important;
   overflow: hidden !important;
-  padding: 0.75rem 1.25rem !important;
+  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
   background-color: #f8fafc;
   box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* 📊 3. FIXED TABLE-ONLY SCROLL ENGINE */
+/* 📊 3. FIXED TABLE-ONLY SCROLL ENGINE (กู้คืนตารางยืดตึงก้นจอ 100%) */
 #visitListView {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
+  min-height: 0 !important;
 }
 
 #visitMainContentContainer {
@@ -34,6 +37,7 @@ html, body {
   display: flex !important;
   flex-direction: column !important;
   min-height: 0 !important;
+  height: 100% !important;
 }
 
 #visitListZone, 
@@ -47,9 +51,11 @@ html, body {
   overflow: hidden !important;
 }
 
+/* ล็อกจาก max-height เป็น Flex-Grow เพื่อให้ตารางดันพาเนล Pagination ลงไปชิดขอบก้นจอเสมอ */
 .table-scroll-inside {
   width: 100%;
   flex: 1 1 auto !important;
+  height: 100% !important;
   max-height: none !important;
   min-height: 0 !important;
   overflow-y: auto !important;
@@ -1033,9 +1039,7 @@ mark.highlight-search {
   margin-top: 0.65rem !important;
 }
 
-/* 🌟 FEATURES & EVIDENCES BUTTONS - ISOLATED FIX */
-
-/* ปรับระยะห่างคู่ปุ่ม ซ้าย-ขวา / บน-ล่าง */
+/* 🌟 FEATURES & EVIDENCES BUTTONS */
 #visitFormView .row.g-2.5,
 #visitFormView .row.g-3 {
   --bs-gutter-x: 0.85rem !important;
@@ -1150,4 +1154,42 @@ mark.highlight-search {
   0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ==========================================
+   📱 RESPONSIVE ADJUSTMENTS (iPad, Tablet & Desktop)
+   ========================================== */
+
+/* ลบเงื่อนไขการบีบความสูงแบบ max-height ออก เพื่อบังคับให้ตารางดันพาเนลลงไปชิดก้นจอเสมอ */
+@media (min-width: 768px) {
+  .visit-module-wrapper {
+    height: calc(100vh - 65px) !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  #visitListView { 
+    height: 100% !important; 
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  #visitMainContentContainer { 
+    flex: 1 1 auto !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+    height: 100% !important;
+  }
+
+  #visitListZone { 
+    flex: 1 1 auto !important; 
+    height: 100% !important; 
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .table-scroll-inside { 
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    max-height: none !important; 
+  }
 }
