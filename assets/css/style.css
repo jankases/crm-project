@@ -1389,3 +1389,58 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.15) !important;
 }
+/* 🌟 [COMPACT FEATURE BAR] รวบปุ่ม Features ให้อยู่ในแถวเดียว ไม่ดันฟอร์มล้นจอ */
+
+/* 1. จัดการยืดหดของคอนเทนเนอร์ฝั่งซ้ายให้พอดีจอ */
+#visitFormView .col-12.col-xl-5 > div {
+  padding: 1rem !important;
+}
+
+#visitFormView .mb-3 {
+  margin-bottom: 0.5rem !important;
+}
+
+/* 2. ปรับกลุ่มปุ่ม Features ให้เป็นบาร์กระชับแนวตั้ง/แนวนอนพอดีตัว */
+.feature-action-btn-lg {
+  min-height: 42px !important;
+  height: 42px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+}
+
+.feature-action-btn-lg:hover,
+.feature-action-btn-lg:active {
+  background-color: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+.feature-action-btn-lg i {
+  font-size: 0.95rem !important;
+}
+
+/* 3. ปรับปุ่ม e-Detailing ให้กระชับความสูงลง */
+.btn-edetailing-touch {
+  min-height: 42px !important;
+  height: 42px !important;
+  font-size: 0.88rem !important;
+  border-radius: 10px !important;
+  margin-top: 6px !important;
+}
+
+/* 4. ปรับช่อง Textarea ฝั่งขวาให้ยืดหดสมดุลกับฝั่งซ้าย */
+#visitDetails { min-height: 80px !important; }
+#visitInsight { min-height: 60px !important; }
+#visitNextAction { min-height: 50px !important; }
