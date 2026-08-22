@@ -1247,3 +1247,31 @@ button.feature-action-btn-lg.has-data-samples {
     max-height: calc(100vh - 200px) !important;
   }
 }
+
+/* 🌟 [SUPER COMPACT TABLE] บีบความสูงแถวตารางให้กะทัดรัด ตึงเป๊ะ ชัดเจน */
+.table-scroll-inside table.table tbody tr td,
+.table-scroll-inside .table tbody tr td {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  height: 38px !important;
+  line-height: 1.2 !important;
+  vertical-align: middle !important;
+}
+
+/* ปรับ Badge ในตาราง (Status, Products) ให้กะทัดรัดตามแถว ไม่ดันแถวให้โย่ง */
+.table-scroll-inside .badge {
+  padding: 2px 7px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ปรับไอคอนและข้อความในตารางไม่ให้ดึงความสูง */
+.table-scroll-inside .table-doc-name,
+.table-scroll-inside .table-hosp-text,
+.table-scroll-inside .table-visit-link {
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
