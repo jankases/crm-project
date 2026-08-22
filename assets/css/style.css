@@ -28,14 +28,16 @@ html, body {
 #hospListView .card {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  height: auto !important;
   min-height: 0;
   overflow: hidden;
 }
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 200px) !important;
+  height: auto !important;
+  max-height: calc(100vh - 210px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -598,7 +600,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
    ✨ PREMIUM PAGINATION
    ========================================== */
 #visitPaginationContainer {
-  padding-bottom: 10px !important;
+  margin-top: 0.5rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0 !important;
 }
 
 /* 🌟 คืนค่าขนาดช่อง Show rows Dropdown ให้กะทัดรัดพอดี */
@@ -695,19 +699,41 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
 .table-scroll-inside .table tbody tr {
   transition: all 0.15s ease-in-out !important;
+  height: 36px !important;
 }
 
+.table-scroll-inside table.table tbody tr td,
 .table-scroll-inside .table tbody tr td {
-  padding-top: 0.45rem !important;
-  padding-bottom: 0.45rem !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
   border-bottom: 1px solid #f1f5f9 !important;
-  vertical-align: middle;
+  height: 36px !important;
+  line-height: 1.2 !important;
+  vertical-align: middle !important;
 }
 
 .table-scroll-inside .table tbody tr:hover {
   background-color: #f0f9ff !important;
   box-shadow: inset 3px 0 0 #0284c7, 0 2px 6px rgba(2, 132, 199, 0.05) !important;
   cursor: pointer;
+}
+
+/* ปรับ Badge ในตาราง (Status, Products) ให้กะทัดรัดตามแถว ไม่ดันแถวให้โย่ง */
+.table-scroll-inside .badge {
+  padding: 2px 7px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ปรับไอคอนและข้อความในตารางไม่ให้ดึงความสูง */
+.table-scroll-inside .table-doc-name,
+.table-scroll-inside .table-hosp-text,
+.table-scroll-inside .table-visit-link {
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 /* 🌟 UNIFIED SINGLE-STATE LOADING */
@@ -1246,32 +1272,4 @@ button.feature-action-btn-lg.has-data-samples {
   .table-scroll-inside {
     max-height: calc(100vh - 200px) !important;
   }
-}
-
-/* 🌟 [SUPER COMPACT TABLE] บีบความสูงแถวตารางให้กะทัดรัด ตึงเป๊ะ ชัดเจน */
-.table-scroll-inside table.table tbody tr td,
-.table-scroll-inside .table tbody tr td {
-  padding-top: 0.25rem !important;
-  padding-bottom: 0.25rem !important;
-  height: 38px !important;
-  line-height: 1.2 !important;
-  vertical-align: middle !important;
-}
-
-/* ปรับ Badge ในตาราง (Status, Products) ให้กะทัดรัดตามแถว ไม่ดันแถวให้โย่ง */
-.table-scroll-inside .badge {
-  padding: 2px 7px !important;
-  font-size: 0.75rem !important;
-  line-height: 1.1 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-/* ปรับไอคอนและข้อความในตารางไม่ให้ดึงความสูง */
-.table-scroll-inside .table-doc-name,
-.table-scroll-inside .table-hosp-text,
-.table-scroll-inside .table-visit-link {
-  line-height: 1.2 !important;
-  display: inline-flex !important;
-  align-items: center !important;
 }
