@@ -1,5 +1,6 @@
 /* =========================================
    CRM System - Global Stylesheet (style.css)
+   App-Like UI Concept (Full Viewport Height)
    ========================================= */
 
 /* 🔒 1. GLOBAL APP-LIKE SCROLL CONTROL */
@@ -7,10 +8,10 @@ html, body {
   height: 100vh !important;
   margin: 0 !important;
   padding: 0 !important;
-  overflow: hidden !important;
+  overflow: hidden !important; /* ซ่อน Scrollbar นอกสุดถาวร */
 }
 
-/* 🖥️ 2. ISOLATED MODULE WRAPPER */
+/* 🖥️ 2. MODULE WRAPPER (มาตรฐานความสูงทุกหน้า) */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
@@ -24,15 +25,19 @@ html, body {
   flex-direction: column !important;
 }
 
-/* 📊 3. FIXED TABLE-ONLY SCROLL ENGINE (กู้คืนตารางยืดตึงก้นจอ 100%) */
-#visitListView {
+/* 📊 3. FLEXBOX ENGINE (ยืดตึงเต็มก้นจอทุกหน้า) */
+#visitListView,
+#doctorListView,
+#hospListView {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
   min-height: 0 !important;
 }
 
-#visitMainContentContainer {
+#visitMainContentContainer,
+.doc-main-content,
+.hosp-main-content {
   flex: 1 1 auto !important;
   display: flex !important;
   flex-direction: column !important;
@@ -40,18 +45,21 @@ html, body {
   height: 100% !important;
 }
 
+/* ยืดตัวการ์ดหลักลงไปชิดขอบล่างเสมอ */
 #visitListZone, 
 #doctorListView .card,
-#hospListView .card {
+#hospListView .card,
+.visit-card-full {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
   height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important;
+  justify-content: space-between !important;
 }
 
-/* ล็อกจาก max-height เป็น Flex-Grow เพื่อให้ตารางดันพาเนล Pagination ลงไปชิดขอบก้นจอเสมอ */
+/* พื้นที่ตารางข้างในขยายกินพื้นที่ว่าง และสโครลล์เฉพาะภายใน */
 .table-scroll-inside {
   width: 100%;
   flex: 1 1 auto !important;
@@ -76,7 +84,15 @@ html, body {
   box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
-/* ✨ 4. MODERN MINIMAL SCROLLBAR */
+/* ตรึงพาเนล Pagination ด้านล่างให้อยู่ก้นการ์ดเสมอ */
+#visitPaginationContainer,
+.doc-pagination-container,
+.hosp-pagination-container {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* ✨ 4. MODERN MINIMAL SCROLLBAR (เฉพาะส่วนที่สโครลล์ได้) */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
@@ -108,7 +124,7 @@ html, body {
 }
 
 /* -----------------------------------------
-   Component Card & Form Styling
+   Component Card & Form Base Styling
    ----------------------------------------- */
 .visit-card { 
   border-radius: 16px !important; 
@@ -1157,88 +1173,49 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   📱 RESPONSIVE ADJUSTMENTS (iPad, Tablet & Desktop)
+   📱 RESPONSIVE ADJUSTMENTS (CRITICAL FIX FOR FULL-HEIGHT LIST)
    ========================================== */
 
-/* ลบเงื่อนไขการบีบความสูงแบบ max-height ออก เพื่อบังคับให้ตารางดันพาเนลลงไปชิดก้นจอเสมอ */
-@media (min-width: 768px) {
-  .visit-module-wrapper {
-    height: calc(100vh - 65px) !important;
-    padding-bottom: 0.5rem !important;
-  }
-
-  #visitListView { 
-    height: 100% !important; 
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  
-  #visitMainContentContainer { 
-    flex: 1 1 auto !important; 
-    display: flex !important; 
-    flex-direction: column !important; 
-    height: 100% !important;
-  }
-
-  #visitListZone { 
-    flex: 1 1 auto !important; 
-    height: 100% !important; 
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .table-scroll-inside { 
-    flex: 1 1 auto !important;
-    height: 100% !important;
-    max-height: none !important; 
-  }
-}
-
-/* 🌟 [CRITICAL FIX] บังคับการ์ดตารางหลักยืดตึงชิดก้นจอ 100% หายแหว่งทันที */
-
+/* บังคับยืดเต็มพื้นที่แม่ 100% โดยไม่จำกัด max-height ให้การ์ดลอยขึ้นมา */
 .visit-module-wrapper {
   height: calc(100vh - 65px) !important;
+  padding-bottom: 0.5rem !important;
   display: flex !important;
   flex-direction: column !important;
-  box-sizing: border-box !important;
-  padding-bottom: 0.75rem !important;
 }
 
-#visitListView {
-  flex: 1 1 auto !important;
-  height: 100% !important;
+#visitListView { 
+  height: 100% !important; 
   display: flex !important;
   flex-direction: column !important;
+  flex: 1 1 auto !important;
   min-height: 0 !important;
 }
 
-#visitMainContentContainer {
-  flex: 1 1 auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 0 !important;
+#visitMainContentContainer { 
+  flex: 1 1 auto !important; 
+  display: flex !important; 
+  flex-direction: column !important; 
   height: 100% !important;
+  min-height: 0 !important;
 }
 
-/* บังคับการ์ดตารางยืดเต็มพื้นที่แม่ 100% */
-#visitListZone {
-  flex: 1 1 auto !important;
-  height: 100% !important;
+#visitListZone { 
+  flex: 1 1 auto !important; 
+  height: 100% !important; 
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
   min-height: 0 !important;
 }
 
-/* บังคับพื้นที่สโครลล์ตารางขยายกินพื้นที่ว่างทั้งหมด */
-.table-scroll-inside {
+.table-scroll-inside { 
   flex: 1 1 auto !important;
   height: 100% !important;
-  max-height: none !important;
+  max-height: none !important; 
   min-height: 0 !important;
 }
 
-/* ดันแถบ Pagination ลงไปตรึงก้นการ์ดล่างสุดเสมอ */
 #visitPaginationContainer {
   margin-top: auto !important;
   flex-shrink: 0 !important;
