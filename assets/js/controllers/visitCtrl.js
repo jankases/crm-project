@@ -4524,3 +4524,51 @@ window.changeCalendarRepFilter = function(repId) {
         window.renderCalendarView(); // สั่งวาดปฏิทินใหม่เมื่อเลือกชื่อ
     }
 };
+
+// ==========================================
+// 🔍 SMART AUTO-SEARCH & CLEAR ENGINE FOR IPAD
+// ==========================================
+window.searchDebounceTimer = null;
+
+// ฟังก์ชัน Auto-Search เมื่อหยุดพิมพ์ 400ms บน iPad
+window.handleSearchInput = function(inputEl) {
+    var clearBtn = document.getElementById('btnClearSmartSearch');
+    var val = inputEl ? inputEl.value.trim() : '';
+
+    // แสดง/ซ่อน ปุ่ม (x) ล้างข้อความ
+    if (clearBtn) {
+        if (val.length > 0) {
+            clearBtn.classList.remove('d-none');
+        } else {
+            clearBtn.classList.add('d-none');
+        }
+    }
+
+    // หน่วงเวลา 400ms หลังจิ้มพิมพ์เสร็จ แล้วคิวรีให้อัตโนมัติ ไร้การกระตุก
+    clearTimeout(window.searchDebounceTimer);
+    window.searchDebounceTimer = setTimeout(function() {
+        window.currentPage = 1;
+        if (typeof window.loadVisits === 'function') {
+            window.loadVisits(true);
+        }
+    }, 400);
+};
+
+// ฟังก์ชันแตะปุ่ม (x) ล้างข้อความค้นหา
+window.clearSmartSearchInput = function() {
+    var searchInput = document.getElementById('smartSearchInput');
+    var clearBtn = document.getElementById('btnClearSmartSearch');
+    
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    if (clearBtn) {
+        clearBtn.classList.add('d-none');
+    }
+
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true);
+    }
+};
