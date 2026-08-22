@@ -1444,3 +1444,22 @@ mark.highlight-search {
 #visitDetails { min-height: 80px !important; }
 #visitInsight { min-height: 60px !important; }
 #visitNextAction { min-height: 50px !important; }
+
+
+/* 🌟 [FEATURE BUTTONS GAP FIX] ขยายช่องไฟระหว่างปุ่มให้โปร่ง สวยงาม พอดีสายตา */
+
+/* 1. ขยายระยะห่างระหว่างแถวของปุ่ม (Vertical Gap) */
+#visitFormView .row.g-2.5 {
+  row-gap: 10px !important; /* ขยายช่องไฟบน-ล่างระหว่างคู่ปุ่ม */
+  column-gap: 0px !important;
+}
+
+/* 2. เว้นระยะห่างของปุ่ม e-Detailing ด้านล่างสุด */
+.btn-edetailing-touch {
+  margin-top: 10px !important; /* ดันปุ่มสีแดงลงมาจากคู่ปุ่มบน */
+}
+
+/* 3. เว้นระยะระหว่างหัวข้อ Features & Evidences กับแถวปุ่มแรก */
+#visitFormView label[data-i18n="sec_features_evidences"] {
+  margin-bottom: 10px !important;
+}
