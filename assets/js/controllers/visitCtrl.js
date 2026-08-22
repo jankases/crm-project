@@ -4585,3 +4585,11 @@ window.clearSmartSearchInput = function() {
         window.loadVisits(true);
     }
 };
+// ==========================================
+// 📄 PAGINATION CONTROLS ENGINE
+// ==========================================
+window.renderPaginationControls = function(totalPages) {
+  if (typeof window.renderGlobalPagination === 'function') {
+    window.renderGlobalPagination('visitPagination', window.currentPage, totalPages, 'goToPage');
+  }
+};
