@@ -969,23 +969,32 @@ mark.highlight-search {
   border-bottom: 1.5px solid #e2e8f0 !important;
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 8px !important;
 }
 
 .form-section-title i {
   color: #0284c7 !important;
   font-size: 1rem !important;
+  margin-right: 4px !important;
 }
 
-/* 2. หัวข้อ Features & Evidences คืนสีฟ้าสวยงาม */
+/* 2. หัวข้อ Features & Evidences */
 #visitFormView .compact-label.text-primary,
 #visitFormView label[data-i18n="sec_features_evidences"] {
   color: #0284c7 !important;
   font-weight: 700 !important;
   font-size: 0.88rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 0.65rem !important;
 }
 
-/* 🌟 3. ปรับปุ่ม Back เป็นทรงแคปซูล Pill Radius (สไตล์เดียวกับ Doctor Profile) */
+#visitFormView label[data-i18n="sec_features_evidences"] i {
+  margin-right: 8px !important;
+}
+
+/* 3. ปุ่ม Back ทรงแคปซูล Pill Radius */
 .btn-back-pill {
   border-radius: 50px !important;
   padding: 6px 18px !important;
@@ -1006,11 +1015,11 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
 }
 
-/* 4. 🎨 คืนสีไอคอนให้ปุ่ม Features ทั้งหมด (เมื่อยังไม่มีข้อมูล) */
-#sectionGpsCheckin i { color: #ef4444 !important; }     /* GPS สีแดง */
-#sectionSignature i { color: #10b981 !important; }    /* Signature สีเขียว */
-#sectionSamples i { color: #f59e0b !important; }      /* Samples สีส้ม */
-#sectionAttachments i { color: #0284c7 !important; }  /* Attachments สีฟ้า */
+/* 4. 🎨 คืนสีไอคอนให้ปุ่ม Features ทั้งหมด */
+#sectionGpsCheckin i { color: #ef4444 !important; margin-right: 4px !important; }     /* GPS สีแดง */
+#sectionSignature i { color: #10b981 !important; margin-right: 4px !important; }    /* Signature สีเขียว */
+#sectionSamples i { color: #f59e0b !important; margin-right: 4px !important; }      /* Samples สีส้ม */
+#sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }  /* Attachments สีฟ้า */
 
 /* ==========================================
    ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
@@ -1148,10 +1157,11 @@ button.feature-action-btn-lg.has-data-samples {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  margin-top: 4px !important;
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
-/* ไมค์จิ๋วซ้อนมุมขวาบนใน Textarea */
+/* 🎙️ ปุ่มไมค์วงกลมมินิมอล ซ้อนมุมขวาบนใน Textarea */
 .textarea-dictate-wrapper {
   position: relative !important;
   width: 100%;
@@ -1162,28 +1172,34 @@ button.feature-action-btn-lg.has-data-samples {
 
 .btn-dictate-corner {
   position: absolute !important;
-  top: 7px !important;
-  right: 7px !important;
+  top: 6px !important;
+  right: 6px !important;
   z-index: 5 !important;
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   background-color: #ffffff !important;
   border: 1px solid #fee2e2 !important;
   color: #dc2626 !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  padding: 2px 9px !important;
-  border-radius: 20px !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  font-size: 0.8rem !important;
+  border-radius: 50% !important; /* ปุ่มทรงกลมมินิมอล */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.06) !important;
   transition: all 0.2s ease !important;
 }
 
 .btn-dictate-corner:hover {
   background-color: #fef2f2 !important;
   border-color: #fca5a5 !important;
+  transform: scale(1.08);
 }
 
+/* เพิ่มพื้นที่พิมพ์ ลด Padding ขวาลงเหลือ 42px */
 .textarea-dictate-wrapper textarea,
 .textarea-dictate-wrapper input {
-  padding-right: 80px !important;
+  padding-right: 42px !important;
 }
 
 .sticky-action-footer {
