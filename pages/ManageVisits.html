@@ -118,7 +118,7 @@
                 <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
               </button>
               
-              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 1050;">
+              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 10;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
                 
                 <div class="mb-2">
@@ -169,11 +169,11 @@
           <div class="d-flex align-items-center">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
             <!-- 🌟 ปรับปรุง: ถอด Inline Style ออก ให้ CSS คุมความกว้าง 62px แทน -->
-            <select class="form-select-sm shadow-sm premium-radius text-center mini-rows-select" id="visitRowsPerPage" onchange="window.changeRowsPerPage()">
-            <option value="10">10</option>
-            <option value="20" selected>20</option>
-            <option value="50">50</option>
-          </select>
+            <select class="form-select-sm shadow-sm premium-radius text-center px-1" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 58px !important; max-width: 58px !important; min-width: 58px !important; display: inline-block !important;">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
             <span class="text-muted small ms-3" id="visitPageInfo">-</span>
           </div>
           <nav><ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination"></ul></nav>
