@@ -963,7 +963,7 @@ mark.highlight-search {
 .form-section-title {
   font-size: 0.92rem !important;
   font-weight: 700 !important;
-  color: #0284c7 !important; /* สีฟ้าเข้ม CRM */
+  color: #0284c7 !important;
   margin-bottom: 10px !important;
   padding-bottom: 6px !important;
   border-bottom: 1.5px solid #e2e8f0 !important;
@@ -985,19 +985,25 @@ mark.highlight-search {
   font-size: 0.88rem !important;
 }
 
-/* 3. คืนสีสดใสให้ปุ่ม Back */
-#visitFormView .btn-outline-secondary {
-  border-color: #cbd5e1 !important;
-  color: #475569 !important;
+/* 🌟 3. ปรับปุ่ม Back เป็นทรงแคปซูล Pill Radius (สไตล์เดียวกับ Doctor Profile) */
+.btn-back-pill {
+  border-radius: 50px !important;
+  padding: 6px 18px !important;
+  font-size: 0.88rem !important;
   background-color: #ffffff !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
-  transition: all 0.2s ease !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
 
-#visitFormView .btn-outline-secondary:hover {
-  background-color: #f8fafc !important;
-  color: #0284c7 !important;
+.btn-back-pill:hover {
+  background-color: #f0f9ff !important;
   border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  transform: translateY(-1px) !important;
 }
 
 /* 4. 🎨 คืนสีไอคอนให้ปุ่ม Features ทั้งหมด (เมื่อยังไม่มีข้อมูล) */
@@ -1010,8 +1016,8 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
    ========================================== */
 #visitFormView {
-  height: calc(100vh - 80px) !important;
-  max-height: calc(100vh - 80px) !important;
+  height: calc(100vh - 75px) !important;
+  max-height: calc(100vh - 75px) !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   padding: 0.85rem 1.5rem 1.75rem 1.5rem !important;
@@ -1022,7 +1028,7 @@ mark.highlight-search {
   background: transparent !important;
   box-shadow: none !important;
   padding: 0 !important;
-  margin-top: 0.5rem !important;
+  margin-top: 0.35rem !important;
 }
 
 #visitFormView .row.g-3 {
@@ -1050,32 +1056,17 @@ mark.highlight-search {
   margin-bottom: 0.85rem !important;
 }
 
-/* 🌟 ฝั่งขวา: ปรับเป็น FLEX-GROW ยืดขยายช่อง Details, Insight, Next Action ให้เต็มความสูงการ์ดไร้โหว่ */
-#visitFormView .col-xl-7 .p-3.5 > div {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-}
-
-/* กล่อง Details ยืดให้กินพื้นที่สูงสุด */
-#visitFormView .mb-3:has(#visitDetails) {
+/* 🌟 FLEXBOX FLEX-GROW ยืดช่อง Details, Insight, Next Action ให้เต็มพื้นที่การ์ดฝั่งขวา */
+#visitFormView .field-wrapper-details {
   flex: 2 1 0% !important;
-  display: flex !important;
-  flex-direction: column !important;
 }
 
-/* กล่อง Insight ยืดเป็นสัดส่วนรองลงมา */
-#visitFormView .mb-3:has(#visitInsight) {
-  flex: 1.5 1 0% !important;
-  display: flex !important;
-  flex-direction: column !important;
+#visitFormView .field-wrapper-insight {
+  flex: 1.3 1 0% !important;
 }
 
-/* กล่อง Next Action ยืดให้พอดีกับส่วนล่าง */
-#visitFormView .mb-2:has(#visitNextAction) {
+#visitFormView .field-wrapper-nextaction {
   flex: 1 1 0% !important;
-  display: flex !important;
-  flex-direction: column !important;
 }
 
 #visitDetails,
@@ -1083,7 +1074,7 @@ mark.highlight-search {
 #visitNextAction {
   flex: 1 1 100% !important;
   height: 100% !important;
-  min-height: 50px !important;
+  min-height: 48px !important;
   padding: 0.65rem 0.85rem !important;
   line-height: 1.45 !important;
   border-radius: 12px !important;
