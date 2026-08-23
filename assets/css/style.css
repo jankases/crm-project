@@ -35,9 +35,10 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  height: auto !important;
-  max-height: calc(100vh - 210px) !important;
-  min-height: 250px;
+  height: 100% !important; /* ✅ ยืดเต็ม 100% */
+  max-height: none !important; /* ✅ ปลดล็อกการจำกัดความสูง */
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
   overflow-y: auto !important;
   overflow-x: auto;
   border-radius: 8px;
