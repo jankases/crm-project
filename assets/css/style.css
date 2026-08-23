@@ -871,13 +871,15 @@ mark.highlight-search {
     border-radius: 4px !important;
 }
 
+
 /* ==========================================
    📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
    ========================================== */
+/* 🌟 RULE 2: ปลดล็อกความสูง ปล่อย Flexbox ยืดเต็มจอ */
 #visitCalendarZone {
-    flex: 1 1 auto !important; /* ✅ ปล่อยให้ขยายเต็มพื้นที่ที่เหลือเองโดยอัตโนมัติ */
+    flex: 1 1 auto !important; 
     height: 100% !important;
-    max-height: none !important; /* ✅ ปลดล็อกไม่ให้บีบความสูง */
+    max-height: none !important; 
     min-height: 0 !important;
     overflow: hidden !important;
     flex-direction: column !important;
@@ -923,6 +925,16 @@ mark.highlight-search {
     align-items: center !important;
 }
 
+/* 🌟 RULE 3: บังคับซ่อนหน้าจอเด็ดขาด ป้องกันกล่องเปล่าดันที่ */
+#visitListView.d-none,
+#doctorListView.d-none,
+#hospListView.d-none,
+#visitFormView.d-none,
+#visitListZone.d-none,
+#visitCalendarZone.d-none,
+#visitMainContentContainer.d-none {
+    display: none !important;
+}
 /* ==========================================
    ✨ FULLCALENDAR PREMIUM BUTTONS STYLING
    ========================================== */
@@ -1333,3 +1345,5 @@ button.feature-action-btn-lg.has-data-samples {
 #visitMainContentContainer.d-none {
     display: none !important;
 }
+
+ 
