@@ -157,8 +157,36 @@ window.safeDestroyTs = function(instance) {
 
 window.getCurrentAppLang = function() {
   var btnEN = document.getElementById('btnLangEN');
-  if (btnEN && btnEN.classList.contains('btn-primary')) return 'en';
+  var ipadBtnEN = document.getElementById('ipadBtnLangEN');
+  
+  if (btnEN && btnEN.classList.contains('active')) return 'en';
+  if (ipadBtnEN && ipadBtnEN.classList.contains('active')) return 'en';
+  if (btnEN && btnEN.classList.contains('btn-primary')) return 'en'; // เผื่อกรณี Fallback
   return 'th';
+};
+
+// 🌟 ฟังก์ชันจัดการซิงค์สีปุ่ม (ทั้ง iPad และ Desktop จะเปลี่ยนสีพร้อมกัน)
+window.switchAppLanguage = function(lang) {
+  var isEN = (lang === 'en');
+  
+  var dEn = document.getElementById('btnLangEN');
+  var dTh = document.getElementById('btnLangTH');
+  if (dEn && dTh) {
+      dEn.classList.toggle('active', isEN);
+      dTh.classList.toggle('active', !isEN);
+  }
+
+  var iEn = document.getElementById('ipadBtnLangEN');
+  var iTh = document.getElementById('ipadBtnLangTH');
+  if (iEn && iTh) {
+      iEn.classList.toggle('active', isEN);
+      iTh.classList.toggle('active', !isEN);
+  }
+
+  // เรียกใช้ฟังก์ชันแปลภาษาเดิมที่มีอยู่แล้วในระบบ
+  if (typeof setLanguage === 'function') {
+      setLanguage(lang);
+  }
 };
 
 window.getPurposeText = function(purposeId, fallbackText) {
