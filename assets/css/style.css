@@ -1343,27 +1343,27 @@ button.feature-action-btn-lg.has-data-samples {
     display: none !important;
 } 
 
-/* 🧪 TEST STYLE: ปุ่มภาษาแบบ "Dark Neon" (ดำ-ส้มสะท้อนแสง ทรงสี่เหลี่ยมมน) */
+/* 🌟 สไตล์ปุ่มภาษา Desktop (แนวนอน ทรงแคปซูล Segmented Control) - คลีน มินิมอล */
 .desktop-lang-wrapper {
-  background-color: #0f172a; /* พื้นหลังสีดำ-กรมท่า */
-  padding: 4px;
-  border-radius: 10px; /* เปลี่ยนจากแคปซูลเป็นทรงสี่เหลี่ยมมน */
+  background-color: #f1f5f9;
+  padding: 3px;
+  border-radius: 50px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: 38px; /* เพิ่มความสูงนิดหน่อยให้เตะตา */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  gap: 2px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  height: 32px;
 }
 
 .desktop-lang-btn {
   border: none;
   background: transparent;
   color: #64748b;
-  font-weight: 800;
-  font-size: 0.8rem;
-  padding: 0 16px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 0 12px;
+  border-radius: 40px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   height: 100%;
   display: flex;
   align-items: center;
@@ -1371,12 +1371,12 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 .desktop-lang-btn.active {
-  background-color: #f97316; /* 🌟 สีส้มสะท้อนแสง! */
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4); /* เงาสีส้ม */
+  background-color: #ffffff;
+  color: #0ea5e9;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .desktop-lang-btn:not(.active):hover {
-  color: #f8fafc;
-  background-color: rgba(255,255,255,0.1);
+  color: #334155;
+  background-color: rgba(0,0,0,0.03);
 }
