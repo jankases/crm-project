@@ -1320,3 +1320,11 @@ button.feature-action-btn-lg.has-data-samples {
   }
 }
 /* ไม่ต้องใส่ max-height ให้ .table-scroll-inside อีก ปล่อย Flexbox ทำงาน */
+
+/* 🌟 [CRITICAL FIX] บังคับซ่อนหน้าจอเด็ดขาดเมื่อสลับหน้า ป้องกันการซ้อนกัน */
+#visitListView.d-none,
+#doctorListView.d-none,
+#hospListView.d-none,
+#visitFormView.d-none {
+    display: none !important;
+}
