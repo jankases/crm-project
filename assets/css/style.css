@@ -1327,6 +1327,8 @@ button.feature-action-btn-lg.has-data-samples {
 #visitListView.d-none,
 #doctorListView.d-none,
 #hospListView.d-none,
-#visitFormView.d-none {
+#visitFormView.d-none,
+#visitListZone.d-none,
+#visitCalendarZone.d-none {
     display: none !important;
 }
