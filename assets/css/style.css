@@ -35,7 +35,8 @@ html, body {
 
 .table-scroll-inside {
   width: 100%;
-  max-height: calc(100vh - 200px) !important;
+  height: auto !important;
+  max-height: calc(100vh - 210px) !important;
   min-height: 250px;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -50,31 +51,32 @@ html, body {
   top: 0;
   z-index: 10;
   background-color: #f8fafc !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  color: #475569 !important;
   box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
-/* ✨ 4. MODERN MINIMAL SCROLLBAR */
+/* ✨ 4. MODERN MINIMAL SCROLLBAR (ซ่อนแถบเมื่อไม่สโครลล์) */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .table-scroll-inside::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: transparent;
 }
 
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
@@ -82,7 +84,7 @@ html, body {
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #94a3b8;
 }
 
 /* -----------------------------------------
@@ -139,8 +141,9 @@ html, body {
 }
 
 .kpi-value-text {
-  font-size: 1.05rem !important;
+  font-size: 1.15rem !important;
   font-weight: 800 !important;
+  letter-spacing: -0.5px !important;
   line-height: 1 !important;
   margin-top: 1px !important;
 }
@@ -242,9 +245,6 @@ input:checked + .slider { background-color: #0ea5e9; }
 input:focus + .slider { box-shadow: 0 0 1px #0ea5e9; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
-.mic-active { animation: pulse-red 1.5s infinite; border-color: #dc3545 !important; background-color: #dc3545 !important; color: #ffffff !important; }
-@keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-
 /* 🌟 TOMSELECT STYLING */
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
 .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
@@ -311,6 +311,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding-bottom: 8px;
 }
 
+#mainNavbar .border-top,
+#navbarNav .border-top,
+#navbarNav > div.d-flex {
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+
 .nav-menu-item {
   color: #475569; 
   font-weight: 600;
@@ -368,11 +375,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #0d6efd;
 }
 
+.lang-btn-group {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
 .lang-btn-group .btn {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  padding: 4px 12px !important;
+  border-radius: 20px !important;
 }
 
 .user-profile-pill {
@@ -583,12 +595,29 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* ==========================================
    ✨ PREMIUM PAGINATION
    ========================================== */
+#visitPaginationContainer {
+  margin-top: 0.5rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0 !important;
+}
+
+/* 🌟 คืนค่าขนาดช่อง Show rows Dropdown ให้กะทัดรัดพอดี */
+#visitRowsPerPage {
+  width: 70px !important;
+  min-width: 70px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  padding: 2px 20px 2px 8px !important;
+}
+
 .pagination {
   gap: 5px;
 }
 .pagination .page-link {
   border-radius: 8px !important;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dee2e6;
   color: #475569;
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
@@ -663,11 +692,44 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   justify-content: center;
 }
 
-/* 🌟 คลีน CSS ตารางปกติให้แถวกะทัดรัด สวยงาม */
+/* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
+.table-scroll-inside .table tbody tr {
+  transition: all 0.15s ease-in-out !important;
+  height: 36px !important;
+}
+
+.table-scroll-inside table.table tbody tr td,
 .table-scroll-inside .table tbody tr td {
-  padding-top: 0.65rem !important;
-  padding-bottom: 0.65rem !important;
-  vertical-align: middle;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  height: 36px !important;
+  line-height: 1.2 !important;
+  vertical-align: middle !important;
+}
+
+.table-scroll-inside .table tbody tr:hover {
+  background-color: #f0f9ff !important;
+  box-shadow: inset 3px 0 0 #0284c7, 0 2px 6px rgba(2, 132, 199, 0.05) !important;
+  cursor: pointer;
+}
+
+/* ปรับ Badge ในตาราง (Status, Products) ให้กะทัดรัดตามแถว ไม่ดันแถวให้โย่ง */
+.table-scroll-inside .badge {
+  padding: 2px 7px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ปรับไอคอนและข้อความในตารางไม่ให้ดึงความสูง */
+.table-scroll-inside .table-doc-name,
+.table-scroll-inside .table-hosp-text,
+.table-scroll-inside .table-visit-link {
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 /* 🌟 UNIFIED SINGLE-STATE LOADING */
@@ -708,18 +770,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .table-doc-name {
   color: #0f172a !important;
   font-weight: 600 !important;
-}
-
-/* 3. ปรับระยะบรรทัดและเส้นแบ่งตาราง */
-.table-scroll-inside .table tbody tr td {
-  padding-top: 0.75rem !important;
-  padding-bottom: 0.75rem !important;
-  border-bottom: 1px solid #f1f5f9 !important;
-  vertical-align: middle;
-}
-
-.table-scroll-inside .table tbody tr:hover {
-  background-color: #f8fafc !important;
 }
 
 /* สไตล์ไฮไลท์คำค้นหา */
@@ -959,7 +1009,6 @@ mark.highlight-search {
    🌈 VIBRANT FORM HEADERS & VISUAL STYLING
    ========================================== */
 
-/* 1. คืนสีฟ้าสดใส + ไอคอนให้หัวข้อหลักของการ์ดทั้งสองฝั่ง */
 .form-section-title {
   font-size: 0.92rem !important;
   font-weight: 700 !important;
@@ -978,7 +1027,6 @@ mark.highlight-search {
   margin-right: 4px !important;
 }
 
-/* 2. หัวข้อ Features & Evidences */
 #visitFormView .compact-label.text-primary,
 #visitFormView label[data-i18n="sec_features_evidences"] {
   color: #0284c7 !important;
@@ -994,7 +1042,6 @@ mark.highlight-search {
   margin-right: 8px !important;
 }
 
-/* 3. ปุ่ม Back ทรงแคปซูล Pill Radius */
 .btn-back-pill {
   border-radius: 50px !important;
   padding: 6px 18px !important;
@@ -1015,14 +1062,13 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
 }
 
-/* 4. 🎨 คืนสีไอคอนให้ปุ่ม Features ทั้งหมด */
-#sectionGpsCheckin i { color: #ef4444 !important; margin-right: 4px !important; }     /* GPS สีแดง */
-#sectionSignature i { color: #10b981 !important; margin-right: 4px !important; }    /* Signature สีเขียว */
-#sectionSamples i { color: #f59e0b !important; margin-right: 4px !important; }      /* Samples สีส้ม */
-#sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }  /* Attachments สีฟ้า */
+#sectionGpsCheckin i { color: #ef4444 !important; margin-right: 4px !important; }
+#sectionSignature i { color: #10b981 !important; margin-right: 4px !important; }
+#sectionSamples i { color: #f59e0b !important; margin-right: 4px !important; }
+#sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES (GAP REFINED)
+   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES
    ========================================== */
 
 #visitFormView {
@@ -1045,11 +1091,10 @@ mark.highlight-search {
   --bs-gutter-y: 1rem !important;
 }
 
-/* 🌟 สั่งเว้นระยะห่างแนวตั้งและแนวนอนของกลุ่มปุ่ม Features ให้แยกออกจากกันชัดเจน */
 #visitFormView .row.g-2.5 {
   display: flex !important;
   flex-wrap: wrap !important;
-  row-gap: 12px !important; /* เว้นระยะห่างแถวบน-ล่าง 12px */
+  row-gap: 12px !important;
   column-gap: 0px !important;
 }
 
@@ -1068,13 +1113,12 @@ mark.highlight-search {
   margin-bottom: 0.65rem !important;
 }
 
-/* 🌟 FLEXBOX ยืดความสูงช่องฝั่งขวาพอดี ไร้โหว่ก้นการ์ด */
 #visitFormView .field-wrapper-details {
   flex: 1.8 1 0% !important;
 }
 
 #visitFormView .field-wrapper-insight {
-  flex: 1.2 1 0% !important;
+  flex: 1.3 1 0% !important;
 }
 
 #visitFormView .field-wrapper-nextaction {
@@ -1093,7 +1137,6 @@ mark.highlight-search {
   resize: none !important;
 }
 
-/* 🎨 ปุ่มกลุ่ม Features & Evidences Base Style */
 .feature-action-btn-lg {
   font-size: 0.85rem !important;
   font-weight: 600;
@@ -1119,7 +1162,6 @@ mark.highlight-search {
   transform: translateY(-1px);
 }
 
-/* 🟢 🎨 คืนค่าสีเต็มปุ่ม Features เมื่อมีข้อมูล */
 button.feature-action-btn-lg.has-data-gps {
   background-color: #dcfce7 !important;
   border-color: #16a34a !important;
@@ -1151,7 +1193,6 @@ button.feature-action-btn-lg.has-data-samples {
   font-weight: 700 !important;
 }
 
-/* 🌟 ปุ่ม e-Detailing หนานุ่มกดยอดเยี่ยมบน iPad (ดันระยะห่างด้านบน) */
 .btn-edetailing-touch {
   min-height: 46px !important;
   height: 46px !important;
@@ -1160,11 +1201,10 @@ button.feature-action-btn-lg.has-data-samples {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 14px !important; /* เว้นระยะห่างด้านบนปุ่ม e-Detailing 14px */
+  margin-top: 14px !important;
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
 }
 
-/* 🎙️ ปุ่มไมค์วงกลมมินิมอล ซ้อนมุมขวาบนใน Textarea */
 .textarea-dictate-wrapper {
   position: relative !important;
   width: 100%;
@@ -1173,39 +1213,127 @@ button.feature-action-btn-lg.has-data-samples {
   flex-direction: column !important;
 }
 
+.sticky-action-footer {
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 0.65rem !important;
+  margin-top: 0.65rem !important;
+}
+
+/* ==========================================
+   🌟 UNIFIED PREMIUM MIC BUTTONS (GLOBAL)
+   ========================================== */
+
+/* 1. ปุ่มไมค์ในหน้าค้นหาหลัก (Smart Search) */
+#btnMicSmartSearch {
+  color: #0284c7 !important;
+  transition: all 0.2s ease !important;
+}
+#btnMicSmartSearch:hover {
+  color: #0369a1 !important;
+  transform: scale(1.1);
+}
+
+/* 2. ปุ่มไมค์ในช่องกรอกฟอร์ม (Corner Dictation Buttons) */
 .btn-dictate-corner {
   position: absolute !important;
   top: 6px !important;
   right: 6px !important;
   z-index: 5 !important;
-  width: 30px !important;
-  height: 30px !important;
+  width: 32px !important;
+  height: 32px !important;
   padding: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   background-color: #ffffff !important;
-  border: 1px solid #fee2e2 !important;
-  color: #dc2626 !important;
-  font-size: 0.8rem !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0284c7 !important;
+  font-size: 0.82rem !important;
   border-radius: 50% !important;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.06) !important;
-  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-dictate-corner:hover {
-  background-color: #fef2f2 !important;
-  border-color: #fca5a5 !important;
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
   transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15) !important;
 }
 
-.textarea-dictate-wrapper textarea,
-.textarea-dictate-wrapper input {
-  padding-right: 42px !important;
+/* 3. สถานะขณะกำลังบันทึกเสียง (Active State - กะพริบสีแดงเฉพาะตอนพูด) */
+.mic-active, 
+.btn-dictate-corner.mic-active {
+  animation: pulse-red-premium 1.5s infinite !important;
+  border-color: #ef4444 !important;
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
 }
 
-.sticky-action-footer {
-  border-top: 1px solid #f1f5f9 !important;
-  padding-top: 0.65rem !important;
-  margin-top: 0.65rem !important;
+@keyframes pulse-red-premium {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ==========================================
+   📱 RESPONSIVE ADJUSTMENTS (iPad, Tablet & Desktop)
+   ========================================== */
+
+/* 🌟 iPad / Tablet (768px - 1199px): ยืดการ์ดตารางเต็มก้นหน้าจอ */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .visit-module-wrapper {
+    height: calc(100vh - 65px) !important;
+    max-height: calc(100vh - 65px) !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  #visitListView {
+    height: 100% !important;
+  }
+
+  #visitMainContentContainer {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #visitListZone {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+  }
+
+  .table-scroll-inside {
+    max-height: calc(100vh - 170px) !important;
+    flex-grow: 1 !important;
+  }
+}
+
+/* 🌟 Desktop (1200px+): ยืดการ์ดตารางเต็มก้นหน้าจอมาตรฐาน CRM (แบบ A) */
+@media (min-width: 1200px) {
+  .visit-module-wrapper {
+    height: calc(100vh - 65px) !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  #visitListView {
+    height: 100% !important;
+  }
+
+  #visitMainContentContainer {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #visitListZone {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+  }
+
+  .table-scroll-inside {
+    max-height: calc(100vh - 210px) !important;
+    flex-grow: 1 !important;
+  }
 }
