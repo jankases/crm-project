@@ -763,15 +763,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* 🌟 UNIFIED SINGLE-STATE LOADING */
-#visitListView.is-loading #visitMainContentContainer {
+#visitListView.is-loading #visitMainContentContainer,
+#visitListView.is-loading #visitCalendarZone {
   display: none !important;
 }
 
 #visitListView.is-loading #visitTableLoading {
-  display: flex !important;
-}
-
-#visitListView:not(.is-loading) #visitMainContentContainer {
   display: flex !important;
 }
 
