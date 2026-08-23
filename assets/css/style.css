@@ -1343,41 +1343,32 @@ button.feature-action-btn-lg.has-data-samples {
     display: none !important;
 } 
 
-/* 🌟 สไตล์ปุ่มภาษา Desktop (ทรงแคปซูล ไซส์มินิมอลขั้นสุด) */
-.desktop-lang-wrapper {
-  background-color: #f1f5f9 !important;
-  padding: 2px !important; /* ลดขอบนอกให้บางเฉียบ */
-  border-radius: 50px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 1px !important;
-  height: 28px !important; /* 🌟 ล็อกความสูงให้เตี้ยลง (เล็กกว่า Profile ที่สูง 32px) */
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05) !important;
-}
 
-.desktop-lang-btn {
-  border: none !important;
-  background: transparent !important;
-  color: #64748b !important;
-  font-weight: 700 !important;
-  font-size: 0.68rem !important; /* บีบฟอนต์ลงนิดนึงให้ดูพรีเมียม */
-  padding: 0 10px !important; /* ลดความกว้างซ้าย-ขวา */
-  border-radius: 40px !important;
-  transition: all 0.2s ease !important;
-  height: 24px !important; /* ล็อกความสูงปุ่มด้านใน */
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: 1 !important;
-}
 
-.desktop-lang-btn.active {
-  background-color: #ffffff !important;
-  color: #0ea5e9 !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
-}
+/* 🌟 Desktop (1200px+): ยืดการ์ดตารางเต็มก้นหน้าจอมาตรฐาน CRM (แบบ A) */
+@media (min-width: 1200px) {
+  .visit-module-wrapper {
+    height: calc(100vh - 65px) !important;
+    padding-bottom: 0.5rem !important;
+  }
 
-.desktop-lang-btn:not(.active):hover {
-  color: #334155 !important;
-  background-color: rgba(0,0,0,0.03) !important;
+  #visitListView {
+    height: 100% !important;
+  }
+
+  #visitMainContentContainer {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #visitListZone {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+  }
+
+  .table-scroll-inside {
+    max-height: calc(100vh - 210px) !important;
+    flex-grow: 1 !important;
+  }
 }
