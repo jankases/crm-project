@@ -1343,40 +1343,41 @@ button.feature-action-btn-lg.has-data-samples {
     display: none !important;
 } 
 
-/* 🌟 สไตล์ปุ่มภาษา Desktop (แนวนอน ทรงแคปซูล Segmented Control) - คลีน มินิมอล */
+/* 🌟 สไตล์ปุ่มภาษา Desktop (ทรงแคปซูล ไซส์มินิมอลขั้นสุด) */
 .desktop-lang-wrapper {
-  background-color: #f1f5f9;
-  padding: 3px;
-  border-radius: 50px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-  height: 32px;
+  background-color: #f1f5f9 !important;
+  padding: 2px !important; /* ลดขอบนอกให้บางเฉียบ */
+  border-radius: 50px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 1px !important;
+  height: 28px !important; /* 🌟 ล็อกความสูงให้เตี้ยลง (เล็กกว่า Profile ที่สูง 32px) */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05) !important;
 }
 
 .desktop-lang-btn {
-  border: none;
-  background: transparent;
-  color: #64748b;
-  font-weight: 700;
-  font-size: 0.72rem;
-  padding: 0 12px;
-  border-radius: 40px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: none !important;
+  background: transparent !important;
+  color: #64748b !important;
+  font-weight: 700 !important;
+  font-size: 0.68rem !important; /* บีบฟอนต์ลงนิดนึงให้ดูพรีเมียม */
+  padding: 0 10px !important; /* ลดความกว้างซ้าย-ขวา */
+  border-radius: 40px !important;
+  transition: all 0.2s ease !important;
+  height: 24px !important; /* ล็อกความสูงปุ่มด้านใน */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
 
 .desktop-lang-btn.active {
-  background-color: #ffffff;
-  color: #0ea5e9;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  background-color: #ffffff !important;
+  color: #0ea5e9 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
 }
 
 .desktop-lang-btn:not(.active):hover {
-  color: #334155;
-  background-color: rgba(0,0,0,0.03);
+  color: #334155 !important;
+  background-color: rgba(0,0,0,0.03) !important;
 }
