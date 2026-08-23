@@ -759,11 +759,21 @@ window.toggleMainView = function(viewName) {
   }
 };
 
+// ✅ แก้ไขให้สลับหน้าฟอร์มกับตารางอย่างสมบูรณ์ ไม่โหลดต่อท้ายด้านล่าง
 window.switchVisitView = function(viewId) {
-  var views = ['visitListView', 'visitFormView'];
-  views.forEach(function(v) { var el = document.getElementById(v); if(el) el.classList.add('d-none'); });
-  var target = document.getElementById(viewId); 
-  if(target) target.classList.remove('d-none');
+  var listView = document.getElementById('visitListView');
+  var formView = document.getElementById('visitFormView');
+
+  if (viewId === 'visitFormView') {
+    if (listView) listView.classList.add('d-none');
+    if (formView) formView.classList.remove('d-none');
+  } else {
+    if (formView) formView.classList.add('d-none');
+    if (listView) listView.classList.remove('d-none');
+  }
+  
+  var mainWrapper = document.querySelector('.visit-module-wrapper');
+  if (mainWrapper) mainWrapper.scrollTop = 0;
   window.scrollTo(0, 0);
 };
 
