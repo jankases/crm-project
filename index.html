@@ -87,6 +87,19 @@
         gap: 0.75rem;
       }
 
+      /* 🌐 สไตล์ปุ่มสลับภาษาจิ๋วบน iPad Sidebar Rail */
+      .ipad-lang-btn {
+        width: 36px;
+        height: 26px;
+        padding: 0;
+        font-size: 0.7rem;
+        font-weight: 800;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       #mainContent {
         flex: 1;
         height: 100vh !important;
@@ -225,6 +238,12 @@
         </nav>
 
         <div class="sidebar-bottom-profile">
+          <!-- 🌐 ปุ่มเปลี่ยนภาษาแบบมินิมอลบน iPad Sidebar Rail -->
+          <div class="btn-group-vertical gap-1 my-1" role="group" title="Switch Language">
+            <button type="button" class="btn btn-outline-info ipad-lang-btn text-white fw-bold" id="ipadBtnLangEN" onclick="setLanguage('en')">EN</button>
+            <button type="button" class="btn btn-outline-info ipad-lang-btn text-white fw-bold" id="ipadBtnLangTH" onclick="setLanguage('th')">TH</button>
+          </div>
+
           <button class="btn btn-sm btn-outline-light text-white-50 border-0 p-0 fs-5 mb-2" onclick="logout()" title="Logout">
             <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i>
           </button>
