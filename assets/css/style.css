@@ -2,7 +2,7 @@
    CRM System - Global Stylesheet (style.css)
    ========================================= */
 
-/* 🔒 1. GLOBAL APP-LIKE SCROLL CONTROL */
+/* 🔒 RULE 1: GLOBAL APP-LIKE SCROLL CONTROL */
 html, body {
   height: 100vh !important;
   margin: 0 !important;
@@ -10,35 +10,60 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ 2. ISOLATED MODULE WRAPPER */
+/* 🖥️ RULE 1: ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 65px);
-  width: 100%;
+  height: calc(100vh - 65px) !important; /* ค่า Default สำหรับ PC */
+  width: 100% !important;
   overflow: hidden !important;
-  padding: 0.75rem 1.25rem !important;
+  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
   background-color: #f8fafc;
   box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* 📊 3. FIXED TABLE-ONLY SCROLL ENGINE */
+/* 📊 RULE 2: FIXED TABLE-ONLY SCROLL ENGINE */
+#visitListView,
+#doctorListView,
+#hospListView {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+#visitMainContentContainer,
+.doc-main-content,
+.hosp-main-content {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
 #visitListZone, 
 #doctorListView .card,
 #hospListView .card {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  justify-content: space-between !important;
 }
 
+/* 🌟 RULE 3: INTERNAL SCROLL ONLY */
 .table-scroll-inside {
   width: 100%;
-  height: 100% !important; /* ✅ ยืดเต็ม 100% */
-  max-height: none !important; /* ✅ ปลดล็อกการจำกัดความสูง */
-  min-height: 0 !important;
   flex: 1 1 auto !important;
+  height: 100% !important;
+  max-height: none !important; /* 🚫 ปลดล็อกการบีบความสูงที่เคยทำพัง */
+  min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: auto;
   border-radius: 8px;
@@ -57,7 +82,14 @@ html, body {
   box-shadow: inset 0 -1px 0 #e2e8f0;
 }
 
-/* ✨ 4. MODERN MINIMAL SCROLLBAR (ซ่อนแถบเมื่อไม่สโครลล์) */
+#visitPaginationContainer,
+.doc-pagination-container,
+.hosp-pagination-container {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* ✨ MODERN MINIMAL SCROLLBAR (ซ่อนแถบเมื่อไม่สโครลล์) */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
@@ -65,14 +97,12 @@ html, body {
   width: 6px;
   height: 6px;
 }
-
 .table-scroll-inside::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
@@ -80,7 +110,6 @@ html, body {
   background: #cbd5e1;
   border-radius: 4px;
 }
-
 .table-scroll-inside::-webkit-scrollbar-thumb:hover,
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
@@ -1285,56 +1314,9 @@ button.feature-action-btn-lg.has-data-samples {
 /* 🌟 iPad / Tablet (768px - 1199px): ยืดการ์ดตารางเต็มก้นหน้าจอ */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
-    height: calc(100vh - 65px) !important;
-    max-height: calc(100vh - 65px) !important;
+    height: 100vh !important; /* iPad ไม่มี top navbar แล้ว จึงใช้ 100vh ได้เลย */
+    max-height: 100vh !important;
     padding-bottom: 0.5rem !important;
   }
-
-  #visitListView {
-    height: 100% !important;
-  }
-
-  #visitMainContentContainer {
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  #visitListZone {
-    flex: 1 1 auto !important;
-    height: 100% !important;
-  }
-
-  .table-scroll-inside {
-    max-height: calc(100vh - 170px) !important;
-    flex-grow: 1 !important;
-  }
 }
-
-/* 🌟 Desktop (1200px+): ยืดการ์ดตารางเต็มก้นหน้าจอมาตรฐาน CRM (แบบ A) */
-@media (min-width: 1200px) {
-  .visit-module-wrapper {
-    height: calc(100vh - 65px) !important;
-    padding-bottom: 0.5rem !important;
-  }
-
-  #visitListView {
-    height: 100% !important;
-  }
-
-  #visitMainContentContainer {
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  #visitListZone {
-    flex: 1 1 auto !important;
-    height: 100% !important;
-  }
-
-  .table-scroll-inside {
-    max-height: calc(100vh - 210px) !important;
-    flex-grow: 1 !important;
-  }
-}
+/* ไม่ต้องใส่ max-height ให้ .table-scroll-inside อีก ปล่อย Flexbox ทำงาน */
