@@ -735,9 +735,13 @@ window.toggleMainView = function(viewName) {
   var calZone = document.getElementById('visitCalendarZone');
   var filterZone = document.getElementById('visitFilterZoneGroup');
 
+  // 🌟 ปรับคลาสให้มี premium-radius และ py-1.5 ตรงกับ HTML
+  var activeClass = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius shadow-sm';
+  var inactiveClass = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
+
   if (viewName === 'calendar') {
-      if (btnList) btnList.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
-      if (btnCal) btnCal.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
+      if (btnList) btnList.className = inactiveClass;
+      if (btnCal) btnCal.className = activeClass;
       
       if (listZone) listZone.classList.add('d-none');
       if (filterZone) filterZone.classList.add('d-none'); 
@@ -745,8 +749,8 @@ window.toggleMainView = function(viewName) {
       if (calZone) calZone.classList.remove('d-none');
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
-      if (btnList) btnList.className = 'btn btn-sm btn-premium-primary px-3 fw-bold';
-      if (btnCal) btnCal.className = 'btn btn-sm btn-light text-secondary premium-radius px-3 fw-bold border-0';
+      if (btnList) btnList.className = activeClass;
+      if (btnCal) btnCal.className = inactiveClass;
       
       if (calZone) calZone.classList.add('d-none');
       
@@ -763,58 +767,23 @@ window.switchVisitView = function(viewId) {
   window.scrollTo(0, 0);
 };
 
-window.updateStatCards = async function() {
-    try {
-        var crmUser = null;
-        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-        var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-        var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
-        var isGlobalAdmin = window.myIsGlobalViewer;
-
-        // 1. ดึงยอดรวม Total ทั้งหมด
-        var qTotal = window.supabaseClient.from('Visit_Logs').select('Visit_ID', { count: 'exact', head: true });
-        if (!isGlobalAdmin) {
-            if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-                qTotal = qTotal.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                qTotal = qTotal.in('Rep_ID', window.myAllowedRepIds);
-            }
-        }
-
-        // 2. ดึงยอด Pending ทั้งหมด
-        var qPending = window.supabaseClient.from('Visit_Logs').select('Visit_ID', { count: 'exact', head: true }).eq('Status', 'Pending');
-        if (!isGlobalAdmin) {
-            if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-                qPending = qPending.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                qPending = qPending.in('Rep_ID', window.myAllowedRepIds);
-            }
-        }
-
-        // 3. ดึงยอด Submitted ทั้งหมด
-        var qSubmitted = window.supabaseClient.from('Visit_Logs').select('Visit_ID', { count: 'exact', head: true }).eq('Status', 'Submitted');
-        if (!isGlobalAdmin) {
-            if (myRole === 'sales' || myRole === 'rep' || myRole === 'sales rep') {
-                qSubmitted = qSubmitted.eq('Rep_ID', myRepId || '00000000-0000-0000-0000-000000000000');
-            } else if (window.myAllowedRepIds && window.myAllowedRepIds.length > 0) {
-                qSubmitted = qSubmitted.in('Rep_ID', window.myAllowedRepIds);
-            }
-        }
-
-        var results = await Promise.all([qTotal, qPending, qSubmitted]);
-
-        var total = results[0].count || 0;
-        var pending = results[1].count || 0;
-        var submitted = results[2].count || 0;
-
-        // อัปเดตลงกล่อง KPI
-        if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
-        if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
-        if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
-
-    } catch (e) {
-        console.error("Error updating stat cards:", e);
+window.updateStatCards = function(totalOrArray, pendingCount, submittedCount) {
+    var total = 0, pending = 0, submitted = 0;
+    
+    // ตรวจสอบว่ารับค่ามาเป็น Array (แบบเก่า) หรือรับเป็นตัวเลขที่คำนวณมาแล้ว (แบบใหม่)
+    if (Array.isArray(totalOrArray)) {
+        total = window.totalVisitsCount || totalOrArray.length;
+        pending = totalOrArray.filter(function(v) { return v.Status === 'Pending'; }).length;
+        submitted = totalOrArray.filter(function(v) { return v.Status === 'Submitted'; }).length;
+    } else {
+        total = totalOrArray || 0;
+        pending = pendingCount || 0;
+        submitted = submittedCount || 0;
     }
+
+    if (document.getElementById('statTotalVisits')) document.getElementById('statTotalVisits').innerText = total;
+    if (document.getElementById('statPendingVisits')) document.getElementById('statPendingVisits').innerText = pending;
+    if (document.getElementById('statSubmittedVisits')) document.getElementById('statSubmittedVisits').innerText = submitted;
 };
 
 // ==========================================
@@ -978,6 +947,14 @@ window.deleteTot = async function() {
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
 
   try {
+    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+
+    // 🌟 [CRITICAL FIX]: คำนวณสิทธิ์ลูกทีมตั้งแต่วินาทีแรก เพื่อให้ loadVisits นำ myAllowedRepIds ไปใช้ได้ทันที
+    if (crmUser && typeof window.setupFiltersDropdowns === 'function') {
+        window.setupFiltersDropdowns(crmUser, []);
+    }
+
     var appLang = window.getCurrentAppLang();
     var statusSelect = document.getElementById('filterVisitStatus');
     if (statusSelect) {
@@ -1024,22 +1001,21 @@ window.deleteTot = async function() {
         }
     }
  
-    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
     var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
-    window.myIsGlobalViewer = false; window.myIsBuHead = false; window.myIsManager = false; window.myIsSalesRole = true;
-
-    var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-    if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
-        window.myIsGlobalViewer = true; window.myIsSalesRole = false;
-    } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
-        window.myIsBuHead = true; window.myIsSalesRole = false;
-    } else if (uRoleUpper.indexOf('MANAGER') !== -1) {
-        window.myIsManager = true; window.myIsSalesRole = false;
+    if (typeof window.myIsBuHead === 'undefined' || !window.myIsBuHead) {
+        var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
+        if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
+            window.myIsGlobalViewer = true; window.myIsSalesRole = false;
+        } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
+            window.myIsBuHead = true; window.myIsSalesRole = false;
+        } else if (uRoleUpper.indexOf('MANAGER') !== -1) {
+            window.myIsManager = true; window.myIsSalesRole = false;
+        } else {
+            window.myIsSalesRole = true;
+        }
     }
     
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -1091,7 +1067,6 @@ window.deleteTot = async function() {
             window.VisitManagerCache.assignedDoctors = allDoctors; 
             window.VisitManagerCache.assignedHospitals = allHospitals;
         } else {
-            // 🌟 แก้ไขจุดนี้: ไล่ Hierarchy ตาม DB จริง (BU -> Team -> Territory)
             if (window.myIsBuHead) {
                 var matchedBu = globalBuListLocal.find(function(b) { 
                     var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
@@ -1100,14 +1075,12 @@ window.deleteTot = async function() {
                 });
                 var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id) : rawScope;
                 
-                // 1. หา Team_ID ใต้ BU_ID
                 var matchedTeams = globalTeamListLocal.filter(function(t) { 
                     var tBu = String(t.BU_ID || t.BU || '').trim().toLowerCase();
                     return tBu === String(targetBuId).toLowerCase() || tBu === rawScope.toLowerCase();
                 });
                 var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID || t.id || t.Team); });
 
-                // 2. หา Territory_ID ใต้ Team_ID เหล่านั้น
                 var terrs = globalTerritoryListLocal.filter(function(ter) { 
                     return matchedTeamIds.indexOf(String(ter.Team_ID || ter.Team)) !== -1; 
                 });
@@ -1176,6 +1149,7 @@ window.deleteTot = async function() {
       }
     }
 
+    // 🌟 เรียกสร้าง Dropdown เพิ่มเติมหลังจากโหลดข้อมูลเสร็จ
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
 
     var purposeSelect = document.getElementById('visitPurpose');
@@ -1227,7 +1201,6 @@ window.deleteTot = async function() {
 
   } catch (err) { console.error("Error loading dropdowns:", err.message); }
 };
- 
  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
@@ -1239,12 +1212,8 @@ window.deleteTot = async function() {
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-    
     var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-    
-    var userBuId = crmUser ? String(crmUser.BU_ID || crmUser.BU || crmUser.Business_Unit_ID || '').trim() : '';
-    var userTeamId = crmUser ? String(crmUser.Team_ID || crmUser.Team || '').trim() : '';
-    var userTerId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim() : '';
+    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.Territory_ID || crmUser.territory_id || '').trim().toLowerCase() : '';
 
     var isGlobalViewer = window.myIsGlobalViewer || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(userRole) !== -1;
     var isBuHead = window.myIsBuHead || userRole.indexOf('BU') !== -1 || userRole.indexOf('HEAD') !== -1;
@@ -1255,29 +1224,26 @@ window.deleteTot = async function() {
     var myAllowedTerIds = []; 
     var myAllowedRepIds = [uRepId]; 
     var myAllowedEmails = [uEmail];
+    var targetBuId = '';
 
     if (!isGlobalViewer) {
         if (isBuHead) {
-            // 🌟 1. หา BU_ID จากตาราง BU
             var busList = (window.VisitManagerCache && window.VisitManagerCache.bus) ? window.VisitManagerCache.bus : (window.globalBuList || []);
             var matchedBu = busList.find(function(b) { 
                 var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
                 var bName = String(b.BU || b.BU_Name || '').trim().toLowerCase();
-                var searchBu = userBuId.toLowerCase();
-                return bId === searchBu || bName === searchBu || searchBu.includes(bId) || searchBu.includes(bName);
+                return bId === rawScope || bName === rawScope || rawScope.includes(bId);
             });
-            var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id || matchedBu.BU).trim() : userBuId;
+            targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id || matchedBu.BU).trim().toLowerCase() : rawScope;
 
-            // 🌟 2. หา Team_ID ใต้ BU นี้
             (window.globalTeamList || []).forEach(function(t) {
-                var tBuId = String(t.BU_ID || t.BU || '').trim();
+                var tBuId = String(t.BU_ID || t.BU || '').trim().toLowerCase();
                 var tid = String(t.Team_ID || t.id || t.Team).trim();
-                if (tBuId && targetBuId && (tBuId.toLowerCase() === targetBuId.toLowerCase() || targetBuId.toLowerCase().includes(tBuId.toLowerCase()))) {
+                if (tBuId && targetBuId && (tBuId === targetBuId || targetBuId.includes(tBuId))) {
                     if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
                 }
             });
 
-            // 🌟 3. หา Territory_ID ใต้ Team เหล่านี้
             (window.globalTerritoryList || []).forEach(function(ter) {
                 var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
                 var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
@@ -1286,34 +1252,37 @@ window.deleteTot = async function() {
                 }
             });
         } else if (isManager) {
-            (window.globalTeamList || []).forEach(function(t) {
-                var tid = String(t.Team_ID || t.id || t.Team).trim();
-                if (tid && (tid.toLowerCase() === userTeamId.toLowerCase() || userTeamId.toLowerCase().includes(tid.toLowerCase()))) {
-                    if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
-                }
+            var matchedTeam = (window.globalTeamList || []).find(function(t) {
+                var tId = String(t.Team_ID || t.id || t.Team || '').trim().toLowerCase();
+                var tName = String(t.Team || t.Team_Name || '').trim().toLowerCase();
+                return tId === rawScope || tName === rawScope || rawScope.includes(tId);
             });
-            (window.globalTerritoryList || []).forEach(function(ter) {
-                var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
-                var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
-                if (myAllowedTeamIds.indexOf(trTeamId) !== -1) {
-                    if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
-                }
-            });
+            var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID || matchedTeam.id || matchedTeam.Team).trim() : rawScope;
+
+            if (targetTeamId) {
+                myAllowedTeamIds.push(targetTeamId);
+                (window.globalTerritoryList || []).forEach(function(ter) {
+                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
+                    var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
+                    if (trTeamId.toLowerCase() === targetTeamId.toLowerCase()) {
+                        if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
+                    }
+                });
+            }
         } else if (isSales) {
-            if (userTerId) myAllowedTerIds.push(userTerId);
+            if (rawScope) myAllowedTerIds.push(rawScope);
         }
 
-        // 🌟 4. ดึงลูกทีมทุกคนใน Rep_Users ที่ตรงกับ BU_ID, Team_ID หรือ Territory_ID
         (window.globalUsersList || []).forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var uteam = String(u.Team_ID || u.Team || '').trim();
             var uter = String(u.Territory_ID || u.Territory || '').trim(); 
-            var ubu = String(u.BU_ID || u.BU || '').trim();
+            var ubu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
             var uem = String(u.Email || u.email || '').toLowerCase().trim();
             
             if (!isSales) {
-                var isMatchBU = isBuHead && targetBuId && ubu && (ubu.toLowerCase() === targetBuId.toLowerCase() || targetBuId.toLowerCase().includes(ubu.toLowerCase()));
-                var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1;
+                var isMatchBU = isBuHead && targetBuId && (ubu === targetBuId || targetBuId.includes(ubu) || uter.toLowerCase() === targetBuId);
+                var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTeamIds.indexOf(uter) !== -1;
                 var isMatchTer = myAllowedTerIds.indexOf(uter) !== -1;
 
                 if (isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) {
@@ -1333,7 +1302,7 @@ window.deleteTot = async function() {
     window.myAllowedRepIds = myAllowedRepIds; 
     window.myAllowedEmails = myAllowedEmails;
 
-    // เติมรายชื่อพนักงานลง Dropdown
+    var repOptionsData = [];
     var uniqueUsersMap = new Map();
     var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
@@ -1342,63 +1311,98 @@ window.deleteTot = async function() {
     
     fullAllowedUsers.forEach(function(u) {
         var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-        if (id && id !== 'undefined' && id !== 'null') uniqueUsersMap.set(id, u);
+        if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id)) {
+            uniqueUsersMap.set(id, u);
+            repOptionsData.push({ value: id, text: u.Rep_Name || u.Name || u.Email || id });
+        }
     });
 
-    if (repSelect) {
-        var repHtml = ''; uniqueUsersMap.forEach(function(u, id) { repHtml += '<option value="' + id + '">' + (u.Rep_Name || u.Name || u.Email) + '</option>'; });
-        repSelect.innerHTML = repHtml;
+    var terOptionsData = [];
+    var terMap = new Map();
+
+    // 🌟 1. เติม BU ลง Dropdown
+    if (isGlobalViewer || isBuHead) {
+        var busList = (window.VisitManagerCache && window.VisitManagerCache.bus) ? window.VisitManagerCache.bus : (window.globalBuList || []);
+        busList.forEach(function(b) {
+            var bid = String(b.BU_ID || b.id || b.BU).trim();
+            var bnm = String(b.BU_Name || b.BU || bid).trim();
+            if (isGlobalViewer || bid.toLowerCase() === targetBuId || bnm.toLowerCase() === targetBuId) {
+                if (bid && !terMap.has(bid)) {
+                    terMap.set(bid, bnm + ' (BU)');
+                    terOptionsData.push({ value: bid, text: bnm + ' (BU)' });
+                }
+            }
+        });
     }
 
-    // เติมพื้นที่/ทีมลง Dropdown
-    var terMap = new Map();
+    // 🌟 2. เติม Team ลง Dropdown
     if (isGlobalViewer || isBuHead || isManager) {
         (window.globalTeamList || []).forEach(function(t) {
             var tid = String(t.Team_ID || t.id || t.Team).trim(); 
             var tnm = String(t.Team || t.Team_Name || tid).trim();
             if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1) {
-                if (tid && !terMap.has(tid)) terMap.set(tid, tnm + ' (Team)');
+                if (tid && !terMap.has(tid)) {
+                    terMap.set(tid, tnm + ' (Team)');
+                    terOptionsData.push({ value: tid, text: tnm + ' (Team)' });
+                }
             }
         });
     }
+
+    // 🌟 3. เติม Territory ลง Dropdown
     (window.globalTerritoryList || []).forEach(function(t) {
         var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
         var tnm = String(t.Territory || t.Territory_Name || tid).trim();
         if (isGlobalViewer || myAllowedTerIds.indexOf(tid) !== -1) {
-            if (tid && !terMap.has(tid)) terMap.set(tid, tnm);
+            if (tid && !terMap.has(tid)) {
+                terMap.set(tid, tnm);
+                terOptionsData.push({ value: tid, text: tnm });
+            }
         }
     });
 
-    if (terSelect) {
-        var tHtml = ''; terMap.forEach(function(text, id) { tHtml += '<option value="' + id + '">' + text + '</option>'; }); 
-        terSelect.innerHTML = tHtml;
-    }
-
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
     if (typeof TomSelect !== 'undefined') {
         if (repSelect) {
-            window.safeDestroyTs(window.tomSelectRepInstance);
-            window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
-                maxItems: null, plugins: ['remove_button'], create: false, hidePlaceholder: true,
-                placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', dropdownParent: null, 
-                onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
-            });
-            if (oldRepVal.length > 0) setTimeout(function() { window.tomSelectRepInstance.setValue(oldRepVal, true); }, 50);
+            if (!window.tomSelectRepInstance) {
+                window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
+                    maxItems: null, plugins: ['remove_button'], create: false, 
+                    valueField: 'value', labelField: 'text', searchField: ['text'],
+                    options: repOptionsData, hidePlaceholder: true,
+                    placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
+                    dropdownParent: null, 
+                    onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
+                });
+            } else {
+                window.tomSelectRepInstance.clearOptions();
+                window.tomSelectRepInstance.addOption(repOptionsData);
+                window.tomSelectRepInstance.refreshOptions(false);
+            }
+            if (oldRepVal.length > 0) window.tomSelectRepInstance.setValue(oldRepVal, true);
         }
 
         if (terSelect) {
-            window.safeDestroyTs(window.tomSelectTerInstance);
-            window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
-                maxItems: null, plugins: ['remove_button'], create: false, hidePlaceholder: true,
-                placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', dropdownParent: null,
-                onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
-            });
-            if (oldTerVal.length > 0) setTimeout(function() { window.tomSelectTerInstance.setValue(oldTerVal, true); }, 50);
+            if (!window.tomSelectTerInstance) {
+                window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
+                    maxItems: null, plugins: ['remove_button'], create: false, 
+                    valueField: 'value', labelField: 'text', searchField: ['text'],
+                    options: terOptionsData, hidePlaceholder: true,
+                    placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
+                    dropdownParent: null,
+                    onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
+                });
+            } else {
+                window.tomSelectTerInstance.clearOptions();
+                window.tomSelectTerInstance.addOption(terOptionsData);
+                window.tomSelectTerInstance.refreshOptions(false);
+            }
+            if (oldTerVal.length > 0) window.tomSelectTerInstance.setValue(oldTerVal, true);
         }
     }
     window.isPermissionCalculated = true; 
 };
-
+  
 window.renderFormProductDropdown = async function() {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
@@ -1538,8 +1542,8 @@ window.clearVisitFilters = function() {
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
- 
- window.loadVisits = async function(forceReload) {
+
+window.loadVisits = async function(forceReload, isBackground) {
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1565,7 +1569,8 @@ window.clearVisitFilters = function() {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    if (forceReload || !window.VisitManagerCache.isLoaded || !hasData) {
+    // 🌟 [FIXED] เช็ก !isBackground เพียงจุดเดียว และลบบล็อก if ซ้ำซ้อนด้านล่างทิ้ง
+    if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
         if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
@@ -1578,7 +1583,6 @@ window.clearVisitFilters = function() {
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
         window.renderVisitTableServerSide();
-        if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
         if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
             window.renderCalendarView();
         }
@@ -1603,23 +1607,31 @@ window.clearVisitFilters = function() {
       var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
       var isGlobalAdmin = window.myIsGlobalViewer || ['admin', 'staff', 'director', 'executive', 'product manager'].indexOf(userRole) !== -1;
 
-      var query = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
+      // 🌟 แยก Query ออกเป็น 2 ตัว
+      // 1. dataQuery: ดึงข้อมูลจริงเข้าตาราง (มีแบ่งหน้า มีการเรียงลำดับ)
+      var dataQuery = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
+      // 2. countQuery: ดึงเฉพาะคอลัมน์ Status มานับเลขเพื่ออัปเดตกล่อง Stat ด้านบน
+      var countQuery = window.supabaseClient.from('Visit_Logs').select('Status');
+
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
-      query = query.order(dbSortCol, { ascending: window.currentSortAsc });
+      dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // 🌟 สิทธิ์การมองเห็นข้อมูลตั้งต้น (ดึงตาม Rep_ID ของลูกทีมทุกคนที่คำนวณไว้)
+      // สิทธิ์ตั้งต้น (เพิ่มเงื่อนไขลงไปทั้ง 2 Query)
       if (!isGlobalAdmin) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
-              query = query.in('Rep_ID', allowedIds);
+              dataQuery = dataQuery.in('Rep_ID', allowedIds);
+              countQuery = countQuery.in('Rep_ID', allowedIds);
           } else if (myRepId) {
-              query = query.eq('Rep_ID', myRepId);
+              dataQuery = dataQuery.eq('Rep_ID', myRepId);
+              countQuery = countQuery.eq('Rep_ID', myRepId);
           }
       }
 
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
+     if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -1631,58 +1643,67 @@ window.clearVisitFilters = function() {
       var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
-      if (statusTerm) query = query.eq('Status', statusTerm);
-      if (startDateTerm) query = query.gte('Visit_Date', startDateTerm);
-      if (endDateTerm) query = query.lte('Visit_Date', endDateTerm);
-
-      if (selectedReps.length > 0) {
-          query = query.in('Rep_ID', selectedReps);
+      // 🌟 Status Filter: ใส่เฉพาะใน dataQuery (เพื่อให้ตารางกรอง แต่กล่อง Stat ไม่เปลี่ยน)
+      if (statusTerm) {
+          dataQuery = dataQuery.eq('Status', statusTerm);
       }
 
-      // 🌟 [แก้ปัญหาตารางว่างเปล่าเมื่อเลือก Area]: 
-      // สแกนหาทั้ง Territory_ID ตรงๆ และหา Rep_ID ของทุกคนที่ผูกกับ Team/Territory นั้น
+      // Filter อื่นๆ: ใส่ทั้งคู่
+      if (startDateTerm) {
+          dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
+          countQuery = countQuery.gte('Visit_Date', startDateTerm);
+      }
+      if (endDateTerm) {
+          dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
+          countQuery = countQuery.lte('Visit_Date', endDateTerm);
+      }
+
+      if (selectedReps.length > 0) {
+          dataQuery = dataQuery.in('Rep_ID', selectedReps);
+          countQuery = countQuery.in('Rep_ID', selectedReps);
+      }
+
       if (selectedTers.length > 0) {
           var matchedTerIds = [];
-          var matchedTeamIds = [];
-
           var terrList = window.globalTerritoryList || [];
-          var teamList = window.globalTeamList || [];
 
           selectedTers.forEach(function(selId) {
-              matchedTerIds.push(selId);
-              teamList.forEach(function(tm) {
-                  var tId = String(tm.Team_ID || tm.id || tm.Team).trim();
-                  if (tId === selId || String(tm.Team).trim() === selId) {
-                      matchedTeamIds.push(tId);
-                      terrList.forEach(function(tr) {
-                          if (String(tr.Team_ID || tr.Team).trim() === tId) {
-                              var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
-                              if (trId) matchedTerIds.push(trId);
-                          }
-                      });
+              var selIdClean = String(selId).trim();
+              matchedTerIds.push(selIdClean);
+
+              terrList.forEach(function(tr) {
+                  if (String(tr.Team_ID || tr.Team).trim() === selIdClean) {
+                      var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
+                      if (trId) matchedTerIds.push(trId);
                   }
               });
           });
 
+          var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
+          
           var repIdsInTerr = [];
           (window.globalUsersList || []).forEach(function(u) {
               var uTer = String(u.Territory_ID || u.Territory || '').trim();
               var uTeam = String(u.Team_ID || u.Team || '').trim();
-              var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-
-              if (matchedTerIds.indexOf(uTer) !== -1 || matchedTeamIds.indexOf(uTeam) !== -1) {
+              if (cleanTerIds.includes(uTer) || cleanTerIds.includes(uTeam)) {
+                  var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
                   if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
               }
           });
 
-          var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
-
           if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
-              query = query.or('Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')');
+              var orCond = 'Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')';
+              dataQuery = dataQuery.or(orCond);
+              countQuery = countQuery.or(orCond);
           } else if (repIdsInTerr.length > 0) {
-              query = query.in('Rep_ID', repIdsInTerr);
+              dataQuery = dataQuery.in('Rep_ID', repIdsInTerr);
+              countQuery = countQuery.in('Rep_ID', repIdsInTerr);
           } else if (cleanTerIds.length > 0) {
-              query = query.in('Territory_ID', cleanTerIds);
+              dataQuery = dataQuery.in('Territory_ID', cleanTerIds);
+              countQuery = countQuery.in('Territory_ID', cleanTerIds);
+          } else {
+              dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+              countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
           }
       }
 
@@ -1761,12 +1782,15 @@ window.clearVisitFilters = function() {
                   var safeVisitIds = matchedVisitIds.slice(0, 60);
 
                   if (safeDocIds.length > 0 && safeVisitIds.length === 0) {
-                      query = query.in('Doc_ID', safeDocIds);
+                      dataQuery = dataQuery.in('Doc_ID', safeDocIds);
+                      countQuery = countQuery.in('Doc_ID', safeDocIds);
                   } else if (safeDocIds.length === 0 && safeVisitIds.length > 0) {
-                      query = query.in('Visit_ID', safeVisitIds);
+                      dataQuery = dataQuery.in('Visit_ID', safeVisitIds);
+                      countQuery = countQuery.in('Visit_ID', safeVisitIds);
                   } else {
                       var orCondition = 'Doc_ID.in.(' + safeDocIds.join(',') + '),Visit_ID.in.(' + safeVisitIds.join(',') + ')';
-                      query = query.or(orCondition);
+                      dataQuery = dataQuery.or(orCondition);
+                      countQuery = countQuery.or(orCondition);
                   }
               } else {
                   hasNoMatchOnSomeTerm = true;
@@ -1775,25 +1799,37 @@ window.clearVisitFilters = function() {
           }
 
           if (hasNoMatchOnSomeTerm) {
-              query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+              dataQuery = dataQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+              countQuery = countQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
           }
+      }
+
+      // 🌟 ยิงคำสั่งนับยอด (เฉพาะเพื่ออัปเดตกล่อง Stat) แบบไม่อิง Status
+      var countRes = await countQuery;
+      var totalC = 0, pendingC = 0, submittedC = 0;
+      if (!countRes.error && countRes.data) {
+          totalC = countRes.data.length;
+          pendingC = countRes.data.filter(function(d) { return d.Status === 'Pending'; }).length;
+          submittedC = countRes.data.filter(function(d) { return d.Status === 'Submitted'; }).length;
+      }
+      if (typeof window.updateStatCards === 'function') {
+          window.updateStatCards(totalC, pendingC, submittedC); // อัปเดตตัวเลขเข้ากล่อง
       }
 
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
       var from = (page - 1) * limit;
       var to = from + limit - 1;
-      query = query.range(from, to);
+      dataQuery = dataQuery.range(from, to);
 
-      var res = await query;
+      var res = await dataQuery;
       if (res.error) throw res.error;
 
       window.globalVisits = res.data || [];
-
-      if (!statusTerm && !startDateTerm && !endDateTerm && selectedReps.length === 0 && selectedTers.length === 0 && !rawSearchVal) {
-          window.masterTotalVisitsCount = res.count || 0;
-      }
-      window.totalVisitsCount = window.masterTotalVisitsCount || res.count || 0;
+      
+      // 🌟 แก้ตัวเลข Showing 1 to 2 of 12 ให้กลายเป็น Showing 1 to 2 of 2 (นับเป๊ะตามฟิลเตอร์)
+      window.totalVisitsCount = res.count || 0;
+      
       window._visitSampleIndex = {};
 
       if (window.globalVisits.length > 0) {
@@ -1850,7 +1886,7 @@ window.clearVisitFilters = function() {
       });
 
       window.renderVisitTableServerSide();
-      if (typeof window.updateStatCards === 'function') window.updateStatCards(window.globalVisits);
+      
       if (window.VisitManagerCache && window.VisitManagerCache.currentMainView === 'calendar') {
           if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
       }
@@ -1868,6 +1904,7 @@ window.clearVisitFilters = function() {
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
+
 function matchedTerAndUnique(arr) {
     return arr.filter(function(item, pos) {
         return item && item !== 'null' && item !== 'undefined' && arr.indexOf(item) === pos;
@@ -2032,22 +2069,34 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-    htmlBuffer += '<tr>' +
-      '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-      '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
-      '<td>' + prodBadges + '</td>' +
-      '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-      '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-    '</tr>';
+  
+
+      // ✅ แก้เป็นแบบนี้ (ถอด py-2.5 ออก)
+htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
+  '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+  '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+  '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
+  '<td>' + prodBadges + '</td>' +
+  '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+  '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+  '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
+'</tr>';
   });
 
-  tbody.innerHTML = htmlBuffer;
-  window.renderPaginationControls(totalPages);
-};
+ 
+tbody.innerHTML = htmlBuffer;
+    window.renderPaginationControls(totalPages);
 
-window.renderPaginationControls = function(totalPages) {
-  window.renderGlobalPagination('visitPagination', window.currentPage, totalPages, 'goToPage');
+    // 🌟 [CRITICAL FIX] คืนค่า Focus ให้ช่องค้นหาเสมอหลัง Render ตารางเสร็จ
+    var searchInput = document.getElementById('smartSearchInput');
+    if (searchInput && document.activeElement !== searchInput) {
+        var cursorDocPos = searchInput.value.length;
+        // หากผู้ใช้กำลังพิมพ์อยู่ในช่องค้นหา ให้คงค่า Cursor และ Focus ไว้ไม่ให้หลุด
+        if (searchInput.value.trim() !== '') {
+            searchInput.focus();
+            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
+        }
+    }
 };
 
 window.goToPage = function(page) {
@@ -3164,21 +3213,28 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
 
 // ==========================================
 // 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
-// ==========================================
+// ==========================================  
+ // 🌟 ตัวแปร Global จำค่าที่ถูกเลือก
+ window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
+
 window.renderCalendarView = function() {
   var calendarEl = document.getElementById('calendar');
   if (!calendarEl) return;
-  if (window.globalCalendarInstance) { window.globalCalendarInstance.destroy(); window.globalCalendarInstance = null; }
+
+  var calRepFilter = document.getElementById('calRepFilterSelect');
+  if (calRepFilter) {
+      window.currentCalendarRepFilter = calRepFilter.value;
+  }
+  var selectedRepId = window.currentCalendarRepFilter || '';
   
   var appLang = window.getCurrentAppLang();
-  var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+  var crmUser = null; 
+  try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
 
-  // 1. ดึง ID ของลูกน้องที่ถูกเลือกจาก Filter Dropdown บน Calendar
-  var calRepFilter = document.getElementById('calRepFilterSelect');
-  var selectedRepId = calRepFilter ? calRepFilter.value : '';
-
-  // 2. กรองข้อมูล Visits ตาม Sales Rep ที่หัวหน้าเลือก
+  // ==========================================
+  // 1. Visit Logs
+  // ==========================================
   var visitsSource = window.globalVisits || [];
   if (selectedRepId) {
       visitsSource = visitsSource.filter(function(v) {
@@ -3192,7 +3248,6 @@ window.renderCalendarView = function() {
       var hospName = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
       var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-';
 
-      // ดึงชื่อ Sales Rep มาแสดงถ้าเป็นการดูภาพรวมทีม
       var repObj = (window._userIndex && v.Rep_ID) ? window._userIndex[String(v.Rep_ID).trim().toLowerCase()] : null;
       var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
 
@@ -3206,6 +3261,7 @@ window.renderCalendarView = function() {
       var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
       var baseTitle = repNamePrefix + timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
       var fullTooltipText = baseTitle + '\n' + (appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ') + purposeShow;
+      if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
 
       var isPending = (v.Status === 'Pending');
       var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
@@ -3217,20 +3273,139 @@ window.renderCalendarView = function() {
       };
   });
 
-  // (ส่วนของ Holiday & TOT คงเดิม...)
-  var holidayEvents = []; var companyEvents = []; var totEvents = []; 
+  // ==========================================
+  // 🌟 2. Public Holidays (พื้นหลังสีแดงพาสเทลจาง + ตัวหนังสือสีแดงเข้มอ่านง่าย) & Company Events
+  // ==========================================
+  var holidayEvents = []; var companyEvents = []; 
   
-  var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
+  if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+      var holidayType = window.VisitManagerCache.indexTypes.find(function(t) { 
+          var n = (t.Name || '').trim().toLowerCase();
+          return n.indexOf('holiday') !== -1 && n.indexOf('company') === -1 && n.indexOf('corporate') === -1; 
+      });
+      
+      if (holidayType) {
+          var holidayData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === holidayType.IndexType_ID; });
+          holidayEvents = holidayData.map(function(h) {
+              var hDate = h.Value ? h.Value.split('T')[0] : '';
+              if (hDate.indexOf('/') !== -1) { var dParts = hDate.split('/'); if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0]; }
+              var hTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || h.Value2 || 'วันหยุด');
 
+              return {
+                  id: 'hol_' + h.Index_ID, 
+                  title: '🌴 ' + hTitle, 
+                  start: hDate, 
+                  allDay: true, 
+                  backgroundColor: '#fef2f2', 
+                  borderColor: '#fca5a5',     
+                  textColor: '#dc2626',       
+                  display: 'block',
+                  extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
+              };
+          });
+      }
+
+      var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) { 
+          var n = (t.Name || '').trim().toLowerCase();
+          return n.indexOf('company event') !== -1 || n.indexOf('corporate') !== -1; 
+      });
+
+      if (companyEventType) {
+          var companyData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === companyEventType.IndexType_ID; });
+          companyEvents = companyData.map(function(c) {
+              var cDate = c.Value ? c.Value.split('T')[0] : '';
+              if (cDate.indexOf('/') !== -1) { var dParts2 = cDate.split('/'); if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0]; }
+              var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || c.Value2 || 'กิจกรรมบริษัท');
+
+              return {
+                  id: 'ce_' + c.Index_ID, 
+                  title: '🏢 ' + cTitle, 
+                  start: cDate, 
+                  allDay: true, 
+                  backgroundColor: '#8b5cf6', 
+                  borderColor: '#8b5cf6', 
+                  textColor: '#ffffff', 
+                  display: 'block',
+                  extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: '🏢 ' + cTitle }
+              };
+          });
+      }
+  }
+
+  // ==========================================
+  // 3. TOT Logs
+  // ==========================================
+  var totSource = window.globalFilteredTotLogs || [];
+  if (selectedRepId) {
+      totSource = totSource.filter(function(tot) {
+          return String(tot.Rep_ID) === String(selectedRepId) || String(tot.Whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
+      });
+  }
+
+  var totEvents = totSource.map(function(t) {
+      var repObj = (window._userIndex && t.Rep_ID) ? window._userIndex[String(t.Rep_ID).trim().toLowerCase()] : null;
+      var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
+      
+      var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+      var displayType = t.TOT_Type || 'Time Off';
+      if (appLang === 'en' && window.VisitManagerCache.indexes) {
+          var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+          if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+      }
+      var baseTitle = repNamePrefix + timePrefix + '⛱️ ' + displayType;
+      var fullTooltipText = baseTitle + (t.Remark ? '\n' + (appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ') + t.Remark : '');
+      var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+
+      var startDate = '';
+      if (t.Start_Date) {
+          startDate = t.Start_Date.split('T')[0];
+          if (startDate.indexOf('/') !== -1) { var p1 = startDate.split('/'); if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0]; }
+      }
+      var endDateStr = '';
+      if (t.End_Date && t.End_Date !== t.Start_Date) {
+          endDateStr = t.End_Date.split('T')[0];
+          if (endDateStr.indexOf('/') !== -1) { var p2 = endDateStr.split('/'); if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0]; }
+          var eDate = new Date(endDateStr); eDate.setDate(eDate.getDate() + 1); endDateStr = eDate.toISOString().split('T')[0];
+      }
+
+      var ev = {
+          id: 'tot_' + t.TOT_ID, title: baseTitle, start: startDate, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block',
+          extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
+      };
+      if (endDateStr) ev.end = endDateStr;
+      return ev;
+  });
+
+  var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
+  
+  // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งเคลียร์และใส่อีเวนต์ใหม่ได้เลย
+  if (window.globalCalendarInstance) {
+      window.globalCalendarInstance.removeAllEvents();
+      window.globalCalendarInstance.addEventSource(allEvents);
+      return;
+  }
+
+  // 🌟 ถ้ายังไม่มี Instance ค่อยวาด FullCalendar ใหม่
   if (typeof FullCalendar !== 'undefined') {
-    var fcButtonText = appLang === 'th' ? { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' } : { today: 'Today', month: 'Month', week: 'Week', day: 'Day' };
+    var fcButtonText = appLang === 'th' ? {
+        today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
+    } : {
+        today: 'Today', month: 'Month', week: 'Week', day: 'Day'
+    };
 
     window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth', 
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+        headerToolbar: { 
+          left: 'prev,next today', 
+          center: 'title', 
+          right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+        },
         buttonText: fcButtonText, 
         locale: appLang === 'th' ? 'th' : 'en', 
-        height: '100%', expandRows: true, dayMaxEvents: 2, moreLinkClick: 'popover', 
+        height: '100%', 
+        expandRows: true, 
+        dayMaxEvents: 2, 
+        moreLinkClick: 'popover', 
         events: allEvents,
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
         eventClick: function(info) {
@@ -3242,34 +3417,88 @@ window.renderCalendarView = function() {
             if (typeof window.openEditVisitView === 'function') window.openEditVisitView(info.event.id);
         },
         dateClick: function(info) { 
-            if (typeof window.openAddVisitView === 'function') window.openAddVisitView(info.dateStr); 
+            var isEN = window.getCurrentAppLang() === 'en';
+            var existingPopover = document.getElementById('calQuickAddPopover');
+            if (existingPopover) existingPopover.remove();
+
+            var popoverHtml = `
+              <div id="calQuickAddPopover" class="card shadow-lg border-0 p-2 position-absolute rounded-3" style="z-index: 1060; min-width: 170px;">
+                <div class="fw-bold text-secondary tiny mb-1 text-center border-bottom pb-1">📅 ${info.dateStr}</div>
+                <button class="btn btn-sm btn-light text-primary text-start fw-bold mb-1 rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddVisitView==='function') window.openAddVisitView('${info.dateStr}');">
+                  <i class="fa-solid fa-plus me-1.5"></i>${isEN ? 'Add Visit' : 'บันทึกเยี่ยม'}
+                </button>
+                <button class="btn btn-sm btn-light text-info text-start fw-bold rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddTotModal==='function') { window.openAddTotModal(); document.getElementById('totStartDate').value='${info.dateStr}'; }">
+                  <i class="fa-solid fa-umbrella-beach me-1.5"></i>${isEN ? 'Add TOT' : 'แจ้ง TOT / วันลา'}
+                </button>
+              </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', popoverHtml);
+            var popoverEl = document.getElementById('calQuickAddPopover');
+            popoverEl.style.top = (info.jsEvent.pageY - 20) + 'px';
+            popoverEl.style.left = (info.jsEvent.pageX - 80) + 'px';
+
+            var closeHandler = function(e) {
+                if (!popoverEl.contains(e.target)) {
+                    popoverEl.remove();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            setTimeout(function() { document.addEventListener('click', closeHandler); }, 100);
         },
         displayEventTime: false 
     });
     
     window.globalCalendarInstance.render();
 
-    // 🌟 สร้าง Filter Dropdown สำหรับ Manager บน Header ปฏิทิน
     setTimeout(function() {
       var headerRight = document.querySelector('#calendar .fc-toolbar-chunk:last-child');
-      if (headerRight && !document.getElementById('calRepFilterContainer')) {
-        
-        var isEN = appLang === 'en';
+      if (!headerRight) return;
+
+      var isEN = appLang === 'en';
+
+      if (!document.getElementById('calHeaderLegendDropdown')) {
+        var legendDropdownHtml = `
+          <div class="dropdown d-inline-block me-2" id="calHeaderLegendDropdown">
+            <button class="btn btn-sm btn-light border shadow-sm text-secondary fw-bold dropdown-toggle d-flex align-items-center gap-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="height: 34px; font-size: 0.85rem;">
+              <i class="fa-solid fa-palette text-info"></i>
+              <span id="txtLegendBtn">${isEN ? 'Legend' : 'สัญลักษณ์สี'}</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-3 mt-1" style="width: 220px; font-size: 0.8rem; z-index: 1055;">
+              <div class="fw-bold text-dark border-bottom pb-1.5 mb-2" id="txtLegendHeader">${isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี'}</div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#10b981; flex-shrink:0;"></span><span id="legTxtSubmitted">${isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#f59e0b; flex-shrink:0;"></span><span id="legTxtPending">${isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#64748b; flex-shrink:0;"></span><span id="legTxtUnlock">${isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#ef4444; flex-shrink:0;"></span><span id="legTxtHoliday">${isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์'}</span></div>
+              <div class="d-flex align-items-center mb-2"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#8b5cf6; flex-shrink:0;"></span><span id="legTxtCompany">${isEN ? 'Company Event' : 'กิจกรรมบริษัท'}</span></div>
+              <div class="d-flex align-items-center mb-1.5"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#0ea5e9; flex-shrink:0;"></span><span id="legTxtTotAppr">${isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)'}</span></div>
+              <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px; height:10px; background-color:#94a3b8; flex-shrink:0;"></span><span id="legTxtTotPend">${isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)'}</span></div>
+            </div>
+          </div>
+        `;
+        headerRight.insertAdjacentHTML('afterbegin', legendDropdownHtml);
+      }
+
+      if (!document.getElementById('calRepFilterContainer')) {
         var userList = window.globalUsersList || [];
-        
-        // ถ้าเป็น Manager ให้สร้าง Dropdown เลือกลูกน้อง
         if (isManagerOrAdmin && userList.length > 0) {
+          var allowedReps = window.myAllowedRepIds || [];
+          var uniqueReps = new Map();
+          
           var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม') + '</option>';
           userList.forEach(function(u) {
-            var uId = String(u.Rep_ID || u.User_ID || u.id || '');
-            var uName = u.Rep_Name || u.Name || u.Email || uId;
-            var isSel = (uId === selectedRepId) ? 'selected' : '';
-            repOptionsHtml += '<option value="' + uId + '" ' + isSel + '>' + uName + '</option>';
+            var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+            if (uId && allowedReps.indexOf(uId) !== -1 && !uniqueReps.has(uId)) {
+                uniqueReps.set(uId, true);
+                var uName = u.Rep_Name || u.Name || u.Email || uId;
+                var isSel = (uId === selectedRepId) ? 'selected' : '';
+                repOptionsHtml += '<option value="' + uId + '" ' + isSel + '>👤 ' + uName + '</option>';
+            }
           });
 
           var filterDropdownHtml = `
             <div class="d-inline-block me-2" id="calRepFilterContainer">
-              <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs" id="calRepFilterSelect" style="font-size: 0.82rem; height: 33px; min-width: 180px;" onchange="window.renderCalendarView();">
+              <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs premium-radius text-primary cursor-pointer" id="calRepFilterSelect" style="font-size: 0.85rem; height: 34px; min-width: 180px;" onchange="window.currentCalendarRepFilter = this.value; window.renderCalendarView();">
                 ${repOptionsHtml}
               </select>
             </div>
@@ -3277,6 +3506,7 @@ window.renderCalendarView = function() {
           headerRight.insertAdjacentHTML('afterbegin', filterDropdownHtml);
         }
       }
+
     }, 50);
   }
 };
@@ -4248,3 +4478,117 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// 🌟 1. ฟังก์ชันเวลากดคลิกที่กล่อง KPI  
+window.clickStatCard = function(status) {
+    if (window.tomSelectStatusInstance) {
+        window.tomSelectStatusInstance.setValue(status, true); 
+    } else {
+        var statusEl = document.getElementById('filterVisitStatus');
+        if (statusEl) statusEl.value = status;
+    }
+
+    if (typeof window.updateStatCardActiveUI === 'function') {
+        window.updateStatCardActiveUI(status);
+    }
+
+    var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
+        ? window.VisitManagerCache.currentMainView 
+        : 'list';
+
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        // ส่ง flag isBackground = true ไปถ้าอยู่หน้า calendar เพื่อไม่ให้ขึ้นหน้าจอ Loading
+        var isBg = (currentMainView === 'calendar');
+        window.loadVisits(true, isBg);
+    }
+};
+
+// 🌟 2. ฟังก์ชันสลับสี Active ของกล่อง KPI
+window.updateStatCardActiveUI = function(status) {
+    // หากล่องผ่าน ID ของตัวเลขที่อยู่ด้านใน
+    var elTotal = document.getElementById('statTotalVisits') ? document.getElementById('statTotalVisits').closest('.kpi-card-elevated') : null;
+    var elPending = document.getElementById('statPendingVisits') ? document.getElementById('statPendingVisits').closest('.kpi-card-elevated') : null;
+    var elSubmitted = document.getElementById('statSubmittedVisits') ? document.getElementById('statSubmittedVisits').closest('.kpi-card-elevated') : null;
+
+    // เคลียร์คลาส active เก่าออกให้หมด
+    if (elTotal) elTotal.classList.remove('active-total');
+    if (elPending) elPending.classList.remove('active-pending');
+    if (elSubmitted) elSubmitted.classList.remove('active-submitted');
+
+    // เติมคลาส active ให้กล่องที่ตรงกับสถานะปัจจุบัน
+    if (!status || status === '') {
+        if (elTotal) elTotal.classList.add('active-total');
+    } else if (status === 'Pending') {
+        if (elPending) elPending.classList.add('active-pending');
+    } else if (status === 'Submitted') {
+        if (elSubmitted) elSubmitted.classList.add('active-submitted');
+    }
+};
+
+// 🌟 1. ตัวแปรและฟังก์ชันสำหรับรับค่าจาก Dropdown ปฏิทิน
+window.currentCalendarRepFilter = '';
+
+window.changeCalendarRepFilter = function(repId) {
+    window.currentCalendarRepFilter = repId;
+    if (typeof window.renderCalendarView === 'function') {
+        window.renderCalendarView(); // สั่งวาดปฏิทินใหม่เมื่อเลือกชื่อ
+    }
+};
+
+ 
+// ==========================================
+// 🔍 SMART AUTO-SEARCH & CLEAR ENGINE FOR IPAD (FIXED LOST FOCUS)
+// ==========================================
+window.searchDebounceTimer = null;
+
+window.handleSearchInput = function(inputEl) {
+    var clearBtn = document.getElementById('btnClearSmartSearch');
+    var val = inputEl ? inputEl.value : '';
+
+    // แสดง/ซ่อน ปุ่ม (x) ล้างข้อความ
+    if (clearBtn) {
+        if (val.trim().length > 0) {
+            clearBtn.classList.remove('d-none');
+        } else {
+            clearBtn.classList.add('d-none');
+        }
+    }
+
+    // หน่วงเวลา 500ms ป้องกันการค้นหารัวขณะกำลังพิมพ์
+    clearTimeout(window.searchDebounceTimer);
+    window.searchDebounceTimer = setTimeout(function() {
+        window.currentPage = 1;
+        if (typeof window.loadVisits === 'function') {
+            // 🌟 ส่ง flag isBackground = true เพื่อไม่ให้หน้าจอเปิดตัว Loading มาบังจน Lost Focus
+            window.loadVisits(true, true);
+        }
+    }, 500);
+};
+
+// ฟังก์ชันแตะปุ่ม (x) ล้างข้อความค้นหา
+window.clearSmartSearchInput = function() {
+    var searchInput = document.getElementById('smartSearchInput');
+    var clearBtn = document.getElementById('btnClearSmartSearch');
+    
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    if (clearBtn) {
+        clearBtn.classList.add('d-none');
+    }
+
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true);
+    }
+};
+// ==========================================
+// 📄 PAGINATION CONTROLS ENGINE
+// ==========================================
+window.renderPaginationControls = function(totalPages) {
+  if (typeof window.renderGlobalPagination === 'function') {
+    window.renderGlobalPagination('visitPagination', window.currentPage, totalPages, 'goToPage');
+  }
+};
