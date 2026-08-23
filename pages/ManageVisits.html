@@ -74,7 +74,7 @@
       <span class="text-muted small" id="loadingDescText">Processing your access rights and retrieving records.</span>
     </div>
 
-    <div id="visitMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden h-100">
+    <div id="visitMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden">
       
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
@@ -82,20 +82,10 @@
             
             <!-- Smart Search Input -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
-              <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center position-relative">
-                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()" title="Search">
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-                
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-5 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." oninput="window.handleSearchInput(this)" onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }">
-                
-                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent p-0 position-absolute d-none" type="button" id="btnClearSmartSearch" onclick="window.clearSmartSearchInput()" style="right: 40px; z-index: 10;">
-                  <i class="fa-solid fa-circle-xmark fs-6"></i>
-                </button>
-
-                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')">
-                  <i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i>
-                </button>
+              <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
+                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }">
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')"><i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i></button>
               </div>
             </div>
 
@@ -118,7 +108,7 @@
                 <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
               </button>
               
-              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 10;">
+              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 1050;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
                 
                 <div class="mb-2">
@@ -143,22 +133,22 @@
             </div>
 
             <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear Filters</span></button>
+            <button class="btn btn-outline-success border shadow-sm premium-radius px-3 py-1.5" type="button" id="btnExportVisits" onclick="window.exportVisitsToCSV()"><i class="fa-solid fa-file-excel me-2"></i><span class="small fw-semibold" data-i18n="btn_export">Export</span></button>
           </div>
         </div>
       </div>
 
-      <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 d-flex flex-column flex-grow-1 h-100" style="min-height: 0;">
-        <div class="table-responsive table-scroll-inside flex-grow-1 h-100">
+      <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
+        <div class="table-responsive table-scroll-inside flex-grow-1">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header text-center">
               <tr>
-                <th class="sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
-                <th class="sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
-                <th class="sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
-                <th class="sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
-                <th class="sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
-                <th class="sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
-                <th style="width: 40px;"></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-date"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doctor"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-hospital"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-products"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-purpose"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-status"></i></th>
               </tr>
             </thead>
             <tbody id="visitTableBody"></tbody>
@@ -168,7 +158,7 @@
         <div id="visitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
           <div class="d-flex align-items-center">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-            <select class="form-select form-select-sm shadow-sm premium-radius text-center" id="visitRowsPerPage" onchange="window.changeRowsPerPage()">
+            <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
@@ -190,7 +180,7 @@
   <!-- ================= 2. FORM VIEW ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
-    <!-- Top Header Bar -->
+    <!-- Top Header Bar (ปุ่ม Back ทรงแคปซูล Pill Radius นุ่มนวล) -->
     <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.cancelVisitForm()">
@@ -244,7 +234,7 @@
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
                 </div>
 
-                <!-- 🌟 Purpose (ย้อนกลับมาฝั่งซ้ายเหมือนเดิม) -->
+                <!-- Purpose -->
                 <div class="mb-3">
                   <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
@@ -285,7 +275,7 @@
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
                   </label>
                   
-                  <div class="row g-3">
+                  <div class="row g-2.5">
                     <div class="col-6">
                       <button type="button" class="feature-action-btn-lg w-100" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                         <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
@@ -322,7 +312,7 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details) -->
+          <!-- 🔹 Right Column (Activity Details - ปุ่มไมค์วงกลมมินิมอล) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
