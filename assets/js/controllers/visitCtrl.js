@@ -726,15 +726,14 @@ window.closeMediaPresentation = async function() {
 // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================
-window.toggleMainView = function(viewName) {
+ window.toggleMainView = function(viewName) {
   window.VisitManagerCache = window.VisitManagerCache || {};
   window.VisitManagerCache.currentMainView = viewName;
   var btnList = document.getElementById('btnToggleList');
   var btnCal = document.getElementById('btnToggleCal');
-  var listZone = document.getElementById('visitListZone');
-  var calZone = document.getElementById('visitCalendarZone');
-  var filterZone = document.getElementById('visitFilterZoneGroup');
-  var mainContainer = document.getElementById('visitMainContentContainer'); // 🌟 เพิ่มตัวแปรกล่องแม่
+  
+  var mainContainer = document.getElementById('visitMainContentContainer'); // กล่องแม่ของตาราง
+  var calZone = document.getElementById('visitCalendarZone'); // กล่องแม่ของปฏิทิน
 
   var activeClass = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius shadow-sm';
   var inactiveClass = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
@@ -743,21 +742,16 @@ window.toggleMainView = function(viewName) {
       if (btnList) btnList.className = inactiveClass;
       if (btnCal) btnCal.className = activeClass;
       
-      if (listZone) listZone.classList.add('d-none');
-      if (filterZone) filterZone.classList.add('d-none'); 
-      if (mainContainer) mainContainer.classList.add('d-none'); // 🌟 ซ่อนกล่องแม่เด็ดขาดเมื่อเปิดปฏิทิน
+      if (mainContainer) mainContainer.classList.add('d-none'); // 🌟 ซ่อนกล่องแม่ตาราง
+      if (calZone) calZone.classList.remove('d-none'); // 🌟 โชว์กล่องปฏิทิน
       
-      if (calZone) calZone.classList.remove('d-none');
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (btnList) btnList.className = activeClass;
       if (btnCal) btnCal.className = inactiveClass;
       
-      if (calZone) calZone.classList.add('d-none');
-      
-      if (filterZone) filterZone.classList.remove('d-none'); 
-      if (listZone) listZone.classList.remove('d-none');
-      if (mainContainer) mainContainer.classList.remove('d-none'); // 🌟 แสดงกล่องแม่กลับมาเมื่อเปิด List
+      if (calZone) calZone.classList.add('d-none'); // 🌟 ซ่อนกล่องปฏิทิน
+      if (mainContainer) mainContainer.classList.remove('d-none'); // 🌟 โชว์กล่องแม่ตาราง
   }
 };
 
