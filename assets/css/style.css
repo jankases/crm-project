@@ -875,8 +875,10 @@ mark.highlight-search {
    📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
    ========================================== */
 #visitCalendarZone {
-    height: calc(100vh - 130px) !important;
-    max-height: calc(100vh - 130px) !important;
+    flex: 1 1 auto !important; /* ✅ ปล่อยให้ขยายเต็มพื้นที่ที่เหลือเองโดยอัตโนมัติ */
+    height: 100% !important;
+    max-height: none !important; /* ✅ ปลดล็อกไม่ให้บีบความสูง */
+    min-height: 0 !important;
     overflow: hidden !important;
     flex-direction: column !important;
 }
