@@ -2239,8 +2239,17 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       if (typeof window.updateFormUserInfo === 'function') {
           window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
       }
-
-      document.getElementById('visitDate').value = v.Visit_Date || '';
+ 
+        if (v && v.Visit_Date) {
+            var rawDate = v.Visit_Date.split('T')[0];
+            if (rawDate.indexOf('-') !== -1) {
+                var p = rawDate.split('-');
+                // แปลง YYYY-MM-DD เป็น DD/MM/YYYY
+                document.getElementById('visitDate').value = p[2] + '/' + p[1] + '/' + p[0];
+            } else {
+                document.getElementById('visitDate').value = formatToDDMMYYYY(v.Visit_Date);
+            }
+        }
       if (typeof window.formatTimeString === 'function') {
           document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
           document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
