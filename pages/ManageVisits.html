@@ -216,21 +216,21 @@
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
-                
-                <!-- Doctor Selection (🌟 ปรับย้ายปุ่มไมค์ขึ้นมาวางบรรทัดเดียวกับ History เพื่อไม่ให้ตกบรรทัด) -->
+                 
+                <!-- Doctor Selection (ไว้ข้างในช่อง Select แบบ Absolute Overlay) -->
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
-                    <div class="d-flex align-items-center gap-1.5">
-                      <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
-                        <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
-                      </button>
-                      <button class="btn btn-dictate-corner position-static shadow-xs ms-1" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Dictation">
-                        <i class="fa-solid fa-microphone" id="micDocIcon"></i>
-                      </button>
-                    </div>
+                    <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
+                      <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
+                    </button>
                   </div>
-                  <select class="form-select bg-white" id="visitDocId" required style="min-height: 42px !important;"></select>
+                  <div class="position-relative d-flex align-items-center">
+                    <select class="form-select bg-white pe-5" id="visitDocId" required style="min-height: 42px !important;"></select>
+                    <button class="btn btn-dictate-select-inside" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Dictation">
+                      <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Products -->
