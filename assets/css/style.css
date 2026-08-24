@@ -10,11 +10,11 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ RULE 1: ISOLATED MODULE WRAPPER */
+/* 🖥️ ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 65px) !important; /* พอดีจอเป๊ะ หัก Navbar */
+  height: calc(100vh - 85px) !important; /* พอดีจอเป๊ะ หัก Navbar ให้อยู่ในกรอบ 100% */
   width: 100% !important;
   overflow: hidden !important;
   padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
@@ -24,7 +24,7 @@ html, body {
   flex-direction: column !important;
 }
 
-/* 📊 RULE 2: FIXED TABLE-ONLY SCROLL ENGINE */
+/* 📊 FIXED TABLE-ONLY SCROLL ENGINE */
 #visitListView,
 #doctorListView,
 #hospListView {
@@ -57,7 +57,7 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 RULE 3: INTERNAL SCROLL ONLY */
+/* 🌟 RULE 2: INTERNAL SCROLL ONLY */
 .table-scroll-inside {
   width: 100%;
   flex: 1 1 auto !important;
@@ -89,7 +89,7 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* ✨ MODERN MINIMAL SCROLLBAR (ซ่อนแถบเมื่อไม่สโครลล์) */
+/* ✨ MODERN MINIMAL SCROLLBAR */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
@@ -1157,14 +1157,14 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (APP-LIKE SCROLL)
    ========================================== */
 
-/* 🌟 ล็อกกล่องฟอร์มให้พอดีแม่ (แก้เพิ่ม Padding ล่างเว้นที่ให้แคปซูลลอย) */
+/* 🌟 ล็อกกล่องฟอร์มให้พอดีแม่ (ไม่ทะลุจอ) */
 #visitFormView {
   flex: 1 1 auto !important;
   height: 100% !important;
   max-height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important; 
-  padding: 0 0 0.75rem 0 !important; /* 👈 เพิ่มที่ว่างก้นกล่องให้แคปซูลลอยตัวได้เต็มใบ */
+  padding: 0 0 0.75rem 0 !important; 
   background-color: transparent !important;
 }
 
@@ -1174,13 +1174,26 @@ mark.highlight-search {
   flex-direction: column !important;
 }
 
+/* 🌟 ล็อกแถบ Header ด้านบน (ปุ่ม Back / Switch) ให้อยู่กับที่ตลอดเวลา พร้อมเอฟเฟกต์เบลอแบบ iOS */
+#visitFormView form > .d-flex.align-items-center.justify-content-between.mb-2.flex-shrink-0 {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  background-color: rgba(248, 250, 252, 0.9) !important; 
+  backdrop-filter: blur(8px); 
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  margin-top: -10px !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important; 
+}
+
 /* 🌟 ให้เนื้อหาในการ์ดซ้าย-ขวา Scroll ได้เองเมื่อล้น (App-Like ของแท้) */
 #visitFormView .row.g-3 {
   --bs-gutter-x: 1.25rem !important;
   --bs-gutter-y: 1rem !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
-  margin-bottom: 0.5rem !important; /* เว้นระยะห่างจาก Action Bar ด้านล่าง */
+  margin-bottom: 0.5rem !important; 
 }
 
 #visitFormView .col-12 > .border,
@@ -1199,17 +1212,14 @@ mark.highlight-search {
   flex: 1.8 1 0% !important;
   min-height: 0 !important;
 }
-
 #visitFormView .field-wrapper-insight {
   flex: 1.3 1 0% !important;
   min-height: 0 !important;
 }
-
 #visitFormView .field-wrapper-nextaction {
   flex: 1 1 0% !important;
   min-height: 0 !important;
 }
-
 #visitDetails,
 #visitInsight,
 #visitNextAction {
@@ -1222,15 +1232,15 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 4. Action Bar (ลอยตัวสวยงาม โค้งมน 4 ด้าน ไม่ต้องใช้ Sticky) */
+/* 🌟 4. Action Bar (ลอยตัวสวยงาม โค้งมน 4 ด้าน ไม่ต้องใช้ Sticky สำหรับ Desktop) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* 👈 บังคับมุมมน 4 ด้าน */
+  border-radius: 16px !important; 
   box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.04), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
   width: 100% !important;
   min-height: 56px !important;
-  margin-bottom: 0 !important; /* ลบ margin ออก เพราะเว้นที่ด้วย Padding แม่แล้ว */
+  margin-bottom: 0 !important; 
   flex-shrink: 0 !important;
   z-index: 10 !important;
 }
@@ -1488,34 +1498,53 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   📱 RESPONSIVE: ปลดล็อก Scroll เมื่อหน้าจอแคบ (กล่องซ้อนกัน)
+   📱 RESPONSIVE: ปลดล็อก Scroll เมื่อหน้าจอแคบ (แก้ไขกล่องขวาหาย 100%)
    ========================================== */
 @media (max-width: 1199px) {
-  /* เมื่อจอแคบ ให้ฟอร์มเลื่อนขึ้นลงได้ทั้งหน้าจอ */
+  /* ปลดล็อกให้ทั้งหน้าจอเลื่อนได้ */
   #visitFormView {
     overflow-y: auto !important; 
     overflow-x: hidden !important;
   }
   
-  /* ปลดล็อกความสูงของการ์ด ไม่ให้โดนบีบแบน */
+  /* ปลดล็อกความสูงฟอร์ม ไม่ให้ไปบีบเนื้อหาจนหายไป */
+  #visitFormView form {
+    height: auto !important;
+    min-height: 100% !important;
+  }
+
+  /* 👈 พระเอกแก้กล่องหาย: ปลดล็อก Row ไม่ให้ซ่อนเนื้อหา และบังคับเรียงบนลงล่าง */
+  #visitFormView .row.g-3 {
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* คืนค่าความสูงให้กล่องการ์ดทั้งสองฝั่ง (ปล่อยยืดตามเนื้อหา) */
   #visitFormView .col-12 > .border,
   #visitFormView .col-12 > div {
     height: auto !important; 
-    min-height: 400px; 
-    overflow-y: visible !important;
+    overflow: visible !important;
   }
 
-  /* คืนค่าให้กล่องเรียงตัวตามธรรมชาติ */
-  #visitFormView .row.g-3 {
-    height: auto !important;
+  /* จัดการกล่อง Textarea (Details, Insight) ไม่ให้พังเวลาย่อจอ */
+  #visitFormView .field-wrapper-details,
+  #visitFormView .field-wrapper-insight,
+  #visitFormView .field-wrapper-nextaction {
     flex: 0 0 auto !important;
   }
+  
+  /* กำหนดความสูงของช่องพิมพ์ในโหมด iPad ให้พอดีๆ */
+  #visitDetails { height: 120px !important; min-height: 120px !important; }
+  #visitInsight, #visitNextAction { height: 80px !important; min-height: 80px !important; }
 
-  /* 👈 พระเอกอยู่ตรงนี้: ให้แถบลอยตัวเป็นแคปซูล โค้งมนเหมือนในจอใหญ่ */
+  /* แถบ Save ยังคงลอยอยู่ก้นจอสวยๆ แบบ iOS Sticky Footer */
   .full-width-action-bar {
     position: sticky !important;
-    bottom: 0.75rem !important; /* สั่งให้ลอยขึ้นมาจากพื้นเสมอ */
+    bottom: 0.75rem !important; 
     margin-bottom: 0.75rem !important;
-    border-radius: 16px !important; /* บังคับให้มนทั้ง 4 ด้าน ห้ามตัดฉับ */
+    border-radius: 16px !important; 
+    z-index: 105 !important;
   }
 }
