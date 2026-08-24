@@ -10,11 +10,11 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ RULE 1: ISOLATED MODULE WRAPPER */
+/* 🌟 1. แก้ไขความสูงกล่องแม่ (แก้จาก 65px เป็น 80px เพื่อหลบ Navbar ให้พ้น) */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 65px) !important; /* ค่า Default สำหรับ PC */
+  height: calc(100vh - 85px) !important; /* 👈 ปรับระยะเผื่อ Navbar ให้ปลอดภัย 100% */
   width: 100% !important;
   overflow: hidden !important;
   padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
@@ -1149,17 +1149,16 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (FULL-WIDTH STICKY ACTION BAR)
    ========================================== */
 
+/* 🌟 2. ปรับบล็อกฟอร์มให้ยืดหยุ่นพอดีกับกล่องแม่ (ไม่ให้มี Padding ซ้อนทับกัน) */
 #visitFormView {
   flex: 1 1 auto !important;
   height: 100% !important;
-  max-height: 100% !important;
+  max-height: none !important;
   min-height: 0 !important;
   overflow: hidden !important;
+  padding: 0 0 0.5rem 0 !important; /* ล้าง padding เดิมที่ไปเบียดกล่องแม่ */
   background-color: transparent !important;
-  box-sizing: border-box !important;
-  padding-bottom: 0.5rem !important; /* ให้มีที่หายใจด้านล่างนิดนึง */
 }
-
 
 #visitFormView form {
   height: 100% !important;
@@ -1213,19 +1212,18 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 Full-Width Floating Sticky Action Bar (ลอยตัวเป็นแคปซูล ไม่ทะลุจอ) */
+/* 🌟 3. แถบ Action Bar (บังคับลอยตัวและมีระยะขอบ) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* ให้ขอบมนทั้ง 4 ด้าน */
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.05), 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+  border-radius: 16px !important; /* บังคับมุมมนทั้ง 4 ด้าน */
+  box-shadow: 0 -2px 15px rgba(15, 23, 42, 0.05), 0 4px 15px rgba(15, 23, 42, 0.03) !important;
   width: 100% !important;
   min-height: 56px !important;
-  margin-bottom: 0.25rem !important; /* ดันขอบล่างให้ลอยขึ้นมาจากพื้น */
+  margin-bottom: 0.25rem !important; /* ดันขอบล่างขึ้นให้เห็นความโค้งชัดเจน */
   flex-shrink: 0 !important;
   z-index: 10 !important;
 }
-
 /* ==========================================
    ✨ DYNAMIC DEDICATED FEATURE BUTTONS
    ========================================== */
