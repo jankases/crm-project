@@ -150,12 +150,22 @@ async function loadComponent(page) {
             url = './pages/ManageVisits.html'; 
     }
 
+    // 1. อัปเดตเมนู Desktop Navbar
     const menuItems = document.querySelectorAll('.nav-menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
 
     const targetMenu = document.querySelector(`.nav-menu-item[data-page="${page}"]`);
     if (targetMenu) {
         targetMenu.classList.add('active');
+    }
+
+    // 🌟 2. เพิ่มส่วนนี้: อัปเดตเมนู iPad Sidebar Rail ให้ไฮไลต์สี active ตามกันทันที!
+    const ipadMenuItems = document.querySelectorAll('.sidebar-icon-btn');
+    ipadMenuItems.forEach(item => item.classList.remove('active'));
+
+    const targetIpadMenu = document.querySelector(`.sidebar-icon-btn.menu-${page}`);
+    if (targetIpadMenu) {
+        targetIpadMenu.classList.add('active');
     }
 
     const mainContent = document.getElementById('mainContent');
