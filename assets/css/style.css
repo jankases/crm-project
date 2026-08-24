@@ -10,11 +10,11 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🌟 1. แก้ไขความสูงกล่องแม่ (แก้จาก 65px เป็น 80px เพื่อหลบ Navbar ให้พ้น) */
+/* 🖥️ RULE 1: ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 85px) !important; /* 👈 ปรับระยะเผื่อ Navbar ให้ปลอดภัย 100% */
+  height: calc(100vh - 65px) !important; /* พอดีจอเป๊ะ หัก Navbar */
   width: 100% !important;
   overflow: hidden !important;
   padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
@@ -62,7 +62,7 @@ html, body {
   width: 100%;
   flex: 1 1 auto !important;
   height: 100% !important;
-  max-height: none !important; /* 🚫 ปลดล็อกการบีบความสูงที่เคยทำพัง */
+  max-height: none !important;
   min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: auto;
@@ -94,7 +94,8 @@ html, body {
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
-#visitFormView::-webkit-scrollbar {
+#visitFormView::-webkit-scrollbar,
+#visitFormView .col-12 > div::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
@@ -102,14 +103,16 @@ html, body {
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
-#visitFormView::-webkit-scrollbar-track {
+#visitFormView::-webkit-scrollbar-track,
+#visitFormView .col-12 > div::-webkit-scrollbar-track {
   background: transparent;
 }
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
-#visitFormView::-webkit-scrollbar-thumb {
+#visitFormView::-webkit-scrollbar-thumb,
+#visitFormView .col-12 > div::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
@@ -117,7 +120,8 @@ html, body {
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
-#visitFormView::-webkit-scrollbar-thumb:hover {
+#visitFormView::-webkit-scrollbar-thumb:hover,
+#visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
@@ -1150,33 +1154,33 @@ mark.highlight-search {
 #sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM - IDEAL 2 (FULL-WIDTH STICKY ACTION BAR)
+   ✨ EDIT/ADD VISIT FORM - IDEAL 2 (APP-LIKE SCROLL)
    ========================================== */
 
-/* 🌟 2. ปรับบล็อกฟอร์มให้ยืดหยุ่นพอดีกับกล่องแม่ และอนุญาตให้ Scroll ได้ */
+/* 🌟 ล็อกกล่องฟอร์มให้พอดีแม่ (ไม่ทะลุ) */
 #visitFormView {
   flex: 1 1 auto !important;
   height: 100% !important;
-  max-height: none !important;
+  max-height: 100% !important;
   min-height: 0 !important;
-  overflow-y: auto !important; /* 👈 แก้จาก hidden เป็น auto ป้องกันการตัดขอบ */
-  overflow-x: hidden !important;
-  padding: 0 0 1rem 0 !important; /* 👈 เพิ่มพื้นที่ด้านล่างให้ Action Bar ลอยตัว */
+  overflow: hidden !important; 
+  padding: 0 !important; 
   background-color: transparent !important;
 }
 
 #visitFormView form {
-  min-height: 100% !important; /* 👈 เปลี่ยนเป็น min-height เพื่อให้ยืดได้ ไม่โดนบีบ */
+  height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  justify-content: space-between !important;
 }
 
+/* 🌟 ให้เนื้อหาในการ์ดซ้าย-ขวา Scroll ได้เองเมื่อล้น (App-Like ของแท้) */
 #visitFormView .row.g-3 {
   --bs-gutter-x: 1.25rem !important;
   --bs-gutter-y: 1rem !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
+  margin-bottom: 0.5rem !important; /* เว้นระยะห่างจาก Action Bar ด้านล่าง */
 }
 
 #visitFormView .col-12 > .border,
@@ -1187,6 +1191,7 @@ mark.highlight-search {
   background-color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
   height: 100% !important;
+  overflow-y: auto !important; /* 👈 พระเอก! เนื้อหาล้นให้เลื่อนแค่ในการ์ด */
 }
 
 /* ยืดช่อง Textarea ฝั่งขวาให้เต็มความสูงแบบสบายตา */
@@ -1217,20 +1222,17 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 3. แถบ Action Bar (ลอยตัวเต็มรูปแบบ) */
+/* 🌟 4. Action Bar (ลอยตัวสวยงาม โค้งมน 4 ด้าน) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* บังคับมุมมนทั้ง 4 ด้าน */
-  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.04), 0 4px 15px rgba(15, 23, 42, 0.02) !important;
+  border-radius: 16px !important; /* บังคับมุมมน */
+  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.03), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
   width: 100% !important;
-  min-height: 58px !important;
-  margin-top: 10px !important; /* ดันห่างจากเนื้อหาด้านบน */
-  margin-bottom: 2px !important; /* ลอยขึ้นมานิดนึงสวยๆ */
-  flex-shrink: 0 !important;
+  min-height: 56px !important;
+  margin-bottom: 0.25rem !important; /* ลอยจากขอบล่างจอเล็กน้อย */
+  flex-shrink: 0 !important; /* ห้ามหดตัว */
   z-index: 10 !important;
-  position: sticky !important; /* 👈 ทำให้ลอยติดขอบล่างเสมอ */
-  bottom: 0 !important;
 }
 
 /* ==========================================
@@ -1482,5 +1484,38 @@ button.feature-action-btn-lg.has-data-samples {
     background-color: #ffffff !important;
     color: #0ea5e9 !important;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
+  }
+}
+
+/* ==========================================
+   📱 RESPONSIVE: ปลดล็อก Scroll เมื่อหน้าจอแคบ (กล่องซ้อนกัน)
+   ========================================== */
+@media (max-width: 1199px) {
+  /* เมื่อจอแคบ ให้ฟอร์มเลื่อนขึ้นลงได้ทั้งหน้าจอ */
+  #visitFormView {
+    overflow-y: auto !important; 
+    overflow-x: hidden !important;
+  }
+  
+  /* ปลดล็อกความสูงของการ์ด ไม่ให้โดนบีบแบน */
+  #visitFormView .col-12 > .border,
+  #visitFormView .col-12 > div {
+    height: auto !important; 
+    min-height: 400px; /* ให้กล่องมีความสูงขั้นต่ำจะได้ไม่ดูแคบไป */
+    overflow-y: visible !important;
+  }
+
+  /* คืนค่าให้กล่องเรียงตัวตามธรรมชาติ */
+  #visitFormView .row.g-3 {
+    height: auto !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* แถบ Save ยังคงลอยอยู่ก้นจอเหมือนเดิม */
+  .full-width-action-bar {
+    position: sticky !important;
+    bottom: 0 !important; /* บนจอเล็กให้ติดขอบพอดีจะได้กดง่าย */
+    margin-bottom: 0 !important;
+    border-radius: 16px 16px 0 0 !important; /* มนแค่ขอบบน */
   }
 }
