@@ -1370,11 +1370,71 @@ button.feature-action-btn-lg.has-data-samples {
   display: none !important;
 } 
 
-/* 🌟 iPad / Tablet (768px - 1199px): ยืดการ์ดตารางเต็มก้นหน้าจอ */
+/* 🌟 iPad / Tablet (768px - 1199px): สไตล์ Light Premium (คลีน หรูหรา ธีมเดียวกับ Desktop) */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
     height: 100vh !important; /* iPad ไม่มี top navbar แล้ว จึงใช้ 100vh ได้เลย */
     max-height: 100vh !important;
     padding-bottom: 0.5rem !important;
+  }
+
+  .ipad-sidebar-rail {
+    width: 70px !important;
+    height: 100vh !important;
+    background: #ffffff !important; /* เปลี่ยนจากสีดำเป็นสีขาว */
+    border-right: 1px solid #e2e8f0 !important; /* เพิ่มเส้นขอบมินิมอล */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 1rem 0 !important;
+    flex-shrink: 0 !important;
+    z-index: 1040 !important;
+  }
+
+  .sidebar-icon-btn {
+    color: #64748b !important;
+  }
+  .sidebar-icon-btn:hover { 
+    background: #f1f5f9 !important; 
+    color: #0284c7 !important; 
+  }
+  .sidebar-icon-btn.active { 
+    background: #e0f2fe !important; 
+    color: #0284c7 !important; 
+    box-shadow: none !important;
+  }
+
+  /* ปุ่มภาษา iPad สไตล์แคปซูลสว่าง (เหมือน Desktop แต่นิ้วจิ้มง่าย) */
+  .ipad-lang-wrapper {
+    background-color: #f1f5f9 !important;
+    padding: 3px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    width: 44px !important;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06) !important;
+    margin-bottom: 8px !important;
+  }
+
+  .ipad-lang-btn {
+    width: 38px !important;
+    height: 30px !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    border-radius: 9px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    transition: all 0.2s ease !important;
+    background-color: transparent !important;
+    color: #64748b !important;
+  }
+
+  .ipad-lang-btn.active {
+    background-color: #ffffff !important;
+    color: #0ea5e9 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
   }
 }
