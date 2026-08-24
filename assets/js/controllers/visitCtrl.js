@@ -2222,8 +2222,17 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       document.getElementById('visitInsight').value = v.Insight || ''; 
       document.getElementById('visitNextAction').value = v.Next_Action || '';
       document.getElementById('visitStatus').value = v.Status || 'Pending';
+      
+      // 🌟 [เพิ่มใหม่] จัดการแสดงผลสวิตช์ Coaching และ Dropdown รายชื่อ Coach
       var chkCoach = document.getElementById('visitIsCoaching');
-      if (chkCoach) chkCoach.checked = (v.Is_Coaching === true);
+      var coachWrapper = document.getElementById('visitCoachWrapper');
+      var coachSelect = document.getElementById('visitCoachRepId');
+      
+      if (chkCoach) {
+          chkCoach.checked = (v.Is_Coaching === true);
+          if (coachWrapper) coachWrapper.classList.toggle('d-none', !v.Is_Coaching);
+          if (coachSelect) coachSelect.value = v.Coach_Rep_ID || '';
+      }
   }
 
   var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
@@ -2388,7 +2397,14 @@ window.openAddVisitView = async function(presetDate) {
   document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
   document.getElementById('visitStatus').value = 'Pending';
   document.getElementById('visitInsight').value = ''; 
+  
+  // 🌟 เคลียร์ค่า Coach และซ่อน Dropdown
   document.getElementById('visitIsCoaching').checked = false; 
+  var coachWrapper = document.getElementById('visitCoachWrapper');
+  var coachSelect = document.getElementById('visitCoachRepId');
+  if (coachWrapper) coachWrapper.classList.add('d-none');
+  if (coachSelect) coachSelect.value = '';
+
   if (typeof window.setFormComponentsReadOnly === 'function') window.setFormComponentsReadOnly(false);
   
   window.savedSignatureData = null;
@@ -2398,7 +2414,6 @@ window.openAddVisitView = async function(presetDate) {
   window.pendingDetailingLogs = []; 
  
   if (typeof window.renderAttachmentPreviews === 'function') window.renderAttachmentPreviews();
-
   if (typeof window.updateSignaturePreviewUI === 'function') window.updateSignaturePreviewUI();
 
   if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
@@ -2421,23 +2436,19 @@ window.openAddVisitView = async function(presetDate) {
   if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown();
   if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
 
-  if (typeof window.updateFeatureButtonIndicators === 'function') {
-      window.updateFeatureButtonIndicators(null);
-  }
+  if (typeof window.updateFeatureButtonIndicators === 'function') window.updateFeatureButtonIndicators(null);
 
   var returnToDocId = sessionStorage.getItem('returnToDocId');
-  if (returnToDocId) {
-    if (window.tomSelectDocInstance) {
+  if (returnToDocId && window.tomSelectDocInstance) {
       if (typeof window.setTomSelectValue === 'function') window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId);
       window.tomSelectDocInstance.disable(); 
-    }
   }
 
   if (typeof window.restoreFormDraft === 'function') window.restoreFormDraft('NEW');
 
   var btn = document.getElementById('saveVisitBtn');
   if (btn) {
-      btn.dataset.mode = 'save'; btn.className = 'btn btn-premium-primary';
+      btn.dataset.mode = 'save'; btn.className = 'btn btn-premium-primary px-4 py-2 rounded-3 shadow-sm';
       btn.innerHTML = '💾 <span data-i18n="btn_save">Save</span>'; btn.disabled = false;
   }
 
@@ -2480,6 +2491,14 @@ window.handleSaveVisit = async function(e) {
   if (selectedProducts.length === 0) missingFields.push(appLang === 'en' ? "• Products" : "• ผลิตภัณฑ์");
   if (!dateInput || !dateInput.value) missingFields.push(appLang === 'en' ? "• Date" : "• วันที่");
   if (!purposeVal) missingFields.push(appLang === 'en' ? "• Purpose" : "• วัตถุประสงค์");
+
+  // 🌟 [เพิ่มใหม่] ตรวจสอบ Validation กรณีเปิดสวิตช์ Coaching
+  var isCoaching = document.getElementById('visitIsCoaching') ? document.getElementById('visitIsCoaching').checked : false;
+  var coachRepId = document.getElementById('visitCoachRepId') ? document.getElementById('visitCoachRepId').value : null;
+  
+  if (isCoaching && !coachRepId) {
+      missingFields.push(appLang === 'en' ? "• Coach / Joint With" : "• ระบุชื่อผู้ร่วมเยี่ยม (Coach)");
+  }
 
   if (missingFields.length > 0) {
     var warnMsg = appLang === 'en' 
@@ -2524,7 +2543,8 @@ window.handleSaveVisit = async function(e) {
     Details: document.getElementById('visitDetails').value.trim(), 
     Insight: document.getElementById('visitInsight').value.trim(), 
     Next_Action: document.getElementById('visitNextAction').value.trim(), 
-    Is_Coaching: document.getElementById('visitIsCoaching').checked, 
+    Is_Coaching: isCoaching, // 🌟 [อัปเดต] ใช้ตัวแปรแทน
+    Coach_Rep_ID: isCoaching ? coachRepId : null, // 🌟 [เพิ่มใหม่] ส่งค่า Coach เข้า Database
     Status: document.getElementById('visitStatus').value, 
     Whoupdated: whoUpdated, 
     Whenupdated: new Date().toISOString(),
@@ -3566,15 +3586,24 @@ window.updateFeatureButtonIndicators = function(v) {
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   var isEN = appLang === 'en';
 
-  // 1. GPS Check-in
+  // 1. GPS Check-in (🌟 เวอร์ชันแก้บั๊ก Real-time)
   var gpsBtn = document.getElementById('sectionGpsCheckin');
   var gpsText = document.getElementById('btnGpsText');
+  var latInput = document.getElementById('visitLat');
+  var hasGps = (latInput && latInput.value) || (v && v.CheckIn_Lat); // เช็กจากหน้าจอก่อน ค่อยเช็กจาก DB
+  
   if (gpsBtn && gpsText) {
-    if (v && (v.CheckIn_Lat || v.lat) && (v.CheckIn_Long || v.lng)) {
+    if (hasGps) {
       gpsBtn.classList.add('has-data-gps');
-      var cTime = v.CheckIn_Time ? new Date(v.CheckIn_Time) : null;
-      var timeStr = cTime ? (cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0')) : '';
-      gpsText.innerHTML = (isEN ? 'Checked-in' : 'เช็คอินแล้ว') + (timeStr ? ' (' + timeStr + ')' : '') + ' ✓';
+      var cTimeStr = '';
+      var timeTextEl = document.getElementById('visitCheckinTimeText');
+      if (timeTextEl && timeTextEl.innerText) {
+          cTimeStr = timeTextEl.innerText; // ดึงเวลาจากหน้าจอถ้าเพิ่งกด
+      } else if (v && v.CheckIn_Time) {
+          var cTime = new Date(v.CheckIn_Time);
+          cTimeStr = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
+      }
+      gpsText.innerHTML = (isEN ? 'Checked-in' : 'เช็คอินแล้ว') + (cTimeStr ? ' (' + cTimeStr + ')' : '') + ' ✓';
     } else {
       gpsBtn.classList.remove('has-data-gps');
       gpsText.innerText = isEN ? 'GPS Check-in' : 'GPS เช็คอิน';
@@ -3584,8 +3613,9 @@ window.updateFeatureButtonIndicators = function(v) {
   // 2. Doctor Signature
   var sigBtn = document.getElementById('sectionSignature');
   var sigText = document.getElementById('btnSignatureText');
+  var hasSig = window.savedSignatureData || (v && (v.Doctor_Signature || v.signatureImg));
   if (sigBtn && sigText) {
-    if ((v && (v.Doctor_Signature || v.signatureImg)) || window.savedSignatureData) {
+    if (hasSig) {
       sigBtn.classList.add('has-data-sig');
       sigText.innerHTML = (isEN ? 'Signed' : 'เซ็นแล้ว') + ' ✓';
     } else {
@@ -3594,7 +3624,7 @@ window.updateFeatureButtonIndicators = function(v) {
     }
   }
 
-// 3. Samples & Promo Items (FIXED BUGS: เช็กทั้ง DOM และ Cache)
+  // 3. Samples & Promo Items (🌟 FIXED BUGS: เช็กทั้ง DOM และ Cache)
   var samplesBtn = document.getElementById('sectionSamples');
   var samplesText = document.getElementById('btnSamplesText');
   if (samplesBtn && samplesText) {
