@@ -1169,13 +1169,6 @@ mark.highlight-search {
   --bs-gutter-y: 0.75rem !important;
 }
 
-#visitFormView .row.g-2.5 {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  row-gap: 8px !important;
-  column-gap: 0px !important;
-}
-
 #visitFormView .col-12 > .border,
 #visitFormView .col-12 > div {
   padding: 0.85rem 1.15rem !important;
@@ -1219,34 +1212,80 @@ mark.highlight-search {
   resize: none !important;
 }
 
-.feature-action-btn-lg {
-  font-size: 0.82rem !important;
-  font-weight: 600;
-  padding: 6px 10px !important;
-  min-height: 38px !important;
-  height: 38px !important;
-  border-radius: 10px !important;
-  border: 1px solid #cbd5e1;
-  background-color: #f8fafc;
-  color: #475569;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+/* ==========================================
+   ✨ DYNAMIC DEDICATED FEATURE BUTTONS
+   ========================================== */
+
+#featuresButtonsWrapper {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  width: 100% !important;
 }
 
-.btn-edetailing-touch {
+.feature-action-btn-lg {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
   min-height: 40px !important;
   height: 40px !important;
   border-radius: 10px !important;
-  font-size: 0.85rem !important;
-  display: flex !important;
+  border: 1px solid #cbd5e1 !important;
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 8px !important;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08) !important;
+  gap: 6px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+.feature-action-btn-lg:hover {
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+  background-color: #f0f9ff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.12) !important;
+}
+
+button.feature-action-btn-lg.has-data-gps {
+  background-color: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-sig {
+  background-color: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-attach {
+  background-color: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-media {
+  background-color: #fee2e2 !important;
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+button.feature-action-btn-lg.has-data-samples {
+  background-color: #fef3c7 !important;
+  border-color: #d97706 !important;
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+
+.btn-edetailing-touch {
+  min-height: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  font-size: 0.85rem !important;
+  margin-top: 4px !important;
 }
 
 .textarea-dictate-wrapper {
@@ -1262,6 +1301,7 @@ mark.highlight-search {
   padding-top: 0.5rem !important;
   margin-top: 0.5rem !important;
 }
+
 /* ==========================================
    🌟 UNIFIED PREMIUM MIC BUTTONS (STRICT RULE COMPLIANT)
    ========================================== */
@@ -1353,7 +1393,7 @@ mark.highlight-search {
   display: none !important;
 } 
 
- /* 🌟 iPad / Tablet (768px - 1199px): โทน Slate Cool Grey (แยกสัดส่วนชัดเจน ไม่กลืน ไม่มืด) */
+/* 🌟 iPad / Tablet (768px - 1199px): โทน Slate Cool Grey (แยกสัดส่วนชัดเจน ไม่กลืน ไม่มืด) */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
     height: 100vh !important;
@@ -1373,8 +1413,8 @@ mark.highlight-search {
     flex-shrink: 0 !important;
     z-index: 1040 !important;
   }
- 
-   /* 🌟 ไฮไลต์ไอคอนเมนู iPad เวลา Active (ฟ้าสด + พื้นขาว + เงา) */
+
+  /* 🌟 ไฮไลต์ไอคอนเมนู iPad เวลา Active (ฟ้าสด + พื้นขาว + เงา) */
   .sidebar-icon-btn {
     color: #475569 !important;
     transition: all 0.2s ease !important;
