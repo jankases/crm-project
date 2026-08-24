@@ -819,8 +819,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* ==========================================
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS (UNIFIED COLOR)
    ========================================== */
-
-/* 🌟 1. คอลัมน์โรงพยาบาลในตาราง (รูป image_270a4a.png) - คุมไอคอนใช้สีธีมฟ้าหลักสดใส */
 .table-hosp-text {
   color: #334155 !important;
   font-weight: 500 !important;
@@ -829,11 +827,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   gap: 6px;
 }
 .table-hosp-text i {
-  color: #0d6efd !important; /* ปรับสีไอคอนโรงพยาบาล Rama ให้เข้ากับธีมหลัก */
+  color: #0d6efd !important;
   font-size: 0.85rem;
 }
 
-/* 2. คอลัมน์ชื่อแพทย์ */
 .table-doc-name {
   color: #0f172a !important;
   font-weight: 600 !important;
@@ -1085,8 +1082,6 @@ mark.highlight-search {
 /* ==========================================
    🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED THEME)
    ========================================== */
-
-/* 🌟 2. คุมสีไอคอนและข้อความหัวข้อฟอร์ม (รูป image_270a26.png) ให้เป็นธีมหลักสีเดียวกันทั้งหมด */
 .form-section-title {
   font-size: 0.92rem !important;
   font-weight: 700 !important;
@@ -1141,7 +1136,6 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
 }
 
-/* 🌟 คุมสีไอคอนภายในปุ่ม Feature สไตล์คลีน ให้ใช้ธีมเดียวกัน */
 #sectionGpsCheckin i,
 #sectionSignature i,
 #sectionSamples i,
@@ -1272,7 +1266,6 @@ mark.highlight-search {
   box-shadow: 0 3px 8px rgba(13, 110, 253, 0.12) !important;
 }
 
-/* เมื่อกรอกข้อมูลใน Feature ปุ่มจะเปลี่ยนเป็นพื้นไฮไลต์ฟ้าสดตามธีม */
 button.feature-action-btn-lg.has-data-gps,
 button.feature-action-btn-lg.has-data-sig,
 button.feature-action-btn-lg.has-data-attach,
@@ -1384,7 +1377,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING
+   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING (FIXED BUGS)
    ========================================== */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
@@ -1393,52 +1386,71 @@ button.feature-action-btn-lg.has-data-samples i {
     padding-bottom: 0.5rem !important;
   }
 
+  /* แถบ Sidebar Rail ฝั่งซ้าย */
   .ipad-sidebar-rail {
     width: 70px !important;
     height: 100vh !important;
-    background: #f1f5f9 !important;
+    background: #f8fafc !important;
     border-right: 1px solid #e2e8f0 !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    padding: 1rem 0 !important;
+    padding: 0.75rem 0 !important;
     flex-shrink: 0 !important;
     z-index: 1040 !important;
+    box-sizing: border-box !important;
   }
 
+  /* ล็อกสี Logo อันบนสุดให้ใช้สีฟ้าธีมหลัก */
+  .ipad-sidebar-rail .app-logo-btn,
+  .ipad-sidebar-rail .brand-icon-btn {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25) !important;
+  }
+
+  /* ไอคอนเมนูทั่วไป (Inactive) - สีเทาซอฟต์อ่านง่าย */
   .ipad-sidebar-rail .sidebar-icon-btn,
   .ipad-sidebar-rail i {
-    color: #94a3b8 !important;
+    color: #64748b !important;
     transition: all 0.2s ease !important;
   }
   
   .ipad-sidebar-rail .sidebar-icon-btn:hover { 
-    background: #e2e8f0 !important; 
+    background: #f1f5f9 !important; 
     color: #0d6efd !important; 
   }
 
+  /* เมนูที่เลือกอยู่ (Active) - สีฟ้าธีมหลักเดียวกับปุ่ม List/Save */
   .ipad-sidebar-rail .sidebar-icon-btn.active { 
     background-color: #0d6efd !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35) !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
   }
 
+  .ipad-sidebar-rail .sidebar-icon-btn.active i {
+    color: #ffffff !important;
+  }
+
+  /* แคปซูลเปลี่ยนภาษา (EN / TH) คลีนๆ */
   .ipad-lang-wrapper {
-    background-color: #cbd5e1 !important;
+    background-color: #e2e8f0 !important;
     padding: 3px !important;
     border-radius: 12px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 3px !important;
+    gap: 2px !important;
     width: 44px !important;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1) !important;
-    margin-bottom: 8px !important;
+    margin-top: auto !important; /* ดันปุ่มภาษาขึ้นไปด้านบน */
+    margin-bottom: 6px !important;
+    box-shadow: none !important;
   }
 
   .ipad-lang-btn {
     width: 38px !important;
-    height: 30px !important;
-    font-size: 0.75rem !important;
+    height: 26px !important;
+    font-size: 0.72rem !important;
     font-weight: 800 !important;
     border-radius: 9px !important;
     display: flex !important;
@@ -1447,13 +1459,25 @@ button.feature-action-btn-lg.has-data-samples i {
     border: none !important;
     transition: all 0.2s ease !important;
     background-color: transparent !important;
-    color: #475569 !important;
+    color: #64748b !important;
+    box-shadow: none !important;
   }
 
-  .ipad-lang-btn.active {
+  /* ปุ่มภาษาที่ถูกเลือก (Active) */
+  .ipad-lang-btn.active,
+  .ipad-lang-btn.btn-primary {
     background-color: #0d6efd !important;
     color: #ffffff !important;
-    box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3) !important;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.25) !important;
+  }
+
+  /* ปุ่ม Logout ด้านล่างสุด - ไม่ให้ออกนอกกรอบ */
+  .ipad-sidebar-rail .logout-icon-btn {
+    color: #94a3b8 !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .ipad-sidebar-rail .logout-icon-btn:hover {
+    color: #dc2626 !important;
   }
 }
 
