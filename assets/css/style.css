@@ -1573,3 +1573,10 @@ button.feature-action-btn-lg.has-data-samples {
   font-style: italic !important;
   opacity: 0.8 !important;
 }
+
+flatpickr("#visitDate", {
+    dateFormat: "d/m/Y",     // 👈 บังคับส่งค่าและแสดงผลเป็น DD/MM/YYYY
+    altInput: true,
+    altFormat: "d/m/Y",      // 👈 บังคับให้ช่องที่ผู้ใช้มองเห็นแสดงเป็น DD/MM/YYYY
+    allowInput: false
+});
