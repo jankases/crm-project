@@ -3594,15 +3594,28 @@ window.updateFeatureButtonIndicators = function(v) {
     }
   }
 
-  // 3. Samples & Promo Items
+// 3. Samples & Promo Items (FIXED BUGS: เช็กทั้ง DOM และ Cache)
   var samplesBtn = document.getElementById('sectionSamples');
   var samplesText = document.getElementById('btnSamplesText');
   if (samplesBtn && samplesText) {
-    var activeSamples = typeof window.getSamplesData === 'function' ? window.getSamplesData() : [];
+    var activeSamplesCount = 0;
     
-    if (activeSamples.length > 0) {
+    // ก. เช็กจาก DOM ก่อน (กรณีที่มีการกดเพิ่มลดในหน้าจอ)
+    var domSamples = typeof window.getSamplesData === 'function' ? window.getSamplesData() : [];
+    activeSamplesCount = domSamples.length;
+
+    // ข. ถ้า DOM ยังโหลดไม่เสร็จ (นับได้ 0) แต่ข้อมูลจากฐานข้อมูลมี (v.Visit_ID) ให้เช็กจาก Cache
+    if (activeSamplesCount === 0 && v && v.Visit_ID) {
+        var vidClean = String(v.Visit_ID).trim().toLowerCase();
+        var cachedSamples = (window._visitSampleIndex && window._visitSampleIndex[vidClean]) 
+                              ? window._visitSampleIndex[vidClean] 
+                              : (v.Visit_Samples || []);
+        activeSamplesCount = cachedSamples.length;
+    }
+    
+    if (activeSamplesCount > 0) {
       samplesBtn.classList.add('has-data-samples');
-      samplesText.innerHTML = (isEN ? 'Samples' : 'สินค้าตัวอย่าง') + ' (' + activeSamples.length + ') ✓';
+      samplesText.innerHTML = (isEN ? 'Samples' : 'สินค้าตัวอย่าง') + ' (' + activeSamplesCount + ') ✓';
     } else {
       samplesBtn.classList.remove('has-data-samples');
       samplesText.innerText = isEN ? 'Samples' : 'สินค้าตัวอย่าง';
@@ -4475,7 +4488,8 @@ window.loadVisitSamplesForEdit = async function(visitId) {
     const container = document.getElementById('sampleItemsContainer');
     if (!container) return;
     
-    container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")</div>';
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">' + (appLang === 'en' ? 'No samples issued (Click "Add Item")' : 'ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")') + '</div>';
 
     try {
         const { data, error } = await window.supabaseClient
@@ -4488,6 +4502,11 @@ window.loadVisitSamplesForEdit = async function(visitId) {
                 window.addSampleRow(item.Sample_ID, item.Quantity);
             });
             window.renderAllSampleDropdowns();
+            
+            // 🌟 FIX BUGS: สั่งอัปเดตปุ่มให้เป็นสีเขียว หลังจากที่โหลดข้อมูลและสร้างกล่อง DOM เสร็จแล้ว
+            if (typeof window.updateFeatureButtonIndicators === 'function') {
+                window.updateFeatureButtonIndicators();
+            }
         }
     } catch (e) {
         console.error("Error loading Visit_Samples:", e);
@@ -4615,4 +4634,33 @@ window.renderPaginationControls = function(totalPages) {
   if (typeof window.renderGlobalPagination === 'function') {
     window.renderGlobalPagination('visitPagination', window.currentPage, totalPages, 'goToPage');
   }
+};
+
+// ==========================================
+// 🧑‍🏫 COACHING DROPDOWN RENDER
+// ==========================================
+window.renderCoachDropdown = function() {
+    var coachSelect = document.getElementById('visitCoachRepId');
+    if (!coachSelect) return;
+
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || '').trim() : '';
+
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+    var placeholder = appLang === 'en' ? '- Select Coach -' : '- เลือกผู้ร่วมเยี่ยม -';
+    
+    var html = '<option value="">' + placeholder + '</option>';
+    
+    if (window.globalUsersList && window.globalUsersList.length > 0) {
+        window.globalUsersList.forEach(function(u) {
+            var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+            // 🌟 ซ่อนชื่อตัวเองออกจาก Dropdown คนร่วมเยี่ยม
+            if (uId && uId !== myRepId) {
+                var uName = u.Rep_Name || u.Name || u.Email || uId;
+                html += '<option value="' + uId + '">👤 ' + uName + '</option>';
+            }
+        });
+    }
+    coachSelect.innerHTML = html;
 };
