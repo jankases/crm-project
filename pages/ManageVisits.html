@@ -85,10 +85,8 @@
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
-                <!-- 🌟 1. เพิ่ม oninput เพื่อเช็กเวลามีตัวอักษรให้โชว์ปุ่ม x -->
                 <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }" oninput="window.handleSearchInput(this)">
                 
-                <!-- 🌟 2. ปุ่ม (x) ล้างข้อความ (ซ่อนไว้ก่อนด้วย d-none) -->
                 <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearSmartSearch" onclick="window.clearSmartSearchInput()">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
                 </button>
@@ -141,7 +139,6 @@
             </div>
 
             <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear Filters</span></button>
-            <!-- 🚫 เอาปุ่ม Export ออกเรียบร้อย -->
           </div>
         </div>
       </div>
@@ -188,7 +185,7 @@
   <!-- ================= 2. FORM VIEW ================= -->
   <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3">
     
-    <!-- Top Header Bar (ปุ่ม Back ทรงแคปซูล Pill Radius นุ่มนวล) -->
+    <!-- Top Header Bar -->
     <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.cancelVisitForm()">
@@ -220,20 +217,20 @@
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
                 
-                <!-- Doctor Selection -->
+                <!-- Doctor Selection (🌟 ปรับย้ายปุ่มไมค์ขึ้นมาวางบรรทัดเดียวกับ History เพื่อไม่ให้ตกบรรทัด) -->
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="compact-label"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
-                    <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
-                      <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
-                    </button>
+                    <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
+                    <div class="d-flex align-items-center gap-1.5">
+                      <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
+                        <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
+                      </button>
+                      <button class="btn btn-dictate-corner position-static shadow-xs ms-1" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Dictation">
+                        <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                      </button>
+                    </div>
                   </div>
-                  <div class="position-relative">
-                    <select class="form-select bg-white" id="visitDocId" required style="min-height: 42px !important;"></select>
-                    <button class="btn btn-sm btn-outline-danger border-0 position-absolute end-0 top-50 translate-middle-y me-2" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" style="z-index: 10;">
-                      <i class="fa-solid fa-microphone fs-6" id="micDocIcon"></i>
-                    </button>
-                  </div>
+                  <select class="form-select bg-white" id="visitDocId" required style="min-height: 42px !important;"></select>
                 </div>
 
                 <!-- Products -->
