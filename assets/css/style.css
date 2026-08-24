@@ -1298,38 +1298,31 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   🌟 UNIFIED PREMIUM MIC BUTTONS (GLOBAL)
+   🌟 UNIFIED PREMIUM MIC BUTTONS (STRICT RULE COMPLIANT)
    ========================================== */
 
-/* 1. ปุ่มไมค์ในหน้าค้นหาหลัก (Smart Search) */
-#btnMicSmartSearch {
-  color: #0284c7 !important;
-  transition: all 0.2s ease !important;
-}
-#btnMicSmartSearch:hover {
-  color: #0369a1 !important;
-  transform: scale(1.1);
-}
-
-/* 2. ปุ่มไมค์ในช่องกรอกฟอร์ม และ ไมค์ค้นหาแพทย์ (Corner & Inline Dictation Buttons) */
+/* ปุ่มไมค์สไตล์วงกลมมินิมอลขนาด 28px เท่ากันทุกจุด */
 .btn-dictate-corner,
 #btnMicDoc {
-  width: 32px !important;
-  height: 32px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
   padding: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   background-color: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  color: #0284c7 !important; /* ปรับเป็นสีฟ้าพรีเมียมเท่ากันทุกจุด */
-  font-size: 0.82rem !important;
+  color: #0284c7 !important;
+  font-size: 0.78rem !important;
   border-radius: 50% !important;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.08) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer !important;
 }
 
-/* ไมค์ฝั่งกรอกฟอร์มด้านขวาแบบวางชิดมุม */
+/* ล็อกไมค์ฝั่งขวา (Details, Insight, Next Action) */
 .btn-dictate-corner {
   position: absolute !important;
   top: 6px !important;
@@ -1337,30 +1330,30 @@ button.feature-action-btn-lg.has-data-samples {
   z-index: 5 !important;
 }
 
-/* ไมค์ค้นหาแพทย์ฝั่งซ้ายแบบ Inline */
+/* ล็อกไมค์ฝั่งซ้าย (Doctor Name) ให้ไม่ดันบรรทัดล้น */
 #btnMicDoc {
   position: relative !important;
   top: 0 !important;
   right: 0 !important;
-  margin-left: 6px !important;
+  margin: 0 0 0 6px !important;
+  vertical-align: middle !important;
 }
 
-/* ปรับเปลี่ยนสีไอคอนไมค์ภายในให้เป็นสีฟ้าเหมือนกัน */
 #btnMicDoc i,
 .btn-dictate-corner i {
   color: #0284c7 !important;
+  font-size: 0.78rem !important;
 }
 
-/* Hover State */
 .btn-dictate-corner:hover,
 #btnMicDoc:hover {
   background-color: #f0f9ff !important;
   border-color: #bae6fd !important;
   transform: scale(1.08);
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15) !important;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.15) !important;
 }
 
-/* 3. สถานะขณะกำลังบันทึกเสียง (Active State - กะพริบสีแดงเฉพาะตอนพูด) */
+/* ขณะอัดเสียง (Active State) */
 .mic-active, 
 #btnMicDoc.mic-active,
 .btn-dictate-corner.mic-active {
@@ -1373,12 +1366,12 @@ button.feature-action-btn-lg.has-data-samples {
 .mic-active i,
 #btnMicDoc.mic-active i,
 .btn-dictate-corner.mic-active i {
-  color: #ffffff !important; /* ไอคอนเปลี่ยนเป็นสีขาวขณะอัดเสียง */
+  color: #ffffff !important;
 }
 
 @keyframes pulse-red-premium {
   0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
