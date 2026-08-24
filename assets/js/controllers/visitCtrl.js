@@ -2408,6 +2408,13 @@ window.openAddVisitView = async function(presetDate) {
   if (coachWrapper) coachWrapper.classList.add('d-none');
   if (coachSelect) coachSelect.value = '';
 
+  // 🌟 [เพิ่มใหม่] เคลียร์ข้อมูล Samples ที่ค้างอยู่ในกล่อง Modal จากรอบที่แล้ว
+  var sampleContainer = document.getElementById('sampleItemsContainer');
+  if (sampleContainer) {
+      var appLangSm = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      sampleContainer.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">' + (appLangSm === 'en' ? 'No samples issued (Click "Add Item")' : 'ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")') + '</div>';
+  }
+
   if (typeof window.setFormComponentsReadOnly === 'function') window.setFormComponentsReadOnly(false);
   
   window.savedSignatureData = null;
