@@ -2047,7 +2047,8 @@ window.renderVisitTableServerSide = function() {
         statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; 
     }
 
-    var dateShow = (typeof window.formatDateToLocal === 'function') ? window.formatDateToLocal(v.Visit_Date) : v.Visit_Date;
+   
+   var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : v.Visit_Date;
     
     var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
     var docObj = (window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null;
@@ -4355,7 +4356,7 @@ window.initVisitDatePickers = function() {
   var commonConfig = {
     dateFormat: "Y-m-d",
     altInput: true,
-    altFormat: isEN ? "m/d/Y" : "j M Y",
+    altFormat: isEN ? "d/m/Y" : "j M Y",
     locale: localeConfig,
     allowInput: false,
     onChange: function() {
@@ -4367,6 +4368,19 @@ window.initVisitDatePickers = function() {
   window.fpEndInstance = flatpickr(endEl, commonConfig);
 };
 
+
+// 🌟 ฟังก์ชันแปลงวันที่ให้เป็น DD/MM/YYYY (วัน/เดือน/ปี)
+function formatToDDMMYYYY(dateString) {
+    if (!dateString) return "-";
+    var d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString; // ถ้าไม่ใช่วันที่ให้คืนค่าเดิมกลับไป
+    
+    var day = ("0" + d.getDate()).slice(-2);
+    var month = ("0" + (d.getMonth() + 1)).slice(-2);
+    var year = d.getFullYear();
+    
+    return day + "/" + month + "/" + year; 
+}
 // ==========================================
 // 🎁 SAMPLES & PROMO ITEMS ENGINE (NO DUPLICATE & NO EMPTY ROWS)
 // ==========================================
