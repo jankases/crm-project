@@ -1390,18 +1390,20 @@ button.feature-action-btn-lg.has-data-samples {
     flex-shrink: 0 !important;
     z-index: 1040 !important;
   }
-
+ 
+   /* 🌟 ไฮไลต์ไอคอนเมนู iPad เวลา Active (ฟ้าสด + พื้นขาว + เงา) */
   .sidebar-icon-btn {
-    color: #475569 !important; /* ไอคอนสีเทาเข้ม ชัดเจนขึ้น */
+    color: #475569 !important;
+    transition: all 0.2s ease !important;
   }
   .sidebar-icon-btn:hover { 
     background: #cbd5e1 !important; 
     color: #0284c7 !important; 
   }
   .sidebar-icon-btn.active { 
-    background: #0284c7 !important; /* ปุ่มที่เลือกเป็นสีฟ้าสด */
-    color: #ffffff !important; 
-    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3) !important;
+    background: #0284c7 !important; /* พื้นหลังสีฟ้าสด */
+    color: #ffffff !important; /* ไอคอนสีขาว */
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4) !important;
   }
 
   /* ปุ่มภาษา iPad สไตล์แคปซูลบนพื้นเทา */
