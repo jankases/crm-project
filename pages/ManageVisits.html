@@ -216,8 +216,8 @@
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               <div>
                 <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_visit_info">Visit Information</span></h6>
-                 
-                <!-- Doctor Selection (ไว้ข้างในช่อง Select แบบ Absolute Overlay) -->
+                
+                <!-- Doctor Selection -->
                 <div class="mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
@@ -237,12 +237,6 @@
                 <div class="mb-3">
                   <label class="compact-label"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
-                </div>
-
-                <!-- Purpose -->
-                <div class="mb-3">
-                  <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
                 </div>
 
                 <!-- Date & Start/End Time -->
@@ -317,15 +311,21 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column (Activity Details - ปุ่มไมค์วงกลมมินิมอล) -->
+          <!-- 🔹 Right Column (Activity Details) -->
           <div class="col-12 col-xl-7 d-flex flex-column">
             <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs">
               
               <div class="d-flex flex-column flex-grow-1" style="min-height: 0;">
                 <h6 class="form-section-title"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="sec_activity_details">Activity Details</span></h6>
 
+                <!-- Purpose (ย้ายมาไว้ฝั่งขวาด้านบน) -->
+                <div class="mb-2.5">
+                  <label class="compact-label"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
+                </div>
+
                 <!-- 1. Details -->
-                <div class="mb-3 d-flex flex-column field-wrapper-details">
+                <div class="mb-2.5 d-flex flex-column field-wrapper-details">
                   <label class="compact-label" data-i18n="lbl_details">Details</label>
                   <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" title="Voice Dictation">
@@ -336,7 +336,7 @@
                 </div>
 
                 <!-- 2. Insight -->
-                <div class="mb-3 d-flex flex-column field-wrapper-insight">
+                <div class="mb-2.5 d-flex flex-column field-wrapper-insight">
                   <label class="compact-label" data-i18n="lbl_insight">Insight</label>
                   <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                     <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" title="Voice Dictation">
