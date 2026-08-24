@@ -1146,58 +1146,55 @@ mark.highlight-search {
 #sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM VIEW SPECIFIC FIXES (STRICT 3 GOLDEN RULES COMPLIANT)
+   ✨ EDIT/ADD VISIT FORM - IDEAL 2 (FULL-WIDTH STICKY ACTION BAR)
    ========================================== */
 
 #visitFormView {
   height: calc(100vh - 65px) !important;
   max-height: calc(100vh - 65px) !important;
   overflow: hidden !important;
-  padding: 0.5rem 1.25rem 0.75rem 1.25rem !important;
+  padding: 0.75rem 1.25rem 0.85rem 1.25rem !important;
   background-color: #f8fafc !important;
 }
 
-#visitFormView .visit-form-card-main {
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin-top: 0 !important;
+#visitFormView form {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
 }
 
 #visitFormView .row.g-3 {
-  --bs-gutter-x: 1rem !important;
-  --bs-gutter-y: 0.75rem !important;
+  --bs-gutter-x: 1.25rem !important;
+  --bs-gutter-y: 1rem !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
 }
 
 #visitFormView .col-12 > .border,
 #visitFormView .col-12 > div {
-  padding: 0.85rem 1.15rem !important;
-  border-radius: 16px !important;
+  padding: 1.1rem 1.25rem !important;
+  border-radius: 18px !important;
   border: 1px solid #e2e8f0 !important;
   background-color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+  height: 100% !important;
 }
 
-#visitFormView .mb-3 {
-  margin-bottom: 0.5rem !important;
-}
-
-#visitFormView .mb-2,
-#visitFormView .mb-2.5 {
-  margin-bottom: 0.4rem !important;
-}
-
-/* ปรับ Flex Ratio ฝั่งขวาเมื่อมี Purpose เพิ่มเข้ามา */
+/* ยืดช่อง Textarea ฝั่งขวาให้เต็มความสูงแบบสบายตา */
 #visitFormView .field-wrapper-details {
-  flex: 1.5 1 0% !important;
+  flex: 1.8 1 0% !important;
+  min-height: 0 !important;
 }
 
 #visitFormView .field-wrapper-insight {
-  flex: 1.2 1 0% !important;
+  flex: 1.3 1 0% !important;
+  min-height: 0 !important;
 }
 
 #visitFormView .field-wrapper-nextaction {
   flex: 1 1 0% !important;
+  min-height: 0 !important;
 }
 
 #visitDetails,
@@ -1205,11 +1202,20 @@ mark.highlight-search {
 #visitNextAction {
   flex: 1 1 100% !important;
   height: 100% !important;
-  min-height: 38px !important;
-  padding: 0.45rem 0.75rem !important;
-  line-height: 1.35 !important;
+  min-height: 40px !important;
+  padding: 0.5rem 0.75rem !important;
+  line-height: 1.4 !important;
   border-radius: 10px !important;
   resize: none !important;
+}
+
+/* 🌟 Full-Width Floating Sticky Action Bar */
+.full-width-action-bar {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+  width: 100% !important;
+  min-height: 54px !important;
 }
 
 /* ==========================================
