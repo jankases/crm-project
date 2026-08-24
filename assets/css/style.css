@@ -1150,12 +1150,16 @@ mark.highlight-search {
    ========================================== */
 
 #visitFormView {
-  height: calc(100vh - 65px) !important;
-  max-height: calc(100vh - 65px) !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
   overflow: hidden !important;
-  padding: 0.75rem 1.25rem 1.5rem 1.25rem !important;
-  background-color: #f8fafc !important;
+  background-color: transparent !important;
+  box-sizing: border-box !important;
+  padding-bottom: 0.5rem !important; /* ให้มีที่หายใจด้านล่างนิดนึง */
 }
+
 
 #visitFormView form {
   height: 100% !important;
@@ -1209,16 +1213,17 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 Full-Width Floating Sticky Action Bar (แก้ไขมุมมนล่างให้โค้งเนียน) */
+/* 🌟 Full-Width Floating Sticky Action Bar (ลอยตัวเป็นแคปซูล ไม่ทะลุจอ) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; 
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.04), 0 4px 15px rgba(15, 23, 42, 0.02) !important;
+  border-radius: 16px !important; /* ให้ขอบมนทั้ง 4 ด้าน */
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.05), 0 4px 15px rgba(15, 23, 42, 0.03) !important;
   width: 100% !important;
-  min-height: 54px !important;
-  overflow: hidden !important; 
-  margin-bottom: 0.5rem !important; 
+  min-height: 56px !important;
+  margin-bottom: 0.25rem !important; /* ดันขอบล่างให้ลอยขึ้นมาจากพื้น */
+  flex-shrink: 0 !important;
+  z-index: 10 !important;
 }
 
 /* ==========================================
