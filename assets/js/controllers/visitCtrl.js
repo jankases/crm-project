@@ -4431,7 +4431,8 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     const noText = document.getElementById('noSampleText');
     if (noText) noText.style.display = 'none';
 
-    const rowId = 'sampleRow_' + Date.now();
+    // เพิ่ม Random เพื่อป้องกัน ID ซ้ำกันกรณีสร้างเร็วๆ
+    const rowId = 'sampleRow_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     var btnEN = document.getElementById('btnLangEN');
     var isEN = btnEN && btnEN.classList.contains('btn-primary');
 
@@ -4453,12 +4454,18 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     `;
     container.insertAdjacentHTML('beforeend', rowHTML);
 
+    // 🌟 1. FIX: ต้องสั่งสร้าง <option> ของ Dropdown ก่อน!
+    window.renderAllSampleDropdowns();
+
+    // 🌟 2. FIX: พอมันมี <option> แล้ว ค่อยจับยัดค่าลงไป
     if (sampleId) {
         const newSelect = container.querySelector(`#${rowId} .sample-id-select`);
-        if (newSelect) newSelect.value = sampleId;
+        if (newSelect) {
+            newSelect.value = sampleId;
+            // สั่ง Render อีกรอบเพื่อซ่อนตัวเลือกนี้ไม่ให้ Dropdown บรรทัดอื่นเลือกซ้ำ
+            window.renderAllSampleDropdowns();
+        }
     }
-
-    window.renderAllSampleDropdowns();
 };
 
 window.handleSampleSelectChange = function(selectEl) {
@@ -4522,6 +4529,8 @@ window.loadVisitSamplesForEdit = async function(visitId) {
     if (!container) return;
     
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    
+    // 🌟 คงข้อความเดิมของคุณไว้ 100% ไม่ตัดออก
     container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">' + (appLang === 'en' ? 'No samples issued (Click "Add Item")' : 'ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")') + '</div>';
 
     try {
@@ -4534,11 +4543,13 @@ window.loadVisitSamplesForEdit = async function(visitId) {
             data.forEach(item => {
                 window.addSampleRow(item.Sample_ID, item.Quantity);
             });
+            
+            // 🌟 คงบรรทัดนี้ไว้เหมือนเดิมเป๊ะๆ
             window.renderAllSampleDropdowns();
             
-            // 🌟 FIX BUGS: สั่งอัปเดตปุ่มให้เป็นสีเขียว หลังจากที่โหลดข้อมูลและสร้างกล่อง DOM เสร็จแล้ว
+            // 🌟 FIX BUGS: จุดที่แก้บั๊กคือเติมคำว่า (null) ลงไปในวงเล็บ เพื่อบังคับให้ฟังก์ชันไปนับจาก DOM แทนที่จะรอข้อมูลจาก API
             if (typeof window.updateFeatureButtonIndicators === 'function') {
-                window.updateFeatureButtonIndicators();
+                window.updateFeatureButtonIndicators(null);
             }
         }
     } catch (e) {
