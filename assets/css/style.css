@@ -1153,15 +1153,15 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (FULL-WIDTH STICKY ACTION BAR)
    ========================================== */
 
-/* 🌟 2. ปรับบล็อกฟอร์มให้ยืดหยุ่นพอดีกับกล่องแม่ และอนุญาตให้ Scroll ได้ */ 
+/* 🌟 2. ปรับบล็อกฟอร์มให้ยืดหยุ่นพอดีกับกล่องแม่ และอนุญาตให้ Scroll ได้ */
 #visitFormView {
   flex: 1 1 auto !important;
   height: 100% !important;
   max-height: none !important;
   min-height: 0 !important;
-  overflow-y: auto !important; 
+  overflow-y: auto !important; /* 👈 แก้จาก hidden เป็น auto ป้องกันการตัดขอบ */
   overflow-x: hidden !important;
-  padding: 0 0 5rem 0 !important; /* 👈 ดันเนื้อหาเผื่อด้านล่าง แถบ Action Bar จะได้ไม่บังฟอร์ม */
+  padding: 0 0 1rem 0 !important; /* 👈 เพิ่มพื้นที่ด้านล่างให้ Action Bar ลอยตัว */
   background-color: transparent !important;
 }
 
@@ -1221,16 +1221,16 @@ mark.highlight-search {
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* บังคับมุมมน 4 ด้านชัดเจน */
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important; /* เพิ่มมิติแสงเงาให้ดูแยกลอยจากพื้น */
+  border-radius: 16px !important; /* บังคับมุมมนทั้ง 4 ด้าน */
+  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.04), 0 4px 15px rgba(15, 23, 42, 0.02) !important;
   width: 100% !important;
   min-height: 58px !important;
-  margin-top: 10px !important; 
-  margin-bottom: 0 !important; 
+  margin-top: 10px !important; /* ดันห่างจากเนื้อหาด้านบน */
+  margin-bottom: 2px !important; /* ลอยขึ้นมานิดนึงสวยๆ */
   flex-shrink: 0 !important;
-  z-index: 100 !important;
-  position: sticky !important; 
-  bottom: 16px !important; /* 👈 พระเอกตัวจริง! บังคับให้ลอยสูงจากขอบจอล่าง 16px เสมอ */
+  z-index: 10 !important;
+  position: sticky !important; /* 👈 ทำให้ลอยติดขอบล่างเสมอ */
+  bottom: 0 !important;
 }
 
 /* ==========================================
