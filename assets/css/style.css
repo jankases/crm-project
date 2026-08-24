@@ -1311,12 +1311,9 @@ button.feature-action-btn-lg.has-data-samples {
   transform: scale(1.1);
 }
 
-/* 2. ปุ่มไมค์ในช่องกรอกฟอร์ม (Corner Dictation Buttons) */
-.btn-dictate-corner {
-  position: absolute !important;
-  top: 6px !important;
-  right: 6px !important;
-  z-index: 5 !important;
+/* 2. ปุ่มไมค์ในช่องกรอกฟอร์ม และ ไมค์ค้นหาแพทย์ (Corner & Inline Dictation Buttons) */
+.btn-dictate-corner,
+#btnMicDoc {
   width: 32px !important;
   height: 32px !important;
   padding: 0 !important;
@@ -1325,28 +1322,58 @@ button.feature-action-btn-lg.has-data-samples {
   justify-content: center !important;
   background-color: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  color: #0284c7 !important;
+  color: #0284c7 !important; /* ปรับเป็นสีฟ้าพรีเมียมเท่ากันทุกจุด */
   font-size: 0.82rem !important;
   border-radius: 50% !important;
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.btn-dictate-corner:hover {
+/* ไมค์ฝั่งกรอกฟอร์มด้านขวาแบบวางชิดมุม */
+.btn-dictate-corner {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  z-index: 5 !important;
+}
+
+/* ไมค์ค้นหาแพทย์ฝั่งซ้ายแบบ Inline */
+#btnMicDoc {
+  position: relative !important;
+  top: 0 !important;
+  right: 0 !important;
+  margin-left: 6px !important;
+}
+
+/* ปรับเปลี่ยนสีไอคอนไมค์ภายในให้เป็นสีฟ้าเหมือนกัน */
+#btnMicDoc i,
+.btn-dictate-corner i {
+  color: #0284c7 !important;
+}
+
+/* Hover State */
+.btn-dictate-corner:hover,
+#btnMicDoc:hover {
   background-color: #f0f9ff !important;
   border-color: #bae6fd !important;
-  color: #0369a1 !important;
   transform: scale(1.08);
   box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15) !important;
 }
 
 /* 3. สถานะขณะกำลังบันทึกเสียง (Active State - กะพริบสีแดงเฉพาะตอนพูด) */
 .mic-active, 
+#btnMicDoc.mic-active,
 .btn-dictate-corner.mic-active {
   animation: pulse-red-premium 1.5s infinite !important;
   border-color: #ef4444 !important;
   background-color: #ef4444 !important;
   color: #ffffff !important;
+}
+
+.mic-active i,
+#btnMicDoc.mic-active i,
+.btn-dictate-corner.mic-active i {
+  color: #ffffff !important; /* ไอคอนเปลี่ยนเป็นสีขาวขณะอัดเสียง */
 }
 
 @keyframes pulse-red-premium {
