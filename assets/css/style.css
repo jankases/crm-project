@@ -1548,6 +1548,7 @@ button.feature-action-btn-lg.has-data-samples {
     z-index: 105 !important;
   }
 }
+
 /* ==========================================
    🌟 FIX: ซ่อน Placeholder เมื่อช่องถูกล็อก (Read-Only) 
    ป้องกันคนเข้าใจผิดว่าเป็นข้อมูลที่กรอกมาแล้ว
