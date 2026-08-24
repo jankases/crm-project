@@ -412,7 +412,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding: 4px 12px 4px 8px;
 }
 
-/* 🌟 สไตล์ปุ่มภาษา Desktop (ทรงแคปซูล มินิมอล ล็อกขนาด 32px พอดีไอคอน Profile) */
+/* 🌟 สไตล์ปุ่มภาษา Desktop (ล้างคลาส Bootstrap ไดนามิก + ล็อกความสูงมินิมอล) */
 .desktop-lang-wrapper {
   background-color: #f1f5f9 !important;
   padding: 3px !important;
@@ -420,33 +420,43 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   display: inline-flex !important;
   align-items: center !important;
   gap: 2px !important;
-  height: 32px !important; /* ล็อกความสูงพอดีกับ User Profile */
+  height: 32px !important; /* ล็อกความสูงเท่า Profile */
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.06) !important;
 }
 
-.desktop-lang-btn {
+/* ล้างสไตล์ Bootstrap (btn, btn-primary, btn-outline-primary) ที่สคริปต์ยัดมา */
+.desktop-lang-wrapper .desktop-lang-btn,
+.desktop-lang-wrapper button {
   border: none !important;
   background: transparent !important;
+  background-color: transparent !important;
   color: #64748b !important;
   font-weight: 700 !important;
-  font-size: 0.72rem !important; /* ขนาดฟอนต์กะทัดรัด */
+  font-size: 0.72rem !important;
   padding: 0 10px !important;
   border-radius: 40px !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  height: 100% !important;
+  height: 26px !important;
+  min-height: 26px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   line-height: 1 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-.desktop-lang-btn.active {
+/* สถานะ Active (ปุ่มภาษาที่ถูกเลือก) */
+.desktop-lang-wrapper .desktop-lang-btn.active,
+.desktop-lang-wrapper button.active,
+.desktop-lang-wrapper button.btn-primary {
   background-color: #ffffff !important;
   color: #0ea5e9 !important;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
 }
 
-.desktop-lang-btn:not(.active):hover {
+.desktop-lang-wrapper .desktop-lang-btn:not(.active):hover,
+.desktop-lang-wrapper button:not(.active):hover {
   color: #334155 !important;
   background-color: rgba(0,0,0,0.04) !important;
 }
