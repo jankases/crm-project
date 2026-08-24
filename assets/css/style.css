@@ -14,7 +14,7 @@ html, body {
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 85px) !important; /* พอดีจอเป๊ะ หัก Navbar ให้อยู่ในกรอบ 100% */
+  height: calc(100vh - 85px) !important;
   width: 100% !important;
   overflow: hidden !important;
   padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
@@ -191,7 +191,7 @@ html, body {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
 }
 
-.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #0284c7 !important; }
+.kpi-border-blue { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #0d6efd !important; }
 .kpi-border-amber { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #d97706 !important; }
 .kpi-border-emerald { border: 1px solid #cbd5e1 !important; border-left: 3.5px solid #059669 !important; }
 
@@ -279,8 +279,8 @@ select.form-select[multiple]:not(.tomselected) { display: none !important; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
 .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-input:checked + .slider { background-color: #0ea5e9; }
-input:focus + .slider { box-shadow: 0 0 1px #0ea5e9; }
+input:checked + .slider { background-color: #0d6efd; }
+input:focus + .slider { box-shadow: 0 0 1px #0d6efd; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
 /* 🌟 TOMSELECT STYLING */
@@ -420,7 +420,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding: 4px 12px 4px 8px;
 }
 
-/* 🌟 สไตล์ปุ่มภาษา Desktop (ล้างคลาส Bootstrap ไดนามิก + ล็อกความสูงมินิมอล) */
+/* 🌟 สไตล์ปุ่มภาษา Desktop */
 .desktop-lang-wrapper {
   background-color: #f1f5f9 !important;
   padding: 3px !important;
@@ -428,11 +428,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   display: inline-flex !important;
   align-items: center !important;
   gap: 2px !important;
-  height: 32px !important; /* ล็อกความสูงเท่า Profile */
+  height: 32px !important;
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.06) !important;
 }
 
-/* ล้างสไตล์ Bootstrap (btn, btn-primary, btn-outline-primary) ที่สคริปต์ยัดมา */
 .desktop-lang-wrapper .desktop-lang-btn,
 .desktop-lang-wrapper button {
   border: none !important;
@@ -454,12 +453,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   outline: none !important;
 }
 
-/* สถานะ Active (ปุ่มภาษาที่ถูกเลือก) */
 .desktop-lang-wrapper .desktop-lang-btn.active,
 .desktop-lang-wrapper button.active,
 .desktop-lang-wrapper button.btn-primary {
   background-color: #ffffff !important;
-  color: #0ea5e9 !important;
+  color: #0d6efd !important;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
 }
 
@@ -517,7 +515,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.btn-premium-secondary i { color: #0284c7 !important; }
+.btn-premium-secondary i { color: #0d6efd !important; }
 .btn-premium-secondary:hover {
   background: #f8fafc !important;
   border-color: #cbd5e1 !important;
@@ -676,7 +674,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding-bottom: 0 !important;
 }
 
-/* 🌟 คืนค่าขนาดช่อง Show rows Dropdown ให้กะทัดรัดพอดี */
 #visitRowsPerPage {
   width: 70px !important;
   min-width: 70px !important;
@@ -785,11 +782,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .table-scroll-inside .table tbody tr:hover {
   background-color: #f0f9ff !important;
-  box-shadow: inset 3px 0 0 #0284c7, 0 2px 6px rgba(2, 132, 199, 0.05) !important;
+  box-shadow: inset 3px 0 0 #0d6efd, 0 2px 6px rgba(13, 110, 253, 0.05) !important;
   cursor: pointer;
 }
 
-/* ปรับ Badge ในตาราง (Status, Products) ให้กะทัดรัดตามแถว ไม่ดันแถวให้โย่ง */
 .table-scroll-inside .badge {
   padding: 2px 7px !important;
   font-size: 0.75rem !important;
@@ -798,7 +794,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   margin-bottom: 0 !important;
 }
 
-/* ปรับไอคอนและข้อความในตารางไม่ให้ดึงความสูง */
 .table-scroll-inside .table-doc-name,
 .table-scroll-inside .table-hosp-text,
 .table-scroll-inside .table-visit-link {
@@ -822,10 +817,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   ✨ PREMIUM TABLE & VISUAL REFINEMENTS
+   ✨ PREMIUM TABLE & VISUAL REFINEMENTS (UNIFIED COLOR)
    ========================================== */
 
-/* 1. คอลัมน์โรงพยาบาล */
+/* 🌟 1. คอลัมน์โรงพยาบาลในตาราง (รูป image_270a4a.png) - คุมไอคอนใช้สีธีมฟ้าหลักสดใส */
 .table-hosp-text {
   color: #334155 !important;
   font-weight: 500 !important;
@@ -834,7 +829,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   gap: 6px;
 }
 .table-hosp-text i {
-  color: #0284c7 !important;
+  color: #0d6efd !important; /* ปรับสีไอคอนโรงพยาบาล Rama ให้เข้ากับธีมหลัก */
   font-size: 0.85rem;
 }
 
@@ -844,7 +839,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* สไตล์ไฮไลท์คำค้นหา */
 mark.highlight-search {
   background-color: #fef08a !important;
   color: #854d0e !important;
@@ -916,7 +910,6 @@ mark.highlight-search {
 /* ==========================================
    📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
    ========================================== */
-/* 🌟 RULE 2: ปลดล็อกความสูง ปล่อย Flexbox ยืดเต็มจอ */
 #visitCalendarZone {
   flex: 1 1 auto !important; 
   height: 100% !important;
@@ -966,7 +959,6 @@ mark.highlight-search {
   align-items: center !important;
 }
 
-/* 🌟 RULE 3: บังคับซ่อนหน้าจอเด็ดขาด ป้องกันกล่องเปล่าดันที่ */
 #visitListView.d-none,
 #doctorListView.d-none,
 #hospListView.d-none,
@@ -1025,7 +1017,7 @@ mark.highlight-search {
 }
 
 #calHeaderLegendDropdown .btn i.fa-palette {
-  color: #0ea5e9 !important;
+  color: #0d6efd !important;
 }
 
 #calendar .fc-button-group {
@@ -1055,8 +1047,8 @@ mark.highlight-search {
 
 .kpi-card-elevated.active-total {
   background-color: #f0f9ff !important;
-  border-color: #0284c7 !important;
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15), 0 4px 12px rgba(2, 132, 199, 0.1) !important;
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15), 0 4px 12px rgba(13, 110, 253, 0.1) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -1074,13 +1066,12 @@ mark.highlight-search {
   transform: translateY(-1px) !important;
 }
 
-/* 🌟 HIGHLIGHT TODAY CELL IN FULLCALENDAR */
 #calendar .fc-day-today {
   background-color: #f0f9ff !important;
 }
 
 #calendar .fc-day-today .fc-daygrid-day-number {
-  background-color: #0284c7 !important;
+  background-color: #0d6efd !important;
   color: #ffffff !important;
   border-radius: 50%;
   width: 24px;
@@ -1092,13 +1083,14 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   🌈 VIBRANT FORM HEADERS & VISUAL STYLING
+   🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED THEME)
    ========================================== */
 
+/* 🌟 2. คุมสีไอคอนและข้อความหัวข้อฟอร์ม (รูป image_270a26.png) ให้เป็นธีมหลักสีเดียวกันทั้งหมด */
 .form-section-title {
   font-size: 0.92rem !important;
   font-weight: 700 !important;
-  color: #0284c7 !important;
+  color: #0d6efd !important;
   margin-bottom: 10px !important;
   padding-bottom: 6px !important;
   border-bottom: 1.5px solid #e2e8f0 !important;
@@ -1108,14 +1100,14 @@ mark.highlight-search {
 }
 
 .form-section-title i {
-  color: #0284c7 !important;
+  color: #0d6efd !important;
   font-size: 1rem !important;
   margin-right: 4px !important;
 }
 
 #visitFormView .compact-label.text-primary,
 #visitFormView label[data-i18n="sec_features_evidences"] {
-  color: #0284c7 !important;
+  color: #0d6efd !important;
   font-weight: 700 !important;
   font-size: 0.88rem !important;
   display: inline-flex !important;
@@ -1125,6 +1117,7 @@ mark.highlight-search {
 }
 
 #visitFormView label[data-i18n="sec_features_evidences"] i {
+  color: #0d6efd !important;
   margin-right: 8px !important;
 }
 
@@ -1143,21 +1136,23 @@ mark.highlight-search {
 
 .btn-back-pill:hover {
   background-color: #f0f9ff !important;
-  border-color: #0284c7 !important;
-  color: #0284c7 !important;
+  border-color: #0d6efd !important;
+  color: #0d6efd !important;
   transform: translateY(-1px) !important;
 }
 
-#sectionGpsCheckin i { color: #ef4444 !important; margin-right: 4px !important; }
-#sectionSignature i { color: #10b981 !important; margin-right: 4px !important; }
-#sectionSamples i { color: #f59e0b !important; margin-right: 4px !important; }
-#sectionAttachments i { color: #0284c7 !important; margin-right: 4px !important; }
+/* 🌟 คุมสีไอคอนภายในปุ่ม Feature สไตล์คลีน ให้ใช้ธีมเดียวกัน */
+#sectionGpsCheckin i,
+#sectionSignature i,
+#sectionSamples i,
+#sectionAttachments i {
+  color: #0d6efd !important;
+  margin-right: 6px !important;
+}
 
 /* ==========================================
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (APP-LIKE SCROLL)
    ========================================== */
-
-/* 🌟 ล็อกกล่องฟอร์มให้พอดีแม่ (ไม่ทะลุจอ) */
 #visitFormView {
   flex: 1 1 auto !important;
   height: 100% !important;
@@ -1174,7 +1169,6 @@ mark.highlight-search {
   flex-direction: column !important;
 }
 
-/* 🌟 ล็อกแถบ Header ด้านบน (ปุ่ม Back / Switch) ให้อยู่กับที่ตลอดเวลา พร้อมเอฟเฟกต์เบลอแบบ iOS */
 #visitFormView form > .d-flex.align-items-center.justify-content-between.mb-2.flex-shrink-0 {
   position: sticky !important;
   top: 0 !important;
@@ -1187,7 +1181,6 @@ mark.highlight-search {
   border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important; 
 }
 
-/* 🌟 ให้เนื้อหาในการ์ดซ้าย-ขวา Scroll ได้เองเมื่อล้น (App-Like ของแท้) */
 #visitFormView .row.g-3 {
   --bs-gutter-x: 1.25rem !important;
   --bs-gutter-y: 1rem !important;
@@ -1204,10 +1197,9 @@ mark.highlight-search {
   background-color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
   height: 100% !important;
-  overflow-y: auto !important; /* 👈 พระเอก! เนื้อหาล้นให้เลื่อนแค่ในการ์ด */
+  overflow-y: auto !important;
 }
 
-/* ยืดช่อง Textarea ฝั่งขวาให้เต็มความสูงแบบสบายตา */
 #visitFormView .field-wrapper-details {
   flex: 1.8 1 0% !important;
   min-height: 0 !important;
@@ -1232,7 +1224,6 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 4. Action Bar (ลอยตัวสวยงาม โค้งมน 4 ด้าน ไม่ต้องใช้ Sticky สำหรับ Desktop) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
@@ -1248,7 +1239,6 @@ mark.highlight-search {
 /* ==========================================
    ✨ DYNAMIC DEDICATED FEATURE BUTTONS
    ========================================== */
-
 #featuresButtonsWrapper {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -1275,42 +1265,29 @@ mark.highlight-search {
 }
 
 .feature-action-btn-lg:hover {
-  border-color: #0284c7 !important;
-  color: #0284c7 !important;
-  background-color: #f0f9ff !important;
+  border-color: #0d6efd !important;
+  color: #0d6efd !important;
+  background-color: #f0f5ff !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.12) !important;
+  box-shadow: 0 3px 8px rgba(13, 110, 253, 0.12) !important;
 }
 
-button.feature-action-btn-lg.has-data-gps {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-sig {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-attach {
-  background-color: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #0369a1 !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-media {
-  background-color: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #b91c1c !important;
-  font-weight: 700 !important;
-}
+/* เมื่อกรอกข้อมูลใน Feature ปุ่มจะเปลี่ยนเป็นพื้นไฮไลต์ฟ้าสดตามธีม */
+button.feature-action-btn-lg.has-data-gps,
+button.feature-action-btn-lg.has-data-sig,
+button.feature-action-btn-lg.has-data-attach,
 button.feature-action-btn-lg.has-data-samples {
-  background-color: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #b45309 !important;
+  background-color: #f0f5ff !important;
+  border-color: #0d6efd !important;
+  color: #0d6efd !important;
   font-weight: 700 !important;
+}
+
+button.feature-action-btn-lg.has-data-gps i,
+button.feature-action-btn-lg.has-data-sig i,
+button.feature-action-btn-lg.has-data-attach i,
+button.feature-action-btn-lg.has-data-samples i {
+  color: #0d6efd !important;
 }
 
 .btn-edetailing-touch {
@@ -1336,10 +1313,8 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   🌟 UNIFIED PREMIUM MIC BUTTONS (STRICT RULE COMPLIANT)
+   🌟 UNIFIED PREMIUM MIC BUTTONS
    ========================================== */
-
-/* ปุ่มไมค์วงกลมมินิมอล 28px */
 .btn-dictate-corner,
 .btn-dictate-select-inside {
   width: 28px !important;
@@ -1352,44 +1327,41 @@ button.feature-action-btn-lg.has-data-samples {
   justify-content: center !important;
   background-color: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  color: #0284c7 !important;
+  color: #0d6efd !important;
   font-size: 0.78rem !important;
   border-radius: 50% !important;
-  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.1) !important;
+  box-shadow: 0 1px 3px rgba(13, 110, 253, 0.1) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   cursor: pointer !important;
   z-index: 10 !important;
 }
 
-/* ซ้อนด้านขวาใน Textarea (Details, Insight, Next Action) */
 .btn-dictate-corner {
   position: absolute !important;
   top: 6px !important;
   right: 6px !important;
 }
 
-/* ซ้อนด้านขวาใน Select Input (Doctor Name) - เว้นระยะหลบลูกศร Dropdown */
 .btn-dictate-select-inside {
   position: absolute !important;
-  right: 28px !important; /* หลบลูกศร Dropdown ของ Select */
+  right: 28px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
 }
 
 .btn-dictate-corner i,
 .btn-dictate-select-inside i {
-  color: #0284c7 !important;
+  color: #0d6efd !important;
   font-size: 0.78rem !important;
 }
 
 .btn-dictate-corner:hover,
 .btn-dictate-select-inside:hover {
-  background-color: #f0f9ff !important;
+  background-color: #f0f5ff !important;
   border-color: #bae6fd !important;
-  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.18) !important;
+  box-shadow: 0 3px 8px rgba(13, 110, 253, 0.18) !important;
 }
 
-/* ขณะอัดเสียง (Active State) */
 .mic-active, 
 .btn-dictate-select-inside.mic-active,
 .btn-dictate-corner.mic-active {
@@ -1412,21 +1384,8 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   📱 RESPONSIVE ADJUSTMENTS (iPad, Tablet & Desktop)
+   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING
    ========================================== */
-
-/* 🌟 [CRITICAL FIX] บังคับซ่อนหน้าจอเด็ดขาดเมื่อสลับหน้า ป้องกันการซ้อนกันและกล่องเปล่าดันที่ */
-#visitListView.d-none,
-#doctorListView.d-none,
-#hospListView.d-none,
-#visitFormView.d-none,
-#visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitMainContentContainer.d-none {
-  display: none !important;
-} 
-
-/* 🌟 iPad / Tablet (768px - 1199px): โทน Slate Cool Grey (แยกสัดส่วนชัดเจน ไม่กลืน ไม่มืด) */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
     height: 100vh !important;
@@ -1437,8 +1396,8 @@ button.feature-action-btn-lg.has-data-samples {
   .ipad-sidebar-rail {
     width: 70px !important;
     height: 100vh !important;
-    background: #e2e8f0 !important; /* 🌟 สีเทาสว่างอมฟ้า (ไม่กลืนกับตารางขาว) */
-    border-right: 1px solid #cbd5e1 !important;
+    background: #f1f5f9 !important;
+    border-right: 1px solid #e2e8f0 !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -1447,22 +1406,23 @@ button.feature-action-btn-lg.has-data-samples {
     z-index: 1040 !important;
   }
 
-  /* 🌟 ไฮไลต์ไอคอนเมนู iPad เวลา Active (ฟ้าสด + พื้นขาว + เงา) */
-  .sidebar-icon-btn {
-    color: #475569 !important;
+  .ipad-sidebar-rail .sidebar-icon-btn,
+  .ipad-sidebar-rail i {
+    color: #94a3b8 !important;
     transition: all 0.2s ease !important;
   }
-  .sidebar-icon-btn:hover { 
-    background: #cbd5e1 !important; 
-    color: #0284c7 !important; 
-  }
-  .sidebar-icon-btn.active { 
-    background: #0284c7 !important; /* พื้นหลังสีฟ้าสด */
-    color: #ffffff !important; /* ไอคอนสีขาว */
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4) !important;
+  
+  .ipad-sidebar-rail .sidebar-icon-btn:hover { 
+    background: #e2e8f0 !important; 
+    color: #0d6efd !important; 
   }
 
-  /* ปุ่มภาษา iPad สไตล์แคปซูลบนพื้นเทา */
+  .ipad-sidebar-rail .sidebar-icon-btn.active { 
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35) !important;
+  }
+
   .ipad-lang-wrapper {
     background-color: #cbd5e1 !important;
     padding: 3px !important;
@@ -1491,29 +1451,26 @@ button.feature-action-btn-lg.has-data-samples {
   }
 
   .ipad-lang-btn.active {
-    background-color: #ffffff !important;
-    color: #0ea5e9 !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3) !important;
   }
 }
 
 /* ==========================================
-   📱 RESPONSIVE: ปลดล็อก Scroll เมื่อหน้าจอแคบ (แก้ไขกล่องขวาหาย 100%)
+   📱 RESPONSIVE: ปลดล็อก Scroll เมื่อหน้าจอแคบ
    ========================================== */
 @media (max-width: 1199px) {
-  /* ปลดล็อกให้ทั้งหน้าจอเลื่อนได้ */
   #visitFormView {
     overflow-y: auto !important; 
     overflow-x: hidden !important;
   }
   
-  /* ปลดล็อกความสูงฟอร์ม ไม่ให้ไปบีบเนื้อหาจนหายไป */
   #visitFormView form {
     height: auto !important;
     min-height: 100% !important;
   }
 
-  /* 👈 พระเอกแก้กล่องหาย: ปลดล็อก Row ไม่ให้ซ่อนเนื้อหา และบังคับเรียงบนลงล่าง */
   #visitFormView .row.g-3 {
     height: auto !important;
     overflow: visible !important;
@@ -1521,25 +1478,21 @@ button.feature-action-btn-lg.has-data-samples {
     flex-direction: column !important;
   }
 
-  /* คืนค่าความสูงให้กล่องการ์ดทั้งสองฝั่ง (ปล่อยยืดตามเนื้อหา) */
   #visitFormView .col-12 > .border,
   #visitFormView .col-12 > div {
     height: auto !important; 
     overflow: visible !important;
   }
 
-  /* จัดการกล่อง Textarea (Details, Insight) ไม่ให้พังเวลาย่อจอ */
   #visitFormView .field-wrapper-details,
   #visitFormView .field-wrapper-insight,
   #visitFormView .field-wrapper-nextaction {
     flex: 0 0 auto !important;
   }
   
-  /* กำหนดความสูงของช่องพิมพ์ในโหมด iPad ให้พอดีๆ */
   #visitDetails { height: 120px !important; min-height: 120px !important; }
   #visitInsight, #visitNextAction { height: 80px !important; min-height: 80px !important; }
 
-  /* แถบ Save ยังคงลอยอยู่ก้นจอสวยๆ แบบ iOS Sticky Footer */
   .full-width-action-bar {
     position: sticky !important;
     bottom: 0.75rem !important; 
@@ -1550,8 +1503,7 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก (Read-Only) 
-   (ล็อกเป้าเฉพาะ #visitFormView จะได้ไม่ไปกระทบช่อง Filter วันที่หน้าแรก)
+   🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก (Read-Only)
    ========================================== */
 #visitFormView .form-control:disabled::placeholder,
 #visitFormView .form-control[readonly]::placeholder,
@@ -1564,7 +1516,6 @@ button.feature-action-btn-lg.has-data-samples {
   opacity: 0 !important;
 }
 
-/* แถม: ถ้าช่องไม่ได้ล็อก ให้ Placeholder ดูเป็นตัวเอียงและสีจางลงให้ชัดเจนว่าเป็นแค่คำแนะนำ */
 #visitFormView .form-control::placeholder,
 #visitFormView textarea::placeholder,
 #visitFormView input::placeholder {
@@ -1573,5 +1524,3 @@ button.feature-action-btn-lg.has-data-samples {
   font-style: italic !important;
   opacity: 0.8 !important;
 }
-
- 
