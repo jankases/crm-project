@@ -259,7 +259,8 @@
               <div class="row g-2 align-items-end mb-3">
                 <div class="col-5">
                   <label class="compact-label"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
-                  <input type="date" class="form-control bg-white shadow-xs premium-radius px-1.5" id="visitDate" required>
+                  <!-- 🌟 [FIXED] เปลี่ยนเป็น type="text" เพื่อให้ Flatpickr แสดงผล DD/MM/YYYY ได้ถูกต้อง ไม่โดน Browser บังคับเป็น mm/dd/yyyy -->
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius px-1.5 cursor-pointer" id="visitDate" placeholder="dd/mm/yyyy" required readonly>
                 </div>
 
                 <div class="col-7">
