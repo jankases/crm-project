@@ -1301,9 +1301,9 @@ button.feature-action-btn-lg.has-data-samples {
    🌟 UNIFIED PREMIUM MIC BUTTONS (STRICT RULE COMPLIANT)
    ========================================== */
 
-/* ปุ่มไมค์สไตล์วงกลมมินิมอลขนาด 28px เท่ากันทุกจุด */
+/* ปุ่มไมค์วงกลมมินิมอล 28px */
 .btn-dictate-corner,
-#btnMicDoc {
+.btn-dictate-select-inside {
   width: 28px !important;
   height: 28px !important;
   min-width: 28px !important;
@@ -1317,45 +1317,43 @@ button.feature-action-btn-lg.has-data-samples {
   color: #0284c7 !important;
   font-size: 0.78rem !important;
   border-radius: 50% !important;
-  box-shadow: 0 1px 4px rgba(2, 132, 199, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.1) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   cursor: pointer !important;
+  z-index: 10 !important;
 }
 
-/* ล็อกไมค์ฝั่งขวา (Details, Insight, Next Action) */
+/* ซ้อนด้านขวาใน Textarea (Details, Insight, Next Action) */
 .btn-dictate-corner {
   position: absolute !important;
   top: 6px !important;
   right: 6px !important;
-  z-index: 5 !important;
 }
 
-/* ล็อกไมค์ฝั่งซ้าย (Doctor Name) ให้ไม่ดันบรรทัดล้น */
-#btnMicDoc {
-  position: relative !important;
-  top: 0 !important;
-  right: 0 !important;
-  margin: 0 0 0 6px !important;
-  vertical-align: middle !important;
+/* ซ้อนด้านขวาใน Select Input (Doctor Name) - เว้นระยะหลบลูกศร Dropdown */
+.btn-dictate-select-inside {
+  position: absolute !important;
+  right: 28px !important; /* หลบลูกศร Dropdown ของ Select */
+  top: 50% !important;
+  transform: translateY(-50%) !important;
 }
 
-#btnMicDoc i,
-.btn-dictate-corner i {
+.btn-dictate-corner i,
+.btn-dictate-select-inside i {
   color: #0284c7 !important;
   font-size: 0.78rem !important;
 }
 
 .btn-dictate-corner:hover,
-#btnMicDoc:hover {
+.btn-dictate-select-inside:hover {
   background-color: #f0f9ff !important;
   border-color: #bae6fd !important;
-  transform: scale(1.08);
-  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.15) !important;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.18) !important;
 }
 
 /* ขณะอัดเสียง (Active State) */
 .mic-active, 
-#btnMicDoc.mic-active,
+.btn-dictate-select-inside.mic-active,
 .btn-dictate-corner.mic-active {
   animation: pulse-red-premium 1.5s infinite !important;
   border-color: #ef4444 !important;
@@ -1364,7 +1362,7 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 .mic-active i,
-#btnMicDoc.mic-active i,
+.btn-dictate-select-inside.mic-active i,
 .btn-dictate-corner.mic-active i {
   color: #ffffff !important;
 }
