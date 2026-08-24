@@ -10,14 +10,14 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🌟 1. แก้ไขความสูงกล่องแม่ (แก้จาก 65px เป็น 80px เพื่อหลบ Navbar ให้พ้น) */
+/* 🖥️ RULE 1: ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .doc-module-wrapper,
 .hosp-module-wrapper {
-  height: calc(100vh - 85px) !important; /* 👈 ปรับระยะเผื่อ Navbar ให้ปลอดภัย 100% */
+  height: calc(100vh - 65px) !important; /* 🌟 คืนค่าเดิมที่ถูกต้องเป๊ะ */
   width: 100% !important;
   overflow: hidden !important;
-  padding: 0.75rem 1.25rem 1.5rem 1.25rem !important; /* 👈 เพิ่ม Padding ล่างสุดเป็น 1.5rem */
+  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important; /* 🌟 คืนค่าเดิมที่สมบูรณ์ */
   background-color: #f8fafc;
   box-sizing: border-box;
   display: flex !important;
@@ -1149,13 +1149,14 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (FULL-WIDTH STICKY ACTION BAR)
    ========================================== */
 
+/* 🌟 2. ปรับบล็อกฟอร์มให้ยืดหยุ่นพอดีกับกล่องแม่ (ไม่ให้มี Padding ซ้อนทับกัน) */
 #visitFormView {
-  flex: 1 1 0% !important; /* 👈 บังคับให้อยู่ในกรอบเสมอ */
-  height: auto !important;
-  max-height: 100% !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
   overflow: hidden !important;
-  padding: 0 0 1rem 0 !important; /* 👈 ให้พื้นที่หายใจด้านล่าง */
-  background-color: #f8fafc !important;
+  padding: 0 !important; /* 👈 ไม่ต้องใส่ padding ซ้ำซ้อนเพราะกล่องแม่มีให้แล้ว */
+  background-color: transparent !important;
 }
 
 #visitFormView form {
@@ -1210,18 +1211,17 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 Full-Width Floating Sticky Action Bar (แคปซูลลอยตัว) */
+/* 🌟 3. แถบ Action Bar (ลอยตัวเต็มรูปแบบ) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* 👈 บังคับมน 4 ด้านชัดเจน */
-  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.03), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
+  border-radius: 16px !important; 
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
   width: 100% !important;
   min-height: 58px !important;
-  margin-bottom: 0 !important; 
+  margin-bottom: 0.25rem !important; /* ลอยขึ้นมานิดนึงสวยๆ */
   flex-shrink: 0 !important;
   z-index: 10 !important;
-  transform: translateY(-8px) !important; /* 👈 ท่าไม้ตาย! สั่งยกลอยขึ้น 8px จากพื้นเสมอ */
 }
 
 /* ==========================================
