@@ -964,7 +964,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
- window.loadDropdowns = async function(forceReload) {
+window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1175,6 +1175,9 @@ window.deleteTot = async function() {
 
     // 🌟 เรียกสร้าง Dropdown เพิ่มเติมหลังจากโหลดข้อมูลเสร็จ
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
+    
+    // 👇 [เพิ่มใหม่] สั่งปั้น Dropdown รายชื่อ Coach
+    if (typeof window.renderCoachDropdown === 'function') window.renderCoachDropdown();
 
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect && (!window.tomSelectPurposeInstance || forceReload)) { 
@@ -1224,7 +1227,7 @@ window.deleteTot = async function() {
     if (filterGroup) filterGroup.classList.add('ready');
 
   } catch (err) { console.error("Error loading dropdowns:", err.message); }
-};
+}; 
  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
