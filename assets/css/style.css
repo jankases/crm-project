@@ -1550,24 +1550,24 @@ button.feature-action-btn-lg.has-data-samples {
 }
 
 /* ==========================================
-   🌟 FIX: ซ่อน Placeholder เมื่อช่องถูกล็อก (Read-Only) 
-   ป้องกันคนเข้าใจผิดว่าเป็นข้อมูลที่กรอกมาแล้ว
+   🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก (Read-Only) 
+   (ล็อกเป้าเฉพาะ #visitFormView จะได้ไม่ไปกระทบช่อง Filter วันที่หน้าแรก)
    ========================================== */
-.form-control:disabled::placeholder,
-.form-control[readonly]::placeholder,
-textarea:disabled::placeholder,
-textarea[readonly]::placeholder,
-input:disabled::placeholder,
-input[readonly]::placeholder {
+#visitFormView .form-control:disabled::placeholder,
+#visitFormView .form-control[readonly]::placeholder,
+#visitFormView textarea:disabled::placeholder,
+#visitFormView textarea[readonly]::placeholder,
+#visitFormView input:disabled::placeholder,
+#visitFormView input[readonly]::placeholder {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   opacity: 0 !important;
 }
 
 /* แถม: ถ้าช่องไม่ได้ล็อก ให้ Placeholder ดูเป็นตัวเอียงและสีจางลงให้ชัดเจนว่าเป็นแค่คำแนะนำ */
-.form-control::placeholder,
-textarea::placeholder,
-input::placeholder {
+#visitFormView .form-control::placeholder,
+#visitFormView textarea::placeholder,
+#visitFormView input::placeholder {
   color: #94a3b8 !important;
   font-weight: 400 !important;
   font-style: italic !important;
