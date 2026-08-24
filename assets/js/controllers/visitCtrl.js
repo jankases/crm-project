@@ -2196,6 +2196,12 @@ window.toggleVisitFormEditable = function(isEditable) {
   if (window.tomSelectProdInstance) { if (isEditable) window.tomSelectProdInstance.enable(); else window.tomSelectProdInstance.disable(); }
   if (window.tomSelectPurposeInstance) { if (isEditable) window.tomSelectPurposeInstance.enable(); else window.tomSelectPurposeInstance.disable(); }
 
+  // 🌟 [FIXED] สั่งควบคุมสถานะล็อก / ปลดล็อกของ Flatpickr สำหรับช่องวันที่ (#visitDate)
+  if (window.fpFormDateInstance) {
+      if (window.fpFormDateInstance._input) window.fpFormDateInstance._input.disabled = !isEditable;
+      if (window.fpFormDateInstance.altInput) window.fpFormDateInstance.altInput.disabled = !isEditable;
+  }
+
   if (formView) { if(isEditable) formView.classList.remove('disabled-ts'); else formView.classList.add('disabled-ts'); }
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.disabled = !isEditable; });
   
@@ -2239,19 +2245,20 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       if (typeof window.updateFormUserInfo === 'function') {
           window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
       }
- 
-      // 🌟 [FIXED] แปลงวันที่ให้อยู่ในฟอร์แมต YYYY-MM-DD เพื่อให้ input type="date" อ่านค่าได้ถูกต้อง
+
+      // 🌟 [FIXED] ตั้งค่าวันที่ผ่าน Flatpickr เพื่อแสดงผลเป็น DD/MM/YYYY บนหน้าจอ
       if (v && v.Visit_Date) {
           var rawDate = String(v.Visit_Date).split('T')[0];
-          if (rawDate.indexOf('/') !== -1) {
-              var p = rawDate.split('/');
-              // กรณีเดิมเป็น MM/DD/YYYY หรือ DD/MM/YYYY
-              document.getElementById('visitDate').value = p[2] + '-' + p[0].padStart(2, '0') + '-' + p[1].padStart(2, '0');
-          } else {
-              document.getElementById('visitDate').value = rawDate;
+          document.getElementById('visitDate').value = rawDate;
+          
+          if (window.fpFormDateInstance) {
+              window.fpFormDateInstance.setDate(rawDate, false);
           }
       } else {
           document.getElementById('visitDate').value = '';
+          if (window.fpFormDateInstance) {
+              window.fpFormDateInstance.clear();
+          }
       }
 
       if (typeof window.formatTimeString === 'function') {
@@ -2433,7 +2440,14 @@ window.openAddVisitView = async function(presetDate) {
   document.getElementById('visitForm').reset();
   document.getElementById('visitId').value = '';
   document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">Add New Visit</span>';
-  document.getElementById('visitDate').value = presetDate || new Date().toISOString().split('T')[0];
+  
+  // 🌟 [FIXED] กำหนดวันที่เริ่มต้น และอัปเดตค่าลงใน Flatpickr ให้แสดงผลเป็น DD/MM/YYYY
+  var initialDate = presetDate || new Date().toISOString().split('T')[0];
+  document.getElementById('visitDate').value = initialDate;
+  if (window.fpFormDateInstance) {
+      window.fpFormDateInstance.setDate(initialDate, false);
+  }
+
   document.getElementById('visitStatus').value = 'Pending';
   document.getElementById('visitInsight').value = ''; 
   
@@ -4356,19 +4370,15 @@ window.initVisitDatePickers = function() {
 
   var startEl = document.getElementById('filterStartDate');
   var endEl = document.getElementById('filterEndDate');
-
-  if (!startEl || !endEl) return;
+  var formDateEl = document.getElementById('visitDate');
 
   if (window.fpStartInstance) window.fpStartInstance.destroy();
   if (window.fpEndInstance) window.fpEndInstance.destroy();
 
-  startEl.placeholder = placeholderText;
-  endEl.placeholder = placeholderText;
-
   var commonConfig = {
     dateFormat: "Y-m-d",
     altInput: true,
-    altFormat: isEN ? "d/m/Y" : "j M Y",
+    altFormat: "d/m/Y", // 👈 บังคับโชว์หน้าจอเป็น DD/MM/YYYY
     locale: localeConfig,
     allowInput: false,
     onChange: function() {
@@ -4376,8 +4386,27 @@ window.initVisitDatePickers = function() {
     }
   };
 
-  window.fpStartInstance = flatpickr(startEl, commonConfig);
-  window.fpEndInstance = flatpickr(endEl, commonConfig);
+  if (startEl && endEl) {
+    startEl.placeholder = placeholderText;
+    endEl.placeholder = placeholderText;
+    window.fpStartInstance = flatpickr(startEl, commonConfig);
+    window.fpEndInstance = flatpickr(endEl, commonConfig);
+  }
+
+  // 🌟 เพิ่มการผูก Flatpickr ให้ช่องวันที่ในหน้าฟอร์ม (#visitDate)
+  if (formDateEl) {
+    if (window.fpFormDateInstance) window.fpFormDateInstance.destroy();
+    window.fpFormDateInstance = flatpickr(formDateEl, {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "d/m/Y",
+      locale: localeConfig,
+      allowInput: false,
+      onChange: function() {
+        if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+      }
+    });
+  }
 };
 
 
