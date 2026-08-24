@@ -2033,7 +2033,8 @@ window.renderVisitTableServerSide = function() {
     var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
 
     var distanceBadge = '';
-    if (v.CheckIn_Lat && v.CheckIn_Long) {
+    // 🌟 ดักจับ Config GPS: โชว์ไอคอนหมุดเมื่อฟีเจอร์เปิดอยู่เท่านั้น
+    if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
       var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
       if (hospLat && hospLng) {
         var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
@@ -2076,12 +2077,14 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
     }
 
-    if (v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
+    // 🌟 ดักจับ Config Attachments: โชว์เฉพาะเปิดฟีเจอร์
+    if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
       var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
       evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
     }
 
-    if (v.Doctor_Signature) {
+    // 🌟 ดักจับ Config Signature: โชว์เฉพาะเปิดฟีเจอร์
+    if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) {
       var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
       evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
     }
@@ -2091,7 +2094,8 @@ window.renderVisitTableServerSide = function() {
                       ? window._visitSampleIndex[vidClean] 
                       : (v.Visit_Samples || []);
                       
-     if (sampleItems && sampleItems.length > 0) {
+    // 🌟 ดักจับ Config Samples: โชว์เฉพาะเปิดฟีเจอร์
+    if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
@@ -2120,7 +2124,6 @@ tbody.innerHTML = htmlBuffer;
         }
     }
 };
-
 window.goToPage = function(page) {
   var rows = parseInt(window.rowsPerPage) || 20;
   var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
