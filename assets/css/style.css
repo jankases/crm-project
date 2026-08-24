@@ -1153,7 +1153,7 @@ mark.highlight-search {
   height: calc(100vh - 65px) !important;
   max-height: calc(100vh - 65px) !important;
   overflow: hidden !important;
-  padding: 0.5rem 1.25rem 0.75rem 1.25rem !important; /* บีบระยะขอบนอกเพื่อคืนพื้นที่ก้นจอ */
+  padding: 0.5rem 1.25rem 0.75rem 1.25rem !important;
   background-color: #f8fafc !important;
 }
 
@@ -1176,7 +1176,6 @@ mark.highlight-search {
   column-gap: 0px !important;
 }
 
-/* บีบ Padding ของการ์ดหลักทั้งสองฝั่ง */
 #visitFormView .col-12 > .border,
 #visitFormView .col-12 > div {
   padding: 0.85rem 1.15rem !important;
@@ -1186,7 +1185,6 @@ mark.highlight-search {
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
 }
 
-/* บีบระยะห่างระหว่างอินพุตแต่ละช่องฝั่งซ้าย */
 #visitFormView .mb-3 {
   margin-bottom: 0.5rem !important;
 }
@@ -1196,12 +1194,13 @@ mark.highlight-search {
   margin-bottom: 0.4rem !important;
 }
 
+/* ปรับ Flex Ratio ฝั่งขวาเมื่อมี Purpose เพิ่มเข้ามา */
 #visitFormView .field-wrapper-details {
-  flex: 1.8 1 0% !important;
+  flex: 1.5 1 0% !important;
 }
 
 #visitFormView .field-wrapper-insight {
-  flex: 1.3 1 0% !important;
+  flex: 1.2 1 0% !important;
 }
 
 #visitFormView .field-wrapper-nextaction {
@@ -1213,14 +1212,13 @@ mark.highlight-search {
 #visitNextAction {
   flex: 1 1 100% !important;
   height: 100% !important;
-  min-height: 40px !important;
-  padding: 0.5rem 0.75rem !important;
+  min-height: 38px !important;
+  padding: 0.45rem 0.75rem !important;
   line-height: 1.35 !important;
   border-radius: 10px !important;
   resize: none !important;
 }
 
-/* ปุ่ม Features & Evidences ย่อความสูง */
 .feature-action-btn-lg {
   font-size: 0.82rem !important;
   font-weight: 600;
@@ -1237,44 +1235,6 @@ mark.highlight-search {
   justify-content: center;
   gap: 6px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-}
-
-.feature-action-btn-lg:hover {
-  border-color: #0284c7;
-  color: #0284c7;
-  background-color: #f0f9ff;
-  transform: translateY(-1px);
-}
-
-button.feature-action-btn-lg.has-data-gps {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-sig {
-  background-color: #dcfce7 !important;
-  border-color: #16a34a !important;
-  color: #15803d !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-attach {
-  background-color: #e0f2fe !important;
-  border-color: #0284c7 !important;
-  color: #0369a1 !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-media {
-  background-color: #fee2e2 !important;
-  border-color: #dc2626 !important;
-  color: #b91c1c !important;
-  font-weight: 700 !important;
-}
-button.feature-action-btn-lg.has-data-samples {
-  background-color: #fef3c7 !important;
-  border-color: #d97706 !important;
-  color: #b45309 !important;
-  font-weight: 700 !important;
 }
 
 .btn-edetailing-touch {
