@@ -187,7 +187,7 @@
     <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
       <input type="hidden" id="visitId">
 
-      <!-- Top Header Bar (รวมสวิตช์ Coaching ไว้ด้านบนขวา) -->
+      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.cancelVisitForm()">
@@ -197,13 +197,22 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-          <!-- 🌟 สวิตช์ Joint Visit / Coaching ย้ายมาอยู่อย่างเหมาะสมที่ Header Bar -->
-          <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs me-1">
-            <label class="switch mb-0 me-2" style="transform: scale(0.85);">
-              <input type="checkbox" id="visitIsCoaching">
-              <span class="slider"></span>
-            </label>
-            <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
+          <!-- 🌟 สวิตช์ Joint Visit / Coaching + Dynamic Coach Select Input -->
+          <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs me-1 gap-2">
+            <div class="d-flex align-items-center">
+              <label class="switch mb-0 me-2" style="transform: scale(0.85);">
+                <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
+                <span class="slider"></span>
+              </label>
+              <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
+            </div>
+
+            <!-- Dropdown เลือกรายชื่อ Coach (ซ่อนอยู่ จะโชว์เมื่อเปิดสวิตช์ ON) -->
+            <div id="visitCoachWrapper" class="d-none border-start ps-2">
+              <select class="form-select form-select-sm bg-light border-0 fw-semibold text-primary rounded-pill py-0 px-2" id="visitCoachRepId" style="min-width: 170px; font-size: 0.8rem; height: 26px;">
+                <option value="">- Select Coach -</option>
+              </select>
+            </div>
           </div>
 
           <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill">
