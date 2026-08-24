@@ -197,7 +197,7 @@ window.getPurposeText = function(purposeId, fallbackText) {
   return (appLang === 'en') ? (pObj.Value1 || pObj.Value || '-') : (pObj.Value || pObj.Value1 || '-');
 };
 
-w/* 🌟 อัปเกรดฟังก์ชันเซ็ตค่า TomSelect ให้ฉลาดขึ้น รองรับ Data Permission (BU Head / Manager) */
+/* 🌟 อัปเกรดฟังก์ชันเซ็ตค่า TomSelect ให้ฉลาดขึ้น รองรับ Data Permission (BU Head / Manager) */
 window.setTomSelectValue = function(instance, value, fallbackText) {
     if (!instance) return;
 
