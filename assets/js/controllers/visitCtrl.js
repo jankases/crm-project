@@ -197,31 +197,56 @@ window.getPurposeText = function(purposeId, fallbackText) {
   return (appLang === 'en') ? (pObj.Value1 || pObj.Value || '-') : (pObj.Value || pObj.Value1 || '-');
 };
 
-window.setTomSelectValue = function(instance, value, forceText) {
-  if (!instance) return;
-  var wasDisabled = instance.isDisabled;
-  if (wasDisabled) instance.enable(); 
-  if (Array.isArray(value)) {
-      value.forEach(function(v) {
-          if (v && !instance.options[v]) {
-              var pName = v;
-              if (window.globalProductsList) {
-                  var pObj = window.globalProductsList.find(function(px) { return String(px.Product_ID) === String(v); });
-                  if (pObj) pName = pObj.Product;
-              }
-              instance.addOption({value: v, text: pName});
-          }
-      });
-  } else if (value && !instance.options[value]) {
-      instance.addOption({value: value, text: forceText || value});
-  }
-  instance.setValue(value, true); 
-  instance.refreshItems(); 
-  if (forceText && !Array.isArray(value)) {
-      var item = instance.control.querySelector('.item');
-      if (item) item.innerText = forceText;
-  }
-  if (wasDisabled) instance.disable(); 
+w/* 🌟 อัปเกรดฟังก์ชันเซ็ตค่า TomSelect ให้ฉลาดขึ้น รองรับ Data Permission (BU Head / Manager) */
+window.setTomSelectValue = function(instance, value, fallbackText) {
+    if (!instance) return;
+
+    // 1. จำสถานะเดิมไว้ เผื่อฟอร์มโดนล็อก (Read-Only) อยู่
+    var wasDisabled = instance.isDisabled;
+    
+    // ปลดล็อกชั่วคราวเพื่อให้ยัดค่าลงไปได้
+    if (wasDisabled) instance.enable(); 
+
+    if (value) {
+        // รองรับทั้งกรณีค่าเดียว (หมอ) และค่าที่เป็น Array (สินค้า)
+        var values = Array.isArray(value) ? value : [value];
+        
+        values.forEach(function(val) {
+            var strVal = String(val).trim();
+            var lowerVal = strVal.toLowerCase();
+            var displayText = fallbackText;
+            
+            // 🌟 [BU Head Fix] ถ้าไม่ได้ส่งชื่อสำรองมา ให้ไปงัดเอาชื่อจาก Cache กลางของระบบ
+            if (!displayText || displayText === val) {
+                if (window._docIndex && (window._docIndex[lowerVal] || window._docIndex[strVal])) {
+                    var docObj = window._docIndex[lowerVal] || window._docIndex[strVal];
+                    displayText = (typeof window.getDoctorNameByLang === 'function') 
+                                  ? window.getDoctorNameByLang(docObj, strVal) 
+                                  : (docObj.Doctor_Name || docObj.Doc_Name_TH || docObj.Doc_Name_EN || strVal);
+                } 
+                else if (window._prodIndex && (window._prodIndex[lowerVal] || window._prodIndex[strVal])) {
+                    var pObj = window._prodIndex[lowerVal] || window._prodIndex[strVal];
+                    displayText = pObj.Product || pObj.Product_TH || strVal;
+                }
+            }
+
+            // 🌟 หัวใจสำคัญ: ถ้าใน Dropdown ไม่มีรายการนี้ (หมอของลูกน้องข้ามเขต) ให้สร้างจำลองขึ้นมาโชว์!
+            if (!instance.options[val]) {
+                instance.addOption({ 
+                    value: val, 
+                    text: displayText || val 
+                });
+            }
+        });
+
+        // ยัดค่าลงไปใน Dropdown
+        instance.setValue(value);
+    } else {
+        instance.clear();
+    }
+
+    // ล็อกกลับคืนเป็น Read-Only ให้ผู้บริหารเหมือนเดิม
+    if (wasDisabled) instance.disable(); 
 };
 
 window.updatePurposeDisplayLang = function() {
