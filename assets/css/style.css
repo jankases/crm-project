@@ -1574,10 +1574,4 @@ button.feature-action-btn-lg.has-data-samples {
   opacity: 0.8 !important;
 }
 
-
-flatpickr("#visitDate", {
-    dateFormat: "Y-m-d",     // ค่าที่ส่งเข้า Database
-    altInput: true,
-    altFormat: "d/m/Y",      // 👈 บังคับโชว์บนหน้าจอเป็น วัน/เดือน/ปี (DD/MM/YYYY)
-    allowInput: false
-});
+ 
