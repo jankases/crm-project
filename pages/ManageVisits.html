@@ -266,40 +266,41 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Features & Evidences -->
+ 
+               <!-- Features & Evidences Section -->
                 <div class="pt-2">
                   <label class="compact-label mb-2 d-flex align-items-center gap-1.5 text-primary fw-bold fs-6">
                     <i class="fa-solid fa-sliders me-1.5"></i>
                     <span data-i18n="sec_features_evidences">Features & Evidences</span>
                   </label>
                   
-                  <div class="row g-2.5">
-                    <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100" id="sectionGpsCheckin" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                  <!-- Dynamic Flexbox Container (จะปรับขนาดตามจำนวนปุ่มที่เปิดใน Setting อัตโนมัติ) -->
+                  <div class="d-flex flex-wrap gap-2 w-100" id="featuresButtonsWrapper">
+                    <div class="flex-grow-1" style="min-width: 140px;" id="sectionGpsCheckin">
+                      <button type="button" class="feature-action-btn-lg w-100" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                         <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                       </button>
                     </div>
-
-                    <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100" id="sectionSignature" onclick="window.openSignatureModal()">
+                
+                    <div class="flex-grow-1" style="min-width: 140px;" id="sectionSignature">
+                      <button type="button" class="feature-action-btn-lg w-100" onclick="window.openSignatureModal()">
                         <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                       </button>
                     </div>
-
-                    <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100" id="sectionSamples" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                
+                    <div class="flex-grow-1" style="min-width: 140px;" id="sectionSamples">
+                      <button type="button" class="feature-action-btn-lg w-100" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
                         <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                       </button>
                     </div>
-
-                    <div class="col-6">
-                      <button type="button" class="feature-action-btn-lg w-100" id="sectionAttachments" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                
+                    <div class="flex-grow-1" style="min-width: 140px;" id="sectionAttachments">
+                      <button type="button" class="feature-action-btn-lg w-100" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
                         <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                       </button>
                     </div>
-
-                    <div class="col-12 d-none" id="detailingMediaSection">
+                
+                    <div class="w-100 d-none" id="detailingMediaSection">
                       <button type="button" class="feature-action-btn-lg btn-edetailing-touch w-100 border-danger text-danger fw-bold" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
                         <i class="fa-solid fa-file-powerpoint me-1.5 fs-5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
                       </button>
