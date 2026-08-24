@@ -1157,14 +1157,14 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (APP-LIKE SCROLL)
    ========================================== */
 
-/* 🌟 ล็อกกล่องฟอร์มให้พอดีแม่ (ไม่ทะลุ) */
+/* 🌟 ล็อกกล่องฟอร์มให้พอดีแม่ (แก้เพิ่ม Padding ล่างเว้นที่ให้แคปซูลลอย) */
 #visitFormView {
   flex: 1 1 auto !important;
   height: 100% !important;
   max-height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important; 
-  padding: 0 !important; 
+  padding: 0 0 0.75rem 0 !important; /* 👈 เพิ่มที่ว่างก้นกล่องให้แคปซูลลอยตัวได้เต็มใบ */
   background-color: transparent !important;
 }
 
@@ -1222,16 +1222,16 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 4. Action Bar (ลอยตัวสวยงาม โค้งมน 4 ด้าน) */
+/* 🌟 4. Action Bar (ลอยตัวสวยงาม โค้งมน 4 ด้าน ไม่ต้องใช้ Sticky) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* บังคับมุมมน */
-  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.03), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
+  border-radius: 16px !important; /* 👈 บังคับมุมมน 4 ด้าน */
+  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.04), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
   width: 100% !important;
   min-height: 56px !important;
-  margin-bottom: 0.25rem !important; /* ลอยจากขอบล่างจอเล็กน้อย */
-  flex-shrink: 0 !important; /* ห้ามหดตัว */
+  margin-bottom: 0 !important; /* ลบ margin ออก เพราะเว้นที่ด้วย Padding แม่แล้ว */
+  flex-shrink: 0 !important;
   z-index: 10 !important;
 }
 
@@ -1501,7 +1501,7 @@ button.feature-action-btn-lg.has-data-samples {
   #visitFormView .col-12 > .border,
   #visitFormView .col-12 > div {
     height: auto !important; 
-    min-height: 400px; /* ให้กล่องมีความสูงขั้นต่ำจะได้ไม่ดูแคบไป */
+    min-height: 400px; 
     overflow-y: visible !important;
   }
 
@@ -1511,11 +1511,11 @@ button.feature-action-btn-lg.has-data-samples {
     flex: 0 0 auto !important;
   }
 
-  /* แถบ Save ยังคงลอยอยู่ก้นจอเหมือนเดิม */
+  /* 👈 พระเอกอยู่ตรงนี้: ให้แถบลอยตัวเป็นแคปซูล โค้งมนเหมือนในจอใหญ่ */
   .full-width-action-bar {
     position: sticky !important;
-    bottom: 0 !important; /* บนจอเล็กให้ติดขอบพอดีจะได้กดง่าย */
-    margin-bottom: 0 !important;
-    border-radius: 16px 16px 0 0 !important; /* มนแค่ขอบบน */
+    bottom: 0.75rem !important; /* สั่งให้ลอยขึ้นมาจากพื้นเสมอ */
+    margin-bottom: 0.75rem !important;
+    border-radius: 16px !important; /* บังคับให้มนทั้ง 4 ด้าน ห้ามตัดฉับ */
   }
 }
