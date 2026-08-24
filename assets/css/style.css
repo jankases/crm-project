@@ -17,7 +17,7 @@ html, body {
   height: calc(100vh - 85px) !important; /* 👈 ปรับระยะเผื่อ Navbar ให้ปลอดภัย 100% */
   width: 100% !important;
   overflow: hidden !important;
-  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
+  padding: 0.75rem 1.25rem 1.5rem 1.25rem !important; /* 👈 เพิ่ม Padding ล่างสุดเป็น 1.5rem */
   background-color: #f8fafc;
   box-sizing: border-box;
   display: flex !important;
@@ -1149,15 +1149,13 @@ mark.highlight-search {
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (FULL-WIDTH STICKY ACTION BAR)
    ========================================== */
 
-/* 🌟 2. ปรับบล็อกฟอร์มให้ยืดหยุ่นพอดีกับกล่องแม่ (ไม่ให้มี Padding ซ้อนทับกัน) */
 #visitFormView {
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  max-height: none !important;
-  min-height: 0 !important;
+  flex: 1 1 0% !important; /* 👈 บังคับให้อยู่ในกรอบเสมอ */
+  height: auto !important;
+  max-height: 100% !important;
   overflow: hidden !important;
-  padding: 0 0 0.5rem 0 !important; /* ล้าง padding เดิมที่ไปเบียดกล่องแม่ */
-  background-color: transparent !important;
+  padding: 0 0 1rem 0 !important; /* 👈 ให้พื้นที่หายใจด้านล่าง */
+  background-color: #f8fafc !important;
 }
 
 #visitFormView form {
@@ -1212,18 +1210,20 @@ mark.highlight-search {
   resize: none !important;
 }
  
-/* 🌟 3. แถบ Action Bar (บังคับลอยตัวและมีระยะขอบ) */
+/* 🌟 Full-Width Floating Sticky Action Bar (แคปซูลลอยตัว) */
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; /* บังคับมุมมนทั้ง 4 ด้าน */
-  box-shadow: 0 -2px 15px rgba(15, 23, 42, 0.05), 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+  border-radius: 16px !important; /* 👈 บังคับมน 4 ด้านชัดเจน */
+  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.03), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
   width: 100% !important;
-  min-height: 56px !important;
-  margin-bottom: 0.25rem !important; /* ดันขอบล่างขึ้นให้เห็นความโค้งชัดเจน */
+  min-height: 58px !important;
+  margin-bottom: 0 !important; 
   flex-shrink: 0 !important;
   z-index: 10 !important;
+  transform: translateY(-8px) !important; /* 👈 ท่าไม้ตาย! สั่งยกลอยขึ้น 8px จากพื้นเสมอ */
 }
+
 /* ==========================================
    ✨ DYNAMIC DEDICATED FEATURE BUTTONS
    ========================================== */
