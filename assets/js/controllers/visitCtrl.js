@@ -2240,16 +2240,20 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
           window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
       }
  
-        if (v && v.Visit_Date) {
-            var rawDate = v.Visit_Date.split('T')[0];
-            if (rawDate.indexOf('-') !== -1) {
-                var p = rawDate.split('-');
-                // แปลง YYYY-MM-DD เป็น DD/MM/YYYY
-                document.getElementById('visitDate').value = p[2] + '/' + p[1] + '/' + p[0];
-            } else {
-                document.getElementById('visitDate').value = formatToDDMMYYYY(v.Visit_Date);
-            }
-        }
+      // 🌟 [FIXED] แปลงวันที่ให้อยู่ในฟอร์แมต YYYY-MM-DD เพื่อให้ input type="date" อ่านค่าได้ถูกต้อง
+      if (v && v.Visit_Date) {
+          var rawDate = String(v.Visit_Date).split('T')[0];
+          if (rawDate.indexOf('/') !== -1) {
+              var p = rawDate.split('/');
+              // กรณีเดิมเป็น MM/DD/YYYY หรือ DD/MM/YYYY
+              document.getElementById('visitDate').value = p[2] + '-' + p[0].padStart(2, '0') + '-' + p[1].padStart(2, '0');
+          } else {
+              document.getElementById('visitDate').value = rawDate;
+          }
+      } else {
+          document.getElementById('visitDate').value = '';
+      }
+
       if (typeof window.formatTimeString === 'function') {
           document.getElementById('visitStartTime').value = window.formatTimeString(v.Start_Time);
           document.getElementById('visitEndTime').value = window.formatTimeString(v.End_Time);
@@ -2259,7 +2263,6 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       document.getElementById('visitNextAction').value = v.Next_Action || '';
       document.getElementById('visitStatus').value = v.Status || 'Pending';
       
-      // 🌟 [เพิ่มใหม่] จัดการแสดงผลสวิตช์ Coaching และ Dropdown รายชื่อ Coach
       var chkCoach = document.getElementById('visitIsCoaching');
       var coachWrapper = document.getElementById('visitCoachWrapper');
       var coachSelect = document.getElementById('visitCoachRepId');
