@@ -1370,10 +1370,10 @@ button.feature-action-btn-lg.has-data-samples {
   display: none !important;
 } 
 
-/* 🌟 iPad / Tablet (768px - 1199px): สไตล์ Light Premium (คลีน หรูหรา ธีมเดียวกับ Desktop) */
+ /* 🌟 iPad / Tablet (768px - 1199px): โทน Slate Cool Grey (แยกสัดส่วนชัดเจน ไม่กลืน ไม่มืด) */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
-    height: 100vh !important; /* iPad ไม่มี top navbar แล้ว จึงใช้ 100vh ได้เลย */
+    height: 100vh !important;
     max-height: 100vh !important;
     padding-bottom: 0.5rem !important;
   }
@@ -1381,8 +1381,8 @@ button.feature-action-btn-lg.has-data-samples {
   .ipad-sidebar-rail {
     width: 70px !important;
     height: 100vh !important;
-    background: #ffffff !important; /* เปลี่ยนจากสีดำเป็นสีขาว */
-    border-right: 1px solid #e2e8f0 !important; /* เพิ่มเส้นขอบมินิมอล */
+    background: #e2e8f0 !important; /* 🌟 สีเทาสว่างอมฟ้า (ไม่กลืนกับตารางขาว) */
+    border-right: 1px solid #cbd5e1 !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -1392,28 +1392,28 @@ button.feature-action-btn-lg.has-data-samples {
   }
 
   .sidebar-icon-btn {
-    color: #64748b !important;
+    color: #475569 !important; /* ไอคอนสีเทาเข้ม ชัดเจนขึ้น */
   }
   .sidebar-icon-btn:hover { 
-    background: #f1f5f9 !important; 
+    background: #cbd5e1 !important; 
     color: #0284c7 !important; 
   }
   .sidebar-icon-btn.active { 
-    background: #e0f2fe !important; 
-    color: #0284c7 !important; 
-    box-shadow: none !important;
+    background: #0284c7 !important; /* ปุ่มที่เลือกเป็นสีฟ้าสด */
+    color: #ffffff !important; 
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3) !important;
   }
 
-  /* ปุ่มภาษา iPad สไตล์แคปซูลสว่าง (เหมือน Desktop แต่นิ้วจิ้มง่าย) */
+  /* ปุ่มภาษา iPad สไตล์แคปซูลบนพื้นเทา */
   .ipad-lang-wrapper {
-    background-color: #f1f5f9 !important;
+    background-color: #cbd5e1 !important;
     padding: 3px !important;
     border-radius: 12px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 3px !important;
     width: 44px !important;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06) !important;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1) !important;
     margin-bottom: 8px !important;
   }
 
@@ -1429,12 +1429,12 @@ button.feature-action-btn-lg.has-data-samples {
     border: none !important;
     transition: all 0.2s ease !important;
     background-color: transparent !important;
-    color: #64748b !important;
+    color: #475569 !important;
   }
 
   .ipad-lang-btn.active {
     background-color: #ffffff !important;
     color: #0ea5e9 !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
   }
 }
