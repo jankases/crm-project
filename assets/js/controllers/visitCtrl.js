@@ -2096,11 +2096,9 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-  
-
-      // ✅ แก้เป็นแบบนี้ (ถอด py-2.5 ออก)
+      // 🌟 [FIX]: เติม event.stopPropagation() ที่ onclick ของ tag <a> 
 htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
-  '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+  '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
   '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
   '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
   '<td>' + prodBadges + '</td>' +
@@ -2110,15 +2108,12 @@ htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" st
 '</tr>';
   });
 
- 
 tbody.innerHTML = htmlBuffer;
     window.renderPaginationControls(totalPages);
 
-    // 🌟 [CRITICAL FIX] คืนค่า Focus ให้ช่องค้นหาเสมอหลัง Render ตารางเสร็จ
     var searchInput = document.getElementById('smartSearchInput');
     if (searchInput && document.activeElement !== searchInput) {
         var cursorDocPos = searchInput.value.length;
-        // หากผู้ใช้กำลังพิมพ์อยู่ในช่องค้นหา ให้คงค่า Cursor และ Focus ไว้ไม่ให้หลุด
         if (searchInput.value.trim() !== '') {
             searchInput.focus();
             searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
@@ -2408,7 +2403,7 @@ window.openAddVisitView = async function(presetDate) {
   if (coachWrapper) coachWrapper.classList.add('d-none');
   if (coachSelect) coachSelect.value = '';
 
-  // 🌟 [เพิ่มใหม่] เคลียร์ข้อมูล Samples ที่ค้างอยู่ในกล่อง Modal จากรอบที่แล้ว
+  // 🌟 [สำคัญ] เคลียร์ข้อมูล Samples ที่ค้างอยู่ในกล่อง Modal จากรอบที่แล้ว
   var sampleContainer = document.getElementById('sampleItemsContainer');
   if (sampleContainer) {
       var appLangSm = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -4438,7 +4433,7 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     const noText = document.getElementById('noSampleText');
     if (noText) noText.style.display = 'none';
 
-    // เพิ่ม Random เพื่อป้องกัน ID ซ้ำกันกรณีสร้างเร็วๆ
+    // 🌟 ใส่เลขสุ่มเพิ่ม ป้องกัน ID แถวซ้ำกัน
     const rowId = 'sampleRow_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     var btnEN = document.getElementById('btnLangEN');
     var isEN = btnEN && btnEN.classList.contains('btn-primary');
@@ -4469,8 +4464,7 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
         const newSelect = container.querySelector(`#${rowId} .sample-id-select`);
         if (newSelect) {
             newSelect.value = sampleId;
-            // สั่ง Render อีกรอบเพื่อซ่อนตัวเลือกนี้ไม่ให้ Dropdown บรรทัดอื่นเลือกซ้ำ
-            window.renderAllSampleDropdowns();
+            window.renderAllSampleDropdowns(); // อัปเดตเพื่อซ่อนตัวเลือกนี้ออกจากแถวอื่น
         }
     }
 };
@@ -4531,13 +4525,15 @@ window.collectVisitSamplesPayload = function(visitId, whoUpdated) {
     }));
 };
 
+window._activeSampleFetch = null;
 window.loadVisitSamplesForEdit = async function(visitId) {
+    if (window._activeSampleFetch === visitId) return; // 🌟 ป้องกันการดึงข้อมูลซ้ำซ้อน
+    window._activeSampleFetch = visitId;
+
     const container = document.getElementById('sampleItemsContainer');
-    if (!container) return;
+    if (!container) { window._activeSampleFetch = null; return; }
     
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    
-    // 🌟 คงข้อความเดิมของคุณไว้ 100% ไม่ตัดออก
     container.innerHTML = '<div class="text-muted small text-center italic" id="noSampleText">' + (appLang === 'en' ? 'No samples issued (Click "Add Item")' : 'ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม "เพิ่มรายการ")') + '</div>';
 
     try {
@@ -4550,17 +4546,17 @@ window.loadVisitSamplesForEdit = async function(visitId) {
             data.forEach(item => {
                 window.addSampleRow(item.Sample_ID, item.Quantity);
             });
+            // ไม่ต้อง renderAllSampleDropdowns ซ้ำ เพราะ addSampleRow จัดการให้แล้ว
             
-            // 🌟 คงบรรทัดนี้ไว้เหมือนเดิมเป๊ะๆ
-            window.renderAllSampleDropdowns();
-            
-            // 🌟 FIX BUGS: จุดที่แก้บั๊กคือเติมคำว่า (null) ลงไปในวงเล็บ เพื่อบังคับให้ฟังก์ชันไปนับจาก DOM แทนที่จะรอข้อมูลจาก API
+            // 🌟 สั่งอัปเดตปุ่มให้เป็นสีเขียว หลังจากที่โหลดข้อมูลเสร็จ
             if (typeof window.updateFeatureButtonIndicators === 'function') {
                 window.updateFeatureButtonIndicators(null);
             }
         }
     } catch (e) {
         console.error("Error loading Visit_Samples:", e);
+    } finally {
+        window._activeSampleFetch = null; // ปลดล็อก
     }
 };
 
