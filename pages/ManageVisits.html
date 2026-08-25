@@ -613,25 +613,49 @@
   </div>
 </div>
 
+<!-- ✍️ อัปเกรดหน้าต่าง Doctor Signature สไตล์ iPad App -->
 <div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content shadow-lg border-0">
-      <div class="modal-header bg-light py-3 px-4">
-        <h6 class="modal-title fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-signature text-success me-2 fs-5"></i><span data-i18n="lbl_signature">Doctor Signature</span></h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body p-4 text-center">
-        <p class="text-muted small mb-2"><i class="fa-solid fa-hand-pointer me-1.5 text-primary"></i> <span data-i18n="lbl_sign_instruction">Draw doctor signature inside the box using finger or Apple Pencil / Stylus</span></p>
-        <div class="position-relative bg-white border border-2 border-primary rounded-4 overflow-hidden shadow-xs mx-auto" style="width: 100%; height: 320px; touch-action: none;">
-          <canvas id="modalSignatureCanvas" class="w-100 h-100" style="cursor: crosshair;"></canvas>
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+      
+      <!-- ส่วนหัว (Header) จัดกึ่งกลาง -->
+      <div class="modal-header border-bottom-0 pt-4 pb-2 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(25, 135, 84, 0.15);">
+            <i class="fa-solid fa-signature fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_signature">Doctor Signature</h5>
         </div>
       </div>
-      <div class="modal-footer bg-light d-flex justify-content-between py-3 px-4">
-        <button type="button" class="btn btn-outline-danger px-3" onclick="window.clearModalCanvas()"><i class="fa-solid fa-rotate-left me-1.5"></i> <span data-i18n="btn_clear_canvas">Clear Canvas</span></button>
-        <div class="d-flex gap-2">
-          <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-          <button type="button" class="btn btn-success px-4" onclick="window.saveSignatureFromModal()"><i class="fa-solid fa-check me-1.5"></i> <span data-i18n="btn_save_sig">Save Signature</span></button>
+
+      <!-- ส่วนเนื้อหาและพื้นที่เซ็นชื่อ -->
+      <div class="modal-body px-4 pb-4 pt-0 text-center">
+        <p class="text-muted small mb-3 fw-medium"><i class="fa-solid fa-hand-pointer me-1.5 text-primary"></i> <span data-i18n="lbl_sign_instruction">Draw doctor signature inside the box using finger or Apple Pencil / Stylus</span></p>
+        
+        <!-- Canvas Box: ปรับกรอบให้ดูซอฟต์ลงและพรีเมียมขึ้น -->
+        <div class="position-relative bg-white border border-2 rounded-4 overflow-hidden mx-auto shadow-xs" style="width: 100%; height: 340px; border-color: #cbd5e1 !important; touch-action: none;">
+          <canvas id="modalSignatureCanvas" class="w-100 h-100 position-relative" style="cursor: crosshair; z-index: 10;"></canvas>
         </div>
+
+        <!-- กลุ่มปุ่มด้านล่าง (Footer Actions) ใหญ่กดง่าย -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 gap-3">
+          <!-- ปุ่มล้างลายเซ็น -->
+          <button type="button" class="btn btn-light text-danger fw-bold shadow-xs px-4 d-flex align-items-center justify-content-center" style="height: 52px; border-radius: 16px;" onclick="window.clearModalCanvas()">
+            <i class="fa-solid fa-eraser me-2 fs-5"></i> <span data-i18n="btn_clear_canvas">Clear Canvas</span>
+          </button>
+          
+          <div class="d-flex gap-2 flex-grow-1 justify-content-end">
+            <!-- ปุ่มยกเลิก -->
+            <button type="button" class="btn btn-light text-secondary fw-bold shadow-xs px-4" style="height: 52px; border-radius: 16px;" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            
+            <!-- ปุ่มบันทึกลายเซ็น (Hero Button สีเขียว) -->
+            <button type="button" class="btn btn-success fw-bold shadow-sm px-5 d-flex align-items-center justify-content-center gap-2" style="height: 52px; border-radius: 16px;" onclick="window.saveSignatureFromModal()">
+              <i class="fa-solid fa-check fs-5"></i> <span data-i18n="btn_save_sig">Save Signature</span>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
