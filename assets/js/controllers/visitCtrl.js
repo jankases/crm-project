@@ -3304,7 +3304,7 @@ window.getSignatureDataUrl = function() {
   return window.savedSignatureData || null;
 };
 
-window.setFormComponentsReadOnly = function(isReadOnly) {
+ window.setFormComponentsReadOnly = function(isReadOnly) {
   // 1. ล็อกปุ่ม GPS
   var btnGps = document.getElementById('btnGpsCheckin');
   if (btnGps) btnGps.disabled = isReadOnly;
@@ -3318,28 +3318,38 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
     else { fileBtnLabel.classList.remove('disabled', 'pe-none', 'opacity-50'); }
   }
 
+  // ซ่อนปุ่มลบรูปภาพ
   var removeBtns = document.querySelectorAll('#attachmentPreviewContainer button');
-  removeBtns.forEach(function(btn) { btn.style.display = isReadOnly ? 'none' : 'flex'; });
+  removeBtns.forEach(function(btn) { 
+      btn.classList.toggle('d-none', isReadOnly); 
+  });
 
-  // 🌟 3. ล็อกหน้าต่างลายเซ็น (อัปเดต Selector ให้ตรงกับ UI ตัวใหม่)
+  // 🌟 3. ล็อกหน้าต่างลายเซ็น (แก้ให้ใช้ d-none ชนกับ d-flex)
   var clearSigBtn = document.querySelector('button[onclick*="clearModalCanvas"]');
   var saveSigBtn = document.querySelector('button[onclick*="saveSignatureFromModal"]');
   var canvas = document.getElementById('modalSignatureCanvas'); 
 
-  if (clearSigBtn) clearSigBtn.style.display = isReadOnly ? 'none' : '';
-  if (saveSigBtn) saveSigBtn.style.display = isReadOnly ? 'none' : '';
+  if (clearSigBtn) clearSigBtn.classList.toggle('d-none', isReadOnly);
+  if (saveSigBtn) saveSigBtn.classList.toggle('d-none', isReadOnly);
+  
   if (canvas) {
     canvas.style.pointerEvents = isReadOnly ? 'none' : 'auto'; // ปิดไม่ให้ใช้นิ้ววาดได้
-    canvas.style.backgroundColor = isReadOnly ? '#f1f5f9' : '#ffffff'; // เปลี่ยนสีพื้นหลังให้ดูรู้ว่าโดนล็อก
+    // เปลี่ยนสีพื้นหลังกรอบ Canvas ให้เป็นเทาอ่อนเมื่อถูกล็อก
+    if (canvas.parentElement) {
+        canvas.parentElement.style.backgroundColor = isReadOnly ? '#f1f5f9' : '#ffffff';
+    }
   }
 
-  // 🌟 4. ล็อกหน้าต่าง Samples ไม่ให้กดเพิ่ม/ลบ หรือแก้ไขตัวเลขได้
+  // 🌟 4. ล็อกหน้าต่าง Samples (ซ่อนปุ่ม Add Item และปุ่มถังขยะ)
   var addSampleBtn = document.querySelector('button[onclick*="addSampleRow"]');
-  if (addSampleBtn) addSampleBtn.style.display = isReadOnly ? 'none' : '';
+  if (addSampleBtn) addSampleBtn.classList.toggle('d-none', isReadOnly);
 
   var delSampleBtns = document.querySelectorAll('.btn-delete-sample');
-  delSampleBtns.forEach(function(btn) { btn.style.display = isReadOnly ? 'none' : ''; });
+  delSampleBtns.forEach(function(btn) { 
+      btn.classList.toggle('d-none', isReadOnly); 
+  });
 
+  // ล็อกช่องเลือกสินค้าและจำนวน
   var sampleInputs = document.querySelectorAll('.sample-id-select, .sample-qty');
   sampleInputs.forEach(function(input) { input.disabled = isReadOnly; });
 };
