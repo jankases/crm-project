@@ -45,9 +45,10 @@ html, body {
   height: 100% !important;
 }
 
+/* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น ห้ามกระทบกล่องค้นหา */
 #visitListZone, 
-#doctorListView .card,
-#hospListView .card {
+#doctorListZone,
+#hospListZone {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
@@ -57,7 +58,16 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 RULE 2: INTERNAL SCROLL ONLY */
+/* 🌟 คืนค่าความสูงให้กล่อง Filter กลับมาพอดีกับเนื้อหา (Compact) ไม่ยืดตามตาราง */
+.visit-filter-group,
+.doctor-filter-group,
+.hosp-filter-group {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: min-content !important;
+}
+
+/* 🌟 RULE 3: INTERNAL SCROLL ONLY */
 .table-scroll-inside {
   width: 100%;
   flex: 1 1 auto !important;
@@ -84,7 +94,8 @@ html, body {
 
 #visitPaginationContainer,
 .doc-pagination-container,
-.hosp-pagination-container {
+.hosp-pagination-container,
+#doctorPaginationContainer {
   margin-top: auto !important;
   flex-shrink: 0 !important;
 }
@@ -1781,4 +1792,4 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 .table-scroll-inside .badge-soft-warning { 
   background-color: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; 
-}
+} อันนี้ล่าสุดของเราช่วยเช็คว่ามัน มีอะไรผิดปรกติหรือมี idea อะไรจะปรับปรุงไหม เอาแบบ ให้เหมือนกันทุกหน้าและตรงกับ Strict: CRM App-Like UI (3 Golden Rules)
