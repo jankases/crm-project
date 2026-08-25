@@ -618,6 +618,7 @@ window.restoreDocFilterState = function() {
 // ==========================================
 // 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
+
 window.loadDoctors = async function(forceReload = false) {
   const tbody = document.getElementById('doctorTableBody');
   if (!tbody) return;
@@ -627,8 +628,14 @@ window.loadDoctors = async function(forceReload = false) {
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
+    
+    // 🌟 FIX: ปิด Skeleton ทันทีถ้าโหลดข้อมูลจาก Cache ได้เร็วเกินไป
+    const filterGroup = document.getElementById('doctorFilterZoneGroup');
+    if (filterGroup) filterGroup.classList.add('ready');
+    
     return;
   }
+   
 
   tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading Doctors...</div></td></tr>`;
 
