@@ -1572,3 +1572,134 @@ button.feature-action-btn-lg.has-data-samples i {
   font-style: italic !important;
   opacity: 0.8 !important;
 }
+
+/* ==========================================
+   🔐 LOGIN PAGE STYLING (CRM Theme)
+   ========================================== */
+
+/* 1. Outer Frame Lock: ล็อคกรอบนอกให้เต็มจอและจัดกึ่งกลางเสมอ */
+.login-wrapper {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; 
+  height: 100vh;
+  background: linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%); /* พื้นหลังสีเทาอ่อนสะอาดตา */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* 2. Login Card: การ์ดพื้นหลังสีขาว ขอบโค้งมน พร้อม Shadow */
+.login-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 3rem 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08), 0 5px 15px rgba(0, 0, 0, 0.03);
+  border: 1px solid #ffffff;
+}
+
+/* 3. Brand Icon: ไอคอนโลโก้บริษัทด้านบน */
+.login-brand-icon {
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+  color: #ffffff;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.3);
+}
+
+/* 4. Typography: ตัวอักษรและข้อความ */
+.login-title {
+  font-weight: 800;
+  color: #0f172a;
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+}
+
+.login-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 2.5rem;
+}
+
+.login-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #475569;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* 5. Input Groups: ช่องกรอกข้อมูลสไตล์ Premium */
+.login-input-group {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-input-group:focus-within {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+}
+
+.login-input-icon {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding-left: 1rem;
+  padding-right: 0.5rem;
+}
+
+.login-input {
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 0.5rem;
+  height: 48px;
+  font-size: 0.95rem;
+}
+
+.login-input::placeholder {
+  color: #cbd5e1;
+}
+
+/* 6. Submit Button: ปุ่มกดเข้าสู่ระบบ */
+.btn-login-submit {
+  border-radius: 14px;
+  font-weight: 700;
+  height: 50px;
+  font-size: 1.05rem;
+  margin-top: 1rem;
+  background: #0d6efd;
+  border: none;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-login-submit:hover {
+  background: #0b5ed7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.35);
+}
+
+/* 7. Footer Links: ลิงก์ด้านล่าง (ลืมรหัสผ่าน) */
+.login-footer-link {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+  padding: 0.5rem 0;
+}
+
+.login-footer-link:hover {
+  color: #0d6efd;
+}
