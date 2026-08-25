@@ -1,6 +1,6 @@
 // ==========================================
 // 1. GLOBAL STATE & CACHE FOR DOCTORS ENGINE
-// ========================================== 
+// ==========================================  
 window.DocManagerCache = window.DocManagerCache || {
   isLoaded: false,
   indexLoaded: false,
