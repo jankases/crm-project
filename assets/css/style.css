@@ -1703,3 +1703,21 @@ button.feature-action-btn-lg.has-data-samples i {
 .login-footer-link:hover {
   color: #0d6efd;
 }
+
+/* 🌟 ขยายขนาดปุ่ม Close (X) สำหรับ iPad */
+.modal-header .btn-close {
+    width: 20px !important;
+    height: 20px !important;
+    padding: 12px !important; /* เพิ่มพื้นที่รับสัมผัส */
+    background-size: 14px !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.5;
+}
+
+.modal-header .btn-close:hover,
+.modal-header .btn-close:active {
+    background-color: #f1f5f9 !important; /* ขึ้นสีเทาอ่อนเวลากด */
+    opacity: 1;
+    transform: scale(1.05); /* ขยายขึ้นนิดนึงให้ดูมีลูกเล่น */
+}
