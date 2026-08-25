@@ -1080,7 +1080,7 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED THEME)
+   🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED Theme)
    ========================================== */
 .form-section-title {
   font-size: 0.92rem !important;
@@ -1720,4 +1720,65 @@ button.feature-action-btn-lg.has-data-samples i {
     background-color: #f1f5f9 !important; /* ขึ้นสีเทาอ่อนเวลากด */
     opacity: 1;
     transform: scale(1.05); /* ขยายขึ้นนิดนึงให้ดูมีลูกเล่น */
+}
+
+/* ==========================================
+   ✨ PREMIUM DASHBOARD POLISH (เก็บงาน UI หน้าหลัก)
+   ========================================== */
+
+/* 🌟 1. ปรับขอบโค้งมน (Border-Radius) ให้ทุกปุ่มและช่องค้นหาโค้งเนียนตา 12px ทั้งหมด */
+.premium-radius,
+.visit-filter-compact .input-group,
+.visit-filter-compact .btn-light.border,
+.dropdown-menu {
+  border-radius: 12px !important;
+}
+
+/* ปรับความสูงของช่อง Search และ Filter ให้เท่ากับปุ่มพอดีเป๊ะ */
+.visit-filter-compact .input-group,
+.visit-filter-compact .btn-light {
+  min-height: 42px !important;
+}
+
+/* 🌟 2. ลดความดุดันของปุ่ม Logout (ให้ดูซอฟต์ ไม่แย่งสายตาจากปุ่ม Add) */
+#logoutBtn {
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+  background-color: #f8fafc !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* ให้ไอคอนเป็นสีแดงเบาๆ เพื่อสื่อความหมาย */
+#logoutBtn i {
+  color: #ef4444 !important;
+}
+
+/* ตอนเอาเมาส์ชี้ ค่อยสว่างขึ้นมา */
+#logoutBtn:hover {
+  background-color: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+  color: #dc2626 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* 🌟 3. ปรับสีและกรอบของไอคอนหลักฐาน (Evidence Badges) ในตารางให้ลอยเด่นขึ้น */
+.table-scroll-inside .badge[class*="badge-soft-"] {
+  padding: 4px 6px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+.table-scroll-inside .badge-soft-info { 
+  background-color: #e0f2fe !important; color: #0284c7 !important; border: 1px solid #bae6fd !important; 
+}
+.table-scroll-inside .badge-soft-secondary { 
+  background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; 
+}
+.table-scroll-inside .badge-soft-success { 
+  background-color: #d1fae5 !important; color: #059669 !important; border: 1px solid #a7f3d0 !important; 
+}
+.table-scroll-inside .badge-soft-warning { 
+  background-color: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; 
 }
