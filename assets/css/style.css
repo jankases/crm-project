@@ -100,11 +100,13 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* ✨ MODERN MINIMAL SCROLLBAR */
+/* ✨ MODERN MINIMAL SCROLLBAR (GLOBALIZED) */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
+.hosp-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
 #visitFormView::-webkit-scrollbar,
 #visitFormView .col-12 > div::-webkit-scrollbar {
   width: 6px;
@@ -113,7 +115,9 @@ html, body {
 .table-scroll-inside::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
+.hosp-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
+.overflow-auto::-webkit-scrollbar-track,
 #visitFormView::-webkit-scrollbar-track,
 #visitFormView .col-12 > div::-webkit-scrollbar-track {
   background: transparent;
@@ -121,7 +125,9 @@ html, body {
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
+.hosp-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
+.overflow-auto::-webkit-scrollbar-thumb,
 #visitFormView::-webkit-scrollbar-thumb,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -130,7 +136,9 @@ html, body {
 .table-scroll-inside::-webkit-scrollbar-thumb:hover,
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
+.hosp-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
+.overflow-auto::-webkit-scrollbar-thumb:hover,
 #visitFormView::-webkit-scrollbar-thumb:hover,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
@@ -245,12 +253,16 @@ html, body {
   background-color: #f8fafc !important;
 }
 
-.visit-filter-group { 
+.visit-filter-group,
+.doctor-filter-group,
+.hosp-filter-group { 
   position: relative; 
   opacity: 1 !important; 
 }
 
-.visit-filter-group::before {
+.visit-filter-group::before,
+.doctor-filter-group::before,
+.hosp-filter-group::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -267,7 +279,9 @@ html, body {
   100% { background-position: -200% 0; }
 }
 
-.visit-filter-group.ready::before {
+.visit-filter-group.ready::before,
+.doctor-filter-group.ready::before,
+.hosp-filter-group.ready::before {
   opacity: 0;
   visibility: hidden;
 }
@@ -815,7 +829,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 /* 🌟 UNIFIED SINGLE-STATE LOADING */
 #visitListView.is-loading #visitMainContentContainer,
-#visitListView.is-loading #visitCalendarZone {
+#visitListView.is-loading #visitCalendarZone,
+#doctorListView.is-loading #doctorListZone,
+#hospListView.is-loading #hospListZone {
   display: none !important;
 }
 
@@ -1561,27 +1577,16 @@ button.feature-action-btn-lg.has-data-samples i {
   }
 }
 
-/* ==========================================
-   🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก (Read-Only)
-   ========================================== */
-#visitFormView .form-control:disabled::placeholder,
-#visitFormView .form-control[readonly]::placeholder,
-#visitFormView textarea:disabled::placeholder,
-#visitFormView textarea[readonly]::placeholder,
-#visitFormView input:disabled::placeholder,
-#visitFormView input[readonly]::placeholder {
+/* 🌟 FIX: ซ่อน Placeholder เมื่อช่องถูกล็อก (Read-Only) ใช้ครอบคลุมทุกหน้า! */
+.form-control:disabled::placeholder,
+.form-control[readonly]::placeholder,
+textarea:disabled::placeholder,
+textarea[readonly]::placeholder,
+input:disabled::placeholder,
+input[readonly]::placeholder {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   opacity: 0 !important;
-}
-
-#visitFormView .form-control::placeholder,
-#visitFormView textarea::placeholder,
-#visitFormView input::placeholder {
-  color: #94a3b8 !important;
-  font-weight: 400 !important;
-  font-style: italic !important;
-  opacity: 0.8 !important;
 }
 
 /* ==========================================
@@ -1792,4 +1797,4 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 .table-scroll-inside .badge-soft-warning { 
   background-color: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; 
-} อันนี้ล่าสุดของเราช่วยเช็คว่ามัน มีอะไรผิดปรกติหรือมี idea อะไรจะปรับปรุงไหม เอาแบบ ให้เหมือนกันทุกหน้าและตรงกับ Strict: CRM App-Like UI (3 Golden Rules)
+}
