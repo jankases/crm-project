@@ -1377,7 +1377,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING (FIXED BUGS)
+   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING (PERFECT FIX)
    ========================================== */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
@@ -1386,8 +1386,10 @@ button.feature-action-btn-lg.has-data-samples i {
     padding-bottom: 0.5rem !important;
   }
 
-  /* แถบ Sidebar Rail ฝั่งซ้าย */
-  .ipad-sidebar-rail {
+  /* 🌟 จัดระเบียบ Sidebar Rail ฝั่งซ้ายให้กระจายตัวพอดี สวยงาม นุ่มตา */
+  .ipad-sidebar-rail,
+  #ipadSidebarRail,
+  div[class*="sidebar-rail"] {
     width: 70px !important;
     height: 100vh !important;
     background: #f8fafc !important;
@@ -1395,46 +1397,57 @@ button.feature-action-btn-lg.has-data-samples i {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    padding: 0.75rem 0 !important;
+    justify-content: space-between !important;
+    padding: 0.85rem 0 !important;
     flex-shrink: 0 !important;
     z-index: 1040 !important;
     box-sizing: border-box !important;
   }
 
-  /* ล็อกสี Logo อันบนสุดให้ใช้สีฟ้าธีมหลัก */
+  /* 1. ปุ่ม Logo บนสุด - สีฟ้าธีมเดียวกับปุ่ม List */
   .ipad-sidebar-rail .app-logo-btn,
-  .ipad-sidebar-rail .brand-icon-btn {
+  .ipad-sidebar-rail .brand-icon-btn,
+  .ipad-sidebar-rail > div:first-child button,
+  .ipad-sidebar-rail > button:first-child {
     background-color: #0d6efd !important;
     color: #ffffff !important;
     border-radius: 14px !important;
+    border: none !important;
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25) !important;
   }
 
-  /* ไอคอนเมนูทั่วไป (Inactive) - สีเทาซอฟต์อ่านง่าย */
-  .ipad-sidebar-rail .sidebar-icon-btn,
+  /* 2. เมนูทั่วไป (Inactive Icons) - สีเทาซอฟต์ลง อ่านง่าย */
+  .ipad-sidebar-rail button,
+  .ipad-sidebar-rail a,
   .ipad-sidebar-rail i {
     color: #64748b !important;
     transition: all 0.2s ease !important;
   }
-  
-  .ipad-sidebar-rail .sidebar-icon-btn:hover { 
-    background: #f1f5f9 !important; 
-    color: #0d6efd !important; 
+
+  .ipad-sidebar-rail button:hover,
+  .ipad-sidebar-rail a:hover {
+    background: #f1f5f9 !important;
+    color: #0d6efd !important;
   }
 
-  /* เมนูที่เลือกอยู่ (Active) - สีฟ้าธีมหลักเดียวกับปุ่ม List/Save */
-  .ipad-sidebar-rail .sidebar-icon-btn.active { 
+  /* 3. เมนูที่เลือกอยู่ (Active Menu) - สีฟ้าธีมหลักสดใส */
+  .ipad-sidebar-rail button.active,
+  .ipad-sidebar-rail a.active,
+  .ipad-sidebar-rail .sidebar-icon-btn.active {
     background-color: #0d6efd !important;
     color: #ffffff !important;
+    border-radius: 12px !important;
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
   }
 
-  .ipad-sidebar-rail .sidebar-icon-btn.active i {
+  .ipad-sidebar-rail button.active i,
+  .ipad-sidebar-rail a.active i {
     color: #ffffff !important;
   }
 
-  /* แคปซูลเปลี่ยนภาษา (EN / TH) คลีนๆ */
-  .ipad-lang-wrapper {
+  /* 4. แคปซูลเปลี่ยนภาษา (EN / TH) - ล้างคลาส btn-primary ของ Bootstrap ให้เรียบคลีน */
+  .ipad-lang-wrapper,
+  #ipadLangWrapper {
     background-color: #e2e8f0 !important;
     padding: 3px !important;
     border-radius: 12px !important;
@@ -1442,11 +1455,12 @@ button.feature-action-btn-lg.has-data-samples i {
     flex-direction: column !important;
     gap: 2px !important;
     width: 44px !important;
-    margin-top: auto !important; /* ดันปุ่มภาษาขึ้นไปด้านบน */
-    margin-bottom: 6px !important;
     box-shadow: none !important;
+    border: none !important;
+    margin-bottom: 0.5rem !important;
   }
 
+  .ipad-lang-wrapper button,
   .ipad-lang-btn {
     width: 38px !important;
     height: 26px !important;
@@ -1457,27 +1471,37 @@ button.feature-action-btn-lg.has-data-samples i {
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
-    transition: all 0.2s ease !important;
+    background: transparent !important;
     background-color: transparent !important;
     color: #64748b !important;
     box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
   }
 
-  /* ปุ่มภาษาที่ถูกเลือก (Active) */
-  .ipad-lang-btn.active,
-  .ipad-lang-btn.btn-primary {
+  /* ปุ่มภาษาที่ Active (EN หรือ TH) - บังคับล้างคลาส btn-primary แล้วยัดสีฟ้าธีมหลัก */
+  .ipad-lang-wrapper button.active,
+  .ipad-lang-wrapper button.btn-primary,
+  .ipad-lang-btn.active {
+    background: #0d6efd !important;
     background-color: #0d6efd !important;
     color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3) !important;
   }
 
-  /* ปุ่ม Logout ด้านล่างสุด - ไม่ให้ออกนอกกรอบ */
-  .ipad-sidebar-rail .logout-icon-btn {
+  /* 5. ปุ่ม Logout ด้านล่างสุด - เว้นระยะให้อยู่ในกรอบสวยงาม */
+  .ipad-sidebar-rail .logout-icon-btn,
+  .ipad-sidebar-rail > button:last-child,
+  .ipad-sidebar-rail > a:last-child {
     color: #94a3b8 !important;
-    margin-bottom: 0.5rem !important;
+    margin-top: 0 !important;
   }
-  .ipad-sidebar-rail .logout-icon-btn:hover {
+  
+  .ipad-sidebar-rail .logout-icon-btn:hover,
+  .ipad-sidebar-rail > button:last-child:hover,
+  .ipad-sidebar-rail > a:last-child:hover {
     color: #dc2626 !important;
+    background: #fef2f2 !important;
   }
 }
 
