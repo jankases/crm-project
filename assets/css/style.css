@@ -45,10 +45,9 @@ html, body {
   height: 100% !important;
 }
 
-/* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น ห้ามกระทบกล่องค้นหา */
 #visitListZone, 
-#doctorListZone,
-#hospListZone {
+#doctorListView .card,
+#hospListView .card {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
@@ -58,16 +57,7 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 คืนค่าความสูงให้กล่อง Filter กลับมาพอดีกับเนื้อหา (Compact) ไม่ยืดตามตาราง */
-.visit-filter-group,
-.doctor-filter-group,
-.hosp-filter-group {
-  flex: 0 0 auto !important;
-  height: auto !important;
-  min-height: min-content !important;
-}
-
-/* 🌟 RULE 3: INTERNAL SCROLL ONLY */
+/* 🌟 RULE 2: INTERNAL SCROLL ONLY */
 .table-scroll-inside {
   width: 100%;
   flex: 1 1 auto !important;
@@ -94,8 +84,7 @@ html, body {
 
 #visitPaginationContainer,
 .doc-pagination-container,
-.hosp-pagination-container,
-#doctorPaginationContainer {
+.hosp-pagination-container {
   margin-top: auto !important;
   flex-shrink: 0 !important;
 }
@@ -216,58 +205,25 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* ==========================================
-   🌟 BORDERLESS CONTROL TOOLBAR (UNIFIED FIX)
-   ========================================== */
-/* 1. กำหนดความสูงมาตรฐาน 42px เท่ากันทุกตัว */
-.visit-filter-compact .input-group,
+/* 🌟 BORDERLESS CONTROL TOOLBAR */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
-.visit-filter-compact .btn,
-.visit-filter-compact .ts-wrapper .ts-control {
-  height: 42px !important;
-  min-height: 42px !important;
-  font-size: 0.88rem !important;
-  border-radius: 12px !important;
-}
-
-/* 2. จัดการ Flex สำหรับปุ่มและไอคอน */
-.visit-filter-compact .input-group-text,
 .visit-filter-compact .btn {
-  display: inline-flex !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  font-size: 0.85rem !important;
+  line-height: 1.2 !important;
+  display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
-/* 3. จัดการช่อง Input และ Select ทั่วไป */
-.visit-filter-compact .form-control,
-.visit-filter-compact .form-select {
-  display: block !important;
-  padding: 0.45rem 0.5rem !important;
-  line-height: 1.5 !important;
-}
-
-/* 4. 🌟 [FIX ตรงจุด] กำหนดสไตล์ช่อง Date Range (Flatpickr) ที่เป็น type="text" */
-#dateFilterRangeWrapper .form-control,
-#filterStartDate,
-#filterEndDate,
-#visitDate {
-  display: inline-block !important;
-  height: 100% !important;
-  padding: 0 0.25rem !important;
-  line-height: 38px !important; /* ดันข้อความ dd/mm/yyyy ให้อยู่กึ่งกลางแนวตั้งพอดีเป๊ะ */
-  vertical-align: middle !important;
-  text-align: center !important;
-}
-
-/* 5. แก้อาการ TomSelect เบี้ยว */
-.visit-filter-compact .ts-wrapper .ts-control {
-  display: flex !important;
-  align-items: center !important;
-  padding: 0 0.75rem !important;
+.visit-filter-compact input[type="date"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 36px !important;
 }
 
 .visit-filter-compact input[type="text"] {
@@ -278,19 +234,12 @@ html, body {
   background-color: #f8fafc !important;
 }
 
-/* ==========================================
-   🌟 SKELETON LOADING
-   ========================================== */
-.visit-filter-group,
-.doctor-filter-group,
-.hosp-filter-group { 
+.visit-filter-group { 
   position: relative; 
   opacity: 1 !important; 
 }
 
-.visit-filter-group::before,
-.doctor-filter-group::before,
-.hosp-filter-group::before {
+.visit-filter-group::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -307,9 +256,7 @@ html, body {
   100% { background-position: -200% 0; }
 }
 
-.visit-filter-group.ready::before,
-.doctor-filter-group.ready::before,
-.hosp-filter-group.ready::before {
+.visit-filter-group.ready::before {
   opacity: 0;
   visibility: hidden;
 }
@@ -857,9 +804,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 /* 🌟 UNIFIED SINGLE-STATE LOADING */
 #visitListView.is-loading #visitMainContentContainer,
-#visitListView.is-loading #visitCalendarZone,
-#doctorListView.is-loading #doctorListZone,
-#hospListView.is-loading #hospListZone {
+#visitListView.is-loading #visitCalendarZone {
   display: none !important;
 }
 
@@ -1135,7 +1080,7 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED Theme)
+   🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED THEME)
    ========================================== */
 .form-section-title {
   font-size: 0.92rem !important;
@@ -1605,218 +1550,25 @@ button.feature-action-btn-lg.has-data-samples i {
   }
 }
 
-/* 🌟 FIX: ซ่อน Placeholder เมื่อช่องถูกล็อก (Read-Only) ใช้ครอบคลุมทุกหน้า! */
-.form-control:disabled::placeholder,
-.form-control[readonly]::placeholder,
-textarea:disabled::placeholder,
-textarea[readonly]::placeholder,
-input:disabled::placeholder,
-input[readonly]::placeholder {
+/* ==========================================
+   🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก (Read-Only)
+   ========================================== */
+#visitFormView .form-control:disabled::placeholder,
+#visitFormView .form-control[readonly]::placeholder,
+#visitFormView textarea:disabled::placeholder,
+#visitFormView textarea[readonly]::placeholder,
+#visitFormView input:disabled::placeholder,
+#visitFormView input[readonly]::placeholder {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   opacity: 0 !important;
 }
 
-/* ==========================================
-   🔐 LOGIN PAGE STYLING (CRM Theme)
-   ========================================== */
-
-/* 1. Outer Frame Lock: ล็อคกรอบนอกให้เต็มจอและจัดกึ่งกลางเสมอ */
-.login-wrapper {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; 
-  height: 100vh;
-  background: linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%); /* พื้นหลังสีเทาอ่อนสะอาดตา */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-/* 2. Login Card: การ์ดพื้นหลังสีขาว ขอบโค้งมน พร้อม Shadow */
-.login-card {
-  background: #ffffff;
-  width: 100%;
-  max-width: 420px;
-  padding: 3rem 2.5rem;
-  border-radius: 24px;
-  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08), 0 5px 15px rgba(0, 0, 0, 0.03);
-  border: 1px solid #ffffff;
-}
-
-/* 3. Brand Icon: ไอคอนโลโก้บริษัทด้านบน */
-.login-brand-icon {
-  width: 68px;
-  height: 68px;
-  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
-  color: #ffffff;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem auto;
-  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.3);
-}
-
-/* 4. Typography: ตัวอักษรและข้อความ */
-.login-title {
-  font-weight: 800;
-  color: #0f172a;
-  font-size: 1.75rem;
-  letter-spacing: -0.5px;
-}
-
-.login-subtitle {
-  color: #64748b;
-  font-size: 0.95rem;
-  margin-bottom: 2.5rem;
-}
-
-.login-label {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #475569;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-/* 5. Input Groups: ช่องกรอกข้อมูลสไตล์ Premium */
-.login-input-group {
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.login-input-group:focus-within {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
-}
-
-.login-input-icon {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  padding-left: 1rem;
-  padding-right: 0.5rem;
-}
-
-.login-input {
-  border: none !important;
-  box-shadow: none !important;
-  padding-left: 0.5rem;
-  height: 48px;
-  font-size: 0.95rem;
-}
-
-.login-input::placeholder {
-  color: #cbd5e1;
-}
-
-/* 6. Submit Button: ปุ่มกดเข้าสู่ระบบ */
-.btn-login-submit {
-  border-radius: 14px;
-  font-weight: 700;
-  height: 50px;
-  font-size: 1.05rem;
-  margin-top: 1rem;
-  background: #0d6efd;
-  border: none;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.btn-login-submit:hover {
-  background: #0b5ed7;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.35);
-}
-
-/* 7. Footer Links: ลิงก์ด้านล่าง (ลืมรหัสผ่าน) */
-.login-footer-link {
-  font-size: 0.85rem;
-  color: #64748b;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s;
-  padding: 0.5rem 0;
-}
-
-.login-footer-link:hover {
-  color: #0d6efd;
-}
-
-/* 🌟 ขยายขนาดปุ่ม Close (X) สำหรับ iPad */
-.modal-header .btn-close {
-    width: 20px !important;
-    height: 20px !important;
-    padding: 12px !important; /* เพิ่มพื้นที่รับสัมผัส */
-    background-size: 14px !important;
-    border-radius: 50% !important;
-    transition: all 0.2s ease-in-out;
-    opacity: 0.5;
-}
-
-.modal-header .btn-close:hover,
-.modal-header .btn-close:active {
-    background-color: #f1f5f9 !important; /* ขึ้นสีเทาอ่อนเวลากด */
-    opacity: 1;
-    transform: scale(1.05); /* ขยายขึ้นนิดนึงให้ดูมีลูกเล่น */
-}
-
-/* ==========================================
-   ✨ PREMIUM DASHBOARD POLISH (เก็บงาน UI หน้าหลัก)
-   ========================================== */
-
-/* 🌟 1. ปรับขอบโค้งมน (Border-Radius) ให้ทุกปุ่มและช่องค้นหาโค้งเนียนตา 12px ทั้งหมด */
-.premium-radius,
-.visit-filter-compact .input-group,
-.visit-filter-compact .btn-light.border,
-.dropdown-menu {
-  border-radius: 12px !important;
-}
-
-/* 🌟 2. ลดความดุดันของปุ่ม Logout (ให้ดูซอฟต์ ไม่แย่งสายตาจากปุ่ม Add) */
-#logoutBtn {
-  border: 1px solid #e2e8f0 !important;
-  color: #64748b !important;
-  background-color: #f8fafc !important;
-  box-shadow: none !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-/* ให้ไอคอนเป็นสีแดงเบาๆ เพื่อสื่อความหมาย */
-#logoutBtn i {
-  color: #ef4444 !important;
-}
-
-/* ตอนเอาเมาส์ชี้ ค่อยสว่างขึ้นมา */
-#logoutBtn:hover {
-  background-color: #fef2f2 !important;
-  border-color: #fca5a5 !important;
-  color: #dc2626 !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1) !important;
-}
-
-/* 🌟 3. ปรับสีและกรอบของไอคอนหลักฐาน (Evidence Badges) ในตารางให้ลอยเด่นขึ้น */
-.table-scroll-inside .badge[class*="badge-soft-"] {
-  padding: 4px 6px !important;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-}
-
-.table-scroll-inside .badge-soft-info { 
-  background-color: #e0f2fe !important; color: #0284c7 !important; border: 1px solid #bae6fd !important; 
-}
-.table-scroll-inside .badge-soft-secondary { 
-  background-color: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; 
-}
-.table-scroll-inside .badge-soft-success { 
-  background-color: #d1fae5 !important; color: #059669 !important; border: 1px solid #a7f3d0 !important; 
-}
-.table-scroll-inside .badge-soft-warning { 
-  background-color: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; 
+#visitFormView .form-control::placeholder,
+#visitFormView textarea::placeholder,
+#visitFormView input::placeholder {
+  color: #94a3b8 !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+  opacity: 0.8 !important;
 }
