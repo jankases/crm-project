@@ -227,7 +227,6 @@ html, body {
 /* ==========================================
    🌟 BORDERLESS CONTROL TOOLBAR (UNIFIED FIX)
    ========================================== */
-/* 1. กำหนดความสูงมาตรฐาน (42px) ให้ทุกชิ้นส่วนเท่ากันเป๊ะ */
 .visit-filter-compact .input-group,
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
@@ -240,7 +239,7 @@ html, body {
   border-radius: 12px !important;
 }
 
-/* 2. จัดไอคอนและปุ่มให้อยู่กึ่งกลาง */
+/* 1. ปุ่มและไอคอน ใช้ Flex เพื่อจัดกึ่งกลาง */
 .visit-filter-compact .input-group-text,
 .visit-filter-compact .btn {
   display: inline-flex !important;
@@ -250,7 +249,7 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-/* 3. ช่อง Input ธรรมดาและวันที่ (ห้ามใช้ Flex ไม่งั้น dd/mm/yyyy พัง) */
+/* 2. ช่อง Input ปกติ ห้ามใช้ Flex */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select {
   display: block !important;
@@ -259,12 +258,15 @@ html, body {
   line-height: 1.5 !important;
 }
 
-/* 4. ปรับวันที่ให้ตรงกลางพอดี */
+/* 3. 🌟 FIX: ช่องวันที่ (Date) คืนค่า Padding ให้หลวมขึ้น และบังคับให้จัดกลาง */
 .visit-filter-compact input[type="date"] {
-  line-height: inherit !important;
+  padding: 0 0.5rem !important; /* คืนค่า Padding ให้เบราว์เซอร์โชว์ตัวหนังสือได้ */
+  line-height: normal !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-/* 5. แก้อาการ TomSelect เบี้ยว ให้จัด Flex กึ่งกลางจากด้านใน */
+/* 4. 🌟 FIX: TomSelect ให้จัดกลางจากด้านในสุด */
 .visit-filter-compact .ts-wrapper .ts-control {
   display: flex !important;
   align-items: center !important;
@@ -272,14 +274,15 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-.visit-filter-compact input[type="text"] {
-  margin: 0 !important;
-}
+/* ปรับระยะกล่องที่ชอบเบี้ยว */
+.visit-filter-compact input[type="text"] { margin: 0 !important; }
 
-.bg-light-subtle {
-  background-color: #f8fafc !important;
-}
+/* 🌟 พื้นหลังของกล่องกลุ่ม */
+.bg-light-subtle { background-color: #f8fafc !important; }
 
+/* ==========================================
+   🌟 SKELETON LOADING
+   ========================================== */
 .visit-filter-group,
 .doctor-filter-group,
 .hosp-filter-group { 
@@ -1775,6 +1778,12 @@ input[readonly]::placeholder {
 .visit-filter-compact .btn-light.border,
 .dropdown-menu {
   border-radius: 12px !important;
+}
+
+/* ปรับความสูงของช่อง Search และ Filter ให้เท่ากับปุ่มพอดีเป๊ะ */
+.visit-filter-compact .input-group,
+.visit-filter-compact .btn-light {
+  min-height: 42px !important;
 }
 
 /* 🌟 2. ลดความดุดันของปุ่ม Logout (ให้ดูซอฟต์ ไม่แย่งสายตาจากปุ่ม Add) */
