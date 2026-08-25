@@ -224,37 +224,52 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* 🌟 BORDERLESS CONTROL TOOLBAR */
+/* ==========================================
+   🌟 BORDERLESS CONTROL TOOLBAR (UNIFIED FIX)
+   ========================================== */
+/* 1. กำหนดความสูงมาตรฐาน (42px) ให้ทุกชิ้นส่วนเท่ากันเป๊ะ */
+.visit-filter-compact .input-group,
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
-.visit-filter-compact .btn {
-  height: 38px !important;
-  min-height: 38px !important;
-  font-size: 0.85rem !important;
+.visit-filter-compact .btn,
+.visit-filter-compact .ts-wrapper .ts-control {
+  height: 42px !important;
+  min-height: 42px !important;
+  font-size: 0.88rem !important;
+  border-radius: 12px !important;
 }
 
-/* 1. ปุ่มและไอคอน ใช้ Flex เพื่อจัดกึ่งกลางได้ปกติ */
+/* 2. จัดไอคอนและปุ่มให้อยู่กึ่งกลาง */
 .visit-filter-compact .input-group-text,
 .visit-filter-compact .btn {
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
-/* 2. 🌟 FIX: ช่อง Input ห้ามใช้ Flex เด็ดขาด ให้กลับไปใช้ Block ตามมาตรฐาน */
+/* 3. ช่อง Input ธรรมดาและวันที่ (ห้ามใช้ Flex ไม่งั้น dd/mm/yyyy พัง) */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select {
   display: block !important;
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
+  padding-top: 0.55rem !important;
+  padding-bottom: 0.55rem !important;
   line-height: 1.5 !important;
 }
 
-/* 3. 🌟 FIX: คืนค่าวันที่ให้เป็นปกติ เพื่อให้เบราว์เซอร์แสดง dd/mm/yyyy ได้ */
+/* 4. ปรับวันที่ให้ตรงกลางพอดี */
 .visit-filter-compact input[type="date"] {
-  line-height: normal !important;
+  line-height: inherit !important;
+}
+
+/* 5. แก้อาการ TomSelect เบี้ยว ให้จัด Flex กึ่งกลางจากด้านใน */
+.visit-filter-compact .ts-wrapper .ts-control {
+  display: flex !important;
+  align-items: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .visit-filter-compact input[type="text"] {
@@ -1760,12 +1775,6 @@ input[readonly]::placeholder {
 .visit-filter-compact .btn-light.border,
 .dropdown-menu {
   border-radius: 12px !important;
-}
-
-/* ปรับความสูงของช่อง Search และ Filter ให้เท่ากับปุ่มพอดีเป๊ะ */
-.visit-filter-compact .input-group,
-.visit-filter-compact .btn-light {
-  min-height: 42px !important;
 }
 
 /* 🌟 2. ลดความดุดันของปุ่ม Logout (ให้ดูซอฟต์ ไม่แย่งสายตาจากปุ่ม Add) */
