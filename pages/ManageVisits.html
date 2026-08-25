@@ -423,33 +423,61 @@
   </div>
 </div>
 
+<!-- 📍 อัปเกรดกล่อง GPS Check-in สไตล์ iPad App -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header bg-light py-3 px-4">
-        <h6 class="modal-title fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-location-dot text-danger me-2 fs-5"></i><span data-i18n="lbl_location">GPS Check-in</span></h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered modal-sm"> <!-- บีบขนาดกล่องให้แคบลงเพื่อโฟกัสสายตา -->
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+      
+      <!-- ส่วนหัว (Header) จัดกึ่งกลาง พร้อมไอคอนขนาดใหญ่ -->
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(13, 110, 253, 0.15);">
+             <i class="fa-solid fa-map-location-dot fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_location">GPS Check-in</h5>
+          <p class="text-muted small mb-0">Record your current location</p>
+        </div>
       </div>
-      <div class="modal-body p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="fw-bold text-dark fs-6"><i class="fa-solid fa-map-pin text-danger me-1.5"></i><span data-i18n="lbl_location_coords">Coordinates</span></span>
-          <button type="button" class="btn btn-premium-secondary px-3" id="btnGpsCheckin" onclick="window.getLocationCheckin()">
-            <i class="fa-solid fa-crosshairs me-1.5"></i>Get Location
-          </button>
-        </div>
-        <div class="row g-3">
-          <div class="col-6">
-            <label class="compact-label mb-1 text-muted">Latitude</label>
-            <input type="text" class="form-control bg-white text-primary fw-bold" id="visitLat" readonly placeholder="Lat">
+
+      <!-- ส่วนเนื้อหา (Body) -->
+      <div class="modal-body px-4 pb-4 pt-4 text-center">
+        
+        <!-- ปุ่มดึงพิกัดขนาดใหญ่ (Hero Button) -->
+        <button type="button" class="btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2" id="btnGpsCheckin" onclick="window.getLocationCheckin()" style="border-radius: 16px;">
+          <i class="fa-solid fa-crosshairs fs-5"></i> <span>Get Current Location</span>
+        </button>
+
+        <!-- การ์ดแสดงผลตัวเลขพิกัด -->
+        <div class="bg-light border rounded-4 p-3 text-start shadow-xs">
+          <div class="d-flex align-items-center mb-3">
+             <i class="fa-solid fa-satellite-dish text-secondary me-2"></i>
+             <span class="fw-bold text-secondary small text-uppercase tracking-wide" data-i18n="lbl_location_coords" style="letter-spacing: 0.5px;">Coordinates</span>
           </div>
-          <div class="col-6">
-            <label class="compact-label mb-1 text-muted">Longitude</label>
-            <input type="text" class="form-control bg-white text-primary fw-bold" id="visitLng" readonly placeholder="Lng">
+          
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="bg-white border rounded-3 p-2 text-center">
+                <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Latitude</div>
+                <input type="text" class="form-control-plaintext bg-transparent p-0 text-dark fw-bold text-center mt-1" id="visitLat" readonly placeholder="--.------" style="font-size: 0.95rem;">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="bg-white border rounded-3 p-2 text-center">
+                <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Longitude</div>
+                <input type="text" class="form-control-plaintext bg-transparent p-0 text-dark fw-bold text-center mt-1" id="visitLng" readonly placeholder="--.------" style="font-size: 0.95rem;">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Badge แสดงเวลาที่ดึงพิกัดสำเร็จ -->
+          <div class="text-center mt-3 d-none" id="locationTimeWrapper">
+            <span class="badge bg-success-subtle text-success px-3 py-2 fw-bold rounded-pill border border-success-subtle" style="font-size: 0.8rem;">
+              <i class="fa-solid fa-circle-check me-1.5"></i>Checked-in at <span id="visitCheckinTimeText"></span>
+            </span>
           </div>
         </div>
-        <div class="text-end mt-3 d-none" id="locationTimeWrapper">
-          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Checked-in at: <span id="visitCheckinTimeText"></span></span>
-        </div>
+
       </div>
     </div>
   </div>
