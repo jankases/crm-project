@@ -232,17 +232,29 @@ html, body {
   height: 38px !important;
   min-height: 38px !important;
   font-size: 0.85rem !important;
-  line-height: 1.2 !important;
+}
+
+/* 1. ปุ่มและไอคอน ใช้ Flex เพื่อจัดกึ่งกลางได้ปกติ */
+.visit-filter-compact .input-group-text,
+.visit-filter-compact .btn {
   display: flex !important;
   align-items: center !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
+/* 2. 🌟 FIX: ช่อง Input ห้ามใช้ Flex เด็ดขาด ให้กลับไปใช้ Block ตามมาตรฐาน */
+.visit-filter-compact .form-control,
+.visit-filter-compact .form-select {
+  display: block !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  line-height: 1.5 !important;
+}
+
+/* 3. 🌟 FIX: คืนค่าวันที่ให้เป็นปกติ เพื่อให้เบราว์เซอร์แสดง dd/mm/yyyy ได้ */
 .visit-filter-compact input[type="date"] {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  line-height: 36px !important;
+  line-height: normal !important;
 }
 
 .visit-filter-compact input[type="text"] {
