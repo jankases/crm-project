@@ -3305,9 +3305,11 @@ window.getSignatureDataUrl = function() {
 };
 
 window.setFormComponentsReadOnly = function(isReadOnly) {
+  // 1. ล็อกปุ่ม GPS
   var btnGps = document.getElementById('btnGpsCheckin');
   if (btnGps) btnGps.disabled = isReadOnly;
 
+  // 2. ล็อกปุ่มแนบไฟล์
   var fileInput = document.getElementById('visitFileInput');
   var fileBtnLabel = fileInput ? fileInput.closest('label') : null;
   if (fileInput) fileInput.disabled = isReadOnly;
@@ -3319,13 +3321,27 @@ window.setFormComponentsReadOnly = function(isReadOnly) {
   var removeBtns = document.querySelectorAll('#attachmentPreviewContainer button');
   removeBtns.forEach(function(btn) { btn.style.display = isReadOnly ? 'none' : 'flex'; });
 
-  var clearSigBtn = document.querySelector('button[onclick*="clearSignature"]');
-  var canvas = document.getElementById('signatureCanvas');
-  if (clearSigBtn) clearSigBtn.style.display = isReadOnly ? 'none' : 'inline-block';
+  // 🌟 3. ล็อกหน้าต่างลายเซ็น (อัปเดต Selector ให้ตรงกับ UI ตัวใหม่)
+  var clearSigBtn = document.querySelector('button[onclick*="clearModalCanvas"]');
+  var saveSigBtn = document.querySelector('button[onclick*="saveSignatureFromModal"]');
+  var canvas = document.getElementById('modalSignatureCanvas'); 
+
+  if (clearSigBtn) clearSigBtn.style.display = isReadOnly ? 'none' : '';
+  if (saveSigBtn) saveSigBtn.style.display = isReadOnly ? 'none' : '';
   if (canvas) {
-    canvas.style.pointerEvents = isReadOnly ? 'none' : 'auto';
-    canvas.style.backgroundColor = isReadOnly ? '#f8fafc' : '#ffffff';
+    canvas.style.pointerEvents = isReadOnly ? 'none' : 'auto'; // ปิดไม่ให้ใช้นิ้ววาดได้
+    canvas.style.backgroundColor = isReadOnly ? '#f1f5f9' : '#ffffff'; // เปลี่ยนสีพื้นหลังให้ดูรู้ว่าโดนล็อก
   }
+
+  // 🌟 4. ล็อกหน้าต่าง Samples ไม่ให้กดเพิ่ม/ลบ หรือแก้ไขตัวเลขได้
+  var addSampleBtn = document.querySelector('button[onclick*="addSampleRow"]');
+  if (addSampleBtn) addSampleBtn.style.display = isReadOnly ? 'none' : '';
+
+  var delSampleBtns = document.querySelectorAll('.btn-delete-sample');
+  delSampleBtns.forEach(function(btn) { btn.style.display = isReadOnly ? 'none' : ''; });
+
+  var sampleInputs = document.querySelectorAll('.sample-id-select, .sample-qty');
+  sampleInputs.forEach(function(input) { input.disabled = isReadOnly; });
 };
 
 // ==========================================
@@ -4534,7 +4550,7 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     var btnEN = document.getElementById('btnLangEN');
     var isEN = btnEN && btnEN.classList.contains('btn-primary');
 
-    // 🌟 อัปเกรด UI ใหม่: เป็นสไตล์ Card มีพื้นหลัง เว้นระยะห่าง กดง่ายบน iPad
+    // 🌟 เติมคลาส btn-delete-sample กลับเข้าไปที่ปุ่มถังขยะ เพื่อให้ฟังก์ชันล็อกสิทธิ์สั่งซ่อนได้
     const rowHTML = `
         <div class="d-flex align-items-center gap-2 sample-item-row p-2 mb-2 bg-light border rounded-4" id="${rowId}">
             <div class="flex-grow-1">
@@ -4545,7 +4561,7 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
                 <input type="number" class="form-control border-0 shadow-sm text-center sample-qty fw-bold text-primary" style="min-height: 46px; border-radius: 12px;" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
             </div>
             <div>
-                <button type="button" class="btn btn-white text-danger border-0 shadow-sm d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 12px; background-color: #ffffff;" onclick="document.getElementById('${rowId}').remove(); window.handleSampleRowRemoved();">
+                <button type="button" class="btn btn-white text-danger border-0 shadow-sm d-flex align-items-center justify-content-center btn-delete-sample" style="width: 46px; height: 46px; border-radius: 12px; background-color: #ffffff;" onclick="document.getElementById('${rowId}').remove(); window.handleSampleRowRemoved();">
                     <i class="fa-solid fa-trash-can fs-5"></i>
                 </button>
             </div>
@@ -4651,6 +4667,13 @@ window.loadVisitSamplesForEdit = async function(visitId) {
                 window.updateFeatureButtonIndicators(null);
             }
         }
+
+        // 🌟 [FIX] ดักจับสิทธิ์ Read-Only หลังจากโหลด Data เสร็จ
+        var btnSave = document.getElementById('saveVisitBtn');
+        if (btnSave && btnSave.dataset.mode === 'disabled' && typeof window.setFormComponentsReadOnly === 'function') {
+            window.setFormComponentsReadOnly(true);
+        }
+
     } catch (e) {
         console.error("Error loading Visit_Samples:", e);
     } finally {
