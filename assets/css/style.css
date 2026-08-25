@@ -100,13 +100,11 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* ✨ MODERN MINIMAL SCROLLBAR (GLOBALIZED) */
+/* ✨ MODERN MINIMAL SCROLLBAR */
 .table-scroll-inside::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
-.hosp-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
-.overflow-auto::-webkit-scrollbar,
 #visitFormView::-webkit-scrollbar,
 #visitFormView .col-12 > div::-webkit-scrollbar {
   width: 6px;
@@ -115,9 +113,7 @@ html, body {
 .table-scroll-inside::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
-.hosp-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
-.overflow-auto::-webkit-scrollbar-track,
 #visitFormView::-webkit-scrollbar-track,
 #visitFormView .col-12 > div::-webkit-scrollbar-track {
   background: transparent;
@@ -125,9 +121,7 @@ html, body {
 .table-scroll-inside::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
-.hosp-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
-.overflow-auto::-webkit-scrollbar-thumb,
 #visitFormView::-webkit-scrollbar-thumb,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -136,9 +130,7 @@ html, body {
 .table-scroll-inside::-webkit-scrollbar-thumb:hover,
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
-.hosp-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
-.overflow-auto::-webkit-scrollbar-thumb:hover,
 #visitFormView::-webkit-scrollbar-thumb:hover,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
@@ -239,7 +231,7 @@ html, body {
   border-radius: 12px !important;
 }
 
-/* 1. ปุ่มและไอคอน ใช้ Flex เพื่อจัดกึ่งกลาง */
+/* 1. ปุ่มและไอคอน จัดกึ่งกลางด้วย Flex ได้ */
 .visit-filter-compact .input-group-text,
 .visit-filter-compact .btn {
   display: inline-flex !important;
@@ -249,24 +241,29 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-/* 2. ช่อง Input ปกติ ห้ามใช้ Flex */
+/* 2. 🌟 FIX: ห้ามใช้ Flex กับ Input เด็ดขาด! ให้ใช้ Block และดัน Padding แทน */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select {
   display: block !important;
-  padding-top: 0.55rem !important;
-  padding-bottom: 0.55rem !important;
+  padding: 0.45rem 0.75rem !important;
   line-height: 1.5 !important;
 }
 
-/* 3. 🌟 FIX: ช่องวันที่ (Date) คืนค่า Padding ให้หลวมขึ้น และบังคับให้จัดกลาง */
+/* 3. 🌟 FIX อาการวันที่ (Date) โดนบีบจนเหลือแต่ขีด (-) */
 .visit-filter-compact input[type="date"] {
-  padding: 0 0.5rem !important; /* คืนค่า Padding ให้เบราว์เซอร์โชว์ตัวหนังสือได้ */
-  line-height: normal !important;
-  display: flex !important;
-  align-items: center !important;
+  -webkit-appearance: none !important; /* เคลียร์สไตล์เดิมๆ ของ Safari/Chrome ออก */
+  display: block !important;
+  padding: 0.45rem 0.75rem !important; /* ดันข้อความให้ตรงกลางอย่างธรรมชาติ */
 }
 
-/* 4. 🌟 FIX: TomSelect ให้จัดกลางจากด้านในสุด */
+/* ป้องกัน Shadow DOM ของ Date Input ใน Chrome โดนทับจนพัง */
+.visit-filter-compact input[type="date"]::-webkit-datetime-edit {
+  display: block !important;
+  padding: 0 !important;
+  line-height: normal !important;
+}
+
+/* 4. แก้อาการ TomSelect เบี้ยว */
 .visit-filter-compact .ts-wrapper .ts-control {
   display: flex !important;
   align-items: center !important;
@@ -274,11 +271,13 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-/* ปรับระยะกล่องที่ชอบเบี้ยว */
-.visit-filter-compact input[type="text"] { margin: 0 !important; }
+.visit-filter-compact input[type="text"] {
+  margin: 0 !important;
+}
 
-/* 🌟 พื้นหลังของกล่องกลุ่ม */
-.bg-light-subtle { background-color: #f8fafc !important; }
+.bg-light-subtle {
+  background-color: #f8fafc !important;
+}
 
 /* ==========================================
    🌟 SKELETON LOADING
@@ -1778,12 +1777,6 @@ input[readonly]::placeholder {
 .visit-filter-compact .btn-light.border,
 .dropdown-menu {
   border-radius: 12px !important;
-}
-
-/* ปรับความสูงของช่อง Search และ Filter ให้เท่ากับปุ่มพอดีเป๊ะ */
-.visit-filter-compact .input-group,
-.visit-filter-compact .btn-light {
-  min-height: 42px !important;
 }
 
 /* 🌟 2. ลดความดุดันของปุ่ม Logout (ให้ดูซอฟต์ ไม่แย่งสายตาจากปุ่ม Add) */
