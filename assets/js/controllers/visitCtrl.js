@@ -4540,7 +4540,7 @@ window.renderAllSampleDropdowns = function() {
     });
 };
 
-window.addSampleRow = function(sampleId = '', qty = 1) {
+ window.addSampleRow = function(sampleId = '', qty = 1) {
     const container = document.getElementById('sampleItemsContainer');
     const noText = document.getElementById('noSampleText');
     if (noText) noText.style.display = 'none';
