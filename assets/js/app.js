@@ -334,3 +334,56 @@ async function logout() {
         window.location.reload(true);
     }
 }
+
+// ==========================================
+// 🛡️ IDLE TIMEOUT SECURITY (Auto Logout)
+// ==========================================
+
+let idleLastActivity = Date.now();
+const IDLE_TIMEOUT_MINUTES = 30; // ตั้งค่าเวลาที่ต้องการ (หน่วย: นาที)
+const IDLE_TIMEOUT_MS = IDLE_TIMEOUT_MINUTES * 60 * 1000;
+
+// 1. ฟังก์ชันรีเซ็ตเวลา เมื่อมีการเคลื่อนไหว
+function resetIdleTimer() {
+    idleLastActivity = Date.now();
+}
+
+// 2. ฟังก์ชันตรวจสอบเวลาว่าเกินกำหนดหรือยัง
+function checkIdleStatus() {
+    const userStr = sessionStorage.getItem('crmUser');
+    // ถ้ายังไม่ได้ Login ไม่ต้องทำงาน
+    if (!userStr) return; 
+
+    const currentTime = Date.now();
+    // ถ้าเวลาปัจจุบัน ห่างจากเวลาที่มีการขยับครั้งล่าสุด เกินที่กำหนดไว้
+    if (currentTime - idleLastActivity > IDLE_TIMEOUT_MS) {
+        console.log('Session expired due to inactivity.');
+        alert('⏳ หมดเวลาการเชื่อมต่อเนื่องจากไม่มีการใช้งานระบบ\nกรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+        
+        // เรียกใช้ฟังก์ชัน logout() ที่คุณมีอยู่แล้ว
+        if (typeof logout === 'function') {
+            logout();
+        } else if (typeof handleLogout === 'function') {
+            handleLogout();
+        } else {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+    }
+}
+
+// 3. ฟังก์ชันเริ่มต้นดักจับ Event ต่างๆ ทั่วทั้งหน้าจอ
+function initIdleTimeout() {
+    // รายการ Event ที่จะถือว่าผู้ใช้ "ยังใช้งานอยู่" (รองรับทั้ง PC และ iPad)
+    const activeEvents = ['mousemove', 'keydown', 'mousedown', 'click', 'scroll', 'touchstart'];
+    
+    activeEvents.forEach(event => {
+        document.addEventListener(event, resetIdleTimer, { passive: true });
+    });
+
+    // ตั้งเวลาให้ระบบคอยแอบตรวจสอบเงียบๆ ทุกๆ 1 นาที (60000 ms)
+    setInterval(checkIdleStatus, 60000);
+}
+
+// 4. สั่งให้เริ่มทำงานทันทีเมื่อโหลดไฟล์ app.js เสร็จ
+initIdleTimeout();
