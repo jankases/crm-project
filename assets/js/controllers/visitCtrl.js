@@ -2333,19 +2333,23 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
       var cTime = new Date(v.CheckIn_Time);
       timeText.innerText = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
     }
+    // 🌟 เปลี่ยนปุ่ม GPS ให้เป็นสีเขียว (Hero Button) เมื่อเคยดึงพิกัดแล้ว
     if (btnGps) {
-      btnGps.className = 'btn btn-sm btn-success px-3 premium-radius text-white fw-bold';
+      btnGps.className = 'btn btn-success w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
+      btnGps.style.borderRadius = '16px';
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
+      btnGps.innerHTML = '<i class="fa-solid fa-check fs-5"></i> <span>' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว') + '</span>';
     }
   } else {
     if (latInput) latInput.value = '';
     if (lngInput) lngInput.value = '';
     if (timeWrapper) timeWrapper.classList.add('d-none');
+    // 🌟 เปลี่ยนปุ่ม GPS ให้เป็นสีน้ำเงิน (Hero Button) เมื่อยังไม่ได้ดึงพิกัด
     if (btnGps) {
-      btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
+      btnGps.className = 'btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
+      btnGps.style.borderRadius = '16px';
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
+      btnGps.innerHTML = '<i class="fa-solid fa-crosshairs fs-5"></i> <span>' + (appLang === 'en' ? 'Get Current Location' : 'ดึงพิกัดปัจจุบัน') + '</span>';
     }
   }
 
@@ -2479,12 +2483,15 @@ window.openAddVisitView = async function(presetDate) {
   if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
   if (document.getElementById('visitLng')) document.getElementById('visitLng').value = '';
   if (document.getElementById('locationTimeWrapper')) document.getElementById('locationTimeWrapper').classList.add('d-none');
+  
   var btnGps = document.getElementById('btnGpsCheckin');
   if (btnGps) {
     btnGps.disabled = false;
-    btnGps.className = 'btn btn-sm btn-premium-secondary px-3';
+    // 🌟 เปลี่ยนปุ่ม GPS ให้เป็นสไตล์ Hero Button (ปุ่มใหญ่) สำหรับตอนเปิดฟอร์มสร้างใหม่
+    btnGps.className = 'btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
+    btnGps.style.borderRadius = '16px';
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
+    btnGps.innerHTML = '<i class="fa-solid fa-crosshairs fs-5"></i> <span>' + (appLang === 'en' ? 'Get Current Location' : 'ดึงพิกัดปัจจุบัน') + '</span>';
   }
 
   if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
@@ -2963,8 +2970,9 @@ window.getLocationCheckin = function() {
     return;
   }
 
+  // 🌟 ปรับ UI ตอนกำลังโหลดพิกัด
   btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Locating...';
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin fs-5"></i> <span>' + (appLang === 'en' ? 'Locating...' : 'กำลังดึงพิกัด...') + '</span>';
 
   navigator.geolocation.getCurrentPosition(
     function(position) {
@@ -2978,9 +2986,11 @@ window.getLocationCheckin = function() {
       if(timeWrapper) timeWrapper.classList.remove('d-none');
       if(timeText) timeText.innerText = timeString;
 
-      btn.className = 'btn btn-sm btn-success px-3 premium-radius text-white fw-bold';
-      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
+      // 🌟 อัปเกรดคลาส CSS เป็นปุ่มสีเขียวขนาดใหญ่ (Hero Button) เมื่อสำเร็จ
+      btn.className = 'btn btn-success w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
+      btn.style.borderRadius = '16px';
+      var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      btn.innerHTML = '<i class="fa-solid fa-check fs-5"></i> <span>' + (currentLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว') + '</span>';
 
       if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
       
@@ -2993,7 +3003,10 @@ window.getLocationCheckin = function() {
     },
     function(error) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Get Location';
+      // 🌟 คืนค่าปุ่มกลับเป็นหน้าตาพรีเมียมสีน้ำเงินเหมือนเดิม กรณีเกิด Error (ผู้ใช้ไม่อนุญาต/ไม่มีสัญญาณ)
+      btn.className = 'btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
+      btn.style.borderRadius = '16px';
+      btn.innerHTML = '<i class="fa-solid fa-crosshairs fs-5"></i> <span>' + (appLang === 'en' ? 'Get Current Location' : 'ดึงพิกัดปัจจุบัน') + '</span>';
       
       var errorMsg = appLang === 'en' ? "Cannot retrieve location." : "ไม่สามารถดึงพิกัดได้";
       if (error.code === 1) {
@@ -3853,9 +3866,9 @@ var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurre
 var btnGps = document.getElementById('btnGpsCheckin');
 if (btnGps) {
     if (btnGps.classList.contains('btn-success')) {
-        btnGps.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว');
+        btnGps.innerHTML = '<i class="fa-solid fa-check fs-5"></i> <span>' + (appLang === 'en' ? 'Checked-in' : 'เช็คอินแล้ว') + '</span>';
     } else {
-        btnGps.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> ' + (appLang === 'en' ? 'Get Location' : 'ดึงพิกัด');
+        btnGps.innerHTML = '<i class="fa-solid fa-crosshairs fs-5"></i> <span>' + (appLang === 'en' ? 'Get Current Location' : 'ดึงพิกัดปัจจุบัน') + '</span>';
     }
 }
 var noAttachmentText = document.getElementById('noAttachmentText');
