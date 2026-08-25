@@ -4,13 +4,14 @@
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column">
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 48px; height: 48px;">
-          <i class="fa-solid fa-user-doctor fs-4"></i>
+      <!-- 🌟 อัปเกรด: Compact Header ย่อส่วนไม่ให้กินพื้นที่แนวตั้ง -->
+      <div class="d-flex align-items-center gap-2.5">
+        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 40px; height: 40px;">
+          <i class="fa-solid fa-user-doctor fs-5"></i>
         </div>
         <div>
-          <h4 class="text-dark fw-bold mb-0" data-i18n="doc_title">Doctors Management</h4>
-          <p class="text-muted small mb-0 fw-medium" data-i18n="doc_subtitle">Database of Doctors and Workplaces</p>
+          <h5 class="text-dark fw-bold mb-0" data-i18n="doc_title">Doctors Management</h5>
+          <p class="text-muted mb-0 fw-medium" data-i18n="doc_subtitle" style="font-size: 0.75rem;">Database of Doctors and Workplaces</p>
         </div>
       </div>
       
@@ -29,11 +30,19 @@
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
         <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
           
-          <!-- ช่องค้นหา Smart Search -->
+          <!-- 🌟 อัปเกรด: ช่องค้นหา Smart Search พร้อมปุ่ม Clear (X) -->
           <div class="flex-grow-1" style="min-width: 280px; max-width: 450px;">
             <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
               <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-              <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital..." onkeyup="window.debouncedFilterDoctors()">
+              
+              <!-- เปลี่ยน onkeyup เป็น oninput เพื่อเรียกใช้ฟังก์ชันเช็คปุ่ม X -->
+              <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital..." oninput="window.handleDocSearchInput(this)">
+              
+              <!-- ปุ่ม X สำหรับเคลียร์ข้อความ (ซ่อนไว้ก่อน) -->
+              <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()">
+                <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
+              </button>
+
               <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
                 <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
               </button>
