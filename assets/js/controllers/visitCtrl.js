@@ -4521,22 +4521,24 @@ window.addSampleRow = function(sampleId = '', qty = 1) {
     var btnEN = document.getElementById('btnLangEN');
     var isEN = btnEN && btnEN.classList.contains('btn-primary');
 
+    // 🌟 อัปเกรด UI ใหม่: เป็นสไตล์ Card มีพื้นหลัง เว้นระยะห่าง กดง่ายบน iPad
     const rowHTML = `
-        <div class="row g-2 align-items-center sample-item-row" id="${rowId}">
-            <div class="col-7">
-                <select class="form-select bg-white shadow-xs sample-id-select" onchange="window.handleSampleSelectChange(this)" required>
+        <div class="d-flex align-items-center gap-2 sample-item-row p-2 mb-2 bg-light border rounded-4" id="${rowId}">
+            <div class="flex-grow-1">
+                <select class="form-select border-0 shadow-sm sample-id-select fw-semibold text-secondary" style="min-height: 46px; border-radius: 12px;" onchange="window.handleSampleSelectChange(this)" required>
                 </select>
             </div>
-            <div class="col-3">
-                <input type="number" class="form-control bg-white shadow-xs text-center sample-qty" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
+            <div style="width: 85px;">
+                <input type="number" class="form-control border-0 shadow-sm text-center sample-qty fw-bold text-primary" style="min-height: 46px; border-radius: 12px;" placeholder="${isEN ? 'Qty' : 'จำนวน'}" min="1" value="${qty}">
             </div>
-            <div class="col-2 text-end">
-                <button type="button" class="btn btn-outline-danger border-0 btn-delete-sample w-100" onclick="document.getElementById('${rowId}').remove(); window.handleSampleRowRemoved();">
+            <div>
+                <button type="button" class="btn btn-white text-danger border-0 shadow-sm d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 12px; background-color: #ffffff;" onclick="document.getElementById('${rowId}').remove(); window.handleSampleRowRemoved();">
                     <i class="fa-solid fa-trash-can fs-5"></i>
                 </button>
             </div>
         </div>
     `;
+    
     container.insertAdjacentHTML('beforeend', rowHTML);
 
     // 🌟 1. FIX: ต้องสั่งสร้าง <option> ของ Dropdown ก่อน!
