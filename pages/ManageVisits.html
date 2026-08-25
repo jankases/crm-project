@@ -425,7 +425,7 @@
 
 <!-- 📍 อัปเกรดกล่อง GPS Check-in สไตล์ iPad App -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-sm"> <!-- บีบขนาดกล่องให้แคบลงเพื่อโฟกัสสายตา -->
+  <div class="modal-dialog modal-dialog-centered modal-sm">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
       
       <!-- ส่วนหัว (Header) จัดกึ่งกลาง พร้อมไอคอนขนาดใหญ่ -->
@@ -483,27 +483,45 @@
   </div>
 </div>
 
+<!-- 🎁 อัปเกรดหน้าต่าง Samples สไตล์ iPad App -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header bg-light py-3 px-4">
-        <h6 class="modal-title fw-bold text-dark mb-0 fs-6">
-          <i class="fa-solid fa-gifts text-warning me-2 fs-5"></i>
-          <span data-i18n="lbl_samples_title">Samples & Promo Items</span>
-        </h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+
+      <!-- ส่วนหัว (Header) จัดกึ่งกลาง -->
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(245, 158, 11, 0.15);">
+            <i class="fa-solid fa-gifts fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_samples_title">Samples & Promo Items</h5>
+          <p class="text-muted small mb-0">Select items distributed to the doctor</p>
+        </div>
       </div>
-      <div class="modal-body p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="fw-bold text-dark fs-6" data-i18n="lbl_sample_items_title">Sample Items List</span>
-          <button type="button" class="btn btn-outline-primary px-3" onclick="window.addSampleRow()">
-            <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_sample">Add Item</span>
-          </button>
+
+      <!-- ส่วนเนื้อหา (Body) -->
+      <div class="modal-body px-4 pb-4 pt-4">
+
+        <!-- ปุ่มเพิ่มสินค้าขนาดใหญ่ (Hero Button) -->
+        <button type="button" class="btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2 mx-auto" style="border-radius: 16px;" onclick="window.addSampleRow()">
+          <i class="fa-solid fa-plus fs-5"></i>
+          <span data-i18n="btn_add_sample">Add Item</span>
+        </button>
+
+        <!-- พื้นที่แสดงรายการสินค้า (จัดกรอบใหม่ให้ดูพรีเมียม) -->
+        <div class="bg-light border rounded-4 p-3 shadow-xs">
+          <div class="d-flex align-items-center mb-3">
+             <i class="fa-solid fa-box-open text-secondary me-2"></i>
+             <span class="fw-bold text-secondary small text-uppercase tracking-wide" data-i18n="lbl_sample_items_title" style="letter-spacing: 0.5px;">Sample Items List</span>
+          </div>
+
+          <!-- กล่องใส่รายการ -->
+          <div id="sampleItemsContainer" class="px-1 overflow-auto" style="max-height: 300px; overflow-x: hidden !important;">
+            <div class="text-muted small text-center italic py-4" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
+          </div>
         </div>
-        
-        <div id="sampleItemsContainer" class="px-1" style="max-height: 360px; overflow-x: hidden; overflow-y: auto;">
-          <div class="text-muted small text-center italic py-4" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
-        </div>
+
       </div>
     </div>
   </div>
