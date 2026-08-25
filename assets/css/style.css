@@ -215,6 +215,7 @@ html, body {
   justify-content: center !important;
   flex-shrink: 0 !important;
 }
+
 /* ==========================================
    🌟 BORDERLESS CONTROL TOOLBAR (FIXED)
    ========================================== */
@@ -230,11 +231,14 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-/* คืนสไตล์วันที่ให้แสดงผลบรรทัดปกติ ไม่โดนตัดขอบ */
-.visit-filter-compact input[type="date"] {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+/* 🌟 FIX: คืนค่าให้ช่อง Date Range (Flatpickr) แสดงผลตัวอักษร dd/mm/yyyy ได้ถูกต้อง */
+#dateFilterRangeWrapper .form-control,
+#filterStartDate,
+#filterEndDate {
+  display: inline-block !important;
+  height: 100% !important;
   line-height: 36px !important;
+  text-align: center !important;
 }
 
 .visit-filter-compact input[type="text"] {
