@@ -1882,3 +1882,35 @@ if (!window._isDocLangListenerAttached) {
 }
 
 // ⚡ ลบ MutationObserver ออกตามที่ตกลงกันไว้เพื่อป้องกันการโหลดข้อมูลซ้ำซ้อน
+
+// ==========================================
+// 🧹 UI HELPER: SMART SEARCH CLEAR BUTTON
+// ==========================================
+window.handleDocSearchInput = function(inputEl) {
+    var clearBtn = document.getElementById('btnClearDocSearch');
+    if (clearBtn) {
+        if (inputEl.value.length > 0) {
+            clearBtn.classList.remove('d-none'); // พิมพ์ปุ๊บ ปุ่ม X โผล่
+        } else {
+            clearBtn.classList.add('d-none'); // ลบหมด ปุ่ม X หาย
+        }
+    }
+    // หน่วงเวลาค้นหาข้อมูลเพื่อไม่ให้กระตุก
+    if (typeof window.debouncedFilterDoctors === 'function') {
+        window.debouncedFilterDoctors();
+    }
+};
+
+window.clearDocSearchInput = function() {
+    var inputEl = document.getElementById('smartDocSearchInput');
+    var clearBtn = document.getElementById('btnClearDocSearch');
+    if (inputEl) {
+        inputEl.value = ''; // ล้างข้อความ
+        if (clearBtn) clearBtn.classList.add('d-none'); // ซ่อนปุ่ม X
+        
+        if (typeof window.filterDoctors === 'function') {
+            window.filterDoctors(); // สั่งรีเซ็ตตารางทันที
+        }
+        inputEl.focus(); // เอาเคอร์เซอร์กลับไปวางที่ช่องเผื่อพิมพ์ใหม่
+    }
+};
