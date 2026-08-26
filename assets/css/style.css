@@ -47,8 +47,8 @@ html, body {
 
 /* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น ห้ามกระทบกล่องค้นหา */
 #visitListZone, 
-#doctorListView .card,
-#hospListView .card {
+#doctorListZone,
+#hospListZone {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
@@ -61,7 +61,9 @@ html, body {
 /* 🌟 คืนค่าความสูงให้กล่อง Filter กลับมาพอดีกับเนื้อหา (Compact) ไม่ยืดตามตาราง */
 .visit-filter-group,
 .doctor-filter-group,
-.hosp-filter-group {
+.hosp-filter-group,
+#doctorFilterZoneGroup,
+#visitFilterZoneGroup {
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: min-content !important;
@@ -94,7 +96,8 @@ html, body {
 
 #visitPaginationContainer,
 .doc-pagination-container,
-.hosp-pagination-container {
+.hosp-pagination-container,
+#doctorPaginationContainer {
   margin-top: auto !important;
   flex-shrink: 0 !important;
 }
@@ -228,10 +231,14 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-.visit-filter-compact input[type="date"] {
+.visit-filter-compact input[type="date"],
+.visit-filter-compact input.flatpickr-input {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
-  line-height: 36px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  line-height: 38px !important;
+  box-sizing: border-box !important;
 }
 
 .visit-filter-compact input[type="text"] {
@@ -1809,4 +1816,34 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 .table-scroll-inside .badge-soft-warning { 
   background-color: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; 
+}
+
+/* ==========================================
+   🏥 DOCTOR MANAGEMENT - FLEXBOX HEIGHT FIX
+   ========================================== */
+#doctorListView {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+/* ล็อกกล่อง Filter ของ Doctors ไม่ให้ยืด */
+#doctorFilterZoneGroup,
+.doctor-filter-group {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: min-content !important;
+}
+
+/* ล็อกเฉพาะกล่องตารางรายชื่อแพทย์ให้ยืดตึงชิดก้นจอ */
+#doctorListZone {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  justify-content: space-between !important;
 }
