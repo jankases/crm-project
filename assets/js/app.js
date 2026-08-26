@@ -290,7 +290,6 @@ async function checkSession() {
         if(nameDisplay) nameDisplay.innerText = dName; 
         if(roleDisplay) roleDisplay.innerText = uRole;
         
-        // 🌟 [แก้สิทธิ์หลุด]: กำหนดค่า Flags สิทธิ์ระดับผู้บริหารให้ถูกต้องตั้งแต่เริ่มเปิดเว็บ
         const roleUpper = String(uRole).toUpperCase().trim();
         window.myIsGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(roleUpper) !== -1;
         window.myIsBuHead = roleUpper.indexOf('BU') !== -1 || roleUpper.indexOf('HEAD') !== -1;
@@ -312,6 +311,25 @@ async function checkSession() {
         if (loginScreen) {
             loginScreen.classList.remove('d-none');
             loginScreen.classList.add('d-flex');
+            
+            // 🌟 เช็กว่าหลุดมาหน้า Login เพราะหมดเวลา Idle Timeout หรือไม่
+            const expireReason = sessionStorage.getItem('session_expired_reason');
+            const alertBanner = document.getElementById('loginAlertBanner');
+            
+            if (expireReason === 'idle_timeout' && alertBanner) {
+                const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+                const msgText = appLang === 'en' 
+                    ? '⏳ Session expired due to 30 mins of inactivity. Please log in again.' 
+                    : '⏳ หมดเวลาการเชื่อมต่อเนื่องจากไม่มีการใช้งานระบบเกิน 30 นาที กรุณาเข้าสู่ระบบใหม่อีกครั้ง';
+                
+                alertBanner.className = 'alert alert-warning border-0 shadow-xs text-start mb-4 py-2.5 px-3 fade-in-up';
+                alertBanner.style.borderRadius = '14px';
+                alertBanner.style.fontSize = '0.85rem';
+                alertBanner.innerHTML = `<div class="d-flex align-items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-warning fs-5"></i><span>${msgText}</span></div>`;
+                
+                // ลบ Flag ออกเพื่อไม่ให้แสดงซ้ำถ้ารีเฟรชหน้าจอเอง
+                sessionStorage.removeItem('session_expired_reason');
+            }
         }
         if (appContainer) appContainer.style.display = 'none';
     }
@@ -348,23 +366,20 @@ function resetIdleTimer() {
     idleLastActivity = Date.now();
 }
 
-// 2. ฟังก์ชันตรวจสอบเวลาว่าเกินกำหนดหรือยัง
+// 2. ตรวจสอบเวลาเมื่อไม่มีการใช้งาน (ยกเลิก alert ปล่อยให้แสดงผลนุ่มๆ บนหน้า Login)
 function checkIdleStatus() {
     const userStr = sessionStorage.getItem('crmUser');
-    // ถ้ายังไม่ได้ Login ไม่ต้องทำงาน
     if (!userStr) return; 
 
     const currentTime = Date.now();
-    // ถ้าเวลาปัจจุบัน ห่างจากเวลาที่มีการขยับครั้งล่าสุด เกินที่กำหนดไว้
     if (currentTime - idleLastActivity > IDLE_TIMEOUT_MS) {
         console.log('Session expired due to inactivity.');
-        alert('⏳ หมดเวลาการเชื่อมต่อเนื่องจากไม่มีการใช้งานระบบ\nกรุณาเข้าสู่ระบบใหม่อีกครั้ง');
         
-        // เรียกใช้ฟังก์ชัน logout() ที่คุณมีอยู่แล้ว
+        // 🌟 บันทึก Flag แจ้งเตือนสาเหตุลง sessionStorage ก่อนรีโหลด
+        sessionStorage.setItem('session_expired_reason', 'idle_timeout');
+        
         if (typeof logout === 'function') {
             logout();
-        } else if (typeof handleLogout === 'function') {
-            handleLogout();
         } else {
             sessionStorage.clear();
             window.location.reload();
