@@ -468,7 +468,7 @@ function setLanguage(lang) {
     }
   });
 
-  // 🌟 [เพิ่มจุดนี้] ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
+  // 🌟 [เพิ่มจุดสำคัญนี้] ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
