@@ -1887,7 +1887,7 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// ⚡ 🌟 Listener สลับภาษา EN / TH (เพิ่มคำสั่งรีเฟรช Placeholder ของ TomSelect)
+// ⚡ Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
