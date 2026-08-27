@@ -58,7 +58,7 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 คืนค่าความสูงให้กล่อง Filter กลับมาพอดีกับเนื้อหา (Compact) ไม่ยืดตามตาราง */
+/* 🌟 คืนค่าความสูงและบังคับสีพื้นหลังกล่อง Filter ทุกหน้าเป็นสีขาวสว่างพรีเมี่ยมเท่ากันหมด */
 .visit-filter-group,
 .doctor-filter-group,
 .hosp-filter-group,
@@ -67,7 +67,7 @@ html, body {
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: min-content !important;
-  background-color: #ffffff !important; /* 🌟 ปรับเป็นสีขาวพรีเมี่ยมเท่ากันทุกหน้า */
+  background-color: #ffffff !important;
 }
 
 /* 🌟 RULE 3: INTERNAL SCROLL ONLY */
@@ -146,7 +146,7 @@ html, body {
   border-radius: 16px !important; 
   border: 1px solid #eef2f6 !important;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
-  background: #ffffff !important; /* 🌟 การ์ดทุกใบรวมถึง Filter จะเป็นสีขาวคลีน */
+  background: #ffffff !important;
 }
 
 .form-control, .form-select { 
@@ -1853,7 +1853,7 @@ button.feature-action-btn-lg.has-data-samples i {
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: min-content !important;
-  background-color: #ffffff !important; /* 🌟 ปรับพื้นหลังเป็นสีขาวบริสุทธิ์เท่ากันทุกหน้า */
+  background-color: #ffffff !important;
 }
 
 /* ล็อกเฉพาะกล่องตารางรายชื่อแพทย์ให้ยืดตึงชิดก้นจอ */
