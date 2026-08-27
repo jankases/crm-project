@@ -616,28 +616,31 @@ window.restoreDocFilterState = function() {
 };
 
 // ==========================================
-// 📊 5. SERVER-SIDE PAGINATION
+// 📊 5. SERVER-SIDE PAGINATION (WITH SINGLE-STATE OVERLAY)
 // ==========================================
 
 window.loadDoctors = async function(forceReload = false) {
-  const tbody = document.getElementById('doctorTableBody');
-  if (!tbody) return;
-
+  const docViewEl = document.getElementById('doctorListView');
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
+
+  // 🌟 ถ้าต้องโหลดข้อมูลใหม่ ให้เปิด Single-State Overlay Loading ทันทีเหมือนหน้า Visit
+  if (forceReload || !window.DocManagerCache.isLoaded || !hasData) {
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    const lTitle = document.getElementById('docLoadingTitleText');
+    const lDesc = document.getElementById('docLoadingDescText');
+    
+    if (lTitle) lTitle.textContent = appLang === 'en' ? 'Loading Doctors...' : 'กำลังเตรียมข้อมูล...';
+    if (lDesc) lDesc.textContent = appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+    
+    if (docViewEl) docViewEl.classList.add('is-loading');
+  }
 
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
-    
-    // 🌟 FIX: ปิด Skeleton ทันทีถ้าโหลดข้อมูลจาก Cache ได้เร็วเกินไป
-    const filterGroup = document.getElementById('doctorFilterZoneGroup');
-    if (filterGroup) filterGroup.classList.add('ready');
-    
+    if (docViewEl) docViewEl.classList.remove('is-loading');
     return;
   }
-   
-
-  tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5"><div class="spinner-border text-primary mb-2"></div><div class="text-muted small">Loading Doctors...</div></td></tr>`;
 
   try {
     const sb = window.supabaseClient || window.supabase;
@@ -709,12 +712,13 @@ window.loadDoctors = async function(forceReload = false) {
 
     window.renderDoctorTableServerSide();
 
-    const filterGroup = document.getElementById('doctorFilterZoneGroup');
-    if (filterGroup) filterGroup.classList.add('ready');
-
   } catch (err) {
     console.error("Load Doctors Error:", err);
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`;
+    const tbody = document.getElementById('doctorTableBody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`;
+  } finally {
+    // 🌟 ปิด Single-State Overlay Loading เมื่อดึงและเรนเดอร์ข้อมูลเสร็จสิ้นแล้ว
+    if (docViewEl) docViewEl.classList.remove('is-loading');
   }
 };
 
@@ -1852,11 +1856,23 @@ window.goToQuickAddCall = function() {
 window.initDoctorPage = async function(forceReload = false) {
   if (window._isDocInitRunning) return;
 
+  const docViewEl = document.getElementById('doctorListView');
   const hasCache = (window.DocManagerCache && window.DocManagerCache.isLoaded && window.globalDoctors && window.globalDoctors.length > 0);
   const shouldFetchDB = forceReload === true ? true : !hasCache;
 
   window._isDocInitRunning = true;
   window.isDocInitialLoading = true;
+
+  if (shouldFetchDB && docViewEl) {
+      var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const lTitle = document.getElementById('docLoadingTitleText');
+      const lDesc = document.getElementById('docLoadingDescText');
+      
+      if (lTitle) lTitle.textContent = appLang === 'en' ? 'Loading Doctors...' : 'กำลังเตรียมข้อมูล...';
+      if (lDesc) lDesc.textContent = appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+      
+      docViewEl.classList.add('is-loading');
+  }
 
   try {
     await window.loadIndexDropdowns(shouldFetchDB); 
@@ -1866,6 +1882,7 @@ window.initDoctorPage = async function(forceReload = false) {
   } finally {
     window.isDocInitialLoading = false;
     window._isDocInitRunning = false;
+    if (docViewEl) docViewEl.classList.remove('is-loading');
   }
 };
 
@@ -1888,8 +1905,6 @@ if (!window._isDocLangListenerAttached) {
   window._isDocLangListenerAttached = true;
 }
 
-// ⚡ ลบ MutationObserver ออกตามที่ตกลงกันไว้เพื่อป้องกันการโหลดข้อมูลซ้ำซ้อน
-
 // ==========================================
 // 🧹 UI HELPER: SMART SEARCH CLEAR BUTTON
 // ==========================================
@@ -1897,12 +1912,11 @@ window.handleDocSearchInput = function(inputEl) {
     var clearBtn = document.getElementById('btnClearDocSearch');
     if (clearBtn) {
         if (inputEl.value.length > 0) {
-            clearBtn.classList.remove('d-none'); // พิมพ์ปุ๊บ ปุ่ม X โผล่
+            clearBtn.classList.remove('d-none');
         } else {
-            clearBtn.classList.add('d-none'); // ลบหมด ปุ่ม X หาย
+            clearBtn.classList.add('d-none');
         }
     }
-    // หน่วงเวลาค้นหาข้อมูลเพื่อไม่ให้กระตุก
     if (typeof window.debouncedFilterDoctors === 'function') {
         window.debouncedFilterDoctors();
     }
@@ -1912,12 +1926,12 @@ window.clearDocSearchInput = function() {
     var inputEl = document.getElementById('smartDocSearchInput');
     var clearBtn = document.getElementById('btnClearDocSearch');
     if (inputEl) {
-        inputEl.value = ''; // ล้างข้อความ
-        if (clearBtn) clearBtn.classList.add('d-none'); // ซ่อนปุ่ม X
+        inputEl.value = '';
+        if (clearBtn) clearBtn.classList.add('d-none');
         
         if (typeof window.filterDoctors === 'function') {
-            window.filterDoctors(); // สั่งรีเซ็ตตารางทันที
+            window.filterDoctors();
         }
-        inputEl.focus(); // เอาเคอร์เซอร์กลับไปวางที่ช่องเผื่อพิมพ์ใหม่
+        inputEl.focus();
     }
 };
