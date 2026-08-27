@@ -3,15 +3,15 @@
   <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column">
     
+    <!-- Compact Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
-      <!-- Compact Header -->
       <div class="d-flex align-items-center gap-3">
         <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
           <i class="fa-solid fa-user-doctor fs-5"></i>
         </div>
         <div class="d-flex flex-column justify-content-center">
-          <h5 class="text-dark fw-bold mb-1" data-i18n="doc_title" style="line-height: 1.1;">Doctor Profiles</h5>
-          <p class="text-muted mb-0 fw-medium" data-i18n="doc_subtitle" style="font-size: 0.75rem; letter-spacing: 0.2px;">View and manage your key contacts and their workplaces</p>
+          <h5 class="text-dark fw-bold mb-1" data-i18n="doc_title" style="line-height: 1.1;">ฐานข้อมูลแพทย์</h5>
+          <p class="text-muted mb-0 fw-medium" data-i18n="doc_subtitle" style="font-size: 0.75rem; letter-spacing: 0.2px;">รายชื่อแพทย์และสถานที่ปฏิบัติงานในเขตดูแล</p>
         </div>
       </div>
       
@@ -20,86 +20,98 @@
           <i class="fa-solid fa-arrows-rotate fs-6"></i>
         </button>
         <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddDoctorView()">
-          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
+          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">เพิ่มแพทย์ใหม่</span>
         </button>
       </div>
     </div>
 
-    <!-- ส่วนค้นหา/ตัวกรองข้อมูล (Smart Search Filter Zone) - ล็อกความสูงพอดีเนื้อหา -->
-    <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
-        <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
-          
-          <!-- ช่องค้นหา Smart Search พร้อมปุ่ม Clear (X) -->
-          <div class="flex-grow-1" style="min-width: 280px; max-width: 450px;">
-            <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
-              <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-              
-              <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital..." oninput="window.handleDocSearchInput(this)">
-              
-              <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()">
-                <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
-              </button>
-
-              <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
-                <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Specialty Dropdown -->
-          <div style="min-width: 180px;">
-            <select class="form-select shadow-none premium-radius fs-6" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
-          </div>
-
-          <!-- Doctor Type Dropdown -->
-          <div style="min-width: 180px;">
-            <select class="form-select shadow-none premium-radius fs-6" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
-          </div>
-
-        </div>
-
-        <div class="d-flex ms-auto">
-          <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearDoctorFilters()" title="Clear All Filters">
-            <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
-          </button>
-        </div>
-      </div>
+    <!-- 🌟 Single-State Loading Overlay (แสดงผลตอนกำลังโหลดข้อมูลเหมือนหน้า Visit) -->
+    <div id="doctorTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center">
+      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+      <h6 class="fw-bold text-dark mb-1" id="docLoadingTitleText">กำลังเตรียมข้อมูล...</h6>
+      <p class="text-muted small mb-0" id="docLoadingDescText">ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ</p>
     </div>
 
-    <!-- ตารางแสดงผลรายชื่อแพทย์ - ยืดเต็มพื้นที่ด้านล่างชิดก้นจอ -->
-    <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
-      <div class="table-scroll-inside flex-grow-1">
-        <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
-          <thead class="table-custom-header text-center">
-            <tr>
-              <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Doc_Name')"><span data-i18n="th_doc_name_en">Doctor Name (EN)</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-Doc_Name"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Doc_Name_TH')"><span data-i18n="th_doc_name_th">Doctor Name (TH)</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Doc_Name_TH"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Specialty')"><span data-i18n="th_specialty">Specialty</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Specialty"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Hospital_ID')"><span data-i18n="th_primary_hosp">Primary Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Hospital_ID"></i></th>
-              <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Status"></i></th>
-              <th class="py-2.5" data-i18n="th_action">Action</th>
-            </tr>
-          </thead>
-          <tbody id="doctorTableBody">
-          </tbody>
-        </table>
+    <!-- 🌟 โซนเนื้อหาหลัก (หุ้มรวมทั้ง Filter และ ListZone เพื่อสั่งโชว์ขึ้นพร้อมกันเนียนๆ) -->
+    <div id="doctorMainContentContainer" class="w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
+
+      <!-- ส่วนค้นหา/ตัวกรองข้อมูล (Smart Search Filter Zone) -->
+      <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
+          <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
+            
+            <!-- ช่องค้นหา Smart Search พร้อมปุ่ม Clear (X) -->
+            <div class="flex-grow-1" style="min-width: 280px; max-width: 450px;">
+              <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
+                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="ค้นหาชื่อแพทย์ หรือโรงพยาบาล..." oninput="window.handleDocSearchInput(this)">
+                
+                <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()">
+                  <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
+                </button>
+
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
+                  <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Specialty Dropdown -->
+            <div style="min-width: 180px;">
+              <select class="form-select shadow-none premium-radius fs-6" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
+            </div>
+
+            <!-- Doctor Type Dropdown -->
+            <div style="min-width: 180px;">
+              <select class="form-select shadow-none premium-radius fs-6" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
+            </div>
+
+          </div>
+
+          <div class="d-flex ms-auto">
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearDoctorFilters()" title="Clear All Filters">
+              <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">ล้างตัวกรอง</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div id="doctorPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
-        <div class="d-flex align-items-center">
-          <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-          <select class="form-select form-select-sm shadow-sm premium-radius" id="doctorRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
-            <option value="10">10</option>
-            <option value="20" selected>20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-          <span class="text-muted small ms-3" id="doctorPageInfo">Showing 1 to 10 of 50 entries</span>
+      <!-- ตารางแสดงผลรายชื่อแพทย์ - ยืดเต็มพื้นที่ด้านล่างชิดก้นจอ -->
+      <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
+        <div class="table-scroll-inside flex-grow-1">
+          <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
+            <thead class="table-custom-header text-center">
+              <tr>
+                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Doc_Name')"><span data-i18n="th_doc_name_en">แพทย์ (EN)</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-Doc_Name"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Doc_Name_TH')"><span data-i18n="th_doc_name_th">แพทย์ (TH)</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Doc_Name_TH"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Specialty')"><span data-i18n="th_specialty">ความเชี่ยวชาญ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Specialty"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Hospital_ID')"><span data-i18n="th_primary_hosp">โรงพยาบาลหลัก</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Hospital_ID"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Status')"><span data-i18n="th_status">สถานะ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Status"></i></th>
+                <th class="py-2.5" data-i18n="th_action">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="doctorTableBody">
+            </tbody>
+          </table>
         </div>
-        <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination"></ul>
-        </nav>
+
+        <div id="doctorPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
+          <div class="d-flex align-items-center">
+            <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">แสดงแถว:</label>
+            <select class="form-select form-select-sm shadow-sm premium-radius" id="doctorRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-muted small ms-3" id="doctorPageInfo">Showing 1 to 10 of 50 entries</span>
+          </div>
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination"></ul>
+          </nav>
+        </div>
+
       </div>
 
     </div>
@@ -113,9 +125,9 @@
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
-            <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
+            <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">ย้อนกลับ</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0">🩺 <span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h5>
+          <h5 class="text-dark fw-bold mb-0">🩺 <span data-i18n="title_add_doc">เพิ่มแพทย์ใหม่ (DCR)</span></h5>
         </div>
       </div>
       
@@ -124,28 +136,28 @@
         <div class="card p-4 p-md-4 border-0 shadow-sm visit-card bg-white mb-2">
           
           <div class="p-3 rounded-4 mb-3 border bg-light shadow-xs">
-            <h6 class="form-section-title"><i class="fa-solid fa-address-card me-1.5"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+            <h6 class="form-section-title"><i class="fa-solid fa-address-card me-1.5"></i><span data-i18n="sec_gen_info">ข้อมูลทั่วไป</span></h6>
             <div class="row g-3">
               <div class="col-sm-4 col-md-3">
-                <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
+                <label class="compact-label" data-i18n="lbl_doc_title">คำนำหน้า</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
               </div>
               <div class="col-sm-8 col-md-4">
-                <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                <label class="compact-label"><span data-i18n="lbl_doc_name_en">ชื่อ-นามสกุล (EN)</span> <span class="text-danger">*</span></label>
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Somchai" required>
               </div>
               <div class="col-sm-12 col-md-5">
-                <label class="compact-label" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                <label class="compact-label" data-i18n="lbl_doc_name_th">ชื่อ-นามสกุล (TH)</label>
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="เช่น สมชาย ใจดี">
               </div>
             </div>
             <div class="row g-3 mt-1">
               <div class="col-sm-6 col-md-6">
-                <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
+                <label class="compact-label" data-i18n="lbl_specialty">ความเชี่ยวชาญ</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
               </div>
               <div class="col-sm-6 col-md-6">
-                <label class="compact-label" data-i18n="lbl_type">Type</label>
+                <label class="compact-label" data-i18n="lbl_type">ประเภท</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
               </div>
             </div>
@@ -153,33 +165,33 @@
 
           <div class="p-3 rounded-4 mb-3 border shadow-xs" style="background-color: #f0f9ff; border-color: #bae6fd !important;">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
+              <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5"></i><span data-i18n="lbl_workplace">สถานที่ปฏิบัติงาน</span></h6>
               <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
-                <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+                <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">เพิ่มโรงพยาบาล</span>
               </button>
             </div>
             <div id="workplaceContainerAdd"></div>
           </div>
 
           <div class="p-3 rounded-4 border bg-light shadow-xs">
-            <h6 class="form-section-title"><i class="fa-solid fa-check-to-slot me-1.5"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+            <h6 class="form-section-title"><i class="fa-solid fa-check-to-slot me-1.5"></i><span data-i18n="sec_contact_consent">ข้อมูลติดต่อ และการยินยอม</span></h6>
             <div class="row g-3">
               <div class="col-sm-6 col-md-6">
-                <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
+                <label class="compact-label" data-i18n="lbl_privacy">นโยบายความเป็นส่วนตัว</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
               </div>
               <div class="col-sm-6 col-md-6">
-                <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
+                <label class="compact-label" data-i18n="lbl_tos">ข้อตกลงการใช้งาน</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
               </div>
             </div>
             <div class="row g-3 mt-1">
               <div class="col-sm-12 col-md-6">
-                <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">อีเมล</span></label>
                 <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
               </div>
               <div class="col-sm-12 col-md-6">
-                <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">เบอร์โทรศัพท์</span></label>
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
               </div>
             </div>
@@ -190,8 +202,8 @@
 
       <!-- Sticky Action Bar -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-2 gap-3">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
+        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">ยกเลิก</button>
+        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">ส่งคำขอ DCR</span></button>
       </div>
 
     </form>
@@ -206,9 +218,9 @@
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
-            <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
+            <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">ย้อนกลับ</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0">✏️ <span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
+          <h5 class="text-dark fw-bold mb-0">✏️ <span data-i18n="title_edit_doc">แก้ไขข้อมูลแพทย์ (DCR)</span></h5>
           <div id="editDcrStatusBadge" class="ms-3"></div>
         </div>
       </div>
@@ -218,32 +230,32 @@
         <div class="card p-4 p-md-4 border-0 shadow-sm visit-card bg-white mb-2">
           
           <div class="p-3 rounded-4 mb-3 border bg-light shadow-xs">
-            <h6 class="form-section-title"><i class="fa-solid fa-address-card me-1.5"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+            <h6 class="form-section-title"><i class="fa-solid fa-address-card me-1.5"></i><span data-i18n="sec_gen_info">ข้อมูลทั่วไป</span></h6>
             <div class="row g-3">
               <div class="col-sm-4 col-md-3">
-                <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
+                <label class="compact-label" data-i18n="lbl_doc_title">คำนำหน้า</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
               </div>
               <div class="col-sm-8 col-md-4">
-                <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                <label class="compact-label"><span data-i18n="lbl_doc_name_en">ชื่อ-นามสกุล (EN)</span> <span class="text-danger">*</span></label>
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" required>
               </div>
               <div class="col-sm-12 col-md-5">
-                <label class="compact-label" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                <label class="compact-label" data-i18n="lbl_doc_name_th">ชื่อ-นามสกุล (TH)</label>
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh">
               </div>
             </div>
             <div class="row g-3 mt-1">
               <div class="col-sm-6 col-md-4">
-                <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
+                <label class="compact-label" data-i18n="lbl_specialty">ความเชี่ยวชาญ</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
               </div>
               <div class="col-sm-6 col-md-4">
-                <label class="compact-label" data-i18n="lbl_type">Type</label>
+                <label class="compact-label" data-i18n="lbl_type">ประเภท</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
               </div>
               <div class="col-sm-12 col-md-4">
-                <label class="compact-label text-danger fw-bold" data-i18n="lbl_status">Status</label>
+                <label class="compact-label text-danger fw-bold" data-i18n="lbl_status">สถานะ</label>
                 <select class="form-select border-danger bg-white shadow-xs premium-radius fw-bold" id="editDocStatus"><option value="Active" class="text-success">Active</option><option value="Inactive" class="text-danger">Inactive</option></select>
               </div>
             </div>
@@ -251,33 +263,33 @@
 
           <div class="p-3 rounded-4 mb-3 border shadow-xs" style="background-color: #f0f9ff; border-color: #bae6fd !important;">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
+              <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5"></i><span data-i18n="lbl_workplace">สถานที่ปฏิบัติงาน</span></h6>
               <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
-                <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+                <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">เพิ่มโรงพยาบาล</span>
               </button>
             </div>
             <div id="workplaceContainerEdit"></div>
           </div>
 
           <div class="p-3 rounded-4 border bg-light shadow-xs">
-            <h6 class="form-section-title"><i class="fa-solid fa-check-to-slot me-1.5"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+            <h6 class="form-section-title"><i class="fa-solid fa-check-to-slot me-1.5"></i><span data-i18n="sec_contact_consent">ข้อมูลติดต่อ และการยินยอม</span></h6>
             <div class="row g-3">
               <div class="col-sm-6 col-md-6">
-                <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
+                <label class="compact-label" data-i18n="lbl_privacy">นโยบายความเป็นส่วนตัว</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
               </div>
               <div class="col-sm-6 col-md-6">
-                <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
+                <label class="compact-label" data-i18n="lbl_tos">ข้อตกลงการใช้งาน</label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
               </div>
             </div>
             <div class="row g-3 mt-1">
               <div class="col-sm-12 col-md-6">
-                <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">อีเมล</span></label>
                 <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
               </div>
               <div class="col-sm-12 col-md-6">
-                <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">เบอร์โทรศัพท์</span></label>
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
               </div>
             </div>
@@ -288,8 +300,8 @@
 
       <!-- Sticky Action Bar -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-2 gap-3">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
+        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">ยกเลิก</button>
+        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">ส่งคำขอ DCR</span></button>
       </div>
 
     </form>
@@ -302,13 +314,13 @@
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.goBackFromDoctorProfile()">
-          <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
+          <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">ย้อนกลับ</span>
         </button>
-        <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
+        <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ โปรไฟล์แพทย์</h5>
         <div id="profileDcrStatusBadge" class="ms-3"></div>
       </div>
       <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-        <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor</span>
+        <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">แก้ไขข้อมูลแพทย์ (DCR)</span>
       </button>
     </div>
     
@@ -318,17 +330,17 @@
       <ul class="nav nav-pills doctor-profile-tabs mb-3 border-bottom pb-2 flex-shrink-0" id="docProfileTabs">
         <li class="nav-item">
           <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
-            <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
+            <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">ข้อมูลทั่วไป</span>
           </button>
         </li>
         <li class="nav-item">
           <button type="button" class="nav-link" id="tab-btn-history" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')">
-            <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">Visit History</span>
+            <i class="fa-solid fa-calendar-check me-1"></i> <span data-i18n="tab_visit_history">ประวัติการเยี่ยม</span>
           </button>
         </li>
         <li class="nav-item">
           <button type="button" class="nav-link" id="tab-doc-target-btn" onclick="window.switchDoctorProfileTab(this, 'tab-doc-target')">
-            <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">Target Call</span>
+            <i class="fa-solid fa-bullseye me-1"></i> <span data-i18n="tab_target_call">เป้าหมายการเข้าพบ (Target Call)</span>
           </button>
         </li>
       </ul>
@@ -338,16 +350,16 @@
         <!-- Tab: General Info -->
         <div class="tab-pane fade show active" id="tab-doc-info">
           <div class="row mb-3 g-3">
-            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light premium-radius" id="viewDocSpecialty" disabled></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light premium-radius" id="viewDocType" disabled></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_status">Status</label><input type="text" class="form-control bg-light fw-bold premium-radius" id="viewDocStatus" disabled></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_specialty">ความเชี่ยวชาญ</label><input type="text" class="form-control bg-light premium-radius" id="viewDocSpecialty" disabled></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_type">ประเภท</label><input type="text" class="form-control bg-light premium-radius" id="viewDocType" disabled></div>
+            <div class="col-md-4"><label class="text-muted small fw-bold" data-i18n="lbl_status">สถานะ</label><input type="text" class="form-control bg-light fw-bold premium-radius" id="viewDocStatus" disabled></div>
           </div>
           <div class="row mb-3 g-3">
-            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_email">Email</label><input type="text" class="form-control bg-light premium-radius" id="viewDocEmail" disabled></div>
-            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_mobile">Mobile</label><input type="text" class="form-control bg-light premium-radius" id="viewDocMobile" disabled></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_email">อีเมล</label><input type="text" class="form-control bg-light premium-radius" id="viewDocEmail" disabled></div>
+            <div class="col-md-6"><label class="text-muted small fw-bold" data-i18n="lbl_mobile">เบอร์โทรศัพท์</label><input type="text" class="form-control bg-light premium-radius" id="viewDocMobile" disabled></div>
           </div>
           <div class="border rounded-4 p-4 bg-light mt-4 shadow-xs">
-            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">Workplace History</span></label>
+            <label class="text-primary small fw-bold mb-3 d-block"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">ประวัติสถานที่ปฏิบัติงาน</span></label>
             <div id="viewWorkplaceContainer"></div>
           </div>
         </div>
@@ -355,15 +367,15 @@
         <!-- Tab: Visit History -->
         <div class="tab-pane fade h-100 d-flex flex-column" id="tab-doc-history">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">ประวัติการเยี่ยม</span></h6>
             <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
-              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
+              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">เพิ่มบันทึกเยี่ยม</span>
             </button>
           </div>
 
           <div class="row g-2 mb-3 bg-light p-2 rounded-3 border flex-shrink-0 shadow-xs">
             <div class="col-md-5">
-              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">ช่วงวันที่</label>
               <div class="input-group input-group-sm shadow-xs premium-radius overflow-hidden">
                 <input type="date" class="form-control border-0" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
                 <span class="input-group-text bg-white border-0 text-muted">-</span>
@@ -371,13 +383,13 @@
               </div>
             </div>
             <div class="col-md-4">
-              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
+              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">ผลิตภัณฑ์</label>
               <select class="form-select form-select-sm shadow-xs premium-radius" id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()">
-                <option value="">- All Products -</option>
+                <option value="">- ผลิตภัณฑ์ทั้งหมด -</option>
               </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-                 <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
+                 <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">ล้างตัวกรอง</button>
             </div>
           </div>
 
@@ -385,23 +397,23 @@
             <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
               <thead class="table-custom-header text-center">
                 <tr>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">วันที่</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">พนักงาน / ฝ่ายขาย</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">เขตพื้นที่</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">ผลิตภัณฑ์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">วัตถุประสงค์</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('status')"><span data-i18n="th_status">สถานะ</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
                 </tr>
               </thead>
               <tbody id="viewVisitHistoryBody">
-                <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted">กำลังโหลดประวัติ...</td></tr>
               </tbody>
             </table>
           </div>
 
           <div id="pvisitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
             <div class="d-flex align-items-center">
-              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">แสดงแถว:</label>
               <select class="form-select form-select-sm shadow-xs premium-radius" id="pvisitRowsPerPage" onchange="window.changePVisitRowsPerPage()" style="width: 80px;">
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
@@ -421,30 +433,30 @@
        <!-- Tab: Target Call -->
         <div class="tab-pane fade h-100 d-flex flex-column" id="tab-doc-target">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">เป้าหมายการเข้าพบ (Rating & Targeting)</span></h6>
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
               <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">+ เพิ่มผลิตภัณฑ์</span>
             </button>
           </div>
           
           <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning flex-shrink-0" style="display: none; border-radius: 10px;">
-            <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">Locked:</strong> <span data-i18n="msg_rating_locked">The Target Call evaluation period is currently closed.</span>
+            <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">ล็อกอยู่:</strong> <span data-i18n="msg_rating_locked">ขณะนี้ไม่อยู่ในช่วงเวลาประเมิน Target Call</span>
           </div>
           
           <div class="table-scroll-inside flex-grow-1 border rounded-3" style="min-height: 0;">
             <table class="table table-bordered text-center align-middle mb-0" id="ratingTable">
               <thead class="table-custom-header bg-light">
                 <tr>
-                  <th style="width: 25%;" data-i18n="th_product">PRODUCT</th>
-                  <th style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
-                  <th style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
-                  <th style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
-                  <th style="width: 15%;" data-i18n="th_target_call">TARGET (CALL)</th>
-                  <th style="width: 15%;" data-i18n="th_action">Action</th>
+                  <th style="width: 25%;" data-i18n="th_product">ผลิตภัณฑ์</th>
+                  <th style="width: 15%;" data-i18n="th_adoption">การยอมรับใช้ยา (Adoption)</th>
+                  <th style="width: 15%;" data-i18n="th_potential">ศักยภาพแพทย์ (Potential)</th>
+                  <th style="width: 15%;" data-i18n="th_classification">การจัดกลุ่มแพทย์ (Classification)</th>
+                  <th style="width: 15%;" data-i18n="th_target_call">เป้าหมายการเข้าพบ (Target Call)</th>
+                  <th style="width: 15%;" data-i18n="th_action">จัดการ</th>
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
-                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">กำลังโหลดข้อมูล... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
               </tbody>
             </table>
           </div>
