@@ -148,8 +148,8 @@ const i18nDictionary = {
     lbl_enable_signature: "Signature",
 
     // --- Doctors Management Module ---
-    doc_title: "Doctors Management",
-    doc_subtitle: "Database of Doctors and Workplaces",
+    doc_title: "Doctor Profiles",
+    doc_subtitle: "View and manage your key contacts and their workplaces",
     btn_add_doctor: "Add New Doctor",
     btn_refresh: "Refresh",
     btn_clear_filters: "Clear Filters",
@@ -360,8 +360,8 @@ const i18nDictionary = {
     lbl_enable_signature: "ลายเซ็นแพทย์",
 
     // --- Doctors Management Module ---
-    doc_title: "จัดการข้อมูลแพทย์",
-    doc_subtitle: "ฐานข้อมูลรายชื่อแพทย์และสถานที่ปฏิบัติงาน",
+    doc_title: "ฐานข้อมูลแพทย์",
+    doc_subtitle: "รายชื่อแพทย์และสถานที่ปฏิบัติงานในเขตดูแล",
     btn_add_doctor: "เพิ่มแพทย์ใหม่",
     btn_refresh: "รีเฟรช",
     btn_clear_filters: "ล้างตัวกรอง",
