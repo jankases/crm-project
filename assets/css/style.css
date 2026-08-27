@@ -67,6 +67,7 @@ html, body {
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: min-content !important;
+  background-color: #ffffff !important; /* 🌟 ปรับเป็นสีขาวพรีเมี่ยมเท่ากันทุกหน้า */
 }
 
 /* 🌟 RULE 3: INTERNAL SCROLL ONLY */
@@ -145,7 +146,7 @@ html, body {
   border-radius: 16px !important; 
   border: 1px solid #eef2f6 !important;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
-  background: #ffffff;
+  background: #ffffff !important; /* 🌟 การ์ดทุกใบรวมถึง Filter จะเป็นสีขาวคลีน */
 }
 
 .form-control, .form-select { 
@@ -1819,7 +1820,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🏥 DOCTOR MANAGEMENT - FLEXBOX HEIGHT FIX
+   🏥 DOCTOR MANAGEMENT - UNIFIED SINGLE-STATE LOADING & FLEXBOX FIX
    ========================================== */
 #doctorListView {
   height: 100% !important;
@@ -1827,25 +1828,6 @@ button.feature-action-btn-lg.has-data-samples i {
   flex-direction: column !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
-}
-
-/* ล็อกกล่อง Filter ของ Doctors ไม่ให้ยืด */
-#doctorFilterZoneGroup,
-.doctor-filter-group {
-  flex: 0 0 auto !important;
-  height: auto !important;
-  min-height: min-content !important;
-}
-
-/* ล็อกเฉพาะกล่องตารางรายชื่อแพทย์ให้ยืดตึงชิดก้นจอ */
-#doctorListZone {
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  justify-content: space-between !important;
 }
 
 /* 🌟 ซ่อนเนื้อหาทั้งหมด (รวมถึง Filter) เมื่ออยู่ในสถานะกำลังโหลด */
@@ -1861,4 +1843,26 @@ button.feature-action-btn-lg.has-data-samples i {
 /* 🌟 ซ่อนการ์ด Loading Overlay เมื่อดึงข้อมูลเสร็จสิ้นแล้ว */
 #doctorListView:not(.is-loading) #doctorTableLoading {
   display: none !important;
+}
+
+/* ล็อกกล่อง Filter ของ Doctors ให้มีพื้นหลังสีขาวพรีเมี่ยมเท่ากันทุกหน้า */
+#doctorFilterZoneGroup,
+#visitFilterZoneGroup,
+.doctor-filter-group,
+.visit-filter-group {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: min-content !important;
+  background-color: #ffffff !important; /* 🌟 ปรับพื้นหลังเป็นสีขาวบริสุทธิ์เท่ากันทุกหน้า */
+}
+
+/* ล็อกเฉพาะกล่องตารางรายชื่อแพทย์ให้ยืดตึงชิดก้นจอ */
+#doctorListZone {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  justify-content: space-between !important;
 }
