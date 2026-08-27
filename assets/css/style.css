@@ -1847,3 +1847,18 @@ button.feature-action-btn-lg.has-data-samples i {
   overflow: hidden !important;
   justify-content: space-between !important;
 }
+
+/* 🌟 ซ่อนเนื้อหาทั้งหมด (รวมถึง Filter) เมื่ออยู่ในสถานะกำลังโหลด */
+#doctorListView.is-loading #doctorMainContentContainer {
+  display: none !important;
+}
+
+/* 🌟 แสดงการ์ด Loading Overlay เฉพาะตอนกำลังโหลด */
+#doctorListView.is-loading #doctorTableLoading {
+  display: flex !important;
+}
+
+/* 🌟 ซ่อนการ์ด Loading Overlay เมื่อดึงข้อมูลเสร็จสิ้นแล้ว */
+#doctorListView:not(.is-loading) #doctorTableLoading {
+  display: none !important;
+}
