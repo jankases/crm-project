@@ -35,24 +35,21 @@
     <!-- โซนเนื้อหาหลัก -->
     <div id="doctorMainContentContainer" class="w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
       
-      <!-- ส่วนค้นหา/ตัวกรองข้อมูล (Smart Search Filter Zone) -->
-      <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
+      <!-- 🌟 ส่วนค้นหา/ตัวกรองข้อมูล (บังคับใช้ bg-white และขอบลอยเด่นเป็นสีขาวบริสุทธิ์) -->
+      <div class="card p-2 px-3 border shadow-xs visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0 bg-white" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
-            <!-- 🌟 ปรับโครงสร้าง Input Group ยุบรวมช่องค้นหา ปุ่มลบ และไอคอนไมค์ไว้ในกรอบเดียวกัน -->
             <div class="flex-grow-1" style="min-width: 280px; max-width: 450px;">
               <div class="input-group border bg-white overflow-hidden shadow-xs align-items-center" style="border-radius: 10px; height: 38px;">
-                <span class="input-group-text bg-transparent border-0 ps-2.5 pe-1 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <span class="input-group-text bg-white border-0 ps-2.5 pe-1 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
-                <input type="text" class="form-control border-0 bg-transparent shadow-none px-2 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
+                <input type="text" class="form-control border-0 bg-white shadow-none px-2 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
                 
-                <!-- ปุ่ม X สำหรับเคลียร์ข้อความ (จะโชว์อัตโนมัติเมื่อพิมพ์ข้อความ) -->
                 <button class="btn btn-link text-decoration-none border-0 bg-transparent px-1.5 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()" title="Clear Search">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
                 </button>
 
-                <!-- ปุ่มไมโครโฟนสั่งงานด้วยเสียง ชิดขวาในกรอบเดียวกับช่องค้นหา -->
                 <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
                   <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
                 </button>
@@ -61,12 +58,12 @@
 
             <!-- Specialty Dropdown -->
             <div style="min-width: 180px;">
-              <select class="form-select shadow-none fs-6" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
+              <select class="form-select shadow-none fs-6 bg-white" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
 
             <!-- Doctor Type Dropdown -->
             <div style="min-width: 180px;">
-              <select class="form-select shadow-none fs-6" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
+              <select class="form-select shadow-none fs-6 bg-white" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
 
           </div>
