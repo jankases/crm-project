@@ -36,6 +36,7 @@ html, body {
 }
 
 #visitMainContentContainer,
+#doctorMainContentContainer,
 .doc-main-content,
 .hosp-main-content {
   flex: 1 1 auto !important;
@@ -219,7 +220,7 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* 🌟 BORDERLESS CONTROL TOOLBAR (RESTORED FROM WORKING CODE) */
+/* 🌟 BORDERLESS CONTROL TOOLBAR (บังคับความสูง 38px กึ่งกลางเป๊ะเท่าหน้า Visit) */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
@@ -299,9 +300,18 @@ input:checked + .slider { background-color: #0d6efd; }
 input:focus + .slider { box-shadow: 0 0 1px #0d6efd; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
-/* 🌟 TOMSELECT STYLING */
+/* 🌟 TOMSELECT STYLING (ปรับขนาดมัลติซีเลกต์ใน Filter ให้สูง 38px กึ่งกลางพอดี) */
+.visit-filter-compact .ts-control { 
+  border-radius: 10px !important; 
+  min-height: 38px !important; 
+  height: 38px !important;
+  padding: 2px 8px !important;
+  display: flex; 
+  align-items: center; 
+  background-color: #ffffff !important; 
+}
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
-.ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 3px 10px; font-weight: 500; }
+.ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; font-size: 0.8rem; }
 .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
 .ts-wrapper.single .ts-control > .item[data-value=""] { color: #6c757d !important; font-weight: 400 !important; }
 .ts-dropdown { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; }
