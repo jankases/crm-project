@@ -260,7 +260,6 @@ window.renderFilterDropdowns = function(validDocsData) {
   const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
   const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
 
-  // 1. Specialty Filter
   const specSelect = document.getElementById('filterDocSpecialty');
   if (specSelect) {
     const selectedVals = specSelect.tomselect ? specSelect.tomselect.getValue() : [];
@@ -274,7 +273,6 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   }
 
-  // 2. Type Filter
   const typeSelect = document.getElementById('filterDocType');
   if (typeSelect) {
     const selectedVals = typeSelect.tomselect ? typeSelect.tomselect.getValue() : [];
@@ -616,15 +614,15 @@ window.restoreDocFilterState = function() {
 };
 
 // ==========================================
-// 📊 5. SERVER-SIDE PAGINATION (WITH SINGLE-STATE OVERLAY)
+// 📊 5. SERVER-SIDE PAGINATION (WITH BACKGROUND FETCH OPTION)
 // ==========================================
 
-window.loadDoctors = async function(forceReload = false) {
+window.loadDoctors = async function(forceReload = false, isBackground = false) {
   const docViewEl = document.getElementById('doctorListView');
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
-  // 🌟 ถ้าต้องโหลดข้อมูลใหม่ ให้เปิด Single-State Overlay Loading ทันทีเหมือนหน้า Visit
-  if (forceReload || !window.DocManagerCache.isLoaded || !hasData) {
+  // 🌟 [FIX]: สั่งเปิด Single-State Overlay Loading เฉพาะตอน !isBackground เท่านั้น (เหมือนหน้า Visit)
+  if (!isBackground && (forceReload || !window.DocManagerCache.isLoaded || !hasData)) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const lTitle = document.getElementById('docLoadingTitleText');
     const lDesc = document.getElementById('docLoadingDescText');
@@ -717,7 +715,6 @@ window.loadDoctors = async function(forceReload = false) {
     const tbody = document.getElementById('doctorTableBody');
     if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load Failed: ${err.message}</td></tr>`;
   } finally {
-    // 🌟 ปิด Single-State Overlay Loading เมื่อดึงและเรนเดอร์ข้อมูลเสร็จสิ้นแล้ว
     if (docViewEl) docViewEl.classList.remove('is-loading');
   }
 };
@@ -832,16 +829,19 @@ window.changeRowsPerPage = function() {
   window.loadDoctors(true);
 };
 
+// 🌟 [FIX]: ฟังก์ชันกรองข้อมูล เรียก loadDoctors แบบ Background เพื่อไม่ให้กระตุกวูบวาบ
 window.filterDoctors = function() {
   if (window.isDocInitialLoading) return;
   window.currentPage = 1;
-  window.loadDoctors(true);
+  window.loadDoctors(true, true); 
 };
 
 window.debouncedFilterDoctors = function() {
   if (window.isDocInitialLoading) return;
   if (window.docFilterDebounceTimer) clearTimeout(window.docFilterDebounceTimer);
-  window.docFilterDebounceTimer = setTimeout(function() { window.filterDoctors(); }, 300);
+  window.docFilterDebounceTimer = setTimeout(function() { 
+    window.filterDoctors(); 
+  }, 400); // หน่วงเวลา 400ms กำลังสมูทพอดีแบบเดียวกับหน้า Visit
 };
 
 window.clearDoctorFilters = function() {
@@ -870,7 +870,7 @@ window.sortDoctors = function(col) {
 
 window.forceReloadDoctors = async function() {
   await window.loadIndexDropdowns(true);
-  await window.loadDoctors(true);
+  await window.loadDoctors(true, false);
 };
 
 window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
@@ -1876,7 +1876,7 @@ window.initDoctorPage = async function(forceReload = false) {
 
   try {
     await window.loadIndexDropdowns(shouldFetchDB); 
-    await window.loadDoctors(shouldFetchDB);
+    await window.loadDoctors(shouldFetchDB, false); // 🌟 โหลดรอบแรก สั่งเปิดหน้าหมุน
   } catch (err) {
     console.error("Init Doctors Failed:", err);
   } finally {
