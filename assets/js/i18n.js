@@ -37,6 +37,7 @@ const i18nDictionary = {
     opt_status_pending: "⏳ Pending Drafts",
     opt_status_submitted: "✅ Submitted Logs",
     opt_search_doc: "Search Doctor (EN/TH)...",
+    opt_search_doc_hosp_ph: "Search Doctor Name or Hospital (EN/TH)...",
     opt_smart_search_ph: "Search Doctor, Hospital or Product...",
     opt_select_products: "-- Select Products --",
     opt_select_purpose: "-- Select Purpose --",
@@ -153,7 +154,6 @@ const i18nDictionary = {
     btn_add_doctor: "Add New Doctor",
     btn_refresh: "Refresh",
     btn_clear_filters: "Clear Filters",
-    opt_search_doc_hosp_ph: "Search Doctor Name or Hospital (EN/TH)...",
     th_doc_name_en: "Doctor (EN)",
     th_doc_name_th: "Doctor (TH)",
     th_specialty: "Specialty",
@@ -212,7 +212,6 @@ const i18nDictionary = {
     ph_visit_details: "Enter call discussion details...",
     ph_visit_insight: "Key feedback or doctor insights...",
     ph_visit_next_action: "Next follow-up plan or action items..."
-    
   },
 
   th: {
@@ -249,6 +248,7 @@ const i18nDictionary = {
     opt_status_pending: "⏳ รอส่ง (Pending)",
     opt_status_submitted: "✅ ส่งแล้ว (Submitted)",
     opt_search_doc: "ค้นหาชื่อแพทย์ (EN/TH)...",
+    opt_search_doc_hosp_ph: "ค้นหาชื่อแพทย์ หรือโรงพยาบาล (EN/TH)...",
     opt_smart_search_ph: "ค้นหาชื่อแพทย์, โรงพยาบาล หรือผลิตภัณฑ์...",
     opt_select_products: "-- เลือกผลิตภัณฑ์ --",
     opt_select_purpose: "-- เลือกวัตถุประสงค์ --",
@@ -365,7 +365,6 @@ const i18nDictionary = {
     btn_add_doctor: "เพิ่มแพทย์ใหม่",
     btn_refresh: "รีเฟรช",
     btn_clear_filters: "ล้างตัวกรอง",
-    opt_search_doc_hosp_ph: "ค้นหาชื่อแพทย์ หรือโรงพยาบาล (EN/TH)...",
     th_doc_name_en: "แพทย์ (EN)",
     th_doc_name_th: "แพทย์ (TH)",
     th_specialty: "ความเชี่ยวชาญ",
@@ -424,7 +423,6 @@ const i18nDictionary = {
     ph_visit_details: "ระบุรายละเอียดการพูดคุยหรือการเยี่ยม...",
     ph_visit_insight: "ระบุข้อคิดเห็นเพิ่มเติมหรือข้อมูลเชิงลึกจากแพทย์...",
     ph_visit_next_action: "ระบุแผนการติดตามผลหรือการดำเนินการถัดไป..."
-  
   }
 };
 
@@ -460,7 +458,6 @@ function setLanguage(lang) {
       } else if (el.tagName === 'OPTION') {
         el.text = translatedText;
       } else {
-        // หากมี Element ไอคอนซ้อนอยู่ภายใน ให้แปลเฉพาะ Node ข้อความโดยไม่ลบไอคอน
         let textNode = Array.from(el.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
         if (textNode) {
           textNode.textContent = translatedText;
@@ -468,6 +465,14 @@ function setLanguage(lang) {
           el.innerText = translatedText;
         }
       }
+    }
+  });
+
+  // 🌟 [เพิ่มจุดนี้] ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
+      el.placeholder = i18nDictionary[lang][key];
     }
   });
 
