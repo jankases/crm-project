@@ -1860,3 +1860,34 @@ button.feature-action-btn-lg.has-data-samples i {
   overflow: hidden !important;
   justify-content: space-between !important;
 }
+
+/* ==========================================
+   ✨ ADVANCED FILTERS POPUP POLISH (MASTER STANDARD A)
+   ========================================== */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+  padding: 1.25rem !important;
+}
+
+/* ปรับสีช่อง Dropdown ด้านในให้เป็นสีเทาอ่อน #f8fafc เท่ากันทุกหน้า */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  font-size: 0.85rem !important;
+  color: #334155 !important;
+}
+
+/* ปรับสีตัวอักษรหัวข้อฟิลเตอร์ย่อย */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+  margin-bottom: 0.35rem !important;
+}
