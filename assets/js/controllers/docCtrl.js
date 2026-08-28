@@ -629,8 +629,12 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     const lTitle = document.getElementById('docLoadingTitleText');
     const lDesc = document.getElementById('docLoadingDescText');
     
-    if (lTitle) lTitle.textContent = appLang === 'en' ? 'Loading Doctors...' : 'กำลังเตรียมข้อมูล...';
-    if (lDesc) lDesc.textContent = appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+    if (lTitle) {
+      lTitle.textContent = (typeof t === 'function') ? t('status_loading_doc') : (appLang === 'en' ? 'Loading Doctors...' : 'กำลังโหลดข้อมูลแพทย์...');
+    }
+    if (lDesc) {
+      lDesc.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
+    }
     
     if (docViewEl) docViewEl.classList.add('is-loading');
   }
@@ -1869,8 +1873,12 @@ window.initDoctorPage = async function(forceReload = false) {
       const lTitle = document.getElementById('docLoadingTitleText');
       const lDesc = document.getElementById('docLoadingDescText');
       
-      if (lTitle) lTitle.textContent = appLang === 'en' ? 'Loading Doctors...' : 'กำลังเตรียมข้อมูล...';
-      if (lDesc) lDesc.textContent = appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+      if (lTitle) {
+      lTitle.textContent = (typeof t === 'function') ? t('status_loading_doc') : (appLang === 'en' ? 'Loading Doctors...' : 'กำลังโหลดข้อมูลแพทย์...');
+    }
+    if (lDesc) {
+      lDesc.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
+    }
       
       docViewEl.classList.add('is-loading');
   }
