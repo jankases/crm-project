@@ -211,7 +211,9 @@ const i18nDictionary = {
     sec_features_evidences: "Features & Evidences",
     ph_visit_details: "Enter call discussion details...",
     ph_visit_insight: "Key feedback or doctor insights...",
-    ph_visit_next_action: "Next follow-up plan or action items..."
+    ph_visit_next_action: "Next follow-up plan or action items...",
+    status_loading: "Loading Data...",
+    status_loading_desc: "Processing your access rights and retrieving records."
   },
 
   th: {
@@ -422,7 +424,9 @@ const i18nDictionary = {
     sec_features_evidences: "คุณสมบัติและหลักฐาน",
     ph_visit_details: "ระบุรายละเอียดการพูดคุยหรือการเยี่ยม...",
     ph_visit_insight: "ระบุข้อคิดเห็นเพิ่มเติมหรือข้อมูลเชิงลึกจากแพทย์...",
-    ph_visit_next_action: "ระบุแผนการติดตามผลหรือการดำเนินการถัดไป..."
+    ph_visit_next_action: "ระบุแผนการติดตามผลหรือการดำเนินการถัดไป...",
+    status_loading: "กำลังโหลดข้อมูล...",
+    status_loading_desc: "กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ"
   }
 };
 
