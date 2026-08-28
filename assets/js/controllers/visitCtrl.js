@@ -3926,8 +3926,14 @@ window.initVisitPage = async function(forceReload) {
 
     if (shouldFetchDB && visitViewEl) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        if (loadingTitleEl) loadingTitleEl.textContent = appLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+        
+        // 🌟 ดึงค่าภาษา dynamic จาก Dictionary ใน i18n.js
+        if (loadingTitleEl) {
+            loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (appLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
+        }
+        if (loadingDescEl) {
+            loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
+        }
 
         visitViewEl.classList.add('is-loading');
     }
