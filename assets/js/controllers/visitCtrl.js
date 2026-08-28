@@ -1624,8 +1624,12 @@ window.loadVisits = async function(forceReload, isBackground) {
     // 🌟 [FIXED] เช็ก !isBackground เพียงจุดเดียว และลบบล็อก if ซ้ำซ้อนด้านล่างทิ้ง
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) loadingTitleEl.textContent = currentLang === 'en' ? 'Loading Data...' : 'กำลังเตรียมข้อมูล...';
-        if (loadingDescEl) loadingDescEl.textContent = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'ระบบกำลังประมวลผลข้อมูลตามสิทธิ์การเข้าถึงของคุณ';
+        if (loadingTitleEl) {
+            loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
+        }
+        if (loadingDescEl) {
+            loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
+        }
 
         if (visitViewEl) visitViewEl.classList.add('is-loading');
     }
