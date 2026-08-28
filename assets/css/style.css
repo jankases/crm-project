@@ -223,7 +223,9 @@ html, body {
   flex-shrink: 0 !important;
 }
 
-/* 🌟 BORDERLESS CONTROL TOOLBAR (สเปกแบบ A: สูง 38px กึ่งกลาง ช่องด้านในสีเทาอ่อน #f8fafc) */
+/* ==========================================
+   🌟 BORDERLESS CONTROL TOOLBAR & FILTER INPUTS (ปรับแต่งให้เท่ากันเป๊ะ)
+   ========================================== */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
 .visit-filter-compact .input-group-text,
@@ -236,10 +238,14 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-.visit-filter-compact .input-group {
+/* ล็อกความสูงและขอบโค้งมน 12px ของกรอบ Smart Search ให้เท่ากันทุกหน้า */
+.visit-filter-compact .input-group,
+#doctorFilterZoneGroup .input-group {
   height: 38px !important;
   min-height: 38px !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important; /* 🌟 ล็อกขอบโค้งมน 12px ให้เท่ากันทุกหน้า */
+  background-color: #f8fafc !important;
+  overflow: hidden !important;
 }
 
 .visit-filter-compact input[type="date"],
@@ -309,9 +315,12 @@ input:checked + .slider { background-color: #0d6efd; }
 input:focus + .slider { box-shadow: 0 0 1px #0d6efd; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
-/* 🌟 TOMSELECT STYLING (แบบ A: ล็อกสูง 38px ขอบมน 10px พื้นหลังสีเทาอ่อน #f8fafc เข้าคู่กัน) */
-.visit-filter-compact .ts-control { 
-  border-radius: 10px !important; 
+/* ==========================================
+   🌟 TOMSELECT STYLING (แบบ A: ล็อกสูง 38px ขอบมน 12px เท่าหน้า Visit)
+   ========================================== */
+.visit-filter-compact .ts-control,
+#doctorFilterZoneGroup .ts-control { 
+  border-radius: 12px !important; /* 🌟 ปรับขอบโค้งมนเป็น 12px เท่ากันเป๊ะ */
   min-height: 38px !important; 
   height: 38px !important;
   padding: 2px 8px !important;
