@@ -1416,7 +1416,7 @@ button.feature-action-btn-lg.has-data-samples i {
 
 @keyframes pulse-red-premium {
   0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  70% { shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
@@ -1862,7 +1862,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   ✨ ADVANCED FILTERS POPUP POLISH (MASTER STANDARD A)
+   ✨ ADVANCED FILTERS POPUP OVERRIDE (FORCE MATCHING)
    ========================================== */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
   background-color: #ffffff !important;
@@ -1872,8 +1872,9 @@ button.feature-action-btn-lg.has-data-samples i {
   padding: 1.25rem !important;
 }
 
-/* ปรับสีช่อง Dropdown ด้านในให้เป็นสีเทาอ่อน #f8fafc เท่ากันทุกหน้า */
+/* เจาะจงทั้ง Form-Select และ TomSelect ภายในป็อปอัพ ให้เป็นสีเทาอ่อน #f8fafc */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
   background-color: #f8fafc !important;
   border: 1px solid #cbd5e1 !important;
@@ -1882,6 +1883,7 @@ button.feature-action-btn-lg.has-data-samples i {
   min-height: 38px !important;
   font-size: 0.85rem !important;
   color: #334155 !important;
+  box-shadow: none !important;
 }
 
 /* ปรับสีตัวอักษรหัวข้อฟิลเตอร์ย่อย */
