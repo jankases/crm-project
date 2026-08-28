@@ -224,7 +224,7 @@ html, body {
 }
 
 /* ==========================================
-   🌟 BORDERLESS CONTROL TOOLBAR & FILTER INPUTS (ปรับแต่งให้เท่ากันเป๊ะ)
+   🌟 BORDERLESS CONTROL TOOLBAR & FILTER INPUTS
    ========================================== */
 .visit-filter-compact .form-control,
 .visit-filter-compact .form-select,
@@ -243,7 +243,7 @@ html, body {
 #doctorFilterZoneGroup .input-group {
   height: 38px !important;
   min-height: 38px !important;
-  border-radius: 12px !important; /* 🌟 ล็อกขอบโค้งมน 12px ให้เท่ากันทุกหน้า */
+  border-radius: 12px !important;
   background-color: #f8fafc !important;
   overflow: hidden !important;
 }
@@ -316,11 +316,11 @@ input:focus + .slider { box-shadow: 0 0 1px #0d6efd; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
 /* ==========================================
-   🌟 TOMSELECT STYLING (แบบ A: ล็อกสูง 38px ขอบมน 12px เท่าหน้า Visit)
+   🌟 TOMSELECT STYLING (แบบ A: ล็อกสูง 38px ขอบมน 12px เท่ากันทุกหน้า)
    ========================================== */
 .visit-filter-compact .ts-control,
 #doctorFilterZoneGroup .ts-control { 
-  border-radius: 12px !important; /* 🌟 ปรับขอบโค้งมนเป็น 12px เท่ากันเป๊ะ */
+  border-radius: 12px !important; 
   min-height: 38px !important; 
   height: 38px !important;
   padding: 2px 8px !important;
@@ -801,13 +801,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
-#visitTableLoading {
-  min-height: 380px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY (ล็อกความสูงสเกลเดียวกัน) */
+#visitTableLoading,
+#doctorTableLoading {
+  min-height: 380px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
@@ -1092,21 +1093,18 @@ mark.highlight-search {
   background-color: #f0f9ff !important;
   border-color: #0d6efd !important;
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15), 0 4px 12px rgba(13, 110, 253, 0.1) !important;
-  transform: translateY(-1px) !important;
 }
 
 .kpi-card-elevated.active-pending {
   background-color: #fffbeb !important;
   border-color: #d97706 !important;
   box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important;
-  transform: translateY(-1px) !important;
 }
 
 .kpi-card-elevated.active-submitted {
   background-color: #ecfdf5 !important;
   border-color: #059669 !important;
   box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important;
-  transform: translateY(-1px) !important;
 }
 
 #calendar .fc-day-today {
@@ -1423,7 +1421,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING (PERFECT FIX)
+   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING
    ========================================== */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
@@ -1432,7 +1430,6 @@ button.feature-action-btn-lg.has-data-samples i {
     padding-bottom: 0.5rem !important;
   }
 
-  /* 🌟 จัดระเบียบ Sidebar Rail ฝั่งซ้ายให้กระจายตัวพอดี สวยงาม นุ่มตา */
   .ipad-sidebar-rail,
   #ipadSidebarRail,
   div[class*="sidebar-rail"] {
@@ -1450,7 +1447,6 @@ button.feature-action-btn-lg.has-data-samples i {
     box-sizing: border-box !important;
   }
 
-  /* 1. ปุ่ม Logo บนสุด - สีฟ้าธีมเดียวกับปุ่ม List */
   .ipad-sidebar-rail .app-logo-btn,
   .ipad-sidebar-rail .brand-icon-btn,
   .ipad-sidebar-rail > div:first-child button,
@@ -1462,7 +1458,6 @@ button.feature-action-btn-lg.has-data-samples i {
     box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25) !important;
   }
 
-  /* 2. เมนูทั่วไป (Inactive Icons) - สีเทาซอฟต์ลง อ่านง่าย */
   .ipad-sidebar-rail button,
   .ipad-sidebar-rail a,
   .ipad-sidebar-rail i {
@@ -1476,7 +1471,6 @@ button.feature-action-btn-lg.has-data-samples i {
     color: #0d6efd !important;
   }
 
-  /* 3. เมนูที่เลือกอยู่ (Active Menu) - สีฟ้าธีมหลักสดใส */
   .ipad-sidebar-rail button.active,
   .ipad-sidebar-rail a.active,
   .ipad-sidebar-rail .sidebar-icon-btn.active {
@@ -1491,7 +1485,6 @@ button.feature-action-btn-lg.has-data-samples i {
     color: #ffffff !important;
   }
 
-  /* 4. แคปซูลเปลี่ยนภาษา (EN / TH) - ล้างคลาส btn-primary ของ Bootstrap ให้เรียบคลีน */
   .ipad-lang-wrapper,
   #ipadLangWrapper {
     background-color: #e2e8f0 !important;
@@ -1525,7 +1518,6 @@ button.feature-action-btn-lg.has-data-samples i {
     padding: 0 !important;
   }
 
-  /* ปุ่มภาษาที่ Active (EN หรือ TH) - บังคับล้างคลาส btn-primary แล้วยัดสีฟ้าธีมหลัก */
   .ipad-lang-wrapper button.active,
   .ipad-lang-wrapper button.btn-primary,
   .ipad-lang-btn.active {
@@ -1535,7 +1527,6 @@ button.feature-action-btn-lg.has-data-samples i {
     box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3) !important;
   }
 
-  /* 5. ปุ่ม Logout ด้านล่างสุด - เว้นระยะให้อยู่ในกรอบสวยงาม */
   .ipad-sidebar-rail .logout-icon-btn,
   .ipad-sidebar-rail > button:last-child,
   .ipad-sidebar-rail > a:last-child {
@@ -1596,7 +1587,7 @@ button.feature-action-btn-lg.has-data-samples i {
   }
 }
 
-/* 🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก (Read-Only) */
+/* 🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก */
 #visitFormView .form-control:disabled::placeholder,
 #visitFormView .form-control[readonly]:not(#filterStartDate):not(#filterEndDate)::placeholder,
 #visitFormView textarea:disabled::placeholder,
@@ -1618,23 +1609,20 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🔐 LOGIN PAGE STYLING (CRM Theme)
+   🔐 LOGIN PAGE STYLING
    ========================================== */
-
-/* 1. Outer Frame Lock: ล็อคกรอบนอกให้เต็มจอและจัดกึ่งกลางเสมอ */
 .login-wrapper {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; 
   height: 100vh;
-  background: linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%); /* พื้นหลังสีเทาอ่อนสะอาดตา */
+  background: linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-/* 2. Login Card: การ์ดพื้นหลังสีขาว ขอบโค้งมน พร้อม Shadow */
 .login-card {
   background: #ffffff;
   width: 100%;
@@ -1648,17 +1636,10 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 @keyframes loginCardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 3. Brand Icon: ไอคอนโลโก้บริษัทด้านบน */
 .login-brand-icon {
   width: 68px;
   height: 68px;
@@ -1672,7 +1653,6 @@ button.feature-action-btn-lg.has-data-samples i {
   box-shadow: 0 8px 20px rgba(29, 78, 216, 0.3);
 }
 
-/* 4. Typography: ตัวอักษรและข้อความ */
 .login-title {
   font-weight: 800;
   color: #0f172a;
@@ -1694,7 +1674,6 @@ button.feature-action-btn-lg.has-data-samples i {
   display: block;
 }
 
-/* 5. Input Groups: ช่องกรอกข้อมูลสไตล์ Premium (ขยาย Touch Target สำหรับ iPad) */
 .login-input-group {
   min-height: 50px !important;
   border-radius: 14px !important;
@@ -1729,7 +1708,6 @@ button.feature-action-btn-lg.has-data-samples i {
   color: #cbd5e1;
 }
 
-/* 6. Submit Button: ปุ่มกดเข้าสู่ระบบ */
 .btn-login-submit {
   min-height: 50px !important;
   border-radius: 14px !important;
@@ -1752,7 +1730,6 @@ button.feature-action-btn-lg.has-data-samples i {
   transform: scale(0.98) !important;
 }
 
-/* 7. Footer Links: ลิงก์ด้านล่าง (ลืมรหัสผ่าน) */
 .login-footer-link {
   font-size: 0.85rem;
   color: #64748b;
@@ -1766,25 +1743,23 @@ button.feature-action-btn-lg.has-data-samples i {
   color: #0d6efd;
 }
 
-/* 🌟 ขยายขนาดปุ่ม Close (X) สำหรับ iPad */
 .modal-header .btn-close {
-    width: 20px !important;
-    height: 20px !important;
-    padding: 12px !important; /* เพิ่มพื้นที่รับสัมผัส */
-    background-size: 14px !important;
-    border-radius: 50% !important;
-    transition: all 0.2s ease-in-out;
-    opacity: 0.5;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 12px !important;
+  background-size: 14px !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease-in-out;
+  opacity: 0.5;
 }
 
 .modal-header .btn-close:hover,
 .modal-header .btn-close:active {
-    background-color: #f1f5f9 !important; /* ขึ้นสีเทาอ่อนเวลากด */
-    opacity: 1;
-    transform: scale(1.05); /* ขยายขึ้นนิดนึงให้ดูมีลูกเล่น */
+  background-color: #f1f5f9 !important;
+  opacity: 1;
+  transform: scale(1.05);
 }
 
-/* 🌟 ANIMATION FOR LOGIN EXPIRE ALERT BANNER */
 .fade-in-up {
   animation: fadeInUp 0.3s ease-out forwards;
 }
@@ -1795,10 +1770,8 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   ✨ PREMIUM DASHBOARD POLISH (เก็บงาน UI หน้าหลัก)
+   ✨ PREMIUM DASHBOARD POLISH
    ========================================== */
-
-/* 🌟 1. ปรับขอบโค้งมน (Border-Radius) ให้ทุกปุ่มและช่องค้นหาโค้งเนียนตา 12px ทั้งหมด */
 .premium-radius,
 .visit-filter-compact .input-group,
 .visit-filter-compact .btn-light.border,
@@ -1806,7 +1779,6 @@ button.feature-action-btn-lg.has-data-samples i {
   border-radius: 12px !important;
 }
 
-/* 🌟 2. ลดความดุดันของปุ่ม Logout (ให้ดูซอฟต์ ไม่แย่งสายตาจากปุ่ม Add) */
 #logoutBtn {
   border: 1px solid #e2e8f0 !important;
   color: #64748b !important;
@@ -1815,12 +1787,10 @@ button.feature-action-btn-lg.has-data-samples i {
   transition: all 0.2s ease-in-out !important;
 }
 
-/* ให้ไอคอนเป็นสีแดงเบาๆ เพื่อสื่อความหมาย */
 #logoutBtn i {
   color: #ef4444 !important;
 }
 
-/* ตอนเอาเมาส์ชี้ ค่อยสว่างขึ้นมา */
 #logoutBtn:hover {
   background-color: #fef2f2 !important;
   border-color: #fca5a5 !important;
@@ -1829,7 +1799,6 @@ button.feature-action-btn-lg.has-data-samples i {
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1) !important;
 }
 
-/* 🌟 3. ปรับสีและกรอบของไอคอนหลักฐาน (Evidence Badges) ในตารางให้ลอยเด่นขึ้น */
 .table-scroll-inside .badge[class*="badge-soft-"] {
   padding: 4px 6px !important;
   border-radius: 8px !important;
@@ -1850,7 +1819,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🏥 DOCTOR MANAGEMENT - UNIFIED SINGLE-STATE LOADING & FLEXBOX FIX
+   🏥 DOCTOR MANAGEMENT
    ========================================== */
 #doctorListView {
   height: 100% !important;
@@ -1860,22 +1829,18 @@ button.feature-action-btn-lg.has-data-samples i {
   min-height: 0 !important;
 }
 
-/* 🌟 ซ่อนเนื้อหาทั้งหมด (รวมถึง Filter) เมื่ออยู่ในสถานะกำลังโหลด */
 #doctorListView.is-loading #doctorMainContentContainer {
   display: none !important;
 }
 
-/* 🌟 แสดงการ์ด Loading Overlay เฉพาะตอนกำลังโหลด */
 #doctorListView.is-loading #doctorTableLoading {
   display: flex !important;
 }
 
-/* 🌟 ซ่อนการ์ด Loading Overlay เมื่อดึงข้อมูลเสร็จสิ้นแล้ว */
 #doctorListView:not(.is-loading) #doctorTableLoading {
   display: none !important;
 }
 
-/* ล็อกกล่อง Filter ของ Doctors ให้มีพื้นหลังสีขาวพรีเมี่ยมเท่ากันทุกหน้า */
 #doctorFilterZoneGroup,
 #visitFilterZoneGroup,
 .doctor-filter-group,
@@ -1886,7 +1851,6 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #ffffff !important;
 }
 
-/* ล็อกเฉพาะกล่องตารางรายชื่อแพทย์ให้ยืดตึงชิดก้นจอ */
 #doctorListZone {
   flex: 1 1 auto !important;
   height: 100% !important;
