@@ -12,7 +12,6 @@ html, body {
 
 /* 🖥️ ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
-.doc-module-wrapper,
 .hosp-module-wrapper {
   height: calc(100vh - 85px) !important;
   width: 100% !important;
@@ -22,6 +21,20 @@ html, body {
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
+}
+
+/* 🌟 [FIXED] แยกความสูงหน้าหมอให้ยืดเต็มพื้นที่ 100% ไดนามิก กลบแถบเทาด้านล่างมิดชิดทุกขนาดจอ */
+.doc-module-wrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
+  background-color: #f8fafc;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
 }
 
 /* 📊 FIXED TABLE-ONLY SCROLL ENGINE */
@@ -1958,8 +1971,8 @@ button.feature-action-btn-lg.has-data-samples i {
 /* ปรับความสูงการ์ดหน้าหมอเมื่อย่อจอ โดยไม่กระทบหน้า Visit Logs */
 @media (max-width: 1199px) {
   .doc-module-wrapper {
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100% !important;
+    max-height: 100% !important;
     padding-bottom: 0.75rem !important;
     box-sizing: border-box !important;
   }
