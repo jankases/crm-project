@@ -1998,3 +1998,39 @@ button.feature-action-btn-lg.has-data-samples i {
     flex-shrink: 0 !important;
   }
 }
+
+/* ==========================================
+   ✨ ABSOLUTE FORCE: DOCTOR CARD FULL HEIGHT (NO GRAY GAP)
+   ========================================== */
+/* บังคับดันโครงสร้างชั้นในของหน้าหมอให้ขยายยืดเต็มพื้นที่ Viewport */
+.doc-module-wrapper #doctorListView,
+.doc-module-wrapper #doctorMainContentContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* บังคับการ์ดสีขาวของตารางหมอให้ยืดลงมาล่างสุดกลบสีเทา 100% */
+.doc-module-wrapper #doctorListZone {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  justify-content: space-between !important;
+}
+
+/* ดันพื้นที่ตารางข้างในให้ยืดตาม */
+.doc-module-wrapper #doctorListZone .table-scroll-inside {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* ดันแถบ Pagination ลงไปตรึงอยู่ชิดขอบล่างสุดของการ์ดขาวเสมอ */
+.doc-module-wrapper #doctorPaginationContainer {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
