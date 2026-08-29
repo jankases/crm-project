@@ -1,7 +1,7 @@
 <div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column">
      
   <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
-  <div id="doctorListView" class="w-100 h-100 d-flex flex-column">
+  <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1" style="min-height: 0;">
     
     <!-- Header Zone -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 flex-shrink-0">
@@ -28,7 +28,7 @@
     <!-- โซนเนื้อหาหลัก -->
     <div id="doctorMainContentContainer" class="w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
       
-      <!-- ส่วนค้นหา/ตัวกรองข้อมูล หน้า Doctors (สเกลกระชับเท่าหน้า Visit Logs) -->
+      <!-- ส่วนค้นหา/ตัวกรองข้อมูล หน้า Doctors -->
       <div class="card p-2 px-3 border shadow-xs visit-card mb-2 doctor-filter-group visit-filter-compact w-100 flex-shrink-0 bg-white" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
@@ -77,9 +77,9 @@
         <p class="text-muted mb-0" id="docLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
       </div>
 
-      <!-- ตารางแสดงผลรายชื่อแพทย์ (ยืดการ์ดเต็มพื้นที่ h-100 ชิดขอบล่างเท่า Visit Logs) -->
-      <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column h-100" style="min-height: 0;">
-        <div class="table-scroll-inside flex-grow-1">
+      <!-- ตารางแสดงผลรายชื่อแพทย์ (การ์ดขยายยืดเต็มพื้นที่ 100%) -->
+      <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0; flex: 1 1 auto;">
+        <div class="table-scroll-inside flex-grow-1" style="min-height: 0; flex: 1 1 auto;">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header text-center">
               <tr>
