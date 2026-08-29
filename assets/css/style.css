@@ -38,8 +38,7 @@ html, body {
   flex: 1 1 auto !important;
 }
 
-/* 👇 เพิ่มโค้ดชุดนี้ต่อท้ายลงไป เพื่อบังคับการ์ดสีขาวให้ยืดลงมาชนขอบล่าง 👇 */
-.doc-module-wrapper > div,
+/* 🌟 บังคับการ์ดสีขาวยืด 100% ชนขอบล่าง (ปลอดภัย ไม่กระทบระบบซ่อนหน้าย่อย) */
 .doc-module-wrapper .visit-card {
   flex: 1 1 auto !important;
   height: 100% !important;
