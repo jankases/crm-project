@@ -334,27 +334,27 @@
         </li>
       </ul>
 
-      <div class="tab-content flex-grow-1 d-flex flex-column" style="min-height: 0;">
+      <div class="tab-content flex-grow-1" style="min-height: 0;">
         
-        <!-- 🌟 แท็บ General Info: แก้ไขเรื่องการยืดพิกัด และปุ่ม Edit ชิดขวาอย่างถูกต้อง -->
-        <div class="tab-pane fade show active flex-grow-1 overflow-auto pe-1" id="tab-doc-info">
+        <!-- 🌟 แท็บ General Info: คืนมาตรฐาน Bootstrap Tab คอนเทนต์จะโชว์ทันที 100% -->
+        <div class="tab-pane fade show active p-1" id="tab-doc-info">
           
-          <div class="d-flex justify-content-end align-items-center mb-2">
+          <div class="d-flex justify-content-end align-items-center mb-3">
             <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
               <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
             </button>
           </div>
 
-          <div class="row mb-2.5 g-2.5">
+          <div class="row mb-3 g-3">
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light premium-radius" id="viewDocSpecialty" disabled></div>
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light premium-radius" id="viewDocType" disabled></div>
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_status">Status</label><input type="text" class="form-control bg-light fw-bold premium-radius" id="viewDocStatus" disabled></div>
           </div>
-          <div class="row mb-2.5 g-2.5">
+          <div class="row mb-3 g-3">
             <div class="col-md-6"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_email">Email</label><input type="text" class="form-control bg-light premium-radius" id="viewDocEmail" disabled></div>
             <div class="col-md-6"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_mobile">Mobile</label><input type="text" class="form-control bg-light premium-radius" id="viewDocMobile" disabled></div>
           </div>
-          <div class="border rounded-4 p-3 bg-light mt-2 shadow-xs">
+          <div class="border rounded-4 p-3 bg-light mt-3 shadow-xs">
             <label class="text-primary small fw-bold mb-2 d-block"><i class="fa-solid fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">Workplace History</span></label>
             <div id="viewWorkplaceContainer"></div>
           </div>
