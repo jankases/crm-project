@@ -208,6 +208,7 @@
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
+    <!-- 🌟 FIX: เพิ่ม d-flex flex-column และ style="min-height: 0;" ที่ตัว <form> เพื่อให้ Flexbox ชั้นในทำงานอย่างถูกต้อง -->
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
@@ -221,6 +222,7 @@
         </div>
       </div>
       
+      <!-- 🌟 FIX: กล่องสโครลล์เนื้อหาตรงกลางบีบพื้นที่ตามจอ แล้วดันปุ่ม action-bar ล็อกติดก้นจอพอดีเป๊ะ -->
       <div class="flex-grow-1 overflow-auto pe-1 my-1" style="min-height: 0;">
         <div class="card p-4 p-md-4 border-0 shadow-sm visit-card bg-white mb-2">
           
@@ -336,7 +338,6 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 แท็บ General Info: คืนค่ามาตรฐาน สโครลล์เฉพาะภายในเมื่อเนื้อหายาวกว่าจอ -->
         <div class="tab-pane fade show active h-100 flex-grow-1 overflow-auto p-1" id="tab-doc-info" style="min-height: 0;">
           
           <div class="d-flex justify-content-end align-items-center mb-3 flex-shrink-0">
