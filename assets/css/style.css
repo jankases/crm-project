@@ -1922,14 +1922,6 @@ button.feature-action-btn-lg.has-data-samples i {
 /* ==========================================
    ✨ FORCE DOCTOR TABLE CARD FULL HEIGHT & NO GRAY SPACE
    ========================================== */
-.doc-module-wrapper {
-  height: calc(100vh - 85px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  overflow: hidden !important;
-}
-
 #doctorListView,
 #doctorMainContentContainer {
   display: flex !important;
@@ -1961,16 +1953,15 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   ✨ FIX IPAD / TABLET FULL HEIGHT (NO GRAY GAP)
+   ✨ FIX IPAD / TABLET FULL HEIGHT (DOCTOR ONLY)
    ========================================== */
-/* เมื่อหน้าจอย่อขนาดหรือใช้ iPad Sidebar Rail ให้ความสูงขยายเต็ม 100% กลบสีเทาทันที */
+/* ปรับความสูงการ์ดหน้าหมอเมื่อย่อจอ โดยไม่กระทบหน้า Visit Logs */
 @media (max-width: 1199px) {
-  .doc-module-wrapper,
-  .visit-module-wrapper,
-  .hosp-module-wrapper {
+  .doc-module-wrapper {
     height: 100vh !important;
     max-height: 100vh !important;
     padding-bottom: 0.75rem !important;
+    box-sizing: border-box !important;
   }
 
   #doctorListView,
@@ -1978,5 +1969,11 @@ button.feature-action-btn-lg.has-data-samples i {
   #doctorListZone {
     height: 100% !important;
     flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  #doctorPaginationContainer {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
   }
 }
