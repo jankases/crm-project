@@ -1,7 +1,7 @@
-<div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column">
+<div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column overflow-hidden">
      
   <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
-  <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1" style="min-height: 0;">
+  <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
     <!-- Header Zone -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
@@ -314,9 +314,15 @@
       </div>
     </div>
     
-    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
+    <!-- 🌟 การ์ดหลักตรึงการทำงานด้วย position-relative และ overflow-x: hidden ตัดสโครลล์บาร์แนวนอน -->
+    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 position-relative" style="min-height: 0; overflow-x: hidden !important;">  
 
-      <ul class="nav nav-pills doctor-profile-tabs mb-2 border-bottom pb-2 flex-shrink-0" id="docProfileTabs">
+      <!-- 🌟 ล็อกปุ่ม Edit Doctor ไว้มุมขวาบนของการ์ดด้วย Absolute Positioning เพื่อไม่ให้ไปดัน Layout ให้กว้างล้นจอ -->
+      <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 position-absolute" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)" style="top: 16px; right: 20px; z-index: 10;">
+        <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+      </button>
+
+      <ul class="nav nav-pills doctor-profile-tabs mb-3 border-bottom pb-2 flex-shrink-0" id="docProfileTabs" style="padding-right: 160px;">
         <li class="nav-item">
           <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
             <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
@@ -336,15 +342,8 @@
 
       <div class="tab-content flex-grow-1 overflow-auto" style="min-height: 0;">
         
-        <!-- 🌟 แท็บ General Info: คืนค่าเป็นโครงสร้างมาตรฐาน ไม่ใช้ Flexbox ซับซ้อน เพื่อให้ข้อมูลแสดงผลครบทุกฟิลด์ 100% -->
+        <!-- 🌟 แท็บ General Info: คืนมาตรฐาน Block Layout เนื้อหาแสดงผลสมบูรณ์ทุกฟิลด์ 100% -->
         <div class="tab-pane fade show active p-1" id="tab-doc-info">
-          
-          <div class="text-end mb-3">
-            <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-              <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
-            </button>
-          </div>
-
           <div class="row mb-3 g-3">
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light premium-radius" id="viewDocSpecialty" disabled></div>
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light premium-radius" id="viewDocType" disabled></div>
