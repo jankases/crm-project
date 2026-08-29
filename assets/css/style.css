@@ -2042,3 +2042,13 @@ button.feature-action-btn-lg.has-data-samples i {
   margin-top: auto !important;
   flex-shrink: 0 !important;
 }
+
+/* 🌟 เชื่อม Flex Chain ของ SPA Page View ให้ส่งความสูงลงไปถึงโมดูลข้างใน 100% */
+.spa-page-view {
+  height: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
