@@ -304,6 +304,7 @@
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     
+    <!-- 🌟 ลบปุ่ม Edit Doctor ออกจากส่วนหัวนี้ เพื่อไม่ให้ลอยค้างนอกการ์ด -->
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.goBackFromDoctorProfile()">
@@ -334,20 +335,15 @@
         </li>
       </ul>
 
-      <div class="tab-content flex-grow-1 overflow-auto" style="min-height: 0;">
+      <div class="tab-content flex-grow-1 overflow-auto p-1" style="min-height: 0;">
         
-        <!-- 🌟 แท็บ General Info: ย้ายปุ่ม Edit Doctor มาไว้ตรงนี้ วางคู่ในเลย์เอาต์ .row สะอาด รัดกุม ไม่ดัน Scrollbar -->
-        <div class="tab-pane fade show active p-1" id="tab-doc-info">
+        <!-- 🌟 แท็บ General Info: ย้ายปุ่ม Edit Doctor มาไว้ตรงนี้เพียงจุดเดียว อยู่ฝั่งขวามืออย่างสวยงาม -->
+        <div class="tab-pane fade show active" id="tab-doc-info">
           
-          <div class="row mb-3 align-items-center">
-            <div class="col-8">
-              <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="tab_general_info">General Information</span></h6>
-            </div>
-            <div class="col-4 text-end">
-              <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-                <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
-              </button>
-            </div>
+          <div class="d-flex justify-content-end align-items-center mb-3">
+            <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+              <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+            </button>
           </div>
 
           <div class="row mb-3 g-3">
