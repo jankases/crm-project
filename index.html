@@ -237,28 +237,28 @@
         </div>
         
         <nav class="sidebar-icon-menu">
-          <a href="#" class="sidebar-icon-btn menu-visit" title="Visit Logs" onclick="loadComponent('visit')">
+          <a class="sidebar-icon-btn menu-visit" title="Visit Logs" onclick="loadComponent('visit')">
             <i class="fa-solid fa-calendar-check"></i>
           </a>
-          <a href="#" class="sidebar-icon-btn menu-doctor" title="Doctors" onclick="loadComponent('doctor')">
+          <a class="sidebar-icon-btn menu-doctor" title="Doctors" onclick="loadComponent('doctor')">
             <i class="fa-solid fa-user-doctor"></i>
           </a>
-          <a href="#" class="sidebar-icon-btn menu-hospital" title="Hospitals" onclick="loadComponent('hospital')">
+          <a class="sidebar-icon-btn menu-hospital" title="Hospitals" onclick="loadComponent('hospital')">
             <i class="fa-solid fa-hospital"></i>
           </a>
           
           <div class="dropend admin-only w-100 d-flex justify-content-center" style="display: none;">
-            <a href="#" class="sidebar-icon-btn dropdown-toggle" id="ipadAdminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Admin Tools">
+            <a class="sidebar-icon-btn dropdown-toggle" id="ipadAdminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Admin Tools">
               <i class="fa-solid fa-sliders"></i>
             </a>
             <ul class="dropdown-menu admin-dropdown-menu border-0 shadow-lg ms-2" aria-labelledby="ipadAdminDropdown">
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center text-primary" href="#" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center"  onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center text-primary" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
               <li><hr class="dropdown-divider opacity-50"></li>
               <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
             </ul>
