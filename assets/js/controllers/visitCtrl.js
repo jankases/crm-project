@@ -474,31 +474,8 @@ window.restoreFormDraft = function(visitId) {
 window.clearFormDraft = function(visitId) { localStorage.removeItem('visitDraft_' + (visitId || 'NEW')); };
 
 window.checkMyDraftsReminder = function(myDraftCount) {
-  var toastContainer = document.getElementById('draftToastContainer');
-  if (!toastContainer) return;
-  if (sessionStorage.getItem('hasShownDraftReminder') === 'true') { toastContainer.innerHTML = ''; return; }
-
-  if (myDraftCount > 0) {
-    sessionStorage.setItem('hasShownDraftReminder', 'true');
-
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    
-    var titleText = appLang === 'en' ? 'Pending Drafts Reminder' : 'มีฉบับร่างค้างยืนยัน';
-    var descText = appLang === 'en' 
-        ? 'You have <b class="text-primary">' + myDraftCount + '</b> unsubmitted visit logs.' 
-        : 'คุณมี <b class="text-primary">' + myDraftCount + '</b> บันทึกเยี่ยมที่ยังไม่ได้ส่ง';
-
-    toastContainer.innerHTML = 
-      '<div class="draft-toast" id="myDraftToast">' +
-        '<div class="text-warning fs-4"><i class="fa-solid fa-circle-exclamation"></i></div>' +
-        '<div>' +
-          '<div class="fw-bold text-dark small">' + titleText + '</div>' +
-          '<div class="text-secondary" style="font-size: 0.82rem;">' + descText + '</div>' +
-        '</div>' +
-        '<button type="button" class="btn-close ms-2" onclick="document.getElementById(\'myDraftToast\').remove()"></button>' +
-      '</div>';
-    setTimeout(function() { var t = document.getElementById('myDraftToast'); if (t) t.remove(); }, 7000);
-  } else { toastContainer.innerHTML = ''; }
+  // 🚫 ปิดการทำงานแจ้งเตือน Toast รบกวนสายตา (User Request)
+  return;
 };
 
 // ==========================================
