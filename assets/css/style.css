@@ -10,9 +10,10 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ ISOLATED MODULE WRAPPER */
+/* 🖥️ ISOLATED MODULE WRAPPER (รวม Visit, Hosp, Doc ไว้สูตรเดียวกันให้ขอบเท่ากันเป๊ะ) */
 .visit-module-wrapper,
-.hosp-module-wrapper {
+.hosp-module-wrapper,
+.doc-module-wrapper {
   height: calc(100vh - 85px) !important;
   width: 100% !important;
   overflow: hidden !important;
@@ -23,77 +24,14 @@ html, body {
   flex-direction: column !important;
 }
 
- 
-
-/* 🌟 DOCTOR ISOLATED MODULE WRAPPER (ยืด 100% กลบสีเทามิดชิด ไม่กระทบ Visit) */
-.doc-module-wrapper {
-  height: calc(100vh - 85px) !important; /* 👈 ที่คุณแก้ไว้ ถูกต้องแล้วครับ */
-  width: 100% !important;
-  overflow: hidden !important;
-  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
-  background-color: #f8fafc;
-  box-sizing: border-box;
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-}
-
- 
-
-/* ==========================================
-   🎯 ABSOLUTE BULLETPROOF FLEX CHAIN FOR DOCTOR LIST
-   ========================================== */
-
-/* 1. ยืดหน้า View สลับหน้าให้เต็มพื้นที่ */
-.spa-page-view:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-/* 2. ยืดตัวครอบนอกสุด (Wrapper) */
-.doc-module-wrapper {
-  display: flex !important;
-  flex-direction: column !important;
+/* 🌟 บังคับการ์ดสีขาว (เฉพาะหน้าตาราง List) ให้ยืดชนขอบล่างแบบปลอดภัย 100% */
+#visitListView .visit-card,
+#doctorListView .visit-card,
+#hospListView .visit-card {
   flex: 1 1 auto !important;
   min-height: 0 !important;
-}
-
-/* 3. ยืดหน้า List View (เฉพาะตอนที่เปิดอยู่ จะได้ไม่เด้งไปทับหน้า Add/Edit) */
-#doctorListView:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-/* 4. ยืดคอนเทนเนอร์ตรงกลาง */
-#doctorMainContentContainer {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-/* 5. บังคับการ์ดสีขาว (ตาราง) ให้ยืดลงมาชนขอบล่าง 100% กลบสีเทามิดชิด */
-#doctorListZone {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  justify-content: space-between !important;
-}
-
-/* 6. ยืดพื้นที่ Scroll ของตาราง */
-#doctorListZone .table-scroll-inside {
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
+  display: flex; 
+  flex-direction: column;
 }
 
 /* 📊 FIXED TABLE-ONLY SCROLL ENGINE */
