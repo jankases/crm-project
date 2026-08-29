@@ -604,7 +604,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-color: #cbd5e1 !important;
   transform: translateY(-1px) !important;
 }
-
 /* ==========================================
    🎨 MODERN UNDERLINE SUB-TABS
    ========================================== */
@@ -817,7 +816,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 FULL-CARD CENTERED LOADING OVERLAY (ล็อกความสูงสเกลเดียวกัน) */
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
 #visitTableLoading,
 #doctorTableLoading {
   min-height: 380px !important;
@@ -880,7 +879,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   ✨ PREMIUM TABLE & VISUAL REFINEMENTS (UNIFIED COLOR)
+   ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
 .table-hosp-text {
   color: #334155 !important;
@@ -1030,181 +1029,6 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ FULLCALENDAR PREMIUM BUTTONS STYLING
-   ========================================== */
-#calendar .fc-button-primary {
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  color: #475569 !important;
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
-  border-radius: 8px !important;
-  padding: 6px 12px !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-#calendar .fc-button-primary:hover {
-  background-color: #f8fafc !important;
-  color: #1d4ed8 !important;
-  border-color: #cbd5e1 !important;
-}
-
-#calendar .fc-button-primary:not(:disabled):active, 
-#calendar .fc-button-primary:not(:disabled).fc-button-active {
-  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%) !important;
-  border-color: #1e40af !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 6px rgba(30, 64, 175, 0.25) !important;
-}
-
-#calHeaderLegendDropdown .btn {
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  color: #475569 !important;
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
-  border-radius: 8px !important;
-  padding: 6px 12px !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-#calHeaderLegendDropdown .btn:hover {
-  background-color: #f8fafc !important;
-  color: #1d4ed8 !important;
-  border-color: #cbd5e1 !important;
-}
-
-#calHeaderLegendDropdown .btn i.fa-palette {
-  color: #0d6efd !important;
-}
-
-#calendar .fc-button-group {
-  gap: 2px !important;
-  background-color: #f1f5f9;
-  padding: 3px;
-  border-radius: 10px;
-}
-
-#calendar .fc-button-group > .fc-button {
-  border-radius: 7px !important;
-  border: none !important;
-}
-
-/* ==========================================
-   ✨ KPI CARD CLICKABLE & ACTIVE STATES
-   ========================================== */
-.kpi-card-elevated {
-  cursor: pointer !important;
-}
-
-.kpi-card-elevated:focus, 
-.kpi-card-elevated:active {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.kpi-card-elevated.active-total {
-  background-color: #f0f9ff !important;
-  border-color: #0d6efd !important;
-  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15), 0 4px 12px rgba(13, 110, 253, 0.1) !important;
-}
-
-.kpi-card-elevated.active-pending {
-  background-color: #fffbeb !important;
-  border-color: #d97706 !important;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15), 0 4px 12px rgba(217, 119, 6, 0.1) !important;
-}
-
-.kpi-card-elevated.active-submitted {
-  background-color: #ecfdf5 !important;
-  border-color: #059669 !important;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15), 0 4px 12px rgba(5, 150, 105, 0.1) !important;
-}
-
-#calendar .fc-day-today {
-  background-color: #f0f9ff !important;
-}
-
-#calendar .fc-day-today .fc-daygrid-day-number {
-  background-color: #0d6efd !important;
-  color: #ffffff !important;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700 !important;
-}
-
-/* ==========================================
-   🌈 VIBRANT FORM HEADERS & VISUAL STYLING (UNIFIED Theme)
-   ========================================== */
-.form-section-title {
-  font-size: 0.92rem !important;
-  font-weight: 700 !important;
-  color: #0d6efd !important;
-  margin-bottom: 10px !important;
-  padding-bottom: 6px !important;
-  border-bottom: 1.5px solid #e2e8f0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.form-section-title i {
-  color: #0d6efd !important;
-  font-size: 1rem !important;
-  margin-right: 4px !important;
-}
-
-#visitFormView .compact-label.text-primary,
-#visitFormView label[data-i18n="sec_features_evidences"] {
-  color: #0d6efd !important;
-  font-weight: 700 !important;
-  font-size: 0.88rem !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin-bottom: 0.65rem !important;
-}
-
-#visitFormView label[data-i18n="sec_features_evidences"] i {
-  color: #0d6efd !important;
-  margin-right: 8px !important;
-}
-
-.btn-back-pill {
-  border-radius: 50px !important;
-  padding: 6px 18px !important;
-  font-size: 0.88rem !important;
-  background-color: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  color: #334155 !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.btn-back-pill:hover {
-  background-color: #f0f9ff !important;
-  border-color: #0d6efd !important;
-  color: #0d6efd !important;
-  transform: translateY(-1px) !important;
-}
-
-#sectionGpsCheckin i,
-#sectionSignature i,
-#sectionSamples i,
-#sectionAttachments i {
-  color: #0d6efd !important;
-  margin-right: 6px !important;
-}
-
-/* ==========================================
    ✨ EDIT/ADD VISIT FORM - IDEAL 2 (APP-LIKE SCROLL)
    ========================================== */
 #visitFormView {
@@ -1277,7 +1101,7 @@ mark.highlight-search {
   border-radius: 10px !important;
   resize: none !important;
 }
- 
+
 .full-width-action-bar {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
@@ -1867,7 +1691,6 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #ffffff !important;
 }
 
-/* 🌟 FIX: บังคับการ์ดตารางหมอยืดเต็ม 100% และกระจายเนื้อหากระชับขอบล่าง */
 #doctorListZone {
   flex: 1 1 auto !important;
   height: 100% !important;
@@ -1889,7 +1712,6 @@ button.feature-action-btn-lg.has-data-samples i {
   padding: 1.25rem !important;
 }
 
-/* เจาะจงทั้ง Form-Select และ TomSelect ภายในป็อปอัพ ให้เป็นสีเทาอ่อน #f8fafc */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
@@ -1903,7 +1725,6 @@ button.feature-action-btn-lg.has-data-samples i {
   box-shadow: none !important;
 }
 
-/* ปรับสีตัวอักษรหัวข้อฟิลเตอร์ย่อย */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] label {
   color: #475569 !important;
   font-weight: 700 !important;
@@ -1911,29 +1732,12 @@ button.feature-action-btn-lg.has-data-samples i {
   margin-bottom: 0.35rem !important;
 }
 
-/* ==========================================
-   ✨ FORCE ADVANCED FILTERS DROPDOWN COLOR
-   ========================================== */
-/* บังคับสีพื้นหลังช่อง Dropdown ทั้งหมดในป๊อปอัพ Advanced Filters ให้เป็นเทาอ่อน #f8fafc */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
-  background-color: #f8fafc !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 10px !important;
-  height: 38px !important;
-  min-height: 38px !important;
-  color: #334155 !important;
-  box-shadow: none !important;
-}
-
-/* ปรับสีไอคอนลูกศรและตัวอักษรข้างใน */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper.single .ts-control {
   background-color: #f8fafc !important;
 }
 
 /* ==========================================
-   ✨ FORCE DOCTOR TABLE CARD FULL HEIGHT & NO GRAY SPACE
+   ✨ FORCE DOCTOR TABLE CARD FULL HEIGHT
    ========================================== */
 #doctorListView,
 #doctorMainContentContainer {
@@ -1942,15 +1746,6 @@ button.feature-action-btn-lg.has-data-samples i {
   flex: 1 1 auto !important;
   height: 100% !important;
   min-height: 0 !important;
-}
-
-#doctorListZone {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  justify-content: space-between !important;
 }
 
 #doctorListZone .table-scroll-inside {
@@ -1965,24 +1760,12 @@ button.feature-action-btn-lg.has-data-samples i {
   flex-shrink: 0 !important;
 }
 
-/* ==========================================
-   ✨ FIX DOCTOR CARD FULL HEIGHT (DESKTOP & IPAD)
-   ========================================== */
-/* บังคับความสูงหมอให้ยืดกินพื้นที่เต็ม 100% ของ Container ปล่อยให้ Flex Chain ทำงานเต็มประสิทธิภาพ */
-.doc-module-wrapper {
-  height: 100% !important;
-  max-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  box-sizing: border-box !important;
-}
-
 @media (max-width: 1199px) {
   .doc-module-wrapper {
     height: 100% !important;
     max-height: 100% !important;
     padding-bottom: 0.75rem !important;
+    box-sizing: border-box !important;
   }
 
   #doctorListView,
@@ -1997,58 +1780,16 @@ button.feature-action-btn-lg.has-data-samples i {
     margin-top: auto !important;
     flex-shrink: 0 !important;
   }
-} 
-/* ==========================================
-   🎯 ABSOLUTE FIX: DOCTOR FULL HEIGHT VIEWPORT
-   ========================================== */
-/* 1. สั่งบังคับให้ Wrapper นอกสุดของหมอสูงเท่าพื้นที่จอที่เหลือทันที */
-.doc-module-wrapper {
-  height: calc(100vh - 75px) !important;
-  min-height: calc(100vh - 75px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  box-sizing: border-box !important;
 }
 
-/* 2. บังคับ Flex Chain โครงสร้างชั้นในให้ยืดตามมิดชิด */
-.doc-module-wrapper #doctorListView,
-.doc-module-wrapper #doctorMainContentContainer {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-/* 3. ยืดการ์ดสีขาวลงมาชนขอบล่างสุดของ Viewport กลบพื้นที่สีเทา 100% */
-.doc-module-wrapper #doctorListZone {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  justify-content: space-between !important;
-}
-
-/* 4. ยืดโซนตารางข้างใน */
-.doc-module-wrapper #doctorListZone .table-scroll-inside {
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-/* 5. ดันแถบ Pagination ลงไปตรึงชิดขอบล่างสุดของการ์ดขาว */
-.doc-module-wrapper #doctorPaginationContainer {
-  margin-top: auto !important;
-  flex-shrink: 0 !important;
-}
-
-/* 🌟 เชื่อม Flex Chain ของ SPA Page View ให้ส่งความสูงลงไปถึงโมดูลข้างใน 100% */
+/* 🌟 SPA PAGE VIEW FIX: ปรับการยืดความสูง โดยไม่ไปทับการทำงานของ d-none */
 .spa-page-view {
-  height: 100% !important;
-  width: 100% !important;
+  height: 100%;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.spa-page-view:not(.d-none) {
   display: flex !important;
   flex-direction: column !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
 }
