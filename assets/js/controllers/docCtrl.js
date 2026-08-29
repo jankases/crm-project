@@ -1955,3 +1955,34 @@ window.clearDocSearchInput = function() {
         inputEl.focus();
     }
 };
+
+// ฟังก์ชันดึงค่า Title Dropdown ที่ปรับให้แสดง TH หรือ EN ตามภาษาแอป
+window.getOptionsHtml = function(typeName, defaultText) {
+  const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
+    const name = (t.Name || '').toLowerCase().trim();
+    const target = typeName.toLowerCase().trim();
+    if (target === 'type' || target === 'doctortype') {
+      return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
+    }
+    return name === target;
+  });
+
+  let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
+  if (typeObj) {
+    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
+    
+    items.forEach(i => {
+      // ดึงค่าตามภาษาแอป: ถ้า TH ดึง Value_TH (หรือ Value), ถ้า EN ดึง Value_EN (หรือ Value)
+      let valStr = i.Value || i.value || '';
+      if (appLang === 'en' && (i.Value_EN || i.value_en)) {
+        valStr = i.Value_EN || i.value_en;
+      } else if (appLang === 'th' && (i.Value_TH || i.value_th)) {
+        valStr = i.Value_TH || i.value_th;
+      }
+      
+      if (valStr) html += `<option value="${valStr}">${valStr}</option>`;
+    });
+  }
+  return html;
+};
