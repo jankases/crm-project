@@ -1,9 +1,7 @@
 <div class="container-fluid p-0 doc-module-wrapper">
      
-  <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column">
     
-    <!-- Header Zone -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-3">
         <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
@@ -25,15 +23,12 @@
       </div>
     </div>
 
-    <!-- โซนเนื้อหาหลัก -->
     <div id="doctorMainContentContainer" class="w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
       
-      <!-- ส่วนค้นหา/ตัวกรองข้อมูล หน้า Doctors (คุมสเกลความยาวใกล้เคียงหน้า Visit Logs เป๊ะ) -->
       <div class="card p-2 px-3 border shadow-xs visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0 bg-white" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
-            <!-- Smart Search Input (ล็อกสเกล 320px - 520px เท่าหน้า Visit Logs) -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center" style="height: 38px;">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 pe-1 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -50,12 +45,10 @@
               </div>
             </div>
 
-            <!-- Specialty Dropdown -->
             <div style="min-width: 170px; max-width: 200px;">
               <select class="form-select shadow-none fs-6" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
 
-            <!-- Doctor Type Dropdown -->
             <div style="min-width: 170px; max-width: 200px;">
               <select class="form-select shadow-none fs-6" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
@@ -70,14 +63,12 @@
         </div>
       </div>
 
-      <!-- 🌟 Single-State Loading Overlay (ย้ายลงมาไว้ตรงนี้ สลับกับตาราง ไม่บัง Filter) -->
       <div id="doctorTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center">
         <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
         <h5 class="fw-bold text-dark mb-1" id="docLoadingTitleText" data-i18n="status_loading">Loading Doctors...</h5>
         <p class="text-muted mb-0" id="docLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
       </div>
 
-      <!-- ตารางแสดงผลรายชื่อแพทย์ -->
       <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
         <div class="table-scroll-inside flex-grow-1">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
@@ -88,7 +79,7 @@
                 <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Specialty')"><span data-i18n="th_specialty">Specialty</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Specialty"></i></th>
                 <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Hospital_ID')"><span data-i18n="th_primary_hosp">Primary Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Hospital_ID"></i></th>
                 <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Status"></i></th>
-                <th class="py-2.5" data-i18n="th_action">Action</th>
+                <th class="py-2.5" style="width: 50px;"></th>
               </tr>
             </thead>
             <tbody id="doctorTableBody">
@@ -117,7 +108,6 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าเพิ่มข้อมูลแพทย์ (Add View) ================= -->
   <div id="doctorAddView" class="d-none w-100 p-2 p-md-3">
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between">
       
@@ -206,7 +196,6 @@
     </form>
   </div>
 
-  <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
   <div id="doctorEditView" class="d-none w-100 p-2 p-md-3">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between">
       <input type="hidden" id="editDocId">
@@ -301,7 +290,6 @@
     </form>
   </div>
 
-  <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column p-2 p-md-3">
     
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
