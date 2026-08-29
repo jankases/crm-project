@@ -1913,3 +1913,34 @@ button.feature-action-btn-lg.has-data-samples i {
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper.single .ts-control {
   background-color: #f8fafc !important;
 }
+
+/* ==========================================
+   ✨ FORCE DOCTOR TABLE CARD FULL HEIGHT
+   ========================================== */
+.doc-module-wrapper {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#doctorListView,
+#doctorMainContentContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+#doctorListZone {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+#doctorListZone .table-scroll-inside {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+}
