@@ -135,7 +135,7 @@
           
           <div class="col-lg-6 d-flex flex-column gap-3">
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
-              <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+              <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
               <div class="mb-3">
                 <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
@@ -166,7 +166,7 @@
             </div>
 
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
-              <h6 class="form-section-title"><i class="fa-solid fa-sliders me-1.5"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+              <h6 class="form-section-title mb-3"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
               <div class="row g-2.5 mb-3">
                 <div class="col-sm-6">
                   <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
@@ -193,7 +193,7 @@
           <div class="col-lg-6">
             <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #ffffff; overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
+                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
@@ -214,7 +214,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Edit Visit Matching Theme 100%: ใช้คลาส bg-white, compact-label, form-section-title เป๊ะๆ -->
+  <!-- 🌟 Master-Standard Edition: ช่องกรอกสีขาว bg-white บริสุทธิ์ คลีน สว่าง โปร่ง แบบเดียวกับ Edit Visit -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -229,7 +229,7 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- 🌟 Status Switcher สไตล์แคปซูลเดียวกับ Coaching ใน Edit Visit -->
+        <!-- 🌟 Status Switcher แคปซูลสไตล์เดียวกับ Coaching ใน Edit Visit -->
         <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
           <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
             <input class="form-check-input m-0" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.2em; height: 1.2em; cursor: pointer;">
@@ -246,7 +246,7 @@
           <div class="col-lg-6 d-flex flex-column gap-3">
             
             <div class="card p-3.5 rounded-4 border bg-white shadow-xs">
-              <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+              <h6 class="form-section-title"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
               <!-- Title (พื้นหลังขาว bg-white) -->
               <div class="mb-3">
@@ -280,7 +280,7 @@
             </div>
 
             <div class="card p-3.5 rounded-4 border bg-white shadow-xs">
-              <h6 class="form-section-title"><i class="fa-solid fa-sliders me-1.5"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+              <h6 class="form-section-title"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
               
               <div class="row g-2.5 mb-3">
                 <div class="col-sm-6">
@@ -307,11 +307,11 @@
 
           </div>
 
-          <!-- ฝั่งขวา (col-lg-6): Workplace การ์ดกว้าง 50% สไตล์เดียวกับ Edit Visit -->
+          <!-- ฝั่งขวา (col-lg-6): Workplace History การ์ดกว้าง 50% ตัดสโครลล์แนวนอนทิ้งเด็ดขาด -->
           <div class="col-lg-6">
             <div class="card p-3.5 rounded-4 border bg-white shadow-xs h-100" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
+                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
