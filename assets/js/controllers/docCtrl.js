@@ -947,22 +947,26 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 
   const checked = isPrimary ? 'checked' : '';
 
-  row.innerHTML = `
-    <div class="col-sm-12 col-md-7 mb-2 mb-md-0">
-      <select class="form-select hospital-select bg-white border-primary" id="${selectId}" required>
-        ${optionsHtml}
-      </select>
-    </div>
-    <div class="col-sm-8 col-md-3">
-      <div class="form-check pt-1 px-3 py-2 bg-light rounded border">
-        <input class="form-check-input primary-radio" type="radio" name="${radioGroupName}" value="true" ${checked} required style="cursor:pointer; transform: scale(1.2); margin-top:0.3rem;">
-        <label class="form-check-label text-dark fw-bold ms-2" style="cursor:pointer;">Primary</label>
-      </div>
-    </div>
-    <div class="col-sm-4 col-md-2 text-end">
-      <button type="button" class="btn btn-sm btn-outline-danger w-100 fw-bold rounded-pill" onclick="window.removeWorkplaceRow(this)"><i class="fa-solid fa-trash me-1"></i> Remove</button>
-    </div>
-  `;
+  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2 p-2 bg-white rounded-3 border shadow-xs';
+
+row.innerHTML = `
+  <div class="flex-grow-1" style="min-width: 0;">
+    <select class="form-select form-select-sm hospital-select bg-white shadow-none" id="${selectId}" required>
+      ${optionsHtml}
+    </select>
+  </div>
+  <div class="flex-shrink-0">
+    <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
+    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2 py-1 shadow-xs border" for="radio_${selectId}" title="Set as Primary Workplace" style="border-radius: 8px;">
+      <i class="fa-solid fa-star me-1 text-warning"></i><small>Primary</small>
+    </label>
+  </div>
+  <div class="flex-shrink-0">
+    <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 shadow-xs border-0" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace" style="border-radius: 8px;">
+      <i class="fa-solid fa-trash-can"></i>
+    </button>
+  </div>
+`;
   container.appendChild(row);
 
   if (typeof TomSelect !== 'undefined') {
