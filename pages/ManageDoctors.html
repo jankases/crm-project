@@ -130,15 +130,15 @@
         </div>
       </div>
       
-      <div class="flex-grow-1 overflow-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-2.5 h-100 align-items-stretch">
+      <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
+        <div class="row g-3 h-100 align-items-stretch">
           
-          <!-- ส่วนที่ 1: General Info -->
-          <div class="col-lg-5 d-flex flex-column">
-            <div class="card p-3 border-0 shadow-sm visit-card bg-white h-100">
+          <!-- ฝั่งซ้าย: General Info & Contact -->
+          <div class="col-lg-6 d-flex flex-column gap-3">
+            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-address-card me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
-              <div class="row g-2 mb-2.5">
+              <div class="row g-2.5 mb-2.5">
                 <div class="col-4">
                   <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
@@ -154,7 +154,7 @@
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. Somchai Jaidee">
               </div>
 
-              <div class="row g-2">
+              <div class="row g-2.5">
                 <div class="col-6">
                   <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
@@ -165,45 +165,42 @@
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- ส่วนที่ 2: Workplace -->
-          <div class="col-lg-4 d-flex flex-column">
-            <div class="card p-3 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc;">
-              <div class="d-flex justify-content-between align-items-center mb-2.5">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
-                <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
-                  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add</span>
-                </button>
-              </div>
-              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto" style="min-height: 0;"></div>
-            </div>
-          </div>
-
-          <!-- ส่วนที่ 3: Contact & Consent -->
-          <div class="col-lg-3 d-flex flex-column">
-            <div class="card p-3 border-0 shadow-sm visit-card bg-white h-100">
+            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white flex-grow-1">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-check-to-slot me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-              
-              <div class="mb-2">
-                <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
-              </div>
-              <div class="mb-2.5">
-                <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
-              </div>
-
-              <div class="row g-2">
+              <div class="row g-2.5 mb-2.5">
                 <div class="col-6">
-                  <label class="compact-label" data-i18n="lbl_privacy">Privacy</label>
+                  <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
+                </div>
+                <div class="col-6">
+                  <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
+                </div>
+              </div>
+              <div class="row g-2.5">
+                <div class="col-6">
+                  <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
                 </div>
                 <div class="col-6">
-                  <label class="compact-label" data-i18n="lbl_tos">Terms</label>
+                  <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- ฝั่งขวา: Workplace -->
+          <div class="col-lg-6 d-flex flex-column">
+            <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
+                <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
+                  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+                </button>
+              </div>
+              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto" style="min-height: 0;"></div>
             </div>
           </div>
 
@@ -219,7 +216,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 ออกแบบธีมพรีเมี่ยมแบบ 3 การ์ด Fit พอดีหน้าจอคอมพิวเตอร์ ไร้ Scrollbar -->
+  <!-- 🌟 ปรับดีไซน์พรีเมี่ยมแบบ 2 คอลัมน์สมดุล บล็อกปุ่ม Remove ไม่ให้ย้วย และ Fit หน้าจอคอมพ์เป๊ะ -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -234,20 +231,21 @@
         </div>
       </div>
       
-      <div class="flex-grow-1 overflow-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-2.5 h-100 align-items-stretch">
+      <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
+        <div class="row g-3 h-100 align-items-stretch">
           
-          <!-- การ์ดที่ 1 (ซ้ายมือ): General Information -->
-          <div class="col-lg-5 d-flex flex-column">
-            <div class="card p-3 border-0 shadow-sm visit-card bg-white h-100">
+          <!-- ฝั่งซ้าย: General Information + Contact & Consent + Status -->
+          <div class="col-lg-6 d-flex flex-column gap-3">
+            
+            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-address-card me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
-              <div class="row g-2 mb-2.5">
-                <div class="col-4">
+              <div class="row g-2.5 mb-2.5">
+                <div class="col-3">
                   <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
                 </div>
-                <div class="col-8">
+                <div class="col-9">
                   <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" required>
                 </div>
@@ -258,72 +256,70 @@
                 <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh">
               </div>
 
-              <div class="row g-2">
-                <div class="col-6">
+              <div class="row g-2.5">
+                <div class="col-4">
                   <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                   <label class="compact-label" data-i18n="lbl_type">Type</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
                 </div>
+                <div class="col-4">
+                  <label class="compact-label text-danger fw-bold" data-i18n="lbl_status">Status</label>
+                  <select class="form-select border-danger bg-white shadow-xs premium-radius fw-bold" id="editDocStatus">
+                    <option value="Active" class="text-success">Active</option>
+                    <option value="Inactive" class="text-danger">Inactive</option>
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- การ์ดที่ 2 (กลาง): Workplace (การ์ดพื้นหลังฟ้าอ่อนแบบ Edit Visit) -->
-          <div class="col-lg-4 d-flex flex-column">
-            <div class="card p-3 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc;">
-              <div class="d-flex justify-content-between align-items-center mb-2.5">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
-                <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
-                  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add</span>
-                </button>
-              </div>
-              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto" style="min-height: 0;"></div>
-            </div>
-          </div>
-
-          <!-- การ์ดที่ 3 (ขวามือ): Contact, Consent & Status -->
-          <div class="col-lg-3 d-flex flex-column">
-            <div class="card p-3 border-0 shadow-sm visit-card bg-white h-100">
+            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white flex-grow-1">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-check-to-slot me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
               
-              <div class="mb-2">
-                <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
-              </div>
-              <div class="mb-2">
-                <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+              <div class="row g-2.5 mb-2.5">
+                <div class="col-6">
+                  <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                </div>
+                <div class="col-6">
+                  <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                </div>
               </div>
 
-              <div class="row g-2 mb-2">
+              <div class="row g-2.5">
                 <div class="col-6">
-                  <label class="compact-label" data-i18n="lbl_privacy">Privacy</label>
+                  <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
                 </div>
                 <div class="col-6">
-                  <label class="compact-label" data-i18n="lbl_tos">Terms</label>
+                  <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
                 </div>
               </div>
+            </div>
 
-              <div class="mt-auto pt-2 border-top">
-                <label class="compact-label text-danger fw-bold" data-i18n="lbl_status">Status</label>
-                <select class="form-select border-danger bg-white shadow-xs premium-radius fw-bold" id="editDocStatus">
-                  <option value="Active" class="text-success">Active</option>
-                  <option value="Inactive" class="text-danger">Inactive</option>
-                </select>
+          </div>
+
+          <!-- ฝั่งขวา: Workplace (กว้างขึ้น ให้พื้นที่ปุ่มและช่องใส่รพ. แบบไม่แน่นไม่บีบ) -->
+          <div class="col-lg-6 d-flex flex-column">
+            <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
+                <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
+                  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
+                </button>
               </div>
-
+              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto pe-1" style="min-height: 0;"></div>
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- แถบ Action Bar ตรึงก้นจอแบบ Edit Visit -->
+      <!-- Action Bar ล็อกติดก้นจอเหมือน Edit Visit -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-2 gap-3">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
