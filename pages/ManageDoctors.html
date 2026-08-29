@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <!-- โซนเนื้อหาหลัก (ถอดโครงสร้าง d-flex flex-column flex-grow-1 overflow-hidden แบบ Visit) -->
+    <!-- โซนเนื้อหาหลัก -->
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden">
       
       <!-- ส่วนค้นหา/ตัวกรองข้อมูล หน้า Doctors -->
@@ -77,7 +77,7 @@
         <p class="text-muted mb-0" id="docLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
       </div>
 
-      <!-- ตารางแสดงผลรายชื่อแพทย์ (ใช้โครงสร้างเดียวกับ visitListZone เป๊ะๆ) -->
+      <!-- ตารางแสดงผลรายชื่อแพทย์ -->
       <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
         <div class="table-responsive table-scroll-inside flex-grow-1">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
@@ -334,11 +334,13 @@
         </li>
       </ul>
 
-      <div class="tab-content flex-grow-1 d-flex flex-column" style="min-height: 0; overflow-y: auto;">
+      <!-- ลบ overflow-y: auto จากตัวแม่ แล้วปล่อยให้แต่ละแท็บควบคุมส่วนสโครลล์เองตามเหมาะสม -->
+      <div class="tab-content flex-grow-1 d-flex flex-column" style="min-height: 0; overflow: hidden;">
         
-        <div class="tab-pane fade show active" id="tab-doc-info">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="tab_general_info">General Information</span></h6>
+        <!-- 🌟 แท็บ General Info: ซ่อน Scrollbar ไม่ให้ขึ้นรบกวน จัดระเบียบปุ่ม Edit ไว้มุมขวาบน -->
+        <div class="tab-pane fade show active h-100 overflow-hidden" id="tab-doc-info">
+          
+          <div class="d-flex justify-content-end align-items-center mb-3 flex-shrink-0">
             <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
               <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
             </button>
