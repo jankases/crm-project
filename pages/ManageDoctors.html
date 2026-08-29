@@ -137,27 +137,28 @@
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-address-card me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
+              <div class="mb-3">
+                <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
+                <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
+              </div>
+
               <div class="row g-2.5 mb-3">
-                <div class="col-sm-3">
-                  <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
-                </div>
-                <div class="col-sm-4.5">
+                <div class="col-6">
                   <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
                 </div>
-                <div class="col-sm-4.5">
+                <div class="col-6">
                   <label class="compact-label" data-i18n="lbl_doc_name_th">Name (TH)</label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                 </div>
               </div>
 
               <div class="row g-2.5">
-                <div class="col-sm-6">
+                <div class="col-6">
                   <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-6">
                   <label class="compact-label" data-i18n="lbl_type">Type</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
                 </div>
@@ -213,102 +214,111 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Enterprise CRM Design: ย้าย Status ขึ้นไปไว้มุม Header + วาง Title, Name EN, Name TH ในบรรทัดเดียว -->
+  <!-- 🌟 Edit Visit Matching Theme: สวิตช์ Status สไตล์ Coaching ที่มุมขวาบน + ฟอนต์และช่องกรอกเหมือน Edit Visit -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
-      <!-- 🌟 Header Zone: เพิ่ม Status Selector ไว้ด้านขวาคู่กับ DCR Badge -->
+      <!-- Header Zone แบบเดียวกับ Edit Visit -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0 me-3">✏️ <span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
+          <h5 class="text-dark fw-bold mb-0 me-3"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- 🌟 Status Selector เรียบหรู ติดมุมขวา Header -->
-        <div class="d-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs gap-2">
-          <span class="small fw-bold text-muted" data-i18n="lbl_status">Status:</span>
-          <select class="form-select form-select-sm border-0 bg-transparent shadow-none fw-bold text-success p-0" id="editDocStatus" style="width: auto; cursor: pointer;">
-            <option value="Active" class="text-success">● Active</option>
-            <option value="Inactive" class="text-danger">○ Inactive</option>
-          </select>
+        <!-- 🌟 Status Switcher แคปซูล เหมือนสวิตช์ Coaching ของหน้า Edit Visit -->
+        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
+          <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
+            <input class="form-check-input m-0" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.2em; height: 1.2em; cursor: pointer;">
+            <label class="form-check-label fw-bold small text-success ms-1" id="lblDocStatusToggle" for="editDocStatusToggle" style="cursor: pointer;">Active Doctor</label>
+          </div>
+          <!-- Hidden Input เพื่อเก็บค่า Active / Inactive ส่งให้ JS -->
+          <input type="hidden" id="editDocStatus" value="Active">
         </div>
       </div>
       
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3">
           
-          <!-- ฝั่งซ้าย (col-lg-6): โปร่ง สะอาด ฟิลด์กระชับ 2 บรรทัด -->
+          <!-- ฝั่งซ้าย (col-lg-6): General Information & Contact & Consent -->
           <div class="col-lg-6 d-flex flex-column gap-3">
             
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
-              <h6 class="form-section-title mb-3"><i class="fa-solid fa-address-card me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+              <h6 class="form-section-title mb-3" style="font-size: 0.95rem; font-weight: 700; color: #334155;">
+                <i class="fa-solid fa-address-card me-2 text-primary"></i><span data-i18n="sec_gen_info">General Information</span>
+              </h6>
               
-              <!-- 🌟 บรรทัดที่ 1: Title (25%) + Name EN (37.5%) + Name TH (37.5%) -->
-              <div class="row g-2 mb-3">
-                <div class="col-3">
-                  <label class="compact-label" data-i18n="lbl_doc_title">Title</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+              <!-- Title (ดึงตามภาษา EN/TH) -->
+              <div class="mb-3">
+                <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;" data-i18n="lbl_doc_title">Title</label>
+                <select class="form-select bg-light-subtle shadow-none border premium-radius" id="editDocTitle"></select>
+              </div>
+
+              <!-- Name (EN) และ Name (TH) คู่กัน 50:50 -->
+              <div class="row g-2.5 mb-3">
+                <div class="col-6">
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-light-subtle shadow-none border premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
                 </div>
-                <div class="col-4.5" style="width: 37.5%;">
-                  <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
-                </div>
-                <div class="col-4.5" style="width: 37.5%;">
-                  <label class="compact-label" data-i18n="lbl_doc_name_th">Name (TH)</label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
+                <div class="col-6">
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                  <input type="text" class="form-control bg-light-subtle shadow-none border premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                 </div>
               </div>
 
-              <!-- 🌟 บรรทัดที่ 2: Specialty (50%) + Type (50%) -->
+              <!-- Specialty และ Type -->
               <div class="row g-2.5">
                 <div class="col-6">
-                  <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;" data-i18n="lbl_specialty">Specialty</label>
+                  <select class="form-select bg-light-subtle shadow-none border premium-radius" id="editDocSpecialty"></select>
                 </div>
                 <div class="col-6">
-                  <label class="compact-label" data-i18n="lbl_type">Type</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;" data-i18n="lbl_type">Type</label>
+                  <select class="form-select bg-light-subtle shadow-none border premium-radius" id="editDocType"></select>
                 </div>
               </div>
             </div>
 
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
-              <h6 class="form-section-title mb-3"><i class="fa-solid fa-check-to-slot me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+              <h6 class="form-section-title mb-3" style="font-size: 0.95rem; font-weight: 700; color: #334155;">
+                <i class="fa-solid fa-shield-halved me-2 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span>
+              </h6>
               
               <div class="row g-2.5 mb-3">
                 <div class="col-sm-6">
-                  <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                  <input type="email" class="form-control bg-light-subtle shadow-none border premium-radius" id="editDocEmail">
                 </div>
                 <div class="col-sm-6">
-                  <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                  <input type="text" class="form-control bg-light-subtle shadow-none border premium-radius" id="editDocMobile">
                 </div>
               </div>
 
               <div class="row g-2.5">
                 <div class="col-sm-6">
-                  <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;" data-i18n="lbl_privacy">Privacy Policy</label>
+                  <select class="form-select bg-light-subtle shadow-none border premium-radius" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
                 </div>
                 <div class="col-sm-6">
-                  <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+                  <label class="compact-label fw-semibold text-secondary mb-1" style="font-size: 0.825rem;" data-i18n="lbl_tos">Terms of Service</label>
+                  <select class="form-select bg-light-subtle shadow-none border premium-radius" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
                 </div>
               </div>
             </div>
 
           </div>
 
-          <!-- ฝั่งขวา (col-lg-6): Workplace การ์ดกว้าง 50% ตัดสโครลล์แนวนอนทิ้งเด็ดขาด -->
+          <!-- ฝั่งขวา (col-lg-6): Workplace การ์ดกว้าง 50% สไตล์ Edit Visit -->
           <div class="col-lg-6">
             <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc; overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
+                <h6 class="form-section-title mb-0 border-0 pb-0" style="font-size: 0.95rem; font-weight: 700; color: #334155;">
+                  <i class="fa-solid fa-hospital me-2 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span>
+                </h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
