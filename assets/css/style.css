@@ -23,7 +23,7 @@ html, body {
   flex-direction: column !important;
 }
 
-/* 🌟 [FIXED] แยกความสูงหน้าหมอให้ยืดเต็มพื้นที่ 100% ไดนามิก กลบแถบเทาด้านล่างมิดชิดทุกขนาดจอ */
+/* 🌟 DOCTOR ISOLATED MODULE WRAPPER (ยืด 100% กลบสีเทามิดชิด ไม่กระทบ Visit) */
 .doc-module-wrapper {
   height: 100% !important;
   max-height: 100% !important;
@@ -1966,15 +1966,23 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   ✨ FIX IPAD / TABLET FULL HEIGHT (DOCTOR ONLY)
+   ✨ FIX DOCTOR CARD FULL HEIGHT (DESKTOP & IPAD)
    ========================================== */
-/* ปรับความสูงการ์ดหน้าหมอเมื่อย่อจอ โดยไม่กระทบหน้า Visit Logs */
+/* บังคับความสูงหมอให้ยืดกินพื้นที่เต็ม 100% ของ Container ปล่อยให้ Flex Chain ทำงานเต็มประสิทธิภาพ */
+.doc-module-wrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  box-sizing: border-box !important;
+}
+
 @media (max-width: 1199px) {
   .doc-module-wrapper {
     height: 100% !important;
     max-height: 100% !important;
     padding-bottom: 0.75rem !important;
-    box-sizing: border-box !important;
   }
 
   #doctorListView,
