@@ -23,9 +23,11 @@ html, body {
   flex-direction: column !important;
 }
 
+ 
+
 /* 🌟 DOCTOR ISOLATED MODULE WRAPPER (ยืด 100% กลบสีเทามิดชิด ไม่กระทบ Visit) */
 .doc-module-wrapper {
-  height: calc(100vh - 85px) !important; /* 👈 เปลี่ยนมาใช้สูตรเดียวกับหน้า Visit Logs */
+  height: calc(100vh - 85px) !important; /* 👈 ที่คุณแก้ไว้ ถูกต้องแล้วครับ */
   width: 100% !important;
   overflow: hidden !important;
   padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
@@ -34,6 +36,16 @@ html, body {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
+}
+
+/* 👇 เพิ่มโค้ดชุดนี้ต่อท้ายลงไป เพื่อบังคับการ์ดสีขาวให้ยืดลงมาชนขอบล่าง 👇 */
+.doc-module-wrapper > div,
+.doc-module-wrapper .visit-card {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
 }
 
 /* 📊 FIXED TABLE-ONLY SCROLL ENGINE */
