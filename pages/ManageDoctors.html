@@ -304,7 +304,6 @@
   <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     
-    <!-- Header บรรทัดบนสุด: วางปุ่ม Edit Doctor คู่กับหัวข้อ doctorProfileTitle -->
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.goBackFromDoctorProfile()">
@@ -313,16 +312,11 @@
         <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-3"></div>
       </div>
-
-      <!-- 🌟 ย้ายปุ่ม Edit Doctor มาไว้ตรงนี้ ปลอดภัย ไม่เกิดสโครลล์แนวนอน 100% -->
-      <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-        <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
-      </button>
     </div>
     
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
 
-      <ul class="nav nav-pills doctor-profile-tabs mb-2 border-bottom pb-2 flex-shrink-0" id="docProfileTabs">
+      <ul class="nav nav-pills doctor-profile-tabs mb-3 border-bottom pb-2 flex-shrink-0" id="docProfileTabs">
         <li class="nav-item">
           <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
             <i class="fa-solid fa-address-card me-1"></i> <span data-i18n="tab_general_info">General Info</span>
@@ -340,10 +334,22 @@
         </li>
       </ul>
 
-      <div class="tab-content flex-grow-1 overflow-auto p-1" style="min-height: 0;">
+      <div class="tab-content flex-grow-1 overflow-auto" style="min-height: 0;">
         
-        <!-- 🌟 แท็บ General Info: คืนค่าโครงสร้าง Standard สวยงาม ไม่พึ่ง Flexbox ซับซ้อน -->
-        <div class="tab-pane fade show active" id="tab-doc-info">
+        <!-- 🌟 แท็บ General Info: ย้ายปุ่ม Edit Doctor มาไว้ตรงนี้ วางคู่ในเลย์เอาต์ .row สะอาด รัดกุม ไม่ดัน Scrollbar -->
+        <div class="tab-pane fade show active p-1" id="tab-doc-info">
+          
+          <div class="row mb-3 align-items-center">
+            <div class="col-8">
+              <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="tab_general_info">General Information</span></h6>
+            </div>
+            <div class="col-4 text-end">
+              <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+                <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+              </button>
+            </div>
+          </div>
+
           <div class="row mb-3 g-3">
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light premium-radius" id="viewDocSpecialty" disabled></div>
             <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light premium-radius" id="viewDocType" disabled></div>
