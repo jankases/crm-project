@@ -1893,3 +1893,23 @@ button.feature-action-btn-lg.has-data-samples i {
   font-size: 0.8rem !important;
   margin-bottom: 0.35rem !important;
 }
+/* ==========================================
+   ✨ FORCE ADVANCED FILTERS DROPDOWN COLOR
+   ========================================== */
+/* บังคับสีพื้นหลังช่อง Dropdown ทั้งหมดในป๊อปอัพ Advanced Filters ให้เป็นเทาอ่อน #f8fafc */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+}
+
+/* ปรับสีไอคอนลูกศรและตัวอักษรข้างใน */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper.single .ts-control {
+  background-color: #f8fafc !important;
+}
