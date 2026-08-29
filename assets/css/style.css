@@ -1998,11 +1998,19 @@ button.feature-action-btn-lg.has-data-samples i {
     flex-shrink: 0 !important;
   }
 } 
-
 /* ==========================================
-   ✨ ABSOLUTE FORCE: DOCTOR CARD FULL HEIGHT (NO GRAY GAP)
+   🎯 ABSOLUTE FIX: DOCTOR FULL HEIGHT VIEWPORT
    ========================================== */
-/* บังคับดันโครงสร้างชั้นในของหน้าหมอให้ขยายยืดเต็มพื้นที่ Viewport */
+/* 1. สั่งบังคับให้ Wrapper นอกสุดของหมอสูงเท่าพื้นที่จอที่เหลือทันที */
+.doc-module-wrapper {
+  height: calc(100vh - 75px) !important;
+  min-height: calc(100vh - 75px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. บังคับ Flex Chain โครงสร้างชั้นในให้ยืดตามมิดชิด */
 .doc-module-wrapper #doctorListView,
 .doc-module-wrapper #doctorMainContentContainer {
   display: flex !important;
@@ -2012,7 +2020,7 @@ button.feature-action-btn-lg.has-data-samples i {
   min-height: 0 !important;
 }
 
-/* บังคับการ์ดสีขาวของตารางหมอให้ยืดลงมาล่างสุดกลบสีเทา 100% */
+/* 3. ยืดการ์ดสีขาวลงมาชนขอบล่างสุดของ Viewport กลบพื้นที่สีเทา 100% */
 .doc-module-wrapper #doctorListZone {
   display: flex !important;
   flex-direction: column !important;
@@ -2022,14 +2030,14 @@ button.feature-action-btn-lg.has-data-samples i {
   justify-content: space-between !important;
 }
 
-/* ดันพื้นที่ตารางข้างในให้ยืดตาม */
+/* 4. ยืดโซนตารางข้างใน */
 .doc-module-wrapper #doctorListZone .table-scroll-inside {
   flex: 1 1 auto !important;
   height: 100% !important;
   min-height: 0 !important;
 }
 
-/* ดันแถบ Pagination ลงไปตรึงอยู่ชิดขอบล่างสุดของการ์ดขาวเสมอ */
+/* 5. ดันแถบ Pagination ลงไปตรึงชิดขอบล่างสุดของการ์ดขาว */
 .doc-module-wrapper #doctorPaginationContainer {
   margin-top: auto !important;
   flex-shrink: 0 !important;
