@@ -725,6 +725,7 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
   }
 };
 
+// 🌟 [UPDATED] ปรับคอลัมน์ขวาสุดเป็นไอคอนลูกศร > (Chevron) เหมือนหน้า Visit Logs สไตล์ App-Like
 window.renderDoctorTableServerSide = function() {
   const tbody = document.getElementById('doctorTableBody');
   if (!tbody) return;
@@ -759,7 +760,6 @@ window.renderDoctorTableServerSide = function() {
   }
 
   let htmlBuffer = '';
-  const editBtnText = appLang === 'en' ? 'Edit' : 'แก้ไข';
 
   data.forEach(d => {
     const isStatusActive = (d.Status === 'Active');
@@ -789,15 +789,14 @@ window.renderDoctorTableServerSide = function() {
     const docNameEnShow = d.Doc_Name || d.doc_name || '-';
     const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
-    const actionButton = `<button class="btn btn-sm btn-premium-secondary fw-bold" onclick="window.openEditDoctorView('${d.Doc_ID}')"><i class="fa-solid fa-pen me-1"></i> ${editBtnText}</button>`;
-    
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
     const hospNameShow = window.getHospitalNameByLang(hospObj);
 
-    const nameCellLink = `<a href="#" class="table-visit-link" onclick="window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
+    const nameCellLink = `<a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
 
+    // 🌟 [CHANGED]: คลิกทั้งแถว หรือกดไอคอนลูกศร > ขวาสุด เพื่อเปิด Read-Only View (Doctor Profile)
     htmlBuffer += `
-      <tr>
+      <tr onclick="window.openViewDoctorProfile('${d.Doc_ID}')" style="cursor: pointer;">
         <td class="text-start ps-3">${nameCellLink}</td>
         <td class="fw-medium text-secondary">${docNameThShow}</td>
         <td><span class="badge badge-soft-product">${d.Specialty || '-'}</span></td>
@@ -806,7 +805,11 @@ window.renderDoctorTableServerSide = function() {
           <span class="badge ${badge}">${statusTextShow}</span>
           ${pendingBadgeHtml}
         </td>
-        <td class="text-center">${actionButton}</td>
+        <td class="text-center text-muted opacity-50 pe-3">
+          <a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openViewDoctorProfile('${d.Doc_ID}'); return false;">
+            <i class="fa-solid fa-chevron-right fs-6"></i>
+          </a>
+        </td>
       </tr>`;
   });
 
@@ -1620,7 +1623,7 @@ window.triggerCalcTarget = function(element) {
   if (adopt && pot) {
       const matrixData = window.globalMatrixData || (window.DocManagerCache ? window.DocManagerCache.matrixData : []) || [];
       const matrixRow = matrixData.find(m => String(m.Adoption || m.adoption).trim().toLowerCase() === String(adopt).trim().toLowerCase() && 
-                                              String(m.Potential || m.potential).trim().toLowerCase() === String(pot).trim().toLowerCase());
+                                             String(m.Potential || m.potential).trim().toLowerCase() === String(pot).trim().toLowerCase());
       if (matrixRow) {
           calcClass = matrixRow.Classification || matrixRow.classification || "";
       }
