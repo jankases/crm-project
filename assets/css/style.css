@@ -604,6 +604,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-color: #cbd5e1 !important;
   transform: translateY(-1px) !important;
 }
+
 /* ==========================================
    🎨 MODERN UNDERLINE SUB-TABS
    ========================================== */
@@ -1691,6 +1692,7 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #ffffff !important;
 }
 
+/* 🌟 FIX: บังคับการ์ดตารางหมอยืดเต็ม 100% และกระจายเนื้อหากระชับขอบล่าง */
 #doctorListZone {
   flex: 1 1 auto !important;
   height: 100% !important;
@@ -1712,6 +1714,7 @@ button.feature-action-btn-lg.has-data-samples i {
   padding: 1.25rem !important;
 }
 
+/* เจาะจงทั้ง Form-Select และ TomSelect ภายในป็อปอัพ ให้เป็นสีเทาอ่อน #f8fafc */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
@@ -1725,6 +1728,7 @@ button.feature-action-btn-lg.has-data-samples i {
   box-shadow: none !important;
 }
 
+/* ปรับสีตัวอักษรหัวข้อฟิลเตอร์ย่อย */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] label {
   color: #475569 !important;
   font-weight: 700 !important;
@@ -1732,6 +1736,23 @@ button.feature-action-btn-lg.has-data-samples i {
   margin-bottom: 0.35rem !important;
 }
 
+/* ==========================================
+   ✨ FORCE ADVANCED FILTERS DROPDOWN COLOR
+   ========================================== */
+/* บังคับสีพื้นหลังช่อง Dropdown ทั้งหมดในป๊อปอัพ Advanced Filters ให้เป็นเทาอ่อน #f8fafc */
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  color: #334155 !important;
+  box-shadow: none !important;
+}
+
+/* ปรับสีไอคอนลูกศรและตัวอักษรข้างใน */
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper.single .ts-control {
   background-color: #f8fafc !important;
 }
@@ -1764,7 +1785,7 @@ button.feature-action-btn-lg.has-data-samples i {
   .doc-module-wrapper {
     height: 100% !important;
     max-height: 100% !important;
-    padding-bottom: 0.75rem !important;
+    padding-bottom: 0.5rem !important;
     box-sizing: border-box !important;
   }
 
