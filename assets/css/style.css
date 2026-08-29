@@ -38,12 +38,61 @@ html, body {
   flex: 1 1 auto !important;
 }
 
-/* 🌟 บังคับการ์ดสีขาวยืด 100% ชนขอบล่าง (ปลอดภัย ไม่กระทบระบบซ่อนหน้าย่อย) */
-.doc-module-wrapper .visit-card {
-  flex: 1 1 auto !important;
-  height: 100% !important;
+ 
+
+/* ==========================================
+   🎯 ABSOLUTE BULLETPROOF FLEX CHAIN FOR DOCTOR LIST
+   ========================================== */
+
+/* 1. ยืดหน้า View สลับหน้าให้เต็มพื้นที่ */
+.spa-page-view:not(.d-none) {
   display: flex !important;
   flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* 2. ยืดตัวครอบนอกสุด (Wrapper) */
+.doc-module-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+/* 3. ยืดหน้า List View (เฉพาะตอนที่เปิดอยู่ จะได้ไม่เด้งไปทับหน้า Add/Edit) */
+#doctorListView:not(.d-none) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* 4. ยืดคอนเทนเนอร์ตรงกลาง */
+#doctorMainContentContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* 5. บังคับการ์ดสีขาว (ตาราง) ให้ยืดลงมาชนขอบล่าง 100% กลบสีเทามิดชิด */
+#doctorListZone {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  justify-content: space-between !important;
+}
+
+/* 6. ยืดพื้นที่ Scroll ของตาราง */
+#doctorListZone .table-scroll-inside {
+  flex: 1 1 auto !important;
+  height: 100% !important;
   min-height: 0 !important;
 }
 
