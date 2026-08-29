@@ -881,7 +881,7 @@ window.forceReloadDoctors = async function() {
   await window.loadDoctors(true, false);
 };
 
-window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
+ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
   let cleanPaneId = 'tab-doc-info';
   let targetBtn = null;
 
@@ -892,15 +892,19 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
     cleanPaneId = btnOrTarget.replace('#', '');
   }
 
+  // เคลียร์คลาส active และ show ทั้งหมด
   document.querySelectorAll('#docProfileTabs .nav-link').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#doctorProfileView .tab-pane').forEach(p => {
     p.classList.remove('active', 'show');
   });
 
+  // ล็อกเป้าหมายปุ่มแท็บผ่าน ID ชัดเจน ไม่ให้ JS เอ๋อ
   if (!targetBtn) {
-    targetBtn = document.querySelector(`#docProfileTabs .nav-link[onclick*="${cleanPaneId}"]`) ||
-                document.querySelector(`#docProfileTabs .nav-link[data-bs-target="#${cleanPaneId}"]`);
+    if (cleanPaneId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
+    else if (cleanPaneId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
+    else if (cleanPaneId === 'tab-doc-target') targetBtn = document.getElementById('tab-doc-target-btn');
   }
+
   if (targetBtn) targetBtn.classList.add('active');
 
   const targetPane = document.getElementById(cleanPaneId);
