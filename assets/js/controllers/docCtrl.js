@@ -931,14 +931,15 @@ window.removeWorkplaceRow = function(btn) {
   row.remove();
 };
 
-window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
+ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
+  
   const row = document.createElement('div');
-  row.className = 'row align-items-center workplace-row mb-2';
+  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2 p-2 bg-white rounded-3 border shadow-xs';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
-  let optionsHtml = '<option value="">- Search and Select Hospital -</option>';
+  let optionsHtml = '<option value="">- Select Hospital -</option>';
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const selected = h.Hospital_ID === hospId ? 'selected' : '';
     const showName = window.getHospitalNameByLang(h);
@@ -947,26 +948,25 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 
   const checked = isPrimary ? 'checked' : '';
 
-  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2 p-2 bg-white rounded-3 border shadow-xs';
-
-row.innerHTML = `
-  <div class="flex-grow-1" style="min-width: 0;">
-    <select class="form-select form-select-sm hospital-select bg-white shadow-none" id="${selectId}" required>
-      ${optionsHtml}
-    </select>
-  </div>
-  <div class="flex-shrink-0">
-    <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2 py-1 shadow-xs border" for="radio_${selectId}" title="Set as Primary Workplace" style="border-radius: 8px;">
-      <i class="fa-solid fa-star me-1 text-warning"></i><small>Primary</small>
-    </label>
-  </div>
-  <div class="flex-shrink-0">
-    <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 shadow-xs border-0" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace" style="border-radius: 8px;">
-      <i class="fa-solid fa-trash-can"></i>
-    </button>
-  </div>
-`;
+  row.innerHTML = `
+    <div class="flex-grow-1 min-w-0" style="min-width: 0;">
+      <select class="form-select form-select-sm hospital-select bg-white shadow-none text-truncate" id="${selectId}" required>
+        ${optionsHtml}
+      </select>
+    </div>
+    <div class="flex-shrink-0">
+      <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
+      <label class="btn btn-sm btn-outline-primary text-dark fw-medium px-2.5 py-1 border shadow-xs d-flex align-items-center gap-1.5" for="radio_${selectId}" title="Set as Primary Workplace" style="border-radius: 8px;">
+        <i class="fa-solid fa-star text-warning"></i>
+        <small class="fw-bold">Primary</small>
+      </label>
+    </div>
+    <div class="flex-shrink-0">
+      <button type="button" class="btn btn-sm btn-light border text-danger px-2.5 py-1 shadow-xs" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace" style="border-radius: 8px;">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    </div>
+  `;
   container.appendChild(row);
 
   if (typeof TomSelect !== 'undefined') {
@@ -974,7 +974,7 @@ row.innerHTML = `
       create: false, 
       searchField: ["text"], 
       sortField: { field: "text", direction: "asc" },
-      placeholder: "- Search and Select Hospital -", 
+      placeholder: "- Select Hospital -", 
       allowEmptyOption: true, 
       dropdownParent: 'body'
     });
