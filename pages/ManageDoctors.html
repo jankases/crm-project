@@ -133,7 +133,7 @@
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3">
           
-          <div class="col-lg-6 d-flex flex-column gap-3">
+          <div class="col-lg-7 d-flex flex-column gap-3">
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-address-card me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
@@ -192,7 +192,7 @@
             </div>
           </div>
 
-          <div class="col-lg-6">
+          <div class="col-lg-5">
             <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc; overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
@@ -216,7 +216,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Compact & Premium Design: ตัดสโครลล์บาร์แนวนอน 100% ปรับ Primary & Remove เป็นแบบ Icon-Only -->
+  <!-- 🌟 Balanced Modern Grid: ฝั่งซ้าย col-lg-7 (โปร่งพอดี) / ฝั่งขวา col-lg-5 (Workplace Soft Badge) -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -234,8 +234,8 @@
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3">
           
-          <!-- ฝั่งซ้าย (col-lg-6): General Information & Contact & Consent -->
-          <div class="col-lg-6 d-flex flex-column gap-3">
+          <!-- ฝั่งซ้าย (col-lg-7): โปร่ง กว้างขวาง อ่านง่าย -->
+          <div class="col-lg-7 d-flex flex-column gap-3">
             
             <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-address-card me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
@@ -305,8 +305,8 @@
 
           </div>
 
-          <!-- ฝั่งขวา (col-lg-6): Workplace ปรับพื้นที่แบบ Compact ไร้ Scrollbar แนวนอน -->
-          <div class="col-lg-6">
+          <!-- ฝั่งขวา (col-lg-5): Workplace การ์ดพอดี สวยงาม ปุ่ม Primary ดาวนุ่มนวล -->
+          <div class="col-lg-5">
             <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #f8fafc; overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace</span></h6>
