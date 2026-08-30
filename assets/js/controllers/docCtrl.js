@@ -76,6 +76,22 @@ window.safeTranslate = function(key, fallbackText) {
   return fallbackText;
 };
 
+// 🌟 ฟังก์ชันแปลง Title_ID เป็นข้อความผันตามภาษา EN / TH
+window.getTitleTextById = function(titleId) {
+  if (!titleId) return '';
+  const indexes = window.globalIndexes || (window.DocManagerCache ? window.DocManagerCache.indexes : []) || [];
+  const matchedObj = indexes.find(i => String(i.Index_ID || i.id).toLowerCase() === String(titleId).toLowerCase());
+  
+  if (!matchedObj) return titleId; // Fallback เผื่อข้อมูลเก่าที่ยังเก็บเป็นข้อความตรงๆ
+  
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  if (appLang === 'en') {
+    return matchedObj.Value_EN || matchedObj.value_en || matchedObj.Value || '';
+  } else {
+    return matchedObj.Value_TH || matchedObj.value_th || matchedObj.Value || '';
+  }
+};
+
 window.getDoctorNameByLang = function(docObj, defaultId) {
   if (!docObj) return defaultId || '-';
   var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -155,18 +171,15 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
-// 🌟 ข้อ 1: ทำลาย TomSelect เดิมทิ้งเพื่อเคลียร์รายการตัวเลือกภาษาเก่า แล้วสร้างดร็อปดาวน์ใหม่ตามภาษาปัจจุบันทันที
 window.updateTomSelect = function(id, html, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
   
   if (el.tomselect) {
     const curVal = el.tomselect.getValue();
-    // 🌟 ทำลายและล้างแคช Option เก่าของ TomSelect ออกทั้งหมด
     el.tomselect.destroy();
     el.innerHTML = html;
     
-    // สร้าง TomSelect ใหม่ด้วยชุด <option> ภาษาปัจจุบันจาก DB
     new TomSelect(`#${id}`, { 
       create: false, 
       searchField: ["text"],
@@ -175,7 +188,6 @@ window.updateTomSelect = function(id, html, placeholder) {
       allowEmptyOption: true, 
       dropdownParent: 'body' 
     });
-    
     if (curVal) el.tomselect.setValue(curVal, true);
   } else if (typeof TomSelect !== 'undefined') {
     el.innerHTML = html;
@@ -273,7 +285,7 @@ window.renderFilterDropdowns = function(validDocsData) {
   const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
   const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
 
-  // 1. Specialty Filter (สำหรับหน้าตารางค้นหา)
+  // 1. Specialty Filter
   const specSelect = document.getElementById('filterDocSpecialty');
   if (specSelect) {
     const selectedVals = specSelect.tomselect ? specSelect.tomselect.getValue() : [];
@@ -287,7 +299,7 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   }
 
-  // 2. Type Filter (สำหรับหน้าตารางค้นหา)
+  // 2. Type Filter
   const typeSelect = document.getElementById('filterDocType');
   if (typeSelect) {
     const selectedVals = typeSelect.tomselect ? typeSelect.tomselect.getValue() : [];
@@ -608,9 +620,8 @@ window.restoreDocFilterState = function() {
 };
 
 // ==========================================
-// 📊 5. SERVER-SIDE PAGINATION (WITH BACKGROUND FETCH OPTION)
+// 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
-
 window.loadDoctors = async function(forceReload = false, isBackground = false) {
   const docViewEl = document.getElementById('doctorListView');
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
@@ -1009,7 +1020,6 @@ window.checkPendingDCR = async function(docId) {
   } catch (err) { console.error("Error check DCR:", err); }
 };
 
-// 🌟 ข้อ 2: ฟังก์ชันคุมสลับข้อความ Active/Inactive แบบ 2 ภาษา (EN: Active/Inactive, TH: ใช้งาน/ไม่ใช้งาน)
 window.toggleDoctorStatusText = function(elementOrValue) {
   const lbl = document.getElementById('lblDocStatusToggle');
   const hiddenInput = document.getElementById('editDocStatus');
@@ -1066,7 +1076,8 @@ window.openEditDoctorView = function(id) {
     }
   };
 
-  setTsVal('editDocTitle', d.Title || d.title || '');
+  // 🌟 แมปตั้งค่า Title_ID เข้า TomSelect
+  setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
   setTsVal('editDocSpecialty', d.Specialty || d.specialty || '');
   setTsVal('editDocType', d.Type || d.type || '');
   
@@ -1088,7 +1099,6 @@ window.openEditDoctorView = function(id) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
-  // 🌟 เซ็ตค่าสวิตช์ Toggle และอัปเดตสถานะตัวอักษร 2 ภาษา
   const currentStatus = d.Status || d.status || 'Active';
   window.toggleDoctorStatusText(currentStatus);
 
@@ -1115,9 +1125,12 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
   const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
 
+  // 🌟 Lookup คำนำหน้าชื่อผ่าน Title_ID ผันตามภาษา
+  const titleText = window.getTitleTextById(d.Title_ID || d.title_id || d.Title);
+
   const titleEl = document.getElementById('viewDocTitleName');
   if (titleEl) {
-    titleEl.innerText = `👨‍⚕️ ${d.Title || d.title || ''} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`;
+    titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
   }
 
   if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
@@ -1179,6 +1192,7 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   }
 };
 
+// 🌟 บันทึก Title_ID ลง Payload หน้า Add
 window.handleAddDoctor = async function(e) {
   e.preventDefault(); 
   
@@ -1198,7 +1212,7 @@ window.handleAddDoctor = async function(e) {
   const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
   const payload = {
-    Title: document.getElementById('docTitle').value, 
+    Title_ID: document.getElementById('docTitle').value, 
     Doc_Name: document.getElementById('docNameEn').value.trim(),
     Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
     Specialty: document.getElementById('docSpecialty').value, 
@@ -1227,6 +1241,7 @@ window.handleAddDoctor = async function(e) {
   finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
 };
 
+// 🌟 บันทึก Title_ID ลง Payload หน้า Edit
 window.handleUpdateDoctor = async function(e) {
   e.preventDefault(); 
 
@@ -1247,7 +1262,7 @@ window.handleUpdateDoctor = async function(e) {
   const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "Unknown";
 
   const payload = {
-    Title: document.getElementById('editDocTitle').value, 
+    Title_ID: document.getElementById('editDocTitle').value, 
     Doc_Name: document.getElementById('editDocNameEn').value.trim(),
     Doc_Name_TH: document.getElementById('editDocNameTh').value.trim(),
     Specialty: document.getElementById('editDocSpecialty').value,
@@ -1946,7 +1961,7 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// ⚡ ข้อ 3: Listener สลับภาษา EN / TH
+// ⚡ Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
@@ -1957,7 +1972,7 @@ if (!window._isDocLangListenerAttached) {
       window.renderDoctorTableServerSide();
     }
 
-    // 🌟 รีโหลดตัวเลือกดร็อปดาวน์หลักทุกตัวตามภาษาใหม่ทันที (แก้ปัญหาคำนำหน้าชื่อเดิมค้าง)
+    // 🌟 รีโหลดดร็อปดาวน์คำนำหน้าและดร็อปดาวน์หลักทันทีเมื่อสลับภาษา
     if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
@@ -1974,7 +1989,7 @@ if (!window._isDocLangListenerAttached) {
       window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
     }
     
-    // 🌟 อัปเดตภาษาปุ่ม Status Toggle ในหน้า Edit ทันที
+    // อัปเดตภาษาปุ่ม Status Toggle ในหน้า Edit ทันที
     const editToggle = document.getElementById('editDocStatusToggle');
     if (editToggle) {
       window.toggleDoctorStatusText(editToggle);
@@ -2020,10 +2035,9 @@ window.clearDocSearchInput = function() {
 };
 
 // ==========================================
-// 🎯 DYNAMIC OPTIONS RENDERER (EN / TH SUPPORT)
+// 🎯 DYNAMIC OPTIONS RENDERER (VALUE = Index_ID)
 // ==========================================
 window.getOptionsHtml = function(typeName, defaultText) {
-  // ค้นหา IndexType จากชื่อประเภทใน DB
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
     const name = (t.Name || '').toLowerCase().trim();
     const target = typeName.toLowerCase().trim();
@@ -2039,15 +2053,15 @@ window.getOptionsHtml = function(typeName, defaultText) {
     const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
     
     items.forEach(i => {
-      // ค่า Value หลักสำหรับบันทึกลง DB
-      const valDb = i.Value || i.value || '';
+      // 🌟 ใช้ Index_ID เป็น value สำหรับบันทึกลง DB
+      const valDb = i.Index_ID || i.id || i.Value || i.value || '';
       
-      // ดึง Text แสดงผลจาก DB ตามภาษาปัจจุบัน (Value_EN / Value_TH / Value)
-      let showText = valDb;
+      // ดึง Text แสดงผลจาก DB ผันตามภาษา EN / TH
+      let showText = i.Value || i.value || '';
       if (appLang === 'en') {
-        showText = i.Value_EN || i.value_en || i.Value_En || valDb;
+        showText = i.Value_EN || i.value_en || i.Value_En || i.Value || '';
       } else {
-        showText = i.Value_TH || i.value_th || i.Value_Th || valDb;
+        showText = i.Value_TH || i.value_th || i.Value_Th || i.Value || '';
       }
       
       if (valDb) html += `<option value="${valDb}">${showText}</option>`;
