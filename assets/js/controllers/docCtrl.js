@@ -505,35 +505,14 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
       const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
 
-      const getOptionsHtml = (typeName, defaultText) => {
-        const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
-          const name = (t.Name || '').toLowerCase().trim();
-          const target = typeName.toLowerCase().trim();
-          if (target === 'type' || target === 'doctortype') {
-            return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
-          }
-          return name === target;
-        });
+      window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
+      window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
 
-        let html = defaultText ? `<option value="">${defaultText}</option>` : ''; 
-        if (typeObj) {
-          const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
-          items.forEach(i => {
-            const valStr = i.Value || i.value || '';
-            if (valStr) html += `<option value="${valStr}">${valStr}</option>`;
-          });
-        }
-        return html;
-      };
+      window.updateTomSelect('docSpecialty', window.getOptionsHtml('Specialty', phSpec), phSpec);
+      window.updateTomSelect('editDocSpecialty', window.getOptionsHtml('Specialty', phSpec), phSpec);
 
-      window.updateTomSelect('docTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
-      window.updateTomSelect('editDocTitle', getOptionsHtml('Title', selectTitleText), selectTitleText);
-
-      window.updateTomSelect('docSpecialty', getOptionsHtml('Specialty', phSpec), phSpec);
-      window.updateTomSelect('editDocSpecialty', getOptionsHtml('Specialty', phSpec), phSpec);
-
-      window.updateTomSelect('docType', getOptionsHtml('DoctorType', phType), phType);
-      window.updateTomSelect('editDocType', getOptionsHtml('DoctorType', phType), phType);
+      window.updateTomSelect('docType', window.getOptionsHtml('DoctorType', phType), phType);
+      window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', phType), phType);
 
       window.renderFilterDropdowns(validDocsData);
     }
@@ -725,7 +704,6 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
   }
 };
 
-// 🌟 [UPDATED] ปรับคอลัมน์ขวาสุดเป็นไอคอนลูกศร > (Chevron) เหมือนหน้า Visit Logs สไตล์ App-Like
 window.renderDoctorTableServerSide = function() {
   const tbody = document.getElementById('doctorTableBody');
   if (!tbody) return;
@@ -794,7 +772,6 @@ window.renderDoctorTableServerSide = function() {
 
     const nameCellLink = `<a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
 
-    // 🌟 [CHANGED]: คลิกทั้งแถว หรือกดไอคอนลูกศร > ขวาสุด เพื่อเปิด Read-Only View (Doctor Profile)
     htmlBuffer += `
       <tr onclick="window.openViewDoctorProfile('${d.Doc_ID}')" style="cursor: pointer;">
         <td class="text-start ps-3">${nameCellLink}</td>
@@ -881,7 +858,7 @@ window.forceReloadDoctors = async function() {
   await window.loadDoctors(true, false);
 };
 
- window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
+window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
   let cleanPaneId = 'tab-doc-info';
   let targetBtn = null;
 
@@ -892,13 +869,11 @@ window.forceReloadDoctors = async function() {
     cleanPaneId = btnOrTarget.replace('#', '');
   }
 
-  // เคลียร์คลาส active และ show ทั้งหมด
   document.querySelectorAll('#docProfileTabs .nav-link').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#doctorProfileView .tab-pane').forEach(p => {
     p.classList.remove('active', 'show');
   });
 
-  // ล็อกเป้าหมายปุ่มแท็บผ่าน ID ชัดเจน ไม่ให้ JS เอ๋อ
   if (!targetBtn) {
     if (cleanPaneId === 'tab-doc-info') targetBtn = document.getElementById('tab-btn-info');
     else if (cleanPaneId === 'tab-doc-history') targetBtn = document.getElementById('tab-btn-history');
@@ -931,7 +906,8 @@ window.removeWorkplaceRow = function(btn) {
   row.remove();
 };
 
- window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
+// 🌟 [UPDATED] ปรับสไตล์แถบ Workplace เป็น Flexbox แนวนอนแคปซูลนุ่มนวล ปุ่มดาว และไร้สโครลล์แนวนอน
+window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
@@ -1022,6 +998,35 @@ window.checkPendingDCR = async function(docId) {
   } catch (err) { console.error("Error check DCR:", err); }
 };
 
+// 🌟 [NEW] ฟังก์ชันสลับตัวอักษรและค่าใน Hidden Input เมื่อคลิก Toggle Status บน Header
+window.toggleDoctorStatusText = function(checkboxEl) {
+  const lbl = document.getElementById('lblDocStatusToggle');
+  const hiddenInput = document.getElementById('editDocStatus');
+  
+  if (checkboxEl.checked) {
+    if (lbl) {
+      lbl.textContent = 'Active Doctor';
+      lbl.className = 'form-check-label fw-bold small text-success ms-1';
+    }
+    if (hiddenInput) hiddenInput.value = 'Active';
+  } else {
+    if (lbl) {
+      lbl.textContent = 'Inactive Doctor';
+      lbl.className = 'form-check-label fw-bold small text-danger ms-1';
+    }
+    if (hiddenInput) hiddenInput.value = 'Inactive';
+  }
+};
+
+// 🌟 [NEW] ฟังก์ชันอัปเดตค่า Consent Hidden Input เมื่อสลับ Toggle Switch
+window.updateConsentHiddenInput = function(inputId, isChecked) {
+  const hiddenInput = document.getElementById(inputId);
+  if (hiddenInput) {
+    hiddenInput.value = isChecked ? 'Yes' : 'No';
+  }
+};
+
+// 🌟 [UPDATED] อัปเดต openEditDoctorView ให้ซิงค์ค่าสวิตช์ Status และ Consent Toggle
 window.openEditDoctorView = function(id) {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
@@ -1048,9 +1053,28 @@ window.openEditDoctorView = function(id) {
   document.getElementById('editDocNameTh').value = d.Doc_Name_TH || d.nameTh || ''; 
   document.getElementById('editDocEmail').value = d.Email || d.email || '';
   document.getElementById('editDocMobile').value = d.Mobile || d.mobile || '';
-  document.getElementById('editDocPrivacy').value = d.Privacy_Policy || d.privacy || 'Yes';
-  document.getElementById('editDocTos').value = d.Terms_of_Service || d.tos || 'Yes';
-  document.getElementById('editDocStatus').value = d.Status || d.status || 'Active';
+
+  // ซิงค์ค่า Privacy Policy & Terms of Service ให้สวิตช์ Toggle
+  const privacyVal = d.Privacy_Policy || d.privacy || 'Yes';
+  const tosVal = d.Terms_of_Service || d.tos || 'Yes';
+  
+  document.getElementById('editDocPrivacy').value = privacyVal;
+  document.getElementById('editDocTos').value = tosVal;
+  
+  if (document.getElementById('editDocPrivacyToggle')) {
+    document.getElementById('editDocPrivacyToggle').checked = (privacyVal === 'Yes');
+  }
+  if (document.getElementById('editDocTosToggle')) {
+    document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
+  }
+
+  // ซิงค์ค่า Status ให้สวิตช์ Header Toggle
+  const currentStatus = d.Status || d.status || 'Active';
+  const statusToggle = document.getElementById('editDocStatusToggle');
+  if (statusToggle) {
+    statusToggle.checked = (currentStatus === 'Active');
+    window.toggleDoctorStatusText(statusToggle);
+  }
 
   window.clearWorkplaceContainer('workplaceContainerEdit');
   let parsedWp = [];
@@ -1215,7 +1239,7 @@ window.handleUpdateDoctor = async function(e) {
     Hospital_ID: primaryHospId, 
     Workplaces_JSON: JSON.stringify(workplaces), 
     Email: document.getElementById('editDocEmail').value.trim(),
-    Mobile: document.getElementById('docMobile').value.trim(),
+    Mobile: document.getElementById('editDocMobile').value.trim(),
     Privacy_Policy: document.getElementById('editDocPrivacy').value,
     Terms_of_Service: document.getElementById('editDocTos').value,
     Status: document.getElementById('editDocStatus').value,
@@ -1610,7 +1634,7 @@ window.getSelectedRatingProductIds = function(excludeSelectId = null) {
   return selectedIds;
 };
 
-// 🌟 AUTO CALCULATION LOGIC FOR RATING & TARGETING
+// AUTO CALCULATION LOGIC FOR RATING & TARGETING
 window.triggerCalcTarget = function(element) {
   const tr = element.closest('tr');
   if (!tr) return;
