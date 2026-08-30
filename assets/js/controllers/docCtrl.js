@@ -939,7 +939,7 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
 };
 
 // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Clean Premium UI)
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Searchable Select UI)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -972,12 +972,13 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
   const setPrimaryText = appLang === 'en' ? 'Set Primary' : 'ตั้งเป็นหลัก';
+  const selectPlaceholder = appLang === 'en' ? '🔍 Search hospital...' : '🔍 ค้นหาหรือเลือกโรงพยาบาล...';
 
   const row = document.createElement('div');
   row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2 shadow-xs transition-all';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
-  let optionsHtml = '<option value="">- Select Hospital -</option>';
+  let optionsHtml = `<option value="">${selectPlaceholder}</option>`;
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const selected = h.Hospital_ID === hospId ? 'selected' : '';
     const showName = window.getHospitalNameByLang(h);
@@ -1013,12 +1014,13 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   `;
   container.appendChild(row);
 
+  // 🌟 เปิดใช้งาน TomSelect รองรับการพิมพ์ค้นหาได้อย่างลื่นไหล
   if (typeof TomSelect !== 'undefined') {
     new TomSelect(`#${selectId}`, {
       create: false, 
       searchField: ["text"], 
       sortField: { field: "text", direction: "asc" },
-      placeholder: "- Select Hospital -", 
+      placeholder: selectPlaceholder, 
       allowEmptyOption: true, 
       dropdownParent: 'body'
     });
@@ -1042,7 +1044,7 @@ window.renderDashedAddWorkplaceTile = function(containerId) {
 
   const dashedTile = document.createElement('div');
   dashedTile.className = 'dashed-add-wp-tile border-2 border-dashed rounded-3 p-2.5 text-center text-primary cursor-pointer hover-bg-light transition-all mt-2';
-  dashedTile.style.style = 'cursor: pointer; border-style: dashed !important;';
+  dashedTile.setAttribute('style', 'cursor: pointer; border-style: dashed !important;');
   dashedTile.onclick = function() {
     window.addWorkplaceRow(containerId, radioGroupName);
   };
