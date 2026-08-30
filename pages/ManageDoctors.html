@@ -131,88 +131,84 @@
       </div>
       
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-3 h-100">
+        <div class="row g-3">
           
-          <div class="col-lg-7 h-100">
-            <div class="card p-3.5 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
-              <div>
-                <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
-                
-                <div class="mb-3">
-                  <label class="compact-label mb-1" data-i18n="lbl_doc_title">Title</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
-                </div>
-
-                <div class="row g-3 mb-3">
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                  </div>
-                </div>
-
-                <div class="row g-3 mb-3">
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_specialty">Specialty</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_type">Type</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
-                  </div>
-                </div>
-
-                <div class="pt-2">
-                  <h6 class="form-section-title mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-                  <div class="row g-3 mb-3">
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                      <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
-                    </div>
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                      <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
-                    </div>
-                  </div>
-                  
-                  <div class="row g-3 pt-1">
-                    <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
-                        </div>
-                      </div>
-                      <input type="hidden" id="docPrivacy" value="Yes">
-                    </div>
-                    <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
-                        </div>
-                      </div>
-                      <input type="hidden" id="docTos" value="Yes">
-                    </div>
-                  </div>
-                </div>
-
+          <div class="col-lg-6">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs">
+              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+              
+              <div class="mb-3.5">
+                <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
+                <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
               </div>
+
+              <div class="row g-3 mb-3.5">
+                <div class="col-6">
+                  <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
+                </div>
+                <div class="col-6">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-6">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
+                </div>
+                <div class="col-6">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
+                </div>
+              </div>
+
+              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+              <div class="row g-3 mb-3.5">
+                <div class="col-sm-6">
+                  <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
+                </div>
+                <div class="col-sm-6">
+                  <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
+                </div>
+              </div>
+              
+              <div class="row g-3 pt-1">
+                <div class="col-6">
+                  <div class="d-flex align-items-center justify-content-between px-1">
+                    <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
+                    </div>
+                  </div>
+                  <input type="hidden" id="docPrivacy" value="Yes">
+                </div>
+                <div class="col-6">
+                  <div class="d-flex align-items-center justify-content-between px-1">
+                    <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
+                    </div>
+                  </div>
+                  <input type="hidden" id="docTos" value="Yes">
+                </div>
+              </div>
+
             </div>
           </div>
 
-          <div class="col-lg-5 h-100">
-            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white h-100" style="overflow-x: hidden !important;">
+          <div class="col-lg-6">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
               </div>
-              <div id="workplaceContainerAdd" class="overflow-y-auto overflow-x-hidden pe-1" style="max-height: 420px;"></div>
+              <div id="workplaceContainerAdd" class="overflow-y-auto overflow-x-hidden pe-1" style="max-height: 480px;"></div>
             </div>
           </div>
 
@@ -228,7 +224,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Perfect Vertical Fit: ควบคุม Spacing ให้กระชับ สดใส พอดีการ์ดขาวและพอดีหน้าจอแบบ Zero-Scrollbar -->
+  <!-- 🌟 Precision Layout: สัดส่วน 50:50 สมดุล Inner Padding p-4 เท่ากันพอดีเป๊ะ ไม่ดันล้น -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -255,101 +251,95 @@
       
       <!-- Main Content Area -->
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-3 h-100">
+        <div class="row g-3">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-7): ปรับกระชับ p-3.5 และ mb-2.5/mb-3 วางอยู่ในการ์ดขาวพอดีเป๊ะ -->
-          <div class="col-lg-7 h-100">
-            <div class="card p-3.5 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+          <!-- 🔹 ฝั่งซ้าย (col-lg-6): Padding p-4 นุ่มนวล ระยะบรรทัด mb-3.5 พอดีขอบการ์ด -->
+          <div class="col-lg-6">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs">
               
-              <div>
-                <!-- หมวดที่ 1: General Information -->
-                <h6 class="form-section-title mb-2.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
-                
-                <!-- Title -->
-                <div class="mb-2.5">
-                  <label class="compact-label mb-1" data-i18n="lbl_doc_title">Title</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+              <!-- หมวดที่ 1: General Information -->
+              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+              
+              <!-- Title -->
+              <div class="mb-3.5">
+                <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
+                <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+              </div>
+
+              <!-- Name EN & Name TH -->
+              <div class="row g-3 mb-3.5">
+                <div class="col-6">
+                  <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
                 </div>
-
-                <!-- Name EN & Name TH -->
-                <div class="row g-2.5 mb-2.5">
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_doc_name_th">Name (TH)</label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                  </div>
+                <div class="col-6">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                 </div>
+              </div>
 
-                <!-- Specialty & Type -->
-                <div class="row g-2.5 mb-3">
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_specialty">Specialty</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_type">Type</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
-                  </div>
+              <!-- Specialty & Type -->
+              <div class="row g-3 mb-4">
+                <div class="col-6">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
                 </div>
+                <div class="col-6">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
+                </div>
+              </div>
 
-                <!-- หมวดที่ 2: Contact & Consent -->
-                <div class="pt-1">
-                  <h6 class="form-section-title mb-2.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-                  
-                  <div class="row g-2.5 mb-2.5">
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                      <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
-                    </div>
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                      <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
-                    </div>
-                  </div>
+              <!-- หมวดที่ 2: Contact & Consent -->
+              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+              
+              <div class="row g-3 mb-3.5">
+                <div class="col-sm-6">
+                  <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                </div>
+                <div class="col-sm-6">
+                  <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                </div>
+              </div>
 
-                  <!-- Consent Toggles ลอยตัวสวยงามในการ์ด ไม่ล้นก้นการ์ดอีกต่อไป -->
-                  <div class="row g-2.5 pt-1">
-                    <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1 py-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.6em; height: 1.4em; cursor: pointer;">
-                        </div>
-                      </div>
-                      <input type="hidden" id="editDocPrivacy" value="Yes">
-                    </div>
-
-                    <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1 py-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.6em; height: 1.4em; cursor: pointer;">
-                        </div>
-                      </div>
-                      <input type="hidden" id="editDocTos" value="Yes">
+              <!-- Toggle Switches คลีนๆ ไม่ล้นก้นการ์ด -->
+              <div class="row g-3 pt-1">
+                <div class="col-6">
+                  <div class="d-flex align-items-center justify-content-between px-1">
+                    <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.6em; height: 1.4em; cursor: pointer;">
                     </div>
                   </div>
-
+                  <input type="hidden" id="editDocPrivacy" value="Yes">
                 </div>
 
+                <div class="col-6">
+                  <div class="d-flex align-items-center justify-content-between px-1">
+                    <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.6em; height: 1.4em; cursor: pointer;">
+                    </div>
+                  </div>
+                  <input type="hidden" id="editDocTos" value="Yes">
+                </div>
               </div>
 
             </div>
           </div>
 
-          <!-- 🔹 ฝั่งขวา (col-lg-5): Workplace History -->
-          <div class="col-lg-5 h-100">
-            <div class="card p-3.5 rounded-4 border bg-white shadow-xs h-100" style="overflow-x: hidden !important;">
-              <div class="d-flex justify-content-between align-items-center mb-2.5">
+          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History ปรับขนาดกระชับพอดีการ์ดซ้าย -->
+          <div class="col-lg-6">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs" style="overflow-x: hidden !important;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
               </div>
-              <div id="workplaceContainerEdit" class="overflow-y-auto overflow-x-hidden pe-1" style="max-height: 420px;"></div>
+              <div id="workplaceContainerEdit" class="overflow-y-auto overflow-x-hidden pe-1" style="max-height: 480px;"></div>
             </div>
           </div>
 
