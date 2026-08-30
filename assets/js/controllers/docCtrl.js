@@ -972,7 +972,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   return selectedIds;
 };
 
-window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
+ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
@@ -985,19 +985,17 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const selectPlaceholder = appLang === 'en' ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
-  row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2 shadow-xs transition-all';
+  // 🌟 ปรับเป็น Row แบบไร้กรอบกรอบนอกซ้ำซ้อน
+  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2.5 transition-all';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
   const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
 
-  // 🎯 ปรับแก้: กำหนดให้ option แรกสุดเป็นค่าว่างเสมอ เพื่อไม่ให้เลือกโรงพยาบาลแรกให้อัตโนมัติ
   let optionsHtml = '<option value="">' + selectPlaceholder + '</option>';
-  
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const hIdStr = String(h.Hospital_ID).toLowerCase();
     const isSelectedSelf = (h.Hospital_ID && hospId && String(h.Hospital_ID) === String(hospId));
     
-    // ถ้ายังไม่ถูกเลือกในแถวอื่น หรือเป็นค่าที่ถูกเซ็ตไว้เดิมของแถวนี้
     if (isSelectedSelf || !usedHospIds.includes(hIdStr)) {
       const selectedAttr = isSelectedSelf ? 'selected' : '';
       const showName = window.getHospitalNameByLang(h);
@@ -1007,26 +1005,31 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 
   const checked = isPrimary ? 'checked' : '';
 
+  // 🌟 ปรับโครงสร้าง HTML ให้ Dropdown กับ ปุ่ม Primary อยู่ในกล่องเดียวกัน ความสูงเท่ากันเป๊ะ 38px
   row.innerHTML = `
-    <div class="d-flex align-items-center gap-2">
-      <div class="text-primary fs-5 opacity-75 ps-1">🏥</div>
+    <div class="d-flex align-items-center gap-2 w-100">
+      <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
+      
+      <!-- Dropdown Select Zone -->
       <div class="flex-grow-1 min-w-0">
-        <select class="form-select form-select-sm hospital-select bg-white shadow-none text-truncate fw-medium" id="${selectId}" required>
+        <select class="form-select form-select-sm hospital-select" id="${selectId}" required>
           ${optionsHtml}
         </select>
       </div>
       
-      <div class="flex-shrink-0">
+      <!-- Premium Primary Button (ขนาดสูง 38px เท่า Dropdown เป๊ะ) -->
+      <div class="flex-shrink-0" style="height: 38px;">
         <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-        <label class="btn btn-sm btn-wp-primary-toggle fw-bold px-3 py-1.5 border shadow-xs d-flex align-items-center gap-1.5 cursor-pointer" for="radio_${selectId}" style="border-radius: 20px; font-size: 0.8rem;">
+        <label class="btn btn-wp-primary-clean fw-bold px-3 d-flex align-items-center gap-1.5 cursor-pointer h-100" for="radio_${selectId}">
           <i class="fa-solid fa-star star-icon"></i>
           <span class="lbl-text-primary">${primaryText}</span>
           <span class="lbl-text-set">${setPrimaryText}</span>
         </label>
       </div>
 
+      <!-- Clean Action Trash Icon -->
       <div class="flex-shrink-0">
-        <button type="button" class="btn btn-sm btn-light border-0 text-danger px-2 py-1.5 rounded-circle shadow-xs opacity-75 hover-opacity-100" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
+        <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </div>
@@ -1044,7 +1047,6 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
       dropdownParent: 'body'
     });
 
-    // ถ้าเป็นการกดเพิ่มแถวใหม่ (ไม่มี hospId ส่งมา) ให้บังคับเคลียร์ค่าให้เป็นช่องว่างทันที
     if (!hospId) {
       ts.clear(true);
     }
