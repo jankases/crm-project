@@ -290,7 +290,7 @@ window.renderFilterDropdowns = function(validDocsData) {
   }
 };
 
- // ==========================================
+// ==========================================
 // 📥 LOAD INDEX DROPDOWNS & AUTO MULTI-LANG
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
@@ -1019,22 +1019,26 @@ window.checkPendingDCR = async function(docId) {
   } catch (err) { console.error("Error check DCR:", err); }
 };
 
-window.toggleDoctorStatusText = function(checkboxEl) {
-  const lbl = document.getElementById('lblDocStatusToggle');
+// 🌟 [OPTION B]: Render Status Badge Tag (แทนสวิตช์ Toggle)
+window.toggleDoctorStatusText = function(statusVal) {
+  const badgeContainer = document.getElementById('docStatusBadgeContainer');
   const hiddenInput = document.getElementById('editDocStatus');
   
-  if (checkboxEl.checked) {
-    if (lbl) {
-      lbl.textContent = 'Active Doctor';
-      lbl.className = 'form-check-label fw-bold small text-success ms-1';
+  const isActive = (statusVal === 'Active' || statusVal === true || statusVal === 'ใช้งาน');
+  if (hiddenInput) hiddenInput.value = isActive ? 'Active' : 'Inactive';
+
+  if (badgeContainer) {
+    if (isActive) {
+      badgeContainer.innerHTML = `
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;">
+          <i class="fa-solid fa-circle text-success" style="font-size: 0.5rem;"></i> Active Doctor
+        </span>`;
+    } else {
+      badgeContainer.innerHTML = `
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;">
+          <i class="fa-solid fa-circle text-danger" style="font-size: 0.5rem;"></i> Inactive Doctor
+        </span>`;
     }
-    if (hiddenInput) hiddenInput.value = 'Active';
-  } else {
-    if (lbl) {
-      lbl.textContent = 'Inactive Doctor';
-      lbl.className = 'form-check-label fw-bold small text-danger ms-1';
-    }
-    if (hiddenInput) hiddenInput.value = 'Inactive';
   }
 };
 
@@ -1085,12 +1089,9 @@ window.openEditDoctorView = function(id) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
+  // 🌟 Render Status Badge Tag (Option B)
   const currentStatus = d.Status || d.status || 'Active';
-  const statusToggle = document.getElementById('editDocStatusToggle');
-  if (statusToggle) {
-    statusToggle.checked = (currentStatus === 'Active');
-    window.toggleDoctorStatusText(statusToggle);
-  }
+  window.toggleDoctorStatusText(currentStatus);
 
   window.clearWorkplaceContainer('workplaceContainerEdit');
   let parsedWp = [];
