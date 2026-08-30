@@ -939,7 +939,7 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
 };
 
 // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Searchable Select UI)
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Clean Search & Anti-Duplicate)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -961,6 +961,19 @@ window.removeWorkplaceRow = function(btn) {
   }
 };
 
+// 🌟 ฟังก์ชันดึงรายชื่อ Hospital ID ที่ถูกเลือกไปแล้วในตาราง
+window.getSelectedHospitalIds = function(containerId, currentSelectId) {
+  const container = document.getElementById(containerId);
+  if (!container) return [];
+  const selectedIds = [];
+  container.querySelectorAll('.hospital-select').forEach(select => {
+    if (select.id !== currentSelectId && select.value) {
+      selectedIds.push(String(select.value).toLowerCase());
+    }
+  });
+  return selectedIds;
+};
+
 window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -972,17 +985,27 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
   const setPrimaryText = appLang === 'en' ? 'Set Primary' : 'ตั้งเป็นหลัก';
-  const selectPlaceholder = appLang === 'en' ? '🔍 Search hospital...' : '🔍 ค้นหาหรือเลือกโรงพยาบาล...';
+  const selectPlaceholder = appLang === 'en' ? 'Search hospital...' : 'ค้นหาหรือเลือกโรงพยาบาล...';
 
   const row = document.createElement('div');
   row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2 shadow-xs transition-all';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
-  let optionsHtml = `<option value="">${selectPlaceholder}</option>`;
+  // 🌟 ดึง ID โรงพยาบาลที่ถูกเลือกไปแล้วในแถวอื่นมาทำ Filter
+  const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
+
+  // 🎯 สร้าง Options โดยตัดตัวเลือกที่ถูกใช้ไปแล้วออก (ยกเว้นตัวที่เลือกค้างไว้ในแถวตัวเอง)
+  let optionsHtml = '<option value=""></option>'; // ใช้ค่าว่างเปล่าสำหรับ Placeholder
   (window.DocManagerCache.hospitals || []).forEach(h => {
-    const selected = h.Hospital_ID === hospId ? 'selected' : '';
-    const showName = window.getHospitalNameByLang(h);
-    optionsHtml += `<option value="${h.Hospital_ID}" ${selected}>${showName}</option>`;
+    const hIdStr = String(h.Hospital_ID).toLowerCase();
+    const isSelectedSelf = (h.Hospital_ID === hospId);
+    
+    // ถ้ายังไม่ถูกเลือก หรือเป็นตัวเลือกดั้งเดิมของแถวนี้ ให้ใส่ลงใน Dropdown
+    if (isSelectedSelf || !usedHospIds.includes(hIdStr)) {
+      const selectedAttr = isSelectedSelf ? 'selected' : '';
+      const showName = window.getHospitalNameByLang(h);
+      optionsHtml += `<option value="${h.Hospital_ID}" ${selectedAttr}>${showName}</option>`;
+    }
   });
 
   const checked = isPrimary ? 'checked' : '';
@@ -1014,15 +1037,31 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   `;
   container.appendChild(row);
 
-  // 🌟 เปิดใช้งาน TomSelect รองรับการพิมพ์ค้นหาได้อย่างลื่นไหล
+  // 🌟 เปิดใช้งาน TomSelect (ไม่ให้มีคีย์เวิร์ดค้างในลิสต์ + ตรวจจับการเลือกซ้ำ)
   if (typeof TomSelect !== 'undefined') {
-    new TomSelect(`#${selectId}`, {
+    const ts = new TomSelect(`#${selectId}`, {
       create: false, 
       searchField: ["text"], 
       sortField: { field: "text", direction: "asc" },
       placeholder: selectPlaceholder, 
       allowEmptyOption: true, 
       dropdownParent: 'body'
+    });
+
+    // ⚡ Event Listener ป้องกันการเลือกโรงพยาบาลซ้ำทันทีที่ผู้ใช้คลิกเลือก
+    ts.on('change', function(val) {
+      if (!val) return;
+      const currentUsed = window.getSelectedHospitalIds(containerId, selectId);
+      if (currentUsed.includes(String(val).toLowerCase())) {
+        const msgDup = appLang === 'en' 
+          ? '❌ Duplicate Hospital! This workplace has already been added.' 
+          : '❌ โรงพยาบาลซ้ำ! คุณได้เลือกโรงพยาบาลนี้ไปแล้ว';
+        
+        if (window.showToast) window.showToast(msgDup, "error");
+        else alert(msgDup);
+
+        ts.clear(true); // เคลียร์ค่าที่เลือกซ้ำออกทันที
+      }
     });
   }
 
