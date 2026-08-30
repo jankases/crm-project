@@ -985,7 +985,8 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
   const setPrimaryText = appLang === 'en' ? 'Set Primary' : 'ตั้งเป็นหลัก';
-  const selectPlaceholder = appLang === 'en' ? 'Search hospital...' : 'ค้นหาหรือเลือกโรงพยาบาล...';
+  // 🎯 ปรับ Placeholder ให้สอดคล้องกับหัวข้อ Workplace
+  const selectPlaceholder = appLang === 'en' ? 'Search workplace or hospital...' : 'ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
   row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2 shadow-xs transition-all';
@@ -995,12 +996,11 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
 
   // 🎯 สร้าง Options โดยตัดตัวเลือกที่ถูกใช้ไปแล้วออก (ยกเว้นตัวที่เลือกค้างไว้ในแถวตัวเอง)
-  let optionsHtml = '<option value=""></option>'; // ใช้ค่าว่างเปล่าสำหรับ Placeholder
+  let optionsHtml = '<option value=""></option>';
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const hIdStr = String(h.Hospital_ID).toLowerCase();
     const isSelectedSelf = (h.Hospital_ID === hospId);
     
-    // ถ้ายังไม่ถูกเลือก หรือเป็นตัวเลือกดั้งเดิมของแถวนี้ ให้ใส่ลงใน Dropdown
     if (isSelectedSelf || !usedHospIds.includes(hIdStr)) {
       const selectedAttr = isSelectedSelf ? 'selected' : '';
       const showName = window.getHospitalNameByLang(h);
@@ -1048,19 +1048,19 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
       dropdownParent: 'body'
     });
 
-    // ⚡ Event Listener ป้องกันการเลือกโรงพยาบาลซ้ำทันทีที่ผู้ใช้คลิกเลือก
+    // ⚡ Event Listener ป้องกันการเลือกซ้ำ พร้อมข้อความแจ้งเตือนที่เป็นสากล
     ts.on('change', function(val) {
       if (!val) return;
       const currentUsed = window.getSelectedHospitalIds(containerId, selectId);
       if (currentUsed.includes(String(val).toLowerCase())) {
         const msgDup = appLang === 'en' 
-          ? '❌ Duplicate Hospital! This workplace has already been added.' 
-          : '❌ โรงพยาบาลซ้ำ! คุณได้เลือกโรงพยาบาลนี้ไปแล้ว';
+          ? '❌ Duplicate Workplace! This workplace has already been added.' 
+          : '❌ สถานที่ปฏิบัติงานซ้ำ! คุณได้เลือกสถานที่นี้ไปแล้ว';
         
         if (window.showToast) window.showToast(msgDup, "error");
         else alert(msgDup);
 
-        ts.clear(true); // เคลียร์ค่าที่เลือกซ้ำออกทันที
+        ts.clear(true);
       }
     });
   }
@@ -1069,7 +1069,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   window.renderDashedAddWorkplaceTile(containerId);
 };
 
-// 🌟 ช่องเส้นประต่อท้าย เพิ่มโรงพยาบาลล่างสุดจุดเดียว
+// 🌟 ช่องเส้นประต่อท้าย เพิ่มสถานที่ปฏิบัติงานล่างสุดจุดเดียว
 window.renderDashedAddWorkplaceTile = function(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1079,7 +1079,8 @@ window.renderDashedAddWorkplaceTile = function(containerId) {
 
   const radioGroupName = (containerId === 'workplaceContainerEdit') ? 'primaryWpEdit' : 'primaryWpAdd';
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const addText = appLang === 'en' ? '+ Add Hospital' : '+ เพิ่มโรงพยาบาล';
+  // 🎯 เปลี่ยนข้อความปุ่มเพิ่มให้สอดคล้องกัน
+  const addText = appLang === 'en' ? '+ Add Workplace' : '+ เพิ่มสถานที่ปฏิบัติงาน';
 
   const dashedTile = document.createElement('div');
   dashedTile.className = 'dashed-add-wp-tile border-2 border-dashed rounded-3 p-2.5 text-center text-primary cursor-pointer hover-bg-light transition-all mt-2';
@@ -1111,7 +1112,6 @@ window.extractWorkplaces = function(containerId) {
   });
   return workplaces;
 };
-
 // ==========================================
 // 📝 7. FORM ACTIONS (ADD, EDIT, PROFILE)
 // ==========================================
