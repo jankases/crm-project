@@ -237,7 +237,7 @@
       <input type="hidden" id="editDocId">
       
       <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
+       <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
@@ -246,11 +246,10 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- 🌟 Status Toggle Switcher Pill (ขนาด 2.8em x 1.5em เท่ากับ Privacy Policy) -->
-        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
+        <div class="d-flex align-items-center gap-2.5">
           <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
             <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
-            <label class="form-check-label fw-bold small text-success ms-1 cursor-pointer" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.9rem; user-select: none;">Active Doctor</label>
+            <label class="form-check-label fw-bold text-success cursor-pointer ms-1" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.875rem; user-select: none;">Active Doctor</label>
           </div>
           <input type="hidden" id="editDocStatus" value="Active">
         </div>
