@@ -939,7 +939,7 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
 };
 
 // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Modern UI + Dashed Tile)
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Clean Premium UI)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -965,15 +965,16 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const container = document.getElementById(containerId);
   if (!container) return;
   
-  // ลบช่อง Dashed Tile เก่าออกก่อน
+  // ลบช่อง Dashed Tile เก่าออกก่อนเสมอ
   const oldTile = container.querySelector('.dashed-add-wp-tile');
   if (oldTile) oldTile.remove();
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
+  const setPrimaryText = appLang === 'en' ? 'Set Primary' : 'ตั้งเป็นหลัก';
 
   const row = document.createElement('div');
-  row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2.5 shadow-xs transition-all';
+  row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2 shadow-xs transition-all';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
   let optionsHtml = '<option value="">- Select Hospital -</option>';
@@ -993,13 +994,16 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
           ${optionsHtml}
         </select>
       </div>
+      
       <div class="flex-shrink-0">
         <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-        <label class="btn btn-sm btn-outline-primary text-dark fw-bold px-3 py-1.5 border shadow-xs d-flex align-items-center gap-1.5" for="radio_${selectId}" title="Set as Primary Workplace" style="border-radius: 20px; font-size: 0.8rem;">
-          <i class="fa-solid fa-star text-warning"></i>
-          <span>${primaryText}</span>
+        <label class="btn btn-sm btn-wp-primary-toggle fw-bold px-3 py-1.5 border shadow-xs d-flex align-items-center gap-1.5 cursor-pointer" for="radio_${selectId}" style="border-radius: 20px; font-size: 0.8rem;">
+          <i class="fa-solid fa-star star-icon"></i>
+          <span class="lbl-text-primary">${primaryText}</span>
+          <span class="lbl-text-set">${setPrimaryText}</span>
         </label>
       </div>
+
       <div class="flex-shrink-0">
         <button type="button" class="btn btn-sm btn-light border-0 text-danger px-2 py-1.5 rounded-circle shadow-xs opacity-75 hover-opacity-100" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
           <i class="fa-solid fa-trash-can"></i>
@@ -1020,11 +1024,11 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
     });
   }
 
-  // เติมช่อง Dashed Add Workplace Tile ด้านล่างสุดเสมอ
+  // เติมช่อง Dashed Add Tile ล่างสุดเสมอ
   window.renderDashedAddWorkplaceTile(containerId);
 };
 
-// 🌟 ฟังก์ชันสร้าง Dashed Tile เชิญชวนเพิ่มโรงพยาบาลล่างสุด
+// 🌟 ช่องเส้นประต่อท้าย เพิ่มโรงพยาบาลล่างสุดจุดเดียว
 window.renderDashedAddWorkplaceTile = function(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1034,11 +1038,11 @@ window.renderDashedAddWorkplaceTile = function(containerId) {
 
   const radioGroupName = (containerId === 'workplaceContainerEdit') ? 'primaryWpEdit' : 'primaryWpAdd';
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const addText = appLang === 'en' ? '+ Add Additional Workplace' : '+ คลิกเพื่อเพิ่มสถานที่ปฏิบัติงานเพิ่มเติม';
+  const addText = appLang === 'en' ? '+ Add Hospital' : '+ เพิ่มโรงพยาบาล';
 
   const dashedTile = document.createElement('div');
-  dashedTile.className = 'dashed-add-wp-tile border-2 border-dashed border-primary-subtle rounded-3 p-3 text-center text-primary cursor-pointer hover-bg-light transition-all mt-2';
-  dashedTile.style.cursor = 'pointer';
+  dashedTile.className = 'dashed-add-wp-tile border-2 border-dashed rounded-3 p-2.5 text-center text-primary cursor-pointer hover-bg-light transition-all mt-2';
+  dashedTile.style.style = 'cursor: pointer; border-style: dashed !important;';
   dashedTile.onclick = function() {
     window.addWorkplaceRow(containerId, radioGroupName);
   };
