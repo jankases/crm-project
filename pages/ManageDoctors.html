@@ -131,52 +131,54 @@
       </div>
       
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-3">
+        <div class="row g-3 h-100">
           
-          <div class="col-lg-6">
-            <div class="card p-4 rounded-4 border bg-white shadow-xs">
-              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
-              
-              <div class="mb-3.5">
-                <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
-                <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
+          <div class="col-lg-6 h-100">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
+              <div>
+                <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+                
+                <div class="mb-3.5">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
+                </div>
+
+                <div class="row g-3 mb-3.5">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
+                  </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
+                  </div>
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
+                  </div>
+                </div>
+
+                <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+                <div class="row g-3 mb-3.5">
+                  <div class="col-sm-6">
+                    <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
+                  </div>
+                </div>
               </div>
 
-              <div class="row g-3 mb-3.5">
-                <div class="col-6">
-                  <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
-                </div>
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                </div>
-              </div>
-
-              <div class="row g-3 mb-4">
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
-                </div>
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
-                </div>
-              </div>
-
-              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-              <div class="row g-3 mb-3.5">
-                <div class="col-sm-6">
-                  <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
-                </div>
-                <div class="col-sm-6">
-                  <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
-                </div>
-              </div>
-              
-              <div class="row g-3 pt-1">
+              <div class="row g-3 pt-2">
                 <div class="col-6">
                   <div class="d-flex align-items-center justify-content-between px-1">
                     <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
@@ -224,7 +226,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Precision Layout: สัดส่วน 50:50 สมดุล Inner Padding p-4 เท่ากันพอดีเป๊ะ ไม่ดันล้น -->
+  <!-- 🌟 Full Vertical Extension: ยืดฝั่งซ้ายเต็มความสูงการ์ด กระจายระยะห่างฟิลด์นุ่มนวล จรดขอบ Action Bar พอดีเป๊ะ -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -250,62 +252,65 @@
       </div>
       
       <!-- Main Content Area -->
-      <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-3">
+      <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1 d-flex flex-column" style="min-height: 0;">
+        <div class="row g-3 flex-grow-1">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-6): Padding p-4 นุ่มนวล ระยะบรรทัด mb-3.5 พอดีขอบการ์ด -->
-          <div class="col-lg-6">
-            <div class="card p-4 rounded-4 border bg-white shadow-xs">
+          <!-- 🔹 ฝั่งซ้าย (col-lg-6): บังคับยืดเต็มความสูง (h-100) + Flex Space Between ดันส่วน Consent ลงลอยขอบล่างการ์ดพอดี -->
+          <div class="col-lg-6 d-flex flex-column h-100">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column justify-content-between">
               
-              <!-- หมวดที่ 1: General Information -->
-              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
-              
-              <!-- Title -->
-              <div class="mb-3.5">
-                <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
-                <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+              <!-- กลุ่มฟิลด์ด้านบน -->
+              <div>
+                <!-- หมวดที่ 1: General Information -->
+                <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+                
+                <!-- Title -->
+                <div class="mb-3.5">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+                </div>
+
+                <!-- Name EN & Name TH -->
+                <div class="row g-3 mb-3.5">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
+                  </div>
+                </div>
+
+                <!-- Specialty & Type -->
+                <div class="row g-3 mb-4">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
+                  </div>
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
+                  </div>
+                </div>
+
+                <!-- หมวดที่ 2: Contact & Consent -->
+                <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+                
+                <div class="row g-3 mb-3.5">
+                  <div class="col-sm-6">
+                    <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                  </div>
+                </div>
               </div>
 
-              <!-- Name EN & Name TH -->
-              <div class="row g-3 mb-3.5">
-                <div class="col-6">
-                  <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
-                </div>
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                </div>
-              </div>
-
-              <!-- Specialty & Type -->
-              <div class="row g-3 mb-4">
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
-                </div>
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
-                </div>
-              </div>
-
-              <!-- หมวดที่ 2: Contact & Consent -->
-              <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-              
-              <div class="row g-3 mb-3.5">
-                <div class="col-sm-6">
-                  <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
-                </div>
-                <div class="col-sm-6">
-                  <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
-                </div>
-              </div>
-
-              <!-- Toggle Switches คลีนๆ ไม่ล้นก้นการ์ด -->
-              <div class="row g-3 pt-1">
+              <!-- กลุ่ม Consent ลอยอยู่ก้นการ์ดฝั่งซ้ายสวยงาม ปิดพื้นที่ว่างเทาด้านล่างพอดีเป๊ะ -->
+              <div class="row g-3 pt-2">
                 <div class="col-6">
                   <div class="d-flex align-items-center justify-content-between px-1">
                     <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
@@ -330,7 +335,7 @@
             </div>
           </div>
 
-          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History ปรับขนาดกระชับพอดีการ์ดซ้าย -->
+          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History -->
           <div class="col-lg-6">
             <div class="card p-4 rounded-4 border bg-white shadow-xs" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
