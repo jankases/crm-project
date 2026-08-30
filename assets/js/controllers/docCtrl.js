@@ -937,9 +937,8 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
     targetPane.classList.add('active', 'show');
   }
 };
-
-// ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Clean Search & Anti-Duplicate)
+ // ==========================================
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Fixed Auto-Select Bug)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -991,12 +990,14 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 
   const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
 
-  // 🎯 ปรับแก้: เริ่มต้นด้วยสตริงว่าง ให้ TomSelect คุม Placeholder แทน
-  let optionsHtml = '';
+  // 🎯 ปรับแก้: กำหนดให้ option แรกสุดเป็นค่าว่างเสมอ เพื่อไม่ให้เลือกโรงพยาบาลแรกให้อัตโนมัติ
+  let optionsHtml = '<option value="">' + selectPlaceholder + '</option>';
+  
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const hIdStr = String(h.Hospital_ID).toLowerCase();
-    const isSelectedSelf = (h.Hospital_ID === hospId);
+    const isSelectedSelf = (h.Hospital_ID && hospId && String(h.Hospital_ID) === String(hospId));
     
+    // ถ้ายังไม่ถูกเลือกในแถวอื่น หรือเป็นค่าที่ถูกเซ็ตไว้เดิมของแถวนี้
     if (isSelectedSelf || !usedHospIds.includes(hIdStr)) {
       const selectedAttr = isSelectedSelf ? 'selected' : '';
       const showName = window.getHospitalNameByLang(h);
@@ -1042,6 +1043,11 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
       allowEmptyOption: true, 
       dropdownParent: 'body'
     });
+
+    // ถ้าเป็นการกดเพิ่มแถวใหม่ (ไม่มี hospId ส่งมา) ให้บังคับเคลียร์ค่าให้เป็นช่องว่างทันที
+    if (!hospId) {
+      ts.clear(true);
+    }
 
     ts.on('change', function(val) {
       if (!val) return;
@@ -1103,8 +1109,6 @@ window.extractWorkplaces = function(containerId) {
   });
   return workplaces;
 };
-
-
 // ==========================================
 // 📝 7. FORM ACTIONS (ADD, EDIT, PROFILE)
 // ==========================================
