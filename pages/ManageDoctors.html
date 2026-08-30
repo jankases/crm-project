@@ -1,9 +1,7 @@
 <div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column overflow-hidden">
      
-  <!-- ================= 1. หน้ารายชื่อแพทย์ (List View) ================= -->
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
-    <!-- Header Zone -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-3">
         <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
@@ -25,15 +23,12 @@
       </div>
     </div>
 
-    <!-- โซนเนื้อหาหลัก -->
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
       
-      <!-- ส่วนค้นหา/ตัวกรองข้อมูล หน้า Doctors -->
       <div class="card p-2 px-3 border shadow-xs visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0 bg-white" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
-            <!-- Smart Search Input -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center" style="height: 38px;">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 pe-1 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -50,12 +45,10 @@
               </div>
             </div>
 
-            <!-- Specialty Dropdown -->
             <div style="min-width: 170px; max-width: 200px;">
               <select class="form-select shadow-none fs-6" id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
 
-            <!-- Doctor Type Dropdown -->
             <div style="min-width: 170px; max-width: 200px;">
               <select class="form-select shadow-none fs-6" id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
@@ -70,14 +63,12 @@
         </div>
       </div>
 
-      <!-- Single-State Loading Overlay -->
       <div id="doctorTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center">
         <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
         <h5 class="fw-bold text-dark mb-1" id="docLoadingTitleText" data-i18n="status_loading">Loading Doctors...</h5>
         <p class="text-muted mb-0" id="docLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
       </div>
 
-      <!-- ตารางแสดงผลรายชื่อแพทย์ -->
       <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         <div class="table-responsive table-scroll-inside flex-grow-1" style="min-height: 0;">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
@@ -117,11 +108,9 @@
     </div>
   </div>
 
-  <!-- ================= 2. หน้าเพิ่มข้อมูลแพทย์ (Add View) ================= -->
   <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-2.5" style="min-height: 0;">
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       
-      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2.5 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
@@ -208,14 +197,14 @@
           </div>
 
           <div class="col-lg-6 h-100">
-            <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs h-100" style="overflow-x: hidden !important;">
-              <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column" style="overflow-x: hidden !important;">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
               </div>
-              <div id="workplaceContainerAdd" class="overflow-y-auto overflow-x-hidden pe-1" style="max-height: 380px;"></div>
+              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto pe-1"></div>
             </div>
           </div>
 
@@ -230,13 +219,10 @@
     </form>
   </div>
 
-  <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Clean Header Status Switcher (Active / Inactive 2-Language Support) -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
-      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
@@ -246,7 +232,6 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- 🌟 Status Toggle Switcher (สั้น กระชับ ไร้กรอบครอบ รองรับ 2 ภาษา EN/TH) -->
         <div class="d-flex align-items-center gap-2.5">
           <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
             <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
@@ -256,104 +241,98 @@
         </div>
       </div>
       
-      <!-- Main Content Area -->
-      <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
-        <div class="row g-3">
+      <div class="flex-grow-1 overflow-hidden pe-1 my-1" style="min-height: 0;">
+        <div class="row g-3 h-100 align-items-stretch">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-6): โครงสร้างเรียงตัวเป็นธรรมชาติ ช่องไฟสมดุล -->
-          <div class="col-lg-6">
-            <div class="card p-4 rounded-4 border bg-white shadow-xs">
-              
-              <!-- 1. หมวด General Information -->
-              <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
-              
-              <!-- Title -->
-              <div class="mb-3">
-                <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
-                <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
-              </div>
+          <div class="col-lg-6 d-flex flex-column h-100">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between overflow-y-auto">
+              <div>
+                <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+                
+                <div class="mb-3">
+                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+                </div>
 
-              <!-- Name EN & Name TH -->
-              <div class="row g-3 mb-3">
-                <div class="col-6">
-                  <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
-                </div>
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                </div>
-              </div>
-
-              <!-- Specialty & Type -->
-              <div class="row g-3 mb-3">
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
-                </div>
-                <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
-                </div>
-              </div>
-
-              <!-- 2. หมวด Contact & Consent -->
-              <h6 class="form-section-title mt-4 mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-              
-              <div class="row g-3 mb-3">
-                <div class="col-sm-6">
-                  <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
-                </div>
-                <div class="col-sm-6">
-                  <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
-                </div>
-              </div>
-
-              <!-- Consent Toggles -->
-              <div class="row g-3 pt-1">
-                <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between px-1">
-                    <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                    <div class="form-check form-switch m-0">
-                      <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
-                    </div>
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
                   </div>
-                  <input type="hidden" id="editDocPrivacy" value="Yes">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
+                  </div>
                 </div>
 
-                <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between px-1">
-                    <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
-                    <div class="form-check form-switch m-0">
-                      <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
-                    </div>
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
                   </div>
-                  <input type="hidden" id="editDocTos" value="Yes">
+                  <div class="col-6">
+                    <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-1">
+                <h6 class="form-section-title mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+                
+                <div class="row g-3 mb-3">
+                  <div class="col-sm-6">
+                    <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                  </div>
+                </div>
+
+                <div class="row g-3 pt-1">
+                  <div class="col-6">
+                    <div class="d-flex align-items-center justify-content-between px-1">
+                      <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
+                      <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                      </div>
+                    </div>
+                    <input type="hidden" id="editDocPrivacy" value="Yes">
+                  </div>
+
+                  <div class="col-6">
+                    <div class="d-flex align-items-center justify-content-between px-1">
+                      <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
+                      <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                      </div>
+                    </div>
+                    <input type="hidden" id="editDocTos" value="Yes">
+                  </div>
                 </div>
               </div>
 
             </div>
           </div>
 
-          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History -->
-          <div class="col-lg-6">
-            <div class="card p-4 rounded-4 border bg-white shadow-xs" style="overflow-x: hidden !important;">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
+          <div class="col-lg-6 h-100">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column" style="overflow-x: hidden !important;">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
+                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
                   <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
                 </button>
               </div>
-              <div id="workplaceContainerEdit" class="pe-1"></div>
+              
+              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto pe-1"></div>
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- Action Bar -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-2 gap-3">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
@@ -362,7 +341,6 @@
     </form>
   </div>
 
-  <!-- ================= 4. หน้า Profile แพทย์ (Profile View) ================= -->
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
