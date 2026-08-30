@@ -1019,7 +1019,7 @@ window.checkPendingDCR = async function(docId) {
   } catch (err) { console.error("Error check DCR:", err); }
 };
 
-// 🌟 [OPTION B]: Render Status Badge Tag (แทนสวิตช์ Toggle)
+// 🌟 [OPTION B]: Render Status Badge Tag
 window.toggleDoctorStatusText = function(statusVal) {
   const badgeContainer = document.getElementById('docStatusBadgeContainer');
   const hiddenInput = document.getElementById('editDocStatus');
@@ -1030,16 +1030,24 @@ window.toggleDoctorStatusText = function(statusVal) {
   if (badgeContainer) {
     if (isActive) {
       badgeContainer.innerHTML = `
-        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;">
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;" id="lblDocStatusBadge">
           <i class="fa-solid fa-circle text-success" style="font-size: 0.5rem;"></i> Active Doctor
         </span>`;
     } else {
       badgeContainer.innerHTML = `
-        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;">
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;" id="lblDocStatusBadge">
           <i class="fa-solid fa-circle text-danger" style="font-size: 0.5rem;"></i> Inactive Doctor
         </span>`;
     }
   }
+};
+
+// 🌟 [OPTION B]: คลิก Badge สลับสถานะ Active ↔ Inactive
+window.toggleDoctorStatusBadgeClick = function() {
+  const hiddenInput = document.getElementById('editDocStatus');
+  const currentVal = hiddenInput ? hiddenInput.value : 'Active';
+  const newVal = (currentVal === 'Active') ? 'Inactive' : 'Active';
+  window.toggleDoctorStatusText(newVal);
 };
 
 window.updateConsentHiddenInput = function(inputId, isChecked) {
@@ -1731,7 +1739,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-  const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
+  const availableProducts = (window.globalTeamProducts && window.globalProducts || []);
   const usedProductIds = window.getSelectedRatingProductIds(selectId);
   
   const selectProdText = appLang === 'en' ? '- Select Product -' : '- เลือกผลิตภัณฑ์ -';
