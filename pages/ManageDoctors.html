@@ -121,12 +121,23 @@
   <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-2.5" style="min-height: 0;">
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       
+      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0">🩺 <span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h5>
+          <h5 class="text-dark fw-bold mb-0 me-3" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
+          <div id="editDcrStatusBadge"></div>
+        </div>
+
+        <!-- 🌟 Status Toggle Switcher Pill (ขยายขนาดสวิตช์เท่ากับ Privacy Policy ด้านล่างเป๊ะ) -->
+        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
+          <div class="form-check form-switch m-0 d-flex align-items-center gap-2.5 p-0">
+            <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
+            <label class="form-check-label fw-bold small text-success ms-1 cursor-pointer" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.9rem; user-select: none;">Active Doctor</label>
+          </div>
+          <input type="hidden" id="editDocStatus" value="Active">
         </div>
       </div>
       
