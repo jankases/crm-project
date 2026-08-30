@@ -76,20 +76,42 @@ window.safeTranslate = function(key, fallbackText) {
   return fallbackText;
 };
 
-// 🌟 ฟังก์ชันแปลง Title_ID เป็นข้อความผันตามภาษา EN / TH
-window.getTitleTextById = function(titleId) {
-  if (!titleId) return '';
+// 🌟 Lookup Table สำหรับ Title (ถอดแบบมาจาก _purposeIndex ของ Visit)
+window._titleIndex = window._titleIndex || {};
+
+window.buildTitleIndex = function() {
+  window._titleIndex = {};
   const indexes = window.globalIndexes || (window.DocManagerCache ? window.DocManagerCache.indexes : []) || [];
-  const matchedObj = indexes.find(i => String(i.Index_ID || i.id).toLowerCase() === String(titleId).toLowerCase());
+  indexes.forEach(item => {
+    const key = String(item.Index_ID || item.id || '').toLowerCase();
+    if (key) {
+      window._titleIndex[key] = item;
+    }
+  });
+};
+
+// 🌟 ฟังก์ชัน ดึงคำอ่าน Title (ถอดแบบมาจาก getPurposeText ของหน้า Visit)
+window.getTitleText = function(titleId, fallbackText) {
+  if (!titleId) return fallbackText || '-';
   
-  if (!matchedObj) return titleId; // Fallback เผื่อข้อมูลเก่าที่ยังเก็บเป็นข้อความตรงๆ
-  
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  if (appLang === 'en') {
-    return matchedObj.Value_EN || matchedObj.value_en || matchedObj.Value || '';
-  } else {
-    return matchedObj.Value_TH || matchedObj.value_th || matchedObj.Value || '';
+  if (Object.keys(window._titleIndex || {}).length === 0) {
+    window.buildTitleIndex();
   }
+
+  var tObj = window._titleIndex[String(titleId).toLowerCase()];
+  
+  // เผื่อกรณีข้อมูลเก่าที่เก็บบันทึกเป็นข้อความตรงๆ
+  if (!tObj) {
+    const indexes = window.globalIndexes || [];
+    tObj = indexes.find(i => String(i.Value).toLowerCase() === String(titleId).toLowerCase() || String(i.Value1).toLowerCase() === String(titleId).toLowerCase());
+  }
+
+  if (!tObj) return fallbackText || titleId || '-';
+
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  
+  // 🎯 สลับภาษาตามคอลัมน์ใน DB: EN = Value1, TH = Value
+  return (appLang === 'en') ? (tObj.Value1 || tObj.Value || '-') : (tObj.Value || tObj.Value1 || '-');
 };
 
 window.getDoctorNameByLang = function(docObj, defaultId) {
@@ -378,6 +400,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.globalTerritories = window.DocManagerCache.territories;
       window.globalMatrixData = window.DocManagerCache.matrixData;
       window.globalTargetData = window.DocManagerCache.targetData;
+
+      // 🌟 สร้าง Title Index ทันทีที่โหลดข้อมูล Index สำเร็จ
+      window.buildTitleIndex();
 
       const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating' || s.Type === 'TargetCall' || s.Type === 'Target Call');
       if (ratingSetting) {
@@ -1076,7 +1101,7 @@ window.openEditDoctorView = function(id) {
     }
   };
 
-  // 🌟 แมปตั้งค่า Title_ID เข้า TomSelect
+  // 🌟 ตั้งค่า Title_ID เข้า TomSelect
   setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
   setTsVal('editDocSpecialty', d.Specialty || d.specialty || '');
   setTsVal('editDocType', d.Type || d.type || '');
@@ -1125,8 +1150,8 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
   const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
 
-  // 🌟 Lookup คำนำหน้าชื่อผ่าน Title_ID ผันตามภาษา
-  const titleText = window.getTitleTextById(d.Title_ID || d.title_id || d.Title);
+  // 🌟 ใช้ getTitleText ถอดคำอ่านตามภาษาแบบเดียวกับ getPurposeText ของหน้า Visit
+  const titleText = window.getTitleText(d.Title_ID || d.title_id || d.Title);
 
   const titleEl = document.getElementById('viewDocTitleName');
   if (titleEl) {
@@ -1192,7 +1217,6 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   }
 };
 
-// 🌟 บันทึก Title_ID ลง Payload หน้า Add
 window.handleAddDoctor = async function(e) {
   e.preventDefault(); 
   
@@ -1241,7 +1265,6 @@ window.handleAddDoctor = async function(e) {
   finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
 };
 
-// 🌟 บันทึก Title_ID ลง Payload หน้า Edit
 window.handleUpdateDoctor = async function(e) {
   e.preventDefault(); 
 
@@ -1964,6 +1987,9 @@ window.initDoctorPage = async function(forceReload = false) {
 // ⚡ Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
+    // 🌟 อัปเดต Index สำหรับ Lookup Title ทันทีที่สลับภาษา
+    window.buildTitleIndex();
+
     if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
       window.renderFilterDropdowns(window.DocManagerCache.validDocsData);
     }
@@ -1972,7 +1998,7 @@ if (!window._isDocLangListenerAttached) {
       window.renderDoctorTableServerSide();
     }
 
-    // 🌟 รีโหลดดร็อปดาวน์คำนำหน้าและดร็อปดาวน์หลักทันทีเมื่อสลับภาษา
+    // 🌟 รีโหลดตัวเลือกดร็อปดาวน์หลักทุกตัวตามภาษาใหม่ (Value1/Value)
     if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
@@ -2035,7 +2061,7 @@ window.clearDocSearchInput = function() {
 };
 
 // ==========================================
-// 🎯 DYNAMIC OPTIONS RENDERER (VALUE = Index_ID)
+// 🎯 DYNAMIC OPTIONS RENDERER (EN = Value1, TH = Value)
 // ==========================================
 window.getOptionsHtml = function(typeName, defaultText) {
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
@@ -2056,12 +2082,12 @@ window.getOptionsHtml = function(typeName, defaultText) {
       // 🌟 ใช้ Index_ID เป็น value สำหรับบันทึกลง DB
       const valDb = i.Index_ID || i.id || i.Value || i.value || '';
       
-      // ดึง Text แสดงผลจาก DB ผันตามภาษา EN / TH
+      // 🎯 ดึง Text แสดงผลตรงตามสเปก DB: EN = Value1, TH = Value
       let showText = i.Value || i.value || '';
       if (appLang === 'en') {
-        showText = i.Value_EN || i.value_en || i.Value_En || i.Value || '';
+        showText = i.Value1 || i.value1 || i.Value_EN || i.value_en || i.Value || '';
       } else {
-        showText = i.Value_TH || i.value_th || i.Value_Th || i.Value || '';
+        showText = i.Value || i.value || i.Value_TH || i.value_th || '';
       }
       
       if (valDb) html += `<option value="${valDb}">${showText}</option>`;
