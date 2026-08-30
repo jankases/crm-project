@@ -122,22 +122,12 @@
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       
       <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
+      <div class="d-flex align-items-center justify-content-between mb-2.5 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0 me-3" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
-          <div id="editDcrStatusBadge"></div>
-        </div>
-
-        <!-- 🌟 Status Toggle Switcher Pill (ขยายขนาดสวิตช์เท่ากับ Privacy Policy ด้านล่างเป๊ะ) -->
-        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
-          <div class="form-check form-switch m-0 d-flex align-items-center gap-2.5 p-0">
-            <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
-            <label class="form-check-label fw-bold small text-success ms-1 cursor-pointer" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.9rem; user-select: none;">Active Doctor</label>
-          </div>
-          <input type="hidden" id="editDocStatus" value="Active">
+          <h5 class="text-dark fw-bold mb-0 me-3"><i class="fa-solid fa-user-plus text-primary me-2"></i><span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h5>
         </div>
       </div>
       
@@ -197,7 +187,7 @@
                     <div class="d-flex align-items-center justify-content-between px-1">
                       <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
                       <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
+                        <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
                       </div>
                     </div>
                     <input type="hidden" id="docPrivacy" value="Yes">
@@ -206,7 +196,7 @@
                     <div class="d-flex align-items-center justify-content-between px-1">
                       <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
                       <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
+                        <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
                       </div>
                     </div>
                     <input type="hidden" id="docTos" value="Yes">
@@ -241,9 +231,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Perfectly Balanced Layout + Custom Active Switch Pill -->
-   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Clean Natural Flow: ระยะเว้นสมดุล สบายตา ไร้การเกลี่ยยืดที่ผิดธรรมชาติ -->
+  <!-- 🌟 Option B: Clean Status Badge Tag Design -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -258,21 +246,20 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- Status Toggle Switcher -->
-        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
-          <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
-            <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
-            <label class="form-check-label fw-bold small text-success ms-1 cursor-pointer" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.9rem; user-select: none;">Active Doctor</label>
-          </div>
-          <input type="hidden" id="editDocStatus" value="Active">
+        <!-- 🌟 Option B: Clean Status Badge Tag Container -->
+        <div id="docStatusBadgeContainer">
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;" id="lblDocStatusBadge">
+            <i class="fa-solid fa-circle text-success" style="font-size: 0.5rem;"></i> Active Doctor
+          </span>
         </div>
+        <input type="hidden" id="editDocStatus" value="Active">
       </div>
       
       <!-- Main Content Area -->
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-6): เรียงตัวเป็นธรรมชาติ ช่องไฟมาตรฐาน mb-3 ไม่โหวงไม่เบียด -->
+          <!-- 🔹 ฝั่งซ้าย (col-lg-6): โครงสร้างเรียงตัวเป็นธรรมชาติ ช่องไฟสมดุล -->
           <div class="col-lg-6">
             <div class="card p-4 rounded-4 border bg-white shadow-xs">
               
@@ -309,7 +296,7 @@
                 </div>
               </div>
 
-              <!-- 2. หมวด Contact & Consent (เว้น mt-4 เพื่อสร้าง Section Gap ชัดเจน) -->
+              <!-- 2. หมวด Contact & Consent -->
               <h6 class="form-section-title mt-4 mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
               
               <div class="row g-3 mb-3">
