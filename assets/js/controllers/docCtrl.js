@@ -261,7 +261,7 @@ window.renderFilterDropdowns = function(validDocsData) {
   const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
   const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
 
-  // 1. Specialty Filter
+  // 1. Specialty Filter (สำหรับหน้าตารางค้นหา)
   const specSelect = document.getElementById('filterDocSpecialty');
   if (specSelect) {
     const selectedVals = specSelect.tomselect ? specSelect.tomselect.getValue() : [];
@@ -275,7 +275,7 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   }
 
-  // 2. Type Filter
+  // 2. Type Filter (สำหรับหน้าตารางค้นหา)
   const typeSelect = document.getElementById('filterDocType');
   if (typeSelect) {
     const selectedVals = typeSelect.tomselect ? typeSelect.tomselect.getValue() : [];
@@ -501,18 +501,20 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.indexLoaded = true;
 
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      
+      // 🌟 [FIXED] เปลี่ยนคำนำหน้าช่องกรอกหน้า Add / Edit ให้เป็น - Select ... - แทน - All ... -
       const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
-      const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
-      const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
+      const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
+      const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
 
       window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
 
-      window.updateTomSelect('docSpecialty', window.getOptionsHtml('Specialty', phSpec), phSpec);
-      window.updateTomSelect('editDocSpecialty', window.getOptionsHtml('Specialty', phSpec), phSpec);
+      window.updateTomSelect('docSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
+      window.updateTomSelect('editDocSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
 
-      window.updateTomSelect('docType', window.getOptionsHtml('DoctorType', phType), phType);
-      window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', phType), phType);
+      window.updateTomSelect('docType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
+      window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
 
       window.renderFilterDropdowns(validDocsData);
     }
@@ -906,7 +908,6 @@ window.removeWorkplaceRow = function(btn) {
   row.remove();
 };
 
-// 🌟 [UPDATED] ปรับสไตล์แถบ Workplace เป็น Flexbox แนวนอนแคปซูลนุ่มนวล ปุ่มดาว และไร้สโครลล์แนวนอน
 window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -998,7 +999,6 @@ window.checkPendingDCR = async function(docId) {
   } catch (err) { console.error("Error check DCR:", err); }
 };
 
-// 🌟 [NEW] ฟังก์ชันสลับตัวอักษรและค่าใน Hidden Input เมื่อคลิก Toggle Status บน Header
 window.toggleDoctorStatusText = function(checkboxEl) {
   const lbl = document.getElementById('lblDocStatusToggle');
   const hiddenInput = document.getElementById('editDocStatus');
@@ -1018,7 +1018,6 @@ window.toggleDoctorStatusText = function(checkboxEl) {
   }
 };
 
-// 🌟 [NEW] ฟังก์ชันอัปเดตค่า Consent Hidden Input เมื่อสลับ Toggle Switch
 window.updateConsentHiddenInput = function(inputId, isChecked) {
   const hiddenInput = document.getElementById(inputId);
   if (hiddenInput) {
@@ -1026,7 +1025,6 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
   }
 };
 
-// 🌟 [UPDATED] อัปเดต openEditDoctorView ให้ซิงค์ค่าสวิตช์ Status และ Consent Toggle
 window.openEditDoctorView = function(id) {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
@@ -1054,7 +1052,6 @@ window.openEditDoctorView = function(id) {
   document.getElementById('editDocEmail').value = d.Email || d.email || '';
   document.getElementById('editDocMobile').value = d.Mobile || d.mobile || '';
 
-  // ซิงค์ค่า Privacy Policy & Terms of Service ให้สวิตช์ Toggle
   const privacyVal = d.Privacy_Policy || d.privacy || 'Yes';
   const tosVal = d.Terms_of_Service || d.tos || 'Yes';
   
@@ -1068,7 +1065,6 @@ window.openEditDoctorView = function(id) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
-  // ซิงค์ค่า Status ให้สวิตช์ Header Toggle
   const currentStatus = d.Status || d.status || 'Active';
   const statusToggle = document.getElementById('editDocStatusToggle');
   if (statusToggle) {
@@ -1980,7 +1976,7 @@ window.clearDocSearchInput = function() {
     }
 };
 
-// ฟังก์ชันดึงค่า Title Dropdown ที่ปรับให้แสดง TH หรือ EN ตามภาษาแอป
+// ฟังก์ชันดึงค่า Title/Specialty/Type Dropdown ที่ปรับให้แสดง TH หรือ EN ตามภาษาแอป
 window.getOptionsHtml = function(typeName, defaultText) {
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
     const name = (t.Name || '').toLowerCase().trim();
@@ -1997,7 +1993,6 @@ window.getOptionsHtml = function(typeName, defaultText) {
     const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
     
     items.forEach(i => {
-      // ดึงค่าตามภาษาแอป: ถ้า TH ดึง Value_TH (หรือ Value), ถ้า EN ดึง Value_EN (หรือ Value)
       let valStr = i.Value || i.value || '';
       if (appLang === 'en' && (i.Value_EN || i.value_en)) {
         valStr = i.Value_EN || i.value_en;
