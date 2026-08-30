@@ -939,7 +939,7 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
 };
 
 // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Modern UI + Dashed Tile)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -950,18 +950,30 @@ window.clearWorkplaceContainer = function(containerId) {
 };
 
 window.removeWorkplaceRow = function(btn) {
+  const container = btn.closest('#workplaceContainerEdit, #workplaceContainerAdd');
   const row = btn.closest('.workplace-row');
   const sel = row.querySelector('.hospital-select');
   if (sel && sel.tomselect) sel.tomselect.destroy();
   row.remove();
+
+  if (container) {
+    window.renderDashedAddWorkplaceTile(container.id);
+  }
 };
 
 window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
+  // ลบช่อง Dashed Tile เก่าออกก่อน
+  const oldTile = container.querySelector('.dashed-add-wp-tile');
+  if (oldTile) oldTile.remove();
+
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
+
   const row = document.createElement('div');
-  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2 p-2 bg-white rounded-3 border shadow-xs';
+  row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2.5 shadow-xs transition-all';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
   let optionsHtml = '<option value="">- Select Hospital -</option>';
@@ -974,22 +986,25 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const checked = isPrimary ? 'checked' : '';
 
   row.innerHTML = `
-    <div class="flex-grow-1 min-w-0" style="min-width: 0;">
-      <select class="form-select form-select-sm hospital-select bg-white shadow-none text-truncate" id="${selectId}" required>
-        ${optionsHtml}
-      </select>
-    </div>
-    <div class="flex-shrink-0">
-      <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-      <label class="btn btn-sm btn-outline-primary text-dark fw-medium px-2.5 py-1 border shadow-xs d-flex align-items-center gap-1.5" for="radio_${selectId}" title="Set as Primary Workplace" style="border-radius: 8px;">
-        <i class="fa-solid fa-star text-warning"></i>
-        <small class="fw-bold">Primary</small>
-      </label>
-    </div>
-    <div class="flex-shrink-0">
-      <button type="button" class="btn btn-sm btn-light border text-danger px-2.5 py-1 shadow-xs" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace" style="border-radius: 8px;">
-        <i class="fa-solid fa-trash-can"></i>
-      </button>
+    <div class="d-flex align-items-center gap-2">
+      <div class="text-primary fs-5 opacity-75 ps-1">🏥</div>
+      <div class="flex-grow-1 min-w-0">
+        <select class="form-select form-select-sm hospital-select bg-white shadow-none text-truncate fw-medium" id="${selectId}" required style="border-radius: 8px;">
+          ${optionsHtml}
+        </select>
+      </div>
+      <div class="flex-shrink-0">
+        <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
+        <label class="btn btn-sm btn-outline-primary text-dark fw-bold px-3 py-1.5 border shadow-xs d-flex align-items-center gap-1.5" for="radio_${selectId}" title="Set as Primary Workplace" style="border-radius: 20px; font-size: 0.8rem;">
+          <i class="fa-solid fa-star text-warning"></i>
+          <span>${primaryText}</span>
+        </label>
+      </div>
+      <div class="flex-shrink-0">
+        <button type="button" class="btn btn-sm btn-light border-0 text-danger px-2 py-1.5 rounded-circle shadow-xs opacity-75 hover-opacity-100" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
     </div>
   `;
   container.appendChild(row);
@@ -1004,6 +1019,36 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
       dropdownParent: 'body'
     });
   }
+
+  // เติมช่อง Dashed Add Workplace Tile ด้านล่างสุดเสมอ
+  window.renderDashedAddWorkplaceTile(containerId);
+};
+
+// 🌟 ฟังก์ชันสร้าง Dashed Tile เชิญชวนเพิ่มโรงพยาบาลล่างสุด
+window.renderDashedAddWorkplaceTile = function(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const oldTile = container.querySelector('.dashed-add-wp-tile');
+  if (oldTile) oldTile.remove();
+
+  const radioGroupName = (containerId === 'workplaceContainerEdit') ? 'primaryWpEdit' : 'primaryWpAdd';
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const addText = appLang === 'en' ? '+ Add Additional Workplace' : '+ คลิกเพื่อเพิ่มสถานที่ปฏิบัติงานเพิ่มเติม';
+
+  const dashedTile = document.createElement('div');
+  dashedTile.className = 'dashed-add-wp-tile border-2 border-dashed border-primary-subtle rounded-3 p-3 text-center text-primary cursor-pointer hover-bg-light transition-all mt-2';
+  dashedTile.style.cursor = 'pointer';
+  dashedTile.onclick = function() {
+    window.addWorkplaceRow(containerId, radioGroupName);
+  };
+
+  dashedTile.innerHTML = `
+    <div class="fw-bold small py-1" style="font-size: 0.875rem;">
+      <i class="fa-solid fa-plus-circle me-1.5"></i> ${addText}
+    </div>
+  `;
+  container.appendChild(dashedTile);
 };
 
 window.extractWorkplaces = function(containerId) {
@@ -1011,9 +1056,13 @@ window.extractWorkplaces = function(containerId) {
   const rows = container ? container.querySelectorAll('.workplace-row') : [];
   const workplaces = [];
   rows.forEach(row => {
-    const hospId = row.querySelector('.hospital-select').value;
-    const isPrimary = row.querySelector('.primary-radio').checked;
-    if (hospId) workplaces.push({ hospitalId: hospId, isPrimary: isPrimary });
+    const hospSelect = row.querySelector('.hospital-select');
+    const primaryRadio = row.querySelector('.primary-radio');
+    if (hospSelect && primaryRadio) {
+      const hospId = hospSelect.value;
+      const isPrimary = primaryRadio.checked;
+      if (hospId) workplaces.push({ hospitalId: hospId, isPrimary: isPrimary });
+    }
   });
   return workplaces;
 };
