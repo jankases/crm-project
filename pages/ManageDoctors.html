@@ -165,7 +165,7 @@
                   </div>
                 </div>
 
-                <div class="pt-3">
+                <div class="pt-2">
                   <h6 class="form-section-title mb-4"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
                   <div class="row g-3.5 mb-4">
                     <div class="col-sm-6">
@@ -178,21 +178,22 @@
                     </div>
                   </div>
                   
+                  <!-- 🌟 ถอดกรอบเทาออก ปล่อยโล่งคลีน ไม่ล้น -->
                   <div class="row g-3.5 pt-1">
                     <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light-subtle">
+                      <div class="d-flex align-items-center justify-content-between px-1">
                         <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
                         <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                          <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
                         </div>
                       </div>
                       <input type="hidden" id="docPrivacy" value="Yes">
                     </div>
                     <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light-subtle">
+                      <div class="d-flex align-items-center justify-content-between px-1">
                         <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
                         <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                          <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
                         </div>
                       </div>
                       <input type="hidden" id="docTos" value="Yes">
@@ -228,7 +229,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Perfect Spacing Version: ปรับระยะเว้น mb-4 และ mb-3.5 ไร้เส้นคั่น ลอยตัวสวยงาม -->
+  <!-- 🌟 Clean Layout: ถอดกรอบเทารอบ Consent ออก ปรับลอยตัวโล่ง ไม่ล้น 100% -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -257,7 +258,7 @@
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3 h-100">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-7): ช่องไฟนุ่มนวล mb-4 และ mb-3.5 ไร้เส้นคั่น ถอดตามคำขอ -->
+          <!-- 🔹 ฝั่งซ้าย (col-lg-7): ถอดวงเทา Consent ออก ข้อความเรียบหรูชิดขอบการ์ดพอดี -->
           <div class="col-lg-7 h-100">
             <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               
@@ -295,7 +296,7 @@
                   </div>
                 </div>
 
-                <!-- หมวดที่ 2: Contact & Consent (ตัดเส้น border-top ออก เรียบหรูพร้อมระยะเว้น pt-2) -->
+                <!-- หมวดที่ 2: Contact & Consent -->
                 <div class="pt-2">
                   <h6 class="form-section-title mb-4"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
                   
@@ -310,23 +311,23 @@
                     </div>
                   </div>
 
-                  <!-- Toggle Switches สำหรับ iPad -->
+                  <!-- 🌟 Consent แบบลอยไม่มีกรอบเทา ไร้ปัญหาเบียดล้น 100% -->
                   <div class="row g-3.5 pt-1">
                     <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light-subtle">
+                      <div class="d-flex align-items-center justify-content-between px-1">
                         <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
                         <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                          <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.6em; height: 1.4em; cursor: pointer;">
                         </div>
                       </div>
                       <input type="hidden" id="editDocPrivacy" value="Yes">
                     </div>
 
                     <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light-subtle">
+                      <div class="d-flex align-items-center justify-content-between px-1">
                         <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
                         <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                          <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.6em; height: 1.4em; cursor: pointer;">
                         </div>
                       </div>
                       <input type="hidden" id="editDocTos" value="Yes">
