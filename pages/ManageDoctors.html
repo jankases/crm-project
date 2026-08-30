@@ -199,10 +199,7 @@
           <div class="col-lg-6 h-100">
             <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
-                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
-                <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
-                  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
-                </button>
+                <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
               </div>
               <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto pe-1"></div>
             </div>
@@ -246,6 +243,7 @@
           
           <div class="col-lg-6 d-flex flex-column h-100">
             <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between overflow-y-auto">
+              
               <div>
                 <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
                 
@@ -317,15 +315,11 @@
             </div>
           </div>
 
-          <div class="col-lg-6 h-100">
+          <div class="col-lg-6 d-flex flex-column h-100">
             <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
-                <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
-                  <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_hosp">Add Hospital</span>
-                </button>
               </div>
-              
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto pe-1"></div>
             </div>
           </div>
