@@ -939,7 +939,7 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
 };
 
 // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Clean Search & Anti-Duplicate)
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Clean Search & Premium UI)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -961,7 +961,6 @@ window.removeWorkplaceRow = function(btn) {
   }
 };
 
-// 🌟 ฟังก์ชันดึงรายชื่อ Hospital ID ที่ถูกเลือกไปแล้วในตาราง
 window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   const container = document.getElementById(containerId);
   if (!container) return [];
@@ -978,24 +977,23 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const container = document.getElementById(containerId);
   if (!container) return;
   
-  // ลบช่อง Dashed Tile เก่าออกก่อนเสมอ
   const oldTile = container.querySelector('.dashed-add-wp-tile');
   if (oldTile) oldTile.remove();
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
   const setPrimaryText = appLang === 'en' ? 'Set Primary' : 'ตั้งเป็นหลัก';
-  // 🎯 ปรับ Placeholder ให้สอดคล้องกับหัวข้อ Workplace
-  const selectPlaceholder = appLang === 'en' ? 'Search workplace or hospital...' : 'ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
+  
+  // 🎯 ข้อความ Placeholder แนะนำการค้นหา
+  const selectPlaceholder = appLang === 'en' ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
   row.className = 'workplace-row bg-white rounded-3 border p-2.5 mb-2 shadow-xs transition-all';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
-  // 🌟 ดึง ID โรงพยาบาลที่ถูกเลือกไปแล้วในแถวอื่นมาทำ Filter
   const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
 
-  // 🎯 สร้าง Options โดยตัดตัวเลือกที่ถูกใช้ไปแล้วออก (ยกเว้นตัวที่เลือกค้างไว้ในแถวตัวเอง)
+  // 🎯 สร้าง Options โดยเริ่มด้วยตัวเลือกว่างไว้สำหรับ Placeholder ของ TomSelect
   let optionsHtml = '<option value=""></option>';
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const hIdStr = String(h.Hospital_ID).toLowerCase();
@@ -1014,7 +1012,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
     <div class="d-flex align-items-center gap-2">
       <div class="text-primary fs-5 opacity-75 ps-1">🏥</div>
       <div class="flex-grow-1 min-w-0">
-        <select class="form-select form-select-sm hospital-select bg-white shadow-none text-truncate fw-medium" id="${selectId}" required style="border-radius: 8px;">
+        <select class="form-select form-select-sm hospital-select bg-white shadow-none text-truncate fw-medium" id="${selectId}" required>
           ${optionsHtml}
         </select>
       </div>
@@ -1037,7 +1035,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   `;
   container.appendChild(row);
 
-  // 🌟 เปิดใช้งาน TomSelect (ไม่ให้มีคีย์เวิร์ดค้างในลิสต์ + ตรวจจับการเลือกซ้ำ)
+  // 🌟 ตั้งค่า TomSelect พร้อมคุม Placeholder และซ่อนการค้างคำ
   if (typeof TomSelect !== 'undefined') {
     const ts = new TomSelect(`#${selectId}`, {
       create: false, 
@@ -1048,7 +1046,6 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
       dropdownParent: 'body'
     });
 
-    // ⚡ Event Listener ป้องกันการเลือกซ้ำ พร้อมข้อความแจ้งเตือนที่เป็นสากล
     ts.on('change', function(val) {
       if (!val) return;
       const currentUsed = window.getSelectedHospitalIds(containerId, selectId);
@@ -1065,11 +1062,9 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
     });
   }
 
-  // เติมช่อง Dashed Add Tile ล่างสุดเสมอ
   window.renderDashedAddWorkplaceTile(containerId);
 };
 
-// 🌟 ช่องเส้นประต่อท้าย เพิ่มสถานที่ปฏิบัติงานล่างสุดจุดเดียว
 window.renderDashedAddWorkplaceTile = function(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1079,7 +1074,6 @@ window.renderDashedAddWorkplaceTile = function(containerId) {
 
   const radioGroupName = (containerId === 'workplaceContainerEdit') ? 'primaryWpEdit' : 'primaryWpAdd';
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  // 🎯 เปลี่ยนข้อความปุ่มเพิ่มให้สอดคล้องกัน
   const addText = appLang === 'en' ? '+ Add Workplace' : '+ เพิ่มสถานที่ปฏิบัติงาน';
 
   const dashedTile = document.createElement('div');
