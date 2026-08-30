@@ -290,8 +290,8 @@ window.renderFilterDropdowns = function(validDocsData) {
   }
 };
 
-// ==========================================
-// 📥 4. PERMISSIONS & DROPDOWNS SETUP
+ // ==========================================
+// 📥 LOAD INDEX DROPDOWNS & AUTO MULTI-LANG
 // ==========================================
 window.loadIndexDropdowns = async function(forceReload = false) {
   try {
@@ -501,8 +501,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.indexLoaded = true;
 
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      
-      // 🌟 [FIXED] เปลี่ยนคำนำหน้าช่องกรอกหน้า Add / Edit ให้เป็น - Select ... - แทน - All ... -
       const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
       const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
       const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
@@ -522,6 +520,28 @@ window.loadIndexDropdowns = async function(forceReload = false) {
     console.warn("Dropdown load warning:", err.message);
   }
 };
+
+// ⚡ LISTENER: รีโหลดคำนำหน้าและตัวเลือกใน Dropdown ทันทีเมื่อผู้ใช้แตะเปลี่ยนภาษา EN / TH
+if (!window._isDocLangDropdownListenerAttached) {
+  window.addEventListener('appLanguageChanged', function() {
+    if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
+      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
+      const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
+      const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
+
+      window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
+      window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
+
+      window.updateTomSelect('docSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
+      window.updateTomSelect('editDocSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
+
+      window.updateTomSelect('docType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
+      window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
+    }
+  });
+  window._isDocLangDropdownListenerAttached = true;
+}
 
 window.getIndexValues = function(typeName) {
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
@@ -1976,7 +1996,9 @@ window.clearDocSearchInput = function() {
     }
 };
 
-// ฟังก์ชันดึงค่า Title/Specialty/Type Dropdown ที่ปรับให้แสดง TH หรือ EN ตามภาษาแอป
+// ==========================================
+// 🎯 DYNAMIC OPTIONS RENDERER (EN / TH SUPPORT)
+// ==========================================
 window.getOptionsHtml = function(typeName, defaultText) {
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
     const name = (t.Name || '').toLowerCase().trim();
@@ -1993,14 +2015,18 @@ window.getOptionsHtml = function(typeName, defaultText) {
     const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
     
     items.forEach(i => {
-      let valStr = i.Value || i.value || '';
-      if (appLang === 'en' && (i.Value_EN || i.value_en)) {
-        valStr = i.Value_EN || i.value_en;
-      } else if (appLang === 'th' && (i.Value_TH || i.value_th)) {
-        valStr = i.Value_TH || i.value_th;
+      // ค่า Value หลักที่ใช้เก็บบันทึกลง DB
+      const valDb = i.Value || i.value || '';
+      
+      // ค่า Text ที่แสดงผลบน Dropdown ผันตามภาษา EN / TH จาก System Settings
+      let showText = valDb;
+      if (appLang === 'en') {
+        showText = i.Value_EN || i.value_en || valDb;
+      } else {
+        showText = i.Value_TH || i.value_th || valDb;
       }
       
-      if (valStr) html += `<option value="${valStr}">${valStr}</option>`;
+      if (valDb) html += `<option value="${valDb}">${showText}</option>`;
     });
   }
   return html;
