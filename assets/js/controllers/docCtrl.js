@@ -155,16 +155,25 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
+// 🌟 ข้อ 1: ทำลาย TomSelect เดิมทิ้งเพื่อเคลียร์รายการตัวเลือกภาษาเก่า แล้วสร้างดร็อปดาวน์ใหม่ตามภาษาปัจจุบันทันที
 window.updateTomSelect = function(id, html, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
   
   if (el.tomselect) {
-    el.tomselect.clearOptions();
+    const curVal = el.tomselect.getValue();
+    el.tomselect.destroy();
     el.innerHTML = html;
-    el.tomselect.settings.placeholder = placeholder;
-    el.tomselect.inputState();
-    el.tomselect.sync();
+    
+    new TomSelect(`#${id}`, { 
+      create: false, 
+      searchField: ["text"],
+      sortField: { field: "text", direction: "asc" }, 
+      placeholder: placeholder, 
+      allowEmptyOption: true, 
+      dropdownParent: 'body' 
+    });
+    if (curVal) el.tomselect.setValue(curVal, true);
   } else if (typeof TomSelect !== 'undefined') {
     el.innerHTML = html;
     new TomSelect(`#${id}`, { 
@@ -520,28 +529,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
     console.warn("Dropdown load warning:", err.message);
   }
 };
-
-// ⚡ LISTENER: รีโหลดคำนำหน้าและตัวเลือกใน Dropdown ทันทีเมื่อผู้ใช้แตะเปลี่ยนภาษา EN / TH
-if (!window._isDocLangDropdownListenerAttached) {
-  window.addEventListener('appLanguageChanged', function() {
-    if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
-      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
-      const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
-      const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
-
-      window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
-      window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
-
-      window.updateTomSelect('docSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
-      window.updateTomSelect('editDocSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
-
-      window.updateTomSelect('docType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
-      window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
-    }
-  });
-  window._isDocLangDropdownListenerAttached = true;
-}
 
 window.getIndexValues = function(typeName) {
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
@@ -1019,7 +1006,7 @@ window.checkPendingDCR = async function(docId) {
   } catch (err) { console.error("Error check DCR:", err); }
 };
 
-// 🌟 ฟังก์ชันคุมการเปลี่ยนข้อความ Active / Inactive ตามการสับสวิตช์ Toggle
+// 🌟 ข้อ 2: ฟังก์ชันคุมสลับข้อความ Active/Inactive แบบ 2 ภาษา (EN: Active/Inactive, TH: ใช้งาน/ไม่ใช้งาน)
 window.toggleDoctorStatusText = function(elementOrValue) {
   const lbl = document.getElementById('lblDocStatusToggle');
   const hiddenInput = document.getElementById('editDocStatus');
@@ -1034,16 +1021,18 @@ window.toggleDoctorStatusText = function(elementOrValue) {
     if (toggleEl) toggleEl.checked = isChecked;
   }
 
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
   if (isChecked) {
     if (lbl) {
-      lbl.textContent = 'Active Doctor';
-      lbl.className = 'form-check-label fw-bold small text-success ms-1 cursor-pointer';
+      lbl.textContent = (appLang === 'en') ? 'Active' : 'ใช้งาน';
+      lbl.className = 'form-check-label fw-bold text-success ms-1 cursor-pointer';
     }
     if (hiddenInput) hiddenInput.value = 'Active';
   } else {
     if (lbl) {
-      lbl.textContent = 'Inactive Doctor';
-      lbl.className = 'form-check-label fw-bold small text-danger ms-1 cursor-pointer';
+      lbl.textContent = (appLang === 'en') ? 'Inactive' : 'ไม่ใช้งาน';
+      lbl.className = 'form-check-label fw-bold text-danger ms-1 cursor-pointer';
     }
     if (hiddenInput) hiddenInput.value = 'Inactive';
   }
@@ -1096,7 +1085,7 @@ window.openEditDoctorView = function(id) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
-  // 🌟 เซ็ตค่าสวิตช์ Toggle และอัปเดตสถานะตัวอักษร
+  // 🌟 เซ็ตค่าสวิตช์ Toggle และอัปเดตสถานะตัวอักษร 2 ภาษา
   const currentStatus = d.Status || d.status || 'Active';
   window.toggleDoctorStatusText(currentStatus);
 
@@ -1954,7 +1943,7 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// ⚡ Listener สลับภาษา EN / TH
+// ⚡ ข้อ 3: Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
@@ -1964,7 +1953,30 @@ if (!window._isDocLangListenerAttached) {
     if (typeof window.renderDoctorTableServerSide === 'function' && window.globalDoctors.length > 0) {
       window.renderDoctorTableServerSide();
     }
+
+    // 🌟 รีโหลดตัวเลือกดร็อปดาวน์หลักทุกตัวตามภาษาใหม่ทันที (แก้ปัญหาคำนำหน้าชื่อเดิมค้าง)
+    if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
+      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
+      const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
+      const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
+
+      window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
+      window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
+
+      window.updateTomSelect('docSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
+      window.updateTomSelect('editDocSpecialty', window.getOptionsHtml('Specialty', selectSpecText), selectSpecText);
+
+      window.updateTomSelect('docType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
+      window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
+    }
     
+    // 🌟 อัปเดตภาษาปุ่ม Status Toggle ในหน้า Edit ทันที
+    const editToggle = document.getElementById('editDocStatusToggle');
+    if (editToggle) {
+      window.toggleDoctorStatusText(editToggle);
+    }
+
     const profileView = document.getElementById('doctorProfileView');
     if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
       window.openViewDoctorProfile(window.currentTargetDocId);
