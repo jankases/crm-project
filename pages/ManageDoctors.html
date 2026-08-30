@@ -136,14 +136,14 @@
           <div class="col-lg-7 h-100">
             <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               <div>
-                <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
+                <h6 class="form-section-title mb-4"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
                 
-                <div class="mb-3.5">
+                <div class="mb-4">
                   <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
                 </div>
 
-                <div class="row g-3 mb-3.5">
+                <div class="row g-3.5 mb-4">
                   <div class="col-6">
                     <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
@@ -154,7 +154,7 @@
                   </div>
                 </div>
 
-                <div class="row g-3 mb-4">
+                <div class="row g-3.5 mb-4">
                   <div class="col-6">
                     <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
                     <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
@@ -165,9 +165,9 @@
                   </div>
                 </div>
 
-                <div class="border-top pt-3.5 mt-2">
-                  <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-                  <div class="row g-3 mb-3.5">
+                <div class="border-top pt-4 mt-3">
+                  <h6 class="form-section-title mb-4"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+                  <div class="row g-3.5 mb-4">
                     <div class="col-sm-6">
                       <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
                       <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
@@ -178,7 +178,7 @@
                     </div>
                   </div>
                   
-                  <div class="row g-3 pt-1">
+                  <div class="row g-3.5 pt-1">
                     <div class="col-6">
                       <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light-subtle">
                         <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
@@ -228,7 +228,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 แก้ไขสัดส่วนให้เต็มความสูงการ์ดเดี่ยว (Card Single-Block Fill): สบายตา โปร่ง พอดีจอเป๊ะ -->
+  <!-- 🌟 Perfectly Spaced & Touch-Optimized Layout: ปรับระยะเว้น mb-4 และ mb-3.5 ให้ช่องไฟหายใจได้ ไม่ชิดแน่น -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -257,7 +257,7 @@
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3 h-100">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-7): รวมเป็นการ์ดเดี่ยวเต็มความสูง (h-100) ช่องไฟเว้น p-4 จังหวะ mb-3.5 นุ่มนวลพอดีการ์ด -->
+          <!-- 🔹 ฝั่งซ้าย (col-lg-7): ช่องไฟนุ่มนวล mb-4 และ mb-3.5 อ่านง่าย ปราศจากความอึดอัด -->
           <div class="col-lg-7 h-100">
             <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               
@@ -272,7 +272,7 @@
                 </div>
 
                 <!-- Name EN & Name TH -->
-                <div class="row g-3 mb-3.5">
+                <div class="row g-3.5 mb-3.5">
                   <div class="col-6">
                     <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
@@ -284,7 +284,7 @@
                 </div>
 
                 <!-- Specialty & Type -->
-                <div class="row g-3 mb-4">
+                <div class="row g-3.5 mb-4">
                   <div class="col-6">
                     <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
                     <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
@@ -295,12 +295,12 @@
                   </div>
                 </div>
 
-                <!-- เส้นคั่นบางๆ นุ่มนวล -->
+                <!-- เส้นคั่นบางๆ พร้อมระยะเว้น pt-3.5 -->
                 <div class="border-top pt-3.5 mt-2">
                   <!-- หมวดที่ 2: Contact & Consent -->
                   <h6 class="form-section-title mb-3.5"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
                   
-                  <div class="row g-3 mb-3.5">
+                  <div class="row g-3.5 mb-3.5">
                     <div class="col-sm-6">
                       <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
                       <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
@@ -312,7 +312,7 @@
                   </div>
 
                   <!-- Toggle Switches สำหรับ iPad -->
-                  <div class="row g-3 pt-1">
+                  <div class="row g-3.5 pt-1">
                     <div class="col-6">
                       <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border bg-light-subtle">
                         <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
