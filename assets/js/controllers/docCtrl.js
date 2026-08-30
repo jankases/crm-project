@@ -193,16 +193,19 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
-window.updateTomSelect = function(id, html, placeholder) {
+ window.updateTomSelect = function(id, html, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
   
   if (el.tomselect) {
+    // 🌟 1. ดึงค่าปัจจุบันที่เลือกค้างไว้ออกมาก่อนทำลาย TomSelect
     const curVal = el.tomselect.getValue();
+    
     el.tomselect.destroy();
     el.innerHTML = html;
     
-    new TomSelect(`#${id}`, { 
+    // 🌟 2. สร้าง TomSelect ใหม่ด้วยชุด <option> ภาษาใหม่
+    const newTs = new TomSelect(`#${id}`, { 
       create: false, 
       searchField: ["text"],
       sortField: { field: "text", direction: "asc" }, 
@@ -210,7 +213,11 @@ window.updateTomSelect = function(id, html, placeholder) {
       allowEmptyOption: true, 
       dropdownParent: 'body' 
     });
-    if (curVal) el.tomselect.setValue(curVal, true);
+
+    // 🌟 3. ยัดค่าเดิมที่ดึงออกมากลับเข้าไปในดร็อปดาวน์ตัวใหม่ทันที
+    if (curVal && curVal !== '') {
+      newTs.setValue(curVal, true);
+    }
   } else if (typeof TomSelect !== 'undefined') {
     el.innerHTML = html;
     new TomSelect(`#${id}`, { 
