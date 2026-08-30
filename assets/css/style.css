@@ -1812,3 +1812,54 @@ button.feature-action-btn-lg.has-data-samples i {
   display: flex !important;
   flex-direction: column !important;
 }
+
+/* 🌟 Premium Minimalist Primary Workplace Toggle */
+.btn-wp-primary-toggle {
+  background-color: #ffffff;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-wp-primary-toggle .star-icon {
+  color: #94a3b8;
+}
+
+.btn-wp-primary-toggle .lbl-text-primary {
+  display: none;
+}
+
+.btn-wp-primary-toggle .lbl-text-set {
+  display: inline;
+}
+
+/* State: เมื่อถูกเลือกเป็น Primary */
+.btn-check:checked + .btn-wp-primary-toggle {
+  background-color: #f0f7ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+}
+
+.btn-check:checked + .btn-wp-primary-toggle .star-icon {
+  color: #d97706 !important; /* Soft Champagne Gold */
+}
+
+.btn-check:checked + .btn-wp-primary-toggle .lbl-text-primary {
+  display: inline;
+}
+
+.btn-check:checked + .btn-wp-primary-toggle .lbl-text-set {
+  display: none;
+}
+
+/* Dashed Add Workplace Tile Hover Effect */
+.dashed-add-wp-tile {
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc;
+  color: #2563eb !important;
+}
+
+.dashed-add-wp-tile:hover {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+}
