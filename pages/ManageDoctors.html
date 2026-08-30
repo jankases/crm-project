@@ -134,7 +134,7 @@
         <div class="row g-3">
           
           <div class="col-lg-6 d-flex flex-column gap-3">
-            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
+            <div class="card p-4 border-0 shadow-sm visit-card bg-white">
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
               <div class="mb-3">
@@ -142,7 +142,7 @@
                 <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
               </div>
 
-              <div class="row g-2.5 mb-3">
+              <div class="row g-3 mb-3">
                 <div class="col-6">
                   <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
@@ -153,7 +153,7 @@
                 </div>
               </div>
 
-              <div class="row g-2.5">
+              <div class="row g-3">
                 <div class="col-6">
                   <label class="compact-label" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
@@ -163,35 +163,35 @@
                   <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
                 </div>
               </div>
-            </div>
 
-            <div class="card p-3.5 border-0 shadow-sm visit-card bg-white">
-              <h6 class="form-section-title mb-3"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-              <div class="row g-2.5 mb-3">
-                <div class="col-sm-6">
-                  <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
+              <div class="border-top pt-3 mt-3">
+                <h6 class="form-section-title mb-3"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+                <div class="row g-3 mb-3">
+                  <div class="col-sm-6">
+                    <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
+                  </div>
                 </div>
-                <div class="col-sm-6">
-                  <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
-                </div>
-              </div>
-              <div class="row g-2.5">
-                <div class="col-sm-6">
-                  <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
-                </div>
-                <div class="col-sm-6">
-                  <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="docPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="docTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="col-lg-6">
-            <div class="card p-3.5 border-0 shadow-sm visit-card h-100" style="background-color: #ffffff; overflow-x: hidden !important;">
+            <div class="card p-4 border-0 shadow-sm visit-card bg-white h-100" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerAdd', 'primaryWpAdd')">
@@ -214,12 +214,12 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Enterprise CRM Precision Design: แก้ปัญหาการติดขอบ + จัด Whitespace / Spacing นุ่มนวลพอดีการ์ด -->
+  <!-- 🌟 Master CRM Layout: การ์ดฝั่งซ้ายแบบเดี่ยวรวมสองหมวด + ช่องไฟ p-4 / g-3 เนี๊ยบระดับสากล -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
-      <!-- Header Bar -->
+      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
@@ -229,7 +229,7 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- Status Toggle Switcher -->
+        <!-- Status Toggle Switcher สไตล์แคปซูล -->
         <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
           <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
             <input class="form-check-input m-0" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.2em; height: 1.2em; cursor: pointer;">
@@ -242,11 +242,11 @@
       <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3">
           
-          <!-- 🔹 ฝั่งซ้าย (col-lg-6): แยกการ์ดละเมียดละไม เพิ่ม px-4 py-3.5 ป้องกันฟิลด์ดันติดขอบ -->
-          <div class="col-lg-6 d-flex flex-column gap-3">
-            
-            <!-- การ์ด 1: General Information -->
-            <div class="card px-4 py-3.5 rounded-4 border bg-white shadow-xs">
+          <!-- 🔹 ฝั่งซ้าย (col-lg-6): การ์ดเดี่ยวรวมสองหมวด + ช่องไฟ p-4 นุ่มนวลพอดีการ์ด -->
+          <div class="col-lg-6">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs">
+              
+              <!-- หมวดที่ 1: General Information -->
               <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
               
               <!-- Title -->
@@ -255,7 +255,7 @@
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
               </div>
 
-              <!-- Name EN & Name TH (จัดระยะห่าง g-3 ไม่ติดขอบ) -->
+              <!-- Name EN & Name TH (ช่องไฟ g-3 สวยงาม) -->
               <div class="row g-3 mb-3">
                 <div class="col-6">
                   <label class="compact-label"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
@@ -278,42 +278,41 @@
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
                 </div>
               </div>
-            </div>
 
-            <!-- การ์ด 2: Contact & Consent -->
-            <div class="card px-4 py-3.5 rounded-4 border bg-white shadow-xs">
-              <h6 class="form-section-title mb-3"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
-              
-              <!-- Email & Mobile -->
-              <div class="row g-3 mb-3">
-                <div class="col-sm-6">
-                  <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+              <!-- เส้นคั่นหมวดบางๆ นุ่มนวล -->
+              <div class="border-top pt-3 mt-3.5">
+                <!-- หมวดที่ 2: Contact & Consent -->
+                <h6 class="form-section-title mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
+                
+                <div class="row g-3 mb-3">
+                  <div class="col-sm-6">
+                    <label class="compact-label"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
+                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                  </div>
                 </div>
-                <div class="col-sm-6">
-                  <label class="compact-label"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
+                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
+                  </div>
                 </div>
               </div>
 
-              <!-- Privacy & Terms -->
-              <div class="row g-3">
-                <div class="col-sm-6">
-                  <label class="compact-label" data-i18n="lbl_privacy">Privacy Policy</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocPrivacy"><option value="Yes">Yes</option><option value="No">No</option></select>
-                </div>
-                <div class="col-sm-6">
-                  <label class="compact-label" data-i18n="lbl_tos">Terms of Service</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTos"><option value="Yes">Yes</option><option value="No">No</option></select>
-                </div>
-              </div>
             </div>
-
           </div>
 
-          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History -->
+          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History การ์ดขาวโปร่งสมดุล -->
           <div class="col-lg-6">
-            <div class="card px-4 py-3.5 rounded-4 border bg-white shadow-xs h-100" style="overflow-x: hidden !important;">
+            <div class="card p-4 rounded-4 border bg-white shadow-xs h-100" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-list-check me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
                 <button type="button" class="btn btn-sm btn-premium-secondary fw-bold rounded-pill shadow-xs" onclick="window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit')">
