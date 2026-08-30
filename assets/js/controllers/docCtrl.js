@@ -100,10 +100,13 @@ window.getTitleText = function(titleId, fallbackText) {
 
   var tObj = window._titleIndex[String(titleId).toLowerCase()];
   
-  // เผื่อกรณีข้อมูลเก่าที่เก็บบันทึกเป็นข้อความตรงๆ
+  // เผื่อกรณีข้อมูลเก่าที่เก็บบันทึกเป็นข้อความตรงๆ (Value หรือ Value1)
   if (!tObj) {
     const indexes = window.globalIndexes || [];
-    tObj = indexes.find(i => String(i.Value).toLowerCase() === String(titleId).toLowerCase() || String(i.Value1).toLowerCase() === String(titleId).toLowerCase());
+    tObj = indexes.find(i => 
+      String(i.Value || '').toLowerCase() === String(titleId).toLowerCase() || 
+      String(i.Value1 || '').toLowerCase() === String(titleId).toLowerCase()
+    );
   }
 
   if (!tObj) return fallbackText || titleId || '-';
@@ -193,19 +196,16 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
- window.updateTomSelect = function(id, html, placeholder) {
+window.updateTomSelect = function(id, html, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
   
   if (el.tomselect) {
-    // 🌟 1. ดึงค่าปัจจุบันที่เลือกค้างไว้ออกมาก่อนทำลาย TomSelect
     const curVal = el.tomselect.getValue();
-    
     el.tomselect.destroy();
     el.innerHTML = html;
     
-    // 🌟 2. สร้าง TomSelect ใหม่ด้วยชุด <option> ภาษาใหม่
-    const newTs = new TomSelect(`#${id}`, { 
+    const ts = new TomSelect(`#${id}`, { 
       create: false, 
       searchField: ["text"],
       sortField: { field: "text", direction: "asc" }, 
@@ -213,11 +213,7 @@ window.initMultiTomSelect = function(id, placeholder) {
       allowEmptyOption: true, 
       dropdownParent: 'body' 
     });
-
-    // 🌟 3. ยัดค่าเดิมที่ดึงออกมากลับเข้าไปในดร็อปดาวน์ตัวใหม่ทันที
-    if (curVal && curVal !== '') {
-      newTs.setValue(curVal, true);
-    }
+    if (curVal) ts.setValue(curVal, true);
   } else if (typeof TomSelect !== 'undefined') {
     el.innerHTML = html;
     new TomSelect(`#${id}`, { 
@@ -408,7 +404,6 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.globalMatrixData = window.DocManagerCache.matrixData;
       window.globalTargetData = window.DocManagerCache.targetData;
 
-      // 🌟 สร้าง Title Index ทันทีที่โหลดข้อมูล Index สำเร็จ
       window.buildTitleIndex();
 
       const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating' || s.Type === 'TargetCall' || s.Type === 'Target Call');
@@ -1090,25 +1085,52 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
   }
 };
 
+// 🌟 ปรับปรุงการตั้งค่าเข้า TomSelect ให้ค้นหา Match ปลอดภัย ทั้ง ID และ Value
 window.openEditDoctorView = function(id) {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
   
   document.getElementById('editDocId').value = d.Doc_ID || d.id; 
   
-  const setTsVal = (elId, val) => { 
+  const setTsVal = (elId, rawVal) => { 
     const el = document.getElementById(elId); 
-    if (el && el.tomselect) {
-      if (val && !el.tomselect.options[val]) {
-        el.tomselect.addOption({ value: val, text: val });
+    if (!el || !rawVal) {
+      if (el && el.tomselect) el.tomselect.clear();
+      return;
+    }
+
+    if (el.tomselect) {
+      let targetVal = String(rawVal).trim();
+      
+      // ค้นหาว่าค่าที่มีอยู่ตรงกับ Value หลักใน <option> หรือไม่
+      let exists = false;
+      Object.keys(el.tomselect.options).forEach(optKey => {
+        if (optKey.toLowerCase() === targetVal.toLowerCase()) {
+          targetVal = optKey;
+          exists = true;
+        }
+      });
+
+      // ถ้ายังไม่เจอ ให้ค้นจากข้อความ Text ภายใน Option (เผื่อกรณีข้อมูลเก่าเก็บบันทึกเป็นภาษาไทย/อังกฤษ)
+      if (!exists) {
+        Object.values(el.tomselect.options).forEach(optObj => {
+          if (optObj.text && optObj.text.toLowerCase() === targetVal.toLowerCase()) {
+            targetVal = optObj.value;
+            exists = true;
+          }
+        });
       }
-      el.tomselect.setValue(val, true);
-    } else if (el) {
-      el.value = val || ''; 
+
+      if (!exists) {
+        el.tomselect.addOption({ value: targetVal, text: targetVal });
+      }
+      el.tomselect.setValue(targetVal, true);
+    } else {
+      el.value = rawVal || ''; 
     }
   };
 
-  // 🌟 ตั้งค่า Title_ID เข้า TomSelect
+  // 🎯 ตั้งค่าเข้านาฬิกา TomSelect อย่างปลอดภัย
   setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
   setTsVal('editDocSpecialty', d.Specialty || d.specialty || '');
   setTsVal('editDocType', d.Type || d.type || '');
@@ -1157,7 +1179,6 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
   const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
 
-  // 🌟 ใช้ getTitleText ถอดคำอ่านตามภาษาแบบเดียวกับ getPurposeText ของหน้า Visit
   const titleText = window.getTitleText(d.Title_ID || d.title_id || d.Title);
 
   const titleEl = document.getElementById('viewDocTitleName');
@@ -1994,7 +2015,6 @@ window.initDoctorPage = async function(forceReload = false) {
 // ⚡ Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
-    // 🌟 อัปเดต Index สำหรับ Lookup Title ทันทีที่สลับภาษา
     window.buildTitleIndex();
 
     if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
@@ -2005,7 +2025,7 @@ if (!window._isDocLangListenerAttached) {
       window.renderDoctorTableServerSide();
     }
 
-    // 🌟 รีโหลดตัวเลือกดร็อปดาวน์หลักทุกตัวตามภาษาใหม่ (Value1/Value)
+    // 🌟 รีโหลดตัวเลือกดร็อปดาวน์หลักทุกตัวตามภาษาใหม่ (Value1/Value) โดยที่ค่าค้างไม่หลุด
     if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
