@@ -231,7 +231,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Option 2: Clickable Status Badge Tag -->
+  <!-- 🌟 Standard Toggle Switch Layout (สเกล 2.8em x 1.5em เท่ากับ Privacy Policy) -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -246,13 +246,14 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- 🌟 Clickable Status Badge Container (คลิกสลับสถานะได้ทันที) -->
-        <div id="docStatusBadgeContainer" style="cursor: pointer;" onclick="window.toggleDoctorStatusBadgeClick()" title="Click to toggle status Active / Inactive">
-          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;" id="lblDocStatusBadge">
-            <i class="fa-solid fa-circle text-success" style="font-size: 0.5rem;"></i> Active Doctor
-          </span>
+        <!-- 🌟 Status Toggle Switcher Pill (ขนาด 2.8em x 1.5em เท่ากับ Privacy Policy) -->
+        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
+          <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
+            <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
+            <label class="form-check-label fw-bold small text-success ms-1 cursor-pointer" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.9rem; user-select: none;">Active Doctor</label>
+          </div>
+          <input type="hidden" id="editDocStatus" value="Active">
         </div>
-        <input type="hidden" id="editDocStatus" value="Active">
       </div>
       
       <!-- Main Content Area -->
@@ -508,7 +509,7 @@
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
-                <tr class="no-data"><td colspan="6" class="text-center text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
               </tbody>
             </table>
           </div>
