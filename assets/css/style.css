@@ -10,7 +10,7 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ ISOLATED MODULE WRAPPER (รวม Visit, Hosp, Doc ไว้สูตรเดียวกันให้ขอบเท่ากันเป๊ะ) */
+/* 🖥️ ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .hosp-module-wrapper,
 .doc-module-wrapper {
@@ -56,7 +56,7 @@ html, body {
   height: 100% !important;
 }
 
-/* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น ห้ามกระทบกล่องค้นหา */
+/* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น */
 #visitListZone, 
 #doctorListZone,
 #hospListZone {
@@ -69,7 +69,7 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 MASTER STANDARD (แบบ A): การ์ดแม่สีขาวบริสุทธิ์ ลอยบนพื้นหลังแอปสีเทา */
+/* 🌟 MASTER STANDARD: การ์ดแม่สีขาวบริสุทธิ์ */
 .visit-filter-group,
 .doctor-filter-group,
 .hosp-filter-group,
@@ -248,7 +248,6 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-/* ล็อกความสูงและขอบโค้งมน 12px ของกรอบ Smart Search ให้เท่ากันทุกหน้า */
 .visit-filter-compact .input-group,
 #doctorFilterZoneGroup .input-group {
   height: 38px !important;
@@ -326,7 +325,7 @@ input:focus + .slider { box-shadow: 0 0 1px #0d6efd; }
 input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
 
 /* ==========================================
-   🌟 TOMSELECT STYLING (แบบ A: ล็อกสูง 38px ขอบมน 12px เท่ากันทุกหน้า)
+   🌟 GLOBAL TOMSELECT STYLING
    ========================================== */
 .visit-filter-compact .ts-control,
 #doctorFilterZoneGroup .ts-control { 
@@ -340,6 +339,7 @@ input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transf
   border: 1px solid #dee2e6 !important;
   box-sizing: border-box !important;
 }
+
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
 .ts-wrapper.multi .ts-control > .item { background-color: #f0f5ff; border: 1px solid #cfe2ff; color: #084298; border-radius: 6px; margin-bottom: 0px; padding: 2px 8px; font-weight: 500; font-size: 0.8rem; }
 .ts-wrapper.single .ts-control > .item { font-weight: 500; color: #212529; }
@@ -477,7 +477,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   padding: 4px 12px 4px 8px;
 }
 
-/* 🌟 สไตล์ปุ่มภาษา Desktop */
+/* 🌟 Desktop Language Selector */
 .desktop-lang-wrapper {
   background-color: #f1f5f9 !important;
   padding: 3px !important;
@@ -525,7 +525,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   ✨ HIGH-END PREMIUM BUTTON STYLES (GLOBAL)
+   ✨ HIGH-END PREMIUM BUTTON STYLES
    ========================================== */
 .premium-radius { border-radius: 8px !important; }
 .premium-radius-lg { border-radius: 10px !important; }
@@ -908,14 +908,6 @@ mark.highlight-search {
 /* ==========================================
    🌟 ADVANCED FILTERS DROPDOWN STYLING
    ========================================== */
-.ts-wrapper.has-items .ts-control input::placeholder,
-.ts-wrapper.has-items .ts-input::placeholder,
-.ts-control.has-items .ts-input::placeholder,
-.ts-control.has-items input::placeholder {
-  color: transparent !important;
-  opacity: 0 !important;
-}
-
 .dropdown-menu .ts-wrapper {
   position: relative !important;
 }
@@ -937,6 +929,8 @@ mark.highlight-search {
   margin-top: 6px !important;
   border-radius: 12px !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .mb-1 {
@@ -947,6 +941,14 @@ mark.highlight-search {
   max-height: 82px !important;
   overflow-y: auto !important;
   padding-right: 24px !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  font-size: 0.85rem !important;
+  color: #334155 !important;
+  box-shadow: none !important;
 }
 
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar {
@@ -963,6 +965,23 @@ mark.highlight-search {
   padding: 1px 6px !important;
   margin: 2px !important;
   border-radius: 4px !important;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  color: #334155 !important;
+  box-shadow: none !important;
 }
 
 /* ==========================================
@@ -1028,7 +1047,7 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM - IDEAL 2 (APP-LIKE SCROLL)
+   ✨ EDIT/ADD VISIT FORM - APP-LIKE SCROLL
    ========================================== */
 #visitFormView {
   flex: 1 1 auto !important;
@@ -1077,18 +1096,10 @@ mark.highlight-search {
   overflow-y: auto !important;
 }
 
-#visitFormView .field-wrapper-details {
-  flex: 1.8 1 0% !important;
-  min-height: 0 !important;
-}
-#visitFormView .field-wrapper-insight {
-  flex: 1.3 1 0% !important;
-  min-height: 0 !important;
-}
-#visitFormView .field-wrapper-nextaction {
-  flex: 1 1 0% !important;
-  min-height: 0 !important;
-}
+#visitFormView .field-wrapper-details { flex: 1.8 1 0% !important; min-height: 0 !important; }
+#visitFormView .field-wrapper-insight { flex: 1.3 1 0% !important; min-height: 0 !important; }
+#visitFormView .field-wrapper-nextaction { flex: 1 1 0% !important; min-height: 0 !important; }
+
 #visitDetails,
 #visitInsight,
 #visitNextAction {
@@ -1255,12 +1266,12 @@ button.feature-action-btn-lg.has-data-samples i {
 
 @keyframes pulse-red-premium {
   0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
 /* ==========================================
-   📱 RESPONSIVE & UNIFIED IPAD SIDEBAR STYLING
+   📱 RESPONSIVE & IPAD SIDEBAR STYLING
    ========================================== */
 @media (min-width: 768px) and (max-width: 1199px) {
   .visit-module-wrapper {
@@ -1381,9 +1392,6 @@ button.feature-action-btn-lg.has-data-samples i {
   }
 }
 
-/* ==========================================
-   📱 RESPONSIVE: ปลดล็อก Scroll เมื่อหน้าจอแคบ
-   ========================================== */
 @media (max-width: 1199px) {
   #visitFormView {
     overflow-y: auto !important; 
@@ -1424,9 +1432,29 @@ button.feature-action-btn-lg.has-data-samples i {
     border-radius: 16px !important; 
     z-index: 105 !important;
   }
+
+  .doc-module-wrapper {
+    height: 100% !important;
+    max-height: 100% !important;
+    padding-bottom: 0.5rem !important;
+    box-sizing: border-box !important;
+  }
+
+  #doctorListView,
+  #doctorMainContentContainer,
+  #doctorListZone {
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  #doctorPaginationContainer {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+  }
 }
 
-/* 🌟 FIX: ซ่อน Placeholder เฉพาะในหน้า Form เมื่อช่องถูกล็อก */
+/* 🌟 FORM CONTROL PLACEHOLDER FIX */
 #visitFormView .form-control:disabled::placeholder,
 #visitFormView .form-control[readonly]:not(#filterStartDate):not(#filterEndDate)::placeholder,
 #visitFormView textarea:disabled::placeholder,
@@ -1690,7 +1718,6 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #ffffff !important;
 }
 
-/* 🌟 FIX: บังคับการ์ดตารางหมอยืดเต็ม 100% และกระจายเนื้อหากระชับขอบล่าง */
 #doctorListZone {
   flex: 1 1 auto !important;
   height: 100% !important;
@@ -1701,63 +1728,6 @@ button.feature-action-btn-lg.has-data-samples i {
   justify-content: space-between !important;
 }
 
-/* ==========================================
-   ✨ ADVANCED FILTERS DROPDOWN STYLING
-   ========================================== */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] {
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
-  padding: 1.25rem !important;
-}
-
-/* เจาะจงทั้ง Form-Select และ TomSelect ภายในป็อปอัพ ให้เป็นสีเทาอ่อน #f8fafc */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
-  background-color: #f8fafc !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 10px !important;
-  height: 38px !important;
-  min-height: 38px !important;
-  font-size: 0.85rem !important;
-  color: #334155 !important;
-  box-shadow: none !important;
-}
-
-/* ปรับสีตัวอักษรหัวข้อฟิลเตอร์ย่อย */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] label {
-  color: #475569 !important;
-  font-weight: 700 !important;
-  font-size: 0.8rem !important;
-  margin-bottom: 0.35rem !important;
-}
-
-/* ==========================================
-   ✨ FORCE ADVANCED FILTERS DROPDOWN COLOR
-   ========================================== */
-/* บังคับสีพื้นหลังช่อง Dropdown ทั้งหมดในป๊อปอัพ Advanced Filters ให้เป็นเทาอ่อน #f8fafc */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .form-select,
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper .ts-control,
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control {
-  background-color: #f8fafc !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 10px !important;
-  height: 38px !important;
-  min-height: 38px !important;
-  color: #334155 !important;
-  box-shadow: none !important;
-}
-
-/* ปรับสีไอคอนลูกศรและตัวอักษรข้างใน */
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-wrapper.single .ts-control {
-  background-color: #f8fafc !important;
-}
-
-/* ==========================================
-   ✨ FORCE DOCTOR TABLE CARD FULL HEIGHT
-   ========================================== */
 #doctorListView,
 #doctorMainContentContainer {
   display: flex !important;
@@ -1779,29 +1749,6 @@ button.feature-action-btn-lg.has-data-samples i {
   flex-shrink: 0 !important;
 }
 
-@media (max-width: 1199px) {
-  .doc-module-wrapper {
-    height: 100% !important;
-    max-height: 100% !important;
-    padding-bottom: 0.5rem !important;
-    box-sizing: border-box !important;
-  }
-
-  #doctorListView,
-  #doctorMainContentContainer,
-  #doctorListZone {
-    height: 100% !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-  }
-
-  #doctorPaginationContainer {
-    margin-top: auto !important;
-    flex-shrink: 0 !important;
-  }
-}
-
-/* 🌟 SPA PAGE VIEW FIX: ปรับการยืดความสูง โดยไม่ไปทับการทำงานของ d-none */
 .spa-page-view {
   height: 100%;
   width: 100%;
@@ -1813,7 +1760,9 @@ button.feature-action-btn-lg.has-data-samples i {
   flex-direction: column !important;
 }
 
-/* 🌟 Premium Minimalist Primary Workplace Toggle */
+/* ==========================================
+   🌟 PREMIUM MINIMALIST WORKPLACE TOGGLE & TILE
+   ========================================== */
 .btn-wp-primary-toggle {
   background-color: #ffffff;
   border-color: #e2e8f0 !important;
@@ -1833,7 +1782,6 @@ button.feature-action-btn-lg.has-data-samples i {
   display: inline;
 }
 
-/* State: เมื่อถูกเลือกเป็น Primary */
 .btn-check:checked + .btn-wp-primary-toggle {
   background-color: #f0f7ff !important;
   border-color: #3b82f6 !important;
@@ -1852,7 +1800,6 @@ button.feature-action-btn-lg.has-data-samples i {
   display: none;
 }
 
-/* Dashed Add Workplace Tile Hover Effect */
 .dashed-add-wp-tile {
   border-color: #cbd5e1 !important;
   background-color: #f8fafc;
@@ -1864,45 +1811,52 @@ button.feature-action-btn-lg.has-data-samples i {
   border-color: #3b82f6 !important;
 }
 
-/* 🌟 TomSelect Clean Premium Styling */
+/* ==========================================
+   🌟 WORKPLACE TOMSELECT PREMIUM STYLING (FIXED)
+   ========================================== */
 .workplace-row .ts-wrapper {
-  width: 100%;
+  width: 100% !important;
 }
 
+/* ลบล้างสไตล์เดิมของ Select เพื่อไม่ให้ซ้อนกับ TomSelect */
+.workplace-row select.hospital-select {
+  border: none !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+}
+
+/* ควบคุมกรอบ TomSelect ชั้นเดียวความสูง 38px เป๊ะ */
 .workplace-row .ts-control {
   border: 1px solid #e2e8f0 !important;
   border-radius: 8px !important;
-  padding: 0.45rem 0.75rem !important;
+  padding: 0.35rem 0.75rem !important;
   font-size: 0.875rem !important;
   background-color: #ffffff !important;
   box-shadow: none !important;
   min-height: 38px !important;
+  height: 38px !important;
   display: flex !important;
   align-items: center !important;
   transition: all 0.2s ease-in-out;
+  box-sizing: border-box !important;
 }
 
-/* Focus State: แสงเงาบางๆ สไตล์พรีเมียม */
 .workplace-row .ts-wrapper.focus .ts-control {
   border-color: #3b82f6 !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
 }
 
-/* Placeholder จางๆ เมื่อยังไม่เลือก */
-.workplace-row .ts-control .item,
+/* 🎯 ควบคุม Placeholder ให้แสดงผลจางๆ อย่างถูกต้อง */
+.workplace-row .ts-wrapper .ts-control input::placeholder,
 .workplace-row .ts-control input::placeholder {
   color: #94a3b8 !important;
   font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  opacity: 1 !important;
 }
 
-/* เมื่อเลือกข้อมูลแล้วให้ตัวอักษรเป็นสีเข้ม */
-.workplace-row .ts-control .item.has-val {
+.workplace-row .ts-control .item {
   color: #1e293b !important;
   font-weight: 500 !important;
-}
-
-/* ซ่อนเส้นกรอบและเงาของ select เดิมเพื่อไม่ให้ซ้อนกัน */
-.workplace-row select.hospital-select {
-  border: none !important;
-  padding: 0 !important;
+  font-size: 0.875rem !important;
 }
