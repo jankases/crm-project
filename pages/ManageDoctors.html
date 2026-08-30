@@ -231,7 +231,7 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Option B: Clean Status Badge Tag Design -->
+  <!-- 🌟 Option 2: Clickable Status Badge Tag -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -246,8 +246,8 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
-        <!-- 🌟 Option B: Clean Status Badge Tag Container -->
-        <div id="docStatusBadgeContainer">
+        <!-- 🌟 Clickable Status Badge Container (คลิกสลับสถานะได้ทันที) -->
+        <div id="docStatusBadgeContainer" style="cursor: pointer;" onclick="window.toggleDoctorStatusBadgeClick()" title="Click to toggle status Active / Inactive">
           <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-xs" style="font-size: 0.85rem;" id="lblDocStatusBadge">
             <i class="fa-solid fa-circle text-success" style="font-size: 0.5rem;"></i> Active Doctor
           </span>
@@ -448,7 +448,7 @@
           </div>
 
           <div class="table-scroll-inside flex-grow-1" style="min-height: 0;">
-            <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
+            <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
               <thead class="table-custom-header text-center">
                 <tr>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
@@ -508,7 +508,7 @@
                 </tr>
               </thead>
               <tbody id="ratingTableBody">
-                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+                <tr class="no-data"><td colspan="6" class="text-center text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
               </tbody>
             </table>
           </div>
