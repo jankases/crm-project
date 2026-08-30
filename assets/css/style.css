@@ -1863,3 +1863,46 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #eff6ff !important;
   border-color: #3b82f6 !important;
 }
+
+/* 🌟 TomSelect Clean Premium Styling */
+.workplace-row .ts-wrapper {
+  width: 100%;
+}
+
+.workplace-row .ts-control {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 0.45rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+  min-height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Focus State: แสงเงาบางๆ สไตล์พรีเมียม */
+.workplace-row .ts-wrapper.focus .ts-control {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Placeholder จางๆ เมื่อยังไม่เลือก */
+.workplace-row .ts-control .item,
+.workplace-row .ts-control input::placeholder {
+  color: #94a3b8 !important;
+  font-size: 0.875rem !important;
+}
+
+/* เมื่อเลือกข้อมูลแล้วให้ตัวอักษรเป็นสีเข้ม */
+.workplace-row .ts-control .item.has-val {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+}
+
+/* ซ่อนเส้นกรอบและเงาของ select เดิมเพื่อไม่ให้ซ้อนกัน */
+.workplace-row select.hospital-select {
+  border: none !important;
+  padding: 0 !important;
+}
