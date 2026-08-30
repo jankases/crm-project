@@ -162,9 +162,11 @@ window.updateTomSelect = function(id, html, placeholder) {
   
   if (el.tomselect) {
     const curVal = el.tomselect.getValue();
+    // 🌟 ทำลายและล้างแคช Option เก่าของ TomSelect ออกทั้งหมด
     el.tomselect.destroy();
     el.innerHTML = html;
     
+    // สร้าง TomSelect ใหม่ด้วยชุด <option> ภาษาปัจจุบันจาก DB
     new TomSelect(`#${id}`, { 
       create: false, 
       searchField: ["text"],
@@ -173,6 +175,7 @@ window.updateTomSelect = function(id, html, placeholder) {
       allowEmptyOption: true, 
       dropdownParent: 'body' 
     });
+    
     if (curVal) el.tomselect.setValue(curVal, true);
   } else if (typeof TomSelect !== 'undefined') {
     el.innerHTML = html;
@@ -2020,6 +2023,7 @@ window.clearDocSearchInput = function() {
 // 🎯 DYNAMIC OPTIONS RENDERER (EN / TH SUPPORT)
 // ==========================================
 window.getOptionsHtml = function(typeName, defaultText) {
+  // ค้นหา IndexType จากชื่อประเภทใน DB
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
     const name = (t.Name || '').toLowerCase().trim();
     const target = typeName.toLowerCase().trim();
@@ -2035,15 +2039,15 @@ window.getOptionsHtml = function(typeName, defaultText) {
     const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
     
     items.forEach(i => {
-      // ค่า Value หลักที่ใช้เก็บบันทึกลง DB
+      // ค่า Value หลักสำหรับบันทึกลง DB
       const valDb = i.Value || i.value || '';
       
-      // ค่า Text ที่แสดงผลบน Dropdown ผันตามภาษา EN / TH จาก System Settings
+      // ดึง Text แสดงผลจาก DB ตามภาษาปัจจุบัน (Value_EN / Value_TH / Value)
       let showText = valDb;
       if (appLang === 'en') {
-        showText = i.Value_EN || i.value_en || valDb;
+        showText = i.Value_EN || i.value_en || i.Value_En || valDb;
       } else {
-        showText = i.Value_TH || i.value_th || valDb;
+        showText = i.Value_TH || i.value_th || i.Value_Th || valDb;
       }
       
       if (valDb) html += `<option value="${valDb}">${showText}</option>`;
