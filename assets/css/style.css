@@ -1992,3 +1992,63 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #eff6ff !important;
   border-color: #3b82f6 !important;
 }
+/* ==========================================
+   ✨ WORKPLACE PERFECT ALIGNMENT & SPACING FIX
+   ========================================== */
+
+/* 1. เพิ่มระยะห่างระหว่าง Element ในแถว */
+.workplace-row {
+  margin-bottom: 0.75rem !important;
+}
+
+.workplace-row .d-flex {
+  gap: 0.65rem !important; /* เว้นระยะห่างระหว่างไอคอน, Dropdown, ปุ่ม และถังขยะ */
+}
+
+/* 2. บังคับขนาด Dropdown ของ TomSelect ให้สูง 38px เท่าปุ่มเป๊ะ */
+.workplace-row .ts-control {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  border-radius: 10px !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 0 0.85rem !important;
+  font-size: 0.875rem !important;
+  background-color: #ffffff !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 3. บังคับปุ่ม Primary ให้สูง 38px เท่ากันและมีขอบโค้งมนเท่ากัน */
+.btn-wp-primary-clean,
+.btn-wp-primary-toggle {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  border-radius: 10px !important;
+  padding: 0 1rem !important;
+  font-size: 0.825rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+/* 4. จัดระยะลูกศรขวามือของ TomSelect */
+.workplace-row .ts-wrapper.single .ts-control::after {
+  right: 12px !important;
+}
+
+/* 5. ปรับปุ่มถังขยะให้ตรงแนวระนาบเดียวกัน */
+.btn-wp-delete-icon {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
