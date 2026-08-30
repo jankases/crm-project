@@ -121,23 +121,12 @@
   <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-2.5" style="min-height: 0;">
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       
-     <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-2.5 flex-shrink-0">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0 me-3" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
-          <div id="editDcrStatusBadge"></div>
-        </div>
-
-        <!-- 🌟 Status Toggle Pill (ปรับแต่งดีไซน์กระชับ พรีเมียม สมดุลสายตา) -->
-        <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
-          <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
-            <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.4em; height: 1.25em;">
-            <label class="form-check-label fw-bold ms-1 cursor-pointer text-success" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.85rem; user-select: none;">Active Doctor</label>
-          </div>
-          <input type="hidden" id="editDocStatus" value="Active">
+          <h5 class="text-dark fw-bold mb-0">🩺 <span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h5>
         </div>
       </div>
       
@@ -178,7 +167,7 @@
                 </div>
               </div>
 
-              <div class="mt-4 pt-1">
+              <div class="mt-3.5 pt-1">
                 <h6 class="form-section-title mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
                 
                 <div class="row g-2.5 mb-3">
@@ -192,9 +181,9 @@
                   </div>
                 </div>
                 
-                <div class="row g-2.5 pt-2">
+                <div class="row g-2.5 pt-1">
                   <div class="col-6">
-                    <div class="d-flex align-items-center justify-content-between px-1 py-1">
+                    <div class="d-flex align-items-center justify-content-between px-1">
                       <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
                       <div class="form-check form-switch m-0">
                         <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
@@ -203,7 +192,7 @@
                     <input type="hidden" id="docPrivacy" value="Yes">
                   </div>
                   <div class="col-6">
-                    <div class="d-flex align-items-center justify-content-between px-1 py-1">
+                    <div class="d-flex align-items-center justify-content-between px-1">
                       <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
                       <div class="form-check form-switch m-0">
                         <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.6em; height: 1.4em; cursor: pointer;">
@@ -241,11 +230,12 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Perfectly Spaced & Balanced Layout: กระชับส่วนบน + เว้นระยะกลุ่ม mt-4 + เกลี่ยส่วนล่างโปร่งพอดีการ์ด -->
+  <!-- 🌟 Perfectly Balanced Layout + Custom Active Switch Pill -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-2.5" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
+      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
@@ -255,29 +245,35 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
+        <!-- 🌟 Status Toggle Switcher Pill (ปรับแต่งทรงแคปซูลสวยงาม พรีเมียม กระชับสายตา) -->
         <div class="d-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs">
-          <div class="form-check form-switch m-0 d-flex align-items-center gap-2.5 p-0">
-            <input class="form-check-input m-0" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
-            <label class="form-check-label fw-bold small text-success ms-1" id="lblDocStatusToggle" for="editDocStatusToggle" style="cursor: pointer; font-size: 0.9rem;">Active Doctor</label>
+          <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
+            <input class="form-check-input m-0" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.4em; height: 1.25em; cursor: pointer;">
+            <label class="form-check-label fw-bold small text-success ms-1" id="lblDocStatusToggle" for="editDocStatusToggle" style="cursor: pointer; font-size: 0.85rem; user-select: none;">Active Doctor</label>
           </div>
           <input type="hidden" id="editDocStatus" value="Active">
         </div>
       </div>
       
+      <!-- Main Content Area -->
       <div class="flex-grow-1 overflow-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3 h-100 align-items-stretch">
           
+          <!-- 🔹 ฝั่งซ้าย (col-lg-6): สมดุลระยะช่องไฟบน-ล่าง เท่ากัน 100% -->
           <div class="col-lg-6 d-flex flex-column h-100">
             <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
               
+              <!-- 1. กลุ่ม General Information -->
               <div>
                 <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
                 
+                <!-- Title -->
                 <div class="mb-3">
                   <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
                 </div>
 
+                <!-- Name EN & Name TH -->
                 <div class="row g-3 mb-3">
                   <div class="col-6">
                     <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
@@ -289,6 +285,7 @@
                   </div>
                 </div>
 
+                <!-- Specialty & Type -->
                 <div class="row g-3">
                   <div class="col-6">
                     <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
@@ -301,6 +298,7 @@
                 </div>
               </div>
 
+              <!-- 2. กลุ่ม Contact & Consent -->
               <div class="mt-3.5 pt-1">
                 <h6 class="form-section-title mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
                 
@@ -315,6 +313,7 @@
                   </div>
                 </div>
 
+                <!-- Consent Toggles -->
                 <div class="row g-3 pt-1">
                   <div class="col-6">
                     <div class="d-flex align-items-center justify-content-between px-1">
@@ -342,6 +341,7 @@
             </div>
           </div>
 
+          <!-- 🔹 ฝั่งขวา (col-lg-6): Workplace History -->
           <div class="col-lg-6 h-100">
             <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs h-100" style="overflow-x: hidden !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
@@ -357,6 +357,7 @@
         </div>
       </div>
 
+      <!-- Action Bar -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-1 gap-3">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
@@ -452,7 +453,7 @@
           </div>
 
           <div class="table-scroll-inside flex-grow-1" style="min-height: 0;">
-            <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
+            <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
               <thead class="table-custom-header text-center">
                 <tr>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
