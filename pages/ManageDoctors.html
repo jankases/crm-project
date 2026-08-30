@@ -231,13 +231,13 @@
   </div>
 
   <!-- ================= 3. หน้าแก้ไขข้อมูลแพทย์ (Edit View) ================= -->
-  <!-- 🌟 Standard Toggle Switch Layout (สเกล 2.8em x 1.5em เท่ากับ Privacy Policy) -->
+  <!-- 🌟 Clean Header Status Switcher (Active / Inactive 2-Language Support) -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
       <!-- Top Header Bar -->
-       <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0 pe-1">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
@@ -246,10 +246,11 @@
           <div id="editDcrStatusBadge"></div>
         </div>
 
+        <!-- 🌟 Status Toggle Switcher (สั้น กระชับ ไร้กรอบครอบ รองรับ 2 ภาษา EN/TH) -->
         <div class="d-flex align-items-center gap-2.5">
           <div class="form-check form-switch m-0 d-flex align-items-center gap-2 p-0">
             <input class="form-check-input m-0 cursor-pointer" type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)" style="width: 2.8em; height: 1.5em;">
-            <label class="form-check-label fw-bold text-success cursor-pointer ms-1" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.875rem; user-select: none;">Active Doctor</label>
+            <label class="form-check-label fw-bold text-success cursor-pointer ms-1" id="lblDocStatusToggle" for="editDocStatusToggle" style="font-size: 0.875rem; user-select: none;">Active</label>
           </div>
           <input type="hidden" id="editDocStatus" value="Active">
         </div>
