@@ -1007,7 +1007,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
 
   // 🌟 ปรับโครงสร้าง HTML ให้ Dropdown กับ ปุ่ม Primary อยู่ในกล่องเดียวกัน ความสูงเท่ากันเป๊ะ 38px
   row.innerHTML = `
-    <div class="d-flex align-items-center gap-2.5 w-100">
+    <div class="d-flex align-items-center w-100">
       <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
       
       <!-- Dropdown Select Zone -->
@@ -1017,7 +1017,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
         </select>
       </div>
       
-      <!-- Primary Button (Height 38px) -->
+      <!-- Primary Toggle Button -->
       <div class="flex-shrink-0">
         <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
         <label class="btn btn-wp-primary-toggle fw-bold cursor-pointer" for="radio_${selectId}">
@@ -1027,7 +1027,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
         </label>
       </div>
 
-      <!-- Delete Button (Height 38px) -->
+      <!-- Delete Button -->
       <div class="flex-shrink-0">
         <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
           <i class="fa-solid fa-trash-can"></i>
