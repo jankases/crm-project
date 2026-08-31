@@ -1007,7 +1007,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const checked = isPrimary ? 'checked' : '';
 
   // 🌟 โครงสร้าง HTML คลีนๆ ล็อคระดับความสูง 38px
-row.innerHTML = `
+ row.innerHTML = `
     <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
     
     <div class="flex-grow-1 min-w-0">
@@ -1019,7 +1019,7 @@ row.innerHTML = `
     <div class="flex-shrink-0">
       <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
       <label class="btn btn-wp-primary-toggle cursor-pointer" for="radio_${selectId}">
-        <i class="fa-solid fa-star star-icon"></i>
+        <i class="fa-solid fa-circle-check check-icon"></i>
         <span class="lbl-text-primary">Primary</span>
         <span class="lbl-text-set">Set Primary</span>
       </label>
