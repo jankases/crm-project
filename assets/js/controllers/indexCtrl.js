@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 Index Controller (Master Data Management) - Offline Enabled 
+// 🚀 Index Controller (Master Data Management) - 2-Lang Specialty & DoctorType Enabled
 // ==========================================
 
 window.globalIndexTypes = [];
@@ -16,9 +16,6 @@ window.indexTypeModalInstance = null;
 window.indexModalInstance = null;
 window.globalSystemSettings = [];
 
-// ==========================================
-// 👁️ SPA DOM WATCHER & INITIALIZER
-// ==========================================
 window.initIndexPage = function() {
     var typeModalEl = document.getElementById('indexTypeModal');
     var indexModalEl = document.getElementById('indexModal');
@@ -53,7 +50,6 @@ setTimeout(function() {
     }
 }, 100);
 
-// ================= 🌟 System Settings (Rating & Visit Configs) =================
 window.loadSystemSettings = async function() {
   try {
     const { data, error } = await supabaseClient.from('System_Settings').select('*');
@@ -83,7 +79,6 @@ window.loadSystemSettings = async function() {
       document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
     }
 
-    // --- 🎯 Load Visit Features Config ---
     const gpsConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_GPS');
     const attConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Attachment');
     const sigConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_Signature');
@@ -97,7 +92,7 @@ window.loadSystemSettings = async function() {
     if(tgGps) tgGps.checked = gpsConf ? gpsConf.Status !== false : true; 
     if(tgAtt) tgAtt.checked = attConf ? attConf.Status !== false : true;
     if(tgSig) tgSig.checked = sigConf ? sigConf.Status !== false : true;
-    if(tgSmp) tgSmp.checked = smpConf ? smpConf.Status !== false : true; // 🎁 โหลดค่า Samples
+    if(tgSmp) tgSmp.checked = smpConf ? smpConf.Status !== false : true;
       
   } catch (err) { console.error("Load Settings Error:", err); }
 };
@@ -204,7 +199,6 @@ window.saveSystemSettings = async function() {
   }
 };
 
-// ================= 🌟 โหลด Index =================
 window.loadAllIndexData = async function() {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   try {
@@ -227,7 +221,6 @@ window.loadAllIndexData = async function() {
   }
 };
 
-// ================= 🌟 จัดการ IndexType (Category) =================
 window.renderIndexTypeTable = function() {
   const tbody = document.getElementById('indexTypeTableBody');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
@@ -322,7 +315,6 @@ window.handleSaveIndexType = async function(e) {
   }
 };
 
-// ================= 🌟 จัดการ Index Value =================
 window.populateIndexTypeDropdowns = function() {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   let opts = '<option value="">- ' + (appLang === 'en' ? 'Select Category' : 'เลือกหมวดหมู่') + ' -</option>';
@@ -407,12 +399,20 @@ window.renderIndexTable = function() {
       lblThValue2.innerText = "Description (EN)"; 
       thValue1.classList.remove('d-none');
       thValue2.classList.remove('d-none');        
-  } else if (selectedTypeName === 'purpose' || selectedTypeName === 'title' || selectedTypeName === 'tot type' || selectedTypeName === 'tottype') { 
+  // 🎯 เพิ่ม Specialty และ DoctorType ให้แสดงเป็น Value (TH) และ Value (EN)
+  } else if (
+      selectedTypeName === 'purpose' || 
+      selectedTypeName === 'title' || 
+      selectedTypeName === 'tot type' || 
+      selectedTypeName === 'tottype' ||
+      selectedTypeName === 'specialty' || 
+      selectedTypeName === 'doctor type' || 
+      selectedTypeName === 'doctortype'
+  ) { 
       lblThValue.innerText = "Value (TH)";    
       lblThValue1.innerText = "Value (EN)";   
       thValue1.classList.remove('d-none'); 
       thValue2.classList.add('d-none');   
-  // 🎯 ดักจับหมวด Samples / Promo Items (2 ภาษา)
   } else if (selectedTypeName === 'samples' || selectedTypeName === 'sample' || selectedTypeName === 'promo item' || selectedTypeName === 'samples & promo items') {
       lblThValue.innerText = appLang === 'en' ? "Sample Name (TH)" : "ชื่อสินค้าตัวอย่าง (TH)";    
       lblThValue1.innerText = appLang === 'en' ? "Sample Name (EN)" : "ชื่อสินค้าตัวอย่าง (EN)";   
@@ -615,7 +615,16 @@ window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
         grpVal1.classList.remove('d-none');
         grpVal2.classList.remove('d-none');     
     } 
-    else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype') { 
+    // 🎯 เพิ่ม Specialty และ DoctorType ให้แสดงฟอร์มกรอก 2 ภาษา (TH / EN)
+    else if (
+        typeName === 'purpose' || 
+        typeName === 'title' || 
+        typeName === 'tot type' || 
+        typeName === 'tottype' || 
+        typeName === 'specialty' || 
+        typeName === 'doctor type' || 
+        typeName === 'doctortype'
+    ) { 
         lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
         
         lblVal1.innerHTML = 'Value (EN)'; 
@@ -626,7 +635,6 @@ window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
         grpVal1.classList.remove('d-none');
         grpVal2.classList.add('d-none'); 
     }
-    // 🎯 ดักจับหมวด Samples / Promo Items ใน Modal Form
     else if (typeName === 'samples' || typeName === 'sample' || typeName === 'promo item' || typeName === 'samples & promo items') {
         lblVal.innerHTML = 'Sample Name (TH) <span class="text-danger">*</span>'; 
         
@@ -694,7 +702,20 @@ window.handleSaveIndex = async function(e) {
   } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
       val1 = document.getElementById('modalIndexValue1_input').value.trim();
       val2 = document.getElementById('modalIndexValue2').value.trim(); 
-  } else if (typeName === 'purpose' || typeName === 'title' || typeName === 'tot type' || typeName === 'tottype' || typeName === 'samples' || typeName === 'sample' || typeName === 'promo item' || typeName === 'samples & promo items') {
+  // 🎯 บันทึกค่า Value1 (ภาษาอังกฤษ) สำหรับ Specialty และ DoctorType
+  } else if (
+      typeName === 'purpose' || 
+      typeName === 'title' || 
+      typeName === 'tot type' || 
+      typeName === 'tottype' || 
+      typeName === 'specialty' || 
+      typeName === 'doctor type' || 
+      typeName === 'doctortype' || 
+      typeName === 'samples' || 
+      typeName === 'sample' || 
+      typeName === 'promo item' || 
+      typeName === 'samples & promo items'
+  ) {
       val1 = document.getElementById('modalIndexValue1_input').value.trim();
       val2 = null;
   } else {
@@ -785,7 +806,7 @@ window.saveVisitFeatures = async function() {
       { Type: 'VisitConfig_GPS', Status: isGps, Whoupdated: who, Whenupdated: now },
       { Type: 'VisitConfig_Attachment', Status: isAtt, Whoupdated: who, Whenupdated: now },
       { Type: 'VisitConfig_Signature', Status: isSig, Whoupdated: who, Whenupdated: now },
-      { Type: 'VisitConfig_Samples', Status: tgSmp ? tgSmp.checked : true, Whoupdated: who, Whenupdated: now } // 🎁 บันทึกสวิตช์ Samples
+      { Type: 'VisitConfig_Samples', Status: tgSmp ? tgSmp.checked : true, Whoupdated: who, Whenupdated: now }
   ];
 
   try {
@@ -827,7 +848,6 @@ window.saveVisitFeatures = async function() {
   }
 };
 
-// ================= 🌟 Offline Sync Engine =================
 window.syncOfflineIndexes = async function() {
   if (!navigator.onLine) return;
   var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
