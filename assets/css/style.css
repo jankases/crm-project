@@ -13,7 +13,8 @@ html, body {
 /* 🖥️ ISOLATED MODULE WRAPPER */
 .visit-module-wrapper,
 .hosp-module-wrapper,
-.doc-module-wrapper {
+.doc-module-wrapper,
+.index-module-wrapper {
   height: calc(100vh - 85px) !important;
   width: 100% !important;
   overflow: hidden !important;
@@ -85,7 +86,8 @@ html, body {
 }
 
 /* 🌟 RULE 3: INTERNAL SCROLL ONLY */
-.table-scroll-inside {
+.table-scroll-inside,
+.index-scroll-zone {
   width: 100%;
   flex: 1 1 auto !important;
   height: 100% !important;
@@ -119,8 +121,10 @@ html, body {
 
 /* ✨ MODERN MINIMAL SCROLLBAR */
 .table-scroll-inside::-webkit-scrollbar,
+.index-scroll-zone::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
+.index-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
 #visitFormView::-webkit-scrollbar,
 #visitFormView .col-12 > div::-webkit-scrollbar {
@@ -128,16 +132,20 @@ html, body {
   height: 6px;
 }
 .table-scroll-inside::-webkit-scrollbar-track,
+.index-scroll-zone::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
+.index-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
 #visitFormView::-webkit-scrollbar-track,
 #visitFormView .col-12 > div::-webkit-scrollbar-track {
   background: transparent;
 }
 .table-scroll-inside::-webkit-scrollbar-thumb,
+.index-scroll-zone::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
+.index-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
 #visitFormView::-webkit-scrollbar-thumb,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb {
@@ -145,8 +153,10 @@ html, body {
   border-radius: 4px;
 }
 .table-scroll-inside::-webkit-scrollbar-thumb:hover,
+.index-scroll-zone::-webkit-scrollbar-thumb:hover,
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
+.index-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
 #visitFormView::-webkit-scrollbar-thumb:hover,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover {
@@ -163,9 +173,24 @@ html, body {
   background: #ffffff !important;
 }
 
+.sys-config-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 0.85rem 1.25rem !important;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+}
+
+.index-card-box {
+  background: #ffffff !important;
+  border: 1px solid #eef2f6 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+}
+
 .form-control, .form-select { 
-  min-height: 42px;
-  border-radius: 12px; 
+  min-height: 38px;
+  border-radius: 10px; 
 }
 
 .form-control:disabled, .form-select:disabled, textarea:disabled, input:disabled { 
@@ -316,13 +341,12 @@ select.form-select[multiple]:not(.tomselected) { display: none !important; }
   letter-spacing: 0.5px;
 }
 
-.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch { position: relative; display: inline-block; width: 48px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
-.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-input:checked + .slider { background-color: #0d6efd; }
-input:focus + .slider { box-shadow: 0 0 1px #0d6efd; }
-input:checked + .slider:before { -webkit-transform: translateX(22px); -ms-transform: translateX(22px); transform: translateX(22px); }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+input:checked + .slider { background-color: #10b981; }
+input:checked + .slider:before { transform: translateX(22px); }
 
 /* ==========================================
    🌟 GLOBAL TOMSELECT STYLING
@@ -728,8 +752,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 #visitPaginationContainer,
 #doctorPaginationContainer {
   margin-top: auto !important;
-  padding-top: 0.5rem !important;
-  padding-bottom: 0 !important;
   flex-shrink: 0 !important;
 }
 
@@ -958,13 +980,6 @@ mark.highlight-search {
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
-}
-
-.dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] .ts-control .item {
-  font-size: 0.75rem !important;
-  padding: 1px 6px !important;
-  margin: 2px !important;
-  border-radius: 4px !important;
 }
 
 .dropdown-menu[aria-labelledby="btnAdvFilterDropdown"] label {
@@ -1764,7 +1779,6 @@ button.feature-action-btn-lg.has-data-samples i {
    🏥 WORKPLACE UNIFIED & PERFECT ALIGNMENT (PREMIUM PILL)
    ========================================== */
 
-/* 1. แถว Workplace แบบ Flexbox จัดกึ่งกลางแนวตั้ง */
 .workplace-row {
   display: flex !important;
   align-items: center !important;
@@ -1777,7 +1791,6 @@ button.feature-action-btn-lg.has-data-samples i {
   display: none !important;
 }
 
-/* 2. ช่อง Dropdown (TomSelect) ขยายเต็มพื้นที่ที่เหลือ */
 .workplace-row .ts-wrapper {
   width: 100% !important;
   height: 42px !important;
@@ -1822,7 +1835,6 @@ button.feature-action-btn-lg.has-data-samples i {
   font-size: 0.95rem !important;
 }
 
-/* 3. 🌟 ล็อคปุ่ม Primary แบบ Checkmark Pill ยาว 128px เท่ากันทุกปุ่ม! 🌟 */
 .btn-wp-primary-toggle {
   width: 128px !important;
   min-width: 128px !important;
@@ -1860,7 +1872,6 @@ button.feature-action-btn-lg.has-data-samples i {
 .btn-wp-primary-toggle .lbl-text-primary { display: none; }
 .btn-wp-primary-toggle .lbl-text-set { display: inline; }
 
-/* เมื่อปุ่มเปลี่ยนสถานะเป็น Primary (โทนสีฟ้าแอปพรีเมียม) */
 .btn-check:checked + .btn-wp-primary-toggle {
   background-color: #eff6ff !important;
   border-color: #2563eb !important;
@@ -1876,7 +1887,6 @@ button.feature-action-btn-lg.has-data-samples i {
 .btn-check:checked + .btn-wp-primary-toggle .lbl-text-primary { display: inline; }
 .btn-check:checked + .btn-wp-primary-toggle .lbl-text-set { display: none; }
 
-/* 4. ปุ่มถังขยะ จัตุรัส 42px x 42px */
 .btn-wp-delete-icon {
   width: 42px !important;
   height: 42px !important;
@@ -1902,7 +1912,6 @@ button.feature-action-btn-lg.has-data-samples i {
   color: #ef4444 !important;
 }
 
-/* 5. ปุ่ม + Add Workplace ด้านล่าง */
 .dashed-add-wp-tile {
   border-color: #cbd5e1 !important;
   background-color: #f8fafc;
