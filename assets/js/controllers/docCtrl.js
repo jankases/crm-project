@@ -76,31 +76,36 @@ window.safeTranslate = function(key, fallbackText) {
   return fallbackText;
 };
 
-// 🌟 Lookup Table สำหรับ Title (ถอดแบบมาจาก _purposeIndex ของ Visit)
+// 🌟 Lookup Tables สำหรับ Title, Specialty และ DoctorType
 window._titleIndex = window._titleIndex || {};
+window._specialtyIndex = window._specialtyIndex || {};
+window._docTypeIndex = window._docTypeIndex || {};
 
 window.buildTitleIndex = function() {
+  window.buildDocIndexes();
+};
+
+window.buildDocIndexes = function() {
   window._titleIndex = {};
+  window._specialtyIndex = {};
+  window._docTypeIndex = {};
+
   const indexes = window.globalIndexes || (window.DocManagerCache ? window.DocManagerCache.indexes : []) || [];
   indexes.forEach(item => {
     const key = String(item.Index_ID || item.id || '').toLowerCase();
     if (key) {
       window._titleIndex[key] = item;
+      window._specialtyIndex[key] = item;
+      window._docTypeIndex[key] = item;
     }
   });
 };
 
-// 🌟 ฟังก์ชัน ดึงคำอ่าน Title (ถอดแบบมาจาก getPurposeText ของหน้า Visit)
 window.getTitleText = function(titleId, fallbackText) {
   if (!titleId) return fallbackText || '-';
-  
-  if (Object.keys(window._titleIndex || {}).length === 0) {
-    window.buildTitleIndex();
-  }
+  if (Object.keys(window._titleIndex || {}).length === 0) window.buildDocIndexes();
 
   var tObj = window._titleIndex[String(titleId).toLowerCase()];
-  
-  // เผื่อกรณีข้อมูลเก่าที่เก็บบันทึกเป็นข้อความตรงๆ (Value หรือ Value1)
   if (!tObj) {
     const indexes = window.globalIndexes || [];
     tObj = indexes.find(i => 
@@ -112,9 +117,47 @@ window.getTitleText = function(titleId, fallbackText) {
   if (!tObj) return fallbackText || titleId || '-';
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  
-  // 🎯 สลับภาษาตามคอลัมน์ใน DB: EN = Value1, TH = Value
   return (appLang === 'en') ? (tObj.Value1 || tObj.Value || '-') : (tObj.Value || tObj.Value1 || '-');
+};
+
+// 🌟 ดึงข้อความ Specialty ตามภาษา (EN = Value1, TH = Value)
+window.getSpecialtyText = function(specId, fallbackText) {
+  if (!specId) return fallbackText || '-';
+  if (Object.keys(window._specialtyIndex || {}).length === 0) window.buildDocIndexes();
+
+  var obj = window._specialtyIndex[String(specId).toLowerCase()];
+  if (!obj) {
+    const indexes = window.globalIndexes || [];
+    obj = indexes.find(i => 
+      String(i.Value || '').toLowerCase() === String(specId).toLowerCase() || 
+      String(i.Value1 || '').toLowerCase() === String(specId).toLowerCase()
+    );
+  }
+
+  if (!obj) return fallbackText || specId || '-';
+
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  return (appLang === 'en') ? (obj.Value1 || obj.Value || '-') : (obj.Value || obj.Value1 || '-');
+};
+
+// 🌟 ดึงข้อความ DoctorType ตามภาษา (EN = Value1, TH = Value)
+window.getDoctorTypeText = function(typeId, fallbackText) {
+  if (!typeId) return fallbackText || '-';
+  if (Object.keys(window._docTypeIndex || {}).length === 0) window.buildDocIndexes();
+
+  var obj = window._docTypeIndex[String(typeId).toLowerCase()];
+  if (!obj) {
+    const indexes = window.globalIndexes || [];
+    obj = indexes.find(i => 
+      String(i.Value || '').toLowerCase() === String(typeId).toLowerCase() || 
+      String(i.Value1 || '').toLowerCase() === String(typeId).toLowerCase()
+    );
+  }
+
+  if (!obj) return fallbackText || typeId || '-';
+
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  return (appLang === 'en') ? (obj.Value1 || obj.Value || '-') : (obj.Value || obj.Value1 || '-');
 };
 
 window.getDoctorNameByLang = function(docObj, defaultId) {
@@ -314,9 +357,12 @@ window.renderFilterDropdowns = function(validDocsData) {
   const specSelect = document.getElementById('filterDocSpecialty');
   if (specSelect) {
     const selectedVals = specSelect.tomselect ? specSelect.tomselect.getValue() : [];
-    const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+    const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
     
-    specSelect.innerHTML = uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join('');
+    specSelect.innerHTML = uniqueSpecs.map(s => {
+      const showLabel = window.getSpecialtyText(s, s);
+      return `<option value="${s}">${showLabel}</option>`;
+    }).join('');
     window.initMultiTomSelect('filterDocSpecialty', phSpec);
     
     if (selectedVals.length > 0 && specSelect.tomselect) {
@@ -328,9 +374,12 @@ window.renderFilterDropdowns = function(validDocsData) {
   const typeSelect = document.getElementById('filterDocType');
   if (typeSelect) {
     const selectedVals = typeSelect.tomselect ? typeSelect.tomselect.getValue() : [];
-    const uniqueTypes = [...new Set(validDocsData.map(d => d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+    const uniqueTypes = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
     
-    typeSelect.innerHTML = uniqueTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+    typeSelect.innerHTML = uniqueTypes.map(t => {
+      const showLabel = window.getDoctorTypeText(t, t);
+      return `<option value="${t}">${showLabel}</option>`;
+    }).join('');
     window.initMultiTomSelect('filterDocType', phType);
 
     if (selectedVals.length > 0 && typeSelect.tomselect) {
@@ -404,7 +453,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.globalMatrixData = window.DocManagerCache.matrixData;
       window.globalTargetData = window.DocManagerCache.targetData;
 
-      window.buildTitleIndex();
+      window.buildDocIndexes();
 
       const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating' || s.Type === 'TargetCall' || s.Type === 'Target Call');
       if (ratingSetting) {
@@ -537,7 +586,7 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.myAllowedTerIds = allowedTerIds;
       window.DocManagerCache.myAllowedDocIds = allowedDocIds;
 
-      let docQuery = sb.from('Doctors').select('Specialty, Type');
+      let docQuery = sb.from('Doctors').select('Specialty_ID, Specialty, DoctorType_ID, Type');
       if (!isGlobalViewer) {
         if (allowedDocIds.length > 0) {
           docQuery = docQuery.in('Doc_ID', allowedDocIds);
@@ -723,8 +772,12 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     const selectedSpecs = specEl && specEl.tomselect ? specEl.tomselect.getValue() : [];
     const selectedTypes = typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [];
 
-    if (Array.isArray(selectedSpecs) && selectedSpecs.length > 0) query = query.in('Specialty', selectedSpecs);
-    if (Array.isArray(selectedTypes) && selectedTypes.length > 0) query = query.in('Type', selectedTypes);
+    if (Array.isArray(selectedSpecs) && selectedSpecs.length > 0) {
+      query = query.or(`Specialty_ID.in.(${selectedSpecs.join(',')}),Specialty.in.(${selectedSpecs.join(',')})`);
+    }
+    if (Array.isArray(selectedTypes) && selectedTypes.length > 0) {
+      query = query.or(`DoctorType_ID.in.(${selectedTypes.join(',')}),Type.in.(${selectedTypes.join(',')})`);
+    }
 
     const sortCol = window.currentDocSortCol || 'Doc_Name';
     query = query.order(sortCol, { ascending: window.currentDocSortAsc });
@@ -817,6 +870,9 @@ window.renderDoctorTableServerSide = function() {
     const docNameEnShow = d.Doc_Name || d.doc_name || '-';
     const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
+    // 🎯 แปลง Specialty_ID เป็นภาษาที่เลือก
+    const specialtyShow = window.getSpecialtyText(d.Specialty_ID || d.Specialty, d.Specialty);
+
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
     const hospNameShow = window.getHospitalNameByLang(hospObj);
 
@@ -826,7 +882,7 @@ window.renderDoctorTableServerSide = function() {
       <tr onclick="window.openViewDoctorProfile('${d.Doc_ID}')" style="cursor: pointer;">
         <td class="text-start ps-3">${nameCellLink}</td>
         <td class="fw-medium text-secondary">${docNameThShow}</td>
-        <td><span class="badge badge-soft-product">${d.Specialty || '-'}</span></td>
+        <td><span class="badge badge-soft-product">${specialtyShow}</span></td>
         <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
         <td class="text-center">
           <span class="badge ${badge}">${statusTextShow}</span>
@@ -986,7 +1042,6 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const selectPlaceholder = appLang === 'en' ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
-  // 🌟 ใช้ Flexbox แถวเดียว ไม่ซ้อน div ข้างในอีกชั้น
   row.className = 'workplace-row d-flex align-items-center gap-2 mb-2.5 w-100';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
@@ -1006,8 +1061,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 
   const checked = isPrimary ? 'checked' : '';
 
-  // 🌟 โครงสร้าง HTML คลีนๆ ล็อคระดับความสูง 38px
- row.innerHTML = `
+  row.innerHTML = `
     <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
     
     <div class="flex-grow-1 min-w-0">
@@ -1175,7 +1229,6 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
   }
 };
 
-// 🌟 ปรับปรุงการตั้งค่าเข้า TomSelect ให้ค้นหา Match ปลอดภัย ทั้ง ID และ Value
 window.openEditDoctorView = function(id) {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
@@ -1191,9 +1244,8 @@ window.openEditDoctorView = function(id) {
 
     if (el.tomselect) {
       let targetVal = String(rawVal).trim();
-      
-      // ค้นหาว่าค่าที่มีอยู่ตรงกับ Value หลักใน <option> หรือไม่
       let exists = false;
+      
       Object.keys(el.tomselect.options).forEach(optKey => {
         if (optKey.toLowerCase() === targetVal.toLowerCase()) {
           targetVal = optKey;
@@ -1201,7 +1253,6 @@ window.openEditDoctorView = function(id) {
         }
       });
 
-      // ถ้ายังไม่เจอ ให้ค้นจากข้อความ Text ภายใน Option (เผื่อกรณีข้อมูลเก่าเก็บบันทึกเป็นภาษาไทย/อังกฤษ)
       if (!exists) {
         Object.values(el.tomselect.options).forEach(optObj => {
           if (optObj.text && optObj.text.toLowerCase() === targetVal.toLowerCase()) {
@@ -1220,10 +1271,10 @@ window.openEditDoctorView = function(id) {
     }
   };
 
-  // 🎯 ตั้งค่าเข้านาฬิกา TomSelect อย่างปลอดภัย
+  // 🎯 แมปด้วย UUID ID
   setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
-  setTsVal('editDocSpecialty', d.Specialty || d.specialty || '');
-  setTsVal('editDocType', d.Type || d.type || '');
+  setTsVal('editDocSpecialty', d.Specialty_ID || d.specialty_id || d.Specialty || '');
+  setTsVal('editDocType', d.DoctorType_ID || d.doctortype_id || d.Type || '');
   
   document.getElementById('editDocNameEn').value = d.Doc_Name || d.nameEn || ''; 
   document.getElementById('editDocNameTh').value = d.Doc_Name_TH || d.nameTh || ''; 
@@ -1270,14 +1321,16 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
 
   const titleText = window.getTitleText(d.Title_ID || d.title_id || d.Title);
+  const specText = window.getSpecialtyText(d.Specialty_ID || d.Specialty);
+  const typeText = window.getDoctorTypeText(d.DoctorType_ID || d.Type);
 
   const titleEl = document.getElementById('viewDocTitleName');
   if (titleEl) {
     titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
   }
 
-  if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = d.Specialty || d.specialty || '-';
-  if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = d.Type || d.type || '-';
+  if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = specText;
+  if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = typeText;
   if (document.getElementById('viewDocStatus')) document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
   if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
   if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
@@ -1357,8 +1410,8 @@ window.handleAddDoctor = async function(e) {
     Title_ID: document.getElementById('docTitle').value, 
     Doc_Name: document.getElementById('docNameEn').value.trim(),
     Doc_Name_TH: document.getElementById('docNameTh').value.trim(),
-    Specialty: document.getElementById('docSpecialty').value, 
-    Type: document.getElementById('docType').value,    
+    Specialty_ID: document.getElementById('docSpecialty').value, 
+    DoctorType_ID: document.getElementById('docType').value,    
     Hospital_ID: primaryHospId, 
     Workplaces_JSON: JSON.stringify(workplaces), 
     Email: document.getElementById('docEmail').value.trim(),
@@ -1406,8 +1459,8 @@ window.handleUpdateDoctor = async function(e) {
     Title_ID: document.getElementById('editDocTitle').value, 
     Doc_Name: document.getElementById('editDocNameEn').value.trim(),
     Doc_Name_TH: document.getElementById('editDocNameTh').value.trim(),
-    Specialty: document.getElementById('editDocSpecialty').value,
-    Type: document.getElementById('editDocType').value,
+    Specialty_ID: document.getElementById('editDocSpecialty').value,
+    DoctorType_ID: document.getElementById('editDocType').value,
     Hospital_ID: primaryHospId, 
     Workplaces_JSON: JSON.stringify(workplaces), 
     Email: document.getElementById('editDocEmail').value.trim(),
@@ -2105,7 +2158,7 @@ window.initDoctorPage = async function(forceReload = false) {
 // ⚡ Listener สลับภาษา EN / TH
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
-    window.buildTitleIndex();
+    window.buildDocIndexes();
 
     if (window.DocManagerCache && window.DocManagerCache.validDocsData) {
       window.renderFilterDropdowns(window.DocManagerCache.validDocsData);
@@ -2115,7 +2168,6 @@ if (!window._isDocLangListenerAttached) {
       window.renderDoctorTableServerSide();
     }
 
-    // 🌟 รีโหลดตัวเลือกดร็อปดาวน์หลักทุกตัวตามภาษาใหม่ (Value1/Value) โดยที่ค่าค้างไม่หลุด
     if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
@@ -2132,7 +2184,6 @@ if (!window._isDocLangListenerAttached) {
       window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
     }
     
-    // อัปเดตภาษาปุ่ม Status Toggle ในหน้า Edit ทันที
     const editToggle = document.getElementById('editDocStatusToggle');
     if (editToggle) {
       window.toggleDoctorStatusText(editToggle);
