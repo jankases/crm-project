@@ -232,7 +232,7 @@ window.loadAllIndexData = async function() {
   }
 };
 
-window.renderIndexTypeTable = function() {
+ window.renderIndexTypeTable = function() {
   const tbody = document.getElementById('indexTypeTableBody');
   if (!tbody) return;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
@@ -249,8 +249,9 @@ window.renderIndexTypeTable = function() {
     const isActive = (t.IndexType_ID === currentFilterVal) ? 'active' : '';
     tbody.innerHTML += `
       <tr class="category-item-row ${isActive}" onclick="window.selectCategoryFromLeft('${t.IndexType_ID}')">
+        <!-- ข้อ 3: เพิ่มระยะห่าง me-2.5 ที่ไอคอนโฟลเดอร์ฝั่งซ้าย -->
         <td class="text-dark fw-bold text-start ps-3 py-2.5">
-           <i class="fa-solid fa-folder-open text-primary opacity-50 me-2"></i>${t.Name}
+           <i class="fa-solid fa-folder-open text-primary opacity-50 me-2.5"></i>${t.Name}
         </td>
         <td class="text-end pe-2">
           <button class="btn btn-sm btn-light border fw-bold rounded-pill px-2.5 shadow-xs text-primary" onclick="event.stopPropagation(); window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')"><i class="fa-solid fa-pen"></i></button>
