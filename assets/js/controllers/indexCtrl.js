@@ -232,7 +232,7 @@ window.loadAllIndexData = async function() {
   }
 };
 
-window.renderIndexTypeTable = function() {
+ window.renderIndexTypeTable = function() {
   const tbody = document.getElementById('indexTypeTableBody');
   if (!tbody) return;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
@@ -243,17 +243,30 @@ window.renderIndexTypeTable = function() {
     return;
   }
 
+  const currentFilterVal = document.getElementById('filterIndexType') ? document.getElementById('filterIndexType').value : '';
+
   window.globalIndexTypes.forEach(t => {
+    const isActive = (t.IndexType_ID === currentFilterVal) ? 'active' : '';
     tbody.innerHTML += `
-      <tr>
-        <td class="text-dark fw-bold text-start ps-3 py-3">
+      <tr class="category-item-row ${isActive}" onclick="window.selectCategoryFromLeft('${t.IndexType_ID}')">
+        <td class="text-dark fw-bold text-start ps-3 py-2.5">
            <i class="fa-solid fa-folder-open text-primary opacity-50 me-2"></i>${t.Name}
         </td>
-        <td class="text-end pe-3">
-          <button class="btn btn-sm btn-light border fw-bold rounded-pill px-3 shadow-xs text-primary" onclick="window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')"><i class="fa-solid fa-pen"></i></button>
+        <td class="text-end pe-2">
+          <button class="btn btn-sm btn-light border fw-bold rounded-pill px-2.5 shadow-xs text-primary" onclick="event.stopPropagation(); window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')"><i class="fa-solid fa-pen"></i></button>
         </td>
       </tr>`;
   });
+};
+
+// 🌟 ฟังก์ชันคลิกเลือกหมวดหมู่ฝั่งซ้ายแล้วฟิลเตอร์ฝั่งขวา
+window.selectCategoryFromLeft = function(typeId) {
+  const filterEl = document.getElementById('filterIndexType');
+  if (filterEl) {
+    filterEl.value = typeId;
+    window.filterIndexValues();
+    window.renderIndexTypeTable(); // ไฮไลต์แถวที่เลือก
+  }
 };
 
 window.openAddIndexTypeModal = function() {
