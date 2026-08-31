@@ -1,5 +1,5 @@
 <style>
-  /* ================= 🌟 Master Index Theme Styles ================= */
+  /* ================= 🌟 Strict App-Like Layout Engine ================= */
   .index-module-wrapper {
     height: calc(100vh - 85px) !important;
     width: 100% !important;
@@ -11,25 +11,30 @@
     flex-direction: column !important;
   }
 
-  .index-card { 
-    border-radius: 16px !important; 
-    border: 1px solid #eef2f6 !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+  /* 🌟 การ์ดแบบอิสระ ไม่พึ่ง .card ของ Bootstrap ป้องกัน CSS ตีกัน */
+  .sys-config-card {
     background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 0.85rem 1.25rem !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+    display: block !important; /* บังคับเป็น block ป้องกัน flex ทับซ้อน */
   }
-  
-  .form-control, .form-select { 
-    border-radius: 10px; 
-    border: 1px solid #dee2e6;
+
+  .index-card-box {
+    background: #ffffff !important;
+    border: 1px solid #eef2f6 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
   }
 
   /* Toggle Switch (UI แบบ iOS) */
-  .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
+  .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
   .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   input:checked + .slider { background-color: #10b981; }
-  input:checked + .slider:before { transform: translateX(22px); }
+  input:checked + .slider:before { transform: translateX(20px); }
 
   .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 5px 10px; border-radius: 8px; border: 1px solid #bfdbfe; }
   .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -60,28 +65,31 @@
 <div class="index-module-wrapper">
   
   <!-- Header Bar -->
-  <div class="d-flex justify-content-between align-items-center mb-2.5 flex-shrink-0">
+  <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
     <div>
       <h3 class="text-dark fw-bold mb-0 fs-5" data-i18n="title_sys_settings"><i class="fa-solid fa-cogs me-2 text-primary"></i>System Settings</h3>
       <p class="text-muted small mb-0" style="font-size: 0.8rem;" data-i18n="desc_sys_settings">Master Data & Index Configuration</p>
     </div>
   </div>
 
-  <!-- โซนการ์ดคู่ด้านบน (Settings) -->
-  <div class="row g-3 mb-3 flex-shrink-0">
+  <!-- 🌟 โซนการ์ดคู่ด้านบน (ใช้ sys-config-card แยกอิสระ) -->
+  <div class="row g-3 mb-2.5 flex-shrink-0">
     
-    <!-- 🌟 1. Target Call (Rating) -->
+    <!-- 1. Target Call (Rating) Access -->
     <div class="col-lg-6">
-      <div class="card p-3 border-0 index-card" style="border-left: 5px solid #f59e0b !important;">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <div>
-            <h6 class="fw-bold text-dark mb-1 fs-6" data-i18n="title_target_call"><i class="fa-solid fa-bullseye me-2 text-warning"></i>Target Call (Rating) Access</h6>
-            <small class="text-secondary d-block fw-semibold" id="ratingStatusLabel" style="font-size: 0.78rem;">Status: Loading...</small>
+      <div class="sys-config-card" style="border-left: 5px solid #f59e0b !important;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          
+          <div class="min-w-0">
+            <h6 class="fw-bold text-dark mb-0 fs-6 text-nowrap" data-i18n="title_target_call">
+              <i class="fa-solid fa-bullseye me-1.5 text-warning"></i>Target Call (Rating) Access
+            </h6>
+            <small class="text-secondary fw-semibold d-block mt-0.5 text-nowrap" id="ratingStatusLabel" style="font-size: 0.75rem;">Status: Loading...</small>
           </div>
 
-          <div class="d-flex align-items-center gap-2">
-            <input type="date" class="form-control form-control-sm px-2" id="ratingStartDate" style="height: 36px; font-size: 0.8rem; width: 125px;">
-            <input type="date" class="form-control form-control-sm px-2" id="ratingEndDate" style="height: 36px; font-size: 0.8rem; width: 125px;">
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingStartDate" style="height: 36px; font-size: 0.8rem; width: 125px;">
+            <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingEndDate" style="height: 36px; font-size: 0.8rem; width: 125px;">
             
             <label class="switch mb-0 flex-shrink-0 ms-1">
               <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
@@ -92,22 +100,26 @@
               <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
             </button>
           </div>
+
         </div>
       </div>
     </div>
 
-    <!-- 🌟 2. Visit Form Features -->
+    <!-- 2. Visit Form Features -->
     <div class="col-lg-6">
-      <div class="card p-3 border-0 index-card" style="border-left: 5px solid #0d6efd !important;">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <div>
-            <h6 class="fw-bold text-dark mb-1 fs-6" data-i18n="title_visit_features"><i class="fa-solid fa-sliders me-2 text-primary"></i>Visit Form Features</h6>
-            <small class="text-muted d-block" style="font-size: 0.78rem;" data-i18n="desc_visit_features">Show or hide specific sections in Visit Form</small>
+      <div class="sys-config-card" style="border-left: 5px solid #0d6efd !important;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          
+          <div class="min-w-0">
+            <h6 class="fw-bold text-dark mb-0 fs-6 text-nowrap" data-i18n="title_visit_features">
+              <i class="fa-solid fa-sliders me-1.5 text-primary"></i>Visit Form Features
+            </h6>
+            <small class="text-muted d-block mt-0.5 text-nowrap" style="font-size: 0.75rem;" data-i18n="desc_visit_features">Show or hide specific sections in Visit Form</small>
           </div>
 
-          <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center gap-3 flex-shrink-0">
             <div class="text-center">
-              <small class="d-block text-secondary fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_enable_gps">GPS</small>
+              <small class="d-block text-secondary fw-bold mb-0.5" style="font-size: 0.68rem;" data-i18n="lbl_enable_gps">GPS</small>
               <label class="switch mb-0">
                 <input type="checkbox" id="toggleGps" checked>
                 <span class="slider"></span>
@@ -115,7 +127,7 @@
             </div>
 
             <div class="text-center">
-              <small class="d-block text-secondary fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_enable_attachment">Attach</small>
+              <small class="d-block text-secondary fw-bold mb-0.5" style="font-size: 0.68rem;" data-i18n="lbl_enable_attachment">Attach</small>
               <label class="switch mb-0">
                 <input type="checkbox" id="toggleAttachment" checked>
                 <span class="slider"></span>
@@ -123,7 +135,7 @@
             </div>
 
             <div class="text-center">
-              <small class="d-block text-secondary fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_enable_signature">Sign</small>
+              <small class="d-block text-secondary fw-bold mb-0.5" style="font-size: 0.68rem;" data-i18n="lbl_enable_signature">Sign</small>
               <label class="switch mb-0">
                 <input type="checkbox" id="toggleSignature" checked>
                 <span class="slider"></span>
@@ -131,7 +143,7 @@
             </div>
 
             <div class="text-center">
-              <small class="d-block text-secondary fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_enable_samples">Samples</small>
+              <small class="d-block text-secondary fw-bold mb-0.5" style="font-size: 0.68rem;" data-i18n="lbl_enable_samples">Samples</small>
               <label class="switch mb-0">
                 <input type="checkbox" id="toggleSamples" checked>
                 <span class="slider"></span>
@@ -142,6 +154,7 @@
               <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
             </button>
           </div>
+
         </div>
       </div>
     </div>
@@ -153,7 +166,7 @@
     
     <!-- ฝั่งซ้าย: Categories List (IndexType) -->
     <div class="col-lg-3 h-100">
-      <div class="card p-3.5 border-0 index-card h-100 d-flex flex-column">
+      <div class="index-card-box p-3.5 h-100 d-flex flex-column">
         
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-shrink-0">
           <h6 class="fw-bold text-dark mb-0 fs-6" data-i18n="title_categories"><i class="fa-solid fa-layer-group me-2 text-secondary"></i>1. Categories</h6>
@@ -175,7 +188,7 @@
 
     <!-- ฝั่งขวา: Index Values Table -->
     <div class="col-lg-9 h-100">
-      <div class="card p-3.5 border-0 index-card h-100 d-flex flex-column justify-content-between">
+      <div class="index-card-box p-3.5 h-100 d-flex flex-column justify-content-between">
         
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2 flex-shrink-0">
           <h6 class="fw-bold text-primary mb-0 fs-6" data-i18n="title_index_values"><i class="fa-solid fa-list-check me-2"></i>2. Index Values</h6>
@@ -241,7 +254,7 @@
   <!-- Modals Zone -->
   <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg index-card">
+      <div class="modal-content border-0 shadow-lg index-card-box">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-dark" id="indexTypeModalTitle" data-i18n="title_add_category">Add Category</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -265,7 +278,7 @@
 
   <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg index-card">
+      <div class="modal-content border-0 shadow-lg index-card-box">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-primary" id="indexModalTitle" data-i18n="title_add_index">Add Value</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
