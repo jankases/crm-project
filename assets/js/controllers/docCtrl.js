@@ -937,8 +937,9 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
     targetPane.classList.add('active', 'show');
   }
 };
- // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Fixed Auto-Select Bug)
+
+// ==========================================
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Exact Height Fix)
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -972,7 +973,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   return selectedIds;
 };
 
- window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
+window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
@@ -985,8 +986,8 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   const selectPlaceholder = appLang === 'en' ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
-  // 🌟 ปรับเป็น Row แบบไร้กรอบกรอบนอกซ้ำซ้อน
-  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2.5 transition-all';
+  // 🌟 ใช้ Flexbox แถวเดียว ไม่ซ้อน div ข้างในอีกชั้น
+  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2.5 w-100';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
   const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
@@ -1005,34 +1006,29 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
 
   const checked = isPrimary ? 'checked' : '';
 
-  // 🌟 ปรับโครงสร้าง HTML ให้ Dropdown กับ ปุ่ม Primary อยู่ในกล่องเดียวกัน ความสูงเท่ากันเป๊ะ 38px
+  // 🌟 โครงสร้าง HTML คลีนๆ ล็อคระดับความสูง 38px
   row.innerHTML = `
-    <div class="d-flex align-items-center w-100">
-      <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
-      
-      <!-- Dropdown Select Zone -->
-      <div class="flex-grow-1 min-w-0">
-        <select class="form-select form-select-sm hospital-select" id="${selectId}" required>
-          ${optionsHtml}
-        </select>
-      </div>
-      
-      <!-- Primary Toggle Button -->
-      <div class="flex-shrink-0">
-        <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-        <label class="btn btn-wp-primary-toggle fw-bold cursor-pointer" for="radio_${selectId}">
-          <i class="fa-solid fa-star star-icon me-1"></i>
-          <span class="lbl-text-primary">${primaryText}</span>
-          <span class="lbl-text-set">${setPrimaryText}</span>
-        </label>
-      </div>
+    <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
+    
+    <div class="flex-grow-1 min-w-0">
+      <select class="form-select form-select-sm hospital-select" id="${selectId}" required>
+        ${optionsHtml}
+      </select>
+    </div>
+    
+    <div class="flex-shrink-0">
+      <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
+      <label class="btn btn-wp-primary-toggle fw-bold cursor-pointer" for="radio_${selectId}">
+        <i class="fa-solid fa-star star-icon me-1"></i>
+        <span class="lbl-text-primary">${primaryText}</span>
+        <span class="lbl-text-set">${setPrimaryText}</span>
+      </label>
+    </div>
 
-      <!-- Delete Button -->
-      <div class="flex-shrink-0">
-        <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
-      </div>
+    <div class="flex-shrink-0">
+      <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
     </div>
   `;
   container.appendChild(row);
@@ -1111,6 +1107,7 @@ window.extractWorkplaces = function(containerId) {
   });
   return workplaces;
 };
+
 // ==========================================
 // 📝 7. FORM ACTIONS (ADD, EDIT, PROFILE)
 // ==========================================
