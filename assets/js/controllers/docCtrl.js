@@ -1010,23 +1010,24 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 row.innerHTML = `
     <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
     
-    <div class="flex-grow-1 min-w-0" style="height: 38px;">
-      <select class="form-select form-select-sm hospital-select" id="${selectId}" required>
+    <div class="flex-grow-1 min-w-0">
+      <!-- 🌟 ถอด form-select ออก ป้องกันสไตล์ 42px จาก Bootstrap ดันความสูง -->
+      <select class="hospital-select" id="${selectId}" required>
         ${optionsHtml}
       </select>
     </div>
     
-    <div class="flex-shrink-0" style="height: 38px;">
+    <div class="flex-shrink-0">
       <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-      <label class="btn btn-wp-primary-toggle fw-bold cursor-pointer h-100" for="radio_${selectId}">
+      <label class="btn btn-wp-primary-toggle fw-bold cursor-pointer" for="radio_${selectId}">
         <i class="fa-solid fa-star star-icon me-1"></i>
         <span class="lbl-text-primary">${primaryText}</span>
         <span class="lbl-text-set">${setPrimaryText}</span>
       </label>
     </div>
 
-    <div class="flex-shrink-0" style="height: 38px;">
-      <button type="button" class="btn-wp-delete-icon h-100" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
+    <div class="flex-shrink-0">
+      <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
         <i class="fa-solid fa-trash-can"></i>
       </button>
     </div>
