@@ -1761,24 +1761,25 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🏥 WORKPLACE STYLING (PERFECT 38PX EQUAL HEIGHT)
+   🏥 WORKPLACE STRICT 38PX EQUAL HEIGHT ENGINE
    ========================================== */
 
-/* 1. ล้างขอบ Select เดิมของ Bootstrap */
-.workplace-row select.hospital-select {
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-}
-
-/* 2. จัดการระยะห่างระนาบเดียวกัน */
+/* 1. บังคับความสูงแถวและซ่อนขอบ Select เดิม */
 .workplace-row {
-  margin-bottom: 0.75rem !important;
-  gap: 0.65rem !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  margin-bottom: 10px !important;
+  gap: 10px !important;
 }
 
-/* 3. ล็อคกล่อง TomSelect ให้สูง 38px และความสูงบรรทัดเท่ากันเป๊ะ */
+.workplace-row select.hospital-select {
+  display: none !important;
+}
+
+/* 2. ล็อคความสูง TomSelect Wrapper ให้ตายตัวที่ 38px */
 .workplace-row .ts-wrapper {
   width: 100% !important;
   height: 38px !important;
@@ -1790,16 +1791,15 @@ button.feature-action-btn-lg.has-data-samples i {
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
+  padding: 0 32px 0 12px !important;
   border-radius: 8px !important;
   border: 1px solid #cbd5e1 !important;
-  padding: 0 32px 0 12px !important;
-  font-size: 0.875rem !important;
-  line-height: 36px !important;
   background-color: #ffffff !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
+  font-size: 0.875rem !important;
 }
 
 .workplace-row .ts-wrapper.focus .ts-control {
@@ -1819,21 +1819,20 @@ button.feature-action-btn-lg.has-data-samples i {
   color: #94a3b8 !important;
   font-size: 0.875rem !important;
   font-weight: 400 !important;
-  opacity: 1 !important;
 }
 
 .workplace-row .ts-control .item {
   color: #1e293b !important;
   font-weight: 500 !important;
   font-size: 0.875rem !important;
+  line-height: 36px !important;
 }
 
-/* 4. ล็อคปุ่ม Primary ให้สูง 38px เท่ากับ Dropdown เป๊ะ 100% */
+/* 3. ล็อคปุ่ม Primary ให้มีความสูง 38px เป๊ะเท่า Dropdown */
 .btn-wp-primary-toggle {
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
-  line-height: 36px !important;
   border-radius: 8px !important;
   border: 1px solid #cbd5e1 !important;
   background-color: #f8fafc !important;
@@ -1862,7 +1861,7 @@ button.feature-action-btn-lg.has-data-samples i {
 .btn-wp-primary-toggle .lbl-text-primary { display: none; }
 .btn-wp-primary-toggle .lbl-text-set { display: inline; }
 
-/* เมื่อปุ่มถูกเลือกเป็น Primary */
+/* State: เมื่อปุ่มถูกเลือกเป็น Primary */
 .btn-check:checked + .btn-wp-primary-toggle {
   background-color: #eff6ff !important;
   border-color: #2563eb !important;
@@ -1870,13 +1869,13 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 .btn-check:checked + .btn-wp-primary-toggle .star-icon {
-  color: #d97706 !important; /* Soft Champagne Gold */
+  color: #d97706 !important; /* Soft Gold */
 }
 
 .btn-check:checked + .btn-wp-primary-toggle .lbl-text-primary { display: inline; }
 .btn-check:checked + .btn-wp-primary-toggle .lbl-text-set { display: none; }
 
-/* 5. ปุ่มถังขยะขนาด 38px x 38px เท่าระนาบเดียวกัน */
+/* 4. ล็อคปุ่มถังขยะให้สูง 38px x 38px เท่ากัน */
 .btn-wp-delete-icon {
   width: 38px !important;
   height: 38px !important;
@@ -1904,7 +1903,7 @@ button.feature-action-btn-lg.has-data-samples i {
   color: #ef4444 !important;
 }
 
-/* Dashed Add Workplace Tile Hover Effect */
+/* Dashed Add Workplace Tile */
 .dashed-add-wp-tile {
   border-color: #cbd5e1 !important;
   background-color: #f8fafc;
