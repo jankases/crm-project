@@ -1,255 +1,252 @@
 <style>
-  /* ================= 🌟 Master Theme Styles ================= */
-  .visit-card { 
-    border-radius: 20px !important; 
+  /* ================= 🌟 App-Like Strict Layout Engine ================= */
+  .index-module-wrapper {
+    height: calc(100vh - 85px) !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
+    background-color: #f8fafc;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .index-card {
+    border-radius: 16px !important;
     border: 1px solid #eef2f6 !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;
-    background: #ffffff;
-  }
-  
-  .form-control, .form-select { 
-    min-height: 44px; 
-    border-radius: 12px; 
-    border: 1px solid #dee2e6;
-  }
-  .form-control:focus, .form-select:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    border-color: #86b7fe;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    background: #ffffff !important;
   }
 
-  .form-control:disabled, .form-select:disabled, input:disabled { 
-    background-color: #f8fafc !important; 
-    color: #475569 !important; 
-    cursor: not-allowed; 
-    font-weight: 500 !important;
+  /* 📊 Scroll Engine เฉพาะในตาราง และกล่องเนื้อหา */
+  .index-scroll-zone {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    border-radius: 8px;
   }
 
-  .btn-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
-  .btn-primary:hover { background-color: #0b5ed7 !important; border-color: #0a58ca !important; }
-
-  .table-custom-header {
+  /* ตรึงหัวตาราง (Sticky Header) */
+  .table-custom-header th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background-color: #f8fafc !important;
-    color: #64748b !important;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     border-bottom: 2px solid #e2e8f0 !important;
+    color: #475569 !important;
+    box-shadow: inset 0 -1px 0 #e2e8f0;
   }
 
   /* Toggle Switch (UI แบบ iOS) */
-  .switch { position: relative; display: inline-block; width: 54px; height: 30px; }
+  .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
   .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; -webkit-transition: .4s; transition: .4s; border-radius: 34px; }
-  .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
+  .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   input:checked + .slider { background-color: #10b981; }
-  input:focus + .slider { box-shadow: 0 0 1px #10b981; }
-  input:checked + .slider:before { -webkit-transform: translateX(24px); -ms-transform: translateX(24px); transform: translateX(24px); }
+  input:checked + .slider:before { transform: translateX(22px); }
 
-  .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; }
-  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
-
-  /* Pagination Custom Styles */
-  .custom-pagination .page-link { border-radius: 8px; margin: 0 3px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 40px; text-align: center; }
-  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; box-shadow: 0 2px 5px rgba(13,110,253,0.3); }
+  .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid #bfdbfe; }
+  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
 
   /* Sortable Header & Text Wrapping */
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
-  .desc-wrap { max-width: 250px; white-space: normal; word-wrap: break-word; line-height: 1.4; margin: 0 auto; }
+  .desc-wrap { max-width: 250px; white-space: normal; word-wrap: break-word; line-height: 1.3; margin: 0 auto; }
 </style>
 
-<div class="container-fluid p-0" style="max-width: 1200px; margin: 0 auto;">
+<div class="index-module-wrapper">
   
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <!-- 📌 Header Bar (Flex Fixed) -->
+  <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
     <div>
-      <h3 class="text-dark fw-bold mb-1" data-i18n="title_sys_settings"><i class="fa-solid fa-cogs me-2 text-primary"></i>System Settings</h3>
+      <h4 class="text-dark fw-bold mb-0 fs-5" data-i18n="title_sys_settings"><i class="fa-solid fa-cogs me-2 text-primary"></i>System Settings</h4>
       <p class="text-muted small mb-0" data-i18n="desc_sys_settings">Master Data & Index Configuration</p>
     </div>
   </div>
 
-  <!-- ================= 🌟 ส่วนควบคุม Target Call ================= -->
-  <div class="card p-4 border-0 visit-card mb-4" style="border-left: 5px solid #f59e0b !important;">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+  <!-- 📌 Main Content Container (Flex Fill 100%) -->
+  <div class="d-flex flex-column flex-grow-1 min-h-0 overflow-hidden gap-2">
+
+    <!-- 1. ส่วนควบคุม Settings บนสุด (Compact Top Cards Zone) -->
+    <div class="row g-2 flex-shrink-0">
       
-      <div class="flex-grow-1">
-        <h5 class="fw-bold text-dark mb-2" data-i18n="title_target_call"><i class="fa-solid fa-bullseye me-2 text-warning"></i>Target Call (Rating) Access</h5>
-        <p class="text-muted small mb-0" style="line-height: 1.6;">
-          <span data-i18n="desc_target_call_1">Control whether Sales Reps can edit the "Target Call" tab in Doctor Profiles.</span><br>
-          <span class="text-secondary" data-i18n="desc_target_call_2">- Set Start/End Dates for automatic access.</span><br>
-          <span class="text-secondary" data-i18n="desc_target_call_3">- Or use the Toggle Switch for manual control.</span>
-        </p>
+      <!-- Target Call Config -->
+      <div class="col-lg-6">
+        <div class="card p-2.5 border-0 index-card h-100" style="border-left: 4px solid #f59e0b !important;">
+          <div class="d-flex align-items-center justify-content-between gap-2">
+            <div>
+              <h6 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-bullseye me-1.5 text-warning"></i>Target Call Access</h6>
+              <small class="text-muted d-block" id="ratingStatusLabel" style="font-size: 0.75rem;">Status: Loading...</small>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <input type="date" class="form-control form-control-sm px-1 text-secondary" id="ratingStartDate" style="height: 32px; font-size: 0.78rem; width: 110px;">
+              <input type="date" class="form-control form-control-sm px-1 text-secondary" id="ratingEndDate" style="height: 32px; font-size: 0.78rem; width: 110px;">
+              
+              <label class="switch mb-0 flex-shrink-0" style="transform: scale(0.85);">
+                <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
+                <span class="slider"></span>
+              </label>
+
+              <button class="btn btn-sm btn-premium-primary fw-bold text-nowrap px-2.5" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 32px; font-size: 0.8rem;">
+                <i class="fa-solid fa-save"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Visit Features Config -->
+      <div class="col-lg-6">
+        <div class="card p-2.5 border-0 index-card h-100" style="border-left: 4px solid #0d6efd !important;">
+          <div class="d-flex align-items-center justify-content-between gap-2">
+            <div>
+              <h6 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-sliders me-1.5 text-primary"></i>Visit Form Features</h6>
+              <small class="text-muted d-block" style="font-size: 0.75rem;">Enable/Disable Visit Features</small>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+              <div class="text-center">
+                <small class="d-block text-secondary fw-bold" style="font-size: 0.68rem;">GPS</small>
+                <label class="switch mb-0" style="transform: scale(0.75);">
+                  <input type="checkbox" id="toggleGps" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="text-center">
+                <small class="d-block text-secondary fw-bold" style="font-size: 0.68rem;">Attach</small>
+                <label class="switch mb-0" style="transform: scale(0.75);">
+                  <input type="checkbox" id="toggleAttachment" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="text-center">
+                <small class="d-block text-secondary fw-bold" style="font-size: 0.68rem;">Sign</small>
+                <label class="switch mb-0" style="transform: scale(0.75);">
+                  <input type="checkbox" id="toggleSignature" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="text-center">
+                <small class="d-block text-secondary fw-bold" style="font-size: 0.68rem;">Samples</small>
+                <label class="switch mb-0" style="transform: scale(0.75);">
+                  <input type="checkbox" id="toggleSamples" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <button class="btn btn-sm btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 32px; font-size: 0.8rem;">
+                <i class="fa-solid fa-save"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 2. โซนตารางหลัก (Master Data Tables Zone - Flex Fill 100%) -->
+    <div class="row g-2 flex-grow-1 min-h-0">
       
-      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-end justify-content-center justify-content-md-end gap-3 flex-shrink-0">
-        <div class="d-flex gap-2">
-          <div>
-            <label class="form-label text-secondary small fw-bold mb-1" data-i18n="lbl_start_date">Start Date</label>
-            <input type="date" class="form-control form-control-sm text-secondary shadow-sm px-2" id="ratingStartDate" style="border-radius: 8px; height: 38px;">
-          </div>
-          <div>
-            <label class="form-label text-secondary small fw-bold mb-1" data-i18n="lbl_end_date">End Date</label>
-            <input type="date" class="form-control form-control-sm text-secondary shadow-sm px-2" id="ratingEndDate" style="border-radius: 8px; height: 38px;">
-          </div>
-        </div>
-        <div class="vr d-none d-md-block mx-1" style="height: 40px; align-self: center;"></div>
-        <div class="text-center" style="min-width: 140px;">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block text-nowrap" id="ratingStatusLabel">Status: Loading...</label>
-          <label class="switch mb-0">
-            <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div>
-          <button class="btn btn-premium-primary fw-bold text-nowrap" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 38px;">
-            <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= 🌟 ส่วนควบคุม Visit Form Features (เปิด/ปิด Samples ได้ที่นี่) ================= -->
-  <div class="card p-4 border-0 visit-card mb-4" style="border-left: 5px solid #0d6efd !important;">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
-      <div class="flex-grow-1">
-        <h5 class="fw-bold text-dark mb-2" data-i18n="title_visit_features"><i class="fa-solid fa-sliders me-2 text-primary"></i>Visit Form Features</h5>
-        <p class="text-muted small mb-0" data-i18n="desc_visit_features">Show or hide specific sections in the Visit Form.</p>
-      </div>
-      <div class="bg-light p-3 rounded-4 border d-flex flex-wrap align-items-center justify-content-center gap-4 flex-shrink-0">
-        
-        <div class="text-center">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_gps">GPS Check-in</label>
-          <label class="switch mb-0">
-            <input type="checkbox" id="toggleGps" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="text-center">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_attachment">Attachments</label>
-          <label class="switch mb-0">
-            <input type="checkbox" id="toggleAttachment" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="text-center">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_signature">Signature</label>
-          <label class="switch mb-0">
-            <input type="checkbox" id="toggleSignature" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="text-center">
-          <label class="form-label text-secondary small fw-bold mb-1 d-block" data-i18n="lbl_enable_samples">Samples</label>
-          <label class="switch mb-0">
-            <input type="checkbox" id="toggleSamples" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div>
-          <button class="btn btn-premium-primary fw-bold text-nowrap" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 38px;">
-            <i class="fa-solid fa-save me-1"></i> <span data-i18n="btn_save">Save</span>
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <!-- ================= ส่วนซ้าย: จัดการ IndexType (Category) ================= -->
-    <div class="col-lg-3 d-flex">
-      <div class="card p-4 border-0 visit-card w-100">
-        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-          <h5 class="fw-bold text-dark mb-0 fs-6" data-i18n="title_categories"><i class="fa-solid fa-layer-group me-2 text-secondary"></i>1. Categories</h5>
-          <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 shadow-sm" onclick="window.openAddIndexTypeModal()">
-            <i class="fa-solid fa-plus"></i>
-          </button>
-        </div>
-        
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
-            <tbody id="indexTypeTableBody">
-              <tr><td class="py-3 text-center text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= ส่วนขวา: จัดการ Index (Values) ================= -->
-    <div class="col-lg-9 d-flex">
-      <div class="card p-4 border-0 visit-card w-100">
-        
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 border-bottom pb-2 gap-2">
-          <h5 class="fw-bold text-primary mb-0 fs-6" data-i18n="title_index_values"><i class="fa-solid fa-list-check me-2"></i>2. Index Values</h5>
+      <!-- ส่วนซ้าย: Categories List (Flex Column & Internal Scroll) -->
+      <div class="col-lg-3 h-100 d-flex flex-column">
+        <div class="card p-3 border-0 index-card h-100 d-flex flex-column">
           
-          <div class="d-flex align-items-center gap-2">
-            <select class="form-select form-select-sm shadow-sm border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; min-width: 200px;">
-              <option value="" data-i18n="opt_all_categories">- All Categories -</option>
-            </select>
-            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-sm text-nowrap" onclick="window.openAddIndexModal()">
-              <i class="fa-solid fa-plus me-1"></i><span data-i18n="btn_add_value">Add Value</span>
+          <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom flex-shrink-0">
+            <h6 class="fw-bold text-dark mb-0 fs-6" data-i18n="title_categories"><i class="fa-solid fa-layer-group me-1.5 text-secondary"></i>1. Categories</h6>
+            <button class="btn btn-xs btn-outline-dark fw-bold rounded-circle px-2 py-1 shadow-xs" onclick="window.openAddIndexTypeModal()" title="Add Category">
+              <i class="fa-solid fa-plus"></i>
             </button>
           </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.95rem;">
-            <thead class="table-custom-header">
-              <tr>
-                <th id="thCategory" class="text-start sortable-th" style="width: 15%;" onclick="window.sortIndexes('category')">
-                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
-                </th>
-                <th id="thValue" class="sortable-th" style="width: 20%;" onclick="window.sortIndexes('value')">
-                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
-                </th>
-                <th id="thValue1" class="d-none sortable-th" style="width: 28%;" onclick="window.sortIndexes('value1')">
-                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
-                </th>
-                <th id="thValue2" class="d-none sortable-th" style="width: 28%;" onclick="window.sortIndexes('value2')">
-                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
-                </th>
-                <th style="width: 90px;" data-i18n="th_action">Action</th>
-              </tr>
-            </thead>
-            <tbody id="indexTableBody">
-              <tr><td colspan="5" class="py-4 text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination Controls -->
-        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top d-none">
-          <div class="d-flex align-items-center mb-3 mb-md-0">
-            <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-            <select class="form-select form-select-sm shadow-sm" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 80px; border-radius: 8px;">
-              <option value="10" selected>10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-            <span class="text-muted small ms-3" id="indexPageInfo">Showing ...</span>
+          
+          <!-- Category Internal Scroll -->
+          <div class="index-scroll-zone flex-grow-1">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+              <tbody id="indexTypeTableBody">
+                <tr><td class="py-3 text-center text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
           </div>
-          <nav aria-label="Page navigation">
-            <ul class="pagination pagination-sm custom-pagination mb-0" id="indexPagination"></ul>
-          </nav>
-        </div>
 
+        </div>
       </div>
+
+      <!-- ส่วนขวา: Index Values Table (Flex Column & Sticky Table Engine) -->
+      <div class="col-lg-9 h-100 d-flex flex-column">
+        <div class="card p-3 border-0 index-card h-100 d-flex flex-column justify-content-between">
+          
+          <!-- Filter Header Bar (Fixed) -->
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-2 flex-shrink-0">
+            <h6 class="fw-bold text-primary mb-0 fs-6" data-i18n="title_index_values"><i class="fa-solid fa-list-check me-1.5"></i>2. Index Values</h6>
+            
+            <div class="d-flex align-items-center gap-2">
+              <select class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; height: 34px; min-width: 180px;">
+                <option value="" data-i18n="opt_all_categories">- All Categories -</option>
+              </select>
+              <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-xs text-nowrap" onclick="window.openAddIndexModal()" style="height: 34px; font-size: 0.825rem;">
+                <i class="fa-solid fa-plus me-1"></i><span data-i18n="btn_add_value">Add Value</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Internal Scroll (Strict Rule 3) -->
+          <div class="index-scroll-zone flex-grow-1">
+            <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.875rem;">
+              <thead class="table-custom-header">
+                <tr>
+                  <th id="thCategory" class="text-start sortable-th" style="width: 18%;" onclick="window.sortIndexes('category')">
+                    <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
+                  </th>
+                  <th id="thValue" class="sortable-th" style="width: 25%;" onclick="window.sortIndexes('value')">
+                    <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
+                  </th>
+                  <th id="thValue1" class="d-none sortable-th" style="width: 25%;" onclick="window.sortIndexes('value1')">
+                    <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
+                  </th>
+                  <th id="thValue2" class="d-none sortable-th" style="width: 22%;" onclick="window.sortIndexes('value2')">
+                    <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
+                  </th>
+                  <th style="width: 10%;" data-i18n="th_action">Action</th>
+                </tr>
+              </thead>
+              <tbody id="indexTableBody">
+                <tr><td colspan="5" class="py-4 text-muted">Loading data... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls (Fixed Bottom) -->
+          <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-2 mt-2 border-top flex-shrink-0 d-none">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+              <select class="form-select form-select-sm shadow-none" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 70px; height: 30px; border-radius: 8px; font-size: 0.8rem;">
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span class="text-muted small ms-3" id="indexPageInfo" style="font-size: 0.8rem;">Showing ...</span>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination pagination-sm custom-pagination mb-0" id="indexPagination"></ul>
+            </nav>
+          </div>
+
+        </div>
+      </div>
+
     </div>
+
   </div>
 
-  <!-- Modals -->
-
-  <!-- Modal สำหรับ IndexType -->
+  <!-- Modals Zone (ไม่กระทบ Layout หลัก) -->
   <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg visit-card">
+      <div class="modal-content border-0 shadow-lg index-card">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-dark" id="indexTypeModalTitle" data-i18n="title_add_category">Add Category</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -263,18 +260,17 @@
             </div>
           </div>
           <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-            <button type="submit" class="btn btn-dark fw-bold rounded-pill px-4 shadow-sm" id="btnSaveIndexType" data-i18n="btn_save">Save</button>
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-xs" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="btn btn-dark fw-bold rounded-pill px-4 shadow-xs" id="btnSaveIndexType" data-i18n="btn_save">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal สำหรับ Index Value -->
   <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg visit-card">
+      <div class="modal-content border-0 shadow-lg index-card">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-primary" id="indexModalTitle" data-i18n="title_add_index">Add Value</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -289,7 +285,6 @@
                 <select class="form-select bg-light fw-bold text-secondary" id="modalIndexSelectType" disabled></select>
               </div>
 
-              <!-- ช่อง Value หลัก -->
               <div class="col-md-6 mb-3" id="groupValue">
                 <label class="form-label fw-bold text-dark small" id="lblValue">Value <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="modalIndexValue" required>
@@ -297,14 +292,12 @@
             </div>
 
             <div class="row mt-2" id="groupTranslations">
-              <!-- ช่อง Value 1 -->
               <div class="col-md-6 mb-3 d-none" id="groupValue1">
                 <label class="form-label fw-bold text-dark small" id="lblValue1">Value 1</label>
                 <input type="text" class="form-control" id="modalIndexValue1_input">
                 <select class="form-select d-none" id="modalIndexValue1_select"></select>
               </div>
 
-              <!-- ช่อง Value 2 -->
               <div class="col-md-6 mb-3 d-none" id="groupValue2">
                 <label class="form-label fw-bold text-dark small" id="lblValue2">Value 2</label>
                 <input type="text" class="form-control" id="modalIndexValue2">
@@ -313,8 +306,8 @@
 
           </div>
           <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-sm" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
-            <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" id="btnSaveIndex">💾 <span data-i18n="btn_save">Save</span></button>
+            <button type="button" class="btn btn-light fw-bold rounded-pill px-4 border shadow-xs" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-xs" id="btnSaveIndex">💾 <span data-i18n="btn_save">Save</span></button>
           </div>
         </form>
       </div>
