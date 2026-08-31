@@ -1011,7 +1011,6 @@ row.innerHTML = `
     <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
     
     <div class="flex-grow-1 min-w-0">
-      <!-- 🌟 ถอด form-select ออก ป้องกันสไตล์ 42px จาก Bootstrap ดันความสูง -->
       <select class="hospital-select" id="${selectId}" required>
         ${optionsHtml}
       </select>
@@ -1019,10 +1018,10 @@ row.innerHTML = `
     
     <div class="flex-shrink-0">
       <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-      <label class="btn btn-wp-primary-toggle fw-bold cursor-pointer" for="radio_${selectId}">
-        <i class="fa-solid fa-star star-icon me-1"></i>
-        <span class="lbl-text-primary">${primaryText}</span>
-        <span class="lbl-text-set">${setPrimaryText}</span>
+      <label class="btn btn-wp-primary-toggle cursor-pointer" for="radio_${selectId}">
+        <i class="fa-solid fa-star star-icon"></i>
+        <span class="lbl-text-primary">Primary</span>
+        <span class="lbl-text-set">Set Primary</span>
       </label>
     </div>
 
