@@ -1993,62 +1993,120 @@ button.feature-action-btn-lg.has-data-samples i {
   border-color: #3b82f6 !important;
 }
 /* ==========================================
-   ✨ WORKPLACE PERFECT ALIGNMENT & SPACING FIX
+   ✨ WORKPLACE PERFECT ALIGNMENT & SPACING (STRICT FIX)
    ========================================== */
 
-/* 1. เพิ่มระยะห่างระหว่าง Element ในแถว */
-.workplace-row {
-  margin-bottom: 0.75rem !important;
+/* 1. ล้างสไตล์ Bootstrap Select เดิมออกทั้งหมด */
+.workplace-row select.hospital-select {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background-color: transparent !important;
 }
 
+/* 2. บังคับระยะห่างระหว่างองค์ประกอบในแถว */
 .workplace-row .d-flex {
-  gap: 0.65rem !important; /* เว้นระยะห่างระหว่างไอคอน, Dropdown, ปุ่ม และถังขยะ */
+  gap: 10px !important;
 }
 
-/* 2. บังคับขนาด Dropdown ของ TomSelect ให้สูง 38px เท่าปุ่มเป๊ะ */
+.workplace-row {
+  margin-bottom: 10px !important;
+}
+
+/* 3. บังคับกล่อง TomSelect ให้สูง 38px เท่ากันเป๊ะ */
+.workplace-row .ts-wrapper {
+  width: 100% !important;
+  height: 38px !important;
+}
+
 .workplace-row .ts-control {
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   border: 1px solid #cbd5e1 !important;
-  padding: 0 0.85rem !important;
+  padding: 0 36px 0 12px !important; /* เว้นพื้นที่ขวาให้ลูกศร */
   font-size: 0.875rem !important;
+  line-height: 36px !important;
   background-color: #ffffff !important;
+  box-shadow: none !important;
   box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
 }
 
-/* 3. บังคับปุ่ม Primary ให้สูง 38px เท่ากันและมีขอบโค้งมนเท่ากัน */
-.btn-wp-primary-clean,
-.btn-wp-primary-toggle {
+.workplace-row .ts-wrapper.focus .ts-control {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+.workplace-row .ts-wrapper.single .ts-control::after {
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-top: 0 !important;
+}
+
+/* 4. บังคับปุ่ม Primary ให้สูง 38px เท่ากับ Dropdown เป๊ะ */
+.btn-wp-primary-toggle,
+.btn-wp-primary-clean {
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
-  border-radius: 10px !important;
-  padding: 0 1rem !important;
+  line-height: 36px !important;
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  color: #64748b !important;
   font-size: 0.825rem !important;
+  padding: 0 14px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
+  box-shadow: none !important;
 }
 
-/* 4. จัดระยะลูกศรขวามือของ TomSelect */
-.workplace-row .ts-wrapper.single .ts-control::after {
-  right: 12px !important;
+.btn-wp-primary-toggle:hover,
+.btn-wp-primary-clean:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
 }
 
-/* 5. ปรับปุ่มถังขยะให้ตรงแนวระนาบเดียวกัน */
+/* สถานะเมื่อถูกเลือกเป็น Primary */
+.btn-check:checked + .btn-wp-primary-toggle,
+.btn-check:checked + .btn-wp-primary-clean {
+  background-color: #eff6ff !important;
+  border-color: #2563eb !important;
+  color: #1d4ed8 !important;
+}
+
+.btn-check:checked + .btn-wp-primary-toggle .star-icon,
+.btn-check:checked + .btn-wp-primary-clean .star-icon {
+  color: #d97706 !important;
+}
+
+/* 5. ปุ่มถังขยะขนาด 38px x 38px */
 .btn-wp-delete-icon {
   width: 38px !important;
   height: 38px !important;
   min-width: 38px !important;
   min-height: 38px !important;
-  border-radius: 10px !important;
-  display: inline-flex !important;
+  border-radius: 8px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #94a3b8 !important;
+  display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-wp-delete-icon:hover {
+  background-color: #fef2f2 !important;
+  color: #ef4444 !important;
 }
