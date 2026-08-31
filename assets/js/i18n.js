@@ -120,16 +120,20 @@ const i18nDictionary = {
     lbl_enable_samples: "Samples",
     lbl_samples_title: "Samples & Promo Items",
 
-    // --- System Settings Module ---
+    // --- System Settings Module (เติมคีย์ใหม่ที่ขาดให้ครบ) ---
     title_sys_settings: "System Settings",
-    desc_sys_settings: "Master Data & Index Configuration",
-    title_target_call: "Target Call (Rating) Access",
+    desc_sys_settings: "Master Data Management & Index Configuration",
+    btn_control_panel: "Control Panel & Settings",
+    title_app_config: "App Configuration",
+    title_target_call: "Target Call Access",
     desc_target_call_1: "Control whether Sales Reps can edit the 'Target Call' tab in Doctor Profiles.",
     desc_target_call_2: "- Set Start/End Dates for automatic access.",
     desc_target_call_3: "- Or use the Toggle Switch for manual control.",
     lbl_start_date: "Start Date",
     lbl_end_date: "End Date",
+    btn_save_target_call: "Save Target Call Config",
     title_categories: "1. Categories",
+    btn_add_category: "Add Category",
     title_index_values: "2. Index Values",
     btn_add_value: "Add Value",
     opt_all_categories: "- All Categories -",
@@ -143,10 +147,11 @@ const i18nDictionary = {
     title_edit_index: "Edit Value",
     lbl_category_select: "Category (IndexType)",
     title_visit_features: "Visit Form Features",
-    desc_visit_features: "Show or hide specific sections in the Visit Form.",
+    desc_visit_features: "Enable or disable specific sections in Visit Form.",
+    btn_save_visit_features: "Save Visit Features",
     lbl_enable_gps: "GPS Check-in",
     lbl_enable_attachment: "Attachments",
-    lbl_enable_signature: "Signature",
+    lbl_enable_signature: "Doctor Signature",
 
     // --- Doctors Management Module ---
     doc_title: "Doctor Profiles",
@@ -333,16 +338,20 @@ const i18nDictionary = {
     lbl_enable_samples: "สินค้าตัวอย่าง",
     lbl_samples_title: "สินค้าตัวอย่างและของแจก",
 
-    // --- System Settings Module ---
+    // --- System Settings Module (เติมคีย์ใหม่ภาษาไทย) ---
     title_sys_settings: "ตั้งค่าระบบ (System Settings)",
     desc_sys_settings: "จัดการข้อมูลหลักและข้อมูลดัชนี (Master Data & Index)",
+    btn_control_panel: "แผงควบคุมและการตั้งค่า",
+    title_app_config: "ตั้งค่าแอปพลิเคชัน",
     title_target_call: "สิทธิ์การเข้าถึง Target Call (Rating)",
     desc_target_call_1: "ควบคุมว่าพนักงานขายสามารถแก้ไขแท็บ 'Target Call' ในหน้าโปรไฟล์แพทย์ได้หรือไม่",
     desc_target_call_2: "- กำหนด วันที่เริ่ม/สิ้นสุด เพื่อเปิดสิทธิ์อัตโนมัติ",
     desc_target_call_3: "- หรือใช้ สวิตช์เปิด/ปิด เพื่อควบคุมด้วยตัวเอง",
     lbl_start_date: "วันที่เริ่ม",
     lbl_end_date: "วันที่สิ้นสุด",
+    btn_save_target_call: "บันทึกตั้งค่า Target Call",
     title_categories: "1. หมวดหมู่ (Categories)",
+    btn_add_category: "เพิ่มหมวดหมู่",
     title_index_values: "2. ข้อมูลดัชนี (Index Values)",
     btn_add_value: "เพิ่มข้อมูล",
     opt_all_categories: "- ทุกหมวดหมู่ -",
@@ -357,6 +366,7 @@ const i18nDictionary = {
     lbl_category_select: "หมวดหมู่ (Category)",
     title_visit_features: "ฟีเจอร์ในหน้าบันทึกเยี่ยม",
     desc_visit_features: "เปิด/ปิด การแสดงผลบางส่วนในหน้าฟอร์มบันทึกเยี่ยม (มีผลกับทุกคน)",
+    btn_save_visit_features: "บันทึกฟีเจอร์ Visit",
     lbl_enable_gps: "พิกัด GPS",
     lbl_enable_attachment: "ไฟล์แนบ",
     lbl_enable_signature: "ลายเซ็นแพทย์",
@@ -472,7 +482,7 @@ function setLanguage(lang) {
     }
   });
 
-  // 🌟 [เพิ่มจุดสำคัญนี้] ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
+  // 🌟 ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
