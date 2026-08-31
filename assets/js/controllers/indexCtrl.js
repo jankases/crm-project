@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 Index Controller (Master Data Management) - 2-Lang Specialty & DoctorType Enabled
+// 🚀 Index Controller (Master Data Management) - Clean Layout Engine
 // ==========================================
 
 window.globalIndexTypes = [];
@@ -63,20 +63,22 @@ window.loadSystemSettings = async function() {
     const endEl = document.getElementById('ratingEndDate');
     
     if (ratingConfig) {
-      startEl.value = ratingConfig.Start || '';
-      endEl.value = ratingConfig.End || '';
+      if (startEl) startEl.value = ratingConfig.Start || '';
+      if (endEl) endEl.value = ratingConfig.End || '';
       
       if (ratingConfig.Status === false) {
-          switchEl.checked = false;
+          if (switchEl) switchEl.checked = false;
           var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-          document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
+          const lbl = document.getElementById('ratingStatusLabel');
+          if (lbl) lbl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
       } else {
           window.checkCurrentRatingStatus(ratingConfig.Start, ratingConfig.End);
       }
     } else {
-      switchEl.checked = false;
+      if (switchEl) switchEl.checked = false;
       var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-      document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
+      const lbl = document.getElementById('ratingStatusLabel');
+      if (lbl) lbl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
     }
 
     const gpsConf = window.globalSystemSettings.find(s => s.Type === 'VisitConfig_GPS');
@@ -103,8 +105,8 @@ window.checkCurrentRatingStatus = function(startStr, endStr) {
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   
   if (!startStr && !endStr) {
-      switchEl.checked = true; 
-      labelEl.innerHTML = '<span class="text-success fw-bold">' + (appLang === 'en' ? 'Enabled (Manual)' : 'เปิดใช้งาน (กำหนดเอง)') + '</span>';
+      if (switchEl) switchEl.checked = true; 
+      if (labelEl) labelEl.innerHTML = '<span class="text-success fw-bold">' + (appLang === 'en' ? 'Enabled (Manual)' : 'เปิดใช้งาน (กำหนดเอง)') + '</span>';
       return;
   }
 
@@ -115,11 +117,11 @@ window.checkCurrentRatingStatus = function(startStr, endStr) {
   if (endStr) { const eDate = new Date(endStr); eDate.setHours(23,59,59,999); if (today > eDate) isWithinRange = false; }
 
   if (isWithinRange) {
-      switchEl.checked = true;
-      labelEl.innerHTML = '<span class="text-success fw-bold">' + (appLang === 'en' ? 'Enabled (In Period)' : 'เปิดใช้งาน (ตามช่วงเวลา)') + '</span>';
+      if (switchEl) switchEl.checked = true;
+      if (labelEl) labelEl.innerHTML = '<span class="text-success fw-bold">' + (appLang === 'en' ? 'Enabled (In Period)' : 'เปิดใช้งาน (ตามช่วงเวลา)') + '</span>';
   } else {
-      switchEl.checked = true; 
-      labelEl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Out of Period)' : 'ปิดใช้งาน (นอกช่วงเวลา)') + '</span>';
+      if (switchEl) switchEl.checked = true; 
+      if (labelEl) labelEl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Out of Period)' : 'ปิดใช้งาน (นอกช่วงเวลา)') + '</span>';
   }
 };
 
@@ -130,22 +132,22 @@ window.toggleRatingSystem = function() {
   const endEl = document.getElementById('ratingEndDate');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   
-  if (switchEl.checked) {
-      labelEl.innerHTML = '<span class="text-success fw-bold">' + (appLang === 'en' ? 'Enabled (Manual)' : 'เปิดใช้งาน (กำหนดเอง)') + '</span>';
-      window.checkCurrentRatingStatus(startEl.value, endEl.value); 
+  if (switchEl && switchEl.checked) {
+      if (labelEl) labelEl.innerHTML = '<span class="text-success fw-bold">' + (appLang === 'en' ? 'Enabled (Manual)' : 'เปิดใช้งาน (กำหนดเอง)') + '</span>';
+      window.checkCurrentRatingStatus(startEl ? startEl.value : '', endEl ? endEl.value : ''); 
   } else {
-      labelEl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
+      if (labelEl) labelEl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
   }
 };
 
 window.saveSystemSettings = async function() {
   const btn = document.getElementById('btnSaveSysSettings');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
 
-  const startVal = document.getElementById('ratingStartDate').value;
-  const endVal = document.getElementById('ratingEndDate').value;
-  const isStatusActive = document.getElementById('ratingToggleSwitch').checked; 
+  const startVal = document.getElementById('ratingStartDate') ? document.getElementById('ratingStartDate').value : '';
+  const endVal = document.getElementById('ratingEndDate') ? document.getElementById('ratingEndDate').value : '';
+  const isStatusActive = document.getElementById('ratingToggleSwitch') ? document.getElementById('ratingToggleSwitch').checked : false; 
   
   let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
 
@@ -166,17 +168,26 @@ window.saveSystemSettings = async function() {
           if (error) throw error;
       }
 
-      btn.classList.replace('btn-premium-primary', 'btn-success');
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (appLang === 'en' ? 'Saved' : 'บันทึกแล้ว');
+      if (btn) {
+        btn.classList.replace('btn-premium-primary', 'btn-success');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (appLang === 'en' ? 'Saved' : 'บันทึกแล้ว');
+      }
       
+      const lbl = document.getElementById('ratingStatusLabel');
       if (!isStatusActive) {
-          document.getElementById('ratingStatusLabel').innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
+          if (lbl) lbl.innerHTML = '<span class="text-danger fw-bold">' + (appLang === 'en' ? 'Disabled (Locked)' : 'ปิดใช้งาน (ล็อก)') + '</span>';
       } else {
           window.checkCurrentRatingStatus(startVal, endVal);
       }
 
       var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
-      setTimeout(() => { btn.classList.replace('btn-success', 'btn-premium-primary'); btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; btn.disabled = false; }, 2000);
+      setTimeout(() => { 
+        if (btn) {
+          btn.classList.replace('btn-success', 'btn-premium-primary'); 
+          btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; 
+          btn.disabled = false; 
+        }
+      }, 2000);
       
       if (window.showToast) window.showToast(appLang === 'en' ? "Settings saved successfully." : "บันทึกการตั้งค่าระบบเรียบร้อย", "success");
       
@@ -195,7 +206,7 @@ window.saveSystemSettings = async function() {
           if (window.showToast) window.showToast((appLang === 'en' ? "Settings save failed: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
       }
       var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
-      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText;
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; }
   }
 };
 
@@ -223,6 +234,7 @@ window.loadAllIndexData = async function() {
 
 window.renderIndexTypeTable = function() {
   const tbody = document.getElementById('indexTypeTableBody');
+  if (!tbody) return;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   tbody.innerHTML = '';
   
@@ -245,25 +257,31 @@ window.renderIndexTypeTable = function() {
 };
 
 window.openAddIndexTypeModal = function() {
-  document.getElementById('modalIndexTypeId').value = "";
-  document.getElementById('modalIndexTypeName').value = "";
+  const idEl = document.getElementById('modalIndexTypeId');
+  const nameEl = document.getElementById('modalIndexTypeName');
+  if (idEl) idEl.value = "";
+  if (nameEl) nameEl.value = "";
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  document.getElementById('indexTypeModalTitle').innerText = appLang === 'en' ? "Add Category" : "เพิ่มหมวดหมู่";
+  const titleEl = document.getElementById('indexTypeModalTitle');
+  if (titleEl) titleEl.innerText = appLang === 'en' ? "Add Category" : "เพิ่มหมวดหมู่";
   if (window.indexTypeModalInstance) window.indexTypeModalInstance.show();
 };
 
 window.openEditIndexTypeModal = function(id, name) {
-  document.getElementById('modalIndexTypeId').value = id;
-  document.getElementById('modalIndexTypeName').value = name;
+  const idEl = document.getElementById('modalIndexTypeId');
+  const nameEl = document.getElementById('modalIndexTypeName');
+  if (idEl) idEl.value = id;
+  if (nameEl) nameEl.value = name;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  document.getElementById('indexTypeModalTitle').innerText = appLang === 'en' ? "Edit Category" : "แก้ไขหมวดหมู่";
+  const titleEl = document.getElementById('indexTypeModalTitle');
+  if (titleEl) titleEl.innerText = appLang === 'en' ? "Edit Category" : "แก้ไขหมวดหมู่";
   if (window.indexTypeModalInstance) window.indexTypeModalInstance.show();
 };
 
 window.handleSaveIndexType = async function(e) {
   e.preventDefault();
-  const id = document.getElementById('modalIndexTypeId').value;
-  const name = document.getElementById('modalIndexTypeName').value.trim();
+  const id = document.getElementById('modalIndexTypeId') ? document.getElementById('modalIndexTypeId').value : '';
+  const name = document.getElementById('modalIndexTypeName') ? document.getElementById('modalIndexTypeName').value.trim() : '';
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
 
   const isDuplicate = window.globalIndexTypes.some(t => t.Name.toLowerCase() === name.toLowerCase() && t.IndexType_ID !== id);
@@ -274,7 +292,7 @@ window.handleSaveIndexType = async function(e) {
   }
 
   const btn = document.getElementById('btnSaveIndexType');
-  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
 
   let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
   const payload = { Name: name, Whoupdated: crmUser ? crmUser.Email : "Unknown" };
@@ -291,7 +309,7 @@ window.handleSaveIndexType = async function(e) {
     }
     
     if (window.showToast) window.showToast(appLang === 'en' ? "Category saved successfully." : "บันทึกหมวดหมู่เรียบร้อย", "success");
-    window.indexTypeModalInstance.hide();
+    if (window.indexTypeModalInstance) window.indexTypeModalInstance.hide();
     window.loadAllIndexData();
   } catch (err) { 
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
@@ -305,13 +323,13 @@ window.handleSaveIndexType = async function(e) {
               : "📶 โหมดออฟไลน์: บันทึกหมวดหมู่ลงเครื่องแล้ว และจะอัปเดตอัตโนมัติเมื่อออนไลน์";
           if (window.showToast) window.showToast(msgOfflineSave, "warning");
           
-          window.indexTypeModalInstance.hide();
+          if (window.indexTypeModalInstance) window.indexTypeModalInstance.hide();
       } else {
           if (window.showToast) window.showToast((appLang === 'en' ? "Save failed: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
       }
   } 
   finally { 
-      btn.disabled = false; btn.innerHTML = appLang === 'en' ? "Save" : "บันทึก"; 
+      if (btn) { btn.disabled = false; btn.innerHTML = appLang === 'en' ? "Save" : "บันทึก"; }
   }
 };
 
@@ -361,7 +379,8 @@ window.sortIndexes = function(col) {
 };
 
 window.filterIndexValues = function() {
-  const typeTerm = document.getElementById('filterIndexType').value;
+  const filterEl = document.getElementById('filterIndexType');
+  const typeTerm = filterEl ? filterEl.value : '';
   
   window.globalFilteredIndexes = window.globalIndexes.filter(i => {
     return (typeTerm === "") || (i.IndexType_ID === typeTerm);
@@ -372,7 +391,8 @@ window.filterIndexValues = function() {
 };
 
 window.renderIndexTable = function() {
-  const typeTerm = document.getElementById('filterIndexType').value;
+  const filterEl = document.getElementById('filterIndexType');
+  const typeTerm = filterEl ? filterEl.value : '';
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   
   let selectedTypeName = "";
@@ -388,50 +408,55 @@ window.renderIndexTable = function() {
   const lblThValue1 = document.getElementById('lblThValue1');
   const lblThValue2 = document.getElementById('lblThValue2');
 
-  if (selectedTypeName === 'province') {
-      lblThValue.innerText = appLang === 'en' ? "Province" : "จังหวัด";
-      lblThValue1.innerText = appLang === 'en' ? "Zone" : "โซน/ภาค";
-      thValue1.classList.remove('d-none');
-      thValue2.classList.add('d-none');
-  } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday' || selectedTypeName === 'company event' || selectedTypeName === 'corporate holiday') {
-      lblThValue.innerText = appLang === 'en' ? "Date" : "วันที่";        
-      lblThValue1.innerText = "Description (TH)"; 
-      lblThValue2.innerText = "Description (EN)"; 
-      thValue1.classList.remove('d-none');
-      thValue2.classList.remove('d-none');        
-  // 🎯 เพิ่ม Specialty และ DoctorType ให้แสดงเป็น Value (TH) และ Value (EN)
-  } else if (
-      selectedTypeName === 'purpose' || 
-      selectedTypeName === 'title' || 
-      selectedTypeName === 'tot type' || 
-      selectedTypeName === 'tottype' ||
-      selectedTypeName === 'specialty' || 
-      selectedTypeName === 'doctor type' || 
-      selectedTypeName === 'doctortype'
-  ) { 
-      lblThValue.innerText = "Value (TH)";    
-      lblThValue1.innerText = "Value (EN)";   
-      thValue1.classList.remove('d-none'); 
-      thValue2.classList.add('d-none');   
-  } else if (selectedTypeName === 'samples' || selectedTypeName === 'sample' || selectedTypeName === 'promo item' || selectedTypeName === 'samples & promo items') {
-      lblThValue.innerText = appLang === 'en' ? "Sample Name (TH)" : "ชื่อสินค้าตัวอย่าง (TH)";    
-      lblThValue1.innerText = appLang === 'en' ? "Sample Name (EN)" : "ชื่อสินค้าตัวอย่าง (EN)";   
-      thValue1.classList.remove('d-none'); 
-      thValue2.classList.add('d-none');   
-  } else {
-      lblThValue.innerText = appLang === 'en' ? "Value" : "ข้อมูล";
-      thValue1.classList.add('d-none');
-      thValue2.classList.add('d-none');
+  if (lblThValue && lblThValue1 && lblThValue2 && thValue1 && thValue2) {
+    if (selectedTypeName === 'province') {
+        lblThValue.innerText = appLang === 'en' ? "Province" : "จังหวัด";
+        lblThValue1.innerText = appLang === 'en' ? "Zone" : "โซน/ภาค";
+        thValue1.classList.remove('d-none');
+        thValue2.classList.add('d-none');
+    } else if (selectedTypeName === 'public holiday' || selectedTypeName === 'holiday' || selectedTypeName === 'company event' || selectedTypeName === 'corporate holiday') {
+        lblThValue.innerText = appLang === 'en' ? "Date" : "วันที่";        
+        lblThValue1.innerText = "Description (TH)"; 
+        lblThValue2.innerText = "Description (EN)"; 
+        thValue1.classList.remove('d-none');
+        thValue2.classList.remove('d-none');        
+    } else if (
+        selectedTypeName === 'purpose' || 
+        selectedTypeName === 'title' || 
+        selectedTypeName === 'tot type' || 
+        selectedTypeName === 'tottype' ||
+        selectedTypeName === 'specialty' || 
+        selectedTypeName === 'doctor type' || 
+        selectedTypeName === 'doctortype'
+    ) { 
+        lblThValue.innerText = "Value (TH)";    
+        lblThValue1.innerText = "Value (EN)";   
+        thValue1.classList.remove('d-none'); 
+        thValue2.classList.add('d-none');   
+    } else if (selectedTypeName === 'samples' || selectedTypeName === 'sample' || selectedTypeName === 'promo item' || selectedTypeName === 'samples & promo items') {
+        lblThValue.innerText = appLang === 'en' ? "Sample Name (TH)" : "ชื่อสินค้าตัวอย่าง (TH)";    
+        lblThValue1.innerText = appLang === 'en' ? "Sample Name (EN)" : "ชื่อสินค้าตัวอย่าง (EN)";   
+        thValue1.classList.remove('d-none'); 
+        thValue2.classList.add('d-none');   
+    } else {
+        lblThValue.innerText = appLang === 'en' ? "Value" : "ข้อมูล";
+        thValue1.classList.add('d-none');
+        thValue2.classList.add('d-none');
+    }
   }
 
   const tbody = document.getElementById('indexTableBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
+  
   const paginationContainer = document.getElementById('indexPaginationContainer');
   
   if(!window.globalFilteredIndexes || window.globalFilteredIndexes.length === 0) {
     var msgEmpty = appLang === 'en' ? 'No values found. Please add a new value.' : 'ไม่พบข้อมูล กรุณาเพิ่มข้อมูลใหม่';
     tbody.innerHTML = `<tr><td colspan="5" class="text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block opacity-50"></i>${msgEmpty}</td></tr>`;
-    if(paginationContainer) paginationContainer.classList.add('d-none');
+    
+    // 🌟 ถอดการสั่งซ่อนออก เพื่อคงขนาดพื้นที่ให้เท่ากันเสมอกับการ์ดฝั่งซ้าย
+    if(paginationContainer) paginationContainer.classList.remove('d-none');
     return;
   }
 
@@ -462,7 +487,7 @@ window.renderIndexTable = function() {
   });
 
   const totalItems = window.globalFilteredIndexes.length;
-  const totalPages = Math.ceil(totalItems / window.indexRowsPerPage);
+  const totalPages = Math.ceil(totalItems / window.indexRowsPerPage) || 1;
   if (window.indexCurrentPage > totalPages) window.indexCurrentPage = totalPages;
   if (window.indexCurrentPage < 1) window.indexCurrentPage = 1;
 
@@ -470,7 +495,8 @@ window.renderIndexTable = function() {
   const endIndex = Math.min(startIndex + window.indexRowsPerPage, totalItems);
   
   var textShowing = appLang === 'en' ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries` : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
-  document.getElementById('indexPageInfo').innerText = textShowing;
+  const infoEl = document.getElementById('indexPageInfo');
+  if (infoEl) infoEl.innerText = textShowing;
 
   const paginatedData = window.globalFilteredIndexes.slice(startIndex, endIndex);
 
@@ -481,7 +507,7 @@ window.renderIndexTable = function() {
     let rowHtml = `<tr><td class="text-start ps-4 text-secondary"><span class="badge badge-soft-secondary">${typeName}</span></td>`;
     rowHtml += `<td class="fw-bold text-dark">${i.Value || '-'}</td>`;
 
-    if (!thValue1.classList.contains('d-none')) {
+    if (thValue1 && !thValue1.classList.contains('d-none')) {
         if (selectedTypeName === 'province') {
             rowHtml += `<td><span class="badge badge-soft-primary">${i.Value1 || '-'}</span></td>`;
         } else {
@@ -489,7 +515,7 @@ window.renderIndexTable = function() {
         }
     }
     
-    if (!thValue2.classList.contains('d-none')) {
+    if (thValue2 && !thValue2.classList.contains('d-none')) {
        rowHtml += `<td><div class="text-muted small desc-wrap">${i.Value2 || '-'}</div></td>`;
     }
 
@@ -511,13 +537,15 @@ window.renderIndexTable = function() {
 
 window.changeIndexRowsPerPage = function() {
   const selectEl = document.getElementById('indexRowsPerPage');
-  window.indexRowsPerPage = parseInt(selectEl.value);
-  window.indexCurrentPage = 1;
-  window.renderIndexTable();
+  if (selectEl) {
+    window.indexRowsPerPage = parseInt(selectEl.value) || 10;
+    window.indexCurrentPage = 1;
+    window.renderIndexTable();
+  }
 };
 
 window.goToIndexPage = function(page) {
-  const totalPages = Math.ceil(window.globalFilteredIndexes.length / window.indexRowsPerPage);
+  const totalPages = Math.ceil(window.globalFilteredIndexes.length / window.indexRowsPerPage) || 1;
   if (page < 1 || page > totalPages) return;
   window.indexCurrentPage = page;
   window.renderIndexTable();
@@ -575,47 +603,45 @@ window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
     const lblVal2 = document.getElementById('lblValue2');
     const inputVal2 = document.getElementById('modalIndexValue2');
 
-    inputValMain.type = 'text'; 
-    inputVal1.type = 'text';
-    inputVal1.value = prefillVal1 || '';
-    inputVal2.value = prefillVal2 || '';
-    selectVal1.innerHTML = '';
-    selectVal1.value = '';
+    if (inputValMain) inputValMain.type = 'text'; 
+    if (inputVal1) { inputVal1.type = 'text'; inputVal1.value = prefillVal1 || ''; }
+    if (inputVal2) inputVal2.value = prefillVal2 || '';
+    if (selectVal1) { selectVal1.innerHTML = ''; selectVal1.value = ''; }
 
     if (typeName === 'province') {
-        lblVal.innerHTML = (appLang === 'en' ? 'Province ' : 'จังหวัด ') + '<span class="text-danger">*</span>';
-        lblVal1.innerHTML = appLang === 'en' ? 'Zone' : 'โซน/ภาค';
+        if (lblVal) lblVal.innerHTML = (appLang === 'en' ? 'Province ' : 'จังหวัด ') + '<span class="text-danger">*</span>';
+        if (lblVal1) lblVal1.innerHTML = appLang === 'en' ? 'Zone' : 'โซน/ภาค';
         
-        inputVal1.classList.add('d-none');
-        selectVal1.classList.remove('d-none');
-        grpVal1.classList.remove('d-none');
-        grpVal2.classList.add('d-none');
+        if (inputVal1) inputVal1.classList.add('d-none');
+        if (selectVal1) selectVal1.classList.remove('d-none');
+        if (grpVal1) grpVal1.classList.remove('d-none');
+        if (grpVal2) grpVal2.classList.add('d-none');
 
         const zoneType = window.globalIndexTypes.find(t => t.Name.toLowerCase() === 'zone');
         if (zoneType) {
             const zones = window.globalIndexes.filter(i => i.IndexType_ID === zoneType.IndexType_ID);
             let opts = '<option value="">- ' + (appLang === 'en' ? 'Select Zone' : 'เลือกโซน') + ' -</option>';
             zones.forEach(z => { opts += `<option value="${z.Value}">${z.Value}</option>`; });
-            selectVal1.innerHTML = opts;
-            if (prefillVal1) selectVal1.value = prefillVal1;
+            if (selectVal1) {
+              selectVal1.innerHTML = opts;
+              if (prefillVal1) selectVal1.value = prefillVal1;
+            }
         }
     } 
     else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
-        lblVal.innerHTML = (appLang === 'en' ? 'Date ' : 'วันที่ ') + '<span class="text-danger">*</span>'; 
-        inputValMain.type = 'date'; 
+        if (lblVal) lblVal.innerHTML = (appLang === 'en' ? 'Date ' : 'วันที่ ') + '<span class="text-danger">*</span>'; 
+        if (inputValMain) inputValMain.type = 'date'; 
         
-        lblVal1.innerHTML = 'Description (TH)'; 
-        inputVal1.type = 'text';
-        inputVal1.classList.remove('d-none');
-        selectVal1.classList.add('d-none');
+        if (lblVal1) lblVal1.innerHTML = 'Description (TH)'; 
+        if (inputVal1) { inputVal1.type = 'text'; inputVal1.classList.remove('d-none'); }
+        if (selectVal1) selectVal1.classList.add('d-none');
         
-        lblVal2.innerHTML = 'Description (EN)'; 
-        inputVal2.type = 'text';
+        if (lblVal2) lblVal2.innerHTML = 'Description (EN)'; 
+        if (inputVal2) inputVal2.type = 'text';
         
-        grpVal1.classList.remove('d-none');
-        grpVal2.classList.remove('d-none');     
+        if (grpVal1) grpVal1.classList.remove('d-none');
+        if (grpVal2) grpVal2.classList.remove('d-none');     
     } 
-    // 🎯 เพิ่ม Specialty และ DoctorType ให้แสดงฟอร์มกรอก 2 ภาษา (TH / EN)
     else if (
         typeName === 'purpose' || 
         typeName === 'title' || 
@@ -625,36 +651,35 @@ window.setupDynamicModalForm = function(typeId, prefillVal1, prefillVal2) {
         typeName === 'doctor type' || 
         typeName === 'doctortype'
     ) { 
-        lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
+        if (lblVal) lblVal.innerHTML = 'Value (TH) <span class="text-danger">*</span>'; 
         
-        lblVal1.innerHTML = 'Value (EN)'; 
-        inputVal1.type = 'text';
-        inputVal1.classList.remove('d-none');
-        selectVal1.classList.add('d-none');
+        if (lblVal1) lblVal1.innerHTML = 'Value (EN)'; 
+        if (inputVal1) { inputVal1.type = 'text'; inputVal1.classList.remove('d-none'); }
+        if (selectVal1) selectVal1.classList.add('d-none');
         
-        grpVal1.classList.remove('d-none');
-        grpVal2.classList.add('d-none'); 
+        if (grpVal1) grpVal1.classList.remove('d-none');
+        if (grpVal2) grpVal2.classList.add('d-none'); 
     }
     else if (typeName === 'samples' || typeName === 'sample' || typeName === 'promo item' || typeName === 'samples & promo items') {
-        lblVal.innerHTML = 'Sample Name (TH) <span class="text-danger">*</span>'; 
+        if (lblVal) lblVal.innerHTML = 'Sample Name (TH) <span class="text-danger">*</span>'; 
         
-        lblVal1.innerHTML = 'Sample Name (EN)'; 
-        inputVal1.type = 'text';
-        inputVal1.classList.remove('d-none');
-        selectVal1.classList.add('d-none');
+        if (lblVal1) lblVal1.innerHTML = 'Sample Name (EN)'; 
+        if (inputVal1) { inputVal1.type = 'text'; inputVal1.classList.remove('d-none'); }
+        if (selectVal1) selectVal1.classList.add('d-none');
         
-        grpVal1.classList.remove('d-none');
-        grpVal2.classList.add('d-none'); 
+        if (grpVal1) grpVal1.classList.remove('d-none');
+        if (grpVal2) grpVal2.classList.add('d-none'); 
     }
     else {
-        lblVal.innerHTML = (appLang === 'en' ? 'Value ' : 'ข้อมูล ') + '<span class="text-danger">*</span>';
-        grpVal1.classList.add('d-none');
-        grpVal2.classList.add('d-none');
+        if (lblVal) lblVal.innerHTML = (appLang === 'en' ? 'Value ' : 'ข้อมูล ') + '<span class="text-danger">*</span>';
+        if (grpVal1) grpVal1.classList.add('d-none');
+        if (grpVal2) grpVal2.classList.add('d-none');
     }
 };
 
 window.openAddIndexModal = function() {
-  const currentFilterType = document.getElementById('filterIndexType').value;
+  const filterEl = document.getElementById('filterIndexType');
+  const currentFilterType = filterEl ? filterEl.value : '';
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   
   if(!currentFilterType) {
@@ -664,21 +689,31 @@ window.openAddIndexModal = function() {
       return;
   }
   
-  document.getElementById('modalIndexId').value = "";
-  document.getElementById('modalIndexSelectType').value = currentFilterType; 
-  document.getElementById('modalIndexValue').value = "";
-  document.getElementById('indexModalTitle').innerHTML = '<i class="fa-solid fa-plus me-2"></i>' + (appLang === 'en' ? 'Add Value' : 'เพิ่มข้อมูล');
+  const idEl = document.getElementById('modalIndexId');
+  const selEl = document.getElementById('modalIndexSelectType');
+  const valEl = document.getElementById('modalIndexValue');
+  const titleEl = document.getElementById('indexModalTitle');
+
+  if (idEl) idEl.value = "";
+  if (selEl) selEl.value = currentFilterType; 
+  if (valEl) valEl.value = "";
+  if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-plus me-2"></i>' + (appLang === 'en' ? 'Add Value' : 'เพิ่มข้อมูล');
   
   window.setupDynamicModalForm(currentFilterType, '', '');
   if (window.indexModalInstance) window.indexModalInstance.show();
 };
 
 window.openEditIndexModal = function(id, typeId, val, val1, val2) {
-  document.getElementById('modalIndexId').value = id;
-  document.getElementById('modalIndexSelectType').value = typeId;
-  document.getElementById('modalIndexValue').value = val;
+  const idEl = document.getElementById('modalIndexId');
+  const selEl = document.getElementById('modalIndexSelectType');
+  const valEl = document.getElementById('modalIndexValue');
+  const titleEl = document.getElementById('indexModalTitle');
+
+  if (idEl) idEl.value = id;
+  if (selEl) selEl.value = typeId;
+  if (valEl) valEl.value = val;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  document.getElementById('indexModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>' + (appLang === 'en' ? 'Edit Value' : 'แก้ไขข้อมูล');
+  if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen me-2"></i>' + (appLang === 'en' ? 'Edit Value' : 'แก้ไขข้อมูล');
   
   window.setupDynamicModalForm(typeId, val1, val2);
   if (window.indexModalInstance) window.indexModalInstance.show();
@@ -686,9 +721,9 @@ window.openEditIndexModal = function(id, typeId, val, val1, val2) {
 
 window.handleSaveIndex = async function(e) {
   e.preventDefault();
-  const id = document.getElementById('modalIndexId').value;
-  const typeId = document.getElementById('modalIndexSelectType').value;
-  const val = document.getElementById('modalIndexValue').value.trim();
+  const id = document.getElementById('modalIndexId') ? document.getElementById('modalIndexId').value : '';
+  const typeId = document.getElementById('modalIndexSelectType') ? document.getElementById('modalIndexSelectType').value : '';
+  const val = document.getElementById('modalIndexValue') ? document.getElementById('modalIndexValue').value.trim() : '';
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
 
   let val1 = null;
@@ -697,12 +732,15 @@ window.handleSaveIndex = async function(e) {
   const tObj = window.globalIndexTypes.find(t => t.IndexType_ID === typeId);
   const typeName = tObj ? tObj.Name.toLowerCase() : "";
 
+  const input1 = document.getElementById('modalIndexValue1_input');
+  const select1 = document.getElementById('modalIndexValue1_select');
+  const input2 = document.getElementById('modalIndexValue2');
+
   if (typeName === 'province') {
-      val1 = document.getElementById('modalIndexValue1_select').value;
+      val1 = select1 ? select1.value : null;
   } else if (typeName === 'public holiday' || typeName === 'holiday' || typeName === 'company event' || typeName === 'corporate holiday') {
-      val1 = document.getElementById('modalIndexValue1_input').value.trim();
-      val2 = document.getElementById('modalIndexValue2').value.trim(); 
-  // 🎯 บันทึกค่า Value1 (ภาษาอังกฤษ) สำหรับ Specialty และ DoctorType
+      val1 = input1 ? input1.value.trim() : null;
+      val2 = input2 ? input2.value.trim() : null; 
   } else if (
       typeName === 'purpose' || 
       typeName === 'title' || 
@@ -716,14 +754,16 @@ window.handleSaveIndex = async function(e) {
       typeName === 'promo item' || 
       typeName === 'samples & promo items'
   ) {
-      val1 = document.getElementById('modalIndexValue1_input').value.trim();
+      val1 = input1 ? input1.value.trim() : null;
       val2 = null;
   } else {
-      if (!document.getElementById('groupValue1').classList.contains('d-none')) {
-          val1 = document.getElementById('modalIndexValue1_input').value.trim();
+      const grp1 = document.getElementById('groupValue1');
+      const grp2 = document.getElementById('groupValue2');
+      if (grp1 && !grp1.classList.contains('d-none')) {
+          val1 = input1 ? input1.value.trim() : null;
       }
-      if (!document.getElementById('groupValue2').classList.contains('d-none')) {
-          val2 = document.getElementById('modalIndexValue2').value.trim();
+      if (grp2 && !grp2.classList.contains('d-none')) {
+          val2 = input2 ? input2.value.trim() : null;
       }
   }
 
@@ -740,7 +780,7 @@ window.handleSaveIndex = async function(e) {
   }
 
   const btn = document.getElementById('btnSaveIndex');
-  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
 
   let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
   const payload = {
@@ -764,7 +804,7 @@ window.handleSaveIndex = async function(e) {
     }
     
     if (window.showToast) window.showToast(appLang === 'en' ? "Value saved successfully." : "บันทึกข้อมูลเรียบร้อย", "success");
-    window.indexModalInstance.hide();
+    if (window.indexModalInstance) window.indexModalInstance.hide();
     window.loadAllIndexData();
   } catch (err) { 
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
@@ -778,20 +818,20 @@ window.handleSaveIndex = async function(e) {
               : "📶 โหมดออฟไลน์: บันทึกข้อมูลลงเครื่องแล้ว และจะอัปเดตอัตโนมัติเมื่อออนไลน์";
           if (window.showToast) window.showToast(msgOfflineSave, "warning");
           
-          window.indexModalInstance.hide();
+          if (window.indexModalInstance) window.indexModalInstance.hide();
       } else {
           if (window.showToast) window.showToast((appLang === 'en' ? "Save failed: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
       }
   } 
   finally { 
-      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + (appLang === 'en' ? "Save" : "บันทึก"); 
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + (appLang === 'en' ? "Save" : "บันทึก"); }
   }
 };
 
 window.saveVisitFeatures = async function() {
   const btn = document.getElementById('btnSaveVisitFeatures');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
 
   const isGps = document.getElementById('toggleGps') ? document.getElementById('toggleGps').checked : true;
   const isAtt = document.getElementById('toggleAttachment') ? document.getElementById('toggleAttachment').checked : true;
@@ -825,11 +865,19 @@ window.saveVisitFeatures = async function() {
       const { data } = await window.supabaseClient.from('System_Settings').select('*');
       if (data) window.globalSystemSettings = data;
 
-      btn.classList.replace('btn-premium-primary', 'btn-success');
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (appLang === 'en' ? 'Saved' : 'บันทึกแล้ว');
+      if (btn) {
+        btn.classList.replace('btn-premium-primary', 'btn-success');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (appLang === 'en' ? 'Saved' : 'บันทึกแล้ว');
+      }
       
       var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
-      setTimeout(() => { btn.classList.replace('btn-success', 'btn-premium-primary'); btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; btn.disabled = false; }, 2000);
+      setTimeout(() => { 
+        if (btn) {
+          btn.classList.replace('btn-success', 'btn-premium-primary'); 
+          btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; 
+          btn.disabled = false; 
+        }
+      }, 2000);
       
       if (window.showToast) window.showToast(appLang === 'en' ? "Visit features saved successfully." : "บันทึกการตั้งค่าฟีเจอร์เรียบร้อย", "success");
   } catch (err) {
@@ -844,7 +892,7 @@ window.saveVisitFeatures = async function() {
           if (window.showToast) window.showToast((appLang === 'en' ? "Failed to save: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
       }
       var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
-      btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText;
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; }
   }
 };
 
