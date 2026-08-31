@@ -1,5 +1,5 @@
 // ==========================================
-// 🚀 Index Controller (Master Data Management) - Clean Layout Engine
+// 🚀 Index Controller (Master Data Management) - Settings Drawer Engine
 // ==========================================
 
 window.globalIndexTypes = [];
@@ -143,7 +143,7 @@ window.toggleRatingSystem = function() {
 window.saveSystemSettings = async function() {
   const btn = document.getElementById('btnSaveSysSettings');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
 
   const startVal = document.getElementById('ratingStartDate') ? document.getElementById('ratingStartDate').value : '';
   const endVal = document.getElementById('ratingEndDate') ? document.getElementById('ratingEndDate').value : '';
@@ -180,7 +180,7 @@ window.saveSystemSettings = async function() {
           window.checkCurrentRatingStatus(startVal, endVal);
       }
 
-      var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
+      var saveText = appLang === 'en' ? 'Save Target Call Config' : 'บันทึกการตั้งค่า Target Call';
       setTimeout(() => { 
         if (btn) {
           btn.classList.replace('btn-success', 'btn-premium-primary'); 
@@ -189,7 +189,7 @@ window.saveSystemSettings = async function() {
         }
       }, 2000);
       
-      if (window.showToast) window.showToast(appLang === 'en' ? "Settings saved successfully." : "บันทึกการตั้งค่าระบบเรียบร้อย", "success");
+      if (window.showToast) window.showToast(appLang === 'en' ? "Target Call settings saved." : "บันทึกการตั้งค่า Target Call เรียบร้อย", "success");
       
   } catch (err) {
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
@@ -205,7 +205,7 @@ window.saveSystemSettings = async function() {
       } else {
           if (window.showToast) window.showToast((appLang === 'en' ? "Settings save failed: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
       }
-      var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
+      var saveText = appLang === 'en' ? 'Save Target Call Config' : 'บันทึกการตั้งค่า Target Call';
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; }
   }
 };
@@ -232,7 +232,7 @@ window.loadAllIndexData = async function() {
   }
 };
 
- window.renderIndexTypeTable = function() {
+window.renderIndexTypeTable = function() {
   const tbody = document.getElementById('indexTypeTableBody');
   if (!tbody) return;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
@@ -259,13 +259,13 @@ window.loadAllIndexData = async function() {
   });
 };
 
-// 🌟 ฟังก์ชันคลิกเลือกหมวดหมู่ฝั่งซ้ายแล้วฟิลเตอร์ฝั่งขวา
+// 🌟 ฟังก์ชันคลิกเลือกหมวดหมู่ฝั่งซ้าย แล้วฟิลเตอร์ตารางฝั่งขวาทันที
 window.selectCategoryFromLeft = function(typeId) {
   const filterEl = document.getElementById('filterIndexType');
   if (filterEl) {
     filterEl.value = typeId;
     window.filterIndexValues();
-    window.renderIndexTypeTable(); // ไฮไลต์แถวที่เลือก
+    window.renderIndexTypeTable();
   }
 };
 
@@ -467,8 +467,6 @@ window.renderIndexTable = function() {
   if(!window.globalFilteredIndexes || window.globalFilteredIndexes.length === 0) {
     var msgEmpty = appLang === 'en' ? 'No values found. Please add a new value.' : 'ไม่พบข้อมูล กรุณาเพิ่มข้อมูลใหม่';
     tbody.innerHTML = `<tr><td colspan="5" class="text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block opacity-50"></i>${msgEmpty}</td></tr>`;
-    
-    // 🌟 ถอดการสั่งซ่อนออก เพื่อคงขนาดพื้นที่ให้เท่ากันเสมอกับการ์ดฝั่งซ้าย
     if(paginationContainer) paginationContainer.classList.remove('d-none');
     return;
   }
@@ -844,7 +842,7 @@ window.handleSaveIndex = async function(e) {
 window.saveVisitFeatures = async function() {
   const btn = document.getElementById('btnSaveVisitFeatures');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
 
   const isGps = document.getElementById('toggleGps') ? document.getElementById('toggleGps').checked : true;
   const isAtt = document.getElementById('toggleAttachment') ? document.getElementById('toggleAttachment').checked : true;
@@ -883,7 +881,7 @@ window.saveVisitFeatures = async function() {
         btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (appLang === 'en' ? 'Saved' : 'บันทึกแล้ว');
       }
       
-      var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
+      var saveText = appLang === 'en' ? 'Save Visit Features' : 'บันทึกฟีเจอร์ Visit';
       setTimeout(() => { 
         if (btn) {
           btn.classList.replace('btn-success', 'btn-premium-primary'); 
@@ -904,7 +902,7 @@ window.saveVisitFeatures = async function() {
       } else {
           if (window.showToast) window.showToast((appLang === 'en' ? "Failed to save: " : "เกิดข้อผิดพลาด: ") + err.message, "error");
       }
-      var saveText = appLang === 'en' ? 'Save' : 'บันทึก';
+      var saveText = appLang === 'en' ? 'Save Visit Features' : 'บันทึกฟีเจอร์ Visit';
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> ' + saveText; }
   }
 };
