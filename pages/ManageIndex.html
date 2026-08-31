@@ -1,5 +1,5 @@
 <style>
-  /* ================= 🌟 Ultra Compact Layout Engine ================= */
+  /* ================= 🌟 Ultra Premium Compact Layout Engine ================= */
   .index-page-container {
     width: 100% !important;
     max-width: 100% !important;
@@ -7,36 +7,53 @@
   }
 
   .visit-card { 
-    border-radius: 14px !important; 
-    border: 1px solid #eef2f6 !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
+    border-radius: 16px !important; 
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
     background: #ffffff;
   }
 
-  .form-control, .form-select { 
-    min-height: 36px; 
-    border-radius: 8px; 
-    border: 1px solid #cbd5e1;
+  /* 🌟 การ์ดควบคุมด้านบนสไตล์ Premium Control Bar */
+  .top-config-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    padding: 6px 14px !important;
+    height: 48px !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03) !important;
   }
 
-  /* Toggle Switch */
-  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
-  .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  input:checked + .slider { background-color: #10b981; }
-  input:checked + .slider:before { transform: translateX(20px); }
+  .form-control-compact { 
+    height: 32px !important;
+    min-height: 32px !important;
+    border-radius: 8px !important; 
+    border: 1px solid #cbd5e1 !important;
+    font-size: 0.75rem !important;
+  }
 
-  .badge-soft-primary { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid #bfdbfe; }
-  .badge-soft-secondary { background-color: #f1f5f9 !important; color: #475569 !important; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
+  /* Toggle Switch แบบ Modern Pill */
+  .switch-compact { position: relative; display: inline-block; width: 38px; height: 20px; }
+  .switch-compact input { opacity: 0; width: 0; height: 0; }
+  .slider-compact { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .25s; border-radius: 20px; }
+  .slider-compact:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  input:checked + .slider-compact { background-color: #2563eb; }
+  input:checked + .slider-compact:before { transform: translateX(18px); }
 
-  .custom-pagination .page-link { border-radius: 6px; margin: 0 2px; color: #495057; border: 1px solid #dee2e6; font-weight: 600; min-width: 32px; text-align: center; }
-  .custom-pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; }
+  /* 🌟 Pill Item แยกตัวเลือกสวิตช์ให้อ่านง่าย */
+  .switch-pill-item {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
 
-  /* 🌟 ปรับตารางล่างให้สูงโปร่ง ชัดเจน */
+  /* 🌟 ล็อคตารางล่างให้สูงโปร่งและขนานกันเป๊ะ */
   .index-table-scroll-container {
     height: 480px !important;
     max-height: 480px !important;
@@ -51,96 +68,115 @@
     background-color: #f8fafc !important;
     box-shadow: inset 0 -1px 0 #e2e8f0 !important;
   }
+
+  .badge-soft-secondary {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
 </style>
 
 <div class="container-fluid index-page-container">
   
-  <!-- ================= 🌟 แถวบนสุด: รวม System Settings + การ์ดตั้งค่าให้อยู่บรรทัดเดียวกัน ================= -->
-  <div class="row g-2 align-items-center mb-2">
+  <!-- ================= 🌟 แถวบนสุด: Header Bar + 2 Control Cards ในระนาบเดียวกัน ================= -->
+  <div class="row g-2 align-items-center mb-2.5">
     
-    <!-- 📌 ชื่อหน้า (ย้ายมาไว้ฝั่งซ้ายของแถวการ์ด) -->
+    <!-- 📌 1. Title Page (ฝั่งซ้ายสุด) -->
     <div class="col-xl-2 col-lg-3 col-md-12">
-      <h5 class="text-dark fw-bold mb-0 text-nowrap fs-6"><i class="fa-solid fa-cogs me-1.5 text-primary"></i>System Settings</h5>
-      <small class="text-muted d-block text-nowrap" style="font-size: 0.72rem;" data-i18n="desc_sys_settings">Master Data & Index Config</small>
-    </div>
-
-    <!-- 📌 Target Call Access -->
-    <div class="col-xl-5 col-lg-4 col-md-6">
-      <div class="card p-2 px-3 border-0 visit-card" style="border-left: 4px solid #f59e0b !important;">
-        <div class="d-flex align-items-center justify-content-between gap-2">
-          
-          <div class="min-w-0">
-            <h6 class="fw-bold text-dark mb-0 text-nowrap" style="font-size: 0.825rem;"><i class="fa-solid fa-bullseye me-1 text-warning"></i>Target Call Access</h6>
-            <small class="text-secondary fw-semibold d-block text-nowrap" id="ratingStatusLabel" style="font-size: 0.7rem;">Status: Loading...</small>
-          </div>
-
-          <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
-            <input type="date" class="form-control form-control-sm px-1.5 text-secondary" id="ratingStartDate" style="height: 32px; font-size: 0.75rem; width: 108px;">
-            <input type="date" class="form-control form-control-sm px-1.5 text-secondary" id="ratingEndDate" style="height: 32px; font-size: 0.75rem; width: 108px;">
-
-            <label class="switch mb-0 ms-1 flex-shrink-0">
-              <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
-              <span class="slider"></span>
-            </label>
-
-            <button class="btn btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 32px; font-size: 0.78rem;">
-              <i class="fa-solid fa-save"></i>
-            </button>
-          </div>
-
+      <div class="d-flex align-items-center gap-2">
+        <div class="kpi-icon-square bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+          <i class="fa-solid fa-cogs fs-5 text-primary"></i>
+        </div>
+        <div>
+          <h6 class="text-dark fw-bold mb-0 text-nowrap" style="font-size: 0.95rem;">System Settings</h6>
+          <small class="text-muted d-block text-nowrap" style="font-size: 0.7rem;" data-i18n="desc_sys_settings">Master Data & Index Config</small>
         </div>
       </div>
     </div>
 
-    <!-- 📌 Visit Form Features -->
+    <!-- 📌 2. Target Call Access Control -->
+    <div class="col-xl-5 col-lg-4 col-md-6">
+      <div class="top-config-card d-flex align-items-center justify-content-between" style="border-left: 4px solid #f59e0b !important;">
+        
+        <div class="min-w-0 me-2">
+          <span class="fw-bold text-dark text-nowrap d-block" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-bullseye me-1 text-warning"></i>Target Call Access
+          </span>
+          <span class="text-secondary fw-bold d-block text-nowrap" id="ratingStatusLabel" style="font-size: 0.68rem; line-height: 1;">Status: Loading...</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+          <input type="date" class="form-control form-control-compact px-1.5 text-secondary" id="ratingStartDate" style="width: 105px;">
+          <input type="date" class="form-control form-control-compact px-1.5 text-secondary" id="ratingEndDate" style="width: 105px;">
+
+          <label class="switch-compact mb-0 ms-1 flex-shrink-0">
+            <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
+            <span class="slider-compact"></span>
+          </label>
+
+          <button class="btn btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 32px; font-size: 0.75rem;">
+            <i class="fa-solid fa-floppy-disk me-1"></i><span data-i18n="btn_save">Save</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 📌 3. Visit Form Features Control -->
     <div class="col-xl-5 col-lg-5 col-md-6">
-      <div class="card p-2 px-3 border-0 visit-card" style="border-left: 4px solid #0d6efd !important;">
-        <div class="d-flex align-items-center justify-content-between gap-2">
+      <div class="top-config-card d-flex align-items-center justify-content-between" style="border-left: 4px solid #0d6efd !important;">
+        
+        <div class="min-w-0 me-2">
+          <span class="fw-bold text-dark text-nowrap d-block" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-sliders me-1 text-primary"></i>Visit Features
+          </span>
+          <span class="text-muted d-block text-nowrap" style="font-size: 0.68rem; line-height: 1;" data-i18n="desc_visit_features">Form section controls</span>
+        </div>
+
+        <!-- 🌟 กลุ่มสวิตช์ Pill Badges เรียงห่างสวยงาม -->
+        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
           
-          <div class="min-w-0">
-            <h6 class="fw-bold text-dark mb-0 text-nowrap" style="font-size: 0.825rem;"><i class="fa-solid fa-sliders me-1 text-primary"></i>Visit Form Features</h6>
-            <small class="text-muted d-block text-nowrap" style="font-size: 0.7rem;" data-i18n="desc_visit_features">Show/hide sections</small>
+          <div class="switch-pill-item">
+            <span class="text-secondary fw-bold" style="font-size: 0.68rem;">GPS</span>
+            <label class="switch-compact mb-0">
+              <input type="checkbox" id="toggleGps" checked>
+              <span class="slider-compact"></span>
+            </label>
           </div>
 
-          <div class="d-flex align-items-center gap-2 flex-shrink-0">
-            <div class="text-center px-1">
-              <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem;" data-i18n="lbl_enable_gps">GPS</small>
-              <label class="switch mb-0">
-                <input type="checkbox" id="toggleGps" checked>
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="text-center px-1">
-              <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem;" data-i18n="lbl_enable_attachment">Attach</small>
-              <label class="switch mb-0">
-                <input type="checkbox" id="toggleAttachment" checked>
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="text-center px-1">
-              <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem;" data-i18n="lbl_enable_signature">Sign</small>
-              <label class="switch mb-0">
-                <input type="checkbox" id="toggleSignature" checked>
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="text-center px-1">
-              <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem;" data-i18n="lbl_enable_samples">Samples</small>
-              <label class="switch mb-0">
-                <input type="checkbox" id="toggleSamples" checked>
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <button class="btn btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 32px; font-size: 0.78rem;">
-              <i class="fa-solid fa-save"></i>
-            </button>
+          <div class="switch-pill-item">
+            <span class="text-secondary fw-bold" style="font-size: 0.68rem;">Attach</span>
+            <label class="switch-compact mb-0">
+              <input type="checkbox" id="toggleAttachment" checked>
+              <span class="slider-compact"></span>
+            </label>
           </div>
+
+          <div class="switch-pill-item">
+            <span class="text-secondary fw-bold" style="font-size: 0.68rem;">Sign</span>
+            <label class="switch-compact mb-0">
+              <input type="checkbox" id="toggleSignature" checked>
+              <span class="slider-compact"></span>
+            </label>
+          </div>
+
+          <div class="switch-pill-item">
+            <span class="text-secondary fw-bold" style="font-size: 0.68rem;">Sample</span>
+            <label class="switch-compact mb-0">
+              <input type="checkbox" id="toggleSamples" checked>
+              <span class="slider-compact"></span>
+            </label>
+          </div>
+
+          <button class="btn btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 32px; font-size: 0.75rem;">
+            <i class="fa-solid fa-floppy-disk me-1"></i><span data-i18n="btn_save">Save</span>
+          </button>
 
         </div>
+
       </div>
     </div>
 
@@ -306,4 +342,4 @@
     </div>
   </div>
 
-</div> 
+</div>
