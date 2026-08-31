@@ -1,53 +1,61 @@
 <style>
-  /* ================= 🌟 Modern App-Like Dashboard Engine ================= */
+  /* ================= 🌟 Perfect App-Like Screen Engine ================= */
   .index-module-wrapper {
-    height: calc(100vh - 80px) !important;
+    height: calc(100vh - 85px) !important;
     width: 100% !important;
     overflow: hidden !important;
-    padding: 0.75rem 1rem 0.5rem 1rem !important;
+    padding: 0.5rem 1rem 0.5rem 1rem !important;
     background-color: #f8fafc;
     box-sizing: border-box;
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.65rem !important;
+    gap: 0.5rem !important;
   }
 
-  /* 🌟 การ์ดแบบ Enterprise Soft Shadow */
   .sys-card {
     background: #ffffff !important;
     border: 1px solid #eef2f6 !important;
-    border-radius: 16px !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03) !important;
   }
 
-  /* 🌟 Top Settings Toolbar */
+  /* 🌟 Top Settings Toolbar - กะทัดรัด ไม่ดันหน้าจอ */
   .top-sys-toolbar {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 0.5rem 1rem !important;
+    border-radius: 12px !important;
+    padding: 0.35rem 0.75rem !important;
+    height: 42px !important;
   }
 
-  /* Toggle Switch Modern Pill */
-  .switch-modern { position: relative; display: inline-block; width: 42px; height: 22px; }
-  .switch-modern input { opacity: 0; width: 0; height: 0; }
-  .slider-modern { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .25s; border-radius: 34px; }
-  .slider-modern:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
-  input:checked + .slider-modern { background-color: #2563eb; }
-  input:checked + .slider-modern:before { transform: translateX(20px); }
+  .form-control-compact { 
+    height: 28px !important;
+    min-height: 28px !important;
+    border-radius: 6px !important; 
+    border: 1px solid #cbd5e1 !important;
+    font-size: 0.72rem !important;
+    padding: 0 4px !important;
+  }
 
-  /* Pill Switch Item */
+  /* Toggle Switch Compact */
+  .switch-modern { position: relative; display: inline-block; width: 34px; height: 18px; }
+  .switch-modern input { opacity: 0; width: 0; height: 0; }
+  .slider-modern { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .2s; border-radius: 20px; }
+  .slider-modern:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+  input:checked + .slider-modern { background-color: #2563eb; }
+  input:checked + .slider-modern:before { transform: translateX(16px); }
+
   .feature-pill-badge {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 4px 10px;
+    border-radius: 6px;
+    padding: 1px 6px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
   }
 
-  /* 🌟 ตารางแบบ Fixed Height & Internal Scrollbar */
+  /* 🌟 Flex Internal Scroll Engine (ยืด-หด ความสูงตามหน้าจออัตโนมัติ) */
   .table-scroll-engine {
     flex: 1 1 auto !important;
     height: 100% !important;
@@ -68,59 +76,61 @@
   .category-item-row {
     cursor: pointer;
     transition: all 0.15s ease-in-out;
-    border-radius: 10px;
+    border-radius: 8px;
   }
-  .category-item-row:hover {
-    background-color: #f0f9ff !important;
-  }
+  .category-item-row:hover { background-color: #f0f9ff !important; }
   .category-item-row.active {
     background-color: #eff6ff !important;
-    border-left: 4px solid #2563eb !important;
+    border-left: 3.5px solid #2563eb !important;
   }
   .category-item-row.active td {
     color: #1d4ed8 !important;
     font-weight: 700 !important;
   }
+
+  .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
+  .sortable-th:hover { color: #0d6efd !important; }
+  .desc-wrap { max-width: 280px; white-space: normal; word-wrap: break-word; line-height: 1.3; margin: 0 auto; }
 </style>
 
 <div class="index-module-wrapper">
   
-  <!-- 📌 1. Header & Quick Settings Control Bar (แถบบนสุด คลีน สบายตา) -->
-  <div class="row g-2 flex-shrink-0">
+  <!-- 📌 1. Header & Quick Settings Toolbar (บรรทัดเดียว คลีน ฟิตพอดีจอ) -->
+  <div class="row g-2 align-items-center flex-shrink-0">
     
     <!-- Title Section -->
-    <div class="col-xl-2 col-lg-3 col-md-12 d-flex align-items-center">
-      <div class="d-flex align-items-center gap-2.5">
-        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-          <i class="fa-solid fa-cogs fs-5"></i>
+    <div class="col-xl-2 col-lg-3 col-md-12">
+      <div class="d-flex align-items-center gap-2">
+        <div class="bg-primary-subtle text-primary rounded-2 p-1.5 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+          <i class="fa-solid fa-cogs fs-6"></i>
         </div>
         <div>
-          <h6 class="text-dark fw-bold mb-0 text-nowrap fs-6">System Settings</h6>
-          <small class="text-muted d-block text-nowrap" style="font-size: 0.72rem;" data-i18n="desc_sys_settings">Master Data & App Config</small>
+          <h6 class="text-dark fw-bold mb-0 text-nowrap" style="font-size: 0.875rem;">System Settings</h6>
+          <small class="text-muted d-block text-nowrap" style="font-size: 0.68rem;" data-i18n="desc_sys_settings">Master Data & App Config</small>
         </div>
       </div>
     </div>
 
     <!-- Target Call Control Card -->
     <div class="col-xl-5 col-lg-4 col-md-6">
-      <div class="top-sys-toolbar d-flex align-items-center justify-content-between" style="border-left: 4px solid #f59e0b !important;">
-        <div class="min-w-0 me-2">
-          <span class="fw-bold text-dark text-nowrap d-block" style="font-size: 0.825rem;">
+      <div class="top-sys-toolbar d-flex align-items-center justify-content-between" style="border-left: 3.5px solid #f59e0b !important;">
+        <div class="min-w-0 me-1">
+          <span class="fw-bold text-dark text-nowrap d-block" style="font-size: 0.75rem;">
             <i class="fa-solid fa-bullseye me-1 text-warning"></i>Target Call Access
           </span>
-          <span class="text-secondary fw-bold d-block text-nowrap" id="ratingStatusLabel" style="font-size: 0.7rem; line-height: 1.1;">Status: Loading...</span>
+          <span class="text-secondary fw-bold d-block text-nowrap" id="ratingStatusLabel" style="font-size: 0.65rem; line-height: 1;">Status: Loading...</span>
         </div>
 
-        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
-          <input type="date" class="form-control form-control-sm px-1.5 text-secondary border-slate-300" id="ratingStartDate" style="height: 32px; font-size: 0.75rem; width: 105px;">
-          <input type="date" class="form-control form-control-sm px-1.5 text-secondary border-slate-300" id="ratingEndDate" style="height: 32px; font-size: 0.75rem; width: 105px;">
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+          <input type="date" class="form-control form-control-compact px-1 text-secondary" id="ratingStartDate" style="width: 95px;">
+          <input type="date" class="form-control form-control-compact px-1 text-secondary" id="ratingEndDate" style="width: 95px;">
 
-          <label class="switch-modern mb-0 ms-1 flex-shrink-0">
+          <label class="switch-modern mb-0 ms-0.5 flex-shrink-0">
             <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
             <span class="slider-modern"></span>
           </label>
 
-          <button class="btn btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 32px; font-size: 0.75rem;">
+          <button class="btn btn-premium-primary fw-bold text-nowrap px-2 ms-0.5" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="height: 28px; font-size: 0.7rem;">
             <i class="fa-solid fa-floppy-disk me-1"></i><span data-i18n="btn_save">Save</span>
           </button>
         </div>
@@ -129,17 +139,17 @@
 
     <!-- Visit Features Control Card -->
     <div class="col-xl-5 col-lg-5 col-md-6">
-      <div class="top-sys-toolbar d-flex align-items-center justify-content-between" style="border-left: 4px solid #0d6efd !important;">
-        <div class="min-w-0 me-2">
-          <span class="fw-bold text-dark text-nowrap d-block" style="font-size: 0.825rem;">
+      <div class="top-sys-toolbar d-flex align-items-center justify-content-between" style="border-left: 3.5px solid #0d6efd !important;">
+        <div class="min-w-0 me-1">
+          <span class="fw-bold text-dark text-nowrap d-block" style="font-size: 0.75rem;">
             <i class="fa-solid fa-sliders me-1 text-primary"></i>Visit Features
           </span>
-          <span class="text-muted d-block text-nowrap" style="font-size: 0.7rem; line-height: 1.1;" data-i18n="desc_visit_features">Form section controls</span>
+          <span class="text-muted d-block text-nowrap" style="font-size: 0.65rem; line-height: 1;" data-i18n="desc_visit_features">Form section controls</span>
         </div>
 
-        <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
           <div class="feature-pill-badge">
-            <span class="text-secondary fw-bold" style="font-size: 0.7rem;">GPS</span>
+            <span class="text-secondary fw-bold" style="font-size: 0.65rem;">GPS</span>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="toggleGps" checked>
               <span class="slider-modern"></span>
@@ -147,7 +157,7 @@
           </div>
 
           <div class="feature-pill-badge">
-            <span class="text-secondary fw-bold" style="font-size: 0.7rem;">Attach</span>
+            <span class="text-secondary fw-bold" style="font-size: 0.65rem;">Attach</span>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="toggleAttachment" checked>
               <span class="slider-modern"></span>
@@ -155,7 +165,7 @@
           </div>
 
           <div class="feature-pill-badge">
-            <span class="text-secondary fw-bold" style="font-size: 0.7rem;">Sign</span>
+            <span class="text-secondary fw-bold" style="font-size: 0.65rem;">Sign</span>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="toggleSignature" checked>
               <span class="slider-modern"></span>
@@ -163,14 +173,14 @@
           </div>
 
           <div class="feature-pill-badge">
-            <span class="text-secondary fw-bold" style="font-size: 0.7rem;">Sample</span>
+            <span class="text-secondary fw-bold" style="font-size: 0.65rem;">Sample</span>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="toggleSamples" checked>
               <span class="slider-modern"></span>
             </label>
           </div>
 
-          <button class="btn btn-premium-primary fw-bold text-nowrap px-2.5 ms-1" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 32px; font-size: 0.75rem;">
+          <button class="btn btn-premium-primary fw-bold text-nowrap px-2 ms-0.5" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="height: 28px; font-size: 0.7rem;">
             <i class="fa-solid fa-floppy-disk me-1"></i><span data-i18n="btn_save">Save</span>
           </button>
         </div>
@@ -179,23 +189,23 @@
 
   </div>
 
-  <!-- 📌 2. Master Data Tables (จัดเต็มพื้นที่ความสูง 100% Flex Fill) -->
-  <div class="row g-2 flex-grow-1 min-h-0">
+  <!-- 📌 2. Master Data Tables (จัดเต็มความสูงแบบ Flexbox 100% Fit Screen) -->
+  <div class="row g-2 flex-grow-1 min-h-0 overflow-hidden">
     
     <!-- ฝั่งซ้าย: Categories List (3 คอลัมน์) -->
-    <div class="col-xl-3 col-lg-4 h-100">
-      <div class="sys-card p-3 h-100 d-flex flex-column">
+    <div class="col-xl-3 col-lg-4 h-100 d-flex flex-column min-h-0">
+      <div class="sys-card p-2.5 h-100 d-flex flex-column min-h-0">
         
-        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom flex-shrink-0">
+        <div class="d-flex justify-content-between align-items-center mb-1.5 pb-1.5 border-bottom flex-shrink-0">
           <h6 class="fw-bold text-dark mb-0 fs-6" data-i18n="title_categories"><i class="fa-solid fa-layer-group me-1.5 text-secondary"></i>1. Categories</h6>
           <button class="btn btn-sm btn-outline-dark fw-bold rounded-circle px-2 py-0.5 shadow-xs" onclick="window.openAddIndexTypeModal()" title="Add Category">
             <i class="fa-solid fa-plus"></i>
           </button>
         </div>
         
-        <!-- Table Category Internal Scroll -->
+        <!-- Table Category Scroll Zone -->
         <div class="table-scroll-engine flex-grow-1">
-          <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+          <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
             <tbody id="indexTypeTableBody">
               <tr><td class="py-3 text-center text-muted">Loading categories... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
             </tbody>
@@ -206,35 +216,35 @@
     </div>
 
     <!-- ฝั่งขวา: Index Values Table (9 คอลัมน์) -->
-    <div class="col-xl-9 col-lg-8 h-100">
-      <div class="sys-card p-3 h-100 d-flex flex-column justify-content-between">
+    <div class="col-xl-9 col-lg-8 h-100 d-flex flex-column min-h-0">
+      <div class="sys-card p-2.5 h-100 d-flex flex-column justify-content-between min-h-0">
         
         <!-- Filter Header Bar -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-2 flex-shrink-0">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-1.5 pb-1.5 border-bottom gap-2 flex-shrink-0">
           <h6 class="fw-bold text-primary mb-0 fs-6" data-i18n="title_index_values"><i class="fa-solid fa-list-check me-1.5"></i>2. Index Values</h6>
           
           <div class="d-flex align-items-center gap-2">
-            <select class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; height: 34px; min-width: 200px; font-size: 0.825rem;">
+            <select class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 6px; height: 30px; min-width: 180px; font-size: 0.78rem;">
               <option value="" data-i18n="opt_all_categories">- All Categories -</option>
             </select>
-            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-xs text-nowrap" onclick="window.openAddIndexModal()" style="height: 34px; font-size: 0.825rem;">
+            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-xs text-nowrap" onclick="window.openAddIndexModal()" style="height: 30px; font-size: 0.78rem;">
               <i class="fa-solid fa-plus me-1"></i><span data-i18n="btn_add_value">Add Value</span>
             </button>
           </div>
         </div>
 
-        <!-- Table Values Internal Scroll -->
+        <!-- Table Values Scroll Zone -->
         <div class="table-scroll-engine flex-grow-1">
-          <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.875rem;">
+          <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.825rem;">
             <thead class="table-custom-header">
               <tr>
-                <th id="thCategory" class="text-start sortable-th" style="width: 20%;" onclick="window.sortIndexes('category')">
+                <th id="thCategory" class="text-start sortable-th" style="width: 18%;" onclick="window.sortIndexes('category')">
                   <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
                 </th>
-                <th id="thValue" class="sortable-th" style="width: 35%;" onclick="window.sortIndexes('value')">
+                <th id="thValue" class="sortable-th" style="width: 32%;" onclick="window.sortIndexes('value')">
                   <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
                 </th>
-                <th id="thValue1" class="d-none sortable-th" style="width: 35%;" onclick="window.sortIndexes('value1')">
+                <th id="thValue1" class="d-none sortable-th" style="width: 32%;" onclick="window.sortIndexes('value1')">
                   <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
                 </th>
                 <th id="thValue2" class="d-none sortable-th" style="width: 25%;" onclick="window.sortIndexes('value2')">
@@ -249,17 +259,17 @@
           </table>
         </div>
 
-        <!-- Pagination Controls (Fixed Bottom) -->
-        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-2 mt-2 border-top flex-shrink-0">
+        <!-- Pagination Controls (Fixed Bottom ไม่หลุดขอบจอแน่นอน) -->
+        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-1.5 mt-1.5 border-top flex-shrink-0">
           <div class="d-flex align-items-center mb-1 mb-md-0">
-            <label class="text-muted small fw-bold me-2 mb-0" style="font-size: 0.78rem;" data-i18n="lbl_show_rows">Show rows:</label>
-            <select class="form-select form-select-sm shadow-none" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 70px; height: 30px; border-radius: 6px; font-size: 0.78rem;">
+            <label class="text-muted small fw-bold me-2 mb-0" style="font-size: 0.75rem;" data-i18n="lbl_show_rows">Show rows:</label>
+            <select class="form-select form-select-sm shadow-none" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 65px; height: 26px; border-radius: 6px; font-size: 0.75rem; padding: 0 4px;">
               <option value="10" selected>10</option>
               <option value="20">20</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select>
-            <span class="text-muted small ms-3" id="indexPageInfo" style="font-size: 0.78rem;">Showing ...</span>
+            <span class="text-muted small ms-3" id="indexPageInfo" style="font-size: 0.75rem;">Showing ...</span>
           </div>
           <nav aria-label="Page navigation">
             <ul class="pagination pagination-sm custom-pagination mb-0" id="indexPagination"></ul>
