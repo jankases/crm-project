@@ -1928,18 +1928,3 @@ button.feature-action-btn-lg.has-data-samples i {
   background-color: #eff6ff !important;
   border-color: #3b82f6 !important;
 }
-
-/* 🖥️ ISOLATED MODULE WRAPPER */
-.visit-module-wrapper,
-.hosp-module-wrapper,
-.doc-module-wrapper,
-.index-module-wrapper {
-  height: calc(100vh - 85px) !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  padding: 0.75rem 1.25rem 0.5rem 1.25rem !important;
-  background-color: #f8fafc;
-  box-sizing: border-box;
-  display: flex !important;
-  flex-direction: column !important;
-}
