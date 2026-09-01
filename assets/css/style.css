@@ -1066,7 +1066,7 @@ mark.highlight-search {
 }
 
 /* ==========================================
-   ✨ EDIT/ADD VISIT FORM - APP-LIKE SCROLL
+   ✨ EDIT/ADD VISIT FORM - APP-LIKE SCROLL & PERFECT FIT
    ========================================== */
 #visitFormView {
   flex: 1 1 auto !important;
@@ -1074,14 +1074,15 @@ mark.highlight-search {
   max-height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important; 
-  padding: 0 0 0.75rem 0 !important; 
-  background-color: transparent !important;
+  padding: 0.5rem 0.75rem 0.75rem 0.75rem !important; 
+  background-color: #f8fafc !important;
 }
 
 #visitFormView form {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
+  justify-content: space-between !important;
 }
 
 #visitFormView form > .d-flex.align-items-center.justify-content-between.mb-2.flex-shrink-0 {
@@ -1090,18 +1091,17 @@ mark.highlight-search {
   z-index: 100 !important;
   background-color: rgba(248, 250, 252, 0.9) !important; 
   backdrop-filter: blur(8px); 
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
-  margin-top: -10px !important;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important; 
+  padding-top: 4px !important;
+  padding-bottom: 8px !important;
 }
 
+/* ล็อคระยะกริดให้มี Margin เว้นห่างจาก Action Bar ด้านล่าง เพื่อเผยขอบโค้งมนของการ์ด */
 #visitFormView .row.g-3 {
   --bs-gutter-x: 1.25rem !important;
   --bs-gutter-y: 1rem !important;
-  flex: 1 1 auto !important;
+  flex: 1 1 0% !important;
   min-height: 0 !important;
-  margin-bottom: 0.5rem !important; 
+  margin-bottom: 0.85rem !important; 
 }
 
 #visitFormView .col-12 > .border,
@@ -1131,14 +1131,15 @@ mark.highlight-search {
   resize: none !important;
 }
 
+/* แถบ Action Bar ลอยแยกอิสระ เผยขอบมนของการ์ดบนเต็มใบ */
 .full-width-action-bar {
   background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 16px !important; 
-  box-shadow: 0 -4px 15px rgba(15, 23, 42, 0.04), 0 4px 10px rgba(15, 23, 42, 0.02) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 18px !important; 
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.03) !important;
   width: 100% !important;
-  min-height: 56px !important;
-  margin-bottom: 0 !important; 
+  min-height: 52px !important;
+  margin-top: auto !important;
   flex-shrink: 0 !important;
   z-index: 10 !important;
 }
