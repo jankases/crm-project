@@ -2225,8 +2225,11 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   var isCreator = (myRepId && creatorRepId && myRepId === creatorRepId) || (myEmail && creatorWho && myEmail === creatorWho);
   var canEdit = (isAdmin || isCreator);
 
-  document.getElementById('visitId').value = visitId;
-  document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">Edit Visit</span>';
+  document.getElementById('visitId').value = visitId; 
+
+var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+var titleTextEdit = (typeof window.t === 'function') ? window.t('title_edit_visit') : (appLangTitle === 'th' ? 'แก้ไขข้อมูลการเยี่ยม' : 'Edit Visit');
+document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">' + titleTextEdit + '</span>';
 
   if (v) {
       var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
@@ -2436,8 +2439,11 @@ window.openAddVisitView = async function(presetDate) {
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
 
   document.getElementById('visitForm').reset();
-  document.getElementById('visitId').value = '';
-  document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">Add New Visit</span>';
+  document.getElementById('visitId').value = ''; 
+
+    var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+var titleTextAdd = (typeof window.t === 'function') ? window.t('title_add_visit') : (appLangTitle === 'th' ? 'สร้างบันทึกเยี่ยมใหม่' : 'Add New Visit');
+document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">' + titleTextAdd + '</span>';
   
   // 🌟 [FIXED] กำหนดวันที่เริ่มต้น และอัปเดตค่าลงใน Flatpickr ให้แสดงผลเป็น DD/MM/YYYY
   var initialDate = presetDate || new Date().toISOString().split('T')[0];
