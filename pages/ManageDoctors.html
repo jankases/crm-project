@@ -234,17 +234,19 @@
     </form>
   </div>
 
-  <!-- ================= EDIT DOCTOR VIEW ================= -->
+  <!-- ================= EDIT DOCTOR VIEW (PREMIUM COMPACT) ================= -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between overflow-hidden" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
-      <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0 pe-1">
+      <!-- Top Header Bar -->
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center">
           <button type="button" class="btn btn-sm btn-back-pill me-3 shadow-xs fw-bold" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5"></i> <span data-i18n="btn_back">Back</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0 me-3" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
+          <h5 class="text-dark fw-bold mb-0 me-2" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
+          <!-- 🌟 Badge แสดงสถานะ Pending แบบเรียบหรู จุดเดียวพอ -->
           <div id="editDcrStatusBadge"></div>
         </div>
 
@@ -256,21 +258,14 @@
           <input type="hidden" id="editDocStatus" value="Active">
         </div>
       </div>
-
-      <!-- 🌟 [NEW] Pending DCR Lock Warning Banner -->
-      <div id="pendingDcrWarningBanner" class="alert alert-warning border border-warning-subtle shadow-xs d-flex align-items-center gap-2.5 py-2 px-3 mb-2.5 rounded-3 d-none flex-shrink-0">
-        <i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
-        <div class="small text-dark fw-medium">
-          <strong class="text-warning-emphasis">Pending DCR Request Exists:</strong> 
-          <span id="pendingDcrBannerMsg">This doctor currently has a change request waiting for approval. Duplicate edits are disabled to prevent conflicts.</span>
-        </div>
-      </div>
       
+      <!-- Main Content Grid -->
       <div class="flex-grow-1 overflow-hidden pe-1 my-1" style="min-height: 0;">
         <div class="row g-3 h-100 align-items-stretch">
           
+          <!-- Left Side: General Info -->
           <div class="col-lg-6 d-flex flex-column h-100">
-            <div class="card p-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between overflow-y-auto">
+            <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs h-100 d-flex flex-column justify-content-between overflow-y-auto">
               
               <div>
                 <h6 class="form-section-title mb-3"><i class="fa-solid fa-stethoscope me-1.5 text-primary"></i><span data-i18n="sec_gen_info">General Information</span></h6>
@@ -303,7 +298,7 @@
                 </div>
               </div>
 
-              <div class="mt-4 pt-1">
+              <div class="mt-3 pt-1">
                 <h6 class="form-section-title mb-3"><i class="fa-solid fa-shield-halved me-1.5 text-primary"></i><span data-i18n="sec_contact_consent">Contact & Consent</span></h6>
                 
                 <div class="row g-3 mb-3">
@@ -343,40 +338,35 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column: Workplace + Pending DCR Details Card -->
-          <div class="col-lg-6 d-flex flex-column h-100 gap-3">
+          <!-- Right Side: Workplace + Compact Pending DCR Summary -->
+          <div class="col-lg-6 d-flex flex-column h-100 gap-2.5">
             
             <!-- Workplace History -->
-            <div class="card p-4 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="overflow-x: hidden !important; min-height: 0;">
-              <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
+            <div class="card p-3.5 p-md-4 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="overflow-x: hidden !important; min-height: 0;">
+              <div class="d-flex justify-content-between align-items-center mb-2.5 flex-shrink-0">
                 <h6 class="form-section-title mb-0 border-0 pb-0"><i class="fa-solid fa-hospital me-1.5 text-primary"></i><span data-i18n="lbl_workplace">Workplace History</span></h6>
               </div>
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto pe-1"></div>
             </div>
 
-            <!-- 🌟 [NEW] Pending DCR Summary Details Box (โชว์ในพื้นที่ว่างฝั่งขวา) -->
-            <div id="pendingDcrSummaryCard" class="card p-3.5 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important;">
-              <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-warning-subtle">
-                <div class="d-flex align-items-center text-warning-emphasis fw-bold">
-                  <i class="fa-solid fa-clock-rotate-left me-2 fs-5"></i>
-                  <span>Pending DCR Request Summary</span>
+            <!-- 🌟 Card สรุป DCR แบบกะทัดรัด (Compact & Minimal Summary) -->
+            <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 16px !important;">
+              <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
+                <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
+                  <i class="fa-solid fa-clock-rotate-left me-1.5 fs-6"></i>
+                  <span>Pending DCR Summary</span>
                 </div>
-                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" id="pendingDcrIdBadge">DCR-PENDING</span>
+                <span class="badge bg-warning text-dark fw-bold px-2 py-0.5 rounded-pill tiny" id="pendingDcrIdBadge">DCR-PENDING</span>
               </div>
               
-              <div class="small text-secondary mb-2 d-flex justify-content-between">
-                <span>Requested By: <strong class="text-dark" id="pendingDcrRequester">-</strong></span>
-                <span>Date: <strong class="text-dark" id="pendingDcrDate">-</strong></span>
+              <!-- Metadata แบบแนวนอน -->
+              <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2">
+                <div><i class="fa-solid fa-user me-1 text-warning"></i><span id="pendingDcrRequester">-</span></div>
+                <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
               </div>
 
-              <div class="bg-white rounded-3 p-2.5 border border-warning-subtle">
-                <div class="fw-bold text-dark mb-1.5" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                  <i class="fa-solid fa-list-check text-warning me-1"></i> Requested Changes:
-                </div>
-                <div id="pendingDcrChangesList" class="small text-dark" style="max-height: 120px; overflow-y: auto;">
-                  <!-- Dynamic Render Pending Changes Here -->
-                </div>
-              </div>
+              <!-- List ของการขอเปลี่ยน แสดงแบบกะทัดรัด -->
+              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto pe-1" style="max-height: 80px;"></div>
             </div>
 
           </div>
@@ -384,7 +374,8 @@
         </div>
       </div>
 
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-2 gap-3">
+      <!-- Bottom Action Bar -->
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-1 gap-2.5">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
@@ -392,6 +383,7 @@
     </form>
   </div>
 
+  <!-- ================= DOCTOR PROFILE VIEW ================= -->
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
