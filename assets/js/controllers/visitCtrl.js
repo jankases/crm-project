@@ -778,32 +778,47 @@ window.closeMediaPresentation = async function() {
 // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================
- window.toggleMainView = function(viewName) {
-  window.VisitManagerCache = window.VisitManagerCache || {};
-  window.VisitManagerCache.currentMainView = viewName;
-  var btnList = document.getElementById('btnToggleList');
-  var btnCal = document.getElementById('btnToggleCal');
-  
-  var mainContainer = document.getElementById('visitMainContentContainer'); // กล่องแม่ของตาราง
-  var calZone = document.getElementById('visitCalendarZone'); // กล่องแม่ของปฏิทิน
+ window.toggleMainView = function(viewMode) {
+  var listBtn = document.getElementById('btnToggleList');
+  var calBtn = document.getElementById('btnToggleCal');
+  var listZone = document.getElementById('visitMainContentContainer');
+  var calZone = document.getElementById('visitCalendarZone');
 
-  var activeClass = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius shadow-sm';
-  var inactiveClass = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var isEN = (appLang === 'en');
 
-  if (viewName === 'calendar') {
-      if (btnList) btnList.className = inactiveClass;
-      if (btnCal) btnCal.className = activeClass;
+  var listText = isEN ? 'List' : 'รายการ';
+  var calText = isEN ? 'Calendar' : 'ปฏิทิน';
+
+  if (viewMode === 'calendar') {
+      if (listBtn) { 
+          listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
+          listBtn.innerHTML = '<i class="fa-solid fa-list me-2"></i><span data-i18n="btn_list">' + listText + '</span>';
+      }
+      if (calBtn) { 
+          calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius'; 
+          calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
+      }
+      if (listZone) listZone.classList.add('d-none');
+      if (calZone) calZone.classList.remove('d-none');
       
-      if (mainContainer) mainContainer.classList.add('d-none'); // 🌟 ซ่อนกล่องแม่ตาราง
-      if (calZone) calZone.classList.remove('d-none'); // 🌟 โชว์กล่องปฏิทิน
-      
+      window.VisitManagerCache = window.VisitManagerCache || {};
+      window.VisitManagerCache.currentMainView = 'calendar';
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
-      if (btnList) btnList.className = activeClass;
-      if (btnCal) btnCal.className = inactiveClass;
+      if (listBtn) { 
+          listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius'; 
+          listBtn.innerHTML = '<i class="fa-solid fa-list me-2"></i><span data-i18n="btn_list">' + listText + '</span>';
+      }
+      if (calBtn) { 
+          calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
+          calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
+      }
+      if (calZone) calZone.classList.add('d-none');
+      if (listZone) listZone.classList.remove('d-none');
       
-      if (calZone) calZone.classList.add('d-none'); // 🌟 ซ่อนกล่องปฏิทิน
-      if (mainContainer) mainContainer.classList.remove('d-none'); // 🌟 โชว์กล่องแม่ตาราง
+      window.VisitManagerCache = window.VisitManagerCache || {};
+      window.VisitManagerCache.currentMainView = 'list';
   }
 };
 
@@ -3822,6 +3837,7 @@ window.updateLangUI = function() {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
     var isEN = (appLang === 'en');
 
+    // 1. อัปเดต Placeholder ของ Smart Search
     var searchInput = document.getElementById('smartSearchInput');
     if (searchInput) {
         if (window.i18nData && window.i18nData[appLang] && window.i18nData[appLang].opt_smart_search_ph) {
@@ -3835,6 +3851,7 @@ window.updateLangUI = function() {
         }
     }
 
+    // 2. อัปเดต Placeholder ของช่องข้อความฝั่งขวา
     var detailsEl = document.getElementById('visitDetails');
     var insightEl = document.getElementById('visitInsight');
     var nextActionEl = document.getElementById('visitNextAction');
@@ -3855,6 +3872,7 @@ window.updateLangUI = function() {
             : 'ระบุแผนการติดตามผลหรือการดำเนินการถัดไป...';
     }
 
+    // 3. อัปเดต Date Pickers และ Calendar Legend
     if (typeof window.initVisitDatePickers === 'function') {
         window.initVisitDatePickers();
     }
@@ -3863,15 +3881,38 @@ window.updateLangUI = function() {
         window.updateCalendarLegendLang();
     }
 
+    // 🌟 4. อัปเดตข้อความปุ่มสลับมุมมอง (List / Calendar) ให้เปลี่ยนภาษา Realtime
+    var listBtn = document.getElementById('btnToggleList');
+    var calBtn = document.getElementById('btnToggleCal');
+    if (listBtn) {
+        var listSpan = listBtn.querySelector('span');
+        if (listSpan) listSpan.textContent = isEN ? 'List' : 'รายการ';
+    }
+    if (calBtn) {
+        var calSpan = calBtn.querySelector('span');
+        if (calSpan) calSpan.textContent = isEN ? 'Calendar' : 'ปฏิทิน';
+    }
+
+    // 🌟 5. อัปเดตหัวข้อฟอร์ม (Form Title) ในกรณีที่เปิดหน้าฟอร์มค้างไว้
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) {
         var visitIdEl = document.getElementById('visitId');
         var currentVisitId = visitIdEl ? visitIdEl.value : '';
-        if (!currentVisitId || currentVisitId === 'NEW') {
-            if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+        var titleEl = document.getElementById('formVisitTitle');
+
+        if (titleEl) {
+            if (currentVisitId && currentVisitId !== 'NEW') {
+                var titleTextEdit = (typeof window.t === 'function') ? window.t('title_edit_visit') : (isEN ? 'Edit Visit' : 'แก้ไขข้อมูลการเยี่ยม');
+                titleEl.innerHTML = '✏️ <span data-i18n="title_edit_visit">' + titleTextEdit + '</span>';
+            } else {
+                var titleTextAdd = (typeof window.t === 'function') ? window.t('title_add_visit') : (isEN ? 'Add New Visit' : 'สร้างบันทึกเยี่ยมใหม่');
+                titleEl.innerHTML = '📝 <span data-i18n="title_add_visit">' + titleTextAdd + '</span>';
+                if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
+            }
         }
     }
 
+    // 6. โหลด Dropdowns และคืนค่า Draft/Purpose
     if (typeof window.loadDropdowns === 'function') {
         window.loadDropdowns(false).then(function() {
             if (formView && !formView.classList.contains('d-none')) {
@@ -3886,6 +3927,7 @@ window.updateLangUI = function() {
         });
     } 
 
+    // 7. อัปเดตตาราง และ ปฏิทิน
     if (typeof window.renderVisitTableServerSide === 'function') {
         window.renderVisitTableServerSide();
     } else if (typeof window.renderVisitTable === 'function') {
@@ -3896,6 +3938,7 @@ window.updateLangUI = function() {
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView(); 
     }   
 
+    // 8. อัปเดต Sample Dropdown
     if (typeof window.refreshSampleDropdownLang === 'function') {
         window.refreshSampleDropdownLang();
     }
