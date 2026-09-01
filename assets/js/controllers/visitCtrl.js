@@ -249,12 +249,13 @@ window.setTomSelectValue = function(instance, value, fallbackText) {
     if (wasDisabled) instance.disable(); 
 };
 
- window.updatePurposeDisplayLang = function() {
+ // 🌟 ฟังก์ชันอัปเดตภาษาของ Purpose Realtime
+window.updatePurposeDisplayLang = function() {
   if (!window.tomSelectPurposeInstance) return;
   var currentVal = window.tomSelectPurposeInstance.getValue(); 
   if (!currentVal) return;
   
-  var appLang = window.getCurrentAppLang();
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   var pObj = window._purposeIndex ? window._purposeIndex[String(currentVal).toLowerCase()] : null;
   
   if (pObj) {
@@ -262,22 +263,28 @@ window.setTomSelectValue = function(instance, value, fallbackText) {
       var textEn = pObj.Value1 || textTh;
       var displayVal = (appLang === 'en') ? textEn : textTh;
       
-      // 🌟 อัปเดตข้อความใน TomSelect Option Cache
       if (window.tomSelectPurposeInstance.options[currentVal]) {
           window.tomSelectPurposeInstance.options[currentVal].text = displayVal;
       }
 
-      // 🌟 อัปเดตข้อความที่แสดงผลบนหน้าจอทันที
       var item = window.tomSelectPurposeInstance.control.querySelector('.item[data-value="'+currentVal+'"]');
       if (item) {
           item.innerText = displayVal;
       } else {
-          // Fallback กรณีหา class ไม่เจอ
           var singleItem = window.tomSelectPurposeInstance.control.querySelector('.item');
           if (singleItem) singleItem.innerText = displayVal;
       }
   }
 };
+
+// 🌟 [FIXED]: ผูก Event Listener สลับภาษา Realtime แบบการันตีไม่รันซ้ำ
+if (!window._isAppLangListenerAttached) {
+  window.addEventListener('appLanguageChanged', function() {
+      if (typeof window.updateLangUI === 'function') window.updateLangUI();
+      if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
+  });
+  window._isAppLangListenerAttached = true;
+}
 
 window.getDoctorNameByLang = function(docObj, defaultId) {
   if (!docObj) return defaultId || '-';
@@ -1599,29 +1606,26 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 
-window.loadVisits = async function(forceReload, isBackground) {
+ window.loadVisits = async function(forceReload, isBackground) {
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🌟 [CRITICAL FIX]: ถ้ามีการสลับ User ให้ล้าง Cache สิทธิ์ทั้งหมด แล้วสั่งโหลด Dropdowns/Permissions ใหม่
     if (!window.VisitManagerCache) window.VisitManagerCache = {};
     if (window.VisitManagerCache.ownerId !== myRepId) {
-        window.VisitManagerCache = {}; // ล้างการจำสิทธิ์ของ User เก่าทิ้ง 100%
+        window.VisitManagerCache = {};
         window.VisitManagerCache.ownerId = myRepId; 
         window.VisitManagerCache.isLoaded = false;
         window.globalVisits = []; 
         window.globalTotLogs = [];
-        window.isPermissionCalculated = false; // บังคับให้รอคำนวณสิทธิ์ใหม่
+        window.isPermissionCalculated = false;
         forceReload = true; 
         
-        // โหลดสิทธิ์และ Dropdowns ใหม่ของ User ปัจจุบันก่อนรัน Query
         if (typeof window.loadDropdowns === 'function') {
             await window.loadDropdowns(true);
         }
     }
 
-    // รอจนกว่าการคำนวณสิทธิ์ User ใหม่จะเสร็จสิ้น
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1672,10 +1676,13 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toLowerCase() : '';
-      var isGlobalAdmin = window.myIsGlobalViewer || ['admin', 'staff', 'director', 'executive', 'product manager'].indexOf(userRole) !== -1;
+      // 🌟 [CRITICAL FIX]: สิทธิ์การมองเห็นข้อมูล (Data Scope) -> BU Head / Manager / Admin ดูข้อมูลภาพรวมได้ครบถ้วน
+      var userRole = crmUser ? String(crmUser.Role || crmUser.role || crmUser.Position || '').trim().toLowerCase() : '';
+      var canViewAllVisits = window.myIsGlobalViewer || 
+          ['admin', 'staff', 'director', 'executive', 'product manager', 'bu head', 'head', 'manager', 'bu'].some(function(r) {
+              return userRole.indexOf(r) !== -1;
+          });
 
-      // 🌟 แยก Query ออกเป็น 2 ตัว
       var dataQuery = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
       var countQuery = window.supabaseClient.from('Visit_Logs').select('Status');
 
@@ -1683,8 +1690,8 @@ window.loadVisits = async function(forceReload, isBackground) {
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // สิทธิ์ตั้งต้นในการกรองข้อมูลตาม User ใหม่ที่เพิ่งสลับมา
-      if (!isGlobalAdmin) {
+      // ถ้าไม่ใช่สิทธิ์ดูภาพรวม ให้กรองตาม Rep_ID
+      if (!canViewAllVisits) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
               dataQuery = dataQuery.in('Rep_ID', allowedIds);
@@ -2218,7 +2225,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   window.applyVisitFeaturesUI();
 
@@ -2242,9 +2249,10 @@ window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
 
   document.getElementById('visitId').value = visitId; 
 
-var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-var titleTextEdit = (typeof window.t === 'function') ? window.t('title_edit_visit') : (appLangTitle === 'th' ? 'แก้ไขข้อมูลการเยี่ยม' : 'Edit Visit');
-document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">' + titleTextEdit + '</span>';
+  // 🌟 [FIXED]: แปลภาษาหัวข้อ Edit Visit แบบ Dynamic
+  var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  var titleTextEdit = (typeof window.t === 'function') ? window.t('title_edit_visit') : (appLangTitle === 'th' ? 'แก้ไขข้อมูลการเยี่ยม' : 'Edit Visit');
+  document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="title_edit_visit">' + titleTextEdit + '</span>';
 
   if (v) {
       var userList = window.globalUsersList || (window.VisitManagerCache ? window.VisitManagerCache.users : []) || [];
@@ -2258,7 +2266,6 @@ document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="t
           window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
       }
 
-      // 🌟 [FIXED] ตั้งค่าวันที่ผ่าน Flatpickr เพื่อแสดงผลเป็น DD/MM/YYYY บนหน้าจอ
       if (v && v.Visit_Date) {
           var rawDate = String(v.Visit_Date).split('T')[0];
           document.getElementById('visitDate').value = rawDate;
@@ -2345,7 +2352,6 @@ document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="t
       var cTime = new Date(v.CheckIn_Time);
       timeText.innerText = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
     }
-    // 🌟 เปลี่ยนปุ่ม GPS ให้เป็นสีเขียว (Hero Button) เมื่อเคยดึงพิกัดแล้ว
     if (btnGps) {
       btnGps.className = 'btn btn-success w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
       btnGps.style.borderRadius = '16px';
@@ -2356,7 +2362,6 @@ document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="t
     if (latInput) latInput.value = '';
     if (lngInput) lngInput.value = '';
     if (timeWrapper) timeWrapper.classList.add('d-none');
-    // 🌟 เปลี่ยนปุ่ม GPS ให้เป็นสีน้ำเงิน (Hero Button) เมื่อยังไม่ได้ดึงพิกัด
     if (btnGps) {
       btnGps.className = 'btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
       btnGps.style.borderRadius = '16px';
@@ -2448,7 +2453,7 @@ document.getElementById('formVisitTitle').innerHTML = '✏️ <span data-i18n="t
   }
 };
 
-window.openAddVisitView = async function(presetDate) {
+ window.openAddVisitView = async function(presetDate) {
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -2456,11 +2461,11 @@ window.openAddVisitView = async function(presetDate) {
   document.getElementById('visitForm').reset();
   document.getElementById('visitId').value = ''; 
 
-    var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-var titleTextAdd = (typeof window.t === 'function') ? window.t('title_add_visit') : (appLangTitle === 'th' ? 'สร้างบันทึกเยี่ยมใหม่' : 'Add New Visit');
-document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">' + titleTextAdd + '</span>';
+  // 🌟 [FIXED]: แปลภาษาหัวข้อ Add New Visit แบบ Dynamic
+  var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  var titleTextAdd = (typeof window.t === 'function') ? window.t('title_add_visit') : (appLangTitle === 'th' ? 'สร้างบันทึกเยี่ยมใหม่' : 'Add New Visit');
+  document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">' + titleTextAdd + '</span>';
   
-  // 🌟 [FIXED] กำหนดวันที่เริ่มต้น และอัปเดตค่าลงใน Flatpickr ให้แสดงผลเป็น DD/MM/YYYY
   var initialDate = presetDate || new Date().toISOString().split('T')[0];
   document.getElementById('visitDate').value = initialDate;
   if (window.fpFormDateInstance) {
@@ -2470,14 +2475,12 @@ document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="tit
   document.getElementById('visitStatus').value = 'Pending';
   document.getElementById('visitInsight').value = ''; 
   
-  // 🌟 เคลียร์ค่า Coach และซ่อน Dropdown
   document.getElementById('visitIsCoaching').checked = false; 
   var coachWrapper = document.getElementById('visitCoachWrapper');
   var coachSelect = document.getElementById('visitCoachRepId');
   if (coachWrapper) coachWrapper.classList.add('d-none');
   if (coachSelect) coachSelect.value = '';
 
-  // 🌟 [สำคัญ] เคลียร์ข้อมูล Samples ที่ค้างอยู่ในกล่อง Modal จากรอบที่แล้ว
   var sampleContainer = document.getElementById('sampleItemsContainer');
   if (sampleContainer) {
       var appLangSm = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -2502,7 +2505,6 @@ document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="tit
   var btnGps = document.getElementById('btnGpsCheckin');
   if (btnGps) {
     btnGps.disabled = false;
-    // 🌟 เปลี่ยนปุ่ม GPS ให้เป็นสไตล์ Hero Button (ปุ่มใหญ่) สำหรับตอนเปิดฟอร์มสร้างใหม่
     btnGps.className = 'btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
     btnGps.style.borderRadius = '16px';
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -4865,7 +4867,4 @@ window.renderCoachDropdown = function() {
     coachSelect.innerHTML = html;
 };
 
-window.addEventListener('appLanguageChanged', function() {
-    if (typeof window.updateLangUI === 'function') window.updateLangUI();
-    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
-});
+ 
