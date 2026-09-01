@@ -188,68 +188,69 @@
     <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
       <input type="hidden" id="visitId">
 
-      <!-- Top Header Bar --> 
-<div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
-  <div class="d-flex align-items-center gap-2">
-    <button type="button" class="btn btn-sm btn-back-pill me-2 shadow-xs fw-bold d-inline-flex align-items-center" style="height: 36px; border-radius: 50px;" onclick="window.cancelVisitForm()">
-      <i class="fa-solid fa-arrow-left me-1.5"></i><span data-i18n="btn_back">Back</span>
-    </button>
-    <h5 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">✏️ Edit Visit</h5>
-  </div>
+      <!-- Top Header Bar -->
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-back-pill me-2 shadow-xs fw-bold d-inline-flex align-items-center" style="height: 36px; border-radius: 50px;" onclick="window.cancelVisitForm()">
+            <i class="fa-solid fa-arrow-left me-1.5"></i><span data-i18n="btn_back">Back</span>
+          </button>
+          <h5 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">✏️ Edit Visit</h5>
+        </div>
 
-  <div class="d-flex align-items-center gap-2 overflow-hidden">
-    <!-- 🌟 โครงสร้าง Coaching แบบกะทัดรัด ล็อคความกว้าง ไม่ดันล้น -->
-    <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
-      <div class="d-flex align-items-center text-nowrap">
-        <label class="switch mb-0 me-2" style="transform: scale(0.8);">
-          <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
-          <span class="slider"></span>
-        </label>
-        <span id="lblCoachingMainText" class="fw-bold text-dark style-sub" style="font-size: 0.78rem;" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- 🌟 แคปซูล 1: สวิตช์ Coaching (ขนาดแยกอิสระ ไม่ล้นกรอบ) -->
+          <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
+            <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
+              <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
+              <span class="slider"></span>
+            </label>
+            <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
+          </div>
+
+          <!-- 🌟 แคปซูล 2: Dropdown เลือก Coach (แยกเป็นอีกแคปซูลต่างหาก ไม่กลืนกับสวิตช์) -->
+          <div id="visitCoachWrapper" class="d-none">
+            <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
+              <i class="fa-solid fa-user-ninja text-primary me-2 ms-1"></i>
+              <select class="form-select form-select-sm bg-transparent border-0 shadow-none fw-semibold text-primary py-0 pe-4 text-truncate" id="visitCoachRepId" style="max-width: 160px; font-size: 0.8rem; height: 26px;">
+                <option value="">- Select Coach -</option>
+              </select>
+            </div>
+          </div>
+
+          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 36px; font-size: 0.825rem;">
+            <i class="fa-solid fa-user-tie text-primary me-2"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark ms-1.5 me-1">-</strong>
+          </span>
+          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 36px; font-size: 0.825rem;">
+            <i class="fa-solid fa-location-dot text-primary me-2"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark ms-1.5 me-1">-</strong>
+          </span>
+        </div>
       </div>
 
-      <!-- Dropdown เลือก Coach (ล็อกขนาด ไม่ล้นกรอบ) -->
-      <div id="visitCoachWrapper" class="d-none border-start ps-2 ms-2">
-        <select class="form-select form-select-sm bg-white border-0 shadow-none fw-semibold text-primary py-0 px-2 text-truncate" id="visitCoachRepId" style="width: 150px; max-width: 150px; font-size: 0.78rem; height: 26px;">
-          <option value="">- Select Coach -</option>
-        </select>
-      </div>
-    </div>
-
-    <span class="badge bg-white text-secondary border px-2.5 py-1.5 rounded-pill shadow-xs d-inline-flex align-items-center text-nowrap" style="height: 36px; font-size: 0.78rem;">
-      <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark ms-1">-</strong>
-    </span>
-    <span class="badge bg-white text-secondary border px-2.5 py-1.5 rounded-pill shadow-xs d-inline-flex align-items-center text-nowrap" style="height: 36px; font-size: 0.78rem;">
-      <i class="fa-solid fa-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark ms-1">-</strong>
-    </span>
-  </div>
-</div>
-
-      <!-- Main Cards Grid Container (เว้นระยะ margin-bottom ลอยแยกจาก Action Bar ชัดเจน) -->
-      <div class="row g-3 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
+      <!-- Main Cards Grid Container -->
+      <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
         
         <!-- 🔹 Left Column (Visit Information & Evidences) -->
         <div class="col-12 col-xl-5 h-100 d-flex flex-column">
-          <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
+          <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div>
-              <!-- 🌟 ไอคอนหัวข้อสไตล์กล่องซอฟต์ สวยเด่น ชัดเจนเท่ากันทุกอัน -->
-              <div class="d-flex align-items-center mb-3">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px; flex-shrink: 0;">
+              <!-- 🌟 ไอคอนหัวข้อสไตล์กล่องซอฟต์ สวยเด่น ชัดเจน -->
+              <div class="d-flex align-items-center mb-2.5">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-solid fa-stethoscope fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_visit_info">Visit Information</h6>
               </div>
               
               <!-- Doctor Selection -->
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1.5">
+              <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
                   <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
                   <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
-                    <i class="fa-solid fa-clock-rotate-left me-1.5"></i><span data-i18n="btn_last_history">📜 Visit History</span>
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
                   </button>
                 </div>
                 <div class="position-relative d-flex align-items-center">
-                  <select class="form-select bg-white pe-5" id="visitDocId" required style="min-height: 42px !important;"></select>
+                  <select class="form-select bg-white pe-5" id="visitDocId" required style="min-height: 38px !important;"></select>
                   <button class="btn btn-dictate-select-inside" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Dictation">
                     <i class="fa-solid fa-microphone" id="micDocIcon"></i>
                   </button>
@@ -257,80 +258,76 @@
               </div>
 
               <!-- Products -->
-              <div class="mb-3">
-                <label class="compact-label mb-1.5"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+              <div class="mb-2">
+                <label class="compact-label mb-1"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
               </div>
 
               <!-- Date & Start/End Time -->
-              <div class="row g-2 align-items-end mb-3">
+              <div class="row g-2 align-items-end mb-2">
                 <div class="col-5">
-                  <label class="compact-label mb-1.5"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                  <label class="compact-label mb-1"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius px-1.5 cursor-pointer" id="visitDate" placeholder="dd/mm/yyyy" required readonly>
                 </div>
 
                 <div class="col-7">
                   <div class="row g-1">
-                    
-                    <!-- ช่องเวลา Start -->
                     <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
+                      <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
-                        <button type="button" class="btn border-0 bg-primary-subtle text-primary fw-bold rounded-pill px-2 py-0 shadow-none d-flex align-items-center justify-content-center" style="font-size: 0.7rem; height: 22px;" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">Now</button>
+                        <button type="button" class="btn border-0 bg-primary-subtle text-primary fw-bold rounded-pill px-1.5 py-0 shadow-none d-flex align-items-center justify-content-center" style="font-size: 0.68rem; height: 20px;" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">Now</button>
                       </div>
                       <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime">
                     </div>
-                
-                    <!-- ช่องเวลา End -->
+
                     <div class="col-6">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
+                      <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
-                        <button type="button" class="btn border-0 bg-primary-subtle text-primary fw-bold rounded-pill px-2 py-0 shadow-none d-flex align-items-center justify-content-center" style="font-size: 0.7rem; height: 22px;" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">+30m</button>
+                        <button type="button" class="btn border-0 bg-primary-subtle text-primary fw-bold rounded-pill px-1.5 py-0 shadow-none d-flex align-items-center justify-content-center" style="font-size: 0.68rem; height: 20px;" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">+30m</button>
                       </div>
                       <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime">
                     </div>
-                    
                   </div>
                 </div>
               </div>
 
-              <!-- Features & Evidences Section (เพิ่มกล่องไอคอนแบบเดียวกัน) -->
-              <div class="pt-2 pb-2">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px; flex-shrink: 0;">
+              <!-- Features & Evidences Section -->
+              <div class="pt-1 pb-1">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                     <i class="fa-solid fa-sliders fs-6"></i>
                   </div>
                   <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_features_evidences">Features & Evidences</h6>
                 </div>
                 
-                <div class="d-flex flex-wrap gap-2 w-100" id="featuresButtonsWrapper">
-                  <div class="flex-grow-1" style="min-width: 140px;" id="sectionGpsCheckin">
-                    <button type="button" class="feature-action-btn-lg w-100" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
-                      <i class="fa-solid fa-location-dot me-2"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
+                <div class="d-flex flex-wrap gap-1.5 w-100" id="featuresButtonsWrapper">
+                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionGpsCheckin">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                      <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                     </button>
                   </div>
 
-                  <div class="flex-grow-1" style="min-width: 140px;" id="sectionSignature">
-                    <button type="button" class="feature-action-btn-lg w-100" onclick="window.openSignatureModal()">
-                      <i class="fa-solid fa-signature me-2"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
+                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionSignature">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="window.openSignatureModal()">
+                      <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                     </button>
                   </div>
 
-                  <div class="flex-grow-1" style="min-width: 140px;" id="sectionSamples">
-                    <button type="button" class="feature-action-btn-lg w-100" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
-                      <i class="fa-solid fa-gifts me-2"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
+                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionSamples">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                      <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                     </button>
                   </div>
 
-                  <div class="flex-grow-1" style="min-width: 140px;" id="sectionAttachments">
-                    <button type="button" class="feature-action-btn-lg w-100" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
-                      <i class="fa-solid fa-camera me-2"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
+                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionAttachments">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                      <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                     </button>
                   </div>
 
                   <div class="w-100 d-none" id="detailingMediaSection">
                     <button type="button" class="feature-action-btn-lg btn-edetailing-touch w-100 border-danger text-danger fw-bold" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
-                      <i class="fa-solid fa-file-powerpoint me-2 fs-5"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
+                      <i class="fa-solid fa-file-powerpoint me-1.5 fs-6"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
                     </button>
                   </div>
                 </div>
@@ -342,25 +339,25 @@
 
         <!-- 🔹 Right Column (Activity Details) -->
         <div class="col-12 col-xl-7 h-100 d-flex flex-column">
-          <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
+          <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div class="d-flex flex-column h-100" style="min-height: 0;">
-              <!-- 🌟 ไอคอนหัวข้อสไตล์กล่องซอฟต์ สวยเด่น ชัดเจน -->
-              <div class="d-flex align-items-center mb-3">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px; flex-shrink: 0;">
+              <!-- ไอคอนหัวข้อ -->
+              <div class="d-flex align-items-center mb-2.5">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-solid fa-list-check fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_activity_details">Activity Details</h6>
               </div>
 
               <!-- Purpose -->
-              <div class="mb-2.5">
-                <label class="compact-label mb-1.5"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+              <div class="mb-2">
+                <label class="compact-label mb-1"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
               </div>
 
               <!-- 1. Details -->
-              <div class="mb-2.5 d-flex flex-column field-wrapper-details">
-                <label class="compact-label mb-1.5" data-i18n="lbl_details">Details</label>
+              <div class="mb-2 d-flex flex-column field-wrapper-details">
+                <label class="compact-label mb-1" data-i18n="lbl_details">Details</label>
                 <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                   <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" title="Voice Dictation">
                     <i class="fa-solid fa-microphone"></i>
@@ -370,8 +367,8 @@
               </div>
 
               <!-- 2. Insight -->
-              <div class="mb-2.5 d-flex flex-column field-wrapper-insight">
-                <label class="compact-label mb-1.5" data-i18n="lbl_insight">Insight</label>
+              <div class="mb-2 d-flex flex-column field-wrapper-insight">
+                <label class="compact-label mb-1" data-i18n="lbl_insight">Insight</label>
                 <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                   <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" title="Voice Dictation">
                     <i class="fa-solid fa-microphone"></i>
@@ -382,7 +379,7 @@
 
               <!-- 3. Next Action -->
               <div class="mb-1 d-flex flex-column field-wrapper-nextaction">
-                <label class="compact-label mb-1.5" data-i18n="lbl_next_action">Next Action</label>
+                <label class="compact-label mb-1" data-i18n="lbl_next_action">Next Action</label>
                 <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                   <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="Voice Dictation">
                     <i class="fa-solid fa-microphone"></i>
