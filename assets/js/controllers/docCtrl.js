@@ -1206,12 +1206,11 @@ window.openAddDoctorView = function() {
       if (summaryCard) {
         summaryCard.classList.remove('d-none');
 
-        // 🌟 แปลง Whoupdated (Email/Rep_ID) เป็นชื่อผู้ใช้งานจริง
+        // แปลง Whoupdated เป็นชื่อผู้ใช้งานจริง
         const requesterEl = document.getElementById('pendingDcrRequester');
         if (requesterEl) {
           const rawWho = dcr.Whoupdated || '';
           let showName = rawWho;
-          
           if (rawWho) {
             const userList = (window.DocManagerCache && window.DocManagerCache.users) || window.globalUsers || [];
             const searchKey = String(rawWho).toLowerCase().trim();
@@ -1226,11 +1225,17 @@ window.openAddDoctorView = function() {
           requesterEl.textContent = showName || '-';
         }
 
+        // ปรับการแสดงผลวันที่เป็นฟอร์แมต DD/MM/YYYY, HH:mm
         const dateEl = document.getElementById('pendingDcrDate');
         if (dateEl) {
-          dateEl.textContent = dcr.Whenupdated 
-            ? new Date(dcr.Whenupdated).toLocaleString(isEN ? 'en-US' : 'th-TH', { dateStyle: 'short', timeStyle: 'short' })
-            : '-';
+          if (dcr.Whenupdated) {
+            const dt = new Date(dcr.Whenupdated);
+            const formattedDate = dt.toLocaleDateString(isEN ? 'en-GB' : 'th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const formattedTime = dt.toLocaleTimeString(isEN ? 'en-US' : 'th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+            dateEl.textContent = `${formattedDate}, ${formattedTime}`;
+          } else {
+            dateEl.textContent = '-';
+          }
         }
 
         if (typeof window.renderPendingDcrChanges === 'function') {
@@ -1268,9 +1273,15 @@ window.openAddDoctorView = function() {
   }
 };
 
-window.renderPendingDcrChanges = function(requestedDataJson) {
+ window.renderPendingDcrChanges = function(requestedDataJson) {
   const container = document.getElementById('pendingDcrChangesList');
   if (!container) return;
+
+  // ล้างค่า Highlight เก่าก่อน
+  const form = document.getElementById('editDoctorForm');
+  if (form) {
+    form.querySelectorAll('.dcr-field-highlight').forEach(el => el.classList.remove('dcr-field-highlight', 'border-warning', 'bg-warning-subtle'));
+  }
 
   if (!requestedDataJson) {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -1285,23 +1296,35 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
 
     let items = [];
 
+    // Helper เพิ่ม Highlight ให้ฟิลด์ฝั่งซ้าย
+    const highlightField = (elementId) => {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.classList.add('dcr-field-highlight', 'border-warning');
+      }
+    };
+
     if (data.Doc_Name) {
       items.push(`<strong>${isEN ? 'Name (EN)' : 'ชื่อ (EN)'}:</strong> ${data.Doc_Name}`);
+      highlightField('editDocNameEn');
     }
     if (data.Doc_Name_TH) {
       items.push(`<strong>${isEN ? 'Name (TH)' : 'ชื่อ (TH)'}:</strong> ${data.Doc_Name_TH}`);
+      highlightField('editDocNameTh');
     }
     if (data.Specialty_ID) {
       const specText = (typeof window.getSpecialtyText === 'function') 
         ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) 
         : data.Specialty_ID;
       items.push(`<strong>${isEN ? 'Specialty' : 'ความเชี่ยวชาญ'}:</strong> ${specText}`);
+      highlightField('editDocSpecialty');
     }
     if (data.DoctorType_ID) {
       const typeText = (typeof window.getDoctorTypeText === 'function') 
         ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) 
         : data.DoctorType_ID;
       items.push(`<strong>${isEN ? 'Type' : 'ประเภท'}:</strong> ${typeText}`);
+      highlightField('editDocType');
     }
     if (data.Status) {
       const statusText = (data.Status === 'Active') 
@@ -1315,7 +1338,6 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
       return;
     }
 
-    // Render เป็น Pill Badges กระชับ อ่านง่าย
     let html = '<div class="d-flex flex-wrap gap-1 pt-0.5">';
     items.forEach(it => {
       html += `<span class="badge bg-white text-dark border border-warning-subtle fw-normal tiny px-2 py-1 shadow-2xs">${it}</span>`;
@@ -1341,12 +1363,12 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
     }
   });
 
-  // 2. ควบคุมสวิตช์ Toggle (Privacy, TOS, Status) ให้คงสีและสถานะไว้ชัดเจน
+  // 2. ควบคุมสวิตช์ Toggle (Privacy, TOS, Status)
   const switches = form.querySelectorAll('.form-check-input[type="checkbox"]');
   switches.forEach(sw => {
     if (isReadOnly) {
-      sw.style.pointerEvents = 'none'; // ป้องกันการคลิกเปลี่ยนค่า
-      sw.style.opacity = '0.7';        // ปรับความโปร่งแสงให้พอรู้ว่าล็อก แต่สีไม่ซีดหาย
+      sw.style.pointerEvents = 'none';
+      sw.style.opacity = '0.7';
     } else {
       sw.style.pointerEvents = 'auto';
       sw.style.opacity = '1';
@@ -1362,14 +1384,20 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
     }
   });
 
-  // 4. ซ่อนปุ่ม Workplace Add/Delete
+  // 4. ล็อก/ซ่อนปุ่ม Workplace Add/Delete ให้สมบูรณ์
   const container = document.getElementById('workplaceContainerEdit');
   if (container) {
     const deleteBtns = container.querySelectorAll('.btn-wp-delete-icon');
-    deleteBtns.forEach(btn => btn.style.display = isReadOnly ? 'none' : 'flex');
+    deleteBtns.forEach(btn => {
+      btn.style.pointerEvents = isReadOnly ? 'none' : 'auto';
+      btn.style.opacity = isReadOnly ? '0.3' : '1';
+    });
 
     const addTile = container.querySelector('.dashed-add-wp-tile');
-    if (addTile) addTile.style.display = isReadOnly ? 'none' : 'block';
+    if (addTile) {
+      addTile.style.pointerEvents = isReadOnly ? 'none' : 'auto';
+      addTile.style.opacity = isReadOnly ? '0.4' : '1';
+    }
 
     const hospSelects = container.querySelectorAll('.hospital-select');
     hospSelects.forEach(s => {
@@ -1484,7 +1512,7 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
-  // 🌟 [แก้ไขบั๊ก]: ตรวจสอบและซิงค์สวิตช์ Status ให้ตรงกับ Active/Inactive ตามข้อมูลจริง
+  // ตรวจสอบและซิงค์สวิตช์ Status ให้ตรงกับ Active/Inactive ตามข้อมูลจริง
   const currentStatus = d.Status || d.status || 'Active';
   const isStatusActive = (currentStatus === 'Active');
   
@@ -1505,7 +1533,7 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
     window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.Hospital_ID || d.hospitalId, true);
   }
 
-  // 🌟 ตรวจสอบ DCR ล่าสุดเพื่อล็อกฟอร์มและโชว์ Pending DCR Summary Card ฝั่งขวา
+  // ตรวจสอบ DCR ล่าสุดเพื่อล็อกฟอร์มและโชว์ Pending DCR Summary Card ฝั่งขวา
   window.checkPendingDCR(d.Doc_ID || d.id); 
   window.switchDoctorView('doctorEditView');
 };
