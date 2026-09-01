@@ -656,19 +656,19 @@
             <select class="form-select bg-light-subtle border shadow-xs premium-radius fw-medium" id="totType" required style="height: 42px; font-size: 0.9rem;"></select>
           </div>
 
-          <!-- Date Range -->
+          <!-- Date Range (🌟 เปลี่ยนเป็น type="text" และใส่ placeholder="dd/mm/yyyy" เพื่อรองรับ Flatpickr DD/MM/YYYY) -->
           <div class="row g-2.5 mb-3">
             <div class="col-6">
               <label class="form-label fw-bold text-secondary small mb-1">
                 <i class="fa-regular fa-calendar-check me-1 text-primary"></i> Start Date <span class="text-danger">*</span>
               </label>
-              <input type="date" class="form-control bg-light-subtle border shadow-xs premium-radius fw-medium" id="totStartDate" required style="height: 42px; font-size: 0.88rem;">
+              <input type="text" class="form-control bg-light-subtle border shadow-xs premium-radius fw-medium cursor-pointer" id="totStartDate" placeholder="dd/mm/yyyy" required readonly style="height: 42px; font-size: 0.88rem;">
             </div>
             <div class="col-6">
               <label class="form-label fw-bold text-secondary small mb-1">
                 <i class="fa-regular fa-calendar-xmark me-1 text-secondary"></i> End Date
               </label>
-              <input type="date" class="form-control bg-light-subtle border shadow-xs premium-radius fw-medium" id="totEndDate" style="height: 42px; font-size: 0.88rem;">
+              <input type="text" class="form-control bg-light-subtle border shadow-xs premium-radius fw-medium cursor-pointer" id="totEndDate" placeholder="dd/mm/yyyy" readonly style="height: 42px; font-size: 0.88rem;">
             </div>
           </div>
 
