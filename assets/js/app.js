@@ -1,4 +1,6 @@
-// assets/js/app.js
+// =========================================
+// CRM System - Language Dictionary & Functions
+// =========================================
 
 // 1. ฟังก์ชันตรวจสอบ Session จังหวะเข้าใช้งาน
 function checkAuthSession() {
@@ -159,7 +161,7 @@ async function loadComponent(page) {
         targetMenu.classList.add('active');
     }
 
-    // 🌟 2. เพิ่มส่วนนี้: อัปเดตเมนู iPad Sidebar Rail ให้ไฮไลต์สี active ตามกันทันที!
+    // 2. อัปเดตเมนู iPad Sidebar Rail
     const ipadMenuItems = document.querySelectorAll('.sidebar-icon-btn');
     ipadMenuItems.forEach(item => item.classList.remove('active'));
 
@@ -291,14 +293,17 @@ async function checkSession() {
         if(roleDisplay) roleDisplay.innerText = uRole;
         
         const roleUpper = String(uRole).toUpperCase().trim();
+        
+        // 🌟 ตั้งค่าตัวแปรสิทธิ์แยกให้เด็ดขาด
         window.myIsGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(roleUpper) !== -1;
         window.myIsBuHead = roleUpper.indexOf('BU') !== -1 || roleUpper.indexOf('HEAD') !== -1;
         window.myIsManager = roleUpper.indexOf('MANAGER') !== -1;
         window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsBuHead && !window.myIsManager;
 
+        // 🔒 แสดง Admin Tools เฉพาะ ADMIN ตัวจริงเท่านั้น (BU Head / Manager โดนซ่อน)
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
-            if (window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager) {
+            if (window.myIsGlobalViewer) {
                 el.style.setProperty('display', 'block', 'important');
             } else {
                 el.style.setProperty('display', 'none', 'important');
@@ -312,7 +317,6 @@ async function checkSession() {
             loginScreen.classList.remove('d-none');
             loginScreen.classList.add('d-flex');
             
-            // 🌟 เช็กว่าหลุดมาหน้า Login เพราะหมดเวลา Idle Timeout หรือไม่
             const expireReason = sessionStorage.getItem('session_expired_reason');
             const alertBanner = document.getElementById('loginAlertBanner');
             
@@ -327,7 +331,6 @@ async function checkSession() {
                 alertBanner.style.fontSize = '0.85rem';
                 alertBanner.innerHTML = `<div class="d-flex align-items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-warning fs-5"></i><span>${msgText}</span></div>`;
                 
-                // ลบ Flag ออกเพื่อไม่ให้แสดงซ้ำถ้ารีเฟรชหน้าจอเอง
                 sessionStorage.removeItem('session_expired_reason');
             }
         }
@@ -358,15 +361,13 @@ async function logout() {
 // ==========================================
 
 let idleLastActivity = Date.now();
-const IDLE_TIMEOUT_MINUTES = 30; // ตั้งค่าเวลาที่ต้องการ (หน่วย: นาที)
+const IDLE_TIMEOUT_MINUTES = 30;
 const IDLE_TIMEOUT_MS = IDLE_TIMEOUT_MINUTES * 60 * 1000;
 
-// 1. ฟังก์ชันรีเซ็ตเวลา เมื่อมีการเคลื่อนไหว
 function resetIdleTimer() {
     idleLastActivity = Date.now();
 }
 
-// 2. ตรวจสอบเวลาเมื่อไม่มีการใช้งาน (ยกเลิก alert ปล่อยให้แสดงผลนุ่มๆ บนหน้า Login)
 function checkIdleStatus() {
     const userStr = sessionStorage.getItem('crmUser');
     if (!userStr) return; 
@@ -375,7 +376,6 @@ function checkIdleStatus() {
     if (currentTime - idleLastActivity > IDLE_TIMEOUT_MS) {
         console.log('Session expired due to inactivity.');
         
-        // 🌟 บันทึก Flag แจ้งเตือนสาเหตุลง sessionStorage ก่อนรีโหลด
         sessionStorage.setItem('session_expired_reason', 'idle_timeout');
         
         if (typeof logout === 'function') {
@@ -387,18 +387,14 @@ function checkIdleStatus() {
     }
 }
 
-// 3. ฟังก์ชันเริ่มต้นดักจับ Event ต่างๆ ทั่วทั้งหน้าจอ
 function initIdleTimeout() {
-    // รายการ Event ที่จะถือว่าผู้ใช้ "ยังใช้งานอยู่" (รองรับทั้ง PC และ iPad)
     const activeEvents = ['mousemove', 'keydown', 'mousedown', 'click', 'scroll', 'touchstart'];
     
     activeEvents.forEach(event => {
         document.addEventListener(event, resetIdleTimer, { passive: true });
     });
 
-    // ตั้งเวลาให้ระบบคอยแอบตรวจสอบเงียบๆ ทุกๆ 1 นาที (60000 ms)
     setInterval(checkIdleStatus, 60000);
 }
 
-// 4. สั่งให้เริ่มทำงานทันทีเมื่อโหลดไฟล์ app.js เสร็จ
 initIdleTimeout();
