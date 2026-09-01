@@ -859,10 +859,17 @@ window.initTotModal = function() {
   }
 };
 
- window.openAddTotModal = function() {
+window.openAddTotModal = function() {
   var elId = document.getElementById('totId'); if(elId) elId.value = '';
-  var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = new Date().toISOString().split('T')[0];
-  var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = new Date().toISOString().split('T')[0];
+  
+  // 🌟 กำหนดวันที่ปัจจุบัน และสั่งตั้งค่าผ่าน Flatpickr เพื่อแสดงผลเป็น DD/MM/YYYY
+  var todayStr = new Date().toISOString().split('T')[0];
+  var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = todayStr;
+  var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = todayStr;
+  
+  if (window.fpTotStartInstance) window.fpTotStartInstance.setDate(todayStr, false);
+  if (window.fpTotEndInstance) window.fpTotEndInstance.setDate(todayStr, false);
+
   var elSt = document.getElementById('totStartTime'); if(elSt) elSt.value = '';
   var elEt = document.getElementById('totEndTime'); if(elEt) elEt.value = '';
   var elRm = document.getElementById('totRemark'); if(elRm) elRm.value = '';
@@ -886,8 +893,23 @@ window.openEditTotModal = function(id) {
   if(!tot) return;
 
   var elId = document.getElementById('totId'); if(elId) elId.value = tot.TOT_ID;
-  var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = tot.Start_Date || '';
-  var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = tot.End_Date || '';
+  
+  // 🌟 ดึงค่า Start/End Date และสั่งตั้งค่าผ่าน Flatpickr เพื่อแสดงผลเป็น DD/MM/YYYY
+  var startDateVal = tot.Start_Date || '';
+  var endDateVal = tot.End_Date || '';
+  
+  var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = startDateVal;
+  var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = endDateVal;
+
+  if (window.fpTotStartInstance) {
+      if (startDateVal) window.fpTotStartInstance.setDate(startDateVal, false);
+      else window.fpTotStartInstance.clear();
+  }
+  if (window.fpTotEndInstance) {
+      if (endDateVal) window.fpTotEndInstance.setDate(endDateVal, false);
+      else window.fpTotEndInstance.clear();
+  }
+
   if (typeof window.formatTimeString === 'function') {
       var elSt = document.getElementById('totStartTime'); if(elSt) elSt.value = window.formatTimeString(tot.Start_Time);
       var elEt = document.getElementById('totEndTime'); if(elEt) elEt.value = window.formatTimeString(tot.End_Time);
@@ -4471,7 +4493,7 @@ window.triggerSmartSearch = function() {
 window.fpStartInstance = null;
 window.fpEndInstance = null;
 
-window.initVisitDatePickers = function() {
+ window.initVisitDatePickers = function() {
   var appLang = window.getCurrentAppLang();
   var isEN = appLang === 'en';
   var localeConfig = isEN ? 'default' : flatpickr.l10ns.th;
@@ -4480,6 +4502,10 @@ window.initVisitDatePickers = function() {
   var startEl = document.getElementById('filterStartDate');
   var endEl = document.getElementById('filterEndDate');
   var formDateEl = document.getElementById('visitDate');
+
+  // 🌟 เพิ่มตัวแปรอ้างอิง Element วันที่ของ TOT Modal
+  var totStartEl = document.getElementById('totStartDate');
+  var totEndEl = document.getElementById('totEndDate');
 
   if (window.fpStartInstance) window.fpStartInstance.destroy();
   if (window.fpEndInstance) window.fpEndInstance.destroy();
@@ -4515,6 +4541,27 @@ window.initVisitDatePickers = function() {
         if (typeof window.saveFormDraft === 'function') window.saveFormDraft();
       }
     });
+  }
+
+  // 🌟 [อัปเดตใหม่]: ผูก Flatpickr ให้กับช่องวันที่ Start Date & End Date ของ TOT Modal (#totStartDate, #totEndDate)
+  var totConfig = {
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d/m/Y", // 👈 บังคับโชว์หน้าจอเป็น DD/MM/YYYY ให้ตรงกับ Visit Form
+    locale: localeConfig,
+    allowInput: false
+  };
+
+  if (totStartEl) {
+    if (window.fpTotStartInstance) window.fpTotStartInstance.destroy();
+    totStartEl.placeholder = placeholderText;
+    window.fpTotStartInstance = flatpickr(totStartEl, totConfig);
+  }
+
+  if (totEndEl) {
+    if (window.fpTotEndInstance) window.fpTotEndInstance.destroy();
+    totEndEl.placeholder = placeholderText;
+    window.fpTotEndInstance = flatpickr(totEndEl, totConfig);
   }
 };
 
