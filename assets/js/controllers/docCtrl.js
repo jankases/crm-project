@@ -1029,7 +1029,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   return selectedIds;
 };
 
- window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
+window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
@@ -1179,8 +1179,7 @@ window.openAddDoctorView = function() {
   window.switchDoctorView('doctorAddView');
 };
 
- 
- window.checkPendingDCR = async function(docId) {
+window.checkPendingDCR = async function(docId) {
   try {
     const sb = window.supabaseClient || window.supabase;
     const { data, error } = await sb.from('DCR')
@@ -1273,7 +1272,7 @@ window.openAddDoctorView = function() {
   }
 };
 
- window.renderPendingDcrChanges = function(requestedDataJson) {
+window.renderPendingDcrChanges = function(requestedDataJson) {
   const container = document.getElementById('pendingDcrChangesList');
   if (!container) return;
 
@@ -1351,7 +1350,7 @@ window.openAddDoctorView = function() {
   }
 };
 
- window.setDoctorFormReadOnly = function(isReadOnly) {
+window.setDoctorFormReadOnly = function(isReadOnly) {
   const form = document.getElementById('editDoctorForm');
   if (!form) return;
 
@@ -1447,7 +1446,7 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
   }
 };
 
- window.openEditDoctorView = function(id) {
+window.openEditDoctorView = function(id) {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
   
@@ -1789,9 +1788,11 @@ window.filterAndRenderDoctorVisits = function() {
   const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').toUpperCase().trim() : '';
 
   const adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
-  const isGlobalAdmin = window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL';
+  
+  // 🌟 [แก้ไขบั๊ก]: อ้างอิงสิทธิ์จาก DocManagerCache โดยตรง ให้ถูกต้องเรียบร้อย
+  const isGlobalAdmin = (window.DocManagerCache && window.DocManagerCache.isGlobalViewer === true) || adminRoles.includes(myRole) || rawScope === 'ALL';
   const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
-  const allowedReps = window.myAllowedRepIds || [];
+  const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) || [];
 
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
     const vRepId = String(v.Rep_ID || v.rep_id || '').trim();
