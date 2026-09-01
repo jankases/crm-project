@@ -1181,14 +1181,206 @@ window.openAddDoctorView = function() {
 window.checkPendingDCR = async function(docId) {
   try {
     const sb = window.supabaseClient || window.supabase;
-    const { data, error } = await sb.from('DCR').select('Status, Action').eq('Ref_ID', docId).eq('Status', 'Pending');
+    const { data, error } = await sb.from('DCR')
+      .select('DCR_ID, Action, Requested_Data, Status, Whoupdated, Whenupdated')
+      .eq('Ref_ID', docId)
+      .eq('Status', 'Pending');
+
     if (error) throw error;
-    
+
     const badgeContainer = document.getElementById('editDcrStatusBadge');
-    if (badgeContainer) {
-      badgeContainer.innerHTML = (data && data.length > 0) ? `<span class="badge badge-soft-warning fs-6"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${data[0].Action})</span>` : '';
+    const warningBanner = document.getElementById('pendingDcrWarningBanner');
+    const summaryCard = document.getElementById('pendingDcrSummaryCard');
+    const submitBtn = document.getElementById('updateDoctorBtn');
+
+    if (data && data.length > 0) {
+      const dcr = data[0];
+      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const isEN = (appLang === 'en');
+
+      // 1. แสดง Badge ที่ Header
+      if (badgeContainer) {
+        badgeContainer.innerHTML = `<span class="badge badge-soft-warning fs-6"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${dcr.Action || 'Edit Doctor'})</span>`;
+      }
+
+      // 2. แสดง Banner เตือนล็อกการแก้ไข
+      if (warningBanner) {
+        warningBanner.classList.remove('d-none');
+        const bannerMsg = document.getElementById('pendingDcrBannerMsg');
+        if (bannerMsg) {
+          bannerMsg.textContent = isEN 
+            ? 'This doctor currently has a change request waiting for approval. Duplicate edits are disabled to prevent conflicts.'
+            : 'แพทย์คนนี้มีคำขอแก้ไขข้อมูลค้างรอการอนุมัติอยู่ ระบบทำการล็อกฟอร์มชั่วคราวเพื่อป้องกันการส่งข้อมูลซ้ำซ้อน';
+        }
+      }
+
+      // 3. แสดงและใส่ข้อมูลลงในการ์ดสรุปรายการ DCR ฝั่งขวา
+      if (summaryCard) {
+        summaryCard.classList.remove('d-none');
+        
+        const badgeIdEl = document.getElementById('pendingDcrIdBadge');
+        if (badgeIdEl) badgeIdEl.textContent = dcr.DCR_ID || 'DCR-PENDING';
+
+        const requesterEl = document.getElementById('pendingDcrRequester');
+        if (requesterEl) requesterEl.textContent = dcr.Whoupdated || '-';
+
+        const dateEl = document.getElementById('pendingDcrDate');
+        if (dateEl) {
+          dateEl.textContent = dcr.Whenupdated 
+            ? new Date(dcr.Whenupdated).toLocaleString(isEN ? 'en-US' : 'th-TH', { dateStyle: 'short', timeStyle: 'short' })
+            : '-';
+        }
+
+        // วาดรายการฟิลด์ที่มีการขอเปลี่ยนแปลง
+        if (typeof window.renderPendingDcrChanges === 'function') {
+          window.renderPendingDcrChanges(dcr.Requested_Data);
+        }
+      }
+
+      // 4. ล็อกฟอร์มแก้ไข ปิดการกดเปลี่ยน และเปลี่ยนปุ่ม Submit เป็นสไตล์ Read-Only
+      if (typeof window.setDoctorFormReadOnly === 'function') {
+        window.setDoctorFormReadOnly(true);
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.className = 'btn btn-sm btn-secondary opacity-75 px-4 py-2 rounded-3 shadow-none';
+        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-2"></i><span>${isEN ? 'Locked (Pending DCR)' : 'ถูกล็อก (มี DCR รออนุมัติ)'}</span>`;
+      }
+
+    } else {
+      // กรณีไม่มี DCR ค้าง: เคลียร์คราบแจ้งเตือน และปลดล็อกฟอร์มให้แก้ไขได้ปกติ
+      if (badgeContainer) badgeContainer.innerHTML = '';
+      if (warningBanner) warningBanner.classList.add('d-none');
+      if (summaryCard) summaryCard.classList.add('d-none');
+
+      if (typeof window.setDoctorFormReadOnly === 'function') {
+        window.setDoctorFormReadOnly(false);
+      }
+
+      if (submitBtn) {
+        const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        submitBtn.disabled = false;
+        submitBtn.className = 'btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm';
+        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">${appLang === 'en' ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
+      }
     }
-  } catch (err) { console.error("Error check DCR:", err); }
+  } catch (err) { 
+    console.error("Error check DCR:", err); 
+  }
+};
+
+window.renderPendingDcrChanges = function(requestedDataJson) {
+  const container = document.getElementById('pendingDcrChangesList');
+  if (!container) return;
+
+  if (!requestedDataJson) {
+    container.innerHTML = '<div class="text-muted italic small">- No details provided -</div>';
+    return;
+  }
+
+  try {
+    const data = (typeof requestedDataJson === 'string') ? JSON.parse(requestedDataJson) : requestedDataJson;
+    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    const isEN = (appLang === 'en');
+
+    let html = '<ul class="list-unstyled mb-0 ps-1" style="font-size: 0.83rem;">';
+
+    // 1. Name EN / TH
+    if (data.Doc_Name) {
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Name (EN)' : 'ชื่อ (EN)'}:</strong> <span class="text-primary fw-bold">${data.Doc_Name}</span></li>`;
+    }
+    if (data.Doc_Name_TH) {
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Name (TH)' : 'ชื่อ (TH)'}:</strong> <span class="text-primary fw-bold">${data.Doc_Name_TH}</span></li>`;
+    }
+
+    // 2. Specialty & Doctor Type
+    if (data.Specialty_ID) {
+      const specText = (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) : data.Specialty_ID;
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Specialty' : 'สาขาความเชี่ยวชาญ'}:</strong> <span class="badge bg-primary-subtle text-primary">${specText}</span></li>`;
+    }
+    if (data.DoctorType_ID) {
+      const typeText = (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) : data.DoctorType_ID;
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Doctor Type' : 'ประเภทแพทย์'}:</strong> <span class="badge bg-secondary-subtle text-secondary">${typeText}</span></li>`;
+    }
+
+    // 3. Contact Details
+    if (data.Email) {
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Email:</strong> ${data.Email}</li>`;
+    }
+    if (data.Mobile) {
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Mobile:</strong> ${data.Mobile}</li>`;
+    }
+
+    // 4. Status Change
+    if (data.Status) {
+      const statusBadge = (data.Status === 'Active') ? 'text-success' : 'text-danger';
+      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Status:</strong> <span class="fw-bold ${statusBadge}">${data.Status}</span></li>`;
+    }
+
+    // 5. Workplaces Summary
+    if (data.Workplaces_JSON) {
+      try {
+        const wps = (typeof data.Workplaces_JSON === 'string') ? JSON.parse(data.Workplaces_JSON) : data.Workplaces_JSON;
+        if (Array.isArray(wps) && wps.length > 0) {
+          const hospList = window.DocManagerCache ? window.DocManagerCache.hospitals : [];
+          const wpNames = wps.map(w => {
+            const hObj = (hospList || []).find(h => String(h.Hospital_ID).toLowerCase() === String(w.hospitalId).toLowerCase());
+            const hName = (typeof window.getHospitalNameByLang === 'function') ? window.getHospitalNameByLang(hObj) : (w.hospitalId || 'Hospital');
+            return w.isPrimary ? `<strong>${hName} (${isEN ? 'Primary' : 'หลัก'})</strong>` : hName;
+          }).join(', ');
+
+          html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Workplaces:</strong> ${wpNames}</li>`;
+        }
+      } catch (e) {}
+    }
+
+    html += '</ul>';
+    container.innerHTML = html;
+
+  } catch (err) {
+    container.innerHTML = '<div class="text-muted italic small">- Error parsing DCR details -</div>';
+  }
+};
+
+window.setDoctorFormReadOnly = function(isReadOnly) {
+  const form = document.getElementById('editDoctorForm');
+  if (!form) return;
+
+  // 1. ควบคุมการระบุข้อความ/ตัวเลือกทั้งหมดในฟอร์ม
+  const inputs = form.querySelectorAll('input, select, textarea');
+  inputs.forEach(el => {
+    if (el.id !== 'editDocId') {
+      el.disabled = isReadOnly;
+    }
+  });
+
+  // 2. ควบคุม TomSelect Dropdowns
+  ['editDocTitle', 'editDocSpecialty', 'editDocType'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.tomselect) {
+      if (isReadOnly) el.tomselect.disable();
+      else el.tomselect.enable();
+    }
+  });
+
+  // 3. ปิด/เปิด ปุ่มเพิ่ม/ลบ Workplace Row
+  const container = document.getElementById('workplaceContainerEdit');
+  if (container) {
+    const deleteBtns = container.querySelectorAll('.btn-wp-delete-icon');
+    deleteBtns.forEach(btn => btn.style.display = isReadOnly ? 'none' : 'flex');
+
+    const addTile = container.querySelector('.dashed-add-wp-tile');
+    if (addTile) addTile.style.display = isReadOnly ? 'none' : 'block';
+
+    const hospSelects = container.querySelectorAll('.hospital-select');
+    hospSelects.forEach(s => {
+      if (s.tomselect) {
+        if (isReadOnly) s.tomselect.disable();
+        else s.tomselect.enable();
+      }
+    });
+  }
 };
 
 window.toggleDoctorStatusText = function(elementOrValue) {
@@ -1229,7 +1421,7 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
   }
 };
 
-window.openEditDoctorView = function(id) {
+ window.openEditDoctorView = function(id) {
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
   
@@ -1271,7 +1463,7 @@ window.openEditDoctorView = function(id) {
     }
   };
 
-  // 🎯 แมปด้วย UUID ID
+  // แมปข้อมูลลงช่อง Input และ Dropdown
   setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
   setTsVal('editDocSpecialty', d.Specialty_ID || d.specialty_id || d.Specialty || '');
   setTsVal('editDocType', d.DoctorType_ID || d.doctortype_id || d.Type || '');
@@ -1297,6 +1489,7 @@ window.openEditDoctorView = function(id) {
   const currentStatus = d.Status || d.status || 'Active';
   window.toggleDoctorStatusText(currentStatus);
 
+  // วาดรายการ Workplace
   window.clearWorkplaceContainer('workplaceContainerEdit');
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
@@ -1307,6 +1500,7 @@ window.openEditDoctorView = function(id) {
     window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.Hospital_ID || d.hospitalId, true);
   }
 
+  // 🌟 [อัปเดต]: ตรวจสอบ DCR ล่าสุดเพื่อล็อกฟอร์มและโชว์ Pending DCR Summary Card ฝั่งขวา
   window.checkPendingDCR(d.Doc_ID || d.id); 
   window.switchDoctorView('doctorEditView');
 };
