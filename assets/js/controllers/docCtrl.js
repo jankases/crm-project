@@ -1178,7 +1178,8 @@ window.openAddDoctorView = function() {
   window.switchDoctorView('doctorAddView');
 };
 
-window.checkPendingDCR = async function(docId) {
+ 
+ window.checkPendingDCR = async function(docId) {
   try {
     const sb = window.supabaseClient || window.supabase;
     const { data, error } = await sb.from('DCR')
@@ -1189,7 +1190,6 @@ window.checkPendingDCR = async function(docId) {
     if (error) throw error;
 
     const badgeContainer = document.getElementById('editDcrStatusBadge');
-    const warningBanner = document.getElementById('pendingDcrWarningBanner');
     const summaryCard = document.getElementById('pendingDcrSummaryCard');
     const submitBtn = document.getElementById('updateDoctorBtn');
 
@@ -1198,23 +1198,12 @@ window.checkPendingDCR = async function(docId) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const isEN = (appLang === 'en');
 
-      // 1. แสดง Badge ที่ Header
+      // 1. Badge เล็กๆ สวยงามข้างหัวข้อ
       if (badgeContainer) {
-        badgeContainer.innerHTML = `<span class="badge badge-soft-warning fs-6"><i class="fa-solid fa-hourglass-half me-1"></i>Pending (${dcr.Action || 'Edit Doctor'})</span>`;
+        badgeContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>Pending Approval</span>`;
       }
 
-      // 2. แสดง Banner เตือนล็อกการแก้ไข
-      if (warningBanner) {
-        warningBanner.classList.remove('d-none');
-        const bannerMsg = document.getElementById('pendingDcrBannerMsg');
-        if (bannerMsg) {
-          bannerMsg.textContent = isEN 
-            ? 'This doctor currently has a change request waiting for approval. Duplicate edits are disabled to prevent conflicts.'
-            : 'แพทย์คนนี้มีคำขอแก้ไขข้อมูลค้างรอการอนุมัติอยู่ ระบบทำการล็อกฟอร์มชั่วคราวเพื่อป้องกันการส่งข้อมูลซ้ำซ้อน';
-        }
-      }
-
-      // 3. แสดงและใส่ข้อมูลลงในการ์ดสรุปรายการ DCR ฝั่งขวา
+      // 2. แสดง Card สรุป DCR ฝั่งขวา
       if (summaryCard) {
         summaryCard.classList.remove('d-none');
         
@@ -1231,27 +1220,25 @@ window.checkPendingDCR = async function(docId) {
             : '-';
         }
 
-        // วาดรายการฟิลด์ที่มีการขอเปลี่ยนแปลง
         if (typeof window.renderPendingDcrChanges === 'function') {
           window.renderPendingDcrChanges(dcr.Requested_Data);
         }
       }
 
-      // 4. ล็อกฟอร์มแก้ไข ปิดการกดเปลี่ยน และเปลี่ยนปุ่ม Submit เป็นสไตล์ Read-Only
+      // 3. ล็อกฟอร์มแก้ไข และเปลี่ยนปุ่ม Submit เป็นสไตล์เนียนๆ ไม่รก
       if (typeof window.setDoctorFormReadOnly === 'function') {
         window.setDoctorFormReadOnly(true);
       }
 
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.className = 'btn btn-sm btn-secondary opacity-75 px-4 py-2 rounded-3 shadow-none';
-        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-2"></i><span>${isEN ? 'Locked (Pending DCR)' : 'ถูกล็อก (มี DCR รออนุมัติ)'}</span>`;
+        submitBtn.className = 'btn btn-sm btn-secondary opacity-50 px-4 py-2 rounded-3 shadow-none';
+        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-1.5"></i><span>${isEN ? 'Form Locked' : 'ฟอร์มถูกล็อก'}</span>`;
       }
 
     } else {
-      // กรณีไม่มี DCR ค้าง: เคลียร์คราบแจ้งเตือน และปลดล็อกฟอร์มให้แก้ไขได้ปกติ
+      // ไม่มี DCR ค้าง: เคลียร์ค่า และปลดล็อกปกติ
       if (badgeContainer) badgeContainer.innerHTML = '';
-      if (warningBanner) warningBanner.classList.add('d-none');
       if (summaryCard) summaryCard.classList.add('d-none');
 
       if (typeof window.setDoctorFormReadOnly === 'function') {
@@ -1262,7 +1249,7 @@ window.checkPendingDCR = async function(docId) {
         const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         submitBtn.disabled = false;
         submitBtn.className = 'btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm';
-        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">${appLang === 'en' ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
+        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span>${appLang === 'en' ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
       }
     }
   } catch (err) { 
@@ -1275,7 +1262,7 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
   if (!container) return;
 
   if (!requestedDataJson) {
-    container.innerHTML = '<div class="text-muted italic small">- No details provided -</div>';
+    container.innerHTML = '<div class="text-muted italic tiny">- No details -</div>';
     return;
   }
 
@@ -1284,62 +1271,36 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const isEN = (appLang === 'en');
 
-    let html = '<ul class="list-unstyled mb-0 ps-1" style="font-size: 0.83rem;">';
+    let items = [];
 
-    // 1. Name EN / TH
-    if (data.Doc_Name) {
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Name (EN)' : 'ชื่อ (EN)'}:</strong> <span class="text-primary fw-bold">${data.Doc_Name}</span></li>`;
-    }
-    if (data.Doc_Name_TH) {
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Name (TH)' : 'ชื่อ (TH)'}:</strong> <span class="text-primary fw-bold">${data.Doc_Name_TH}</span></li>`;
-    }
-
-    // 2. Specialty & Doctor Type
+    if (data.Doc_Name) items.push(`<strong>EN:</strong> ${data.Doc_Name}`);
+    if (data.Doc_Name_TH) items.push(`<strong>TH:</strong> ${data.Doc_Name_TH}`);
     if (data.Specialty_ID) {
       const specText = (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) : data.Specialty_ID;
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Specialty' : 'สาขาความเชี่ยวชาญ'}:</strong> <span class="badge bg-primary-subtle text-primary">${specText}</span></li>`;
+      items.push(`<strong>Spec:</strong> ${specText}`);
     }
     if (data.DoctorType_ID) {
       const typeText = (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) : data.DoctorType_ID;
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>${isEN ? 'Doctor Type' : 'ประเภทแพทย์'}:</strong> <span class="badge bg-secondary-subtle text-secondary">${typeText}</span></li>`;
+      items.push(`<strong>Type:</strong> ${typeText}`);
+    }
+    if (data.Status) items.push(`<strong>Status:</strong> ${data.Status}`);
+
+    if (items.length === 0) {
+      container.innerHTML = `<div class="text-muted tiny">${isEN ? 'Workplace / Profile update' : 'ขอแก้ไขสถานที่ทำงาน / ข้อมูลทั่วไป'}</div>`;
+      return;
     }
 
-    // 3. Contact Details
-    if (data.Email) {
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Email:</strong> ${data.Email}</li>`;
-    }
-    if (data.Mobile) {
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Mobile:</strong> ${data.Mobile}</li>`;
-    }
+    // แสดงผลแบบ Pill Badges สวยงาม กระชับ ไม่กินพื้นที่แนวตั้ง
+    let html = '<div class="d-flex flex-wrap gap-1">';
+    items.forEach(it => {
+      html += `<span class="badge bg-white text-dark border border-warning-subtle fw-normal tiny px-2 py-1">${it}</span>`;
+    });
+    html += '</div>';
 
-    // 4. Status Change
-    if (data.Status) {
-      const statusBadge = (data.Status === 'Active') ? 'text-success' : 'text-danger';
-      html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Status:</strong> <span class="fw-bold ${statusBadge}">${data.Status}</span></li>`;
-    }
-
-    // 5. Workplaces Summary
-    if (data.Workplaces_JSON) {
-      try {
-        const wps = (typeof data.Workplaces_JSON === 'string') ? JSON.parse(data.Workplaces_JSON) : data.Workplaces_JSON;
-        if (Array.isArray(wps) && wps.length > 0) {
-          const hospList = window.DocManagerCache ? window.DocManagerCache.hospitals : [];
-          const wpNames = wps.map(w => {
-            const hObj = (hospList || []).find(h => String(h.Hospital_ID).toLowerCase() === String(w.hospitalId).toLowerCase());
-            const hName = (typeof window.getHospitalNameByLang === 'function') ? window.getHospitalNameByLang(hObj) : (w.hospitalId || 'Hospital');
-            return w.isPrimary ? `<strong>${hName} (${isEN ? 'Primary' : 'หลัก'})</strong>` : hName;
-          }).join(', ');
-
-          html += `<li class="mb-1"><i class="fa-solid fa-angle-right text-warning me-1"></i><strong>Workplaces:</strong> ${wpNames}</li>`;
-        }
-      } catch (e) {}
-    }
-
-    html += '</ul>';
     container.innerHTML = html;
 
   } catch (err) {
-    container.innerHTML = '<div class="text-muted italic small">- Error parsing DCR details -</div>';
+    container.innerHTML = '<div class="text-muted tiny">- Error parsing details -</div>';
   }
 };
 
