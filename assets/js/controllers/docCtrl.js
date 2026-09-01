@@ -1029,7 +1029,7 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   return selectedIds;
 };
 
-window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
+ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPrimary = false) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
@@ -1037,9 +1037,10 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   if (oldTile) oldTile.remove();
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const primaryText = appLang === 'en' ? 'Primary' : 'หลัก';
-  const setPrimaryText = appLang === 'en' ? 'Set Primary' : 'ตั้งเป็นหลัก';
-  const selectPlaceholder = appLang === 'en' ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
+  const isEN = (appLang === 'en');
+  const primaryText = isEN ? 'Primary' : 'หลัก';
+  const setPrimaryText = isEN ? 'Set Primary' : 'ตั้งเป็นหลัก';
+  const selectPlaceholder = isEN ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
   row.className = 'workplace-row d-flex align-items-center gap-2 mb-2.5 w-100';
@@ -1073,9 +1074,9 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
     <div class="flex-shrink-0">
       <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
       <label class="btn btn-wp-primary-toggle cursor-pointer" for="radio_${selectId}">
-        <i class="fa-solid fa-circle-check check-icon"></i>
-        <span class="lbl-text-primary">Primary</span>
-        <span class="lbl-text-set">Set Primary</span>
+        <i class="fa-solid fa-circle-check check-icon me-1"></i>
+        <span class="lbl-text-primary" data-i18n="lbl_primary">${primaryText}</span>
+        <span class="lbl-text-set" data-i18n="lbl_set_primary">${setPrimaryText}</span>
       </label>
     </div>
 
@@ -1105,7 +1106,7 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
       if (!val) return;
       const currentUsed = window.getSelectedHospitalIds(containerId, selectId);
       if (currentUsed.includes(String(val).toLowerCase())) {
-        const msgDup = appLang === 'en' 
+        const msgDup = isEN 
           ? '❌ Duplicate Workplace! This workplace has already been added.' 
           : '❌ สถานที่ปฏิบัติงานซ้ำ! คุณได้เลือกสถานที่นี้ไปแล้ว';
         
@@ -1179,7 +1180,7 @@ window.openAddDoctorView = function() {
 };
 
  
-window.checkPendingDCR = async function(docId) {
+ window.checkPendingDCR = async function(docId) {
   try {
     const sb = window.supabaseClient || window.supabase;
     const { data, error } = await sb.from('DCR')
@@ -1198,12 +1199,10 @@ window.checkPendingDCR = async function(docId) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const isEN = (appLang === 'en');
 
-      // 1. Badge เล็กๆ สวยงามข้างหัวข้อ
       if (badgeContainer) {
-        badgeContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>Pending Approval</span>`;
+        badgeContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>${isEN ? 'Pending Approval' : 'รอการอนุมัติ'}</span>`;
       }
 
-      // 2. แสดง Card สรุป DCR ฝั่งขวา (ตัดการอัปเดตรหัส DCR ID ออกแล้ว)
       if (summaryCard) {
         summaryCard.classList.remove('d-none');
 
@@ -1222,7 +1221,6 @@ window.checkPendingDCR = async function(docId) {
         }
       }
 
-      // 3. ล็อกฟอร์มแก้ไข และเปลี่ยนปุ่ม Submit เป็นสไตล์เนียนๆ ไม่รก
       if (typeof window.setDoctorFormReadOnly === 'function') {
         window.setDoctorFormReadOnly(true);
       }
@@ -1230,11 +1228,10 @@ window.checkPendingDCR = async function(docId) {
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.className = 'btn btn-sm btn-secondary opacity-50 px-4 py-2 rounded-3 shadow-none';
-        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-1.5"></i><span>${isEN ? 'Form Locked' : 'ฟอร์มถูกล็อก'}</span>`;
+        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-1.5"></i><span data-i18n="btn_form_locked">${isEN ? 'Form Locked' : 'ฟอร์มถูกล็อก'}</span>`;
       }
 
     } else {
-      // ไม่มี DCR ค้าง: เคลียร์ค่า และปลดล็อกปกติ
       if (badgeContainer) badgeContainer.innerHTML = '';
       if (summaryCard) summaryCard.classList.add('d-none');
 
@@ -1246,7 +1243,7 @@ window.checkPendingDCR = async function(docId) {
         const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         submitBtn.disabled = false;
         submitBtn.className = 'btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm';
-        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span>${appLang === 'en' ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
+        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">${appLang === 'en' ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
       }
     }
   } catch (err) { 
@@ -1259,7 +1256,8 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
   if (!container) return;
 
   if (!requestedDataJson) {
-    container.innerHTML = '<div class="text-muted italic tiny">- No details -</div>';
+    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    container.innerHTML = `<div class="text-muted italic tiny">${appLang === 'en' ? '- No details -' : '- ไม่มีรายละเอียด -'}</div>`;
     return;
   }
 
@@ -1270,27 +1268,40 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
 
     let items = [];
 
-    if (data.Doc_Name) items.push(`<strong>EN:</strong> ${data.Doc_Name}`);
-    if (data.Doc_Name_TH) items.push(`<strong>TH:</strong> ${data.Doc_Name_TH}`);
+    if (data.Doc_Name) {
+      items.push(`<strong>${isEN ? 'Name (EN)' : 'ชื่อ (EN)'}:</strong> ${data.Doc_Name}`);
+    }
+    if (data.Doc_Name_TH) {
+      items.push(`<strong>${isEN ? 'Name (TH)' : 'ชื่อ (TH)'}:</strong> ${data.Doc_Name_TH}`);
+    }
     if (data.Specialty_ID) {
-      const specText = (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) : data.Specialty_ID;
-      items.push(`<strong>Spec:</strong> ${specText}`);
+      const specText = (typeof window.getSpecialtyText === 'function') 
+        ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) 
+        : data.Specialty_ID;
+      items.push(`<strong>${isEN ? 'Specialty' : 'ความเชี่ยวชาญ'}:</strong> ${specText}`);
     }
     if (data.DoctorType_ID) {
-      const typeText = (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) : data.DoctorType_ID;
-      items.push(`<strong>Type:</strong> ${typeText}`);
+      const typeText = (typeof window.getDoctorTypeText === 'function') 
+        ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) 
+        : data.DoctorType_ID;
+      items.push(`<strong>${isEN ? 'Type' : 'ประเภท'}:</strong> ${typeText}`);
     }
-    if (data.Status) items.push(`<strong>Status:</strong> ${data.Status}`);
+    if (data.Status) {
+      const statusText = (data.Status === 'Active') 
+        ? (isEN ? 'Active' : 'ใช้งาน') 
+        : (isEN ? 'Inactive' : 'ไม่ใช้งาน');
+      items.push(`<strong>${isEN ? 'Status' : 'สถานะ'}:</strong> ${statusText}`);
+    }
 
     if (items.length === 0) {
       container.innerHTML = `<div class="text-muted tiny">${isEN ? 'Workplace / Profile update' : 'ขอแก้ไขสถานที่ทำงาน / ข้อมูลทั่วไป'}</div>`;
       return;
     }
 
-    // แสดงผลแบบ Pill Badges สวยงาม กระชับ ไม่กินพื้นที่แนวตั้ง
-    let html = '<div class="d-flex flex-wrap gap-1">';
+    // Render เป็น Pill Badges กระชับ อ่านง่าย
+    let html = '<div class="d-flex flex-wrap gap-1 pt-0.5">';
     items.forEach(it => {
-      html += `<span class="badge bg-white text-dark border border-warning-subtle fw-normal tiny px-2 py-1">${it}</span>`;
+      html += `<span class="badge bg-white text-dark border border-warning-subtle fw-normal tiny px-2 py-1 shadow-2xs">${it}</span>`;
     });
     html += '</div>';
 
@@ -2326,7 +2337,7 @@ window.initDoctorPage = async function(forceReload = false) {
   }
 };
 
-// ⚡ Listener สลับภาษา EN / TH
+// ⚡ Listener สลับภาษา EN / TH 
 if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     window.buildDocIndexes();
@@ -2355,11 +2366,30 @@ if (!window._isDocLangListenerAttached) {
       window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
     }
     
+    // 🌟 1. อัปเดตสวิตช์ Status (Active/Inactive) หน้า Edit
     const editToggle = document.getElementById('editDocStatusToggle');
     if (editToggle) {
       window.toggleDoctorStatusText(editToggle);
     }
 
+    // 🌟 2. Re-render รายการ Workplace เพื่อเปลี่ยนปุ่ม Primary / Set Primary ตามภาษาใหม่
+    const editWpContainer = document.getElementById('workplaceContainerEdit');
+    if (editWpContainer) {
+      const editWpData = window.extractWorkplaces('workplaceContainerEdit');
+      if (editWpData.length > 0) {
+        window.clearWorkplaceContainer('workplaceContainerEdit');
+        editWpData.forEach(wp => window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', wp.hospitalId, wp.isPrimary));
+      }
+    }
+
+    // 🌟 3. อัปเดตหน้า Edit ถ้ากำลังเปิดอยู่ และมี DCR ค้าง
+    const editView = document.getElementById('doctorEditView');
+    const editDocIdEl = document.getElementById('editDocId');
+    if (editView && !editView.classList.contains('d-none') && editDocIdEl && editDocIdEl.value) {
+      window.checkPendingDCR(editDocIdEl.value);
+    }
+
+    // 🌟 4. อัปเดตหน้า Profile
     const profileView = document.getElementById('doctorProfileView');
     if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
       window.openViewDoctorProfile(window.currentTargetDocId);
