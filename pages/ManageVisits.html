@@ -188,7 +188,7 @@
     <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
       <input type="hidden" id="visitId">
 
-      <!-- 🌟 Top Header Bar (ปรับแต่งความสูงและระยะห่างของ Pill Group ให้ลื่นไหล สวยงาม) -->
+      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2.5 flex-shrink-0">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-back-pill me-2 shadow-xs fw-bold d-inline-flex align-items-center" style="height: 38px; border-radius: 50px;" onclick="window.cancelVisitForm()">
@@ -198,8 +198,8 @@
         </div>
 
         <div class="d-flex align-items-center gap-2.5">
-          <!-- 🌟 สวิตช์ Coaching (ปรับโครงสร้าง Flex ยืดหดเนียน ไม่ดันขอบนอกเบียด) -->
-          <div class="d-inline-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs me-1" style="height: 38px;">
+          <!-- 🌟 สวิตช์ Coaching + Dropdown (ปรับพื้นหลังขาว ไม่เทา ไม่ล้น) -->
+          <div class="d-inline-flex align-items-center bg-white border px-3 py-1.5 rounded-pill shadow-xs me-1" style="height: 40px;">
             <div class="d-flex align-items-center">
               <label class="switch mb-0 me-3" style="transform: scale(0.85);">
                 <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
@@ -208,33 +208,33 @@
               <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
             </div>
 
-            <!-- Dropdown เลือก Coach (มีระยะช่องไฟเนียนเรียบ) -->
+            <!-- Dropdown เลือก Coach (สีขาวใสขอบมน) -->
             <div id="visitCoachWrapper" class="d-none border-start ps-3 me-1">
-              <select class="form-select form-select-sm bg-light border-0 fw-semibold text-primary rounded-pill py-0 px-2.5" id="visitCoachRepId" style="min-width: 175px; font-size: 0.8rem; height: 28px;">
+              <select class="form-select form-select-sm bg-white border shadow-xs fw-semibold text-primary rounded-pill py-1 px-3" id="visitCoachRepId" style="min-width: 160px; font-size: 0.8rem; height: 30px;">
                 <option value="">- Select Coach -</option>
               </select>
             </div>
           </div>
 
-          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 38px; font-size: 0.825rem;">
+          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 40px; font-size: 0.825rem;">
             <i class="fa-solid fa-user-tie text-primary me-2"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark ms-1.5 me-1">-</strong>
           </span>
-          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 38px; font-size: 0.825rem;">
+          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 40px; font-size: 0.825rem;">
             <i class="fa-solid fa-location-dot text-primary me-2"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark ms-1.5 me-1">-</strong>
           </span>
         </div>
       </div>
 
-      <!-- Main Cards Grid Container (ปรับระยะการ์ดด้านล่างไม่ให้โดนทับ) -->
-      <div class="row g-3 flex-grow-1 overflow-hidden my-1 mb-3">
+      <!-- Main Cards Grid Container (เว้นระยะ margin-bottom ลอยแยกจาก Action Bar ชัดเจน) -->
+      <div class="row g-3 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
         
         <!-- 🔹 Left Column (Visit Information & Evidences) -->
         <div class="col-12 col-xl-5 h-100 d-flex flex-column">
           <div class="p-3.5 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div>
-              <!-- 🌟 ไอคอนหัวข้อสไตล์กล่องซอฟต์ สวยเด่น ชัดเจน -->
+              <!-- 🌟 ไอคอนหัวข้อสไตล์กล่องซอฟต์ สวยเด่น ชัดเจนเท่ากันทุกอัน -->
               <div class="d-flex align-items-center mb-3">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px;">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px; flex-shrink: 0;">
                   <i class="fa-solid fa-stethoscope fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_visit_info">Visit Information</h6>
@@ -294,12 +294,14 @@
                 </div>
               </div>
 
-              <!-- Features & Evidences Section -->
+              <!-- Features & Evidences Section (เพิ่มกล่องไอคอนแบบเดียวกัน) -->
               <div class="pt-2 pb-2">
-                <label class="compact-label mb-2.5 d-flex align-items-center gap-1.5 text-primary fw-bold fs-6">
-                  <i class="fa-solid fa-sliders me-2"></i>
-                  <span data-i18n="sec_features_evidences">Features & Evidences</span>
-                </label>
+                <div class="d-flex align-items-center mb-3">
+                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px; flex-shrink: 0;">
+                    <i class="fa-solid fa-sliders fs-6"></i>
+                  </div>
+                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_features_evidences">Features & Evidences</h6>
+                </div>
                 
                 <div class="d-flex flex-wrap gap-2 w-100" id="featuresButtonsWrapper">
                   <div class="flex-grow-1" style="min-width: 140px;" id="sectionGpsCheckin">
@@ -344,7 +346,7 @@
             <div class="d-flex flex-column h-100" style="min-height: 0;">
               <!-- 🌟 ไอคอนหัวข้อสไตล์กล่องซอฟต์ สวยเด่น ชัดเจน -->
               <div class="d-flex align-items-center mb-3">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px;">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 32px; height: 32px; flex-shrink: 0;">
                   <i class="fa-solid fa-list-check fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_activity_details">Activity Details</h6>
@@ -395,7 +397,7 @@
       </div>
 
       <!-- 📌 FULL-WIDTH FLOATING STICKY ACTION BAR (ลอยแยกอิสระ เผยขอบโค้งการ์ดด้านบนเต็มใบ) -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-1 gap-3" style="border-radius: 16px !important;">
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <div class="d-flex align-items-center gap-2" style="min-width: 180px;">
           <label class="compact-label mb-0 text-secondary" data-i18n="lbl_status">Status:</label>
           <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold rounded-3 flex-grow-1" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
