@@ -1179,7 +1179,7 @@ window.openAddDoctorView = function() {
 };
 
  
- window.checkPendingDCR = async function(docId) {
+window.checkPendingDCR = async function(docId) {
   try {
     const sb = window.supabaseClient || window.supabase;
     const { data, error } = await sb.from('DCR')
@@ -1203,12 +1203,9 @@ window.openAddDoctorView = function() {
         badgeContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>Pending Approval</span>`;
       }
 
-      // 2. แสดง Card สรุป DCR ฝั่งขวา
+      // 2. แสดง Card สรุป DCR ฝั่งขวา (ตัดการอัปเดตรหัส DCR ID ออกแล้ว)
       if (summaryCard) {
         summaryCard.classList.remove('d-none');
-        
-        const badgeIdEl = document.getElementById('pendingDcrIdBadge');
-        if (badgeIdEl) badgeIdEl.textContent = dcr.DCR_ID || 'DCR-PENDING';
 
         const requesterEl = document.getElementById('pendingDcrRequester');
         if (requesterEl) requesterEl.textContent = dcr.Whoupdated || '-';
@@ -1304,19 +1301,31 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
   }
 };
 
-window.setDoctorFormReadOnly = function(isReadOnly) {
+ window.setDoctorFormReadOnly = function(isReadOnly) {
   const form = document.getElementById('editDoctorForm');
   if (!form) return;
 
-  // 1. ควบคุมการระบุข้อความ/ตัวเลือกทั้งหมดในฟอร์ม
-  const inputs = form.querySelectorAll('input, select, textarea');
+  // 1. ควบคุมการระบุข้อความ/ตัวเลือกทั่วไป
+  const inputs = form.querySelectorAll('input:not([type="checkbox"]), select, textarea');
   inputs.forEach(el => {
     if (el.id !== 'editDocId') {
       el.disabled = isReadOnly;
     }
   });
 
-  // 2. ควบคุม TomSelect Dropdowns
+  // 2. ควบคุมสวิตช์ Toggle (Privacy, TOS, Status) ให้คงสีและสถานะไว้ชัดเจน
+  const switches = form.querySelectorAll('.form-check-input[type="checkbox"]');
+  switches.forEach(sw => {
+    if (isReadOnly) {
+      sw.style.pointerEvents = 'none'; // ป้องกันการคลิกเปลี่ยนค่า
+      sw.style.opacity = '0.7';        // ปรับความโปร่งแสงให้พอรู้ว่าล็อก แต่สีไม่ซีดหาย
+    } else {
+      sw.style.pointerEvents = 'auto';
+      sw.style.opacity = '1';
+    }
+  });
+
+  // 3. ควบคุม TomSelect Dropdowns
   ['editDocTitle', 'editDocSpecialty', 'editDocType'].forEach(id => {
     const el = document.getElementById(id);
     if (el && el.tomselect) {
@@ -1325,7 +1334,7 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
     }
   });
 
-  // 3. ปิด/เปิด ปุ่มเพิ่ม/ลบ Workplace Row
+  // 4. ซ่อนปุ่ม Workplace Add/Delete
   const container = document.getElementById('workplaceContainerEdit');
   if (container) {
     const deleteBtns = container.querySelectorAll('.btn-wp-delete-icon');
@@ -1447,8 +1456,15 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
+  // 🌟 [แก้ไขบั๊ก]: ตรวจสอบและซิงค์สวิตช์ Status ให้ตรงกับ Active/Inactive ตามข้อมูลจริง
   const currentStatus = d.Status || d.status || 'Active';
-  window.toggleDoctorStatusText(currentStatus);
+  const isStatusActive = (currentStatus === 'Active');
+  
+  const statusToggleEl = document.getElementById('editDocStatusToggle');
+  if (statusToggleEl) {
+    statusToggleEl.checked = isStatusActive;
+  }
+  window.toggleDoctorStatusText(isStatusActive);
 
   // วาดรายการ Workplace
   window.clearWorkplaceContainer('workplaceContainerEdit');
@@ -1461,7 +1477,7 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
     window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.Hospital_ID || d.hospitalId, true);
   }
 
-  // 🌟 [อัปเดต]: ตรวจสอบ DCR ล่าสุดเพื่อล็อกฟอร์มและโชว์ Pending DCR Summary Card ฝั่งขวา
+  // 🌟 ตรวจสอบ DCR ล่าสุดเพื่อล็อกฟอร์มและโชว์ Pending DCR Summary Card ฝั่งขวา
   window.checkPendingDCR(d.Doc_ID || d.id); 
   window.switchDoctorView('doctorEditView');
 };
