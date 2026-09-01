@@ -12,7 +12,6 @@
     background-color: #f8fafc;
   }
 
-  /* บังคับ Flex Row ไม่ให้ดันขอบล่างตกจอ */
   .index-main-row {
     flex: 1 1 0% !important;
     min-height: 0 !important;
@@ -26,7 +25,6 @@
     min-height: 0 !important;
   }
 
-  /* การ์ดหลักล็อค Flex Layout */
   .sys-card-container {
     height: 100% !important;
     display: flex !important;
@@ -39,7 +37,6 @@
     padding: 0.75rem !important;
   }
 
-  /* โซนตาราง: ยอมให้ Scroll ได้เฉพาะจุดนี้ */
   .table-scroll-area {
     flex: 1 1 0% !important;
     min-height: 0 !important;
@@ -48,7 +45,6 @@
     margin-bottom: 0.25rem !important;
   }
 
-  /* Sticky Header สำหรับตาราง */
   .table-scroll-area table thead th {
     position: sticky !important;
     top: 0 !important;
@@ -59,14 +55,12 @@
     padding-bottom: 6px !important;
   }
 
-  /* บีบระยะแถวตารางให้กะทัดรัด */
   .table-scroll-area table tbody tr td {
     padding-top: 5px !important;
     padding-bottom: 5px !important;
     height: 36px !important;
   }
 
-  /* ปุ่มกดเปิด Drawer */
   .btn-control-panel-trigger {
     background: #ffffff !important;
     border: 1.5px solid #0d6efd !important;
@@ -85,7 +79,6 @@
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2) !important;
   }
 
-  /* Category Item Active */
   .category-item-row {
     cursor: pointer;
     transition: all 0.15s ease-in-out;
@@ -103,7 +96,6 @@
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
 
-  /* Pagination ติดขอบล่างของการ์ด */
   .pagination-sticky-footer {
     flex-shrink: 0 !important;
     margin-top: auto !important;
@@ -113,7 +105,6 @@
     min-height: 38px !important;
   }
 
-  /* Offcanvas Drawer */
   .offcanvas-sys-settings {
     width: 400px !important;
     border-top-left-radius: 18px !important;
@@ -137,11 +128,11 @@
 
 <div class="index-module-wrapper">
   
-  <!-- 📌 1. Header Bar -->
+  <!-- 📌 1. Header Bar (คืนบล็อกไอคอน + เพิ่มระยะ me-3 / gap-3) -->
   <div class="d-flex justify-content-between align-items-center flex-shrink-0">
-    <div class="d-flex align-items-center gap-2.5">
-      <div class="bg-primary-subtle text-primary rounded-2 p-1.5 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-        <i class="fa-solid fa-cogs fs-6"></i>
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center me-2" style="width: 42px; height: 42px;">
+        <i class="fa-solid fa-cogs fs-5"></i>
       </div>
       <div>
         <h6 class="text-dark fw-bold mb-0 fs-6" data-i18n="title_sys_settings">System Settings</h6>
@@ -150,7 +141,7 @@
     </div>
 
     <button class="btn btn-control-panel-trigger text-nowrap" type="button" data-bs-toggle="offcanvas" data-bs-target="#sysSettingsDrawer">
-      <i class="fa-solid fa-sliders me-1.5"></i>
+      <i class="fa-solid fa-sliders me-2"></i>
       <span data-i18n="btn_control_panel">Control Panel & Settings</span>
     </button>
   </div>
@@ -164,14 +155,14 @@
         
         <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom flex-shrink-0">
           <h6 class="fw-bold text-dark mb-0 fs-6">
-            <i class="fa-solid fa-layer-group me-2.5 text-secondary"></i><span data-i18n="title_categories">1. Categories</span>
+            <i class="fa-solid fa-layer-group me-3 text-secondary"></i><span data-i18n="title_categories">1. Categories</span>
           </h6>
           <button class="btn btn-sm btn-outline-dark fw-bold rounded-circle px-2 py-0.5 shadow-xs" onclick="window.openAddIndexTypeModal()" title="Add Category">
             <i class="fa-solid fa-plus"></i>
           </button>
         </div>
         
-        <!-- Scrollable Table -->
+        <!-- Scrollable Table Body -->
         <div class="table-scroll-area">
           <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
             <tbody id="indexTypeTableBody">
@@ -190,7 +181,7 @@
         <!-- Filter Header Bar -->
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-2 flex-shrink-0">
           <h6 class="fw-bold text-primary mb-0 fs-6">
-            <i class="fa-solid fa-list-check me-2.5"></i><span data-i18n="title_index_values">2. Index Values</span>
+            <i class="fa-solid fa-list-check me-3"></i><span data-i18n="title_index_values">2. Index Values</span>
           </h6>
           
           <div class="d-flex align-items-center gap-2">
@@ -198,7 +189,7 @@
               <option value="" data-i18n="opt_all_categories">- All Categories -</option>
             </select>
             <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-xs text-nowrap" onclick="window.openAddIndexModal()" style="height: 30px; font-size: 0.8rem;">
-              <i class="fa-solid fa-plus me-1"></i><span data-i18n="btn_add_value">Add Value</span>
+              <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_value">Add Value</span>
             </button>
           </div>
         </div>
@@ -209,16 +200,16 @@
             <thead class="table-custom-header">
               <tr>
                 <th id="thCategory" class="text-start sortable-th" style="width: 20%;" onclick="window.sortIndexes('category')">
-                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-category"></i>
+                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-2 text-muted" id="icon-sort-category"></i>
                 </th>
                 <th id="thValue" class="sortable-th" style="width: 35%;" onclick="window.sortIndexes('value')">
-                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1.5" id="icon-sort-value"></i>
+                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-2" id="icon-sort-value"></i>
                 </th>
                 <th id="thValue1" class="d-none sortable-th" style="width: 35%;" onclick="window.sortIndexes('value1')">
-                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-value1"></i>
+                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-2 text-muted" id="icon-sort-value1"></i>
                 </th>
                 <th id="thValue2" class="d-none sortable-th" style="width: 25%;" onclick="window.sortIndexes('value2')">
-                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-value2"></i>
+                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-2 text-muted" id="icon-sort-value2"></i>
                 </th>
                 <th style="width: 10%;" data-i18n="th_action">Action</th>
               </tr>
@@ -229,7 +220,7 @@
           </table>
         </div>
 
-        <!-- 📌 Pagination Controls (ลอยล่างสุด 100% ไม่ตกจอ) -->
+        <!-- 📌 Pagination Controls -->
         <div id="indexPaginationContainer" class="pagination-sticky-footer d-flex flex-column flex-md-row justify-content-between align-items-center">
           <div class="d-flex align-items-center mb-1 mb-md-0">
             <label class="text-muted small fw-bold me-2 mb-0" style="font-size: 0.75rem;" data-i18n="lbl_show_rows">Show rows:</label>
@@ -255,7 +246,7 @@
   <div class="offcanvas offcanvas-end offcanvas-sys-settings" tabindex="-1" id="sysSettingsDrawer">
     <div class="offcanvas-header border-bottom py-2.5 px-3">
       <div class="d-flex align-items-center gap-2">
-        <i class="fa-solid fa-sliders text-primary fs-6"></i>
+        <i class="fa-solid fa-sliders text-primary fs-6 me-2"></i>
         <h5 class="offcanvas-title fw-bold text-dark fs-6" data-i18n="title_app_config">App Configuration</h5>
       </div>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -267,7 +258,7 @@
         <!-- Target Call Access -->
         <div class="drawer-setting-box" style="border-left: 3.5px solid #f59e0b !important;">
           <div class="d-flex justify-content-between align-items-center mb-1">
-            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-1.5 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
+            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-2 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
               <span class="slider-modern"></span>
@@ -287,13 +278,13 @@
           </div>
 
           <button class="btn btn-premium-primary w-100 fw-bold py-1.5" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="font-size: 0.8rem;">
-            <i class="fa-solid fa-save me-1"></i><span data-i18n="btn_save_target_call">Save Target Call Config</span>
+            <i class="fa-solid fa-save me-1.5"></i><span data-i18n="btn_save_target_call">Save Target Call Config</span>
           </button>
         </div>
 
         <!-- Visit Features -->
         <div class="drawer-setting-box" style="border-left: 3.5px solid #0d6efd !important;">
-          <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
+          <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;"><i class="fa-solid fa-sliders me-2 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
           <small class="text-muted d-block mb-2.5" style="font-size: 0.72rem;" data-i18n="desc_visit_features">Enable or disable specific sections in Visit Form.</small>
 
           <div class="d-flex flex-column gap-2 mb-2.5">
@@ -319,7 +310,7 @@
           </div>
 
           <button class="btn btn-premium-primary w-100 fw-bold py-1.5" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="font-size: 0.8rem;">
-            <i class="fa-solid fa-save me-1"></i><span data-i18n="btn_save_visit_features">Save Visit Features</span>
+            <i class="fa-solid fa-save me-1.5"></i><span data-i18n="btn_save_visit_features">Save Visit Features</span>
           </button>
         </div>
 
