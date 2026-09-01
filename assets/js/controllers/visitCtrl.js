@@ -249,18 +249,33 @@ window.setTomSelectValue = function(instance, value, fallbackText) {
     if (wasDisabled) instance.disable(); 
 };
 
-window.updatePurposeDisplayLang = function() {
+ window.updatePurposeDisplayLang = function() {
   if (!window.tomSelectPurposeInstance) return;
   var currentVal = window.tomSelectPurposeInstance.getValue(); 
   if (!currentVal) return;
+  
   var appLang = window.getCurrentAppLang();
-  var pObj = window._purposeIndex[String(currentVal).toLowerCase()];
+  var pObj = window._purposeIndex ? window._purposeIndex[String(currentVal).toLowerCase()] : null;
+  
   if (pObj) {
       var textTh = pObj.Value || '';
       var textEn = pObj.Value1 || textTh;
       var displayVal = (appLang === 'en') ? textEn : textTh;
+      
+      // 🌟 อัปเดตข้อความใน TomSelect Option Cache
+      if (window.tomSelectPurposeInstance.options[currentVal]) {
+          window.tomSelectPurposeInstance.options[currentVal].text = displayVal;
+      }
+
+      // 🌟 อัปเดตข้อความที่แสดงผลบนหน้าจอทันที
       var item = window.tomSelectPurposeInstance.control.querySelector('.item[data-value="'+currentVal+'"]');
-      if (item) item.innerText = displayVal;
+      if (item) {
+          item.innerText = displayVal;
+      } else {
+          // Fallback กรณีหา class ไม่เจอ
+          var singleItem = window.tomSelectPurposeInstance.control.querySelector('.item');
+          if (singleItem) singleItem.innerText = displayVal;
+      }
   }
 };
 
@@ -3884,6 +3899,7 @@ window.updateLangUI = function() {
 if (!window._isAppLangListenerAttached) {
     window.addEventListener('appLanguageChanged', function() {
         if (typeof window.updateLangUI === 'function') window.updateLangUI();
+        if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang(); // 🌟 แทรกบรรทัดนี้เพิ่มเข้าไป
     });
     window._isAppLangListenerAttached = true;
 }
@@ -4848,3 +4864,8 @@ window.renderCoachDropdown = function() {
     }
     coachSelect.innerHTML = html;
 };
+
+window.addEventListener('appLanguageChanged', function() {
+    if (typeof window.updateLangUI === 'function') window.updateLangUI();
+    if (typeof window.updatePurposeDisplayLang === 'function') window.updatePurposeDisplayLang();
+});
