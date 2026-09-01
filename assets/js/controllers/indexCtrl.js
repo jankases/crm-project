@@ -232,7 +232,7 @@ window.loadAllIndexData = async function() {
   }
 };
 
- window.renderIndexTypeTable = function() {
+window.renderIndexTypeTable = function() {
   const tbody = document.getElementById('indexTypeTableBody');
   if (!tbody) return;
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
@@ -249,7 +249,6 @@ window.loadAllIndexData = async function() {
     const isActive = (t.IndexType_ID === currentFilterVal) ? 'active' : '';
     tbody.innerHTML += `
       <tr class="category-item-row ${isActive}" onclick="window.selectCategoryFromLeft('${t.IndexType_ID}')">
-        <!-- ข้อ 3: เพิ่มระยะห่าง me-2.5 ที่ไอคอนโฟลเดอร์ฝั่งซ้าย -->
         <td class="text-dark fw-bold text-start ps-3 py-2.5">
            <i class="fa-solid fa-folder-open text-primary opacity-50 me-2.5"></i>${t.Name}
         </td>
@@ -260,7 +259,6 @@ window.loadAllIndexData = async function() {
   });
 };
 
-// 🌟 ฟังก์ชันคลิกเลือกหมวดหมู่ฝั่งซ้าย แล้วฟิลเตอร์ตารางฝั่งขวาทันที
 window.selectCategoryFromLeft = function(typeId) {
   const filterEl = document.getElementById('filterIndexType');
   if (filterEl) {
@@ -438,7 +436,7 @@ window.renderIndexTable = function() {
         selectedTypeName === 'purpose' || 
         selectedTypeName === 'title' || 
         selectedTypeName === 'tot type' || 
-        selectedTypeName === 'tottype' ||
+        selectedTypeName === 'tottype' || 
         selectedTypeName === 'specialty' || 
         selectedTypeName === 'doctor type' || 
         selectedTypeName === 'doctortype'
