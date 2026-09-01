@@ -859,7 +859,7 @@ window.initTotModal = function() {
   }
 };
 
-window.openAddTotModal = function() {
+ window.openAddTotModal = function() {
   var elId = document.getElementById('totId'); if(elId) elId.value = '';
   var elSd = document.getElementById('totStartDate'); if(elSd) elSd.value = new Date().toISOString().split('T')[0];
   var elEd = document.getElementById('totEndDate'); if(elEd) elEd.value = new Date().toISOString().split('T')[0];
@@ -875,7 +875,7 @@ window.openAddTotModal = function() {
 
   var titleEl = document.getElementById('totModalTitle');
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-umbrella-beach me-2"></i>' + (appLang === 'en' ? 'Add TOT' : 'เพิ่ม TOT');
+  if(titleEl) titleEl.innerHTML = '<span data-i18n="title_add_tot">' + (appLang === 'en' ? 'Add TOT' : 'บันทึกวันลา / TOT') + '</span>';
 
   window.initTotModal();
   if(window.totModalInstance) window.totModalInstance.show();
@@ -906,7 +906,7 @@ window.openEditTotModal = function(id) {
 
   var titleEl = document.getElementById('totModalTitle');
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  if(titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen me-2"></i>' + (appLang === 'en' ? 'Edit TOT' : 'แก้ไข TOT');
+  if(titleEl) titleEl.innerHTML = '<span data-i18n="title_edit_tot">' + (appLang === 'en' ? 'Edit TOT' : 'แก้ไขบันทึก TOT') + '</span>';
   
   window.initTotModal();
   if(window.totModalInstance) window.totModalInstance.show();
