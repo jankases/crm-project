@@ -127,7 +127,8 @@ html, body {
 .index-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
 #visitFormView::-webkit-scrollbar,
-#visitFormView .col-12 > div::-webkit-scrollbar {
+#visitFormView .col-12 > div::-webkit-scrollbar,
+.table-scroll-area::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
@@ -138,7 +139,8 @@ html, body {
 .index-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
 #visitFormView::-webkit-scrollbar-track,
-#visitFormView .col-12 > div::-webkit-scrollbar-track {
+#visitFormView .col-12 > div::-webkit-scrollbar-track,
+.table-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
 .table-scroll-inside::-webkit-scrollbar-thumb,
@@ -148,7 +150,8 @@ html, body {
 .index-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
 #visitFormView::-webkit-scrollbar-thumb,
-#visitFormView .col-12 > div::-webkit-scrollbar-thumb {
+#visitFormView .col-12 > div::-webkit-scrollbar-thumb,
+.table-scroll-area::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
@@ -159,7 +162,8 @@ html, body {
 .index-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
 #visitFormView::-webkit-scrollbar-thumb:hover,
-#visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover {
+#visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover,
+.table-scroll-area::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
