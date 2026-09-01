@@ -1,30 +1,30 @@
 <style>
-  /* ================= 🌟 Perfect Enterprise Layout Engine ================= */
+  /* ================= 🌟 Strict Fit Screen Layout Engine ================= */
   .index-module-wrapper {
-    height: calc(100vh - 85px) !important;
+    height: calc(100vh - 75px) !important;
     width: 100% !important;
     overflow: hidden !important;
-    padding: 0.5rem 1rem 0.5rem 1rem !important;
+    padding: 0.5rem 1rem 0.25rem 1rem !important;
     background-color: #f8fafc;
     box-sizing: border-box;
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.5rem !important;
+    gap: 0.35rem !important;
   }
 
   .sys-card {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
   }
 
-  /* 📊 Scrollbar Engine - โชว์สกรอลล์บาร์ตลอดเวลา ไม่แอบหาย */
+  /* 📊 Scroll Engine ที่แท้จริง (ล็อคความสูง ลอยเฉพาะแถวตาราง) */
   .table-scroll-engine {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     height: 100% !important;
     min-height: 0 !important;
-    overflow-y: scroll !important; /* บังคับแสดง Scrollbar */
+    overflow-y: auto !important;
   }
 
   .table-scroll-engine table thead th {
@@ -34,36 +34,41 @@
     background-color: #f8fafc !important;
     border-bottom: 2px solid #e2e8f0 !important;
     box-shadow: inset 0 -1px 0 #e2e8f0 !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
   }
 
-  /* 🌟 จุดโฟกัสปุ่ม Control Panel ใหม่ (ข้อ 4) */
+  /* บีบระยะแถวตารางให้กะทัดรัด Pagination ไม่ตกจอ */
+  .table-scroll-engine table tbody tr td {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    height: 36px !important;
+  }
+
   .btn-control-panel-trigger {
     background: #ffffff !important;
     border: 1.5px solid #0d6efd !important;
     color: #0d6efd !important;
     font-weight: 700 !important;
-    padding: 6px 16px !important;
+    padding: 4px 14px !important;
     border-radius: 50px !important;
+    font-size: 0.825rem !important;
     transition: all 0.2s ease-in-out !important;
-    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.12) !important;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.1) !important;
   }
   .btn-control-panel-trigger:hover {
     background: #0d6efd !important;
     color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25) !important;
   }
 
-  /* Category List Active State */
   .category-item-row {
     cursor: pointer;
     transition: all 0.15s ease-in-out;
-    border-radius: 8px;
   }
   .category-item-row:hover { background-color: #f0f9ff !important; }
   .category-item-row.active {
     background-color: #eff6ff !important;
-    border-left: 4px solid #2563eb !important;
+    border-left: 3.5px solid #2563eb !important;
   }
   .category-item-row.active td {
     color: #1d4ed8 !important;
@@ -72,63 +77,58 @@
 
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
-  .desc-wrap { max-width: 280px; white-space: normal; word-wrap: break-word; line-height: 1.3; margin: 0 auto; }
 
-  /* Drawer Modern Styling */
   .offcanvas-sys-settings {
-    width: 420px !important;
-    border-top-left-radius: 20px !important;
-    border-bottom-left-radius: 20px !important;
+    width: 400px !important;
+    border-top-left-radius: 18px !important;
+    border-bottom-left-radius: 18px !important;
   }
 
-  .switch-modern { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch-modern { position: relative; display: inline-block; width: 40px; height: 22px; }
   .switch-modern input { opacity: 0; width: 0; height: 0; }
   .slider-modern { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .25s; border-radius: 34px; }
-  .slider-modern:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .slider-modern:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
   input:checked + .slider-modern { background-color: #2563eb; }
-  input:checked + .slider-modern:before { transform: translateX(20px); }
+  input:checked + .slider-modern:before { transform: translateX(18px); }
 
   .drawer-setting-box {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 0.85rem;
   }
 </style>
 
 <div class="index-module-wrapper">
   
-  <!-- 📌 1. Header Bar (เพิ่มระยะห่างไอคอนข้อ 2 + ปุ่มกดโฟกัสง่ายข้อ 4) -->
-  <div class="d-flex justify-content-between align-items-center flex-shrink-0 mb-1">
-    <div class="d-flex align-items-center gap-3">
-      <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-        <i class="fa-solid fa-cogs fs-5"></i>
+  <!-- 📌 1. Header Bar -->
+  <div class="d-flex justify-content-between align-items-center flex-shrink-0">
+    <div class="d-flex align-items-center gap-2.5">
+      <div class="bg-primary-subtle text-primary rounded-2 p-1.5 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+        <i class="fa-solid fa-cogs fs-6"></i>
       </div>
       <div>
-        <!-- ข้อ 2: เพิ่มระยะห่างข้อความกับไอคอน -->
-        <h5 class="text-dark fw-bold mb-0 fs-6" data-i18n="title_sys_settings">System Settings</h5>
-        <small class="text-muted d-block" style="font-size: 0.75rem;" data-i18n="desc_sys_settings">Master Data Management & Index Configuration</small>
+        <h6 class="text-dark fw-bold mb-0 fs-6" data-i18n="title_sys_settings">System Settings</h6>
+        <small class="text-muted d-block" style="font-size: 0.72rem;" data-i18n="desc_sys_settings">Master Data Management & Index Configuration</small>
       </div>
     </div>
 
-    <!-- ข้อ 4: ปุ่มโฟกัสชัดเจน เด่น ชวนกดง่าย -->
     <button class="btn btn-control-panel-trigger text-nowrap" type="button" data-bs-toggle="offcanvas" data-bs-target="#sysSettingsDrawer">
-      <i class="fa-solid fa-sliders me-2"></i>
+      <i class="fa-solid fa-sliders me-1.5"></i>
       <span data-i18n="btn_control_panel">Control Panel & Settings</span>
     </button>
   </div>
 
-  <!-- 📌 2. Master Data Tables (ข้อ 3: เว้นระยะห่างไอคอนหัวข้อ + ข้อ 5: ความสูงพอดีเป๊ะ) -->
+  <!-- 📌 2. Master Data Tables (ล็อคความสูงชนขอบล่างพอดีเป๊ะ) -->
   <div class="row g-2 flex-grow-1 min-h-0">
     
     <!-- ฝั่งซ้าย: Categories List (3 คอลัมน์) -->
     <div class="col-xl-3 col-lg-4 h-100 d-flex flex-column min-h-0">
-      <div class="sys-card p-3 h-100 d-flex flex-column min-h-0">
+      <div class="sys-card p-2.5 h-100 d-flex flex-column min-h-0">
         
-        <!-- ข้อ 3: เพิ่มระยะห่าง me-2.5 ที่ไอคอนหัวข้อย่อย -->
-        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom flex-shrink-0">
+        <div class="d-flex justify-content-between align-items-center mb-1.5 pb-1.5 border-bottom flex-shrink-0">
           <h6 class="fw-bold text-dark mb-0 fs-6">
-            <i class="fa-solid fa-layer-group me-2.5 text-secondary"></i><span data-i18n="title_categories">1. Categories</span>
+            <i class="fa-solid fa-layer-group me-2 text-secondary"></i><span data-i18n="title_categories">1. Categories</span>
           </h6>
           <button class="btn btn-sm btn-outline-dark fw-bold rounded-circle px-2 py-0.5 shadow-xs" onclick="window.openAddIndexTypeModal()" title="Add Category">
             <i class="fa-solid fa-plus"></i>
@@ -137,7 +137,7 @@
         
         <!-- Table Category Scroll Engine -->
         <div class="table-scroll-engine flex-grow-1">
-          <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+          <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
             <tbody id="indexTypeTableBody">
               <tr><td class="py-3 text-center text-muted">Loading categories... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
             </tbody>
@@ -149,40 +149,40 @@
 
     <!-- ฝั่งขวา: Index Values Table (9 คอลัมน์) -->
     <div class="col-xl-9 col-lg-8 h-100 d-flex flex-column min-h-0">
-      <div class="sys-card p-3 h-100 d-flex flex-column justify-content-between min-h-0">
+      <div class="sys-card p-2.5 h-100 d-flex flex-column justify-content-between min-h-0">
         
-        <!-- Filter Header Bar (ข้อ 3: เพิ่มระยะห่างไอคอน me-2.5) -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-3 flex-shrink-0">
+        <!-- Filter Header Bar -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-1.5 pb-1.5 border-bottom gap-2 flex-shrink-0">
           <h6 class="fw-bold text-primary mb-0 fs-6">
-            <i class="fa-solid fa-list-check me-2.5"></i><span data-i18n="title_index_values">2. Index Values</span>
+            <i class="fa-solid fa-list-check me-2"></i><span data-i18n="title_index_values">2. Index Values</span>
           </h6>
           
           <div class="d-flex align-items-center gap-2">
-            <select class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 8px; height: 34px; min-width: 200px; font-size: 0.825rem;">
+            <select class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" id="filterIndexType" onchange="window.filterIndexValues()" style="border-radius: 6px; height: 30px; min-width: 180px; font-size: 0.8rem;">
               <option value="" data-i18n="opt_all_categories">- All Categories -</option>
             </select>
-            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-xs text-nowrap" onclick="window.openAddIndexModal()" style="height: 34px; font-size: 0.825rem;">
-              <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_value">Add Value</span>
+            <button class="btn btn-sm btn-primary fw-bold rounded-pill px-3 shadow-xs text-nowrap" onclick="window.openAddIndexModal()" style="height: 30px; font-size: 0.8rem;">
+              <i class="fa-solid fa-plus me-1"></i><span data-i18n="btn_add_value">Add Value</span>
             </button>
           </div>
         </div>
 
-        <!-- Table Values Scroll Engine (ข้อ 5: มี Scrollbar เสมอ) -->
+        <!-- Table Values Scroll Engine -->
         <div class="table-scroll-engine flex-grow-1">
-          <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.875rem;">
+          <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.825rem;">
             <thead class="table-custom-header">
               <tr>
                 <th id="thCategory" class="text-start sortable-th" style="width: 20%;" onclick="window.sortIndexes('category')">
-                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-category"></i>
+                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
                 </th>
                 <th id="thValue" class="sortable-th" style="width: 35%;" onclick="window.sortIndexes('value')">
-                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1.5" id="icon-sort-value"></i>
+                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
                 </th>
                 <th id="thValue1" class="d-none sortable-th" style="width: 35%;" onclick="window.sortIndexes('value1')">
-                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-value1"></i>
+                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
                 </th>
                 <th id="thValue2" class="d-none sortable-th" style="width: 25%;" onclick="window.sortIndexes('value2')">
-                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-value2"></i>
+                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
                 </th>
                 <th style="width: 10%;" data-i18n="th_action">Action</th>
               </tr>
@@ -193,17 +193,17 @@
           </table>
         </div>
 
-        <!-- Pagination Controls (ข้อ 5: ลอยสวยงาม ไม่โดนเบียดขอบล่าง) -->
-        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-2 mt-2 border-top flex-shrink-0">
+        <!-- Pagination Controls (การันตีลอยขอบล่าง 100% ไม่ตกจอแน่นอน) -->
+        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-1.5 border-top flex-shrink-0" style="min-height: 38px;">
           <div class="d-flex align-items-center mb-1 mb-md-0">
-            <label class="text-muted small fw-bold me-2 mb-0" style="font-size: 0.78rem;" data-i18n="lbl_show_rows">Show rows:</label>
-            <select class="form-select form-select-sm shadow-none" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 70px; height: 30px; border-radius: 6px; font-size: 0.78rem;">
+            <label class="text-muted small fw-bold me-2 mb-0" style="font-size: 0.75rem;" data-i18n="lbl_show_rows">Show rows:</label>
+            <select class="form-select form-select-sm shadow-none" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 65px; height: 26px; border-radius: 6px; font-size: 0.75rem; padding: 0 4px;">
               <option value="10" selected>10</option>
               <option value="20">20</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select>
-            <span class="text-muted small ms-3" id="indexPageInfo" style="font-size: 0.78rem;">Showing ...</span>
+            <span class="text-muted small ms-3" id="indexPageInfo" style="font-size: 0.75rem;">Showing ...</span>
           </div>
           <nav aria-label="Page navigation">
             <ul class="pagination pagination-sm custom-pagination mb-0" id="indexPagination"></ul>
@@ -217,80 +217,80 @@
 
   <!-- 🗄️ 3. Settings Drawer Panel -->
   <div class="offcanvas offcanvas-end offcanvas-sys-settings" tabindex="-1" id="sysSettingsDrawer">
-    <div class="offcanvas-header border-bottom py-3">
+    <div class="offcanvas-header border-bottom py-2.5 px-3">
       <div class="d-flex align-items-center gap-2">
-        <i class="fa-solid fa-sliders text-primary fs-5"></i>
+        <i class="fa-solid fa-sliders text-primary fs-6"></i>
         <h5 class="offcanvas-title fw-bold text-dark fs-6" data-i18n="title_app_config">App Configuration</h5>
       </div>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
 
-    <div class="offcanvas-body p-4 d-flex flex-column justify-content-between">
-      <div class="d-flex flex-column gap-4">
+    <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
+      <div class="d-flex flex-column gap-3">
         
         <!-- Target Call Access -->
-        <div class="drawer-setting-box" style="border-left: 4px solid #f59e0b !important;">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-bullseye me-2 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
+        <div class="drawer-setting-box" style="border-left: 3.5px solid #f59e0b !important;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h6 class="fw-bold text-dark mb-0 style-title" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-1.5 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
               <span class="slider-modern"></span>
             </label>
           </div>
-          <small class="text-secondary fw-semibold d-block mb-3" id="ratingStatusLabel">Status: Loading...</small>
+          <small class="text-secondary fw-semibold d-block mb-2.5" id="ratingStatusLabel" style="font-size: 0.72rem;">Status: Loading...</small>
           
-          <div class="row g-2 mb-3">
+          <div class="row g-2 mb-2.5">
             <div class="col-6">
-              <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.72rem;" data-i18n="lbl_start_date">Start Date</label>
-              <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingStartDate">
+              <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_start_date">Start Date</label>
+              <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingStartDate" style="height: 30px; font-size: 0.75rem;">
             </div>
             <div class="col-6">
-              <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.72rem;" data-i18n="lbl_end_date">End Date</label>
-              <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingEndDate">
+              <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_end_date">End Date</label>
+              <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingEndDate" style="height: 30px; font-size: 0.75rem;">
             </div>
           </div>
 
-          <button class="btn btn-premium-primary w-100 fw-bold py-2" id="btnSaveSysSettings" onclick="window.saveSystemSettings()">
-            <i class="fa-solid fa-save me-1.5"></i><span data-i18n="btn_save_target_call">Save Target Call Config</span>
+          <button class="btn btn-premium-primary w-100 fw-bold py-1.5" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-save me-1"></i><span data-i18n="btn_save_target_call">Save Target Call Config</span>
           </button>
         </div>
 
         <!-- Visit Features -->
-        <div class="drawer-setting-box" style="border-left: 4px solid #0d6efd !important;">
-          <h6 class="fw-bold text-dark mb-1 fs-6"><i class="fa-solid fa-sliders me-2 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
-          <small class="text-muted d-block mb-3" style="font-size: 0.75rem;" data-i18n="desc_visit_features">Enable or disable specific sections in Visit Form.</small>
+        <div class="drawer-setting-box" style="border-left: 3.5px solid #0d6efd !important;">
+          <h6 class="fw-bold text-dark mb-1 style-title" style="font-size: 0.875rem;"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
+          <small class="text-muted d-block mb-2.5" style="font-size: 0.72rem;" data-i18n="desc_visit_features">Enable or disable specific sections in Visit Form.</small>
 
-          <div class="d-flex flex-column gap-2.5 mb-3">
-            <div class="d-flex justify-content-between align-items-center bg-white p-2.5 rounded-3 border">
-              <span class="fw-bold text-secondary small"><i class="fa-solid fa-location-dot text-primary me-2"></i><span data-i18n="lbl_enable_gps">GPS Check-in</span></span>
+          <div class="d-flex flex-column gap-2 mb-2.5">
+            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
+              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-location-dot text-primary me-2"></i><span data-i18n="lbl_enable_gps">GPS Check-in</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleGps" checked><span class="slider-modern"></span></label>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center bg-white p-2.5 rounded-3 border">
-              <span class="fw-bold text-secondary small"><i class="fa-solid fa-paperclip text-primary me-2"></i><span data-i18n="lbl_enable_attachment">Attachments</span></span>
+            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
+              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-paperclip text-primary me-2"></i><span data-i18n="lbl_enable_attachment">Attachments</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleAttachment" checked><span class="slider-modern"></span></label>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center bg-white p-2.5 rounded-3 border">
-              <span class="fw-bold text-secondary small"><i class="fa-solid fa-signature text-primary me-2"></i><span data-i18n="lbl_enable_signature">Signature</span></span>
+            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
+              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-signature text-primary me-2"></i><span data-i18n="lbl_enable_signature">Signature</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleSignature" checked><span class="slider-modern"></span></label>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center bg-white p-2.5 rounded-3 border">
-              <span class="fw-bold text-secondary small"><i class="fa-solid fa-vial text-primary me-2"></i><span data-i18n="lbl_enable_samples">Samples & Promo Items</span></span>
+            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
+              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-vial text-primary me-2"></i><span data-i18n="lbl_enable_samples">Samples & Promo Items</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleSamples" checked><span class="slider-modern"></span></label>
             </div>
           </div>
 
-          <button class="btn btn-premium-primary w-100 fw-bold py-2" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()">
-            <i class="fa-solid fa-save me-1.5"></i><span data-i18n="btn_save_visit_features">Save Visit Features</span>
+          <button class="btn btn-premium-primary w-100 fw-bold py-1.5" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-save me-1"></i><span data-i18n="btn_save_visit_features">Save Visit Features</span>
           </button>
         </div>
 
       </div>
 
-      <div class="text-center pt-3 border-top">
-        <small class="text-muted" style="font-size: 0.72rem;">Master System Configuration Panel</small>
+      <div class="text-center pt-2 border-top">
+        <small class="text-muted" style="font-size: 0.7rem;">Master System Configuration Panel</small>
       </div>
     </div>
   </div>
