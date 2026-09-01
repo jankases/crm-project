@@ -966,7 +966,7 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
-window.loadDropdowns = async function(forceReload) {
+ window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -976,7 +976,27 @@ window.loadDropdowns = async function(forceReload) {
     var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🌟 [CRITICAL FIX]: คำนวณสิทธิ์ลูกทีมตั้งแต่วินาทีแรก เพื่อให้ loadVisits นำ myAllowedRepIds ไปใช้ได้ทันที
+    // 🌟 [CRITICAL FIX]: ล้าง Cache สิทธิ์เดิมทิ้งทันทีเมื่อตรวจพบว่ามีการสลับ User
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    if (window.VisitManagerCache.dropdownOwnerId !== myRepId) {
+        window.VisitManagerCache = {}; // ล้างการจำสิทธิ์ของ User เก่าออกทั้งหมด 100%
+        window.VisitManagerCache.dropdownOwnerId = myRepId; 
+        window.VisitManagerCache.dropdownsLoaded = false;
+        
+        // ล้างตัวแปร Global Permission State ให้พร้อมคำนวณใหม่
+        window.myIsGlobalViewer = false;
+        window.myIsBuHead = false;
+        window.myIsManager = false;
+        window.myIsSalesRole = true;
+        window.myAllowedTeamIds = [];
+        window.myAllowedTerIds = [];
+        window.myAllowedRepIds = [myRepId];
+        window.myAllowedEmails = [crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : ''];
+        
+        forceReload = true; 
+    }
+
+    // 🌟 คำนวณสิทธิ์ลูกทีมตั้งแต่วินาทีแรก เพื่อให้ loadVisits นำ myAllowedRepIds ไปใช้ได้ทันที
     if (crmUser && typeof window.setupFiltersDropdowns === 'function') {
         window.setupFiltersDropdowns(crmUser, []);
     }
@@ -1031,7 +1051,7 @@ window.loadDropdowns = async function(forceReload) {
     var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
     var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
 
-    if (typeof window.myIsBuHead === 'undefined' || !window.myIsBuHead) {
+    if (typeof window.myIsBuHead === 'undefined' || !window.myIsBuHead || forceReload) {
         var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
         if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
             window.myIsGlobalViewer = true; window.myIsSalesRole = false;
@@ -1043,14 +1063,6 @@ window.loadDropdowns = async function(forceReload) {
             window.myIsSalesRole = true;
         }
     }
-    
-    window.VisitManagerCache = window.VisitManagerCache || {};
-
-    if (window.VisitManagerCache.dropdownOwnerId !== myRepId) {
-        window.VisitManagerCache.dropdownsLoaded = false; 
-        window.VisitManagerCache.dropdownOwnerId = myRepId; 
-        forceReload = true; 
-    } 
 
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
         var fetchFn = typeof window.fetchAllRecords === 'function' 
@@ -1175,10 +1187,10 @@ window.loadDropdowns = async function(forceReload) {
       }
     }
 
-    // 🌟 เรียกสร้าง Dropdown เพิ่มเติมหลังจากโหลดข้อมูลเสร็จ
+    // เรียกสร้าง Dropdown เพิ่มเติมหลังจากโหลดข้อมูลเสร็จ
     if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
     
-    // 👇 [เพิ่มใหม่] สั่งปั้น Dropdown รายชื่อ Coach
+    // สั่งปั้น Dropdown รายชื่อ Coach
     if (typeof window.renderCoachDropdown === 'function') window.renderCoachDropdown();
 
     var purposeSelect = document.getElementById('visitPurpose');
@@ -1229,7 +1241,7 @@ window.loadDropdowns = async function(forceReload) {
     if (filterGroup) filterGroup.classList.add('ready');
 
   } catch (err) { console.error("Error loading dropdowns:", err.message); }
-}; 
+};
  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
@@ -1573,6 +1585,28 @@ window.clearVisitFilters = function() {
 // ==========================================
 
 window.loadVisits = async function(forceReload, isBackground) {
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+
+    // 🌟 [CRITICAL FIX]: ถ้ามีการสลับ User ให้ล้าง Cache สิทธิ์ทั้งหมด แล้วสั่งโหลด Dropdowns/Permissions ใหม่
+    if (!window.VisitManagerCache) window.VisitManagerCache = {};
+    if (window.VisitManagerCache.ownerId !== myRepId) {
+        window.VisitManagerCache = {}; // ล้างการจำสิทธิ์ของ User เก่าทิ้ง 100%
+        window.VisitManagerCache.ownerId = myRepId; 
+        window.VisitManagerCache.isLoaded = false;
+        window.globalVisits = []; 
+        window.globalTotLogs = [];
+        window.isPermissionCalculated = false; // บังคับให้รอคำนวณสิทธิ์ใหม่
+        forceReload = true; 
+        
+        // โหลดสิทธิ์และ Dropdowns ใหม่ของ User ปัจจุบันก่อนรัน Query
+        if (typeof window.loadDropdowns === 'function') {
+            await window.loadDropdowns(true);
+        }
+    }
+
+    // รอจนกว่าการคำนวณสิทธิ์ User ใหม่จะเสร็จสิ้น
     var waitLimit = 0;
     while (!window.isPermissionCalculated && waitLimit < 50) {
         await new Promise(r => setTimeout(r, 100));
@@ -1583,22 +1617,8 @@ window.loadVisits = async function(forceReload, isBackground) {
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
 
-    var crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-
-    if (!window.VisitManagerCache) window.VisitManagerCache = {};
-    if (window.VisitManagerCache.ownerId !== myRepId) {
-        window.VisitManagerCache.isLoaded = false; 
-        window.VisitManagerCache.ownerId = myRepId; 
-        window.globalVisits = []; 
-        window.globalTotLogs = [];
-        forceReload = true; 
-    }
-
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
-    // 🌟 [FIXED] เช็ก !isBackground เพียงจุดเดียว และลบบล็อก if ซ้ำซ้อนด้านล่างทิ้ง
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) {
@@ -1641,16 +1661,14 @@ window.loadVisits = async function(forceReload, isBackground) {
       var isGlobalAdmin = window.myIsGlobalViewer || ['admin', 'staff', 'director', 'executive', 'product manager'].indexOf(userRole) !== -1;
 
       // 🌟 แยก Query ออกเป็น 2 ตัว
-      // 1. dataQuery: ดึงข้อมูลจริงเข้าตาราง (มีแบ่งหน้า มีการเรียงลำดับ)
       var dataQuery = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
-      // 2. countQuery: ดึงเฉพาะคอลัมน์ Status มานับเลขเพื่ออัปเดตกล่อง Stat ด้านบน
       var countQuery = window.supabaseClient.from('Visit_Logs').select('Status');
 
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // สิทธิ์ตั้งต้น (เพิ่มเงื่อนไขลงไปทั้ง 2 Query)
+      // สิทธิ์ตั้งต้นในการกรองข้อมูลตาม User ใหม่ที่เพิ่งสลับมา
       if (!isGlobalAdmin) {
           var allowedIds = window.myAllowedRepIds || [];
           if (allowedIds.length > 0) {
@@ -1664,7 +1682,7 @@ window.loadVisits = async function(forceReload, isBackground) {
 
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
-     if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
+      if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -1676,12 +1694,10 @@ window.loadVisits = async function(forceReload, isBackground) {
       var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
 
-      // 🌟 Status Filter: ใส่เฉพาะใน dataQuery (เพื่อให้ตารางกรอง แต่กล่อง Stat ไม่เปลี่ยน)
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
       }
 
-      // Filter อื่นๆ: ใส่ทั้งคู่
       if (startDateTerm) {
           dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
           countQuery = countQuery.gte('Visit_Date', startDateTerm);
@@ -1837,7 +1853,6 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-      // 🌟 ยิงคำสั่งนับยอด (เฉพาะเพื่ออัปเดตกล่อง Stat) แบบไม่อิง Status
       var countRes = await countQuery;
       var totalC = 0, pendingC = 0, submittedC = 0;
       if (!countRes.error && countRes.data) {
@@ -1846,7 +1861,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           submittedC = countRes.data.filter(function(d) { return d.Status === 'Submitted'; }).length;
       }
       if (typeof window.updateStatCards === 'function') {
-          window.updateStatCards(totalC, pendingC, submittedC); // อัปเดตตัวเลขเข้ากล่อง
+          window.updateStatCards(totalC, pendingC, submittedC);
       }
 
       var page = window.currentPage || 1;
@@ -1859,8 +1874,6 @@ window.loadVisits = async function(forceReload, isBackground) {
       if (res.error) throw res.error;
 
       window.globalVisits = res.data || [];
-      
-      // 🌟 แก้ตัวเลข Showing 1 to 2 of 12 ให้กลายเป็น Showing 1 to 2 of 2 (นับเป๊ะตามฟิลเตอร์)
       window.totalVisitsCount = res.count || 0;
       
       window._visitSampleIndex = {};
