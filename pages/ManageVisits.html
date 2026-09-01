@@ -188,43 +188,47 @@
     <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
       <input type="hidden" id="visitId">
 
-      <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
-        <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-back-pill me-2 shadow-xs fw-bold d-inline-flex align-items-center" style="height: 36px; border-radius: 50px;" onclick="window.cancelVisitForm()">
-            <i class="fa-solid fa-arrow-left me-1.5"></i><span data-i18n="btn_back">Back</span>
-          </button>
-          <h5 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">✏️ Edit Visit</h5>
-        </div>
+      <!-- Top Header Bar --> 
+<div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
+  <div class="d-flex align-items-center gap-2">
+    <!-- 🌟 ปุ่ม Back ปรับเพิ่มขอบและพื้นหลังขาวเด่นชัด ไม่กลืน -->
+    <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.cancelVisitForm()">
+      <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i><span data-i18n="btn_back">Back</span>
+    </button>
+    <h5 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">📝 Edit Visit</h5>
+  </div>
 
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <!-- 🌟 แคปซูล 1: สวิตช์ Coaching (ขนาดแยกอิสระ ไม่ล้นกรอบ) -->
-          <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
-            <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
-              <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
-              <span class="slider"></span>
-            </label>
-            <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
-          </div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <!-- แคปซูล 1: สวิตช์ Coaching -->
+    <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
+      <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
+        <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
+        <span class="slider"></span>
+      </label>
+      <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
+    </div>
 
-          <!-- 🌟 แคปซูล 2: Dropdown เลือก Coach (แยกเป็นอีกแคปซูลต่างหาก ไม่กลืนกับสวิตช์) -->
-          <div id="visitCoachWrapper" class="d-none">
-            <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
-              <i class="fa-solid fa-user-ninja text-primary me-2 ms-1"></i>
-              <select class="form-select form-select-sm bg-transparent border-0 shadow-none fw-semibold text-primary py-0 pe-4 text-truncate" id="visitCoachRepId" style="max-width: 160px; font-size: 0.8rem; height: 26px;">
-                <option value="">- Select Coach -</option>
-              </select>
-            </div>
-          </div>
-
-          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 36px; font-size: 0.825rem;">
-            <i class="fa-solid fa-user-tie text-primary me-2"></i><span data-i18n="lbl_user">User:</span> <strong id="dispSalesRepName" class="text-dark ms-1.5 me-1">-</strong>
-          </span>
-          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="height: 36px; font-size: 0.825rem;">
-            <i class="fa-solid fa-location-dot text-primary me-2"></i><span id="dynamicTerritoryLabel">Territory:</span> <strong id="dispTerritoryName" class="text-dark ms-1.5 me-1">-</strong>
-          </span>
-        </div>
+    <!-- แคปซูล 2: Dropdown เลือก Coach -->
+    <div id="visitCoachWrapper" class="d-none">
+      <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
+        <i class="fa-solid fa-user-ninja text-primary me-2 ms-1"></i>
+        <select class="form-select form-select-sm bg-transparent border-0 shadow-none fw-semibold text-primary py-0 pe-4 text-truncate" id="visitCoachRepId" style="max-width: 160px; font-size: 0.8rem; height: 26px;">
+          <option value="">- Select Coach -</option>
+        </select>
       </div>
+    </div>
+
+    <!-- 🌟 แคปซูล User (เอาตัวหนาออก เป็นตัวหนังสือซอฟต์สบายตา) -->
+    <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
+      <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <span id="dispSalesRepName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
+    </span>
+    
+    <!-- 🌟 แคปซูล Territory/Role (เอาตัวหนาออก เป็นตัวหนังสือซอฟต์สบายตา) -->
+    <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
+      <i class="fa-solid fa-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <span id="dispTerritoryName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
+    </span>
+  </div>
+</div>
 
       <!-- Main Cards Grid Container -->
       <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
