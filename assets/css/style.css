@@ -1074,7 +1074,7 @@ mark.highlight-search {
   max-height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important; 
-  padding: 0.5rem 0.75rem 0.75rem 0.75rem !important; 
+  padding: 0.35rem 0.75rem 0.75rem 0.75rem !important; 
   background-color: #f8fafc !important;
 }
 
@@ -1085,20 +1085,25 @@ mark.highlight-search {
   justify-content: space-between !important;
 }
 
-#visitFormView form > .d-flex.align-items-center.justify-content-between.mb-2.flex-shrink-0 {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 100 !important;
-  background-color: rgba(248, 250, 252, 0.9) !important; 
-  backdrop-filter: blur(8px); 
-  padding-top: 4px !important;
-  padding-bottom: 8px !important;
+#visitFormView form > .d-flex.align-items-center.justify-content-between.mb-2 {
+  position: relative !important;
+  padding-top: 0 !important;
+  padding-bottom: 2px !important;
 }
 
-/* ล็อคระยะกริดให้มี Margin เว้นห่างจาก Action Bar ด้านล่าง เพื่อเผยขอบโค้งมนของการ์ด */
+/* ปรับปุ่ม Feature Buttons ให้มีขนาดกระทัดรัด ไม่อ้วนจนดัน Scrollbar */
+.feature-action-btn-lg {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 5px 10px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+
+/* ล็อคระยะกริดให้ยืดหดพอดี ไม่เกิด Scrollbar ด้านใน และเว้น Margin พ้น Action Bar */
+#visitFormView .row.g-2.5,
 #visitFormView .row.g-3 {
-  --bs-gutter-x: 1.25rem !important;
-  --bs-gutter-y: 1rem !important;
   flex: 1 1 0% !important;
   min-height: 0 !important;
   margin-bottom: 0.85rem !important; 
@@ -1106,13 +1111,13 @@ mark.highlight-search {
 
 #visitFormView .col-12 > .border,
 #visitFormView .col-12 > div {
-  padding: 1.1rem 1.25rem !important;
+  padding: 0.85rem 1rem !important;
   border-radius: 18px !important;
   border: 1px solid #e2e8f0 !important;
   background-color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
   height: 100% !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important; /* ปิด Scrollbar แนวตั้งด้านใน */
 }
 
 #visitFormView .field-wrapper-details { flex: 1.8 1 0% !important; min-height: 0 !important; }
