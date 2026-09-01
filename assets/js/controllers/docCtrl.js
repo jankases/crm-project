@@ -1206,8 +1206,25 @@ window.openAddDoctorView = function() {
       if (summaryCard) {
         summaryCard.classList.remove('d-none');
 
+        // 🌟 แปลง Whoupdated (Email/Rep_ID) เป็นชื่อผู้ใช้งานจริง
         const requesterEl = document.getElementById('pendingDcrRequester');
-        if (requesterEl) requesterEl.textContent = dcr.Whoupdated || '-';
+        if (requesterEl) {
+          const rawWho = dcr.Whoupdated || '';
+          let showName = rawWho;
+          
+          if (rawWho) {
+            const userList = (window.DocManagerCache && window.DocManagerCache.users) || window.globalUsers || [];
+            const searchKey = String(rawWho).toLowerCase().trim();
+            const uObj = userList.find(u => 
+              String(u.Email || u.email || '').toLowerCase().trim() === searchKey ||
+              String(u.Rep_ID || u.User_ID || u.id || '').toLowerCase().trim() === searchKey
+            );
+            if (uObj) {
+              showName = uObj.Rep_Name || uObj.Name || uObj.name || rawWho;
+            }
+          }
+          requesterEl.textContent = showName || '-';
+        }
 
         const dateEl = document.getElementById('pendingDcrDate');
         if (dateEl) {
