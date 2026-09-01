@@ -42,6 +42,7 @@ const i18nDictionary = {
     opt_select_products: "-- Select Products --",
     opt_select_purpose: "-- Select Purpose --",
     opt_select_doc_default: "-- Search/Select Doctor --",
+    opt_all_team_members: "👥 All Team Members",
 
     // --- Common Buttons & Labels ---
     btn_filters: "Filters",
@@ -104,23 +105,37 @@ const i18nDictionary = {
     leg_company: "Company Event",
     leg_tot_appr: "TOT (Approved)",
     leg_tot_pend: "TOT (Pending)",
+    txt_legend_btn: "Legend",
+    txt_legend_header: "Color Key",
     lbl_location: "GPS Check-in",
+    lbl_location_desc: "Record your current location",
+    lbl_get_location: "Get Current Location",
+    lbl_latitude: "Latitude",
+    lbl_longitude: "Longitude",
+    lbl_checked_in_at: "Checked-in at",
     lbl_attachments: "Attachments",
-    btn_add_file: "Add File/Photo",
+    lbl_attachments_desc: "Supported formats: JPG, PNG, PDF",
+    btn_add_file: "Attach File / Photo",
     lbl_signature: "Doctor Signature",
     btn_clear_sig: "Clear Signature",
     txt_sign_here: "Click here to sign",
     lbl_coaching_main: "Joint Visit / Coaching",
     lbl_coaching_sub: "Manager Coaching included",
+    lbl_select_coach: "- Select Coach -",
     btn_add_sample: "Add Item",
+    lbl_samples_desc: "Select items distributed to the doctor",
     txt_no_sample: "No samples distributed (Click 'Add Item')",
     sec_visit_info: "Visit Information",
     sec_activity_details: "Activity Details",
     sec_edetailing: "e-Detailing / Presentation",
     lbl_enable_samples: "Samples",
     lbl_samples_title: "Samples & Promo Items",
+    title_presentation: "Presentation",
+    lbl_page: "Page",
+    btn_prev_page: "Prev",
+    btn_next_page: "Next",
 
-    // --- System Settings Module (เติมคีย์ใหม่ที่ขาดให้ครบ) ---
+    // --- System Settings Module ---
     title_sys_settings: "System Settings",
     desc_sys_settings: "Master Data Management & Index Configuration",
     btn_control_panel: "Control Panel & Settings",
@@ -260,6 +275,7 @@ const i18nDictionary = {
     opt_select_products: "-- เลือกผลิตภัณฑ์ --",
     opt_select_purpose: "-- เลือกวัตถุประสงค์ --",
     opt_select_doc_default: "-- ค้นหา/เลือกแพทย์ --",
+    opt_all_team_members: "👥 พนักงานทุกคนในทีม",
 
     // --- Common Buttons & Labels ---
     btn_filters: "ตัวกรอง",
@@ -286,7 +302,7 @@ const i18nDictionary = {
     visit_title: "บันทึกเยี่ยม",
     visit_subtitle: "บันทึกการเข้าพบแพทย์และกิจกรรมประจำวัน",
     title_add_visit: "สร้างบันทึกเยี่ยมใหม่",
-    title_edit_visit: "แก้ไขบันทึกเยี่ยม",
+    title_edit_visit: "แก้ไขข้อมูลการเยี่ยม",
     btn_add_visit: "สร้างบันทึกเยี่ยมใหม่",
     lbl_area_team: "พื้นที่ / ทีม",
     filter_doctor: "ชื่อแพทย์ (EN/TH)",
@@ -322,23 +338,37 @@ const i18nDictionary = {
     leg_company: "กิจกรรมบริษัท",
     leg_tot_appr: "TOT (อนุมัติแล้ว)",
     leg_tot_pend: "TOT (รออนุมัติ)",
+    txt_legend_btn: "สัญลักษณ์สี",
+    txt_legend_header: "คำอธิบายสัญลักษณ์สี",
     lbl_location: "พิกัด (GPS Check-in)",
+    lbl_location_desc: "บันทึกตำแหน่งพิกัดปัจจุบันของคุณ",
+    lbl_get_location: "ดึงพิกัดปัจจุบัน",
+    lbl_latitude: "ละติจูด",
+    lbl_longitude: "ลองจิจูด",
+    lbl_checked_in_at: "เช็คอินแล้วเมื่อเวลา",
     lbl_attachments: "รูปถ่าย/ไฟล์แนบ",
+    lbl_attachments_desc: "รองรับไฟล์รูปภาพ JPG, PNG และ PDF",
     btn_add_file: "เพิ่มไฟล์/ถ่ายรูป",
     lbl_signature: "ลายเซ็นแพทย์",
     btn_clear_sig: "ล้างลายเซ็น",
     txt_sign_here: "คลิกที่นี่เพื่อเปิดหน้าต่างเซ็นชื่อ",
     lbl_coaching_main: "ออกเยี่ยมร่วม (Joint Visit)",
     lbl_coaching_sub: "มีหัวหน้า/ผู้จัดการเข้าร่วม",
+    lbl_select_coach: "- เลือกผู้ร่วมเยี่ยม -",
     btn_add_sample: "เพิ่มรายการ",
+    lbl_samples_desc: "เลือกรายการของแจกที่จ่ายให้แพทย์",
     txt_no_sample: "ไม่มีการจ่ายสินค้าตัวอย่าง (กดปุ่ม 'เพิ่มรายการ')",
     sec_visit_info: "ข้อมูลการเข้าพบ",
     sec_activity_details: "รายละเอียดกิจกรรม",
     sec_edetailing: "e-Detailing / สื่อการนำเสนอ",
     lbl_enable_samples: "สินค้าตัวอย่าง",
     lbl_samples_title: "สินค้าตัวอย่างและของแจก",
+    title_presentation: "สื่อการนำเสนอ",
+    lbl_page: "หน้า",
+    btn_prev_page: "ก่อนหน้า",
+    btn_next_page: "ถัดไป",
 
-    // --- System Settings Module (เติมคีย์ใหม่ภาษาไทย) ---
+    // --- System Settings Module ---
     title_sys_settings: "ตั้งค่าระบบ (System Settings)",
     desc_sys_settings: "จัดการข้อมูลหลักและข้อมูลดัชนี (Master Data & Index)",
     btn_control_panel: "แผงควบคุมและการตั้งค่า",
@@ -482,7 +512,7 @@ function setLanguage(lang) {
     }
   });
 
-  // 🌟 ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
+  // ค้นหาทุกจุดที่มี data-i18n-placeholder แล้วยัดคำแปลลงช่อง Placeholder ทันที
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     if (i18nDictionary[lang] && i18nDictionary[lang][key]) {
