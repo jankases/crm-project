@@ -1,56 +1,78 @@
 <style>
-  /* ================= 🌟 Strict Fit Screen Layout Engine ================= */
+  /* ================= 🌟 Strict Viewport Layout Engine ================= */
   .index-module-wrapper {
-    height: calc(100vh - 75px) !important;
+    height: calc(100vh - 85px) !important;
     width: 100% !important;
     overflow: hidden !important;
-    padding: 0.5rem 1rem 0.25rem 1rem !important;
-    background-color: #f8fafc;
-    box-sizing: border-box;
+    padding: 0.5rem 1rem !important;
+    box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.35rem !important;
+    gap: 0.5rem !important;
+    background-color: #f8fafc;
   }
 
-  .sys-card {
+  /* บังคับ Flex Row ไม่ให้ดันขอบล่างตกจอ */
+  .index-main-row {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+
+  .index-col-box {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+  }
+
+  /* การ์ดหลักล็อค Flex Layout */
+  .sys-card-container {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
     box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+    padding: 0.75rem !important;
   }
 
-  /* 📊 Scroll Engine ที่แท้จริง (ล็อคความสูง ลอยเฉพาะแถวตาราง) */
-  .table-scroll-engine {
+  /* โซนตาราง: ยอมให้ Scroll ได้เฉพาะจุดนี้ */
+  .table-scroll-area {
     flex: 1 1 0% !important;
-    height: 100% !important;
     min-height: 0 !important;
     overflow-y: auto !important;
+    overflow-x: auto !important;
+    margin-bottom: 0.25rem !important;
   }
 
-  .table-scroll-engine table thead th {
+  /* Sticky Header สำหรับตาราง */
+  .table-scroll-area table thead th {
     position: sticky !important;
     top: 0 !important;
-    z-index: 10 !important;
+    z-index: 5 !important;
     background-color: #f8fafc !important;
-    border-bottom: 2px solid #e2e8f0 !important;
     box-shadow: inset 0 -1px 0 #e2e8f0 !important;
     padding-top: 6px !important;
     padding-bottom: 6px !important;
   }
 
-  /* บีบระยะแถวตารางให้กะทัดรัด Pagination ไม่ตกจอ */
-  .table-scroll-engine table tbody tr td {
+  /* บีบระยะแถวตารางให้กะทัดรัด */
+  .table-scroll-area table tbody tr td {
     padding-top: 5px !important;
     padding-bottom: 5px !important;
     height: 36px !important;
   }
 
+  /* ปุ่มกดเปิด Drawer */
   .btn-control-panel-trigger {
     background: #ffffff !important;
     border: 1.5px solid #0d6efd !important;
     color: #0d6efd !important;
     font-weight: 700 !important;
-    padding: 4px 14px !important;
+    padding: 5px 16px !important;
     border-radius: 50px !important;
     font-size: 0.825rem !important;
     transition: all 0.2s ease-in-out !important;
@@ -59,8 +81,11 @@
   .btn-control-panel-trigger:hover {
     background: #0d6efd !important;
     color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2) !important;
   }
 
+  /* Category Item Active */
   .category-item-row {
     cursor: pointer;
     transition: all 0.15s ease-in-out;
@@ -78,6 +103,17 @@
   .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.2s; white-space: nowrap; }
   .sortable-th:hover { color: #0d6efd !important; }
 
+  /* Pagination ติดขอบล่างของการ์ด */
+  .pagination-sticky-footer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding-top: 0.4rem !important;
+    border-top: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    min-height: 38px !important;
+  }
+
+  /* Offcanvas Drawer */
   .offcanvas-sys-settings {
     width: 400px !important;
     border-top-left-radius: 18px !important;
@@ -119,24 +155,24 @@
     </button>
   </div>
 
-  <!-- 📌 2. Master Data Tables (ล็อคความสูงชนขอบล่างพอดีเป๊ะ) -->
-  <div class="row g-2 flex-grow-1 min-h-0">
+  <!-- 📌 2. Master Data Tables Grid -->
+  <div class="row g-2 index-main-row">
     
     <!-- ฝั่งซ้าย: Categories List (3 คอลัมน์) -->
-    <div class="col-xl-3 col-lg-4 h-100 d-flex flex-column min-h-0">
-      <div class="sys-card p-2.5 h-100 d-flex flex-column min-h-0">
+    <div class="col-xl-3 col-lg-4 index-col-box">
+      <div class="sys-card-container">
         
-        <div class="d-flex justify-content-between align-items-center mb-1.5 pb-1.5 border-bottom flex-shrink-0">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom flex-shrink-0">
           <h6 class="fw-bold text-dark mb-0 fs-6">
-            <i class="fa-solid fa-layer-group me-2 text-secondary"></i><span data-i18n="title_categories">1. Categories</span>
+            <i class="fa-solid fa-layer-group me-2.5 text-secondary"></i><span data-i18n="title_categories">1. Categories</span>
           </h6>
           <button class="btn btn-sm btn-outline-dark fw-bold rounded-circle px-2 py-0.5 shadow-xs" onclick="window.openAddIndexTypeModal()" title="Add Category">
             <i class="fa-solid fa-plus"></i>
           </button>
         </div>
         
-        <!-- Table Category Scroll Engine -->
-        <div class="table-scroll-engine flex-grow-1">
+        <!-- Scrollable Table -->
+        <div class="table-scroll-area">
           <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
             <tbody id="indexTypeTableBody">
               <tr><td class="py-3 text-center text-muted">Loading categories... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>
@@ -148,13 +184,13 @@
     </div>
 
     <!-- ฝั่งขวา: Index Values Table (9 คอลัมน์) -->
-    <div class="col-xl-9 col-lg-8 h-100 d-flex flex-column min-h-0">
-      <div class="sys-card p-2.5 h-100 d-flex flex-column justify-content-between min-h-0">
+    <div class="col-xl-9 col-lg-8 index-col-box">
+      <div class="sys-card-container">
         
         <!-- Filter Header Bar -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-1.5 pb-1.5 border-bottom gap-2 flex-shrink-0">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-2 flex-shrink-0">
           <h6 class="fw-bold text-primary mb-0 fs-6">
-            <i class="fa-solid fa-list-check me-2"></i><span data-i18n="title_index_values">2. Index Values</span>
+            <i class="fa-solid fa-list-check me-2.5"></i><span data-i18n="title_index_values">2. Index Values</span>
           </h6>
           
           <div class="d-flex align-items-center gap-2">
@@ -167,22 +203,22 @@
           </div>
         </div>
 
-        <!-- Table Values Scroll Engine -->
-        <div class="table-scroll-engine flex-grow-1">
+        <!-- Table Values Scroll Area -->
+        <div class="table-scroll-area">
           <table class="table table-hover align-middle text-center mb-0" style="font-size: 0.825rem;">
             <thead class="table-custom-header">
               <tr>
                 <th id="thCategory" class="text-start sortable-th" style="width: 20%;" onclick="window.sortIndexes('category')">
-                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-category"></i>
+                  <span id="lblThCategory" data-i18n="th_category">Category</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-category"></i>
                 </th>
                 <th id="thValue" class="sortable-th" style="width: 35%;" onclick="window.sortIndexes('value')">
-                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-value"></i>
+                  <span id="lblThValue" data-i18n="th_value">Value</span> <i class="fa-solid fa-sort-up text-primary ms-1.5" id="icon-sort-value"></i>
                 </th>
                 <th id="thValue1" class="d-none sortable-th" style="width: 35%;" onclick="window.sortIndexes('value1')">
-                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value1"></i>
+                  <span id="lblThValue1">Value 1</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-value1"></i>
                 </th>
                 <th id="thValue2" class="d-none sortable-th" style="width: 25%;" onclick="window.sortIndexes('value2')">
-                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1 text-muted" id="icon-sort-value2"></i>
+                  <span id="lblThValue2">Value 2</span> <i class="fa-solid fa-sort ms-1.5 text-muted" id="icon-sort-value2"></i>
                 </th>
                 <th style="width: 10%;" data-i18n="th_action">Action</th>
               </tr>
@@ -193,8 +229,8 @@
           </table>
         </div>
 
-        <!-- Pagination Controls (การันตีลอยขอบล่าง 100% ไม่ตกจอแน่นอน) -->
-        <div id="indexPaginationContainer" class="d-flex flex-column flex-md-row justify-content-between align-items-center pt-1.5 border-top flex-shrink-0" style="min-height: 38px;">
+        <!-- 📌 Pagination Controls (ลอยล่างสุด 100% ไม่ตกจอ) -->
+        <div id="indexPaginationContainer" class="pagination-sticky-footer d-flex flex-column flex-md-row justify-content-between align-items-center">
           <div class="d-flex align-items-center mb-1 mb-md-0">
             <label class="text-muted small fw-bold me-2 mb-0" style="font-size: 0.75rem;" data-i18n="lbl_show_rows">Show rows:</label>
             <select class="form-select form-select-sm shadow-none" id="indexRowsPerPage" onchange="window.changeIndexRowsPerPage()" style="width: 65px; height: 26px; border-radius: 6px; font-size: 0.75rem; padding: 0 4px;">
@@ -231,7 +267,7 @@
         <!-- Target Call Access -->
         <div class="drawer-setting-box" style="border-left: 3.5px solid #f59e0b !important;">
           <div class="d-flex justify-content-between align-items-center mb-1">
-            <h6 class="fw-bold text-dark mb-0 style-title" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-1.5 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
+            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-1.5 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
             <label class="switch-modern mb-0">
               <input type="checkbox" id="ratingToggleSwitch" onchange="window.toggleRatingSystem()">
               <span class="slider-modern"></span>
@@ -257,27 +293,27 @@
 
         <!-- Visit Features -->
         <div class="drawer-setting-box" style="border-left: 3.5px solid #0d6efd !important;">
-          <h6 class="fw-bold text-dark mb-1 style-title" style="font-size: 0.875rem;"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
+          <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;"><i class="fa-solid fa-sliders me-1.5 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
           <small class="text-muted d-block mb-2.5" style="font-size: 0.72rem;" data-i18n="desc_visit_features">Enable or disable specific sections in Visit Form.</small>
 
           <div class="d-flex flex-column gap-2 mb-2.5">
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-location-dot text-primary me-2"></i><span data-i18n="lbl_enable_gps">GPS Check-in</span></span>
+              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-location-dot text-primary me-2"></i><span data-i18n="lbl_enable_gps">GPS Check-in</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleGps" checked><span class="slider-modern"></span></label>
             </div>
 
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-paperclip text-primary me-2"></i><span data-i18n="lbl_enable_attachment">Attachments</span></span>
+              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-paperclip text-primary me-2"></i><span data-i18n="lbl_enable_attachment">Attachments</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleAttachment" checked><span class="slider-modern"></span></label>
             </div>
 
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-signature text-primary me-2"></i><span data-i18n="lbl_enable_signature">Signature</span></span>
+              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-signature text-primary me-2"></i><span data-i18n="lbl_enable_signature">Signature</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleSignature" checked><span class="slider-modern"></span></label>
             </div>
 
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary style-sub" style="font-size: 0.78rem;"><i class="fa-solid fa-vial text-primary me-2"></i><span data-i18n="lbl_enable_samples">Samples & Promo Items</span></span>
+              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-vial text-primary me-2"></i><span data-i18n="lbl_enable_samples">Samples & Promo Items</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleSamples" checked><span class="slider-modern"></span></label>
             </div>
           </div>
@@ -298,7 +334,7 @@
   <!-- Modals Zone -->
   <div class="modal fade" id="indexTypeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg sys-card">
+      <div class="modal-content border-0 shadow-lg sys-card-container">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-dark" id="indexTypeModalTitle" data-i18n="title_add_category">Add Category</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -322,7 +358,7 @@
 
   <div class="modal fade" id="indexModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg sys-card">
+      <div class="modal-content border-0 shadow-lg sys-card-container">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold text-primary" id="indexModalTitle" data-i18n="title_add_index">Add Value</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
