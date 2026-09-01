@@ -1789,10 +1789,16 @@ window.filterAndRenderDoctorVisits = function() {
 
   const adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
   
-  // 🌟 [แก้ไขบั๊ก]: อ้างอิงสิทธิ์จาก DocManagerCache โดยตรง ให้ถูกต้องเรียบร้อย
-  const isGlobalAdmin = (window.DocManagerCache && window.DocManagerCache.isGlobalViewer === true) || adminRoles.includes(myRole) || rawScope === 'ALL';
+  // 🟢 [Safe Fallback Pattern]: เช็กสิทธิ์ให้อ่านจาก DocManagerCache ก่อน ถ้านักพัฒนากำหนดค่า myIsGlobalViewer ไว้ค่อยใช้ของเดิม
+  const isGlobalAdmin = (window.DocManagerCache && window.DocManagerCache.isGlobalViewer !== undefined)
+    ? window.DocManagerCache.isGlobalViewer
+    : (window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL');
+
   const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
-  const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) || [];
+  
+  const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds && window.DocManagerCache.myAllowedTerIds.length > 0)
+    ? window.DocManagerCache.myAllowedTerIds
+    : (window.myAllowedRepIds || []);
 
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
     const vRepId = String(v.Rep_ID || v.rep_id || '').trim();
