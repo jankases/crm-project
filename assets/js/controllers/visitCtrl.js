@@ -3388,6 +3388,7 @@ window.renderCalendarView = function() {
   var selectedRepId = window.currentCalendarRepFilter || '';
   
   var appLang = window.getCurrentAppLang();
+  var isEN = (appLang === 'en');
   var crmUser = null; 
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
@@ -3434,7 +3435,7 @@ window.renderCalendarView = function() {
   });
 
   // ==========================================
-  // 🌟 2. Public Holidays (พื้นหลังสีแดงพาสเทลจาง + ตัวหนังสือสีแดงเข้มอ่านง่าย) & Company Events
+  // 🌟 2. Public Holidays & Company Events
   // ==========================================
   var holidayEvents = []; var companyEvents = []; 
   
@@ -3538,8 +3539,16 @@ window.renderCalendarView = function() {
 
   var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
   
-  // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งเคลียร์และใส่อีเวนต์ใหม่ได้เลย
+  var fcButtonText = isEN ? {
+      today: 'Today', month: 'Month', week: 'Week', day: 'Day'
+  } : {
+      today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
+  };
+
+  // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งอัปเดตภาษา + เคลียร์และใส่อีเวนต์ใหม่
   if (window.globalCalendarInstance) {
+      window.globalCalendarInstance.setOption('locale', isEN ? 'en' : 'th');
+      window.globalCalendarInstance.setOption('buttonText', fcButtonText);
       window.globalCalendarInstance.removeAllEvents();
       window.globalCalendarInstance.addEventSource(allEvents);
       return;
@@ -3547,12 +3556,6 @@ window.renderCalendarView = function() {
 
   // 🌟 ถ้ายังไม่มี Instance ค่อยวาด FullCalendar ใหม่
   if (typeof FullCalendar !== 'undefined') {
-    var fcButtonText = appLang === 'th' ? {
-        today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
-    } : {
-        today: 'Today', month: 'Month', week: 'Week', day: 'Day'
-    };
-
     window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth', 
         headerToolbar: { 
@@ -3561,7 +3564,7 @@ window.renderCalendarView = function() {
           right: 'dayGridMonth,timeGridWeek,timeGridDay' 
         },
         buttonText: fcButtonText, 
-        locale: appLang === 'th' ? 'th' : 'en', 
+        locale: isEN ? 'en' : 'th', 
         height: '100%', 
         expandRows: true, 
         dayMaxEvents: 2, 
