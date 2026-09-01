@@ -191,11 +191,9 @@
       <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center gap-2">
-          <!-- ปุ่ม Back เด่นชัดเจน ไม่กลืน -->
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.cancelVisitForm()">
             <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i><span data-i18n="btn_back">Back</span>
           </button>
-          <!-- 🌟 หัวข้อแปลภาษา 2 ภาษา Dynamic -->
           <h5 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">📝 <span data-i18n="title_edit_visit">Edit Visit</span></h5>
         </div>
 
@@ -209,7 +207,7 @@
             <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
           </div>
 
-          <!-- แคปซูล 2: Dropdown เลือก Coach (แยกอิสระ) -->
+          <!-- แคปซูล 2: Dropdown เลือก Coach -->
           <div id="visitCoachWrapper" class="d-none">
             <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
               <i class="fa-solid fa-user-ninja text-primary me-2 ms-1"></i>
@@ -219,12 +217,12 @@
             </div>
           </div>
 
-          <!-- แคปซูล User (ตัวหนังสือซอฟต์เข้าชุด) -->
+          <!-- แคปซูล User -->
           <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
             <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <span id="dispSalesRepName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
           </span>
           
-          <!-- แคปซูล Territory (ตัวหนังสือซอฟต์เข้าชุด) -->
+          <!-- แคปซูล Territory -->
           <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
             <i class="fa-solid fa-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <span id="dispTerritoryName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
           </span>
@@ -238,7 +236,7 @@
         <div class="col-12 col-xl-5 h-100 d-flex flex-column">
           <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div>
-              <!-- ไอคอนหัวข้อสไตล์กล่องซอฟต์ -->
+              <!-- ไอคอนหัวข้อ -->
               <div class="d-flex align-items-center mb-2.5">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-solid fa-stethoscope fs-6"></i>
@@ -277,10 +275,11 @@
 
                 <div class="col-7">
                   <div class="row g-1">
+                    <!-- 🌟 Quick Time Buttons (ปรับปรุงสไตล์ให้เด่น ชัดเจน รู้ว่าเป็นปุ่มลัด) -->
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
-                        <button type="button" class="btn border-0 bg-primary-subtle text-primary fw-bold rounded-pill px-1.5 py-0 shadow-none d-flex align-items-center justify-content-center" style="font-size: 0.68rem; height: 20px;" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">Now</button>
+                        <button type="button" class="btn btn-quick-time px-1.5 py-0 d-flex align-items-center justify-content-center" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">Now</button>
                       </div>
                       <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime">
                     </div>
@@ -288,7 +287,7 @@
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
-                        <button type="button" class="btn border-0 bg-primary-subtle text-primary fw-bold rounded-pill px-1.5 py-0 shadow-none d-flex align-items-center justify-content-center" style="font-size: 0.68rem; height: 20px;" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">+30m</button>
+                        <button type="button" class="btn btn-quick-time px-1.5 py-0 d-flex align-items-center justify-content-center" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">+30m</button>
                       </div>
                       <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime">
                     </div>
@@ -305,26 +304,27 @@
                   <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_features_evidences">Features & Evidences</h6>
                 </div>
                 
-                <div class="d-flex flex-wrap gap-1.5 w-100" id="featuresButtonsWrapper">
-                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionGpsCheckin">
+                <!-- 🌟 2x2 Auto-balanced Grid Layout -->
+                <div class="features-grid-wrapper" id="featuresButtonsWrapper">
+                  <div class="feature-item-col" id="sectionGpsCheckin">
                     <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
                       <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
                     </button>
                   </div>
 
-                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionSignature">
+                  <div class="feature-item-col" id="sectionSignature">
                     <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="window.openSignatureModal()">
                       <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
                     </button>
                   </div>
 
-                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionSamples">
+                  <div class="feature-item-col" id="sectionSamples">
                     <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
                       <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
                     </button>
                   </div>
 
-                  <div class="flex-grow-1" style="min-width: 135px;" id="sectionAttachments">
+                  <div class="feature-item-col" id="sectionAttachments">
                     <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
                       <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
                     </button>
@@ -360,9 +360,12 @@
                 <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
               </div>
 
-              <!-- 1. Details -->
+              <!-- 🌟 1. Details (เพิ่ม Visual Icon 📝) -->
               <div class="mb-2 d-flex flex-column field-wrapper-details">
-                <label class="compact-label mb-1" data-i18n="lbl_details">Details</label>
+                <label class="compact-label mb-1 d-flex align-items-center gap-1">
+                  <i class="fa-regular fa-file-lines text-primary" style="font-size: 0.8rem;"></i>
+                  <span data-i18n="lbl_details">Details</span>
+                </label>
                 <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                   <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" title="Voice Dictation">
                     <i class="fa-solid fa-microphone"></i>
@@ -371,9 +374,12 @@
                 </div>
               </div>
 
-              <!-- 2. Insight -->
+              <!-- 🌟 2. Insight (เพิ่ม Visual Icon 💡) -->
               <div class="mb-2 d-flex flex-column field-wrapper-insight">
-                <label class="compact-label mb-1" data-i18n="lbl_insight">Insight</label>
+                <label class="compact-label mb-1 d-flex align-items-center gap-1">
+                  <i class="fa-regular fa-lightbulb text-warning" style="font-size: 0.8rem;"></i>
+                  <span data-i18n="lbl_insight">Insight</span>
+                </label>
                 <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                   <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" title="Voice Dictation">
                     <i class="fa-solid fa-microphone"></i>
@@ -382,9 +388,12 @@
                 </div>
               </div>
 
-              <!-- 3. Next Action -->
+              <!-- 🌟 3. Next Action (เพิ่ม Visual Icon 🎯) -->
               <div class="mb-1 d-flex flex-column field-wrapper-nextaction">
-                <label class="compact-label mb-1" data-i18n="lbl_next_action">Next Action</label>
+                <label class="compact-label mb-1 d-flex align-items-center gap-1">
+                  <i class="fa-solid fa-bullseye text-success" style="font-size: 0.8rem;"></i>
+                  <span data-i18n="lbl_next_action">Next Action</span>
+                </label>
                 <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
                   <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="Voice Dictation">
                     <i class="fa-solid fa-microphone"></i>
