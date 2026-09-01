@@ -1055,6 +1055,47 @@ mark.highlight-search {
   align-items: center !important;
 }
 
+/* 🌟 FULLCALENDAR CUSTOM BUTTONS POLISH (ปรับปุ่มสีฟ้า-ขาว นุ่มนวลไม่ดำเข้ม) */
+#calendar .fc-button-primary {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.2s ease-in-out !important;
+  padding: 4px 12px !important;
+}
+
+#calendar .fc-button-primary:hover {
+  background-color: #f8fafc !important;
+  border-color: #0d6efd !important;
+  color: #0d6efd !important;
+}
+
+#calendar .fc-button-primary:focus,
+#calendar .fc-button-primary:active,
+#calendar .fc-button-primary.fc-button-active {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.25) !important;
+}
+
+/* กลุ่มปุ่ม สัปดาห์ / เดือน / วัน */
+#calendar .fc-button-group {
+  gap: 2px !important;
+  background-color: #f1f5f9 !important;
+  padding: 3px !important;
+  border-radius: 10px !important;
+}
+
+#calendar .fc-button-group > .fc-button {
+  border: none !important;
+  border-radius: 8px !important;
+}
+
 #visitListView.d-none,
 #doctorListView.d-none,
 #hospListView.d-none,
