@@ -1185,6 +1185,10 @@ window.loadDropdowns = async function(forceReload) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
 
+    // 🌟 [FIX 1]: ปลดล็อกคลาส d-none เพื่อเปิดแถบแสดงผล Filter บนหน้าจอ
+    var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
+    if (filterZone) filterZone.classList.remove('d-none');
+
     if (!repSelect && !terSelect) return;
 
     var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
@@ -1200,9 +1204,10 @@ window.loadDropdowns = async function(forceReload) {
     var isManager = window.myIsManager || false;
     var isSales = window.myIsSalesRole || (!isGlobalViewer && !isProductManager && !isBuHead && !isManager);
 
-    var userBuId = String(crmUser ? (crmUser.BU_ID || window.myUserBuId || '') : '').trim().toLowerCase();
-    var userTeamId = String(crmUser ? (crmUser.Team_ID || window.myUserTeamId || '') : '').trim().toLowerCase();
-    var userTerrId = String(crmUser ? (crmUser.Territory_ID || window.myUserTerritoryId || '') : '').trim().toLowerCase();
+    // 🌟 [FIX 2]: เพิ่มการเช็ก fallback จาก crmUser.BU / crmUser.bu_id
+    var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
+    var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
+    var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
 
     var myAllowedTeamIds = []; 
     var myAllowedTerIds = []; 
@@ -1221,7 +1226,7 @@ window.loadDropdowns = async function(forceReload) {
         } else if (isBuHead) {
             // BU Head: ค้นหาทุก Team ที่สังกัด BU ตัวเอง
             (window.globalTeamList || []).forEach(function(t) {
-                var tBuId = String(t.BU_ID || t.BU || '').trim().toLowerCase();
+                var tBuId = String(t.BU_ID || t.BU || t.bu_id || '').trim().toLowerCase();
                 var tid = String(t.Team_ID || t.id || t.Team).trim();
                 if (tBuId && userBuId && tBuId === userBuId) {
                     if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
@@ -3779,7 +3784,7 @@ if (noAttachmentText) {
     noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
 }
 
- window.initVisitPage = async function(forceReload) {
+window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -3829,7 +3834,11 @@ if (noAttachmentText) {
 
         await Promise.all(subTasks);
 
-        // 🌟 วาด Filter UI หลังจาก Master Data และ Visits โหลดเสร็จสิ้นสมบูรณ์
+        // 🌟 1. สั่งปลดซ่อนคอนเทนเนอร์แถบ Filter
+        var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
+        if (filterZone) filterZone.classList.remove('d-none');
+
+        // 🌟 2. วาด Filter UI หลังจาก Master Data และ Visits โหลดเสร็จสิ้นสมบูรณ์
         if (typeof window.renderVisitFilters === 'function') {
             window.renderVisitFilters();
         }
@@ -3848,7 +3857,8 @@ if (noAttachmentText) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
-        window._isDocInitRunning = false;  
+        // 🌟 3. [FIX] แก้ชื่อตัวแปรให้ถูกต้องจาก _isDocInitRunning เป็น _isInitRunning
+        window._isInitRunning = false;  
 
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
