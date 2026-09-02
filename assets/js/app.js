@@ -277,6 +277,7 @@ async function loadComponent(page) {
 }
 
 // 🛡️ ฟังก์ชันตรวจสอบ Session และประกาศตัวแปร Data Permission Architecture
+ // 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้าครั้งเดียว (Pure Server-Side Preparation)
 async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
@@ -300,32 +301,64 @@ async function checkSession() {
         if(roleDisplay) roleDisplay.innerText = uRole;
         
         const roleUpper = String(uRole).toUpperCase().trim();
+        const sb = window.supabaseClient || window.supabase;
         
         // 🌟 ========================================================
-        // 🔐 DATA PERMISSION ARCHITECTURE (4-LEVEL PERMISSION FLAGS)
+        // 🔐 DATA PERMISSION ARCHITECTURE FLAGS
         // 🌟 ========================================================
         window.myUserRole = roleUpper;
         window.myUserBuId = user.BU_ID || user.bu_id || null;
         window.myUserTeamId = user.Team_ID || user.team_id || null;
         window.myUserTerritoryId = user.Territory_ID || user.territory_id || user.Area_ID || null;
         
-        // 1. Level: Admin / Executive / Staff (Global Access)
         const adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
         window.myIsGlobalViewer = adminRoles.indexOf(roleUpper) !== -1;
-        
-        // 2. Level: Product Manager (PM Access via Rep_Products)
         window.myIsProductManager = roleUpper.indexOf('PRODUCT MANAGER') !== -1 || roleUpper === 'PM';
-        
-        // 3. Level: BU Head (BU Level Access)
         window.myIsBuHead = !window.myIsGlobalViewer && !window.myIsProductManager && 
                             (roleUpper.indexOf('BU') !== -1 || roleUpper.indexOf('HEAD') !== -1);
-        
-        // 4. Level: Manager / Team Lead (Team Level Access)
         window.myIsManager = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && 
                              (roleUpper.indexOf('MANAGER') !== -1 || roleUpper.indexOf('LEAD') !== -1);
-        
-        // 5. Level: Sales Rep (Individual Territory Access)
         window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && !window.myIsManager;
+
+        // 🌟 [PRE-CALCULATE PERMISSION IDS]: คำนวณ ID ลูกน้องและพื้นที่เก็บไว้ใช้ครั้งเดียว
+        var myAllowedRepIds = [String(user.Rep_ID || user.id || '').trim()];
+        var myAllowedTerIds = [];
+
+        if (!window.myIsGlobalViewer && sb) {
+            try {
+                if (window.myIsBuHead && window.myUserBuId) {
+                    const { data: teams } = await sb.from('Team').select('Team_ID').eq('BU_ID', window.myUserBuId);
+                    const teamIds = (teams || []).map(t => t.Team_ID);
+                    
+                    if (teamIds.length > 0) {
+                        const { data: terrs } = await sb.from('Territory').select('Territory_ID').in('Team_ID', teamIds);
+                        myAllowedTerIds = (terrs || []).map(t => String(t.Territory_ID));
+                        
+                        const { data: users } = await sb.from('Rep_Users').select('Rep_ID').in('BU_ID', [window.myUserBuId]);
+                        (users || []).forEach(u => {
+                            var uid = String(u.Rep_ID).trim();
+                            if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        });
+                    }
+                } else if (window.myIsManager && window.myUserTeamId) {
+                    const { data: terrs } = await sb.from('Territory').select('Territory_ID').eq('Team_ID', window.myUserTeamId);
+                    myAllowedTerIds = (terrs || []).map(t => String(t.Territory_ID));
+
+                    const { data: users } = await sb.from('Rep_Users').select('Rep_ID').eq('Team_ID', window.myUserTeamId);
+                    (users || []).forEach(u => {
+                        var uid = String(u.Rep_ID).trim();
+                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                    });
+                } else if (window.myIsSalesRole && window.myUserTerritoryId) {
+                    myAllowedTerIds = [String(window.myUserTerritoryId)];
+                }
+            } catch(err) {
+                console.warn("Pre-calculate permission IDs warning:", err);
+            }
+        }
+
+        window.myAllowedRepIds = myAllowedRepIds;
+        window.myAllowedTerIds = myAllowedTerIds;
 
         // 🔒 แสดง Admin Tools เฉพาะ ADMIN / GLOBAL ตัวจริงเท่านั้น
         const adminItems = document.querySelectorAll('.admin-only');
