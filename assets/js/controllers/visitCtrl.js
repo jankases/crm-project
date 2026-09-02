@@ -1183,172 +1183,191 @@ window.loadDropdowns = async function(forceReload) {
 };
 
  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
-    var repSelect = document.getElementById('filterVisitRep'); 
-    var terSelect = document.getElementById('filterVisitTerritory');
+    try {
+        var repSelect = document.getElementById('filterVisitRep'); 
+        var terSelect = document.getElementById('filterVisitTerritory');
 
-    // 🌟 [FIX ID]: ชี้ไปที่ visitFilterZoneGroup ตรงๆ เพื่อสั่งปลดคลาส d-none แสดงแถบ Filter บนหน้าจอ
-    var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-    if (filterZone) {
-        filterZone.classList.remove('d-none');
-        filterZone.style.setProperty('display', 'block', 'important');
-    }
+        // 🌟 [FIX 1]: บังคับสั่งเปิดการแสดงผลคอนเทนเนอร์ Filter และกล่องหลัก
+        var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+        if (filterZone) {
+            filterZone.classList.remove('d-none', 'visit-filter-compact');
+            filterZone.style.setProperty('display', 'block', 'important');
+            filterZone.style.setProperty('visibility', 'visible', 'important');
+            filterZone.style.setProperty('opacity', '1', 'important');
+        }
 
-    if (!repSelect && !terSelect) return;
+        var mainContainer = document.getElementById('visitMainContentContainer');
+        if (mainContainer) {
+            mainContainer.classList.remove('d-none');
+        }
 
-    var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
-    var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
+        if (!repSelect && !terSelect) return;
 
-    var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-    var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-    
-    var isGlobalViewer = window.myIsGlobalViewer || false;
-    var isProductManager = window.myIsProductManager || false;
-    var isBuHead = window.myIsBuHead || false;
-    var isManager = window.myIsManager || false;
-    var isSales = window.myIsSalesRole || (!isGlobalViewer && !isProductManager && !isBuHead && !isManager);
+        var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
+        if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
+        var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
+        if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
-    var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
-    var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
-    var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
+        var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+        var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
+        
+        var isGlobalViewer = window.myIsGlobalViewer || false;
+        var isProductManager = window.myIsProductManager || false;
+        var isBuHead = window.myIsBuHead || false;
+        var isManager = window.myIsManager || false;
+        var isSales = window.myIsSalesRole || (!isGlobalViewer && !isProductManager && !isBuHead && !isManager);
 
-    var myAllowedTeamIds = []; 
-    var myAllowedTerIds = []; 
-    var myAllowedRepIds = [uRepId]; 
-    var myAllowedEmails = [uEmail];
+        var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
+        var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
+        var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
 
-    if (!isGlobalViewer) {
-        if (isProductManager) {
-            (window.globalUsersList || []).forEach(function(u) {
-                var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-                var uem = String(u.Email || u.email || '').toLowerCase().trim();
-                if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
-            });
-        } else if (isBuHead) {
-            (window.globalTeamList || []).forEach(function(t) {
-                var tBuId = String(t.BU_ID || t.BU || t.bu_id || '').trim().toLowerCase();
-                var tid = String(t.Team_ID || t.id || t.Team).trim();
-                if (tBuId && userBuId && tBuId === userBuId) {
-                    if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
-                }
-            });
+        var myAllowedTeamIds = []; 
+        var myAllowedTerIds = []; 
+        var myAllowedRepIds = [uRepId]; 
+        var myAllowedEmails = [uEmail];
 
-            (window.globalTerritoryList || []).forEach(function(ter) {
-                var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
-                var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
-                if (myAllowedTeamIds.indexOf(trTeamId) !== -1) {
-                    if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
-                }
-            });
-        } else if (isManager) {
-            if (userTeamId) {
-                myAllowedTeamIds.push(userTeamId);
+        if (!isGlobalViewer) {
+            if (isProductManager) {
+                (window.globalUsersList || []).forEach(function(u) {
+                    var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+                    var uem = String(u.Email || u.email || '').toLowerCase().trim();
+                    if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                    if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+                });
+            } else if (isBuHead) {
+                (window.globalTeamList || []).forEach(function(t) {
+                    var tBuId = String(t.BU_ID || t.BU || t.bu_id || '').trim().toLowerCase();
+                    var tid = String(t.Team_ID || t.id || t.Team).trim();
+                    if (tBuId && userBuId && tBuId === userBuId) {
+                        if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
+                    }
+                });
+
                 (window.globalTerritoryList || []).forEach(function(ter) {
-                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim().toLowerCase();
+                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
                     var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
-                    if (trTeamId === userTeamId) {
+                    if (myAllowedTeamIds.indexOf(trTeamId) !== -1) {
                         if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
                     }
                 });
+            } else if (isManager) {
+                if (userTeamId) {
+                    myAllowedTeamIds.push(userTeamId);
+                    (window.globalTerritoryList || []).forEach(function(ter) {
+                        var trTeamId = String(ter.Team_ID || ter.Team || '').trim().toLowerCase();
+                        var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
+                        if (trTeamId === userTeamId) {
+                            if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
+                        }
+                    });
+                }
+            } else if (isSales) {
+                if (userTerrId) myAllowedTerIds.push(userTerrId);
             }
-        } else if (isSales) {
-            if (userTerrId) myAllowedTerIds.push(userTerrId);
+
+            (window.globalUsersList || []).forEach(function(u) {
+                var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+                var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
+                var uter = String(u.Territory_ID || u.Territory || '').trim().toLowerCase(); 
+                var ubu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
+                var uem = String(u.Email || u.email || '').toLowerCase().trim();
+                var uRole = String(u.Role || u.role || '').toUpperCase().trim();
+
+                // 🌟 [FIX 2]: ตัดสิทธิ์ไม่ดึงบัญชี Admin / Staff เข้ามาในลิสต์ลูกน้องของ Manager
+                var isAdminUser = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1;
+                
+                if (!isSales && !isProductManager) {
+                    var isMatchBU = isBuHead && userBuId && ubu === userBuId;
+                    var isMatchTeam = myAllowedTeamIds.map(x => x.toLowerCase()).indexOf(uteam) !== -1;
+                    var isMatchTer = myAllowedTerIds.map(x => x.toLowerCase()).indexOf(uter) !== -1;
+
+                    if (isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) {
+                        if (uid && !isAdminUser && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        if (uem && !isAdminUser && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+                    }
+                }
+            });
         }
 
-        (window.globalUsersList || []).forEach(function(u) {
-            var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-            var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
-            var uter = String(u.Territory_ID || u.Territory || '').trim().toLowerCase(); 
-            var ubu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
-            var uem = String(u.Email || u.email || '').toLowerCase().trim();
-            
-            if (!isSales && !isProductManager) {
-                var isMatchBU = isBuHead && userBuId && ubu === userBuId;
-                var isMatchTeam = myAllowedTeamIds.map(x => x.toLowerCase()).indexOf(uteam) !== -1;
-                var isMatchTer = myAllowedTerIds.map(x => x.toLowerCase()).indexOf(uter) !== -1;
+        window.myAllowedTeamIds = myAllowedTeamIds; 
+        window.myAllowedTerIds = myAllowedTerIds;
+        window.myAllowedRepIds = myAllowedRepIds; 
+        window.myAllowedEmails = myAllowedEmails;
 
-                if (isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) {
-                    if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                    if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+        var repOptionsData = [];
+        var uniqueUsersMap = new Map();
+        var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
+            var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+            return isSales ? (uid === uRepId) : (myAllowedRepIds.indexOf(uid) !== -1);
+        });
+        
+        fullAllowedUsers.forEach(function(u) {
+            var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+            if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id)) {
+                uniqueUsersMap.set(id, u);
+                repOptionsData.push({ value: id, text: u.Rep_Name || u.Name || u.Email || id });
+            }
+        });
+
+        var terOptionsData = [];
+        var terMap = new Map();
+
+        (window.globalTerritoryList || []).forEach(function(t) {
+            var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
+            var tnm = String(t.Territory || t.Territory_Name || tid).trim();
+            if (isGlobalViewer || myAllowedTerIds.map(x => x.toLowerCase()).indexOf(tid.toLowerCase()) !== -1) {
+                if (tid && !terMap.has(tid)) {
+                    terMap.set(tid, tnm);
+                    terOptionsData.push({ value: tid, text: tnm });
                 }
             }
         });
+
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
+        if (typeof TomSelect !== 'undefined') {
+            if (repSelect) {
+                if (!window.tomSelectRepInstance) {
+                    window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
+                        maxItems: null, plugins: ['remove_button'], create: false, 
+                        valueField: 'value', labelField: 'text', searchField: ['text'],
+                        options: repOptionsData, hidePlaceholder: true,
+                        placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
+                        dropdownParent: null, 
+                        onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
+                    });
+                } else {
+                    window.tomSelectRepInstance.clearOptions();
+                    window.tomSelectRepInstance.addOption(repOptionsData);
+                    window.tomSelectRepInstance.refreshOptions(false);
+                }
+                if (oldRepVal.length > 0) window.tomSelectRepInstance.setValue(oldRepVal, true);
+            }
+
+            if (terSelect) {
+                if (!window.tomSelectTerInstance) {
+                    window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
+                        maxItems: null, plugins: ['remove_button'], create: false, 
+                        valueField: 'value', labelField: 'text', searchField: ['text'],
+                        options: terOptionsData, hidePlaceholder: true,
+                        placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
+                        dropdownParent: null,
+                        onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
+                    });
+                } else {
+                    window.tomSelectTerInstance.clearOptions();
+                    window.tomSelectTerInstance.addOption(terOptionsData);
+                    window.tomSelectTerInstance.refreshOptions(false);
+                }
+                if (oldTerVal.length > 0) window.tomSelectTerInstance.setValue(oldTerVal, true);
+            }
+        }
+    } catch (err) {
+        console.error("Error in setupFiltersDropdowns:", err);
+    } finally {
+        // 🌟 [FIX 3]: การันตีว่าตัวแปรประมวลผลสิทธิ์ถูกเซ็ตเป็น true เสมอ เพื่อไม่ให้ระบบค้าง
+        window.isPermissionCalculated = true; 
     }
-
-    window.myAllowedTeamIds = myAllowedTeamIds; 
-    window.myAllowedTerIds = myAllowedTerIds;
-    window.myAllowedRepIds = myAllowedRepIds; 
-    window.myAllowedEmails = myAllowedEmails;
-
-    var repOptionsData = [];
-    var uniqueUsersMap = new Map();
-    var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
-        var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-        return isSales ? (uid === uRepId) : (myAllowedRepIds.indexOf(uid) !== -1);
-    });
-    
-    fullAllowedUsers.forEach(function(u) {
-        var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-        if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id)) {
-            uniqueUsersMap.set(id, u);
-            repOptionsData.push({ value: id, text: u.Rep_Name || u.Name || u.Email || id });
-        }
-    });
-
-    var terOptionsData = [];
-    var terMap = new Map();
-
-    (window.globalTerritoryList || []).forEach(function(t) {
-        var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
-        var tnm = String(t.Territory || t.Territory_Name || tid).trim();
-        if (isGlobalViewer || myAllowedTerIds.map(x => x.toLowerCase()).indexOf(tid.toLowerCase()) !== -1) {
-            if (tid && !terMap.has(tid)) {
-                terMap.set(tid, tnm);
-                terOptionsData.push({ value: tid, text: tnm });
-            }
-        }
-    });
-
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-
-    if (typeof TomSelect !== 'undefined') {
-        if (repSelect) {
-            if (!window.tomSelectRepInstance) {
-                window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
-                    maxItems: null, plugins: ['remove_button'], create: false, 
-                    valueField: 'value', labelField: 'text', searchField: ['text'],
-                    options: repOptionsData, hidePlaceholder: true,
-                    placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Users -', 
-                    dropdownParent: null, 
-                    onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
-                });
-            } else {
-                window.tomSelectRepInstance.clearOptions();
-                window.tomSelectRepInstance.addOption(repOptionsData);
-                window.tomSelectRepInstance.refreshOptions(false);
-            }
-            if (oldRepVal.length > 0) window.tomSelectRepInstance.setValue(oldRepVal, true);
-        }
-
-        if (terSelect) {
-            if (!window.tomSelectTerInstance) {
-                window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
-                    maxItems: null, plugins: ['remove_button'], create: false, 
-                    valueField: 'value', labelField: 'text', searchField: ['text'],
-                    options: terOptionsData, hidePlaceholder: true,
-                    placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas -', 
-                    dropdownParent: null,
-                    onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
-                });
-            } else {
-                window.tomSelectTerInstance.clearOptions();
-                window.tomSelectTerInstance.addOption(terOptionsData);
-                window.tomSelectTerInstance.refreshOptions(false);
-            }
-            if (oldTerVal.length > 0) window.tomSelectTerInstance.setValue(oldTerVal, true);
-        }
-    }
-    window.isPermissionCalculated = true; 
 };
   
 window.renderFormProductDropdown = async function() {
