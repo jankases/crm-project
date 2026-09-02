@@ -899,10 +899,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
   
 /* ==========================================
-   🌟 CLEAN & PERFECT VIEW SWITCHING (LIST vs CALENDAR)
+   🌟 PERFECT INTEGRATED VIEW & LOADING ENGINE
    ========================================== */
 
-/* 1. เมื่อติดสถานะ โหลดข้อมูล ให้สั่งซ่อนทั้งคอนเทนเนอร์หลัก */
+/* 1. สภาวะกำลังโหลด (is-loading): สั่งซ่อนทั้ง List View และ Calendar ไว้ก่อน แล้วแผ่การ์ด Loading เต็มพื้นที่ */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -915,14 +915,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   min-height: 380px !important;
   align-items: center !important;
   justify-content: center !important;
+  background-color: #ffffff !important;
+  border-radius: 16px !important;
 }
 
-/* 2. เมื่อโหลดเสร็จแล้ว ให้ซ่อนกล่อง Loading ออกไป */
+/* 2. สภาวะโหลดเสร็จแล้ว (:not(.is-loading)): ซ่อนการ์ด Loading เสมอ */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
 
-/* 3. 🌟 [แก้จุดนี้]: ปล่อยให้การซ่อน/โชว์ ตาราง และ ปฏิทิน เป็นไปตามคลาส d-none ใน HTML/JS โดยไม่ใช้ !important ขวาง */
+/* 3. การสลับมุมมองระหว่าง List และ Calendar (รองรับคลาส .d-none ของ Bootstrap ไม่ให้ตีกัน):
+      - สั่ง display: flex เฉพาะกล่องที่ไม่มีคลาส .d-none เท่านั้น 
+      - ถ้ากล่องไหนมี .d-none (เช่น ตอนกดสลับไป Calendar) กฎข้อนี้จะไม่ทำงาน และปล่อยให้ .d-none ซ่อนกล่องนั้นได้ 100% */
 #visitListView:not(.is-loading) #visitMainContentContainer:not(.d-none) {
   display: flex !important;
 }
