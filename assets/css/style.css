@@ -897,23 +897,35 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   display: inline-flex !important;
   align-items: center !important;
 }
+ 
+/* ==========================================
+   🌟 FIXED SINGLE-STATE FULL-HEIGHT LOADING
+   ========================================== */
 
-/* 🌟 UNIFIED SINGLE-STATE LOADING (แสดงผล Container และ ListZone ค้างไว้ตลอดเวลา ไม่ดัน Layout) */
-#visitListView.is-loading #visitMainContentContainer,
-#visitListView:not(.is-loading) #visitMainContentContainer {
-  display: flex !important;
+/* เมื่อติดสถานะ โหลดข้อมูล ให้ซ่อนเฉพาะชุดตารางหลักไว้ */
+#visitListView.is-loading #visitMainContentContainer {
+  display: none !important;
 }
 
-#visitListView.is-loading #visitListZone,
-#visitListView:not(.is-loading) #visitListZone {
+/* บังคับการ์ด Loading ให้ยืดเต็มความสูงที่เหลือใต้ KPI Cards แบบ 100% */
+#visitListView.is-loading #visitTableLoading {
   display: flex !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 0.5rem !important;
 }
 
-#visitListView.is-loading #visitTableLoading,
+/* เมื่อโหลดเสร็จแล้ว ให้ซ่อนการ์ด Loading และแผ่ตารางหลักออกมาเต็มพื้นที่ */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
 
+#visitListView:not(.is-loading) #visitMainContentContainer {
+  display: flex !important;
+}
 /* ==========================================
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
