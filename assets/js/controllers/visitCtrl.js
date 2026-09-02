@@ -1582,8 +1582,9 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      // ⚡ 1. Base Query Server-Side
-      var dataQuery = sb.from('Visit_Logs').select('*', { count: 'exact' });
+      // ⚡ 1. Base Query Server-Side 
+        // 🌟 ดึงข้อมูล Visit พร้อม Join เอาชื่อหมอ (Doctors) และชื่อโรงพยาบาลติดมาด้วยใน Request เดียว
+        var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID)', { count: 'exact' });
       var countQuery = sb.from('Visit_Logs').select('Status');
 
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
@@ -1844,14 +1845,14 @@ window.renderVisitTableServerSide = function() {
         statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; 
     }
 
-   
-   var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : v.Visit_Date;
+    var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : v.Visit_Date;
     
+    // 🌟 [FIX]: อ่านข้อมูลหมอจาก Relation Join v.Doctors ก่อน ถ้าไม่มีค่อย fallback ไปใช้ Index
     var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
-    var docObj = (window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null;
-    var docNameShow = window.getDoctorNameByLang(docObj, rawDocId);
+    var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
+    var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
     
-    var hospNameShow = window.getHospitalNameFromDocOrVisit(docObj, v);
+    var hospNameShow = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
     var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
     var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
 
@@ -1875,7 +1876,7 @@ window.renderVisitTableServerSide = function() {
       }
     }
 
-    var purposeShow = window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose); 
+    var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
     var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
     var highlightedDoc = applyHighlight(docNameShow, smartSearchVal); 
     var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
@@ -1923,29 +1924,30 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-      // 🌟 [FIX]: เติม event.stopPropagation() ที่ onclick ของ tag <a> 
-htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
-  '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-  '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-  '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
-  '<td>' + prodBadges + '</td>' +
-  '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-  '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-  '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
-'</tr>';
+    htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
+      '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+      '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
+      '<td>' + prodBadges + '</td>' +
+      '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+      '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+      '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
+    '</tr>';
   });
 
-tbody.innerHTML = htmlBuffer;
+  tbody.innerHTML = htmlBuffer;
+  if (typeof window.renderPaginationControls === 'function') {
     window.renderPaginationControls(totalPages);
+  }
 
-    var searchInput = document.getElementById('smartSearchInput');
-    if (searchInput && document.activeElement !== searchInput) {
-        var cursorDocPos = searchInput.value.length;
-        if (searchInput.value.trim() !== '') {
-            searchInput.focus();
-            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
-        }
-    }
+  var searchInput = document.getElementById('smartSearchInput');
+  if (searchInput && document.activeElement !== searchInput) {
+      var cursorDocPos = searchInput.value.length;
+      if (searchInput.value.trim() !== '') {
+          searchInput.focus();
+          searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
+      }
+  }
 };
 window.goToPage = function(page) {
   var rows = parseInt(window.rowsPerPage) || 20;
