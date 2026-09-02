@@ -854,12 +854,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 FULL-CARD CENTERED LOADING OVERLAY (ปิดการแสดงผลตัวโหลดนอกตาราง ป้องกันดัน Filter เบี้ยว) */
-#visitTableLoading,
-#doctorTableLoading {
-  display: none !important;
-}
-
 /* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
 .table-scroll-inside .table tbody tr {
   transition: all 0.15s ease-in-out !important;
@@ -898,7 +892,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   align-items: center !important;
 }
   
-  /* ==========================================
+/* ==========================================
    🌟 PERFECT VIEW ENGINE (FINAL ACCURATE FIX)
    ========================================== */
 
@@ -928,8 +922,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   display: flex !important;
 }
 
-/* 4. 🎯 [จุดสำคัญที่สุด]: ปล่อยให้ List Zone และ Calendar Zone สลับกันซ่อน/โชว์
-      โดยสั่ง flex เฉพาะตัวที่ไม่ติดคลาส .d-none เท่านั้น! */
+/* 4. 🎯 ปล่อยให้ List Zone และ Calendar Zone สลับกันซ่อน/โชว์ โดยสั่ง flex เฉพาะตัวที่ไม่ติดคลาส .d-none เท่านั้น */
 #visitListZone:not(.d-none) {
   display: flex !important;
 }
@@ -937,6 +930,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 #visitCalendarZone:not(.d-none) {
   display: flex !important;
 }
+
 /* ==========================================
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
@@ -1047,10 +1041,6 @@ mark.highlight-search {
   min-height: 0 !important;
   overflow: hidden !important;
   flex-direction: column !important;
-}
-
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
 }
 
 #calendar {
