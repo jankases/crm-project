@@ -1789,13 +1789,20 @@ window.loadVisits = async function(forceReload, isBackground) {
       var myDraftsCount = (window.globalVisits || []).filter(function(v) { return v.Status === 'Pending' && String(v.Rep_ID) === myRepId; }).length;
       if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
 
-    } catch (err) {
+} catch (err) {
       console.error("Load Visits Error:", err);
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
+      // 🌟 [เติม 2 บรรทัดนี้]: สั่งปลดซ่อนคอนเทนเนอร์หลัก และสั่งเปิด Filter ทันทีที่โหลดเสร็จ
+      var mainContainer = document.getElementById('visitMainContentContainer');
+      var filterZoneGroup = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+      
+      if (mainContainer) mainContainer.classList.remove('d-none');
+      if (filterZoneGroup) filterZoneGroup.classList.remove('d-none');
+
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
 };
@@ -1846,6 +1853,23 @@ window.restoreVisitFilterState = function() {
 };
 
 window.renderVisitTableServerSide = function() {
+  // 🌟 [บรรทัดสำคัญ]: ปิดสปินเนอร์โหลด แล้วสั่งเปิดกล่องแม่ที่ห่อหุ้ม Filter + ตาราง ออกมาพร้อมกัน
+  var loadingSpinner = document.getElementById('visitTableLoading');
+  var mainContainer = document.getElementById('visitMainContentContainer');
+  var filterZoneGroup = document.getElementById('visitFilterZoneGroup');
+
+  if (loadingSpinner) loadingSpinner.classList.add('d-none');
+  
+  if (mainContainer) {
+      mainContainer.classList.remove('d-none');
+      mainContainer.style.setProperty('display', 'flex', 'important');
+  }
+
+  if (filterZoneGroup) {
+      filterZoneGroup.classList.remove('d-none');
+      filterZoneGroup.style.setProperty('display', 'block', 'important');
+  }
+
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
 
@@ -1892,7 +1916,6 @@ window.renderVisitTableServerSide = function() {
 
     var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : v.Visit_Date;
     
-    // 🌟 [FIX]: อ่านข้อมูลหมอจาก Relation Join v.Doctors ก่อน ถ้าไม่มีค่อย fallback ไปใช้ Index
     var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
     var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
     var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
@@ -1902,7 +1925,6 @@ window.renderVisitTableServerSide = function() {
     var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
 
     var distanceBadge = '';
-    // 🌟 ดักจับ Config GPS: โชว์ไอคอนหมุดเมื่อฟีเจอร์เปิดอยู่เท่านั้น
     if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
       var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
       if (hospLat && hospLng) {
@@ -1946,13 +1968,11 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
     }
 
-    // 🌟 ดักจับ Config Attachments: โชว์เฉพาะเปิดฟีเจอร์
     if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
       var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
       evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
     }
 
-    // 🌟 ดักจับ Config Signature: โชว์เฉพาะเปิดฟีเจอร์
     if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) {
       var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
       evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
@@ -1963,7 +1983,6 @@ window.renderVisitTableServerSide = function() {
                       ? window._visitSampleIndex[vidClean] 
                       : (v.Visit_Samples || []);
                       
-    // 🌟 ดักจับ Config Samples: โชว์เฉพาะเปิดฟีเจอร์
     if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
@@ -1993,7 +2012,7 @@ window.renderVisitTableServerSide = function() {
           searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
       }
   }
-};
+}; 
 window.goToPage = function(page) {
   var rows = parseInt(window.rowsPerPage) || 20;
   var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
