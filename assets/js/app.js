@@ -277,7 +277,7 @@ async function loadComponent(page) {
 }
   
 // 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้า (Rep, Territory, Doctor)
- async function checkSession() {
+async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
     const appContainer = document.getElementById('appContainer');
