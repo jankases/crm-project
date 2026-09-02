@@ -1032,9 +1032,14 @@ mark.highlight-search {
   box-shadow: none !important;
 }
 
-/* ==========================================
+ /* ==========================================
    📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
    ========================================== */
+#visitMainContentContainer:has(#visitListZone.d-none) {
+  flex: 0 0 auto !important;
+  height: auto !important;
+}
+
 #visitCalendarZone {
   flex: 1 1 auto !important; 
   height: 100% !important;
@@ -1042,6 +1047,11 @@ mark.highlight-search {
   min-height: 0 !important;
   overflow: hidden !important;
   flex-direction: column !important;
+  margin-top: 0.5rem !important;
+}
+
+#visitCalendarZone:not(.d-none) {
+  display: flex !important;
 }
 
 #calendar {
