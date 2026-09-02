@@ -899,26 +899,24 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
  
 /* ==========================================
-   🌟 FIXED SINGLE-STATE FULL-HEIGHT LOADING
+   🌟 CLEAN & SMOOTH SINGLE-STATE LOADING (NO FLASH)
    ========================================== */
 
-/* เมื่อติดสถานะ โหลดข้อมูล ให้ซ่อนเฉพาะชุดตารางหลักไว้ */
+/* 1. ตอนกำลังโหลด: สั่งซ่อนคอนเทนเนอร์หลัก (Filter + ตาราง) ไว้ให้มิด และแผ่กล่อง Loading เต็มพื้นที่ */
 #visitListView.is-loading #visitMainContentContainer {
   display: none !important;
 }
 
-/* บังคับการ์ด Loading ให้ยืดเต็มความสูงที่เหลือใต้ KPI Cards แบบ 100% */
 #visitListView.is-loading #visitTableLoading {
   display: flex !important;
   flex: 1 1 auto !important;
   height: 100% !important;
-  min-height: 0 !important;
+  min-height: 380px !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 0.5rem !important;
 }
 
-/* เมื่อโหลดเสร็จแล้ว ให้ซ่อนการ์ด Loading และแผ่ตารางหลักออกมาเต็มพื้นที่ */
+/* 2. ตอนโหลดเสร็จ: ซ่อนกล่อง Loading และเปิดคอนเทนเนอร์หลัก (Filter + ตาราง) ออกมาพร้อมกัน */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
