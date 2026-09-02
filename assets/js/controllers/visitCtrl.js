@@ -295,57 +295,19 @@ window.getDoctorNameByLang = function(docObj, defaultId) {
   return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
 };
 
-  window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
+ window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
   var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  var targetPrimaryHospId = null;
 
-  if (docObj) {
-    if (docObj.Workplaces_JSON || docObj.workplacesJson) {
-      try {
-        var workplaces = typeof docObj.Workplaces_JSON === 'string' 
-          ? JSON.parse(docObj.Workplaces_JSON) 
-          : (docObj.Workplaces_JSON || JSON.parse(docObj.workplacesJson || '[]'));
-
-        if (Array.isArray(workplaces) && workplaces.length > 0) {
-          var primaryItem = workplaces.find(function(w) { 
-            return w && (w.isPrimary === true || w.isPrimary === 'true' || w.type === 'Primary' || w.Type === 'Primary'); 
-          });
-          if (!primaryItem) primaryItem = workplaces[0];
-
-          targetPrimaryHospId = primaryItem ? (primaryItem.hospitalId || primaryItem.Hospital_ID || primaryItem.hospital_id) : null;
-
-          if (lang === 'en') {
-            var directEn = primaryItem ? (primaryItem.hospitalName || primaryItem.Hospital_Name || primaryItem.hospital) : null;
-            if (directEn && directEn !== '-') return directEn;
-          } else {
-            var directTh = primaryItem ? (primaryItem.hospitalKnownAs || primaryItem.hospitalNameTh || primaryItem.Known_As) : null;
-            if (directTh && directTh !== '-') return directTh;
-          }
-        }
-      } catch (e) {}
-    }
-
-    if (!targetPrimaryHospId) targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
-
-    if (targetPrimaryHospId) {
-      // 🌟 [SAFE GUARD]: เช็กว่าเป็น Array เสมอ ป้องกันการสั่ง .find() บน undefined
-      var hospList = (window.globalAllHospitals && Array.isArray(window.globalAllHospitals) && window.globalAllHospitals.length > 0) 
-        ? window.globalAllHospitals 
-        : ((window.VisitManagerCache && Array.isArray(window.VisitManagerCache.allHospitals)) ? window.VisitManagerCache.allHospitals : []);
-
-      if (Array.isArray(hospList) && hospList.length > 0) {
-        var hospObj = hospList.find(function(h) { 
-          return h && String(h.Hospital_ID || h.id || h.Hospital || '').trim().toLowerCase() === String(targetPrimaryHospId).trim().toLowerCase(); 
-        });
-
-        if (hospObj) {
-          if (lang === 'en') return hospObj.Hospital || hospObj.Hospital_Name || hospObj.Known_As || '-';
-          else return hospObj.Known_As || hospObj.Hospital_TH || hospObj.Hospital || '-';
-        }
-      }
+  // 1. อ่านจาก Relations Join (Doctors -> Hospitals) ที่ Supabase ส่งมาให้โดยตรง
+  if (docObj && docObj.Hospitals) {
+    if (lang === 'en') {
+      return docObj.Hospitals.Hospital || docObj.Hospitals.Known_As || '-';
+    } else {
+      return docObj.Hospitals.Known_As || docObj.Hospitals.Hospital || '-';
     }
   }
 
+  // 2. Fallback อ่านจาก Visit_Logs (กรณีมีบันทึกชื่อไว้ตรงๆ)
   if (visitObj) {
     var directHosp = visitObj.Hospital || visitObj.Hospital_Name || visitObj.hospital;
     if (directHosp && String(directHosp).trim() !== '' && directHosp !== '-') return directHosp;
@@ -1603,8 +1565,8 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      // ⚡ 1. Base Query Server-Side 
-      var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Workplaces_JSON)', { count: 'exact' });
+      // ⚡ 1. Base Query Server-Side  
+        var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Hospitals(Hospital_ID, Hospital, Known_As))', { count: 'exact' });
       var countQuery = sb.from('Visit_Logs').select('Status');
 
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
