@@ -328,7 +328,7 @@ window.getDoctorNameByLang = function(docObj, defaultId) {
     if (!targetPrimaryHospId) targetPrimaryHospId = docObj.Hospital_ID || docObj.hospital_id || docObj.Hospital;
 
     if (targetPrimaryHospId) {
-      // 🌟 [SAFE GUARD]: การันตีว่า hospList จะเป็น Array เสมอ ป้องกัน Cannot read properties of undefined ('find')
+      // 🌟 [SAFE GUARD]: เช็กว่าเป็น Array เสมอ ป้องกันการสั่ง .find() บน undefined
       var hospList = (window.globalAllHospitals && Array.isArray(window.globalAllHospitals) && window.globalAllHospitals.length > 0) 
         ? window.globalAllHospitals 
         : ((window.VisitManagerCache && Array.isArray(window.VisitManagerCache.allHospitals)) ? window.VisitManagerCache.allHospitals : []);
@@ -3817,7 +3817,7 @@ if (noAttachmentText) {
     noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
 }
 
-window.initVisitPage = async function(forceReload) {
+ window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -3842,7 +3842,6 @@ window.initVisitPage = async function(forceReload) {
     if (shouldFetchDB && visitViewEl) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         
-        // 🌟 ดึงค่าภาษา dynamic จาก Dictionary ใน i18n.js
         if (loadingTitleEl) {
             loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (appLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
         }
@@ -3868,6 +3867,11 @@ window.initVisitPage = async function(forceReload) {
 
         await Promise.all(subTasks);
 
+        // 🌟 วาด Filter UI หลังจาก Master Data และ Visits โหลดเสร็จสิ้นสมบูรณ์
+        if (typeof window.renderVisitFilters === 'function') {
+            window.renderVisitFilters();
+        }
+
         if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
 
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
@@ -3882,7 +3886,7 @@ window.initVisitPage = async function(forceReload) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
-        window._isInitRunning = false;  
+        window._isDocInitRunning = false;  
 
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
     }
