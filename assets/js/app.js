@@ -275,9 +275,9 @@ async function loadComponent(page) {
         mainContent.appendChild(errDiv);
     }
 }
-
-// 🛡️ ฟังก์ชันตรวจสอบ Session และประกาศตัวแปร Data Permission Architecture
+ 
  // 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้าครั้งเดียว (Pure Server-Side Preparation)
+// 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้า (Rep, Territory, Doctor)
 async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
@@ -320,15 +320,31 @@ async function checkSession() {
                              (roleUpper.indexOf('MANAGER') !== -1 || roleUpper.indexOf('LEAD') !== -1);
         window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && !window.myIsManager;
 
-        // 🌟 [PRE-CALCULATE PERMISSION IDS]: คำนวณ ID ลูกน้องและพื้นที่เก็บไว้ใช้ครั้งเดียว
+        // 🌟 [PRE-CALCULATE PERMISSION IDS]: คำนวณ Rep, Territory และ Doctor IDs ล่วงหน้า
         var myAllowedRepIds = [String(user.Rep_ID || user.id || '').trim()];
         var myAllowedTerIds = [];
+        var myAllowedDocIds = [];
 
         if (!window.myIsGlobalViewer && sb) {
             try {
-                if (window.myIsBuHead && window.myUserBuId) {
+                if (window.myIsProductManager) {
+                    var pmProdsRaw = sessionStorage.getItem('pmProducts');
+                    var pmProdIds = pmProdsRaw ? JSON.parse(pmProdsRaw) : [];
+
+                    if (pmProdIds.length > 0) {
+                        const { data: vpDocs } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
+                        const vIds = (vpDocs || []).map(vp => vp.Visit_ID);
+                        if (vIds.length > 0) {
+                            const { data: vLogs } = await sb.from('Visit_Logs').select('Doc_ID').in('Visit_ID', vIds);
+                            (vLogs || []).forEach(v => {
+                                var did = String(v.Doc_ID).trim();
+                                if (did && myAllowedDocIds.indexOf(did) === -1) myAllowedDocIds.push(did);
+                            });
+                        }
+                    }
+                } else if (window.myIsBuHead && window.myUserBuId) {
                     const { data: teams } = await sb.from('Team').select('Team_ID').eq('BU_ID', window.myUserBuId);
-                    const teamIds = (teams || []).map(t => t.Team_ID);
+                    const teamIds = (teams || []).map(t => String(t.Team_ID));
                     
                     if (teamIds.length > 0) {
                         const { data: terrs } = await sb.from('Territory').select('Territory_ID').in('Team_ID', teamIds);
@@ -352,6 +368,19 @@ async function checkSession() {
                 } else if (window.myIsSalesRole && window.myUserTerritoryId) {
                     myAllowedTerIds = [String(window.myUserTerritoryId)];
                 }
+
+                // 🏥 คำนวณ Doctor IDs ผ่าน Assignment ตารางพื้นที่สำหรับ BU Head / Manager / Sales Rep
+                if (!window.myIsProductManager && myAllowedTerIds.length > 0) {
+                    const { data: assignRes } = await sb.from('Assignment').select('Account_ID, Type, Territory_ID').in('Territory_ID', myAllowedTerIds);
+                    (assignRes || []).forEach(a => {
+                        if (a.Type === 'Doctor') {
+                            var docId = String(a.Account_ID).trim();
+                            if (docId && myAllowedDocIds.indexOf(docId) === -1) {
+                                myAllowedDocIds.push(docId);
+                            }
+                        }
+                    });
+                }
             } catch(err) {
                 console.warn("Pre-calculate permission IDs warning:", err);
             }
@@ -359,6 +388,7 @@ async function checkSession() {
 
         window.myAllowedRepIds = myAllowedRepIds;
         window.myAllowedTerIds = myAllowedTerIds;
+        window.myAllowedDocIds = myAllowedDocIds;
 
         // 🔒 แสดง Admin Tools เฉพาะ ADMIN / GLOBAL ตัวจริงเท่านั้น
         const adminItems = document.querySelectorAll('.admin-only');
