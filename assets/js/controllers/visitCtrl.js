@@ -1122,7 +1122,7 @@ window.loadDropdowns = async function(forceReload) {
 
         var promises = [
             docQuery.order('Doc_Name', { ascending: true }),
-            sb.from('Products').select('*')
+            sb.from('Products').select('*'),
             sb.from('Territory').select('Territory_ID, Territory, Team_ID'),
             sb.from('IndexType').select('*'),
             sb.from('Index').select('*').order('Value', { ascending: true }),
