@@ -57,10 +57,10 @@
   </div>
 </div>
 
-<script>
+ <script>
   async function handleLogin(e) {
     e.preventDefault();
-    e.stopPropagation(); // 📌 ป้องกัน Event ส่งต่อ
+    e.stopPropagation();
     
     const btn = document.getElementById('btnLoginBtn');
     const emailInput = document.getElementById('loginEmail');
@@ -79,7 +79,6 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Logging in...';
 
-    // 📌 ดึง Supabase Client ให้ยืดหยุ่น รองรับทุกการตั้งชื่อ
     const sb = window.supabaseClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
 
     if (!sb) {
@@ -90,7 +89,7 @@
     }
 
     try {
-      // ค้นหาผู้ใช้จาก Rep_Users
+      // 1. ค้นหาผู้ใช้จาก Rep_Users
       const { data, error } = await sb
         .from('Rep_Users')
         .select('*')
@@ -106,7 +105,7 @@
         return;
       }
 
-      // ตรวจสอบ Password
+      // 2. ตรวจสอบ Password
       const userPass = String(data.Password || data.Password_Hash || data.Pin || '123456').trim();
       if (password !== userPass && password !== '123456') {
         alert("❌ รหัสผ่านไม่ถูกต้อง");
@@ -115,19 +114,45 @@
         return;
       }
 
-      // บันทึก Session ลง sessionStorage
+      // 3. เคลียร์ Cache เดิมของระบบก่อนป้องกันข้อมูลสับสน
+      sessionStorage.clear();
+      if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
+      if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
+      if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
+
+      // 4. บันทึก Session หลัก
       sessionStorage.setItem('crmUser', JSON.stringify(data));
       sessionStorage.setItem('loginTime', Date.now().toString());
 
-      // บันทึก Log การเข้าใช้งาน
+      // 5. บันทึก Permission State รายฟิลด์เพื่อนำไปใช้ข้ามหน้าได้ง่าย
+      const roleUpper = String(data.Role || '').trim().toUpperCase();
+      sessionStorage.setItem('userRole', roleUpper);
+      if (data.BU_ID) sessionStorage.setItem('userBuId', data.BU_ID);
+      if (data.Team_ID) sessionStorage.setItem('userTeamId', data.Team_ID);
+      if (data.Territory_ID) sessionStorage.setItem('userTerritoryId', data.Territory_ID);
+
+      // 6. ดึงข้อมูลพิเศษสำหรับ Product Manager (PM) จากตาราง Rep_Products
+      if (roleUpper.includes('PRODUCT MANAGER') || roleUpper === 'PM') {
+        const { data: pmProds, error: pmErr } = await sb
+          .from('Rep_Products')
+          .select('Product_ID')
+          .eq('Rep_ID', data.Rep_ID)
+          .eq('Status', 'Active');
+
+        if (!pmErr && pmProds) {
+          const prodIds = pmProds.map(p => p.Product_ID);
+          sessionStorage.setItem('pmProducts', JSON.stringify(prodIds));
+        }
+      }
+
+      // 7. บันทึก Log การเข้าใช้งาน
       if (typeof saveUserLog === 'function') {
         saveUserLog(data, 'Login', '-');
       }
 
-      // สลับหน้าจอไปยัง Visit Logs ใน index.html
+      // 8. สลับหน้าจอไปยังระบบ
       if (typeof checkSession === 'function') {
         checkSession();
-        // 🌟 สั่งให้โหลดตารางข้อมูล "หลัง" จากที่สลับหน้าจอเสร็จแล้วเท่านั้น!
         if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
       } else if (typeof window.checkSession === 'function') {
         window.checkSession();
