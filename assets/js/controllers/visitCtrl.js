@@ -1182,12 +1182,12 @@ window.loadDropdowns = async function(forceReload) {
   }
 };
 
- window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
 
-        // 🌟 1. การันตีสั่งปลดซ่อน Container ของ Filter ใน HTML
+        // 🌟 1. การันตีสั่งปลดซ่อน Container ของ Filter ใน HTML เสมอ
         var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
         if (filterZone) {
             filterZone.classList.remove('d-none', 'visit-filter-compact');
@@ -1199,13 +1199,10 @@ window.loadDropdowns = async function(forceReload) {
         var mainContainer = document.getElementById('visitMainContentContainer');
         if (mainContainer) mainContainer.classList.remove('d-none');
 
-        if (!repSelect && !terSelect) return;
-
-        // จำค่าเดิมที่เคยเลือกไว้
-        var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
-        if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
-        var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
-        if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
+        // 🌟 2. ดึง ID จาก Global Permission Flags ใน app.js โดยตรงเพื่อป้องกันค่าแมปไม่ตรง
+        var userBuId = String(window.myUserBuId || (crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id) : '') || '').trim().toLowerCase();
+        var userTeamId = String(window.myUserTeamId || (crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id) : '') || '').trim().toLowerCase();
+        var userTerrId = String(window.myUserTerritoryId || (crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id) : '') || '').trim().toLowerCase();
 
         var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
         var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
@@ -1219,13 +1216,15 @@ window.loadDropdowns = async function(forceReload) {
         var isManager = window.myIsManager || (!isGlobalViewer && !isProductManager && !isBuHead && (userRole.indexOf('MANAGER') !== -1 || userRole.indexOf('LEAD') !== -1));
         var isSales = !isGlobalViewer && !isProductManager && !isBuHead && !isManager;
 
-        var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
-        var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
-        var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
+        // จำค่าเดิมที่เคยเลือกไว้ใน Dropdown
+        var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
+        if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
+        var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
+        if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
         var myAllowedTeamIds = []; 
         var myAllowedTerIds = []; 
-        var myAllowedRepIds = [uRepId]; 
+        var myAllowedRepIds = window.myAllowedRepIds && window.myAllowedRepIds.length > 0 ? window.myAllowedRepIds : [uRepId]; 
         var myAllowedEmails = [uEmail];
 
         if (!isGlobalViewer) {
@@ -1267,7 +1266,7 @@ window.loadDropdowns = async function(forceReload) {
                 if (userTerrId) myAllowedTerIds.push(userTerrId);
             }
 
-            // 🌟 2. คัดกรอง Rep ลูกน้อง (ตัด Admin / Staff / Executive ออก ไม่ให้หลุดเข้าลิสต์)
+            // คัดกรอง Rep ลูกน้อง (ตัด Admin / Staff / Executive ออก ไม่ให้หลุดเข้าลิสต์)
             (window.globalUsersList || []).forEach(function(u) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
                 var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
@@ -1276,7 +1275,6 @@ window.loadDropdowns = async function(forceReload) {
                 var uem = String(u.Email || u.email || '').toLowerCase().trim();
                 var uRole = String(u.Role || u.role || '').toUpperCase().trim();
 
-                // เช็ก Role ป้องกัน Admin ติดเข้ามา
                 var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1;
 
                 if (!isSales && !isProductManager) {
@@ -1297,7 +1295,9 @@ window.loadDropdowns = async function(forceReload) {
         window.myAllowedRepIds = myAllowedRepIds; 
         window.myAllowedEmails = myAllowedEmails;
 
-        // 🌟 3. ปั้นข้อมูลตัวเลือกพนักงาน (Safety Mapping)
+        if (!repSelect && !terSelect) return;
+
+        // ปั้นข้อมูลตัวเลือกพนักงาน (Safety Mapping)
         var repOptionsData = [];
         var uniqueUsersMap = new Map();
         var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
@@ -1314,7 +1314,7 @@ window.loadDropdowns = async function(forceReload) {
             }
         });
 
-        // 🌟 4. ปั้นข้อมูลตัวเลือกเขตพื้นที่ (Safety Mapping รองรับ BU / Team / Territory)
+        // ปั้นข้อมูลตัวเลือกเขตพื้นที่
         var terOptionsData = [];
         var terMap = new Map();
 
@@ -1331,7 +1331,7 @@ window.loadDropdowns = async function(forceReload) {
 
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-        // 🌟 5. ผูกเข้ากับ TomSelect
+        // ผูกเข้ากับ TomSelect
         if (typeof TomSelect !== 'undefined') {
             if (repSelect) {
                 if (!window.tomSelectRepInstance) {
@@ -1372,7 +1372,7 @@ window.loadDropdowns = async function(forceReload) {
     } catch (err) {
         console.error("Error in setupFiltersDropdowns:", err);
     } finally {
-        // 🌟 6. การันตีว่าตัวแประบบถูกปล่อยล็อกเสมอ ป้องกันหน้าเว็บค้าง
+        // การันตีว่าตัวแประบบถูกปล่อยล็อกเสมอ
         window.isPermissionCalculated = true; 
     }
 };
