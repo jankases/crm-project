@@ -1575,7 +1575,7 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
       // ⚡ 1. Base Query Server-Side  
-        var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Hospitals(Hospital_ID, Hospital, Known_As))', { count: 'exact' });
+      var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Hospitals(Hospital_ID, Hospital, Known_As))', { count: 'exact' });
       var countQuery = sb.from('Visit_Logs').select('Status');
 
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
@@ -1638,42 +1638,16 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           } else {
               // ----------------------------------------------------
-              // Level 2-3: Manager / Sales Rep (อิงตาม Rep ในสายงาน OR ยาในทีมตาม Products_Team)
+              // Level 2-3: Manager / Sales Rep (กรองเฉพาะ Rep ในสายงานจริงเท่านั้น)
               // ----------------------------------------------------
               var allowedReps = window.myAllowedRepIds || [];
               if (myRepId && allowedReps.indexOf(myRepId) === -1) {
                   allowedReps.push(myRepId);
               }
 
-              var allowedTeamIds = window.myAllowedTeamIds || [];
-              if (window.myUserTeamId && allowedTeamIds.indexOf(window.myUserTeamId) === -1) {
-                  allowedTeamIds.push(window.myUserTeamId);
-              }
-
-              var teamProdVisitIds = [];
-              if (allowedTeamIds.length > 0) {
-                  var ptRes = await sb.from('Products_Team').select('Product_ID').in('Team_ID', allowedTeamIds);
-                  var teamProdIds = (ptRes.data || []).map(function(pt) { return pt.Product_ID; });
-
-                  if (teamProdIds.length > 0) {
-                      var vpTeamRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', teamProdIds);
-                      teamProdVisitIds = (vpTeamRes.data || []).map(function(vp) { return vp.Visit_ID; });
-                  }
-              }
-
-              var orConditions = [];
               if (allowedReps.length > 0) {
-                  orConditions.push('Rep_ID.in.(' + allowedReps.join(',') + ')');
-              }
-              if (teamProdVisitIds.length > 0) {
-                  var safeVisitIds = teamProdVisitIds.slice(0, 100);
-                  orConditions.push('Visit_ID.in.(' + safeVisitIds.join(',') + ')');
-              }
-
-              if (orConditions.length > 0) {
-                  var combinedOr = orConditions.join(',');
-                  dataQuery = dataQuery.or(combinedOr);
-                  countQuery = countQuery.or(combinedOr);
+                  dataQuery = dataQuery.in('Rep_ID', allowedReps);
+                  countQuery = countQuery.in('Rep_ID', allowedReps);
               } else {
                   dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
