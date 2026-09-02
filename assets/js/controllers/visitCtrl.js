@@ -295,7 +295,7 @@ window.getDoctorNameByLang = function(docObj, defaultId) {
   return docObj.Doc_Name || docObj.doc_name || defaultId || '-';
 };
 
- window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
+  window.getHospitalNameFromDocOrVisit = function(docObj, visitObj) {
   var lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var targetPrimaryHospId = null;
 
