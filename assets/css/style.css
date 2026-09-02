@@ -892,11 +892,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   align-items: center !important;
 }
   
-/* ==========================================
-   🌟 PERFECT VIEW ENGINE (FINAL ACCURATE FIX)
+ /* ==========================================
+   🌟 PERFECT VIEW ENGINE (DEEP ROOT FIX)
    ========================================== */
 
-/* 1. สภาวะกำลังโหลดข้อมูล: ซ่อนทั้งตารางและปฏิทิน แล้วแผ่การ์ด Loading ออกมาเต็มพื้นที่ */
+/* 1. สภาวะกำลังโหลด: ซ่อนกล่องแม่เนื้อหาทั้งหมด แล้วเปิดแผ่กล่อง Loading ออกมาเต็มพื้นที่ */
 #visitListView.is-loading #visitMainContentContainer {
   display: none !important;
 }
@@ -912,21 +912,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-radius: 16px !important;
 }
 
-/* 2. สภาวะโหลดเสร็จแล้ว: ปิดการ์ด Loading นอกตาราง */
+/* 2. สภาวะโหลดเสร็จแล้ว: ปิดกล่อง Loading เสมอ */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
 
-/* 3. เปิดกล่องแม่ไว้เสมอเมื่อโหลดเสร็จ */
-#visitListView:not(.is-loading) #visitMainContentContainer {
-  display: flex !important;
-}
-
-/* 4. 🎯 ปล่อยให้ List Zone และ Calendar Zone สลับกันซ่อน/โชว์ โดยสั่ง flex เฉพาะตัวที่ไม่ติดคลาส .d-none เท่านั้น */
-#visitListZone:not(.d-none) {
-  display: flex !important;
-}
-
+/* 3. 🎯 [ปลดล็อกต้นตอ]: ยอมให้คลาส .d-none ของ Bootstrap ทำงานสั่งซ่อน Element ได้ตลอดเวลา
+      โดยบังคับใส่ display: flex !important เฉพาะตัวที่ "ไม่มีคลาส .d-none" เท่านั้น */
+#visitMainContentContainer:not(.d-none),
+#visitListZone:not(.d-none),
 #visitCalendarZone:not(.d-none) {
   display: flex !important;
 }
