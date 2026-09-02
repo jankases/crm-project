@@ -3756,19 +3756,16 @@ if (noAttachmentText) {
 // ==========================================
 // 🎯 RENDER VISIT FILTERS ENGINE
 // ==========================================
-window.renderVisitFilters = function() {
-    // 1. ปลดล็อกคลาส d-none เพื่อแสดงคอนเทนเนอร์ Filter
-    var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
+ window.renderVisitFilters = function() {
+    // 🌟 สั่งปลดล็อกคลาส d-none ที่กล่อง id="visitFilterZoneGroup" ใน HTML ของคุณ
+    var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
     if (filterZone) {
         filterZone.classList.remove('d-none');
-        filterZone.style.display = 'block';
+        filterZone.style.setProperty('display', 'block', 'important');
     }
 
-    // 2. ดึงข้อมูล User ปัจจุบัน แล้วสั่งสร้าง Dropdown Options
     var crmUser = null;
-    try { 
-        crmUser = JSON.parse(sessionStorage.getItem('crmUser')); 
-    } catch(e) {}
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
 
     if (typeof window.setupFiltersDropdowns === 'function') {
         window.setupFiltersDropdowns(crmUser, []);
