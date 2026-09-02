@@ -391,7 +391,7 @@ window.renderFilterDropdowns = function(validDocsData) {
 // ==========================================
 // 📥 LOAD INDEX DROPDOWNS & AUTO MULTI-LANG
 // ==========================================
-window.loadIndexDropdowns = async function(forceReload = false) {
+ window.loadIndexDropdowns = async function(forceReload = false) {
   try {
     const sb = window.supabaseClient || window.supabase;
     if (!sb) return;
@@ -455,132 +455,84 @@ window.loadIndexDropdowns = async function(forceReload = false) {
 
       window.buildDocIndexes();
 
-      const ratingSetting = (sysSetRes.data || []).find(s => s.Type === 'Rating' || s.Type === 'TargetCall' || s.Type === 'Target Call');
-      if (ratingSetting) {
-        if (ratingSetting.Status === false || ratingSetting.status === false) {
-          window.globalRatingIsLocked = true;
-        } else {
-          let startStr = ratingSetting.Start || ratingSetting.start;
-          let endStr = ratingSetting.End || ratingSetting.end;
-          if (!startStr && !endStr) {
-            window.globalRatingIsLocked = false;
-          } else {
-            const offset = new Date().getTimezoneOffset() * 60000;
-            const localISOTime = (new Date(Date.now() - offset)).toISOString().split('T')[0];
-            let isWithinRange = true;
-            if (startStr && localISOTime < startStr) isWithinRange = false;
-            if (endStr && localISOTime > endStr) isWithinRange = false;
-            window.globalRatingIsLocked = !isWithinRange;
-          }
-        }
-      } else {
-        window.globalRatingIsLocked = false;
-      }
+      // อ่านสิทธิ์จาก Window Context ที่ app.js ตั้งไว้
+      var isGlobalViewer = window.myIsGlobalViewer || false;
+      var isProductManager = window.myIsProductManager || false;
+      var isBuHead = window.myIsBuHead || false;
+      var isManager = window.myIsManager || false;
 
-      var uRoleUpper = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-      var rawScope = crmUser ? String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || crmUser.BU_ID || '').trim() : '';
-
-      window.globalCurrentUserRole = uRoleUpper;
-
-      var isGlobalViewer = false;
-      var adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
-      if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
-        isGlobalViewer = true;
-      }
+      var userBuId = String(crmUser ? (crmUser.BU_ID || window.myUserBuId || '') : '').trim();
+      var userTeamId = String(crmUser ? (crmUser.Team_ID || window.myUserTeamId || '') : '').trim();
+      var userTerrId = String(crmUser ? (crmUser.Territory_ID || window.myUserTerritoryId || '') : '').trim();
 
       var allowedTerIds = [];
       var allowedDocIds = [];
 
       var allTerritories = terrRes.data || terrRes || [];
       var allTeams = teamRes.data || teamRes || [];
-      var allBus = buRes.data || buRes || [];
 
       if (!isGlobalViewer) {
-        var isBuHead = uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1;
-        var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
+        if (isProductManager) {
+          // PM: ดึงรายการ Product จาก Session
+          var pmProdsRaw = sessionStorage.getItem('pmProducts');
+          var pmProdIds = pmProdsRaw ? JSON.parse(pmProdsRaw) : [];
 
-        if (isBuHead) {
-          var matchedBu = allBus.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
-          var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-          var buTeams = allTeams.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
+          if (pmProdIds.length > 0) {
+            const { data: vpDocs } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
+            const vIds = (vpDocs || []).map(vp => vp.Visit_ID);
+            if (vIds.length > 0) {
+              const { data: vLogs } = await sb.from('Visit_Logs').select('Doc_ID').in('Visit_ID', vIds);
+              (vLogs || []).forEach(v => {
+                if (v.Doc_ID && allowedDocIds.indexOf(String(v.Doc_ID)) === -1) {
+                  allowedDocIds.push(String(v.Doc_ID));
+                }
+              });
+            }
+          }
+        } else if (isBuHead) {
+          // BU Head: หาหมอผ่าน Product ในทีมของ BU ตนเอง ➔ Visit Calls
+          var buTeams = allTeams.filter(t => String(t.BU_ID) === userBuId);
           var buTeamIds = buTeams.map(t => String(t.Team_ID));
-          var terrs = allTerritories.filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1 || String(ter.BU_ID) === targetBuId);
+          
+          var buProdLinks = (teamProdRes || []).filter(tp => buTeamIds.indexOf(String(tp.Team_ID)) !== -1);
+          var buProdIds = buProdLinks.map(tp => String(tp.Product_ID));
+
+          if (buProdIds.length > 0) {
+            const { data: vpDocs } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', buProdIds);
+            const vIds = (vpDocs || []).map(vp => vp.Visit_ID);
+            if (vIds.length > 0) {
+              const { data: vLogs } = await sb.from('Visit_Logs').select('Doc_ID').in('Visit_ID', vIds);
+              (vLogs || []).forEach(v => {
+                if (v.Doc_ID && allowedDocIds.indexOf(String(v.Doc_ID)) === -1) {
+                  allowedDocIds.push(String(v.Doc_ID));
+                }
+              });
+            }
+          }
+
+          // รวมหมอจาก Territory ใน BU
+          var terrs = allTerritories.filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1);
           terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
         } else if (isManager) {
-          var matchedTeams = allTeams.filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope || String(t.Team_Name) === rawScope);
-          var targetTeamIds = matchedTeams.map(t => String(t.Team_ID));
-          if (targetTeamIds.length === 0 && rawScope) targetTeamIds.push(rawScope);
-
-          var terrs = allTerritories.filter(t => targetTeamIds.indexOf(String(t.Team_ID)) !== -1 || targetTeamIds.indexOf(String(t.Team)) !== -1 || String(t.Territory_ID) === rawScope);
+          // Manager: ดึง Territory และลูกทีมใน Team ตัวเอง
+          var terrs = allTerritories.filter(t => String(t.Team_ID) === userTeamId);
           terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
-
-          if (allowedTerIds.length === 0 && rawScope) allowedTerIds.push(rawScope);
-        } else { 
-          if (rawScope) allowedTerIds.push(rawScope);
-        }
-
-        var allowedTerIdsMap = {}; 
-        allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
-        var myAssignments = (assignRes || []).filter(a => allowedTerIdsMap[String(a.Territory_ID || a.Territory)]);
-        myAssignments.forEach(a => { 
-          if (a.Type === 'Doctor') allowedDocIds.push(String(a.Account_ID)); 
-        });
-      }
-
-      const allProductsList = prodRes || [];
-      const teamProdLinksList = teamProdRes || [];
-      let filteredProds = [];
-
-      if (isGlobalViewer) {
-        filteredProds = allProductsList;
-      } else {
-        let targetTeams = [];
-        if (crmUser) {
-          var isBuHead = uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1;
-          var isManager = uRoleUpper.indexOf('MANAGER') !== -1;
-
-          if (isBuHead) {
-            var matchedBu = allBus.find(b => String(b.BU_ID) === rawScope || String(b.BU) === rawScope);
-            var targetBuId = matchedBu ? String(matchedBu.BU_ID) : rawScope;
-            var buTeams = allTeams.filter(t => String(t.BU_ID) === targetBuId || String(t.BU) === rawScope);
-            buTeams.forEach(bt => {
-              if (targetTeams.indexOf(String(bt.Team_ID)) === -1) targetTeams.push(String(bt.Team_ID));
-            });
-          } else if (isManager) {
-            var mTeams = allTeams.filter(t => String(t.Team_ID) === rawScope || String(t.Team) === rawScope || String(t.Team_Name) === rawScope);
-            mTeams.forEach(mt => {
-              if (targetTeams.indexOf(String(mt.Team_ID)) === -1) targetTeams.push(String(mt.Team_ID));
-            });
-            if (targetTeams.length === 0 && rawScope) targetTeams.push(rawScope);
-          } else {
-            let myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
-            if (!myTeam) {
-              let myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
-              let matchedMyTer = allTerritories.find(t => String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr);
-              if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
-            }
-            if (myTeam) targetTeams.push(myTeam);
-          }
-        }
-
-        let allowedProdIds = [];
-        teamProdLinksList.forEach(link => {
-          let tId = String(link.Team_ID || link.Team);
-          if (targetTeams.indexOf(tId) !== -1 || targetTeams.indexOf(String(link.Team_Name)) !== -1) {
-            let pId = String(link.Product_ID || link.Product);
-            if (allowedProdIds.indexOf(pId) === -1) {
-              allowedProdIds.push(pId);
-            }
-          }
-        });
-
-        if (targetTeams.length > 0 && allowedProdIds.length > 0) {
-          filteredProds = allProductsList.filter(p => allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1);
         } else {
-          filteredProds = allProductsList;
+          // Sales Rep: ดึง Territory ตัวเอง
+          if (userTerrId) allowedTerIds.push(userTerrId);
+        }
+
+        if (allowedTerIds.length > 0) {
+          var allowedTerIdsMap = {}; 
+          allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
+          var myAssignments = (assignRes || []).filter(a => allowedTerIdsMap[String(a.Territory_ID || a.Territory)]);
+          myAssignments.forEach(a => { 
+            if (a.Type === 'Doctor' && allowedDocIds.indexOf(String(a.Account_ID)) === -1) {
+              allowedDocIds.push(String(a.Account_ID)); 
+            }
+          });
         }
       }
-      window.globalTeamProducts = filteredProds;
 
       window.DocManagerCache.isGlobalViewer = isGlobalViewer;
       window.DocManagerCache.myAllowedTerIds = allowedTerIds;
@@ -698,7 +650,7 @@ window.restoreDocFilterState = function() {
 // ==========================================
 // 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
-window.loadDoctors = async function(forceReload = false, isBackground = false) {
+ window.loadDoctors = async function(forceReload = false, isBackground = false) {
   const docViewEl = document.getElementById('doctorListView');
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
@@ -730,6 +682,7 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
 
     let query = sb.from('Doctors').select('*', { count: 'exact' });
 
+    // 🔐 ดึงสิทธิ์จาก DocManagerCache ที่โหลดไว้ใน loadIndexDropdowns
     const isGlobalViewer = window.DocManagerCache.isGlobalViewer;
     const allowedDocIds = window.DocManagerCache.myAllowedDocIds || [];
 
