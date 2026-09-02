@@ -854,14 +854,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
-/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY (ปิดการแสดงผลตัวโหลดนอกตาราง ป้องกันดัน Filter เบี้ยว) */
 #visitTableLoading,
 #doctorTableLoading {
-  min-height: 380px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: none !important;
 }
 
 /* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
@@ -902,22 +898,20 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   align-items: center !important;
 }
 
-/* 🌟 UNIFIED SINGLE-STATE LOADING (แก้ไขสลับให้ Filter แสดงผลคงที่ แต่สลับเฉพาะตาราง) */
-#visitListView.is-loading #visitListZone,
-#visitListView.is-loading #visitCalendarZone {
-  display: none !important;
-}
-
-#visitListView.is-loading #visitTableLoading {
+/* 🌟 UNIFIED SINGLE-STATE LOADING (แสดงผล Container และ ListZone ค้างไว้ตลอดเวลา ไม่ดัน Layout) */
+#visitListView.is-loading #visitMainContentContainer,
+#visitListView:not(.is-loading) #visitMainContentContainer {
   display: flex !important;
 }
 
-#visitListView:not(.is-loading) #visitTableLoading {
-  display: none !important;
-}
-
+#visitListView.is-loading #visitListZone,
 #visitListView:not(.is-loading) #visitListZone {
   display: flex !important;
+}
+
+#visitListView.is-loading #visitTableLoading,
+#visitListView:not(.is-loading) #visitTableLoading {
+  display: none !important;
 }
 
 /* ==========================================
