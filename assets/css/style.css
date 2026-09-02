@@ -309,8 +309,6 @@ html, body {
   opacity: 1 !important; 
 }
 
-
-
 .visit-filter-group::before {
     display: none !important;
 }
@@ -904,8 +902,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   align-items: center !important;
 }
 
-/* 🌟 UNIFIED SINGLE-STATE LOADING */
-#visitListView.is-loading #visitMainContentContainer,
+/* 🌟 UNIFIED SINGLE-STATE LOADING (แก้ไขสลับให้ Filter แสดงผลคงที่ แต่สลับเฉพาะตาราง) */
+#visitListView.is-loading #visitListZone,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
 }
@@ -916,6 +914,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
+}
+
+#visitListView:not(.is-loading) #visitListZone {
+  display: flex !important;
 }
 
 /* ==========================================
