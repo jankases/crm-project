@@ -32,6 +32,12 @@ function checkAuthSession() {
 function handleLogout() {
   sessionStorage.clear();
   localStorage.clear();
+  
+  // เคลียร์ Cache ระบบ
+  if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
+  if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
+  if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
+
   window.location.href = './';
 }
 
@@ -270,6 +276,7 @@ async function loadComponent(page) {
     }
 }
 
+// 🛡️ ฟังก์ชันตรวจสอบ Session และประกาศตัวแปร Data Permission Architecture
 async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
@@ -294,13 +301,33 @@ async function checkSession() {
         
         const roleUpper = String(uRole).toUpperCase().trim();
         
-        // 🌟 ตั้งค่าตัวแปรสิทธิ์แยกให้เด็ดขาด
-        window.myIsGlobalViewer = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(roleUpper) !== -1;
-        window.myIsBuHead = roleUpper.indexOf('BU') !== -1 || roleUpper.indexOf('HEAD') !== -1;
-        window.myIsManager = roleUpper.indexOf('MANAGER') !== -1;
-        window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsBuHead && !window.myIsManager;
+        // 🌟 ========================================================
+        // 🔐 DATA PERMISSION ARCHITECTURE (4-LEVEL PERMISSION FLAGS)
+        // 🌟 ========================================================
+        window.myUserRole = roleUpper;
+        window.myUserBuId = user.BU_ID || user.bu_id || null;
+        window.myUserTeamId = user.Team_ID || user.team_id || null;
+        window.myUserTerritoryId = user.Territory_ID || user.territory_id || user.Area_ID || null;
+        
+        // 1. Level: Admin / Executive / Staff (Global Access)
+        const adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
+        window.myIsGlobalViewer = adminRoles.indexOf(roleUpper) !== -1;
+        
+        // 2. Level: Product Manager (PM Access via Rep_Products)
+        window.myIsProductManager = roleUpper.indexOf('PRODUCT MANAGER') !== -1 || roleUpper === 'PM';
+        
+        // 3. Level: BU Head (BU Level Access)
+        window.myIsBuHead = !window.myIsGlobalViewer && !window.myIsProductManager && 
+                            (roleUpper.indexOf('BU') !== -1 || roleUpper.indexOf('HEAD') !== -1);
+        
+        // 4. Level: Manager / Team Lead (Team Level Access)
+        window.myIsManager = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && 
+                             (roleUpper.indexOf('MANAGER') !== -1 || roleUpper.indexOf('LEAD') !== -1);
+        
+        // 5. Level: Sales Rep (Individual Territory Access)
+        window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && !window.myIsManager;
 
-        // 🔒 แสดง Admin Tools เฉพาะ ADMIN ตัวจริงเท่านั้น (BU Head / Manager โดนซ่อน)
+        // 🔒 แสดง Admin Tools เฉพาะ ADMIN / GLOBAL ตัวจริงเท่านั้น
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
             if (window.myIsGlobalViewer) {
@@ -345,6 +372,11 @@ async function logout() {
 
         sessionStorage.clear();
         localStorage.clear();
+
+        // เคลียร์ Cache ของผู้ใช้ในทุก Controller
+        if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
+        if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
+        if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
 
         if (window.supabaseClient) {
             await window.supabaseClient.auth.signOut();
