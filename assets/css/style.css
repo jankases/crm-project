@@ -68,12 +68,12 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 MASTER STANDARD: การ์ดแม่สีขาวบริสุทธิ์ */
-.visit-filter-group,
-.doctor-filter-group,
-.hosp-filter-group,
-#doctorFilterZoneGroup,
-#visitFilterZoneGroup {
+/* 🌟 MASTER STANDARD: การ์ดแม่สีขาวบริสุทธิ์ (เว้นกรณีติด d-none) */
+.visit-filter-group:not(.d-none),
+.doctor-filter-group:not(.d-none),
+.hosp-filter-group:not(.d-none),
+#doctorFilterZoneGroup:not(.d-none),
+#visitFilterZoneGroup:not(.d-none) {
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: min-content !important;
@@ -916,11 +916,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   display: none !important;
 }
 
-/* 3. สั่งซ่อน 100% เมื่อมีคลาส .d-none (ข่มคำสั่ง flex อื่นทิ้งทั้งหมด) */
+/* 3. 🎯 [จุดแก้ไขเด็ดขาด]: บังคับซ่อน 100% เสมอเมื่อติดคลาส .d-none */
 .d-none,
 #visitMainContentContainer.d-none,
 #visitListZone.d-none,
-#visitCalendarZone.d-none {
+#visitCalendarZone.d-none,
+#visitFilterZoneGroup.d-none,
+#visitFilterZone.d-none {
   display: none !important;
 }
 
@@ -943,6 +945,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   justify-content: space-between !important;
 }
 
+/* 🌟 [จุดสำคัญ]: สั่งยืด Calendar ให้เต็มความสูงหน้าจอทันทีเมื่อไม่มีคลาส .d-none */
 #visitCalendarZone:not(.d-none) {
   display: flex !important;
   flex-direction: column !important;
@@ -950,21 +953,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   height: 100% !important;
   min-height: 0 !important;
   overflow: hidden !important;
-  margin-top: 0.5rem !important;
-}
-
-/* 🌟 บังคับซ่อน Filter Zone ทันทีเมื่อติดคลาส d-none */
-#visitFilterZoneGroup.d-none,
-#visitFilterZone.d-none {
-  display: none !important;
-}
-
-/* 🌟 เมื่อ Calendar โชว์ ให้ขยายยืดเต็มพื้นที่ที่เหลือทันที */
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
   margin-top: 0.5rem !important;
 }
 
