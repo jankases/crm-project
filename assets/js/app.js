@@ -275,10 +275,9 @@ async function loadComponent(page) {
         mainContent.appendChild(errDiv);
     }
 }
- 
- // 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้าครั้งเดียว (Pure Server-Side Preparation)
+  
 // 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้า (Rep, Territory, Doctor)
-async function checkSession() {
+ async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen'); 
     const appContainer = document.getElementById('appContainer');
@@ -350,20 +349,28 @@ async function checkSession() {
                         const { data: terrs } = await sb.from('Territory').select('Territory_ID').in('Team_ID', teamIds);
                         myAllowedTerIds = (terrs || []).map(t => String(t.Territory_ID));
                         
-                        const { data: users } = await sb.from('Rep_Users').select('Rep_ID').in('BU_ID', [window.myUserBuId]);
+                        // 🔐 กรองเฉพาะ Sales Rep ภายใต้ BU ตัวเอง (ไม่ดึง Admin/Staff)
+                        const { data: users } = await sb.from('Rep_Users').select('Rep_ID, Role').in('BU_ID', [window.myUserBuId]);
                         (users || []).forEach(u => {
                             var uid = String(u.Rep_ID).trim();
-                            if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                            var uRoleStr = String(u.Role || '').toUpperCase();
+                            var isExclRole = uRoleStr.indexOf('ADMIN') !== -1 || uRoleStr.indexOf('STAFF') !== -1 || uRoleStr.indexOf('DIRECTOR') !== -1;
+                            if (uid && !isExclRole && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
                         });
                     }
                 } else if (window.myIsManager && window.myUserTeamId) {
                     const { data: terrs } = await sb.from('Territory').select('Territory_ID').eq('Team_ID', window.myUserTeamId);
                     myAllowedTerIds = (terrs || []).map(t => String(t.Territory_ID));
 
-                    const { data: users } = await sb.from('Rep_Users').select('Rep_ID').eq('Team_ID', window.myUserTeamId);
+                    // 🔐 [FIXED]: ดึง Role มากรอง เพื่อตัดบัญชี Admin / Executive ที่สังกัด Team_ID เดียวกันออก
+                    const { data: users } = await sb.from('Rep_Users').select('Rep_ID, Role').eq('Team_ID', window.myUserTeamId);
                     (users || []).forEach(u => {
                         var uid = String(u.Rep_ID).trim();
-                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        var uRoleStr = String(u.Role || '').toUpperCase();
+                        var isExclRole = uRoleStr.indexOf('ADMIN') !== -1 || uRoleStr.indexOf('STAFF') !== -1 || uRoleStr.indexOf('DIRECTOR') !== -1;
+                        if (uid && !isExclRole && myAllowedRepIds.indexOf(uid) === -1) {
+                            myAllowedRepIds.push(uid);
+                        }
                     });
                 } else if (window.myIsSalesRole && window.myUserTerritoryId) {
                     myAllowedTerIds = [String(window.myUserTerritoryId)];
