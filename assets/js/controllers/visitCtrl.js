@@ -3807,6 +3807,14 @@ if (noAttachmentText) {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
+    // 🌟 [จุดแก้ไข]: สั่งปลดล็อกคลาส และวาด Filter UI ทันทีที่เข้าหน้านี้ ไม่ต้องรอ DB
+    if (typeof window.renderVisitFilters === 'function') {
+        window.renderVisitFilters();
+    } else {
+        var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+        if (filterZone) filterZone.classList.remove('d-none');
+    }
+
     var domWaitCount = 0;
     while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
         await new Promise(r => setTimeout(r, 20));
@@ -3847,15 +3855,6 @@ if (noAttachmentText) {
         if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
 
         await Promise.all(subTasks);
-
-        // 🌟 [จุดที่หลุดหายไป]: เรียกปั้น Filter UI และแสดง Container ออกบนหน้าจอ
-        if (typeof window.renderVisitFilters === 'function') {
-            window.renderVisitFilters();
-        } else if (typeof window.setupFiltersDropdowns === 'function') {
-            var crmUser = null; 
-            try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-            window.setupFiltersDropdowns(crmUser, []);
-        }
 
         if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
 
