@@ -1181,16 +1181,20 @@ window.loadDropdowns = async function(forceReload) {
     console.error("Error loading dropdowns:", err.message); 
   }
 };
-  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+
+window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
 
-    // 🌟 [FIX 1]: ปลดล็อกคลาส d-none เพื่อเปิดแถบแสดงผล Filter บนหน้าจอ
+    // 🌟 [ปรับปรุงจุดนี้]: สั่งเปิด display ให้ชัดเจน
     var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
-    if (filterZone) filterZone.classList.remove('d-none');
+    if (filterZone) {
+        filterZone.classList.remove('d-none');
+        filterZone.style.display = 'block';
+    }
 
     if (!repSelect && !terSelect) return;
-
+    
     var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
     var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
@@ -3783,6 +3787,28 @@ var noAttachmentText = document.getElementById('noAttachmentText');
 if (noAttachmentText) {
     noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
 }
+
+// ==========================================
+// 🎯 RENDER VISIT FILTERS ENGINE
+// ==========================================
+window.renderVisitFilters = function() {
+    // 1. ปลดล็อกคลาส d-none เพื่อแสดงคอนเทนเนอร์ Filter
+    var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
+    if (filterZone) {
+        filterZone.classList.remove('d-none');
+        filterZone.style.display = 'block';
+    }
+
+    // 2. ดึงข้อมูล User ปัจจุบัน แล้วสั่งสร้าง Dropdown Options
+    var crmUser = null;
+    try { 
+        crmUser = JSON.parse(sessionStorage.getItem('crmUser')); 
+    } catch(e) {}
+
+    if (typeof window.setupFiltersDropdowns === 'function') {
+        window.setupFiltersDropdowns(crmUser, []);
+    }
+};
 
 window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
