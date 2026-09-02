@@ -3821,12 +3821,15 @@ if (noAttachmentText) {
  window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
+    var visitViewEl = document.getElementById('visitListView');
+    // 🌟 บังคับติดคลาส is-loading ทันทีที่ฟังก์ชันเริ่มรัน เพื่อไม่ให้ Filter หลุดกระพริบ
+    if (visitViewEl) visitViewEl.classList.add('is-loading');
+
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) return;
 
     window._isInitRunning = true; 
-    window.isInitialLoading = true; 
-
+    window.isInitialLoading = true;
     // 🌟 [จุดแก้ไข]: สั่งปลดล็อกคลาส และวาด Filter UI ทันทีที่เข้าหน้านี้ ไม่ต้องรอ DB
     if (typeof window.renderVisitFilters === 'function') {
         window.renderVisitFilters();
