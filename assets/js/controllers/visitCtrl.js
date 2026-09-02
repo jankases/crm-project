@@ -1301,7 +1301,7 @@ window.deleteTot = async function() {
 
   } catch (err) { console.error("Error loading dropdowns:", err.message); }
 };
- window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+  window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
 
@@ -1312,38 +1312,43 @@ window.deleteTot = async function() {
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-    var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim().toUpperCase() : '';
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.Territory_ID || crmUser.territory_id || '').trim().toLowerCase() : '';
+    
+    // 🌟 ดึงค่าสิทธิ์จาก Global Windows Context ที่ app.js ประกาศไว้
+    var isGlobalViewer = window.myIsGlobalViewer || false;
+    var isProductManager = window.myIsProductManager || false;
+    var isBuHead = window.myIsBuHead || false;
+    var isManager = window.myIsManager || false;
+    var isSales = window.myIsSalesRole || (!isGlobalViewer && !isProductManager && !isBuHead && !isManager);
 
-    var isGlobalViewer = window.myIsGlobalViewer || ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(userRole) !== -1;
-    var isBuHead = window.myIsBuHead || userRole.indexOf('BU') !== -1 || userRole.indexOf('HEAD') !== -1;
-    var isManager = window.myIsManager || userRole.indexOf('MANAGER') !== -1;
-    var isSales = !isGlobalViewer && !isBuHead && !isManager;
+    var userBuId = String(crmUser ? (crmUser.BU_ID || window.myUserBuId || '') : '').trim().toLowerCase();
+    var userTeamId = String(crmUser ? (crmUser.Team_ID || window.myUserTeamId || '') : '').trim().toLowerCase();
+    var userTerrId = String(crmUser ? (crmUser.Territory_ID || window.myUserTerritoryId || '') : '').trim().toLowerCase();
 
     var myAllowedTeamIds = []; 
     var myAllowedTerIds = []; 
     var myAllowedRepIds = [uRepId]; 
     var myAllowedEmails = [uEmail];
-    var targetBuId = '';
 
     if (!isGlobalViewer) {
-        if (isBuHead) {
-            var busList = (window.VisitManagerCache && window.VisitManagerCache.bus) ? window.VisitManagerCache.bus : (window.globalBuList || []);
-            var matchedBu = busList.find(function(b) { 
-                var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
-                var bName = String(b.BU || b.BU_Name || '').trim().toLowerCase();
-                return bId === rawScope || bName === rawScope || rawScope.includes(bId);
+        if (isProductManager) {
+            // PM: ดูแลตามรายการ Product ใน Rep_Products (ดูสิทธิ์ของคนทั้งหมดที่มีการ Tag ยา)
+            (window.globalUsersList || []).forEach(function(u) {
+                var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+                var uem = String(u.Email || u.email || '').toLowerCase().trim();
+                if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
             });
-            targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id || matchedBu.BU).trim().toLowerCase() : rawScope;
-
+        } else if (isBuHead) {
+            // BU Head: ค้นหาทุก Team ที่สังกัด BU ตัวเอง
             (window.globalTeamList || []).forEach(function(t) {
                 var tBuId = String(t.BU_ID || t.BU || '').trim().toLowerCase();
                 var tid = String(t.Team_ID || t.id || t.Team).trim();
-                if (tBuId && targetBuId && (tBuId === targetBuId || targetBuId.includes(tBuId))) {
+                if (tBuId && userBuId && tBuId === userBuId) {
                     if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
                 }
             });
 
+            // ค้นหาทุก Territory ใน Teams ของ BU ตัวเอง
             (window.globalTerritoryList || []).forEach(function(ter) {
                 var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
                 var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
@@ -1352,46 +1357,38 @@ window.deleteTot = async function() {
                 }
             });
         } else if (isManager) {
-            var matchedTeam = (window.globalTeamList || []).find(function(t) {
-                var tId = String(t.Team_ID || t.id || t.Team || '').trim().toLowerCase();
-                var tName = String(t.Team || t.Team_Name || '').trim().toLowerCase();
-                return tId === rawScope || tName === rawScope || rawScope.includes(tId);
-            });
-            var targetTeamId = matchedTeam ? String(matchedTeam.Team_ID || matchedTeam.id || matchedTeam.Team).trim() : rawScope;
-
-            if (targetTeamId) {
-                myAllowedTeamIds.push(targetTeamId);
+            // Manager: ดึงเฉพาะ Territory ภายใต้ Team ตัวเอง
+            if (userTeamId) {
+                myAllowedTeamIds.push(userTeamId);
                 (window.globalTerritoryList || []).forEach(function(ter) {
-                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
+                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim().toLowerCase();
                     var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
-                    if (trTeamId.toLowerCase() === targetTeamId.toLowerCase()) {
+                    if (trTeamId === userTeamId) {
                         if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
                     }
                 });
             }
         } else if (isSales) {
-            if (rawScope) myAllowedTerIds.push(rawScope);
+            // Sales Rep: ดึงเฉพาะ Territory ตัวเอง
+            if (userTerrId) myAllowedTerIds.push(userTerrId);
         }
 
+        // คัดกรอง Rep_ID ลูกน้องที่เข้าเงื่อนไขสิทธิ์
         (window.globalUsersList || []).forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-            var uteam = String(u.Team_ID || u.Team || '').trim();
-            var uter = String(u.Territory_ID || u.Territory || '').trim(); 
+            var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
+            var uter = String(u.Territory_ID || u.Territory || '').trim().toLowerCase(); 
             var ubu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
             var uem = String(u.Email || u.email || '').toLowerCase().trim();
             
-            if (!isSales) {
-                var isMatchBU = isBuHead && targetBuId && (ubu === targetBuId || targetBuId.includes(ubu) || uter.toLowerCase() === targetBuId);
-                var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1 || myAllowedTeamIds.indexOf(uter) !== -1;
-                var isMatchTer = myAllowedTerIds.indexOf(uter) !== -1;
+            if (!isSales && !isProductManager) {
+                var isMatchBU = isBuHead && userBuId && ubu === userBuId;
+                var isMatchTeam = myAllowedTeamIds.map(x => x.toLowerCase()).indexOf(uteam) !== -1;
+                var isMatchTer = myAllowedTerIds.map(x => x.toLowerCase()).indexOf(uter) !== -1;
 
                 if (isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) {
-                    var targetRole = String(u.Role || u.role || '').toUpperCase();
-                    var targetIsAdmin = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'].indexOf(targetRole) !== -1;
-                    if (!targetIsAdmin) {
-                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                        if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
-                    }
+                    if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                    if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
                 }
             }
         });
@@ -1420,40 +1417,11 @@ window.deleteTot = async function() {
     var terOptionsData = [];
     var terMap = new Map();
 
-    // 🌟 1. เติม BU ลง Dropdown
-    if (isGlobalViewer || isBuHead) {
-        var busList = (window.VisitManagerCache && window.VisitManagerCache.bus) ? window.VisitManagerCache.bus : (window.globalBuList || []);
-        busList.forEach(function(b) {
-            var bid = String(b.BU_ID || b.id || b.BU).trim();
-            var bnm = String(b.BU_Name || b.BU || bid).trim();
-            if (isGlobalViewer || bid.toLowerCase() === targetBuId || bnm.toLowerCase() === targetBuId) {
-                if (bid && !terMap.has(bid)) {
-                    terMap.set(bid, bnm + ' (BU)');
-                    terOptionsData.push({ value: bid, text: bnm + ' (BU)' });
-                }
-            }
-        });
-    }
-
-    // 🌟 2. เติม Team ลง Dropdown
-    if (isGlobalViewer || isBuHead || isManager) {
-        (window.globalTeamList || []).forEach(function(t) {
-            var tid = String(t.Team_ID || t.id || t.Team).trim(); 
-            var tnm = String(t.Team || t.Team_Name || tid).trim();
-            if (isGlobalViewer || myAllowedTeamIds.indexOf(tid) !== -1) {
-                if (tid && !terMap.has(tid)) {
-                    terMap.set(tid, tnm + ' (Team)');
-                    terOptionsData.push({ value: tid, text: tnm + ' (Team)' });
-                }
-            }
-        });
-    }
-
-    // 🌟 3. เติม Territory ลง Dropdown
+    // เติม Territory / Team / BU ลง Dropdown
     (window.globalTerritoryList || []).forEach(function(t) {
         var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
         var tnm = String(t.Territory || t.Territory_Name || tid).trim();
-        if (isGlobalViewer || myAllowedTerIds.indexOf(tid) !== -1) {
+        if (isGlobalViewer || myAllowedTerIds.map(x => x.toLowerCase()).indexOf(tid.toLowerCase()) !== -1) {
             if (tid && !terMap.has(tid)) {
                 terMap.set(tid, tnm);
                 terOptionsData.push({ value: tid, text: tnm });
@@ -1643,7 +1611,7 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 
- window.loadVisits = async function(forceReload, isBackground) {
+  window.loadVisits = async function(forceReload, isBackground) {
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
@@ -1713,13 +1681,10 @@ window.clearVisitFilters = function() {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      // 🌟 [CRITICAL FIX]: สิทธิ์การมองเห็นข้อมูล (Data Scope) -> BU Head / Manager / Admin ดูข้อมูลภาพรวมได้ครบถ้วน
-      var userRole = crmUser ? String(crmUser.Role || crmUser.role || crmUser.Position || '').trim().toLowerCase() : '';
-      var canViewAllVisits = window.myIsGlobalViewer || 
-          ['admin', 'staff', 'director', 'executive', 'product manager', 'bu head', 'head', 'manager', 'bu'].some(function(r) {
-              return userRole.indexOf(r) !== -1;
-          });
-
+      // 🌟 [DATA PERMISSION ARCHITECTURE ENGINE]
+      var isGlobalAdmin = window.myIsGlobalViewer || false;
+      var isProductManager = window.myIsProductManager || false;
+      
       var dataQuery = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
       var countQuery = window.supabaseClient.from('Visit_Logs').select('Status');
 
@@ -1727,15 +1692,38 @@ window.clearVisitFilters = function() {
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // ถ้าไม่ใช่สิทธิ์ดูภาพรวม ให้กรองตาม Rep_ID
-      if (!canViewAllVisits) {
-          var allowedIds = window.myAllowedRepIds || [];
-          if (allowedIds.length > 0) {
-              dataQuery = dataQuery.in('Rep_ID', allowedIds);
-              countQuery = countQuery.in('Rep_ID', allowedIds);
-          } else if (myRepId) {
-              dataQuery = dataQuery.eq('Rep_ID', myRepId);
-              countQuery = countQuery.eq('Rep_ID', myRepId);
+      // 🔐 กรองสิทธิ์การเข้าถึง Visit Logs
+      if (!isGlobalAdmin) {
+          if (isProductManager) {
+              // PM: ดึงเฉพาะ Visit ที่มี Product ในกลุ่มรับผิดชอบ (จาก sessionStorage / Rep_Products)
+              var pmProdIdsRaw = sessionStorage.getItem('pmProducts');
+              var pmProdIds = pmProdIdsRaw ? JSON.parse(pmProdIdsRaw) : [];
+
+              if (pmProdIds.length > 0) {
+                  var vpRes = await window.supabaseClient.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
+                  var pmVisitIds = (vpRes.data || []).map(vp => vp.Visit_ID);
+
+                  if (pmVisitIds.length > 0) {
+                      dataQuery = dataQuery.in('Visit_ID', pmVisitIds);
+                      countQuery = countQuery.in('Visit_ID', pmVisitIds);
+                  } else {
+                      dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                      countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  }
+              } else {
+                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+              }
+          } else {
+              // BU Head / Manager / Sales Rep: กรองตาม myAllowedRepIds ที่คำนวณไว้ใน setupFiltersDropdowns
+              var allowedIds = window.myAllowedRepIds || [];
+              if (allowedIds.length > 0) {
+                  dataQuery = dataQuery.in('Rep_ID', allowedIds);
+                  countQuery = countQuery.in('Rep_ID', allowedIds);
+              } else if (myRepId) {
+                  dataQuery = dataQuery.eq('Rep_ID', myRepId);
+                  countQuery = countQuery.eq('Rep_ID', myRepId);
+              }
           }
       }
 
