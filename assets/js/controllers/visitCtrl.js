@@ -1604,26 +1604,29 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
       // ⚡ 1. Base Query Server-Side 
-        // 🌟 ดึงข้อมูล Visit พร้อม Join เอาชื่อหมอ (Doctors) และชื่อโรงพยาบาลติดมาด้วยใน Request เดียว
-        var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID)', { count: 'exact' });
+      var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Workplaces_JSON)', { count: 'exact' });
       var countQuery = sb.from('Visit_Logs').select('Status');
 
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // 🔐 2. Apply Permission Filter at Server-Side
+      // 🔐 2. Apply Permission Filter at Server-Side (4-Level Architecture)
       var isGlobalAdmin = window.myIsGlobalViewer || false;
       var isProductManager = window.myIsProductManager || false;
+      var isBuHead = window.myIsBuHead || false;
 
       if (!isGlobalAdmin) {
           if (isProductManager) {
+              // ----------------------------------------------------
+              // Level 4: Product Manager (อิงตาม Rep_Products / pmProducts)
+              // ----------------------------------------------------
               var pmProdIdsRaw = sessionStorage.getItem('pmProducts');
               var pmProdIds = pmProdIdsRaw ? JSON.parse(pmProdIdsRaw) : [];
 
               if (pmProdIds.length > 0) {
                   var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
-                  var pmVisitIds = (vpRes.data || []).map(vp => vp.Visit_ID);
+                  var pmVisitIds = (vpRes.data || []).map(function(vp) { return vp.Visit_ID; });
 
                   if (pmVisitIds.length > 0) {
                       dataQuery = dataQuery.in('Visit_ID', pmVisitIds);
@@ -1636,14 +1639,73 @@ window.loadVisits = async function(forceReload, isBackground) {
                   dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
               }
+          } else if (isBuHead && window.myUserBuId) {
+              // ----------------------------------------------------
+              // Level 1: BU Head (เห็นเฉพาะ Visit ที่คีย์ "ยาของ BU ตัวเอง" ทั้งหมด รวมงานคีย์ของ PM และทุกคน)
+              // ----------------------------------------------------
+              var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', window.myUserBuId);
+              var buTeamIds = (buTeams || []).map(function(t) { return t.Team_ID; });
+
+              var buVisitIds = [];
+              if (buTeamIds.length > 0) {
+                  var { data: buProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', buTeamIds);
+                  var buProdIds = (buProds || []).map(function(p) { return p.Product_ID; });
+
+                  if (buProdIds.length > 0) {
+                      var { data: vpBuRes } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', buProdIds);
+                      buVisitIds = (vpBuRes || []).map(function(vp) { return vp.Visit_ID; });
+                  }
+              }
+
+              if (buVisitIds.length > 0) {
+                  var safeBuVisitIds = buVisitIds.slice(0, 100);
+                  dataQuery = dataQuery.in('Visit_ID', safeBuVisitIds);
+                  countQuery = countQuery.in('Visit_ID', safeBuVisitIds);
+              } else {
+                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+              }
           } else {
-              var allowedIds = window.myAllowedRepIds || [];
-              if (allowedIds.length > 0) {
-                  dataQuery = dataQuery.in('Rep_ID', allowedIds);
-                  countQuery = countQuery.in('Rep_ID', allowedIds);
-              } else if (myRepId) {
-                  dataQuery = dataQuery.eq('Rep_ID', myRepId);
-                  countQuery = countQuery.eq('Rep_ID', myRepId);
+              // ----------------------------------------------------
+              // Level 2-3: Manager / Sales Rep (อิงตาม Rep ในสายงาน OR ยาในทีมตาม Products_Team)
+              // ----------------------------------------------------
+              var allowedReps = window.myAllowedRepIds || [];
+              if (myRepId && allowedReps.indexOf(myRepId) === -1) {
+                  allowedReps.push(myRepId);
+              }
+
+              var allowedTeamIds = window.myAllowedTeamIds || [];
+              if (window.myUserTeamId && allowedTeamIds.indexOf(window.myUserTeamId) === -1) {
+                  allowedTeamIds.push(window.myUserTeamId);
+              }
+
+              var teamProdVisitIds = [];
+              if (allowedTeamIds.length > 0) {
+                  var ptRes = await sb.from('Products_Team').select('Product_ID').in('Team_ID', allowedTeamIds);
+                  var teamProdIds = (ptRes.data || []).map(function(pt) { return pt.Product_ID; });
+
+                  if (teamProdIds.length > 0) {
+                      var vpTeamRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', teamProdIds);
+                      teamProdVisitIds = (vpTeamRes.data || []).map(function(vp) { return vp.Visit_ID; });
+                  }
+              }
+
+              var orConditions = [];
+              if (allowedReps.length > 0) {
+                  orConditions.push('Rep_ID.in.(' + allowedReps.join(',') + ')');
+              }
+              if (teamProdVisitIds.length > 0) {
+                  var safeVisitIds = teamProdVisitIds.slice(0, 100);
+                  orConditions.push('Visit_ID.in.(' + safeVisitIds.join(',') + ')');
+              }
+
+              if (orConditions.length > 0) {
+                  var combinedOr = orConditions.join(',');
+                  dataQuery = dataQuery.or(combinedOr);
+                  countQuery = countQuery.or(combinedOr);
+              } else {
+                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
               }
           }
       }
