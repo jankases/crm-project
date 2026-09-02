@@ -1187,7 +1187,7 @@ window.loadDropdowns = async function(forceReload) {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
 
-        // 🌟 [FIX 1]: บังคับสั่งเปิดการแสดงผลคอนเทนเนอร์ Filter และกล่องหลัก
+        // 🌟 1. การันตีสั่งปลดซ่อน Container ของ Filter ใน HTML
         var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
         if (filterZone) {
             filterZone.classList.remove('d-none', 'visit-filter-compact');
@@ -1197,12 +1197,11 @@ window.loadDropdowns = async function(forceReload) {
         }
 
         var mainContainer = document.getElementById('visitMainContentContainer');
-        if (mainContainer) {
-            mainContainer.classList.remove('d-none');
-        }
+        if (mainContainer) mainContainer.classList.remove('d-none');
 
         if (!repSelect && !terSelect) return;
 
+        // จำค่าเดิมที่เคยเลือกไว้
         var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
         if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
         var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
@@ -1210,12 +1209,15 @@ window.loadDropdowns = async function(forceReload) {
 
         var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
         var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
-        
-        var isGlobalViewer = window.myIsGlobalViewer || false;
-        var isProductManager = window.myIsProductManager || false;
-        var isBuHead = window.myIsBuHead || false;
-        var isManager = window.myIsManager || false;
-        var isSales = window.myIsSalesRole || (!isGlobalViewer && !isProductManager && !isBuHead && !isManager);
+        var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+
+        // เช็กสิทธิ์ User
+        var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN', 'PRODUCT MANAGER'];
+        var isGlobalViewer = window.myIsGlobalViewer || adminRoles.indexOf(userRole) !== -1;
+        var isProductManager = window.myIsProductManager || userRole.indexOf('PRODUCT MANAGER') !== -1 || userRole === 'PM';
+        var isBuHead = window.myIsBuHead || (!isGlobalViewer && !isProductManager && (userRole.indexOf('BU') !== -1 || userRole.indexOf('HEAD') !== -1));
+        var isManager = window.myIsManager || (!isGlobalViewer && !isProductManager && !isBuHead && (userRole.indexOf('MANAGER') !== -1 || userRole.indexOf('LEAD') !== -1));
+        var isSales = !isGlobalViewer && !isProductManager && !isBuHead && !isManager;
 
         var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
         var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
@@ -1237,17 +1239,17 @@ window.loadDropdowns = async function(forceReload) {
             } else if (isBuHead) {
                 (window.globalTeamList || []).forEach(function(t) {
                     var tBuId = String(t.BU_ID || t.BU || t.bu_id || '').trim().toLowerCase();
-                    var tid = String(t.Team_ID || t.id || t.Team).trim();
+                    var tid = String(t.Team_ID || t.id || t.Team || '').trim();
                     if (tBuId && userBuId && tBuId === userBuId) {
-                        if (myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
+                        if (tid && myAllowedTeamIds.indexOf(tid) === -1) myAllowedTeamIds.push(tid);
                     }
                 });
 
                 (window.globalTerritoryList || []).forEach(function(ter) {
-                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
-                    var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
-                    if (myAllowedTeamIds.indexOf(trTeamId) !== -1) {
-                        if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
+                    var trTeamId = String(ter.Team_ID || ter.Team || '').trim().toLowerCase();
+                    var trId = String(ter.Territory_ID || ter.id || ter.Territory || '').trim();
+                    if (myAllowedTeamIds.map(x => x.toLowerCase()).indexOf(trTeamId) !== -1) {
+                        if (trId && myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
                     }
                 });
             } else if (isManager) {
@@ -1255,9 +1257,9 @@ window.loadDropdowns = async function(forceReload) {
                     myAllowedTeamIds.push(userTeamId);
                     (window.globalTerritoryList || []).forEach(function(ter) {
                         var trTeamId = String(ter.Team_ID || ter.Team || '').trim().toLowerCase();
-                        var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
+                        var trId = String(ter.Territory_ID || ter.id || ter.Territory || '').trim();
                         if (trTeamId === userTeamId) {
-                            if (myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
+                            if (trId && myAllowedTerIds.indexOf(trId) === -1) myAllowedTerIds.push(trId);
                         }
                     });
                 }
@@ -1265,6 +1267,7 @@ window.loadDropdowns = async function(forceReload) {
                 if (userTerrId) myAllowedTerIds.push(userTerrId);
             }
 
+            // 🌟 2. คัดกรอง Rep ลูกน้อง (ตัด Admin / Staff / Executive ออก ไม่ให้หลุดเข้าลิสต์)
             (window.globalUsersList || []).forEach(function(u) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
                 var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
@@ -1273,17 +1276,17 @@ window.loadDropdowns = async function(forceReload) {
                 var uem = String(u.Email || u.email || '').toLowerCase().trim();
                 var uRole = String(u.Role || u.role || '').toUpperCase().trim();
 
-                // 🌟 [FIX 2]: ตัดสิทธิ์ไม่ดึงบัญชี Admin / Staff เข้ามาในลิสต์ลูกน้องของ Manager
-                var isAdminUser = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1;
-                
+                // เช็ก Role ป้องกัน Admin ติดเข้ามา
+                var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1;
+
                 if (!isSales && !isProductManager) {
                     var isMatchBU = isBuHead && userBuId && ubu === userBuId;
                     var isMatchTeam = myAllowedTeamIds.map(x => x.toLowerCase()).indexOf(uteam) !== -1;
                     var isMatchTer = myAllowedTerIds.map(x => x.toLowerCase()).indexOf(uter) !== -1;
 
-                    if (isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) {
-                        if (uid && !isAdminUser && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                        if (uem && !isAdminUser && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
+                    if ((isMatchBU || isMatchTeam || isMatchTer || uid === uRepId) && !isAdminRole) {
+                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
                     }
                 }
             });
@@ -1294,6 +1297,7 @@ window.loadDropdowns = async function(forceReload) {
         window.myAllowedRepIds = myAllowedRepIds; 
         window.myAllowedEmails = myAllowedEmails;
 
+        // 🌟 3. ปั้นข้อมูลตัวเลือกพนักงาน (Safety Mapping)
         var repOptionsData = [];
         var uniqueUsersMap = new Map();
         var fullAllowedUsers = isGlobalViewer ? (window.globalUsersList || []) : (window.globalUsersList || []).filter(function(u) {
@@ -1303,18 +1307,20 @@ window.loadDropdowns = async function(forceReload) {
         
         fullAllowedUsers.forEach(function(u) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+            var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id)) {
                 uniqueUsersMap.set(id, u);
-                repOptionsData.push({ value: id, text: u.Rep_Name || u.Name || u.Email || id });
+                repOptionsData.push({ value: id, text: name });
             }
         });
 
+        // 🌟 4. ปั้นข้อมูลตัวเลือกเขตพื้นที่ (Safety Mapping รองรับ BU / Team / Territory)
         var terOptionsData = [];
         var terMap = new Map();
 
         (window.globalTerritoryList || []).forEach(function(t) {
-            var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
-            var tnm = String(t.Territory || t.Territory_Name || tid).trim();
+            var tid = String(t.Territory_ID || t.id || t.Territory || '').trim(); 
+            var tnm = String(t.Territory || t.Territory_Name || t.Name || tid).trim();
             if (isGlobalViewer || myAllowedTerIds.map(x => x.toLowerCase()).indexOf(tid.toLowerCase()) !== -1) {
                 if (tid && !terMap.has(tid)) {
                     terMap.set(tid, tnm);
@@ -1325,6 +1331,7 @@ window.loadDropdowns = async function(forceReload) {
 
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
+        // 🌟 5. ผูกเข้ากับ TomSelect
         if (typeof TomSelect !== 'undefined') {
             if (repSelect) {
                 if (!window.tomSelectRepInstance) {
@@ -1365,7 +1372,7 @@ window.loadDropdowns = async function(forceReload) {
     } catch (err) {
         console.error("Error in setupFiltersDropdowns:", err);
     } finally {
-        // 🌟 [FIX 3]: การันตีว่าตัวแปรประมวลผลสิทธิ์ถูกเซ็ตเป็น true เสมอ เพื่อไม่ให้ระบบค้าง
+        // 🌟 6. การันตีว่าตัวแประบบถูกปล่อยล็อกเสมอ ป้องกันหน้าเว็บค้าง
         window.isPermissionCalculated = true; 
     }
 };
