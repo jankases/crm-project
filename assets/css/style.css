@@ -893,10 +893,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
   
  /* ==========================================
-   🌟 PERFECT VIEW SWITCHING (LIST vs CALENDAR)
+   🌟 PERFECT VIEW SWITCHING (FULL CALENDAR)
    ========================================== */
 
-/* 1. ตอนโหลดข้อมูล: ซ่อนทั้งคอนเทนเนอร์เนื้อหา และแสดงการ์ด Loading */
+/* 1. ตอนโหลดข้อมูล: ซ่อนทั้งกล่องแม่และปฏิทิน แล้วแสดงการ์ด Loading */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -913,22 +913,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-radius: 16px !important;
 }
 
-/* 2. ตอนโหลดเสร็จ: ซ่อนการ์ด Loading นอกตาราง */
+/* 2. ตอนโหลดเสร็จ: ปิดการ์ด Loading นอกตาราง */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
 
-/* 3. กล่องแม่ และ โซนลูก จะแสดงผลเฉพาะตัวที่ไม่มีคลาส .d-none เท่านั้น */
+/* 3. สั่ง display: flex เฉพาะตัวที่ไม่ติด d-none */
 #visitMainContentContainer:not(.d-none),
-#visitListZone:not(.d-none),
 #visitCalendarZone:not(.d-none) {
   display: flex !important;
 }
 
-/* 4. สั่งบังคับซ่อนทันทีถ้าติดคลาส .d-none (กัน CSS อื่นแอบแย่งบังคับ) */
-#visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitMainContentContainer.d-none {
+#visitMainContentContainer.d-none,
+#visitCalendarZone.d-none {
   display: none !important;
 }
 
