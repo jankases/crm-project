@@ -1025,46 +1025,33 @@ window.deleteTot = async function() {
 // ==========================================
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
- window.loadDropdowns = async function(forceReload) {
+  // 🚀 loadDropdowns (Pure Server-Side - ดึงเฉพาะ Master Data และตัวเลือกตามสิทธิ์เท่านั้น)
+window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
 
   try {
-    var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🌟 [CRITICAL FIX]: ล้าง Cache สิทธิ์เดิมทิ้งทันทีเมื่อตรวจพบว่ามีการสลับ User
     window.VisitManagerCache = window.VisitManagerCache || {};
     if (window.VisitManagerCache.dropdownOwnerId !== myRepId) {
-        window.VisitManagerCache = {}; // ล้างการจำสิทธิ์ของ User เก่าออกทั้งหมด 100%
+        window.VisitManagerCache = {};
         window.VisitManagerCache.dropdownOwnerId = myRepId; 
         window.VisitManagerCache.dropdownsLoaded = false;
-        
-        // ล้างตัวแปร Global Permission State ให้พร้อมคำนวณใหม่
-        window.myIsGlobalViewer = false;
-        window.myIsBuHead = false;
-        window.myIsManager = false;
-        window.myIsSalesRole = true;
-        window.myAllowedTeamIds = [];
-        window.myAllowedTerIds = [];
-        window.myAllowedRepIds = [myRepId];
-        window.myAllowedEmails = [crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : ''];
-        
         forceReload = true; 
     }
 
-    // 🌟 คำนวณสิทธิ์ลูกทีมตั้งแต่วินาทีแรก เพื่อให้ loadVisits นำ myAllowedRepIds ไปใช้ได้ทันที
-    if (crmUser && typeof window.setupFiltersDropdowns === 'function') {
-        window.setupFiltersDropdowns(crmUser, []);
-    }
-
     var appLang = window.getCurrentAppLang();
-    var statusSelect = document.getElementById('filterVisitStatus');
-    if (statusSelect) {
-        var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
+    var sb = window.supabaseClient || window.supabase;
 
+    // 1. สร้าง Status Dropdown (Static)
+    var statusSelect = document.getElementById('filterVisitStatus');
+    if (statusSelect && (!window.tomSelectStatusInstance || forceReload)) {
+        var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
         if (typeof TomSelect !== 'undefined') {
             window.safeDestroyTs(window.tomSelectStatusInstance);
             statusSelect.innerHTML = '<option value=""></option>'; 
@@ -1084,15 +1071,11 @@ window.deleteTot = async function() {
                 dropdownParent: 'body',
                 render: {
                     option: function(data, escape) {
-                        if (!data.value) {
-                            return '<div class="py-1 px-2 text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
-                        }
+                        if (!data.value) return '<div class="py-1 px-2 text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
                         return '<div class="py-1 px-2"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.4em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     },
                     item: function(data, escape) {
-                        if (!data.value) {
-                            return '<div class="item text-secondary" style="font-size: 0.85rem; line-height: 1.5;">' + escape(data.text) + '</div>';
-                        }
+                        if (!data.value) return '<div class="item text-secondary" style="font-size: 0.85rem; line-height: 1.5;">' + escape(data.text) + '</div>';
                         return '<div class="item" style="line-height: 1.5;"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
                     }
                 },
@@ -1100,158 +1083,81 @@ window.deleteTot = async function() {
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 }
             });
-            
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
-            else window.tomSelectStatusInstance.setValue('', true);
-        }
-    }
- 
-    window.globalCurrentUserRole = crmUser ? String(crmUser.Role || crmUser.role || '').trim() : '';
-    var uRoleUpper = window.globalCurrentUserRole.toUpperCase();
-    var rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim() : '';
-
-    if (typeof window.myIsBuHead === 'undefined' || !window.myIsBuHead || forceReload) {
-        var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'PRODUCT MANAGER'];
-        if (adminRoles.indexOf(uRoleUpper) !== -1 || rawScope.toUpperCase() === 'ALL') {
-            window.myIsGlobalViewer = true; window.myIsSalesRole = false;
-        } else if (uRoleUpper.indexOf('BU') !== -1 || uRoleUpper.indexOf('HEAD') !== -1) {
-            window.myIsBuHead = true; window.myIsSalesRole = false;
-        } else if (uRoleUpper.indexOf('MANAGER') !== -1) {
-            window.myIsManager = true; window.myIsSalesRole = false;
-        } else {
-            window.myIsSalesRole = true;
         }
     }
 
+    // 2. ดึง Master Data เบาๆ เฉพาะที่จำเป็นต้องใช้สร้าง Dropdown (Server-Side Filtered)
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-        var fetchFn = typeof window.fetchAllRecords === 'function' 
-            ? window.fetchAllRecords 
-            : async function(tbl, modifier) { 
-                var q = window.supabaseClient.from(tbl).select('*'); 
-                if (modifier) q = modifier(q);
-                var r = await q; 
-                return r.data || []; 
-            };
+        var isGlobal = window.myIsGlobalViewer || false;
+        var allowedReps = window.myAllowedRepIds || [myRepId];
+
+        // ⚡ Query เฉพาะหมอและ Master Data ที่สอดคล้องกับสิทธิ์
+        var docQuery = sb.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Status').eq('Status', 'Active');
+        if (!isGlobal && allowedReps.length > 0) {
+            var myAllowedDocIds = window.myAllowedDocIds || [];
+            if (myAllowedDocIds.length > 0) docQuery = docQuery.in('Doc_ID', myAllowedDocIds);
+        }
 
         var promises = [
-          fetchFn('Doctors'),
-          fetchFn('Products', function(q) { return q.order('Product', { ascending: true }); }), 
-          fetchFn('Territory'),
-          fetchFn('Hospitals', function(q) { return q.order('Hospital', { ascending: true }); }),
-          fetchFn('Team'),            
-          fetchFn('BU'),            
-          fetchFn('Products_Team'),   
-          fetchFn('IndexType'),
-          fetchFn('Index', function(q) { return q.order('Value', { ascending: true }); }),
-          fetchFn('Rep_Users'),
-          fetchFn('Assignment')
+            docQuery.order('Doc_Name', { ascending: true }),
+            sb.from('Products').select('Product_ID, Product, Product_TH').order('Product', { ascending: true }),
+            sb.from('Territory').select('Territory_ID, Territory, Team_ID'),
+            sb.from('IndexType').select('*'),
+            sb.from('Index').select('*').order('Value', { ascending: true }),
+            sb.from('Rep_Users').select('Rep_ID, Rep_Name, Email, Role, Team_ID, Territory_ID')
         ];
+
         var results = await Promise.all(promises);
 
-        var allDoctors = results[0] || [];
-        var allHospitals = results[3] || [];
-        var allAssignments = results[10] || [];
-        var globalTerritoryListLocal = Array.isArray(results[2]) ? results[2] : ((results[2] && results[2].data) ? results[2].data : []);
-        var globalTeamListLocal = Array.isArray(results[4]) ? results[4] : ((results[4] && results[4].data) ? results[4].data : []);
-        var globalBuListLocal = Array.isArray(results[5]) ? results[5] : ((results[5] && results[5].data) ? results[5].data : []);
-
-        window.VisitManagerCache.assignments = allAssignments; 
-        window.VisitManagerCache.allHospitals = allHospitals; 
-        window.VisitManagerCache.bus = globalBuListLocal || [];
-
-        var allowedTerIds = []; var allowedDocIds = []; var explicitHospIds = [];
-        if (window.myIsGlobalViewer) {
-            window.VisitManagerCache.assignedDoctors = allDoctors; 
-            window.VisitManagerCache.assignedHospitals = allHospitals;
-        } else {
-            if (window.myIsBuHead) {
-                var matchedBu = globalBuListLocal.find(function(b) { 
-                    var bId = String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase();
-                    var bName = String(b.BU || b.BU_Name || '').trim().toLowerCase();
-                    return bId === rawScope.toLowerCase() || bName === rawScope.toLowerCase();
-                });
-                var targetBuId = matchedBu ? String(matchedBu.BU_ID || matchedBu.id) : rawScope;
-                
-                var matchedTeams = globalTeamListLocal.filter(function(t) { 
-                    var tBu = String(t.BU_ID || t.BU || '').trim().toLowerCase();
-                    return tBu === String(targetBuId).toLowerCase() || tBu === rawScope.toLowerCase();
-                });
-                var matchedTeamIds = matchedTeams.map(function(t) { return String(t.Team_ID || t.id || t.Team); });
-
-                var terrs = globalTerritoryListLocal.filter(function(ter) { 
-                    return matchedTeamIds.indexOf(String(ter.Team_ID || ter.Team)) !== -1; 
-                });
-                terrs.forEach(function(ter) { allowedTerIds.push(String(ter.Territory_ID || ter.id || ter.Territory)); });
-            } else if (window.myIsManager) {
-                var matchedTeam = globalTeamListLocal.find(function(t) { return String(t.Team_ID) === rawScope || String(t.Team) === rawScope; });
-                if (matchedTeam) {
-                    window.myAllowedTeamIds = window.myAllowedTeamIds || []; window.myAllowedTeamIds.push(String(matchedTeam.Team_ID));
-                    var terrs2 = globalTerritoryListLocal.filter(function(t) { return String(t.Team_ID) === String(matchedTeam.Team_ID); });
-                    terrs2.forEach(function(t) { allowedTerIds.push(String(t.Territory_ID)); });
-                } else if (rawScope) {
-                    window.myAllowedTeamIds = window.myAllowedTeamIds || []; window.myAllowedTeamIds.push(rawScope);
-                }
-            } else {
-                var matchedTerr = globalTerritoryListLocal.find(function(t) { return String(t.Territory_ID) === rawScope || String(t.Territory) === rawScope; });
-                if (matchedTerr) { allowedTerIds.push(String(matchedTerr.Territory_ID)); } else if (rawScope) { allowedTerIds.push(rawScope); }
-            }
-
-            var allowedTerIdsMap = {}; allowedTerIds.forEach(id => allowedTerIdsMap[id] = true);
-            var myAssignments = allAssignments.filter(function(a) { return allowedTerIdsMap[String(a.Territory_ID || a.Territory)]; });
-            myAssignments.forEach(function(a) { if (a.Type === 'Doctor') allowedDocIds.push(String(a.Account_ID)); else if (a.Type === 'Hospital') explicitHospIds.push(String(a.Account_ID)); });
-
-            var allowedDocIdsMap = {}; allowedDocIds.forEach(id => allowedDocIdsMap[id] = true);
-
-            window.VisitManagerCache.assignedDoctors = allDoctors.filter(function(d) { 
-                return allowedDocIdsMap[String(d.Doc_ID || d.doc_id || d.id)] || allowedTerIdsMap[String(d.Territory_ID || d.territory_id)]; 
-            });
-
-            var implicitHospIdsMap = {};
-            window.VisitManagerCache.assignedDoctors.forEach(function(d) { var hId = String(d.Hospital_ID || d.hospital_id); if (hId && hId !== 'undefined') implicitHospIdsMap[hId] = true; });
-            var explicitHospIdsMap = {}; explicitHospIds.forEach(id => explicitHospIdsMap[id] = true);
-            window.VisitManagerCache.assignedHospitals = allHospitals.filter(function(h) { var hId = String(h.Hospital_ID || h.id); return explicitHospIdsMap[hId] || implicitHospIdsMap[hId]; });
-        }
-
-        window.VisitManagerCache.allDoctors = allDoctors; window.VisitManagerCache.products = results[1] || []; window.VisitManagerCache.territories = globalTerritoryListLocal;
-        window.VisitManagerCache.teams = globalTeamListLocal; window.VisitManagerCache.bus = globalBuListLocal || []; window.VisitManagerCache.teamProdLinks = results[6] || [];
-        window.VisitManagerCache.indexTypes = Array.isArray(results[7]) ? results[7] : ((results[7] && results[7].data) ? results[7].data : []);
-        window.VisitManagerCache.indexes = Array.isArray(results[8]) ? results[8] : ((results[8] && results[8].data) ? results[8].data : []);
-        window.VisitManagerCache.users = results[9] || []; window.VisitManagerCache.dropdownsLoaded = true;
+        window.VisitManagerCache.assignedDoctors = (results[0] && results[0].data) ? results[0].data : [];
+        window.VisitManagerCache.products = (results[1] && results[1].data) ? results[1].data : [];
+        window.VisitManagerCache.territories = (results[2] && results[2].data) ? results[2].data : [];
+        window.VisitManagerCache.indexTypes = (results[3] && results[3].data) ? results[3].data : [];
+        window.VisitManagerCache.indexes = (results[4] && results[4].data) ? results[4].data : [];
+        window.VisitManagerCache.users = (results[5] && results[5].data) ? results[5].data : [];
+        window.VisitManagerCache.dropdownsLoaded = true;
     }
 
-    window.globalAllDoctors = window.VisitManagerCache.allDoctors || []; window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors || [];
-    window.globalAllHospitals = window.VisitManagerCache.allHospitals || []; window.globalAssignedHospitals = window.VisitManagerCache.assignedHospitals || [];
-    window.globalProductsList = window.VisitManagerCache.products || []; window.globalTerritoryList = window.VisitManagerCache.territories || [];
-    window.globalUsersList = window.VisitManagerCache.users || []; window.globalTeamList = window.VisitManagerCache.teams || [];
+    window.globalAssignedDoctors = window.VisitManagerCache.assignedDoctors || [];
+    window.globalProductsList = window.VisitManagerCache.products || [];
+    window.globalTerritoryList = window.VisitManagerCache.territories || [];
+    window.globalUsersList = window.VisitManagerCache.users || [];
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
+    // 3. ปั้น Doctor Dropdown ใน Visit Form
     var docSelect = document.getElementById('visitDocId');
     if (docSelect && (!window.tomSelectDocInstance || forceReload)) { 
       docSelect.innerHTML = '<option value=""></option>';
-      var activeAssignedDocs = window.globalAssignedDoctors.filter(function(d) { return String(d.Status || 'Active').toLowerCase() === 'active'; });
-      activeAssignedDocs.forEach(function(d) {
-        var nameEN = d.Doc_Name || d.doc_name || ''; var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
-        var opt = document.createElement('option'); opt.value = d.Doc_ID || d.doc_id || d.id; 
+      window.globalAssignedDoctors.forEach(function(d) {
+        var nameEN = d.Doc_Name || ''; 
+        var nameTH = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '';
+        var opt = document.createElement('option'); 
+        opt.value = d.Doc_ID || d.id; 
         opt.textContent = nameEN + (nameTH ? ' (' + nameTH + ')' : ''); 
-        opt.setAttribute('data-name-en', nameEN); opt.setAttribute('data-name-th', nameTH); docSelect.appendChild(opt);
+        docSelect.appendChild(opt);
       });
 
       if (typeof TomSelect !== 'undefined') {
           window.safeDestroyTs(window.tomSelectDocInstance);
           window.tomSelectDocInstance = new TomSelect('#visitDocId', { 
-              create: false, searchField: ["text", "name_en", "name_th"], sortField: { field: "text", direction: "asc" }, 
-              placeholder: appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --', maxOptions: null, dropdownParent: 'body', dataAttr: 'data'
+              create: false, 
+              searchField: ["text"], 
+              sortField: { field: "text", direction: "asc" }, 
+              placeholder: appLang === 'th' ? '-- ค้นหา/เลือกแพทย์ --' : '-- Search/Select Doctor --', 
+              maxOptions: null, 
+              dropdownParent: 'body'
           });
       }
     }
 
-    // เรียกสร้าง Dropdown เพิ่มเติมหลังจากโหลดข้อมูลเสร็จ
-    if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, window.VisitManagerCache.teamProdLinks);
-    
-    // สั่งปั้น Dropdown รายชื่อ Coach
-    if (typeof window.renderCoachDropdown === 'function') window.renderCoachDropdown();
+    // 4. ตั้งค่า Rep และ Territory Filter Dropdowns
+    if (typeof window.setupFiltersDropdowns === 'function') {
+        window.setupFiltersDropdowns(crmUser, []);
+    }
 
+    // 5. ปั้น Purpose Dropdown
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect && (!window.tomSelectPurposeInstance || forceReload)) { 
       var types = window.VisitManagerCache.indexTypes || []; 
@@ -1269,37 +1175,28 @@ window.deleteTot = async function() {
       purposeItems.forEach(function(i) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
           var dispText = (appLang === 'en') ? valEN : valTH;
-          purposeData.push({ value: String(i.Index_ID), text: dispText, searchEn: valEN, searchTh: valTH });
+          purposeData.push({ value: String(i.Index_ID), text: dispText });
       });
 
       if (typeof TomSelect !== 'undefined') {
           window.safeDestroyTs(window.tomSelectPurposeInstance);
           purposeSelect.innerHTML = '<option value=""></option>'; 
           window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
-              options: purposeData, valueField: 'value', labelField: 'text', searchField: ["searchTh", "searchEn", "text"], sortField: { field: "searchTh", direction: "asc" }, 
-              placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', create: false, dropdownParent: 'body'
+              options: purposeData, 
+              valueField: 'value', 
+              labelField: 'text', 
+              searchField: ["text"], 
+              placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', 
+              create: false, 
+              dropdownParent: 'body'
           });
       }
     }
 
-    var formView = document.getElementById('visitFormView');
-    if (formView && !formView.classList.contains('d-none')) {
-        var vIdInput = document.getElementById('visitId');
-        var curVisitId = vIdInput ? vIdInput.value : '';
-        if (curVisitId && window.globalVisits) {
-            var vObj = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(curVisitId); });
-            var targetDoc = (vObj ? vObj.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
-            var targetPurp = vObj ? (vObj.Purpose_ID || vObj.Purpose || v.Objective) : null;
-
-            if (targetDoc && window.tomSelectDocInstance) window.tomSelectDocInstance.setValue(targetDoc, true);
-            if (targetPurp && window.tomSelectPurposeInstance) window.tomSelectPurposeInstance.setValue(targetPurp, true);
-        }
-    }
-
-    var filterGroup = document.getElementById('visitFilterZoneGroup');
-    if (filterGroup) filterGroup.classList.add('ready');
-
-  } catch (err) { console.error("Error loading dropdowns:", err.message); }
+    window.isPermissionCalculated = true;
+  } catch (err) { 
+    console.error("Error loading dropdowns:", err.message); 
+  }
 };
   window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
@@ -1611,7 +1508,8 @@ window.clearVisitFilters = function() {
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
 
-  window.loadVisits = async function(forceReload, isBackground) {
+// 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
+window.loadVisits = async function(forceReload, isBackground) {
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
@@ -1667,9 +1565,12 @@ window.clearVisitFilters = function() {
     }
 
     try {
+      var sb = window.supabaseClient || window.supabase;
+      if (!sb) throw new Error("Supabase client not initialized");
+
       if (forceReload || !window.VisitManagerCache.isLoaded) {
           var promises = [
-              window.supabaseClient.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
+              sb.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending'),
               (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
               (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
           ];
@@ -1681,26 +1582,25 @@ window.clearVisitFilters = function() {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      // 🌟 [DATA PERMISSION ARCHITECTURE ENGINE]
-      var isGlobalAdmin = window.myIsGlobalViewer || false;
-      var isProductManager = window.myIsProductManager || false;
-      
-      var dataQuery = window.supabaseClient.from('Visit_Logs').select('*', { count: 'exact' });
-      var countQuery = window.supabaseClient.from('Visit_Logs').select('Status');
+      // ⚡ 1. Base Query Server-Side
+      var dataQuery = sb.from('Visit_Logs').select('*', { count: 'exact' });
+      var countQuery = sb.from('Visit_Logs').select('Status');
 
       var sortColMap = { 'date': 'Visit_Date', 'status': 'Status', 'purpose': 'Purpose_ID' };
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // 🔐 กรองสิทธิ์การเข้าถึง Visit Logs
+      // 🔐 2. Apply Permission Filter at Server-Side
+      var isGlobalAdmin = window.myIsGlobalViewer || false;
+      var isProductManager = window.myIsProductManager || false;
+
       if (!isGlobalAdmin) {
           if (isProductManager) {
-              // PM: ดึงเฉพาะ Visit ที่มี Product ในกลุ่มรับผิดชอบ (จาก sessionStorage / Rep_Products)
               var pmProdIdsRaw = sessionStorage.getItem('pmProducts');
               var pmProdIds = pmProdIdsRaw ? JSON.parse(pmProdIdsRaw) : [];
 
               if (pmProdIds.length > 0) {
-                  var vpRes = await window.supabaseClient.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
+                  var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
                   var pmVisitIds = (vpRes.data || []).map(vp => vp.Visit_ID);
 
                   if (pmVisitIds.length > 0) {
@@ -1715,7 +1615,6 @@ window.clearVisitFilters = function() {
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
               }
           } else {
-              // BU Head / Manager / Sales Rep: กรองตาม myAllowedRepIds ที่คำนวณไว้ใน setupFiltersDropdowns
               var allowedIds = window.myAllowedRepIds || [];
               if (allowedIds.length > 0) {
                   dataQuery = dataQuery.in('Rep_ID', allowedIds);
@@ -1727,9 +1626,11 @@ window.clearVisitFilters = function() {
           }
       }
 
+      // 🎯 3. Filter Controls
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
+      
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
@@ -1760,146 +1661,21 @@ window.clearVisitFilters = function() {
       }
 
       if (selectedTers.length > 0) {
-          var matchedTerIds = [];
-          var terrList = window.globalTerritoryList || [];
-
-          selectedTers.forEach(function(selId) {
-              var selIdClean = String(selId).trim();
-              matchedTerIds.push(selIdClean);
-
-              terrList.forEach(function(tr) {
-                  if (String(tr.Team_ID || tr.Team).trim() === selIdClean) {
-                      var trId = String(tr.Territory_ID || tr.id || tr.Territory).trim();
-                      if (trId) matchedTerIds.push(trId);
-                  }
-              });
-          });
-
-          var cleanTerIds = matchedTerIds.filter((item, pos) => item && item !== 'null' && matchedTerIds.indexOf(item) === pos);
-          
-          var repIdsInTerr = [];
-          (window.globalUsersList || []).forEach(function(u) {
-              var uTer = String(u.Territory_ID || u.Territory || '').trim();
-              var uTeam = String(u.Team_ID || u.Team || '').trim();
-              if (cleanTerIds.includes(uTer) || cleanTerIds.includes(uTeam)) {
-                  var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-                  if (uid && repIdsInTerr.indexOf(uid) === -1) repIdsInTerr.push(uid);
-              }
-          });
-
-          if (repIdsInTerr.length > 0 && cleanTerIds.length > 0) {
-              var orCond = 'Territory_ID.in.(' + cleanTerIds.join(',') + '),Rep_ID.in.(' + repIdsInTerr.join(',') + ')';
-              dataQuery = dataQuery.or(orCond);
-              countQuery = countQuery.or(orCond);
-          } else if (repIdsInTerr.length > 0) {
-              dataQuery = dataQuery.in('Rep_ID', repIdsInTerr);
-              countQuery = countQuery.in('Rep_ID', repIdsInTerr);
-          } else if (cleanTerIds.length > 0) {
-              dataQuery = dataQuery.in('Territory_ID', cleanTerIds);
-              countQuery = countQuery.in('Territory_ID', cleanTerIds);
-          } else {
-              dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-              countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-          }
+          dataQuery = dataQuery.in('Territory_ID', selectedTers);
+          countQuery = countQuery.in('Territory_ID', selectedTers);
       }
 
+      // 🔍 4. Smart Search Filter
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-
       if (rawSearchVal) {
-          var searchTerms = rawSearchVal.split(/\s+/); 
-          var hasNoMatchOnSomeTerm = false;
-
+          var searchTerms = rawSearchVal.split(/\s+/);
           for (var i = 0; i < searchTerms.length; i++) {
               var term = searchTerms[i];
-              var matchedDocIds = [];
-              var matchedVisitIds = [];
-
-              var matchedHospIds = [];
-              (window.globalAllHospitals || []).forEach(function(h) {
-                  var hEn = String(h.Hospital || h.Hospital_Name || h.Known_As || '').toLowerCase();
-                  var hTh = String(h.Hospital_TH || h.Known_As || '').toLowerCase();
-                  if (hEn.indexOf(term) !== -1 || hTh.indexOf(term) !== -1) {
-                      matchedHospIds.push(String(h.Hospital_ID || h.id).toLowerCase());
-                  }
-              });
-
-              for (var key in window._docIndex) {
-                  var doc = window._docIndex[key];
-                  var isMatch = false;
-
-                  var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
-                  var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
-
-                  if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
-                      isMatch = true;
-                  }
-
-                  if (!isMatch && matchedHospIds.length > 0) {
-                      var docHospId = String(doc.Hospital_ID || doc.hospital_id || '').toLowerCase();
-                      if (matchedHospIds.indexOf(docHospId) !== -1) {
-                          isMatch = true;
-                      } else if (doc.Workplaces_JSON) {
-                          try {
-                              var wps = typeof doc.Workplaces_JSON === 'string' ? JSON.parse(doc.Workplaces_JSON) : doc.Workplaces_JSON;
-                              if (Array.isArray(wps)) {
-                                  for(var w=0; w<wps.length; w++) {
-                                      var wHid = String(wps[w].hospitalId || wps[w].Hospital_ID).toLowerCase();
-                                      if (matchedHospIds.indexOf(wHid) !== -1) { isMatch = true; break; }
-                                  }
-                              }
-                          } catch(e){}
-                      }
-                  }
-
-                  if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
-              }
-
-              var matchedProductIds = [];
-              var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
-              allProds.forEach(function(p) {
-                  var pEn = String(p.Product || '').toLowerCase();
-                  var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
-                  if (pEn.indexOf(term) !== -1 || pTh.indexOf(term) !== -1) {
-                      matchedProductIds.push(p.Product_ID || p.id);
-                  }
-              });
-
-              if (matchedProductIds.length > 0) {
-                  try {
-                      var vpRes = await window.supabaseClient.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
-                      if (!vpRes.error && vpRes.data) {
-                          matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
-                      }
-                  } catch (e) { console.error("Search Product Error:", e); }
-              }
-
-              if (matchedDocIds.length > 0 || matchedVisitIds.length > 0) {
-                  var safeDocIds = matchedDocIds.slice(0, 60); 
-                  var safeVisitIds = matchedVisitIds.slice(0, 60);
-
-                  if (safeDocIds.length > 0 && safeVisitIds.length === 0) {
-                      dataQuery = dataQuery.in('Doc_ID', safeDocIds);
-                      countQuery = countQuery.in('Doc_ID', safeDocIds);
-                  } else if (safeDocIds.length === 0 && safeVisitIds.length > 0) {
-                      dataQuery = dataQuery.in('Visit_ID', safeVisitIds);
-                      countQuery = countQuery.in('Visit_ID', safeVisitIds);
-                  } else {
-                      var orCondition = 'Doc_ID.in.(' + safeDocIds.join(',') + '),Visit_ID.in.(' + safeVisitIds.join(',') + ')';
-                      dataQuery = dataQuery.or(orCondition);
-                      countQuery = countQuery.or(orCondition);
-                  }
-              } else {
-                  hasNoMatchOnSomeTerm = true;
-                  break; 
-              }
-          }
-
-          if (hasNoMatchOnSomeTerm) {
-              dataQuery = dataQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
-              countQuery = countQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+              dataQuery = dataQuery.or(`Details.ilike.%${term}%,Insight.ilike.%${term}%,Next_Action.ilike.%${term}%`);
           }
       }
 
+      // 📊 5. KPI Count Query
       var countRes = await countQuery;
       var totalC = 0, pendingC = 0, submittedC = 0;
       if (!countRes.error && countRes.data) {
@@ -1911,6 +1687,7 @@ window.clearVisitFilters = function() {
           window.updateStatCards(totalC, pendingC, submittedC);
       }
 
+      // 📊 6. Server-Side Range (ดึงแค่ 20 แถว)
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
       var from = (page - 1) * limit;
@@ -1930,8 +1707,8 @@ window.clearVisitFilters = function() {
 
         try {
           var subPromises = [
-            window.supabaseClient.from('Visit_Products').select('*').in('Visit_ID', vIds),
-            window.supabaseClient.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds)
+            sb.from('Visit_Products').select('*').in('Visit_ID', vIds),
+            sb.from('Visit_Samples').select('Visit_ID, Sample_ID, Quantity').in('Visit_ID', vIds)
           ];
 
           var results = await Promise.all(subPromises);
@@ -1956,27 +1733,6 @@ window.clearVisitFilters = function() {
       }
 
       if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
-
-      window.globalFilteredTotLogs = window.globalTotLogs.filter(function(tot) {
-          var hasAccess = false;
-          if (window.myIsGlobalViewer) hasAccess = true;
-          else {
-               var rawRepId = String(tot.Rep_ID || '').trim(); 
-               var rawWho = String(tot.Whoupdated || '').toLowerCase().trim();
-               if (window.myAllowedRepIds.indexOf(rawRepId) !== -1 || (rawWho !== '' && window.myAllowedEmails.indexOf(rawWho) !== -1)) hasAccess = true;
-          }
-          if(!hasAccess) return false;
-
-          var matchDate = true;
-          if (startDateTerm || endDateTerm) {
-              var vDate = new Date(tot.Start_Date); vDate.setHours(0, 0, 0, 0); 
-              if (startDateTerm) { var sDate = new Date(startDateTerm); sDate.setHours(0, 0, 0, 0); if (vDate < sDate) matchDate = false; }
-              if (endDateTerm) { var eDate = new Date(endDateTerm); eDate.setHours(23, 59, 59, 999); if (vDate > eDate) matchDate = false; }
-          }
-          var matchRep = (selectedReps.length === 0);
-          if (selectedReps.length > 0) { var rawRepIdFilt = String(tot.Rep_ID || '').trim(); matchRep = selectedReps.indexOf(rawRepIdFilt) !== -1; }
-          return matchDate && matchRep;
-      });
 
       window.renderVisitTableServerSide();
       
