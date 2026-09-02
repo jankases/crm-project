@@ -455,7 +455,7 @@ window.renderFilterDropdowns = function(validDocsData) {
 
       window.buildDocIndexes();
 
-      // อ่านสิทธิ์จาก Window Context ที่ app.js ตั้งไว้
+      // สิทธิ์การเข้าถึงแบบ 4-Level Architecture
       var isGlobalViewer = window.myIsGlobalViewer || false;
       var isProductManager = window.myIsProductManager || false;
       var isBuHead = window.myIsBuHead || false;
@@ -473,7 +473,6 @@ window.renderFilterDropdowns = function(validDocsData) {
 
       if (!isGlobalViewer) {
         if (isProductManager) {
-          // PM: ดึงรายการ Product จาก Session
           var pmProdsRaw = sessionStorage.getItem('pmProducts');
           var pmProdIds = pmProdsRaw ? JSON.parse(pmProdsRaw) : [];
 
@@ -490,7 +489,6 @@ window.renderFilterDropdowns = function(validDocsData) {
             }
           }
         } else if (isBuHead) {
-          // BU Head: หาหมอผ่าน Product ในทีมของ BU ตนเอง ➔ Visit Calls
           var buTeams = allTeams.filter(t => String(t.BU_ID) === userBuId);
           var buTeamIds = buTeams.map(t => String(t.Team_ID));
           
@@ -510,15 +508,12 @@ window.renderFilterDropdowns = function(validDocsData) {
             }
           }
 
-          // รวมหมอจาก Territory ใน BU
           var terrs = allTerritories.filter(ter => buTeamIds.indexOf(String(ter.Team_ID)) !== -1);
           terrs.forEach(ter => allowedTerIds.push(String(ter.Territory_ID)));
         } else if (isManager) {
-          // Manager: ดึง Territory และลูกทีมใน Team ตัวเอง
           var terrs = allTerritories.filter(t => String(t.Team_ID) === userTeamId);
           terrs.forEach(t => allowedTerIds.push(String(t.Territory_ID)));
         } else {
-          // Sales Rep: ดึง Territory ตัวเอง
           if (userTerrId) allowedTerIds.push(userTerrId);
         }
 
@@ -650,10 +645,12 @@ window.restoreDocFilterState = function() {
 // ==========================================
 // 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
- window.loadDoctors = async function(forceReload = false, isBackground = false) {
+ // 🚀 loadDoctors (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
+window.loadDoctors = async function(forceReload = false, isBackground = false) {
   const docViewEl = document.getElementById('doctorListView');
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
+  // 1. แสดง UI Loading เฉพาะตอนโหลดครั้งแรกหรือกด Refresh
   if (!isBackground && (forceReload || !window.DocManagerCache.isLoaded || !hasData)) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const lTitle = document.getElementById('docLoadingTitleText');
@@ -669,6 +666,7 @@ window.restoreDocFilterState = function() {
     if (docViewEl) docViewEl.classList.add('is-loading');
   }
 
+  // 2. ใช้ Cache หน้าเดิมถ้าไม่ได้สั่ง Force Reload
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
@@ -680,22 +678,24 @@ window.restoreDocFilterState = function() {
     const sb = window.supabaseClient || window.supabase;
     if (!sb) throw new Error("Supabase client not initialized");
 
+    // ⚡ 3. สร้าง Base Server-Side Query (ดึงเฉพาะ Count + Columns ล่าสุด)
     let query = sb.from('Doctors').select('*', { count: 'exact' });
 
-    // 🔐 ดึงสิทธิ์จาก DocManagerCache ที่โหลดไว้ใน loadIndexDropdowns
-    const isGlobalViewer = window.DocManagerCache.isGlobalViewer;
-    const allowedDocIds = window.DocManagerCache.myAllowedDocIds || [];
+    // 🔐 4. Apply Permission กรองสิทธิ์ที่ Server-Side โดยตรง
+    const isGlobalViewer = window.myIsGlobalViewer || false;
+    const allowedDocIds = window.myAllowedDocIds || [];
 
     if (!isGlobalViewer) {
       if (allowedDocIds.length > 0) {
         query = query.in('Doc_ID', allowedDocIds);
       } else {
-        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); 
+        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); // ป้องกันกรณีไม่มีสิทธิ์
       }
     }
 
     window.saveDocFilterState();
 
+    // 🔍 5. Server-Side Smart Search
     const smartSearchInput = document.getElementById('smartDocSearchInput');
     const rawSearchVal = smartSearchInput ? smartSearchInput.value.trim().toLowerCase() : '';
 
@@ -703,22 +703,11 @@ window.restoreDocFilterState = function() {
       const searchTerms = rawSearchVal.split(/\s+/);
       for (let i = 0; i < searchTerms.length; i++) {
         const term = searchTerms[i];
-        const matchedHospIds = (window.DocManagerCache.hospitals || [])
-          .filter(h => {
-            const hName = String(h.Hospital || '').toLowerCase();
-            const hKnown = String(h.Known_As || '').toLowerCase();
-            return hName.includes(term) || hKnown.includes(term);
-          })
-          .map(h => h.Hospital_ID);
-
-        let orConditions = [`Doc_Name.ilike.%${term}%`, `Doc_Name_TH.ilike.%${term}%`];
-        if (matchedHospIds.length > 0) {
-          orConditions.push(`Hospital_ID.in.(${matchedHospIds.slice(0, 50).join(',')})`);
-        }
-        query = query.or(orConditions.join(','));
+        query = query.or(`Doc_Name.ilike.%${term}%,Doc_Name_TH.ilike.%${term}%`);
       }
     }
 
+    // 🎯 6. Server-Side Category Filters
     const specEl = document.getElementById('filterDocSpecialty');
     const typeEl = document.getElementById('filterDocType');
 
@@ -732,6 +721,7 @@ window.restoreDocFilterState = function() {
       query = query.or(`DoctorType_ID.in.(${selectedTypes.join(',')}),Type.in.(${selectedTypes.join(',')})`);
     }
 
+    // 📊 7. Server-Side Sorting & Pagination Range (ดึงแค่ 20 แถว)
     const sortCol = window.currentDocSortCol || 'Doc_Name';
     query = query.order(sortCol, { ascending: window.currentDocSortAsc });
 
@@ -742,6 +732,7 @@ window.restoreDocFilterState = function() {
 
     query = query.range(from, to);
 
+    // 🚀 8. ยิง Request เดียวไปที่ Supabase
     const res = await query;
     if (res.error) throw res.error;
 
@@ -749,6 +740,7 @@ window.restoreDocFilterState = function() {
     window.totalDoctorsCount = res.count || 0;
     window.DocManagerCache.isLoaded = true;
 
+    // 9. แสดงผลบนตาราง
     window.renderDoctorTableServerSide();
 
   } catch (err) {
