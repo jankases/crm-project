@@ -3772,7 +3772,7 @@ if (noAttachmentText) {
     }
 };
 
-window.initVisitPage = async function(forceReload) {
+ window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -3822,13 +3822,13 @@ window.initVisitPage = async function(forceReload) {
 
         await Promise.all(subTasks);
 
-        // 🌟 1. สั่งปลดซ่อนคอนเทนเนอร์แถบ Filter
-        var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
-        if (filterZone) filterZone.classList.remove('d-none');
-
-        // 🌟 2. วาด Filter UI หลังจาก Master Data และ Visits โหลดเสร็จสิ้นสมบูรณ์
+        // 🌟 [จุดที่หลุดหายไป]: เรียกปั้น Filter UI และแสดง Container ออกบนหน้าจอ
         if (typeof window.renderVisitFilters === 'function') {
             window.renderVisitFilters();
+        } else if (typeof window.setupFiltersDropdowns === 'function') {
+            var crmUser = null; 
+            try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+            window.setupFiltersDropdowns(crmUser, []);
         }
 
         if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
@@ -3845,7 +3845,6 @@ window.initVisitPage = async function(forceReload) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
-        // 🌟 3. [FIX] แก้ชื่อตัวแปรให้ถูกต้องจาก _isDocInitRunning เป็น _isInitRunning
         window._isInitRunning = false;  
 
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
