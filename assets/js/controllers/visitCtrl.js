@@ -1550,13 +1550,23 @@ window.loadVisits = async function(forceReload, isBackground) {
 
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
+    // 🌟 [ปรับปรุงจุดที่ 1]: ถ้าสั่งโหลดแบบจังหวะหน้าจอหลัก ให้ยัด Spinner หมุนลงใน tbody ของตารางโดยตรง ไม่ดัน Filter ให้เบี้ยว
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) {
-            loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
-        }
-        if (loadingDescEl) {
-            loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
+        var loadingText = currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...';
+        var loadingSubText = currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ';
+
+        var tbody = document.getElementById('visitTableBody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-2" style="width: 2.5rem; height: 2.5rem;" role="status"></div>
+                        <div class="fw-bold text-dark fs-6">${loadingText}</div>
+                        <small class="text-muted">${loadingSubText}</small>
+                    </td>
+                </tr>
+            `;
         }
 
         if (visitViewEl) visitViewEl.classList.add('is-loading');
@@ -1606,9 +1616,6 @@ window.loadVisits = async function(forceReload, isBackground) {
 
       if (!isGlobalAdmin) {
           if (isProductManager) {
-              // ----------------------------------------------------
-              // Level 4: Product Manager (อิงตาม Rep_Products / pmProducts)
-              // ----------------------------------------------------
               var pmProdIdsRaw = sessionStorage.getItem('pmProducts');
               var pmProdIds = pmProdIdsRaw ? JSON.parse(pmProdIdsRaw) : [];
 
@@ -1628,9 +1635,6 @@ window.loadVisits = async function(forceReload, isBackground) {
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
               }
           } else if (isBuHead && window.myUserBuId) {
-              // ----------------------------------------------------
-              // Level 1: BU Head (เห็นเฉพาะ Visit ที่คีย์ "ยาของ BU ตัวเอง" ทั้งหมด รวมงานคีย์ของ PM และทุกคน)
-              // ----------------------------------------------------
               var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', window.myUserBuId);
               var buTeamIds = (buTeams || []).map(function(t) { return t.Team_ID; });
 
@@ -1654,9 +1658,6 @@ window.loadVisits = async function(forceReload, isBackground) {
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
               }
           } else {
-              // ----------------------------------------------------
-              // Level 2-3: Manager / Sales Rep (กรองเฉพาะ Rep ในสายงานจริงเท่านั้น)
-              // ----------------------------------------------------
               var allowedReps = window.myAllowedRepIds || [];
               if (myRepId && allowedReps.indexOf(myRepId) === -1) {
                   allowedReps.push(myRepId);
@@ -1789,14 +1790,14 @@ window.loadVisits = async function(forceReload, isBackground) {
       var myDraftsCount = (window.globalVisits || []).filter(function(v) { return v.Status === 'Pending' && String(v.Rep_ID) === myRepId; }).length;
       if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
 
-} catch (err) {
+    } catch (err) {
       console.error("Load Visits Error:", err);
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      // 🌟 [เติม 2 บรรทัดนี้]: สั่งปลดซ่อนคอนเทนเนอร์หลัก และสั่งเปิด Filter ทันทีที่โหลดเสร็จ
+      // 🌟 [ปรับปรุงจุดที่ 2]: ปลดล็อกคอนเทนเนอร์และโชว์ Filter ค้างไว้นิ่งๆ ตลอดเวลา
       var mainContainer = document.getElementById('visitMainContentContainer');
       var filterZoneGroup = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
       
