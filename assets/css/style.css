@@ -953,6 +953,21 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   margin-top: 0.5rem !important;
 }
 
+/* 🌟 บังคับซ่อน Filter Zone ทันทีเมื่อติดคลาส d-none */
+#visitFilterZoneGroup.d-none,
+#visitFilterZone.d-none {
+  display: none !important;
+}
+
+/* 🌟 เมื่อ Calendar โชว์ ให้ขยายยืดเต็มพื้นที่ที่เหลือทันที */
+#visitCalendarZone:not(.d-none) {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin-top: 0.5rem !important;
+}
+
 /* ==========================================
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
