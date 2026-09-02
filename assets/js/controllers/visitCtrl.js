@@ -761,7 +761,7 @@ window.closeMediaPresentation = async function() {
 // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================
- window.toggleMainView = function(viewMode) {
+  window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer');
@@ -784,8 +784,8 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 สั่งซ่อนทั้งกล่องแม่และตารางย่อยเพื่อความชัวร์
-      if (mainContainer) mainContainer.classList.add('d-none');
+      // 🌟 [จุดสำคัญ]: สั่งซ่อนเฉพาะตาราง และเปิดกล่องแม่ไว้เพื่อให้ Filter ยังแสดงโชว์
+      if (mainContainer) mainContainer.classList.remove('d-none');
       if (listZone) listZone.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
@@ -802,7 +802,6 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 สั่งซ่อนปฏิทิน และเปิดกล่องตารางหลักขึ้นมา
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
       if (listZone) listZone.classList.remove('d-none');
