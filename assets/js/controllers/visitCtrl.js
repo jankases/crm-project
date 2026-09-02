@@ -764,14 +764,11 @@ window.closeMediaPresentation = async function() {
  window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
-  var mainContainer = document.getElementById('visitMainContentContainer');
-  var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-  var listZone = document.getElementById('visitListZone');
-  var calZone = document.getElementById('visitCalendarZone');
+  var mainContainer = document.getElementById('visitMainContentContainer'); // หุ้ม Filter + List
+  var calZone = document.getElementById('visitCalendarZone');               // หุ้ม Calendar
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var isEN = (appLang === 'en');
-
   var listText = isEN ? 'List' : 'รายการ';
   var calText = isEN ? 'Calendar' : 'ปฏิทิน';
 
@@ -785,12 +782,8 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 [จุดแก้ไข]: บังคับสั่งซ่อนกล่องแม่, Filter Zone และ ตาราง ออกทั้งหมด
+      // 🌟 ซ่อนกล่องแม่หลัก (Filter + ตาราง) ทั้งหมด แล้วเปิด Calendar ให้แผ่เต็มหน้าจอ
       if (mainContainer) mainContainer.classList.add('d-none');
-      if (filterZone) filterZone.classList.add('d-none');
-      if (listZone) listZone.classList.add('d-none');
-      
-      // 🌟 เปิดเฉพาะ Calendar Zone ให้ขยายเต็มพื้นที่
       if (calZone) calZone.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
@@ -806,11 +799,9 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 มุมมอง List: ซ่อน Calendar แล้วเปิด Filter + ตาราง + กล่องแม่ กลับมา
+      // 🌟 ซ่อน Calendar แล้วเปิดกล่องแม่หลัก (Filter + ตาราง) กลับมา
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
-      if (filterZone) filterZone.classList.remove('d-none');
-      if (listZone) listZone.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
       window.VisitManagerCache.currentMainView = 'list';
