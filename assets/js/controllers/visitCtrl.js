@@ -1182,33 +1182,31 @@ window.loadDropdowns = async function(forceReload) {
   }
 };
 
-window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
 
-    // 🌟 [ปรับปรุงจุดนี้]: สั่งเปิด display ให้ชัดเจน
-    var filterZone = document.getElementById('visitFilterZone') || document.getElementById('visitFilterSection') || document.getElementById('visitFilterContainer');
+    // 🌟 [FIX ID]: ชี้ไปที่ visitFilterZoneGroup ตรงๆ เพื่อสั่งปลดคลาส d-none แสดงแถบ Filter บนหน้าจอ
+    var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
     if (filterZone) {
         filterZone.classList.remove('d-none');
-        filterZone.style.display = 'block';
+        filterZone.style.setProperty('display', 'block', 'important');
     }
 
     if (!repSelect && !terSelect) return;
-    
+
     var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
     var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
 
     var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
     var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
     
-    // 🌟 ดึงค่าสิทธิ์จาก Global Windows Context ที่ app.js ประกาศไว้
     var isGlobalViewer = window.myIsGlobalViewer || false;
     var isProductManager = window.myIsProductManager || false;
     var isBuHead = window.myIsBuHead || false;
     var isManager = window.myIsManager || false;
     var isSales = window.myIsSalesRole || (!isGlobalViewer && !isProductManager && !isBuHead && !isManager);
 
-    // 🌟 [FIX 2]: เพิ่มการเช็ก fallback จาก crmUser.BU / crmUser.bu_id
     var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
     var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
     var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
@@ -1220,7 +1218,6 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
 
     if (!isGlobalViewer) {
         if (isProductManager) {
-            // PM: ดูแลตามรายการ Product ใน Rep_Products (ดูสิทธิ์ของคนทั้งหมดที่มีการ Tag ยา)
             (window.globalUsersList || []).forEach(function(u) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim();
                 var uem = String(u.Email || u.email || '').toLowerCase().trim();
@@ -1228,7 +1225,6 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 if (uem && myAllowedEmails.indexOf(uem) === -1) myAllowedEmails.push(uem);
             });
         } else if (isBuHead) {
-            // BU Head: ค้นหาทุก Team ที่สังกัด BU ตัวเอง
             (window.globalTeamList || []).forEach(function(t) {
                 var tBuId = String(t.BU_ID || t.BU || t.bu_id || '').trim().toLowerCase();
                 var tid = String(t.Team_ID || t.id || t.Team).trim();
@@ -1237,7 +1233,6 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 }
             });
 
-            // ค้นหาทุก Territory ใน Teams ของ BU ตัวเอง
             (window.globalTerritoryList || []).forEach(function(ter) {
                 var trTeamId = String(ter.Team_ID || ter.Team || '').trim();
                 var trId = String(ter.Territory_ID || ter.id || ter.Territory).trim();
@@ -1246,7 +1241,6 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 }
             });
         } else if (isManager) {
-            // Manager: ดึงเฉพาะ Territory ภายใต้ Team ตัวเอง
             if (userTeamId) {
                 myAllowedTeamIds.push(userTeamId);
                 (window.globalTerritoryList || []).forEach(function(ter) {
@@ -1258,11 +1252,9 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                 });
             }
         } else if (isSales) {
-            // Sales Rep: ดึงเฉพาะ Territory ตัวเอง
             if (userTerrId) myAllowedTerIds.push(userTerrId);
         }
 
-        // คัดกรอง Rep_ID ลูกน้องที่เข้าเงื่อนไขสิทธิ์
         (window.globalUsersList || []).forEach(function(u) {
             var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
@@ -1306,7 +1298,6 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     var terOptionsData = [];
     var terMap = new Map();
 
-    // เติม Territory / Team / BU ลง Dropdown
     (window.globalTerritoryList || []).forEach(function(t) {
         var tid = String(t.Territory_ID || t.id || t.Territory).trim(); 
         var tnm = String(t.Territory || t.Territory_Name || tid).trim();
