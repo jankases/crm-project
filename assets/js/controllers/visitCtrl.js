@@ -764,7 +764,8 @@ window.closeMediaPresentation = async function() {
  window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
-  var listZone = document.getElementById('visitMainContentContainer');
+  var mainContainer = document.getElementById('visitMainContentContainer');
+  var listZone = document.getElementById('visitListZone');
   var calZone = document.getElementById('visitCalendarZone');
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -782,6 +783,9 @@ window.closeMediaPresentation = async function() {
           calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius'; 
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
+      
+      // 🌟 สั่งซ่อนทั้งกล่องแม่และตารางย่อยเพื่อความชัวร์
+      if (mainContainer) mainContainer.classList.add('d-none');
       if (listZone) listZone.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
@@ -797,7 +801,10 @@ window.closeMediaPresentation = async function() {
           calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
+      
+      // 🌟 สั่งซ่อนปฏิทิน และเปิดกล่องตารางหลักขึ้นมา
       if (calZone) calZone.classList.add('d-none');
+      if (mainContainer) mainContainer.classList.remove('d-none');
       if (listZone) listZone.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
