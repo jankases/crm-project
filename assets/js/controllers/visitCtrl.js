@@ -765,7 +765,6 @@ window.closeMediaPresentation = async function() {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer');
-  var listZone = document.getElementById('visitListZone');
   var calZone = document.getElementById('visitCalendarZone');
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -784,9 +783,8 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 [จุดสำคัญ]: สั่งซ่อนเฉพาะตาราง และเปิดกล่องแม่ไว้เพื่อให้ Filter ยังแสดงโชว์
-      if (mainContainer) mainContainer.classList.remove('d-none');
-      if (listZone) listZone.classList.add('d-none');
+      // 🌟 [ถูกต้อง 100%]: ซ่อนกล่องแม่ (Filter + ตาราง) และโชว์ปฏิทินเต็มหน้าจอ
+      if (mainContainer) mainContainer.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
@@ -797,14 +795,15 @@ window.closeMediaPresentation = async function() {
           listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius'; 
           listBtn.innerHTML = '<i class="fa-solid fa-list me-2"></i><span data-i18n="btn_list">' + listText + '</span>';
       }
+      
       if (calBtn) { 
           calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
+      // 🌟 มุมมอง List: ซ่อนปฏิทิน เปิดกล่องแม่ (Filter + ตาราง)
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
-      if (listZone) listZone.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
       window.VisitManagerCache.currentMainView = 'list';
