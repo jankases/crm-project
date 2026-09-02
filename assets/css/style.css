@@ -46,7 +46,6 @@ html, body {
   min-height: 0 !important;
 }
 
-#visitMainContentContainer,
 #doctorMainContentContainer,
 .doc-main-content,
 .hosp-main-content {
@@ -58,7 +57,6 @@ html, body {
 }
 
 /* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น */
-#visitListZone, 
 #doctorListZone,
 #hospListZone {
   display: flex !important;
@@ -892,11 +890,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   align-items: center !important;
 }
   
- /* ==========================================
-   🌟 PERFECT VIEW SWITCHING (FULL CALENDAR)
+/* ==========================================
+   🌟 ABSOLUTE D-NONE RESPECTING VIEW ENGINE
    ========================================== */
 
-/* 1. ตอนโหลดข้อมูล: ซ่อนทั้งกล่องแม่และปฏิทิน แล้วแสดงการ์ด Loading */
+/* 1. ตอนกำลังโหลดข้อมูล: ซ่อนทั้งกล่องแม่และปฏิทิน แล้วแสดงการ์ด Loading */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -913,20 +911,46 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-radius: 16px !important;
 }
 
-/* 2. ตอนโหลดเสร็จ: ปิดการ์ด Loading นอกตาราง */
+/* 2. ตอนโหลดเสร็จ: ซ่อนการ์ด Loading นอกตาราง */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
 
-/* 3. สั่ง display: flex เฉพาะตัวที่ไม่ติด d-none */
-#visitMainContentContainer:not(.d-none),
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
-}
-
+/* 3. สั่งซ่อน 100% เมื่อมีคลาส .d-none (ข่มคำสั่ง flex อื่นทิ้งทั้งหมด) */
+.d-none,
 #visitMainContentContainer.d-none,
+#visitListZone.d-none,
 #visitCalendarZone.d-none {
   display: none !important;
+}
+
+/* 4. เปิดโชว์เฉพาะตัวที่ไม่มีคลาส .d-none */
+#visitMainContentContainer:not(.d-none) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+#visitListZone:not(.d-none) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  justify-content: space-between !important;
+}
+
+#visitCalendarZone:not(.d-none) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  margin-top: 0.5rem !important;
 }
 
 /* ==========================================
@@ -1032,23 +1056,6 @@ mark.highlight-search {
 /* ==========================================
    📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
    ========================================== */
-
-/* เมื่อตารางถูกซ่อน ให้กล่องแม่ยุบความสูงเหลือเท่า Filter เพื่อไม่ให้เกิดช่องว่างสีขาว */
-#visitMainContentContainer:has(#visitListZone.d-none) {
-  flex: 0 0 auto !important;
-  height: auto !important;
-}
-
-#visitCalendarZone {
-  flex: 1 1 auto !important; 
-  height: 100% !important;
-  max-height: none !important; 
-  min-height: 0 !important;
-  overflow: hidden !important;
-  flex-direction: column !important;
-  margin-top: 0.5rem !important;
-}
-
 #calendar {
   flex-grow: 1 !important;
   height: 100% !important;
@@ -1124,15 +1131,6 @@ mark.highlight-search {
   border-radius: 8px !important;
 }
 
-#visitListView.d-none,
-#doctorListView.d-none,
-#hospListView.d-none,
-#visitFormView.d-none,
-#visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitMainContentContainer.d-none {
-  display: none !important;
-}
 /* ==========================================
    ✨ EDIT/ADD VISIT FORM - APP-LIKE SCROLL & PERFECT FIT
    ========================================== */
