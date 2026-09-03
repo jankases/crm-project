@@ -3830,16 +3830,32 @@ window.renderVisitFilters = function() {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
+    // 🎯 1. [แก้บั๊ก แว๊บ FOUC] บังคับเข้าสู่สถานะ Loading "ทันที" ตั้งแต่บรรทัดแรก!
+    // สั่งซ่อนตารางและปฏิทินแบบเด็ดขาด ก่อนที่โค้ดจะไปหน่วงเวลา (await) ในบรรทัดถัดไป
+    // ทำให้เบราว์เซอร์ไม่มีโอกาสได้วาดหน้าตารางโล่งๆ ออกมาให้เราเห็นเลยแม้แต่เสี้ยววินาที
+    var visitViewEl = document.getElementById('visitListView');
+    var mainContainer = document.getElementById('visitMainContentContainer');
+    var calZone = document.getElementById('visitCalendarZone');
+
+    if (visitViewEl) visitViewEl.classList.add('is-loading');
+    if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
+    if (calZone) calZone.style.setProperty('display', 'none', 'important');
+
+    // ⏳ 2. จังหวะนี้เบราว์เซอร์จะ Render หน้าจอ (ซึ่งมันจะเห็นแค่หน้า Loading หมุนๆ 100% เต็มจอ)
     var domWaitCount = 0;
     while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
         await new Promise(r => setTimeout(r, 20));
         domWaitCount++;
     }
 
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0);
+    // 3. เริ่มกระบวนการโหลดข้อมูล (เบื้องหลังการทำงาน)
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
-    var visitViewEl = document.getElementById('visitListView');
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
 
@@ -3852,8 +3868,6 @@ window.renderVisitFilters = function() {
         if (loadingDescEl) {
             loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         }
-
-        visitViewEl.classList.add('is-loading');
     }
 
     try {
@@ -3871,12 +3885,9 @@ window.renderVisitFilters = function() {
 
         await Promise.all(subTasks);
 
-        // 🌟 [จุดที่หลุดหายไป]: เรียกปั้น Filter UI และแสดง Container ออกบนหน้าจอ
         if (typeof window.renderVisitFilters === 'function') {
             window.renderVisitFilters();
         } else if (typeof window.setupFiltersDropdowns === 'function') {
-            var crmUser = null; 
-            try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
             window.setupFiltersDropdowns(crmUser, []);
         }
 
@@ -3896,7 +3907,12 @@ window.renderVisitFilters = function() {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
 
-        if (visitViewEl) visitViewEl.classList.remove('is-loading');
+        // 🎯 (ไม่ต้องใส่โค้ดเปิดตารางตรงนี้แล้ว เพราะ loadVisits จัดการคลายล็อกให้ใน finally ของมันเองอย่างสมบูรณ์แบบ)
+        if (shouldFetchDB === false) {
+             if (visitViewEl) visitViewEl.classList.remove('is-loading');
+             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
+             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
+        }
     }
 };
 
