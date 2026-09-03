@@ -1377,7 +1377,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-        // 🌟 5. ผูกเข้ากับ TomSelect
+        // 🌟 5. ผูกเข้ากับ TomSelect 
         if (typeof TomSelect !== 'undefined') {
             if (repSelect) {
                 if (!window.tomSelectRepInstance) {
@@ -1389,12 +1389,16 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         dropdownParent: null, 
                         onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); } 
                     });
-                } else {
-                    window.tomSelectRepInstance.clearOptions();
-                    window.tomSelectRepInstance.addOption(repOptionsData);
-                    window.tomSelectRepInstance.refreshOptions(false);
+                } else if (!window.isInitialLoading) {
+                    // 🎯 [Fix]: ถ้าไม่ใช่การโหลดหน้าจอครั้งแรก (แปลว่าเป็นการอัปเดตข้อมูล) 
+                    // ให้เช็กก่อนว่าข้อมูลเปลี่ยนไหม ถ้าไม่เปลี่ยนไม่ต้องทำอะไร จะได้ไม่รีเซ็ตค่าที่ผู้ใช้เลือกไว้!
+                    // แต่ในกรณีนี้เราตั้งให้มันดึงข้อมูลครั้งเดียวตอนเปิดหน้าเว็บ ดังนั้นไม่ต้องอัปเดตออปชั่นใหม่ทุกครั้งครับ
                 }
-                if (oldRepVal.length > 0) window.tomSelectRepInstance.setValue(oldRepVal, true);
+                
+                // 🎯 [Fix]: สั่งให้เซ็ตค่ากลับด้วย if นี้ (เพื่อให้ระบบจำค่าได้ตอนรีเฟรชหน้า แต่ถ้ากดเลือกเองไม่ต้องเซ็ตทับ)
+                if (oldRepVal.length > 0 && window.isInitialLoading) {
+                    window.tomSelectRepInstance.setValue(oldRepVal, true);
+                }
             }
 
             if (terSelect) {
@@ -1407,12 +1411,13 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         dropdownParent: null,
                         onChange: function() { if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); } 
                     });
-                } else {
-                    window.tomSelectTerInstance.clearOptions();
-                    window.tomSelectTerInstance.addOption(terOptionsData);
-                    window.tomSelectTerInstance.refreshOptions(false);
+                } else if (!window.isInitialLoading) {
+                    // 🎯 [Fix]: ป้องกันการเคลียร์ Option ทิ้งแล้วสร้างใหม่
                 }
-                if (oldTerVal.length > 0) window.tomSelectTerInstance.setValue(oldTerVal, true);
+                
+                if (oldTerVal.length > 0 && window.isInitialLoading) {
+                    window.tomSelectTerInstance.setValue(oldTerVal, true);
+                }
             }
         }
     } catch (err) {
