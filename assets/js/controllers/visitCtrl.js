@@ -1890,14 +1890,66 @@ window.renderFormProductDropdown = async function() {
         if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
     }
 };
- 
+  
+// 🎯 1. กลุ่มฟังก์ชันอัปเดต Filter และค้นหา (ทำงานเบื้องหลัง ไม่ให้หน้าจอกระพริบ)
 window.handleFilterChange = function(source) { 
     if (window.isInitialLoading) return; 
     window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true); 
-    }
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
 };
+
+window.filterVisits = function() {
+    if (window.isInitialLoading) return; 
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
+};
+
+window.debouncedFilterVisits = function() {
+    if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
+    window.filterDebounceTimer = setTimeout(function() {
+        window.currentPage = 1;
+        if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+    }, 400);
+};
+
+// 🎯 2. กลุ่มฟังก์ชันเปลี่ยนหน้าและจัดเรียงตาราง (ทำงานเบื้องหลังเช่นกัน)
+window.goToPage = function(page) {
+    var rows = parseInt(window.rowsPerPage) || 20;
+    var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
+    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+    window.currentPage = page;
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+};
+
+window.changeRowsPerPage = function() {
+    var selectEl = document.getElementById('visitRowsPerPage');
+    window.rowsPerPage = parseInt(selectEl.value) || 20;
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+};
+
+window.sortVisits = function(col) {
+    if (window.currentSortCol === col) window.currentSortAsc = !window.currentSortAsc; 
+    else { window.currentSortCol = col; window.currentSortAsc = true; }
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+};
+
+// 🎯 3. กลุ่ม Smart Search (ไอคอนแว่นขยาย)
+window.triggerSmartSearch = function() {
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+};
+
+window.clearSmartSearchInput = function() {
+    var searchInput = document.getElementById('smartSearchInput');
+    var clearBtn = document.getElementById('btnClearSmartSearch');
+    if (searchInput) { searchInput.value = ''; searchInput.focus(); }
+    if (clearBtn) clearBtn.classList.add('d-none');
+
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+};
+ 
 
 window.clearVisitFilters = function() {
     if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
@@ -2145,40 +2197,8 @@ window.renderVisitTableServerSide = function() {
       }
   }
 };
-window.goToPage = function(page) {
-  var rows = parseInt(window.rowsPerPage) || 20;
-  var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
-  if (page < 1 || (totalPages > 0 && page > totalPages)) return;
-  window.currentPage = page;
-  window.loadVisits(true);
-};
-
-window.changeRowsPerPage = function() {
-  var selectEl = document.getElementById('visitRowsPerPage');
-  window.rowsPerPage = parseInt(selectEl.value) || 20;
-  window.currentPage = 1;
-  window.loadVisits(true);
-};
-
-window.filterVisits = function() {
-    if (window.isInitialLoading) return; 
-    window.currentPage = 1;
-    window.loadVisits(true); 
-};
-
-window.debouncedFilterVisits = function() {
-    if (window.filterDebounceTimer) clearTimeout(window.filterDebounceTimer);
-    window.filterDebounceTimer = setTimeout(function() {
-        window.currentPage = 1;
-        if (typeof window.loadVisits === 'function') window.loadVisits(true);
-    }, 400);
-};
-
-window.sortVisits = function(col) {
-  if (window.currentSortCol === col) window.currentSortAsc = !window.currentSortAsc; 
-  else { window.currentSortCol = col; window.currentSortAsc = true; }
-  window.loadVisits(true);
-};
+ 
+ 
 
 // ==========================================
 // 📝 10. FORM ACTIONS
@@ -4473,12 +4493,7 @@ window.bindDoctorChangeForHistory = function() {
     }
 };
 
-window.triggerSmartSearch = function() {
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true);
-    }
-};
+ 
 
 window.fpStartInstance = null;
 window.fpEndInstance = null;
@@ -4894,24 +4909,7 @@ window.handleSearchInput = function(inputEl) {
     }, 500);
 };
 
-// ฟังก์ชันแตะปุ่ม (x) ล้างข้อความค้นหา
-window.clearSmartSearchInput = function() {
-    var searchInput = document.getElementById('smartSearchInput');
-    var clearBtn = document.getElementById('btnClearSmartSearch');
-    
-    if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-    }
-    if (clearBtn) {
-        clearBtn.classList.add('d-none');
-    }
-
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true);
-    }
-};
+ 
 // ==========================================
 // 📄 PAGINATION CONTROLS ENGINE
 // ==========================================
