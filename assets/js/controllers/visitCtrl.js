@@ -764,14 +764,15 @@ window.closeMediaPresentation = async function() {
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ========================================== 
  // 🌟 ฟังก์ชันสลับหน้า List / Calendar (แก้ไขจุดสลับ View ให้เสร็จสมบูรณ์)
+ // ==========================================
+// 📊 6. VIEW & UI SWITCHERS & STATS
+// ========================================== 
+// 🌟 1. ฟังก์ชันสลับหน้า List / Calendar (Centralized Override)
 window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
-  var mainContainer = document.getElementById('visitMainContentContainer'); // Filter + List Table
-  var calZone = document.getElementById('visitCalendarZone');               // Calendar
-
-  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  var isEN = (appLang === 'en');
+  var mainContainer = document.getElementById('visitMainContentContainer'); 
+  var calZone = document.getElementById('visitCalendarZone');               
 
   window.VisitManagerCache = window.VisitManagerCache || {};
   window.VisitManagerCache.currentMainView = viewMode;
@@ -780,31 +781,36 @@ window.toggleMainView = function(viewMode) {
       if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       
-      // 🎯 สลับการซ่อน/โชว์ด้วยคลาส d-none มาตรฐาน และล้าง Inline Style ที่ค้างออกให้หมด
-      if (mainContainer) {
-          mainContainer.classList.add('d-none');
-          mainContainer.style.display = '';
-      }
-      if (calZone) {
-          calZone.classList.remove('d-none');
-          calZone.style.display = '';
-      }
+      if (mainContainer) mainContainer.setAttribute('style', 'display: none !important;');
+      if (calZone) calZone.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
       
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       
-      // 🎯 สลับการซ่อน/โชว์ด้วยคลาส d-none มาตรฐาน และล้าง Inline Style ที่ค้างออกให้หมด
-      if (calZone) {
-          calZone.classList.add('d-none');
-          calZone.style.display = '';
-      }
-      if (mainContainer) {
-          mainContainer.classList.remove('d-none');
-          mainContainer.style.display = '';
-      }
+      if (calZone) calZone.setAttribute('style', 'display: none !important;');
+      if (mainContainer) mainContainer.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
   }
+};
+
+// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form (Centralized Override)
+window.switchVisitView = function(viewId) {
+  var listView = document.getElementById('visitListView');
+  var formView = document.getElementById('visitFormView');
+
+  if (viewId === 'visitFormView') {
+      if (listView) listView.setAttribute('style', 'display: none !important;');
+      if (formView) formView.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%;');
+  } else {
+      if (formView) formView.setAttribute('style', 'display: none !important;');
+      if (listView) listView.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%;');
+      
+      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
+                        ? window.VisitManagerCache.currentMainView : 'list';
+      if (typeof window.toggleMainView === 'function') window.toggleMainView(currentView);
+  }
+  window.scrollTo(0, 0);
 };
 
 // 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form 
@@ -1202,6 +1208,7 @@ window.loadDropdowns = async function(forceReload) {
 };
 
 // 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว 
+ // 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว 
 window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
@@ -1212,17 +1219,11 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
             filterZone.classList.remove('visit-filter-compact', 'd-none');
         }
 
-        var mainContainer = document.getElementById('visitMainContentContainer');
         var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
 
-        // 🎯 สั่งซ่อน/โชว์ ผ่านการเพิ่ม/ลบ คลาส d-none เท่านั้น (เลิกใช้ setAttribute('style'))
-        if (mainContainer) {
-            if (currentView === 'list') {
-                mainContainer.classList.remove('d-none');
-            } else {
-                mainContainer.classList.add('d-none');
-            }
-            mainContainer.style.display = ''; // เคลียร์ Inline Style เก่าทิ้ง
+        // 🎯 ส่งหน้าที่บังคับเปิดปิดให้ toggleMainView จัดการที่เดียว ป้องกันการกระพริบ
+        if (typeof window.toggleMainView === 'function') {
+            window.toggleMainView(currentView);
         }
 
         if (!repSelect && !terSelect) return;
@@ -1401,142 +1402,6 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
         // 🌟 6. การันตีว่าตัวแประบบถูกปล่อยล็อกเสมอ ป้องกันหน้าเว็บค้าง
         window.isPermissionCalculated = true; 
     }
-};
-  
-window.renderFormProductDropdown = async function() {
-    var formProdSelect = document.getElementById('visitProductId');
-    if (!formProdSelect) return;
-
-    var oldProdVal = [];
-    if (window.tomSelectProdInstance) {
-        var pv = window.tomSelectProdInstance.getValue();
-        oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
-    }
-
-    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) ? window.globalProductsList : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
-
-    if (!allProds || allProds.length === 0) {
-        try {
-            var res = await window.supabaseClient.from('Products').select('*').order('Product', { ascending: true });
-            if (res.data && res.data.length > 0) { allProds = res.data; window.globalProductsList = res.data; }
-        } catch(e) {}
-    }
-
-    var filteredProds = [];
-    var isGlobalAdmin = window.myIsGlobalViewer;
-
-    if (isGlobalAdmin) {
-        filteredProds = allProds;
-    } else {
-        var targetTeams = [];
-        var visitIdEl = document.getElementById('visitId');
-        var currentVisitId = visitIdEl ? visitIdEl.value : '';
-
-        if (currentVisitId && currentVisitId !== 'NEW' && window.globalVisits) {
-            var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
-            if (v && v.Rep_ID) {
-                var targetUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Rep_ID); });
-                if (targetUser) {
-                    var uTeam = String(targetUser.Team_ID || targetUser.Team || '').trim();
-                    if (!uTeam) {
-                        var uTerr = String(targetUser.Territory_ID || targetUser.Territory || '').trim();
-                        var matchedTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
-                        if (matchedTer) uTeam = String(matchedTer.Team_ID || matchedTer.Team || '').trim();
-                    }
-                    if (uTeam) targetTeams.push(uTeam);
-                }
-            }
-        }
-
-        if (targetTeams.length === 0) {
-            var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-            if (crmUser) {
-                var myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
-                if (!myTeam) {
-                    var myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
-                    var matchedMyTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr; });
-                    if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
-                }
-                if (myTeam) targetTeams.push(myTeam);
-            }
-            if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
-                window.myAllowedTeamIds.forEach(function(t) {
-                    if (targetTeams.indexOf(t) === -1) targetTeams.push(t);
-                });
-            }
-        }
-
-        var teamProdLinks = (window.VisitManagerCache && window.VisitManagerCache.teamProdLinks) ? window.VisitManagerCache.teamProdLinks : [];
-        var allowedProdIds = [];
-
-        teamProdLinks.forEach(function(link) {
-            var tId = String(link.Team_ID || link.Team);
-            if (targetTeams.indexOf(tId) !== -1 || targetTeams.indexOf(String(link.Team_Name)) !== -1) {
-                var pId = String(link.Product_ID || link.Product);
-                if (allowedProdIds.indexOf(pId) === -1) {
-                    allowedProdIds.push(pId);
-                }
-            }
-        });
-
-        if (targetTeams.length > 0) {
-            filteredProds = allProds.filter(function(p) {
-                return allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1;
-            });
-        } else {
-            filteredProds = allProds;
-        }
-    }
-
-    var fHtml = '';
-    (filteredProds).forEach(function(p) {
-        fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>';
-    });
-    formProdSelect.innerHTML = fHtml;
-
-    if (typeof TomSelect !== 'undefined') {
-        window.safeDestroyTs(window.tomSelectProdInstance);
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
-        window.tomSelectProdInstance = new TomSelect('#visitProductId', {
-            plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
-            onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
-        });
-        if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
-    }
-};
- 
-window.handleFilterChange = function(source) { 
-    if (window.isInitialLoading) return; 
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true); 
-    }
-};
-
-window.clearVisitFilters = function() {
-    if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
-    if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
-    if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue('', true);
-    
-    if (window.fpStartInstance) window.fpStartInstance.clear();
-    if (window.fpEndInstance) window.fpEndInstance.clear();
-
-    var stDate = document.getElementById('filterStartDate');
-    var endDate = document.getElementById('filterEndDate');
-    if (stDate && !window.fpStartInstance) stDate.value = '';
-    if (endDate && !window.fpEndInstance) endDate.value = '';
-
-    var stEl = document.getElementById('filterVisitStatus');
-    if (stEl && !window.tomSelectStatusInstance) { 
-        stEl.value = ''; 
-        stEl.classList.add('filter-placeholder-text'); 
-    }
-    
-    var searchEl = document.getElementById('smartSearchInput');
-    if (searchEl) searchEl.value = '';
-
-    if (typeof window.filterVisits === 'function') window.filterVisits();
 };
 
 // ==========================================
@@ -1809,20 +1674,151 @@ window.loadVisits = async function(forceReload, isBackground) {
     } finally {
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-      // 🎯 [จุดแก้ไขเด็ดขาด]: ถอด style.setProperty ออก และควบคุมผ่านคลาส d-none เท่านั้น
+      // 🎯 ส่งหน้าที่บังคับเปิดปิดให้ toggleMainView จัดการที่เดียว ป้องกันการแทรกแซง
       var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-      var mainContainer = document.getElementById('visitMainContentContainer');
-      
-      if (mainContainer) {
-          if (currentMainView === 'list') {
-              mainContainer.classList.remove('d-none');
-          } else {
-              mainContainer.classList.add('d-none');
-          }
-          mainContainer.style.display = ''; // เคลียร์ Inline style แปลกปลอมทิ้ง
+      if (typeof window.toggleMainView === 'function') {
+          window.toggleMainView(currentMainView);
       }
     }
 };
+  
+window.renderFormProductDropdown = async function() {
+    var formProdSelect = document.getElementById('visitProductId');
+    if (!formProdSelect) return;
+
+    var oldProdVal = [];
+    if (window.tomSelectProdInstance) {
+        var pv = window.tomSelectProdInstance.getValue();
+        oldProdVal = Array.isArray(pv) ? pv : (pv ? [pv] : []);
+    }
+
+    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) ? window.globalProductsList : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
+
+    if (!allProds || allProds.length === 0) {
+        try {
+            var res = await window.supabaseClient.from('Products').select('*').order('Product', { ascending: true });
+            if (res.data && res.data.length > 0) { allProds = res.data; window.globalProductsList = res.data; }
+        } catch(e) {}
+    }
+
+    var filteredProds = [];
+    var isGlobalAdmin = window.myIsGlobalViewer;
+
+    if (isGlobalAdmin) {
+        filteredProds = allProds;
+    } else {
+        var targetTeams = [];
+        var visitIdEl = document.getElementById('visitId');
+        var currentVisitId = visitIdEl ? visitIdEl.value : '';
+
+        if (currentVisitId && currentVisitId !== 'NEW' && window.globalVisits) {
+            var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
+            if (v && v.Rep_ID) {
+                var targetUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Rep_ID); });
+                if (targetUser) {
+                    var uTeam = String(targetUser.Team_ID || targetUser.Team || '').trim();
+                    if (!uTeam) {
+                        var uTerr = String(targetUser.Territory_ID || targetUser.Territory || '').trim();
+                        var matchedTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
+                        if (matchedTer) uTeam = String(matchedTer.Team_ID || matchedTer.Team || '').trim();
+                    }
+                    if (uTeam) targetTeams.push(uTeam);
+                }
+            }
+        }
+
+        if (targetTeams.length === 0) {
+            var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+            if (crmUser) {
+                var myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+                if (!myTeam) {
+                    var myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
+                    var matchedMyTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr; });
+                    if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
+                }
+                if (myTeam) targetTeams.push(myTeam);
+            }
+            if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
+                window.myAllowedTeamIds.forEach(function(t) {
+                    if (targetTeams.indexOf(t) === -1) targetTeams.push(t);
+                });
+            }
+        }
+
+        var teamProdLinks = (window.VisitManagerCache && window.VisitManagerCache.teamProdLinks) ? window.VisitManagerCache.teamProdLinks : [];
+        var allowedProdIds = [];
+
+        teamProdLinks.forEach(function(link) {
+            var tId = String(link.Team_ID || link.Team);
+            if (targetTeams.indexOf(tId) !== -1 || targetTeams.indexOf(String(link.Team_Name)) !== -1) {
+                var pId = String(link.Product_ID || link.Product);
+                if (allowedProdIds.indexOf(pId) === -1) {
+                    allowedProdIds.push(pId);
+                }
+            }
+        });
+
+        if (targetTeams.length > 0) {
+            filteredProds = allProds.filter(function(p) {
+                return allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1;
+            });
+        } else {
+            filteredProds = allProds;
+        }
+    }
+
+    var fHtml = '';
+    (filteredProds).forEach(function(p) {
+        fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>';
+    });
+    formProdSelect.innerHTML = fHtml;
+
+    if (typeof TomSelect !== 'undefined') {
+        window.safeDestroyTs(window.tomSelectProdInstance);
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
+        window.tomSelectProdInstance = new TomSelect('#visitProductId', {
+            plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
+            onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
+        });
+        if (oldProdVal.length > 0) setTimeout(() => window.tomSelectProdInstance.setValue(oldProdVal, true), 50);
+    }
+};
+ 
+window.handleFilterChange = function(source) { 
+    if (window.isInitialLoading) return; 
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true); 
+    }
+};
+
+window.clearVisitFilters = function() {
+    if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
+    if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
+    if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue('', true);
+    
+    if (window.fpStartInstance) window.fpStartInstance.clear();
+    if (window.fpEndInstance) window.fpEndInstance.clear();
+
+    var stDate = document.getElementById('filterStartDate');
+    var endDate = document.getElementById('filterEndDate');
+    if (stDate && !window.fpStartInstance) stDate.value = '';
+    if (endDate && !window.fpEndInstance) endDate.value = '';
+
+    var stEl = document.getElementById('filterVisitStatus');
+    if (stEl && !window.tomSelectStatusInstance) { 
+        stEl.value = ''; 
+        stEl.classList.add('filter-placeholder-text'); 
+    }
+    
+    var searchEl = document.getElementById('smartSearchInput');
+    if (searchEl) searchEl.value = '';
+
+    if (typeof window.filterVisits === 'function') window.filterVisits();
+};
+
+ 
 
 function matchedTerAndUnique(arr) {
     return arr.filter(function(item, pos) {
