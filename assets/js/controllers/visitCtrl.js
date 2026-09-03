@@ -2016,7 +2016,7 @@ window.renderVisitTableServerSide = function() {
 
     var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
     
-    // 🎯 1. ฟังก์ชัน Highlight แบบใหม่ (ป้องกัน HTML พังเมื่อพิมพ์หลายคำ เช่น "sura r")
+    // 🎯 1. ฟังก์ชัน Highlight แบบใหม่ (ป้องกัน HTML พังเมื่อพิมพ์หลายคำ เช่น "sura r") 
     var applySafeHighlight = function(text, searchStr) {
         if (!text || !searchStr) return text;
         var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
@@ -2025,7 +2025,9 @@ window.renderVisitTableServerSide = function() {
         // มัดรวมคำค้นหาเป็น Regex ตัวเดียว เพื่อแทนที่พร้อมกัน (ป้องกันการสร้าง Span ซ้อน Span จนโค้ดพัง)
         var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
         var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
-        return String(text).replace(regex, '<span class="highlight-search">$1</span>');
+        
+        // 🎯 คืนชีพ <mark> ให้สีเหลืองกลับมา และบังคับ padding: 0 !important เพื่อไม่ให้คำถ่าง
+        return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important; color: inherit;">$1</mark>');
     };
 
     var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
