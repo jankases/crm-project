@@ -767,16 +767,15 @@ window.closeMediaPresentation = async function() {
  window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
-  var mainContainer = document.getElementById('visitMainContentContainer'); // หุ้ม Filter + List
-  var calZone = document.getElementById('visitCalendarZone');               // หุ้ม Calendar
+  var mainContainer = document.getElementById('visitMainContentContainer');
+  var calZone = document.getElementById('visitCalendarZone');
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var isEN = (appLang === 'en');
-
   var listText = isEN ? 'List' : 'รายการ';
   var calText = isEN ? 'Calendar' : 'ปฏิทิน';
 
-  // 1. บันทึกโหมดปัจจุบันลง Cache เพื่อให้ฟังก์ชันอื่นเช็กสภาวะได้
+  // 🌟 บันทึกสภาวะหน้าจอปัจจุบันไว้ที่ตัวแประบบกลางทันที
   window.VisitManagerCache = window.VisitManagerCache || {};
   window.VisitManagerCache.currentMainView = viewMode;
 
@@ -790,7 +789,7 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 พับเก็บ Filter + ตาราง ออกไป และเปิดปฏิทิน
+      // สั่งพับเก็บ Filter + ตาราง แล้วเปิด Calendar
       if (mainContainer) mainContainer.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
@@ -805,7 +804,7 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 พับเก็บปฏิทิน และเปิด Filter + ตาราง
+      // สั่งพับเก็บ Calendar แล้วเปิด Filter + ตาราง
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
   }
@@ -1206,8 +1205,8 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                           ? window.VisitManagerCache.currentMainView 
                           : 'list';
 
-        // 🎯 [จุดแก้ไขเด็ดขาด]: ปลดล็อกโชว์กล่องแม่เฉพาะโหมด List เท่านั้น! 
-        // ถ้าผู้ใช้เปิดโหมด Calendar อยู่ ห้ามสั่งปลดล็อกเด็ดขาด!
+        // 🔐 State Gate: ปลดล็อกโชว์ตารางเฉพาะเมื่อเปิดหน้า List อยู่เท่านั้น
+        // หากผู้ใช้สลับไปหน้า Calendar แล้ว ห้ามปลดล็อกเด็ดขาด!
         if (mainContainer) {
             if (currentView === 'list') {
                 mainContainer.classList.remove('d-none');
@@ -1216,8 +1215,8 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
             }
         }
 
-        if (!repSelect && !terSelect) return; 
-
+        if (!repSelect && !terSelect) return;
+ 
         // จำค่าเดิมที่เคยเลือกไว้
         var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
         if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
