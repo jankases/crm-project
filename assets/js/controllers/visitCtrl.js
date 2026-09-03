@@ -1589,16 +1589,17 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.in('Territory_ID', selectedTers);
           countQuery = countQuery.in('Territory_ID', selectedTers);
       }
-  
-     // 🔍 4. Smart Search Filter 
+   
+     // 🔍 4. Smart Search Filter (รวมมิตร: ไม่สะอึก + ค้นหาจากข้อมูลจริง)
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
+          var sb = window.supabaseClient || window.supabase;
 
           for (var i = 0; i < searchTerms.length; i++) {
               var term = searchTerms[i];
               
-              // 🎯 [Fix 2]: ถ้าคำค้นหาสั้นแค่ 1 ตัวอักษร ให้ข้ามการค้นหาคำนั้นไปก่อน (เพื่อป้องกันข้อมูลล้นจนหาไม่เจอ)
+              // ดักคำสั้นเกินไปเฉพาะตอนพิมพ์หลายคำ ป้องกันคิวล้น
               if (term.length < 2 && searchTerms.length > 1) {
                   continue; 
               }
@@ -1606,10 +1607,9 @@ window.loadVisits = async function(forceReload, isBackground) {
               var matchedDocIds = [];
               var matchedVisitIds = [];
 
-              for (var key in window._docIndex) {
-                  var doc = window._docIndex[key];
+              // 🎯 [แก้จุดที่ผมเผลอใส่ผิด]: กลับมาใช้ globalAssignedDoctors (ข้อมูลจริง) แทน _docIndex
+              (window.globalAssignedDoctors || []).forEach(function(doc) {
                   var isMatch = false;
-
                   var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
                   var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
 
@@ -1624,8 +1624,11 @@ window.loadVisits = async function(forceReload, isBackground) {
                       }
                   }
 
-                  if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
-              }
+                  if (isMatch) {
+                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
+                      if (docId) matchedDocIds.push(docId);
+                  }
+              });
 
               var matchedProductIds = [];
               var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
@@ -1648,7 +1651,7 @@ window.loadVisits = async function(forceReload, isBackground) {
 
               var orConditionsArray = [];
               
-              // 🎯 [Fix 3]: เพิ่มขีดจำกัดจาก 80 เป็น 150 เพื่อให้รองรับชื่อหมอ/รพ ได้เยอะขึ้นโดยไม่ถูกตัดทิ้ง
+              // ขยายโควต้าเป็น 150 ป้องกันโดนหั่นทิ้งจนข้อมูลหาย
               if (matchedDocIds.length > 0) {
                   orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
               }
