@@ -2015,10 +2015,24 @@ window.renderVisitTableServerSide = function() {
     }
 
     var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
-    var applyHighlight = (typeof window.applySearchHighlight === 'function') ? window.applySearchHighlight : function(t) { return t; };
-    var highlightedDoc = applyHighlight(docNameShow, smartSearchVal); 
-    var highlightedHosp = applyHighlight(hospNameShow, smartSearchVal);
-    var highlightedPurpose = applyHighlight(purposeShow, smartSearchVal);
+    
+    // 🎯 1. ฟังก์ชัน Highlight แบบใหม่ (ป้องกัน HTML พังเมื่อพิมพ์หลายคำ เช่น "sura r")
+    var applySafeHighlight = function(text, searchStr) {
+        if (!text || !searchStr) return text;
+        var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
+        if (terms.length === 0) return text;
+        
+        // มัดรวมคำค้นหาเป็น Regex ตัวเดียว เพื่อแทนที่พร้อมกัน (ป้องกันการสร้าง Span ซ้อน Span จนโค้ดพัง)
+        var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+        var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
+        return String(text).replace(regex, '<span class="highlight-search">$1</span>');
+    };
+
+    var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
+    var highlightedHosp = applySafeHighlight(hospNameShow, smartSearchVal);
+    
+    // 🎯 2. ยกเลิกการ Highlight ที่คอลัมน์ Purpose (แสดงผลข้อความธรรมดาตามกฎ WYSIWYG)
+    var highlightedPurpose = purposeShow; 
 
     var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
     var visitProds = (window._visitProdIndex && cleanVid) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[v.Visit_ID] || []) : [];
@@ -2028,7 +2042,8 @@ window.renderVisitTableServerSide = function() {
           var rawPId = String(vp.Product_ID || vp.product_id || '').trim();
           var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
           var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
-          prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applyHighlight(pName, smartSearchVal) + '</span>';
+          // 🎯 ใช้ฟังก์ชัน Safe Highlight กับ Product ด้วย
+          prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
       });
     } else prodBadges = '<span class="text-muted small">-</span>';
  
