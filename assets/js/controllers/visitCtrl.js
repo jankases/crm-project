@@ -1588,8 +1588,8 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.in('Territory_ID', selectedTers);
           countQuery = countQuery.in('Territory_ID', selectedTers);
       }
-    
-       // 🔍 4. Smart Search Filter (WYSIWYG: ค้นหาเฉพาะ หมอ, โรงพยาบาล, สินค้า ตาม Placeholder)
+     
+      // 🔍 4. Smart Search Filter (WYSIWYG: ค้นหาเฉพาะ หมอ, โรงพยาบาล, สินค้า ตาม Placeholder)
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
@@ -1600,11 +1600,9 @@ window.loadVisits = async function(forceReload, isBackground) {
               var matchedDocIds = [];
               var matchedVisitIds = [];
 
-              // 1. หา Doctor IDs จาก "ชื่อหมอ" หรือ "ชื่อโรงพยาบาล" (ที่ผูกติดมากับตัวหมอ)
-              for (var key in window._docIndex) {
-                  var doc = window._docIndex[key];
+              // 🎯 1. หา Doctor IDs จาก "ชื่อหมอ" หรือ "ชื่อโรงพยาบาล" (เปลี่ยนมาหาในข้อมูลที่มีอยู่จริง)
+              (window.globalAssignedDoctors || []).forEach(function(doc) {
                   var isMatch = false;
-
                   var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
                   var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
 
@@ -1613,7 +1611,7 @@ window.loadVisits = async function(forceReload, isBackground) {
                       isMatch = true;
                   }
 
-                  // 🎯 ค้นหาเจอในชื่อโรงพยาบาลที่ผูกกับหมอ (ถ้าไม่เจอในชื่อหมอ)
+                  // ค้นหาเจอในชื่อโรงพยาบาลที่ผูกกับหมอ (ถ้าไม่เจอในชื่อหมอ)
                   if (!isMatch && doc.Hospitals) {
                       var hEn = String(doc.Hospitals.Hospital || doc.Hospitals.Known_As || '').toLowerCase();
                       if (hEn.indexOf(term) !== -1) {
@@ -1621,10 +1619,13 @@ window.loadVisits = async function(forceReload, isBackground) {
                       }
                   }
 
-                  if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
-              }
+                  if (isMatch) {
+                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
+                      if (docId) matchedDocIds.push(docId);
+                  }
+              });
 
-              // 2. หา Product IDs จากชื่อสินค้า
+              // 🎯 2. หา Product IDs จากชื่อสินค้า
               var matchedProductIds = [];
               var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
               allProds.forEach(function(p) {
@@ -1645,17 +1646,17 @@ window.loadVisits = async function(forceReload, isBackground) {
                   } catch (e) { console.error("Search Product Error:", e); }
               }
 
-              // 3. ประกอบร่างเงื่อนไข (เอาแค่ หมอ และ Visit ที่เจอสินค้า เท่านั้น)
+              // 🎯 3. ประกอบร่างเงื่อนไข (เอาแค่ หมอ และ Visit ที่เจอสินค้า เท่านั้น)
               var orConditionsArray = [];
 
               if (matchedDocIds.length > 0) {
-                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 80).join(',')})`);
+                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 100).join(',')})`);
               }
               if (matchedVisitIds.length > 0) {
-                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 80).join(',')})`);
+                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 100).join(',')})`);
               }
 
-              // 🎯 ดักกรณีหาไม่เจอเลยสักอย่าง (พิมพ์คำที่ไม่มีในระบบ) ให้ Database ส่งค่าว่างกลับมาเลย
+              // ดักกรณีหาไม่เจอเลยสักอย่าง (พิมพ์คำที่ไม่มีในระบบ) ให้ Database ส่งค่าว่างกลับมาเลย
               if (orConditionsArray.length > 0) {
                   var finalOrString = orConditionsArray.join(',');
                   dataQuery = dataQuery.or(finalOrString);
