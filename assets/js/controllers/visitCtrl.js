@@ -763,7 +763,8 @@ window.closeMediaPresentation = async function() {
 // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================
- window.toggleMainView = function(viewMode) {
+ // 🌟 2. ฟังก์ชัน toggleMainView: สลับโหมด List vs Calendar โดยตรง
+window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer'); // หุ้ม Filter + List
@@ -785,15 +786,9 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 [แก้จุดซ้อนทับ 100%]: ใช้ Direct Style สั่งพับเก็บกล่องแม่ (Filter + ตาราง) และขยาย Calendar ยืดเต็มหน้าจอ
-      if (mainContainer) {
-          mainContainer.classList.add('d-none');
-          mainContainer.style.setProperty('display', 'none', 'important');
-      }
-      if (calZone) {
-          calZone.classList.remove('d-none');
-          calZone.style.setProperty('display', 'flex', 'important');
-      }
+      // 🎯 บังคับซ่อนกล่องแม่หลัก ( Filter + ตาราง ) และโชว์เฉพาะ Calendar
+      if (mainContainer) mainContainer.classList.add('d-none');
+      if (calZone) calZone.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
       window.VisitManagerCache.currentMainView = 'calendar';
@@ -808,15 +803,9 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 [โหมด List]: ปิด Calendar และเปิดกล่องแม่ (Filter + ตาราง) กลับขึ้นมา
-      if (calZone) {
-          calZone.classList.add('d-none');
-          calZone.style.setProperty('display', 'none', 'important');
-      }
-      if (mainContainer) {
-          mainContainer.classList.remove('d-none');
-          mainContainer.style.setProperty('display', 'flex', 'important');
-      }
+      // 🎯 บังคับซ่อน Calendar และโชว์กล่องแม่หลัก ( Filter + ตาราง )
+      if (calZone) calZone.classList.add('d-none');
+      if (mainContainer) mainContainer.classList.remove('d-none');
       
       window.VisitManagerCache = window.VisitManagerCache || {};
       window.VisitManagerCache.currentMainView = 'list';
