@@ -764,50 +764,55 @@ window.closeMediaPresentation = async function() {
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================
  // 🌟 2. ฟังก์ชัน toggleMainView: สลับโหมด List vs Calendar โดยตรง
- window.toggleMainView = function(viewMode) {
+ // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
+window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
-  var mainContainer = document.getElementById('visitMainContentContainer');
-  var calZone = document.getElementById('visitCalendarZone');
+  var mainContainer = document.getElementById('visitMainContentContainer'); // Filter + List Table
+  var calZone = document.getElementById('visitCalendarZone');               // Calendar
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var isEN = (appLang === 'en');
-  var listText = isEN ? 'List' : 'รายการ';
-  var calText = isEN ? 'Calendar' : 'ปฏิทิน';
 
-  // 🌟 บันทึกสภาวะหน้าจอปัจจุบันไว้ที่ตัวแประบบกลางทันที
   window.VisitManagerCache = window.VisitManagerCache || {};
   window.VisitManagerCache.currentMainView = viewMode;
 
   if (viewMode === 'calendar') {
-      if (listBtn) { 
-          listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
-          listBtn.innerHTML = '<i class="fa-solid fa-list me-2"></i><span data-i18n="btn_list">' + listText + '</span>';
-      }
-      if (calBtn) { 
-          calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius'; 
-          calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
-      }
+      if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
+      if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       
-      // สั่งพับเก็บ Filter + ตาราง แล้วเปิด Calendar
-      if (mainContainer) mainContainer.classList.add('d-none');
-      if (calZone) calZone.classList.remove('d-none');
+      // 🎯 บังคับซ่อนกล่องตาราง+Filter และบังคับเปิด Calendar 100%
+      if (mainContainer) mainContainer.setAttribute('style', 'display: none !important;');
+      if (calZone) calZone.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
       
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
-      if (listBtn) { 
-          listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius'; 
-          listBtn.innerHTML = '<i class="fa-solid fa-list me-2"></i><span data-i18n="btn_list">' + listText + '</span>';
-      }
-      if (calBtn) { 
-          calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
-          calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
-      }
+      if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
+      if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       
-      // สั่งพับเก็บ Calendar แล้วเปิด Filter + ตาราง
-      if (calZone) calZone.classList.add('d-none');
-      if (mainContainer) mainContainer.classList.remove('d-none');
+      // 🎯 บังคับซ่อน Calendar และบังคับเปิดกล่องตาราง+Filter 100%
+      if (calZone) calZone.setAttribute('style', 'display: none !important;');
+      if (mainContainer) mainContainer.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
   }
+};
+
+// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form
+window.switchVisitView = function(viewId) {
+  var listView = document.getElementById('visitListView');
+  var formView = document.getElementById('visitFormView');
+
+  if (viewId === 'visitFormView') {
+      if (listView) listView.classList.add('d-none');
+      if (formView) formView.classList.remove('d-none');
+  } else {
+      if (formView) formView.classList.add('d-none');
+      if (listView) listView.classList.remove('d-none');
+      
+      // คืนค่าหน้าสลับ List/Calendar ตามที่เลือกค้างไว้
+      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
+      window.toggleMainView(currentView);
+  }
+  window.scrollTo(0, 0);
 };
 
 window.switchVisitView = function(viewId) {
@@ -1187,31 +1192,26 @@ window.loadDropdowns = async function(forceReload) {
   }
 };
 
+// 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว
 window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
-
         var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+        
         if (filterZone) {
-            filterZone.classList.remove('visit-filter-compact');
-            filterZone.style.display = '';
-            filterZone.style.visibility = '';
-            filterZone.style.opacity = '';
+            filterZone.classList.remove('visit-filter-compact', 'd-none');
         }
 
         var mainContainer = document.getElementById('visitMainContentContainer');
-        var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
-                          ? window.VisitManagerCache.currentMainView 
-                          : 'list';
+        var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
 
-        // 🔐 State Gate: ปลดล็อกโชว์ตารางเฉพาะเมื่อเปิดหน้า List อยู่เท่านั้น
-        // หากผู้ใช้สลับไปหน้า Calendar แล้ว ห้ามปลดล็อกเด็ดขาด!
+        // 🎯 สั่งซ่อน/โชว์ ตาม View ปัจจุบันเท่านั้น
         if (mainContainer) {
             if (currentView === 'list') {
-                mainContainer.classList.remove('d-none');
+                mainContainer.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
             } else {
-                mainContainer.classList.add('d-none');
+                mainContainer.setAttribute('style', 'display: none !important;');
             }
         }
 
