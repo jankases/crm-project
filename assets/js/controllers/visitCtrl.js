@@ -762,9 +762,8 @@ window.closeMediaPresentation = async function() {
 
 // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
-// ==========================================
- // 🌟 2. ฟังก์ชัน toggleMainView: สลับโหมด List vs Calendar โดยตรง
- // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
+// ========================================== 
+ // 🌟 ฟังก์ชันสลับหน้า List / Calendar (แก้ไขจุดสลับ View ให้เสร็จสมบูรณ์)
 window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
@@ -781,7 +780,7 @@ window.toggleMainView = function(viewMode) {
       if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       
-      // 🎯 สลับการซ่อน/โชว์ด้วยคลาสมาตรฐาน เคลียร์ Inline Style ทิ้ง
+      // 🎯 สลับการซ่อน/โชว์ด้วยคลาส d-none มาตรฐาน และล้าง Inline Style ที่ค้างออกให้หมด
       if (mainContainer) {
           mainContainer.classList.add('d-none');
           mainContainer.style.display = '';
@@ -796,7 +795,7 @@ window.toggleMainView = function(viewMode) {
       if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       
-      // 🎯 สลับการซ่อน/โชว์ด้วยคลาสมาตรฐาน เคลียร์ Inline Style ทิ้ง
+      // 🎯 สลับการซ่อน/โชว์ด้วยคลาส d-none มาตรฐาน และล้าง Inline Style ที่ค้างออกให้หมด
       if (calZone) {
           calZone.classList.add('d-none');
           calZone.style.display = '';
