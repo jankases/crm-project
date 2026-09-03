@@ -1205,9 +1205,8 @@ window.loadDropdowns = async function(forceReload) {
     console.error("Error loading dropdowns:", err.message); 
   }
 };
-
+ 
 // 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว 
- // 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว 
 window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
@@ -1218,12 +1217,8 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
             filterZone.classList.remove('visit-filter-compact', 'd-none');
         }
 
-        var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-
-        // 🎯 ส่งหน้าที่บังคับเปิดปิดให้ toggleMainView จัดการที่เดียว ป้องกันการกระพริบ
-        if (typeof window.toggleMainView === 'function') {
-            window.toggleMainView(currentView);
-        }
+        // 🎯 [ลบทิ้ง]: ถอดคำสั่งเรียก toggleMainView() ออกจากตรงนี้
+        // เพื่อป้องกันไม่ให้มันเผลอไปเปิดตารางก่อนที่ข้อมูลจะโหลดเสร็จ (แก้บั๊ก Filter แว๊บ)
 
         if (!repSelect && !terSelect) return;
 
@@ -1236,7 +1231,8 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
         var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
         var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
         var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
-
+        
+        // ... (โค้ดดึงสิทธิ์และเซ็ต TomSelect ด้านล่างปล่อยไว้เหมือนเดิมได้เลยครับ) ...
         // เช็กสิทธิ์ User
         var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN', 'PRODUCT MANAGER'];
         var isGlobalViewer = window.myIsGlobalViewer || adminRoles.indexOf(userRole) !== -1;
