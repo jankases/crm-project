@@ -3558,11 +3558,17 @@ window.renderCalendarView = function() {
   } : {
       today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
   };
-
-  // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งอัปเดตภาษา + เคลียร์และใส่อีเวนต์ใหม่
+ 
+ // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งอัปเดตภาษา + เคลียร์และใส่อีเวนต์ใหม่
   if (window.globalCalendarInstance) {
       window.globalCalendarInstance.setOption('locale', isEN ? 'en' : 'th');
       window.globalCalendarInstance.setOption('buttonText', fcButtonText);
+      
+      // 🎯 อัปเดตภาษาข้อความ +more เมื่อสลับภาษา Realtime
+      window.globalCalendarInstance.setOption('moreLinkText', function(num) {
+          return isEN ? '+' + num + ' more' : '+อีก ' + num + ' รายการ';
+      });
+
       window.globalCalendarInstance.removeAllEvents();
       window.globalCalendarInstance.addEventSource(allEvents);
       return;
@@ -3570,20 +3576,26 @@ window.renderCalendarView = function() {
 
   // 🌟 ถ้ายังไม่มี Instance ค่อยวาด FullCalendar ใหม่
   if (typeof FullCalendar !== 'undefined') {
-    window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', 
-        headerToolbar: { 
-          left: 'prev,next today', 
-          center: 'title', 
-          right: 'dayGridMonth,timeGridWeek,timeGridDay' 
-        },
-        buttonText: fcButtonText, 
-        locale: isEN ? 'en' : 'th', 
-        height: '100%', 
-        expandRows: true, 
-        dayMaxEvents: 2, 
-        moreLinkClick: 'popover', 
-        events: allEvents,
+      window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth', 
+            headerToolbar: { 
+              left: 'prev,next today', 
+              center: 'title', 
+              right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+            },
+            buttonText: fcButtonText, 
+            locale: isEN ? 'en' : 'th', 
+
+            // 🎯 กำหนดข้อความภาษาสำหรับลิงก์แสดงอีเวนต์ที่เกิน (+more)
+            moreLinkText: function(num) {
+                return isEN ? '+' + num + ' more' : '+อีก ' + num + ' รายการ';
+            },
+
+            height: '100%', 
+            expandRows: true, 
+            dayMaxEvents: 2, 
+            moreLinkClick: 'popover', 
+            events: allEvents,
         eventDidMount: function(info) { info.el.setAttribute('title', info.event.extendedProps.fullTooltip || info.event.title); },
         eventClick: function(info) {
             if (info.event.extendedProps.isHoliday) return; 
