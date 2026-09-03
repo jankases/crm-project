@@ -3588,11 +3588,14 @@ window.renderCalendarView = function() {
             var existingPopover = document.getElementById('calQuickAddPopover');
             if (existingPopover) existingPopover.remove();
 
+            // 🎯 แปลงฟอร์แมตวันที่จาก YYYY-MM-DD เป็น DD/MM/YYYY
+            var displayDate = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(info.dateStr) : info.dateStr;
+
             var popoverHtml = `
               <div id="calQuickAddPopover" class="card shadow-lg border-0 p-2 position-absolute rounded-3" style="z-index: 1060; min-width: 170px;">
-                <div class="fw-bold text-secondary tiny mb-1 text-center border-bottom pb-1">📅 ${info.dateStr}</div>
+                <div class="fw-bold text-secondary tiny mb-1 text-center border-bottom pb-1">📅 ${displayDate}</div>
                 <button class="btn btn-sm btn-light text-primary text-start fw-bold mb-1 rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddVisitView==='function') window.openAddVisitView('${info.dateStr}');">
-                  <i class="fa-solid fa-plus me-1.5"></i>${isEN ? 'Add Visit' : 'บันทึกเยี่ยม'}
+                  <i class="fa-solid fa-plus me-1.5"></i>${isEN ? 'Add Visit' : '+บันทึกเยี่ยม'}
                 </button>
                 <button class="btn btn-sm btn-light text-info text-start fw-bold rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddTotModal==='function') { window.openAddTotModal(); document.getElementById('totStartDate').value='${info.dateStr}'; }">
                   <i class="fa-solid fa-umbrella-beach me-1.5"></i>${isEN ? 'Add TOT' : 'แจ้ง TOT / วันลา'}
@@ -3652,6 +3655,7 @@ window.renderCalendarView = function() {
           var allowedReps = window.myAllowedRepIds || [];
           var uniqueReps = new Map();
           
+         var isEN = window.getCurrentAppLang() === 'en';
           var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม') + '</option>';
           userList.forEach(function(u) {
             var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
@@ -3678,8 +3682,15 @@ window.renderCalendarView = function() {
   }
 };
 
+
 window.updateCalendarLegendLang = function() {
   var isEN = window.getCurrentAppLang() === 'en';
+
+    // 🎯 อัปเดตภาษาข้อความ All Team Members Realtime
+    var calRepSelect = document.getElementById('calRepFilterSelect');
+    if (calRepSelect && calRepSelect.options.length > 0) {
+        calRepSelect.options[0].text = isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม';
+    }
   
   var elBtn = document.getElementById('txtLegendBtn');
   var elHeader = document.getElementById('txtLegendHeader');
