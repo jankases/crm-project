@@ -310,25 +310,7 @@ html, body {
 }
 
 .visit-filter-group::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%);
-  background-size: 200% 100%;
-  animation: shimmerSkeleton 1.5s infinite linear;
-  border-radius: 16px;
-  z-index: 5;
-  transition: opacity 0.4s ease-out, visibility 0.4s;
-}
-
-@keyframes shimmerSkeleton {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.visit-filter-group.ready::before {
-  opacity: 0;
-  visibility: hidden;
+  display: none !important;
 }
 
 select.form-select[multiple]:not(.tomselected) { display: none !important; }
@@ -1036,10 +1018,6 @@ mark.highlight-search {
   flex-direction: column !important;
 }
 
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
-}
-
 #calendar {
   flex-grow: 1 !important;
   height: 100% !important;
@@ -1113,16 +1091,6 @@ mark.highlight-search {
 #calendar .fc-button-group > .fc-button {
   border: none !important;
   border-radius: 8px !important;
-}
-
-#visitListView.d-none,
-#doctorListView.d-none,
-#hospListView.d-none,
-#visitFormView.d-none,
-#visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitMainContentContainer.d-none {
-  display: none !important;
 }
 
 /* ==========================================
@@ -1993,7 +1961,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE
+   🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE (CLEAN & NON-DUPLICATED)
    ========================================== */
 
 /* 1. สภาวะ d-none: บังคับซ่อน 100% เสมอ */
@@ -2034,63 +2002,10 @@ button.feature-action-btn-lg.has-data-samples i {
   height: 100% !important;
 }
 
-/* 🎯 [จุดแก้ไขเด็ดขาด]: บังคับเปิดแผง Filter Zone เสมอในหน้า List View */
 #visitMainContentContainer:not(.d-none) #visitFilterZoneGroup {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-}
-
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  margin-top: 0.5rem !important;
-}
-
-/* ==========================================
-   🌟 SYSTEM VIEW CONTROL ENGINE (CLEAN)
-   ========================================== */
-
-/* 1. สภาวะ .d-none ต้องมีอำนาจสูงสุดในการซ่อน Element เสมอ */
-.d-none,
-#visitMainContentContainer.d-none,
-#visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitFilterZoneGroup.d-none {
-  display: none !important;
-}
-
-/* 2. สภาวะกำลังโหลดข้อมูล (.is-loading): ซ่อนคอนเทนเนอร์เนื้อหา และโชว์เฉพาะการ์ด Loading */
-#visitListView.is-loading #visitMainContentContainer,
-#visitListView.is-loading #visitCalendarZone {
-  display: none !important;
-}
-
-#visitListView.is-loading #visitTableLoading {
-  display: flex !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 380px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background-color: #ffffff !important;
-  border-radius: 16px !important;
-}
-
-/* 3. สภาวะโหลดเสร็จแล้ว (:not(.is-loading)) */
-#visitListView:not(.is-loading) #visitTableLoading {
-  display: none !important;
-}
-
-#visitMainContentContainer:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  height: 100% !important;
 }
 
 #visitCalendarZone:not(.d-none) {
