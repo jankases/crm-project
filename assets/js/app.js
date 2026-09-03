@@ -124,9 +124,8 @@ function hasUnsavedChanges() {
     }
 
     return null;
-}
-
-/* =========================================
+} 
+ /* =========================================
    CRM System - Main Router Engine (app.js)
    ========================================= */
 
@@ -134,13 +133,10 @@ async function loadComponent(page) {
     const confirmMsg = hasUnsavedChanges();
     if (confirmMsg) {
         const userConfirmed = confirm(confirmMsg);
-        if (!userConfirmed) {
-            return;
-        }
+        if (!userConfirmed) return;
     }
 
     let url = '';
-     
     switch(page) {
         case 'dashboard': url = './pages/Dashboard.html'; break;
         case 'visit': url = './pages/ManageVisits.html'; break;
@@ -154,59 +150,53 @@ async function loadComponent(page) {
         case 'dcr': url = './pages/ManageDCR.html'; break;
         case 'media': url = './pages/ManageMedia.html'; break;
         case 'user': url = './pages/ManageUsers.html'; break;
-        default: 
-            page = 'visit'; 
-            url = './pages/ManageVisits.html'; 
+        default: page = 'visit'; url = './pages/ManageVisits.html'; 
     }
 
-    // 1. อัปเดตเมนู Desktop Navbar
     const menuItems = document.querySelectorAll('.nav-menu-item');
     menuItems.forEach(item => item.classList.remove('active'));
-
     const targetMenu = document.querySelector(`.nav-menu-item[data-page="${page}"]`);
-    if (targetMenu) {
-        targetMenu.classList.add('active');
-    }
+    if (targetMenu) targetMenu.classList.add('active');
 
-    // 2. อัปเดตเมนู iPad Sidebar Rail
     const ipadMenuItems = document.querySelectorAll('.sidebar-icon-btn');
     ipadMenuItems.forEach(item => item.classList.remove('active'));
-
     const targetIpadMenu = document.querySelector(`.sidebar-icon-btn.menu-${page}`);
-    if (targetIpadMenu) {
-        targetIpadMenu.classList.add('active');
-    }
+    if (targetIpadMenu) targetIpadMenu.classList.add('active');
 
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
     const initialLoading = mainContent.querySelector('.text-center.py-5.text-muted');
-    if (initialLoading) {
-        initialLoading.remove();
-    }
+    if (initialLoading) initialLoading.remove();
 
     const allViews = mainContent.querySelectorAll('.spa-page-view');
     allViews.forEach(v => v.classList.add('d-none'));
 
     let pageView = document.getElementById(`view_page_${page}`);
 
+    // ====== 🌟 ฟังก์ชันพระเอก: บังคับหน้า Loading แบบสายฟ้าแลบ ======
+    const enforceLoadingState = () => {
+        if (page === 'visit') {
+            const vList = document.getElementById('visitListView');
+            const vMain = document.getElementById('visitMainContentContainer');
+            const vCal = document.getElementById('visitCalendarZone');
+            if (vList) vList.classList.add('is-loading');
+            if (vMain) vMain.style.setProperty('display', 'none', 'important');
+            if (vCal) vCal.style.setProperty('display', 'none', 'important');
+        }
+    };
+
     if (pageView) {
         pageView.classList.remove('d-none');
+        enforceLoadingState(); // 🎯 ดักทุบตารางลงใต้ดินทันทีที่เปิดหน้าเดิม
 
         if (page === 'doctor') {
-            if (typeof window.switchDoctorView === 'function') {
-                window.switchDoctorView('doctorListView');
-            }
-            if (typeof window.initDoctorPage === 'function') {
-                await window.initDoctorPage(false);
-            }
+            if (typeof window.switchDoctorView === 'function') window.switchDoctorView('doctorListView');
+            if (typeof window.initDoctorPage === 'function') await window.initDoctorPage(false);
         } else if (page === 'visit') {
-            if (typeof window.switchVisitView === 'function') {
-                window.switchVisitView('visitListView');
-            }
-            if (typeof window.initVisitPage === 'function') {
-                await window.initVisitPage(false);
-            }
+            if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+            enforceLoadingState(); // 🎯 ดักทุบอีกครั้ง เผื่อ switchVisitView แอบปลดล็อกตาราง
+            if (typeof window.initVisitPage === 'function') await window.initVisitPage(false);
         }
 
         const navbarCollapse = document.getElementById('navbarNav');
@@ -228,34 +218,27 @@ async function loadComponent(page) {
         pageView.innerHTML = html;
 
         mainContent.appendChild(pageView);
+        
+        // 🎯 ดักทุบตารางลงใต้ดิน "ทันที" ที่ฉีด HTML ลง DOM (ปิดช่องโหว่ FOUC แว๊บแรกสุด!)
+        enforceLoadingState(); 
 
         const scriptElements = pageView.querySelectorAll('script');
         scriptElements.forEach(s => {
             if (s.src && s.src.includes('controllers/')) return;
             const code = s.textContent || s.innerText;
             const newScript = document.createElement('script');
-            if (s.src) {
-                newScript.src = s.src;
-            } else if (code) {
-                newScript.text = code;
-            }
+            if (s.src) newScript.src = s.src;
+            else if (code) newScript.text = code;
             document.head.appendChild(newScript).parentNode.removeChild(newScript);
         });
 
         if (page === 'doctor') {
-            if (typeof window.switchDoctorView === 'function') {
-                window.switchDoctorView('doctorListView');
-            }
-            if (typeof window.initDoctorPage === 'function') {
-                await window.initDoctorPage(false);
-            }
+            if (typeof window.switchDoctorView === 'function') window.switchDoctorView('doctorListView');
+            if (typeof window.initDoctorPage === 'function') await window.initDoctorPage(false);
         } else if (page === 'visit') {
-            if (typeof window.switchVisitView === 'function') {
-                window.switchVisitView('visitListView');
-            }
-            if (typeof window.initVisitPage === 'function') {
-                await window.initVisitPage(false);
-            }
+            if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+            enforceLoadingState(); // 🎯 ย้ำอีกครั้งเผื่อเหนียว!
+            if (typeof window.initVisitPage === 'function') await window.initVisitPage(false);
         }
         
         const navbarCollapse = document.getElementById('navbarNav');
@@ -264,9 +247,7 @@ async function loadComponent(page) {
              if(bsCollapse) bsCollapse.hide();
         }
         
-        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-            setLanguage(currentLang);
-        }
+        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') setLanguage(currentLang);
 
     } catch (error) {
         console.error('Error loading component:', error);
