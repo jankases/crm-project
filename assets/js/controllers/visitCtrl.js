@@ -766,13 +766,16 @@ window.closeMediaPresentation = async function() {
  // 🌟 ฟังก์ชันสลับหน้า List / Calendar (แก้ไขจุดสลับ View ให้เสร็จสมบูรณ์)
  // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
-// ========================================== 
-// 🌟 1. ฟังก์ชันสลับหน้า List / Calendar (Centralized Override)
+// ==========================================  
+// 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
 window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer'); 
   var calZone = document.getElementById('visitCalendarZone');               
+
+  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  var isEN = (appLang === 'en');
 
   window.VisitManagerCache = window.VisitManagerCache || {};
   window.VisitManagerCache.currentMainView = viewMode;
@@ -781,54 +784,54 @@ window.toggleMainView = function(viewMode) {
       if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       
-      if (mainContainer) mainContainer.setAttribute('style', 'display: none !important;');
-      if (calZone) calZone.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
+      if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
+      if (calZone) {
+          calZone.classList.remove('d-none');
+          // 🎯 เติมกฎ Flexbox เต็มชุด
+          calZone.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
+      }
       
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       
-      if (calZone) calZone.setAttribute('style', 'display: none !important;');
-      if (mainContainer) mainContainer.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
+      if (calZone) calZone.style.setProperty('display', 'none', 'important');
+      if (mainContainer) {
+          mainContainer.classList.remove('d-none');
+          // 🎯 เติมกฎ Flexbox เต็มชุด
+          mainContainer.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
+      }
   }
 };
 
- 
-// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form (แก้บั๊กตารางซ้อนฟอร์มเด็ดขาด)
+// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form
 window.switchVisitView = function(viewId) {
   var listView = document.getElementById('visitListView');
   var formView = document.getElementById('visitFormView');
 
   if (viewId === 'visitFormView') {
-      // 🎯 ซ่อนหน้า List View (บังคับยัด style.display ชนกับ CSS ID)
       if (listView) {
           listView.classList.add('d-none');
           listView.style.setProperty('display', 'none', 'important'); 
       }
-      // 🎯 เปิดหน้า Form View
       if (formView) {
           formView.classList.remove('d-none');
-          formView.style.setProperty('display', 'flex', 'important'); 
+          // 🎯 แก้บั๊กฟอร์มหด: เติม flex-direction: column และแพ็กเกจ Flexbox ให้ครบชุด
+          formView.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;'; 
       }
   } else {
-      // 🎯 ปิดหน้า Form View
       if (formView) {
           formView.classList.add('d-none');
           formView.style.setProperty('display', 'none', 'important');
       }
-      // 🎯 เปิดหน้า List View คืนมา
       if (listView) {
           listView.classList.remove('d-none');
-          listView.style.setProperty('display', 'flex', 'important'); 
+          listView.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;'; 
       }
       
-      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
-                        ? window.VisitManagerCache.currentMainView 
-                        : 'list';
-      if (typeof window.toggleMainView === 'function') {
-          window.toggleMainView(currentView);
-      }
+      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
+      if (typeof window.toggleMainView === 'function') window.toggleMainView(currentView);
   }
   window.scrollTo(0, 0);
 };
@@ -1440,6 +1443,7 @@ window.loadVisits = async function(forceReload, isBackground) {
             loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         }
 
+        // 🎯 สั่งแค่บรรทัดนี้! แล้ว CSS จะจับ Filter และ Table ซ่อนลงใต้ดินพร้อมกันทันที
         if (visitViewEl) visitViewEl.classList.add('is-loading');
     }
 
@@ -1668,13 +1672,14 @@ window.loadVisits = async function(forceReload, isBackground) {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-      if (visitViewEl) visitViewEl.classList.remove('is-loading');
+        // 🎯 1. ถอดคลาส Loading ออก CSS จะปลดล็อกให้ Filter และ Table โชว์ขึ้นมา "พร้อมกัน"
+        if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-      // 🎯 ส่งหน้าที่บังคับเปิดปิดให้ toggleMainView จัดการที่เดียว ป้องกันการแทรกแซง
-      var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-      if (typeof window.toggleMainView === 'function') {
-          window.toggleMainView(currentMainView);
-      }
+        // 🎯 2. เรียก toggleMainView เพื่อล้างคราบ Inline Style (ใช้ removeProperty แบบ Clean Method ที่เราคุยกัน)
+        var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
+        if (typeof window.toggleMainView === 'function') {
+            window.toggleMainView(currentMainView);
+        }
     }
 };
   
