@@ -794,38 +794,34 @@ window.toggleMainView = function(viewMode) {
   }
 };
 
-// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form (Centralized Override)
+ 
+// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form (แก้บั๊กตารางซ้อนฟอร์มเด็ดขาด)
 window.switchVisitView = function(viewId) {
   var listView = document.getElementById('visitListView');
   var formView = document.getElementById('visitFormView');
 
   if (viewId === 'visitFormView') {
-      if (listView) listView.setAttribute('style', 'display: none !important;');
-      if (formView) formView.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%;');
+      // 🎯 ซ่อนหน้า List View (บังคับยัด style.display ชนกับ CSS ID)
+      if (listView) {
+          listView.classList.add('d-none');
+          listView.style.setProperty('display', 'none', 'important'); 
+      }
+      // 🎯 เปิดหน้า Form View
+      if (formView) {
+          formView.classList.remove('d-none');
+          formView.style.setProperty('display', 'flex', 'important'); 
+      }
   } else {
-      if (formView) formView.setAttribute('style', 'display: none !important;');
-      if (listView) listView.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%;');
-      
-      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
-                        ? window.VisitManagerCache.currentMainView : 'list';
-      if (typeof window.toggleMainView === 'function') window.toggleMainView(currentView);
-  }
-  window.scrollTo(0, 0);
-};
-
-// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form 
-window.switchVisitView = function(viewId) {
-  var listView = document.getElementById('visitListView');
-  var formView = document.getElementById('visitFormView');
-
-  if (viewId === 'visitFormView') {
-      // 🎯 เมื่อเปิดหน้าฟอร์ม ให้ซ่อนหน้า List View ทั้งชุด
-      if (listView) listView.classList.add('d-none');
-      if (formView) formView.classList.remove('d-none');
-  } else {
-      // 🎯 เมื่อปิดหน้าฟอร์ม ให้เปิดหน้า List View และคืนค่ามุมมอง (List หรือ Calendar) ตามที่เลือกไว้
-      if (formView) formView.classList.add('d-none');
-      if (listView) listView.classList.remove('d-none');
+      // 🎯 ปิดหน้า Form View
+      if (formView) {
+          formView.classList.add('d-none');
+          formView.style.setProperty('display', 'none', 'important');
+      }
+      // 🎯 เปิดหน้า List View คืนมา
+      if (listView) {
+          listView.classList.remove('d-none');
+          listView.style.setProperty('display', 'flex', 'important'); 
+      }
       
       var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
                         ? window.VisitManagerCache.currentMainView 
