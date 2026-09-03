@@ -1402,9 +1402,13 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
-
-// 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
+ 
+ // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
 window.loadVisits = async function(forceReload, isBackground) {
+    // 🎯 [Fix 1]: ฝังระบบ Request ID ป้องกันข้อมูลวิ่งแซงกัน (แก้บั๊กตารางสะอึก)
+    window._visitQueryId = (window._visitQueryId || 0) + 1;
+    var currentQueryId = window._visitQueryId;
+
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
@@ -1441,8 +1445,6 @@ window.loadVisits = async function(forceReload, isBackground) {
 
         if (visitViewEl) visitViewEl.classList.add('is-loading');
 
-        // 🎯 [จุดสำคัญที่ต้องแก้] ต้องใช้ JS บังคับซ่อนด้วย Inline Style! 
-        // เพราะกล่องถูกล็อกด้วย Inline Style (flex !important) จาก toggleMainView ไปแล้ว CSS ธรรมดาเอาไม่อยู่
         var mainContainer = document.getElementById('visitMainContentContainer');
         var calZone = document.getElementById('visitCalendarZone');
         if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
@@ -1478,7 +1480,6 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalPendingUnlockVisits = window.VisitManagerCache.pendingUnlocks || [];
       window.globalTotLogs = window.VisitManagerCache.totLogs || [];
 
-      // ⚡ 1. Base Query Server-Side  
       var dataQuery = sb.from('Visit_Logs').select('*, Doctors(Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Hospitals(Hospital_ID, Hospital, Known_As))', { count: 'exact' });
       var countQuery = sb.from('Visit_Logs').select('Status');
 
@@ -1486,7 +1487,7 @@ window.loadVisits = async function(forceReload, isBackground) {
       var dbSortCol = sortColMap[window.currentSortCol] || 'Visit_Date';
       dataQuery = dataQuery.order(dbSortCol, { ascending: window.currentSortAsc });
 
-      // 🔐 2. Apply Permission Filter at Server-Side (4-Level Architecture)
+      // 🔐 2. Apply Permission Filter
       var isGlobalAdmin = window.myIsGlobalViewer || false;
       var isProductManager = window.myIsProductManager || false;
       var isBuHead = window.myIsBuHead || false;
@@ -1588,30 +1589,34 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.in('Territory_ID', selectedTers);
           countQuery = countQuery.in('Territory_ID', selectedTers);
       }
-     
-      // 🔍 4. Smart Search Filter (WYSIWYG: ค้นหาเฉพาะ หมอ, โรงพยาบาล, สินค้า ตาม Placeholder)
+  
+     // 🔍 4. Smart Search Filter 
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
-          var sb = window.supabaseClient || window.supabase;
 
           for (var i = 0; i < searchTerms.length; i++) {
               var term = searchTerms[i];
+              
+              // 🎯 [Fix 2]: ถ้าคำค้นหาสั้นแค่ 1 ตัวอักษร ให้ข้ามการค้นหาคำนั้นไปก่อน (เพื่อป้องกันข้อมูลล้นจนหาไม่เจอ)
+              if (term.length < 2 && searchTerms.length > 1) {
+                  continue; 
+              }
+
               var matchedDocIds = [];
               var matchedVisitIds = [];
 
-              // 🎯 1. หา Doctor IDs จาก "ชื่อหมอ" หรือ "ชื่อโรงพยาบาล" (เปลี่ยนมาหาในข้อมูลที่มีอยู่จริง)
-              (window.globalAssignedDoctors || []).forEach(function(doc) {
+              for (var key in window._docIndex) {
+                  var doc = window._docIndex[key];
                   var isMatch = false;
+
                   var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
                   var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
 
-                  // ค้นหาเจอในชื่อหมอ
                   if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
                       isMatch = true;
                   }
 
-                  // ค้นหาเจอในชื่อโรงพยาบาลที่ผูกกับหมอ (ถ้าไม่เจอในชื่อหมอ)
                   if (!isMatch && doc.Hospitals) {
                       var hEn = String(doc.Hospitals.Hospital || doc.Hospitals.Known_As || '').toLowerCase();
                       if (hEn.indexOf(term) !== -1) {
@@ -1619,13 +1624,9 @@ window.loadVisits = async function(forceReload, isBackground) {
                       }
                   }
 
-                  if (isMatch) {
-                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
-                      if (docId) matchedDocIds.push(docId);
-                  }
-              });
+                  if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
+              }
 
-              // 🎯 2. หา Product IDs จากชื่อสินค้า
               var matchedProductIds = [];
               var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
               allProds.forEach(function(p) {
@@ -1636,7 +1637,6 @@ window.loadVisits = async function(forceReload, isBackground) {
                   }
               });
 
-              // ถ้าเจอ Product ให้ไปกวาด Visit_ID จากตาราง Visit_Products มา
               if (matchedProductIds.length > 0) {
                   try {
                       var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
@@ -1646,17 +1646,16 @@ window.loadVisits = async function(forceReload, isBackground) {
                   } catch (e) { console.error("Search Product Error:", e); }
               }
 
-              // 🎯 3. ประกอบร่างเงื่อนไข (เอาแค่ หมอ และ Visit ที่เจอสินค้า เท่านั้น)
               var orConditionsArray = [];
-
+              
+              // 🎯 [Fix 3]: เพิ่มขีดจำกัดจาก 80 เป็น 150 เพื่อให้รองรับชื่อหมอ/รพ ได้เยอะขึ้นโดยไม่ถูกตัดทิ้ง
               if (matchedDocIds.length > 0) {
-                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 100).join(',')})`);
+                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
               }
               if (matchedVisitIds.length > 0) {
-                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 100).join(',')})`);
+                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 150).join(',')})`);
               }
 
-              // ดักกรณีหาไม่เจอเลยสักอย่าง (พิมพ์คำที่ไม่มีในระบบ) ให้ Database ส่งค่าว่างกลับมาเลย
               if (orConditionsArray.length > 0) {
                   var finalOrString = orConditionsArray.join(',');
                   dataQuery = dataQuery.or(finalOrString);
@@ -1664,13 +1663,17 @@ window.loadVisits = async function(forceReload, isBackground) {
               } else {
                   dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-                  break; // เบรก Loop การค้นหาคำอื่นๆ ทันทีเพื่อประหยัดทรัพยากร
+                  break; 
               }
           }
       }
 
       // 📊 5. KPI Count Query
       var countRes = await countQuery;
+      
+      // 🎯 [Fix 1]: เช็กว่า Request นี้เก่าไปแล้วหรือยัง ถ้าเก่าให้ทิ้งไปเลย (แก้สะอึก)
+      if (currentQueryId !== window._visitQueryId) return;
+
       var totalC = 0, pendingC = 0, submittedC = 0;
       if (!countRes.error && countRes.data) {
           totalC = countRes.data.length;
@@ -1689,6 +1692,9 @@ window.loadVisits = async function(forceReload, isBackground) {
       dataQuery = dataQuery.range(from, to);
 
       var res = await dataQuery;
+      
+      // 🎯 [Fix 1]: เช็กอีกรอบก่อนวาดตาราง
+      if (currentQueryId !== window._visitQueryId) return;
       if (res.error) throw res.error;
 
       window.globalVisits = res.data || [];
@@ -1723,6 +1729,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           window.globalVisitProducts = [];
         }
       } else {
+        window.globalVisits = [];
         window.globalVisitProducts = [];
       }
 
@@ -1744,13 +1751,13 @@ window.loadVisits = async function(forceReload, isBackground) {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-        // 🎯 1. ถอดคลาส Loading ออก CSS จะปลดล็อกให้ Filter และ Table โชว์ขึ้นมา "พร้อมกัน"
-        if (visitViewEl) visitViewEl.classList.remove('is-loading');
-
-        // 🎯 2. เรียก toggleMainView เพื่อล้างคราบ Inline Style (ใช้ removeProperty แบบ Clean Method ที่เราคุยกัน)
-        var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-        if (typeof window.toggleMainView === 'function') {
-            window.toggleMainView(currentMainView);
+        // 🎯 [Fix 1]: คลายการหมุน Loading เฉพาะคิวล่าสุดเท่านั้น
+        if (currentQueryId === window._visitQueryId) {
+            if (visitViewEl) visitViewEl.classList.remove('is-loading');
+            var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
+            if (typeof window.toggleMainView === 'function') {
+                window.toggleMainView(currentMainView);
+            }
         }
     }
 };
