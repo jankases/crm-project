@@ -1589,13 +1589,49 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.in('Territory_ID', selectedTers);
       }
 
-      // 🔍 4. Smart Search Filter
+      // 🔍 4. Smart Search Filter (อัปเกรดให้หา หมอ, โรงพยาบาล, สินค้า ได้แล้ว)
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
+          // 🎯 1. กรองหา Doc_ID ที่มีชื่อหมอ หรือชื่อโรงพยาบาล ตรงกับคำค้นหา
+          var matchedDocIds = [];
+          (window.globalAssignedDoctors || []).forEach(function(d) {
+              var docName = String((d.Doc_Name || '') + ' ' + (d.Doc_Name_TH || '')).toLowerCase();
+              var hospName = d.Hospitals ? String((d.Hospitals.Hospital || '') + ' ' + (d.Hospitals.Known_As || '')).toLowerCase() : '';
+              if (docName.indexOf(rawSearchVal) !== -1 || hospName.indexOf(rawSearchVal) !== -1) {
+                  var dId = String(d.Doc_ID || d.id).trim();
+                  if (dId && matchedDocIds.indexOf(dId) === -1) matchedDocIds.push(dId);
+              }
+          });
+
+          // 🎯 2. กรองหา Visit_ID ที่มีการจ่ายผลิตภัณฑ์ที่ตรงกับคำค้นหา
+          var matchedProds = (window.globalProductsList || []).filter(function(p) {
+              var pName = String((p.Product || '') + ' ' + (p.Product_TH || '')).toLowerCase();
+              return pName.indexOf(rawSearchVal) !== -1;
+          }).map(function(p) { return p.Product_ID; });
+
+          var matchedVisitIds = [];
+          if (matchedProds.length > 0) {
+              try {
+                  var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProds);
+                  if (vpRes.data) matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
+              } catch(e) {}
+          }
+
+          // 🎯 3. ประกอบร่างเงื่อนไขส่งให้ Supabase
           var searchTerms = rawSearchVal.split(/\s+/);
           for (var i = 0; i < searchTerms.length; i++) {
               var term = searchTerms[i];
-              dataQuery = dataQuery.or(`Details.ilike.%${term}%,Insight.ilike.%${term}%,Next_Action.ilike.%${term}%`);
+              var orCondition = `Details.ilike.%${term}%,Insight.ilike.%${term}%,Next_Action.ilike.%${term}%`;
+              
+              if (matchedDocIds.length > 0) {
+                  orCondition += `,Doc_ID.in.(${matchedDocIds.slice(0, 100).join(',')})`;
+              }
+              if (matchedVisitIds.length > 0) {
+                  orCondition += `,Visit_ID.in.(${matchedVisitIds.slice(0, 100).join(',')})`;
+              }
+              
+              dataQuery = dataQuery.or(orCondition);
+              countQuery = countQuery.or(orCondition);
           }
       }
 
