@@ -1,6 +1,6 @@
 /* =========================================
    CRM System - Global Stylesheet (style.css)
-   ========================================= */ 
+   ========================================= */
 
 /* 🔒 RULE 1: GLOBAL APP-LIKE SCROLL CONTROL */
 html, body {
@@ -46,6 +46,7 @@ html, body {
   min-height: 0 !important;
 }
 
+#visitMainContentContainer,
 #doctorMainContentContainer,
 .doc-main-content,
 .hosp-main-content {
@@ -57,6 +58,7 @@ html, body {
 }
 
 /* 🌟 FIX RULE 2: เจาะจงให้ยืด (Flex-Grow) เฉพาะโซนตารางเท่านั้น */
+#visitListZone, 
 #doctorListZone,
 #hospListZone {
   display: flex !important;
@@ -68,12 +70,12 @@ html, body {
   justify-content: space-between !important;
 }
 
-/* 🌟 MASTER STANDARD: การ์ดแม่สีขาวบริสุทธิ์ (เว้นกรณีติด d-none) */
-.visit-filter-group:not(.d-none),
-.doctor-filter-group:not(.d-none),
-.hosp-filter-group:not(.d-none),
-#doctorFilterZoneGroup:not(.d-none),
-#visitFilterZoneGroup:not(.d-none) {
+/* 🌟 MASTER STANDARD: การ์ดแม่สีขาวบริสุทธิ์ */
+.visit-filter-group,
+.doctor-filter-group,
+.hosp-filter-group,
+#doctorFilterZoneGroup,
+#visitFilterZoneGroup {
   flex: 0 0 auto !important;
   height: auto !important;
   min-height: min-content !important;
@@ -308,7 +310,15 @@ html, body {
 }
 
 .visit-filter-group::before {
-    display: none !important;
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, #f8fafc 25%, #e2e8f0 50%, #f8fafc 75%);
+  background-size: 200% 100%;
+  animation: shimmerSkeleton 1.5s infinite linear;
+  border-radius: 16px;
+  z-index: 5;
+  transition: opacity 0.4s ease-out, visibility 0.4s;
 }
 
 @keyframes shimmerSkeleton {
@@ -852,6 +862,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
 }
 
+/* 🌟 FULL-CARD CENTERED LOADING OVERLAY */
+#visitTableLoading,
+#doctorTableLoading {
+  min-height: 380px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 /* 🌟 บีบระยะความสูงแถวตารางให้กะทัดรัด คลีนสวยงาม */
 .table-scroll-inside .table tbody tr {
   transition: all 0.15s ease-in-out !important;
@@ -889,12 +909,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   display: inline-flex !important;
   align-items: center !important;
 }
-  
-/* ==========================================
-   🌟 ABSOLUTE D-NONE RESPECTING VIEW ENGINE
-   ========================================== */
 
-/* 1. ตอนกำลังโหลดข้อมูล: ซ่อนทั้งกล่องแม่และปฏิทิน แล้วแสดงการ์ด Loading */
+/* 🌟 UNIFIED SINGLE-STATE LOADING */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -902,58 +918,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 #visitListView.is-loading #visitTableLoading {
   display: flex !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 380px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background-color: #ffffff !important;
-  border-radius: 16px !important;
 }
 
-/* 2. ตอนโหลดเสร็จ: ซ่อนการ์ด Loading นอกตาราง */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
-}
-
-/* 3. 🎯 [จุดแก้ไขเด็ดขาด]: บังคับซ่อน 100% เสมอเมื่อติดคลาส .d-none */
-.d-none,
-#visitMainContentContainer.d-none,
-#visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitFilterZoneGroup.d-none,
-#visitFilterZone.d-none {
-  display: none !important;
-}
-
-/* 4. เปิดโชว์เฉพาะตัวที่ไม่มีคลาส .d-none */
-#visitMainContentContainer:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  height: 100% !important;
-}
-
-#visitListZone:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  justify-content: space-between !important;
-}
-
-/* 🌟 [จุดสำคัญ]: สั่งยืด Calendar ให้เต็มความสูงหน้าจอทันทีเมื่อไม่มีคลาส .d-none */
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  margin-top: 0.5rem !important;
 }
 
 /* ==========================================
@@ -1059,6 +1027,19 @@ mark.highlight-search {
 /* ==========================================
    📅 FULLCALENDAR CLEAN FIT-HEIGHT STYLING
    ========================================== */
+#visitCalendarZone {
+  flex: 1 1 auto !important; 
+  height: 100% !important;
+  max-height: none !important; 
+  min-height: 0 !important;
+  overflow: hidden !important;
+  flex-direction: column !important;
+}
+
+#visitCalendarZone:not(.d-none) {
+  display: flex !important;
+}
+
 #calendar {
   flex-grow: 1 !important;
   height: 100% !important;
@@ -1132,6 +1113,16 @@ mark.highlight-search {
 #calendar .fc-button-group > .fc-button {
   border: none !important;
   border-radius: 8px !important;
+}
+
+#visitListView.d-none,
+#doctorListView.d-none,
+#hospListView.d-none,
+#visitFormView.d-none,
+#visitListZone.d-none,
+#visitCalendarZone.d-none,
+#visitMainContentContainer.d-none {
+  display: none !important;
 }
 
 /* ==========================================
@@ -2005,7 +1996,7 @@ button.feature-action-btn-lg.has-data-samples i {
    🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE
    ========================================== */
 
-/* 1. เมื่อติดคลาส .d-none ต้องบังคับซ่อน 100% เสมอ ไม่ให้มี Rule ไหนขวางได้ */
+/* 1. เมื่อติดคลาส .d-none ต้องบังคับซ่อน 100% เสมอ ไม่ว่าจะมี FlexRule ไหนขวางอยู่ */
 .d-none,
 #visitMainContentContainer.d-none,
 #visitListZone.d-none,
@@ -2014,7 +2005,7 @@ button.feature-action-btn-lg.has-data-samples i {
   display: none !important;
 }
 
-/* 2. สภาวะกำลังโหลด (.is-loading): ซ่อนทั้งสองกล่องแม่ แล้วโชว์เฉพาะกล่อง Loading */
+/* 2. สภาวะกำลังโหลด (.is-loading): ซ่อนกล่องแม่ และเปิดโชว์เฉพาะสปินเนอร์ Loading */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -2031,7 +2022,11 @@ button.feature-action-btn-lg.has-data-samples i {
   border-radius: 16px !important;
 }
 
-/* 3. สภาวะปกติเมื่อไม่มีคลาส .d-none: แผ่ยืดความสูงเต็มพื้นที่ */
+/* 3. สภาวะโหลดเสร็จแล้ว (:not(.is-loading)) */
+#visitListView:not(.is-loading) #visitTableLoading {
+  display: none !important;
+}
+
 #visitMainContentContainer:not(.d-none) {
   display: flex !important;
   flex-direction: column !important;
