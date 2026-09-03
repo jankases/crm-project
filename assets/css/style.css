@@ -2049,3 +2049,55 @@ button.feature-action-btn-lg.has-data-samples i {
   min-height: 0 !important;
   margin-top: 0.5rem !important;
 }
+
+/* ==========================================
+   🌟 SYSTEM VIEW CONTROL ENGINE (CLEAN)
+   ========================================== */
+
+/* 1. สภาวะ .d-none ต้องมีอำนาจสูงสุดในการซ่อน Element เสมอ */
+.d-none,
+#visitMainContentContainer.d-none,
+#visitListZone.d-none,
+#visitCalendarZone.d-none,
+#visitFilterZoneGroup.d-none {
+  display: none !important;
+}
+
+/* 2. สภาวะกำลังโหลดข้อมูล (.is-loading): ซ่อนคอนเทนเนอร์เนื้อหา และโชว์เฉพาะการ์ด Loading */
+#visitListView.is-loading #visitMainContentContainer,
+#visitListView.is-loading #visitCalendarZone {
+  display: none !important;
+}
+
+#visitListView.is-loading #visitTableLoading {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 380px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #ffffff !important;
+  border-radius: 16px !important;
+}
+
+/* 3. สภาวะโหลดเสร็จแล้ว (:not(.is-loading)) */
+#visitListView:not(.is-loading) #visitTableLoading {
+  display: none !important;
+}
+
+#visitMainContentContainer:not(.d-none) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+#visitCalendarZone:not(.d-none) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin-top: 0.5rem !important;
+}
