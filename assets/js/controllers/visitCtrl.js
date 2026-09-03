@@ -1205,18 +1205,17 @@ window.loadDropdowns = async function(forceReload) {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
 
-        // 🌟 1. การันตีสั่งปลดซ่อน Container ของ Filter ใน HTML
+        // 🎯 [จุดแก้ไขสำคัญ]: เอา Inline Style display: block !important ออก 
+        // ปล่อยให้การ ซ่อน/โชว์ ของ Filter Zone เป็นไปตามสภาวะของกล่องแม่ (#visitMainContentContainer)
         var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
         if (filterZone) {
-            filterZone.classList.remove('d-none', 'visit-filter-compact');
-            filterZone.style.setProperty('display', 'block', 'important');
-            filterZone.style.setProperty('visibility', 'visible', 'important');
-            filterZone.style.setProperty('opacity', '1', 'important');
+            filterZone.classList.remove('visit-filter-compact');
+            filterZone.style.display = '';
+            filterZone.style.visibility = '';
+            filterZone.style.opacity = '';
         }
 
         var mainContainer = document.getElementById('visitMainContentContainer');
-        if (mainContainer) mainContainer.classList.remove('d-none');
-
         if (!repSelect && !terSelect) return;
 
         // จำค่าเดิมที่เคยเลือกไว้
