@@ -764,7 +764,7 @@ window.closeMediaPresentation = async function() {
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================
  // 🌟 2. ฟังก์ชัน toggleMainView: สลับโหมด List vs Calendar โดยตรง
-window.toggleMainView = function(viewMode) {
+ window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer'); // หุ้ม Filter + List
@@ -776,6 +776,10 @@ window.toggleMainView = function(viewMode) {
   var listText = isEN ? 'List' : 'รายการ';
   var calText = isEN ? 'Calendar' : 'ปฏิทิน';
 
+  // 1. จำ View ปัจจุบันลง Cache กลางทันที
+  window.VisitManagerCache = window.VisitManagerCache || {};
+  window.VisitManagerCache.currentMainView = viewMode;
+
   if (viewMode === 'calendar') {
       if (listBtn) { 
           listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius'; 
@@ -786,12 +790,10 @@ window.toggleMainView = function(viewMode) {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🎯 บังคับซ่อนกล่องแม่หลัก ( Filter + ตาราง ) และโชว์เฉพาะ Calendar
+      // 🌟 สั่งพับเก็บกล่องแม่ ( Filter + ตาราง ) และเปิด Calendar
       if (mainContainer) mainContainer.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
-      window.VisitManagerCache = window.VisitManagerCache || {};
-      window.VisitManagerCache.currentMainView = 'calendar';
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (listBtn) { 
@@ -803,12 +805,9 @@ window.toggleMainView = function(viewMode) {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🎯 บังคับซ่อน Calendar และโชว์กล่องแม่หลัก ( Filter + ตาราง )
+      // 🌟 สั่งพับเก็บ Calendar และเปิดกล่องแม่ ( Filter + ตาราง )
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
-      
-      window.VisitManagerCache = window.VisitManagerCache || {};
-      window.VisitManagerCache.currentMainView = 'list';
   }
 };
 
@@ -1189,13 +1188,11 @@ window.loadDropdowns = async function(forceReload) {
   }
 };
 
- window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
+window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
 
-        // 🎯 [จุดแก้ไขสำคัญ]: เอา Inline Style display: block !important ออก 
-        // ปล่อยให้การ ซ่อน/โชว์ ของ Filter Zone เป็นไปตามสภาวะของกล่องแม่ (#visitMainContentContainer)
         var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
         if (filterZone) {
             filterZone.classList.remove('visit-filter-compact');
@@ -1205,6 +1202,16 @@ window.loadDropdowns = async function(forceReload) {
         }
 
         var mainContainer = document.getElementById('visitMainContentContainer');
+        var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
+                          ? window.VisitManagerCache.currentMainView 
+                          : 'list';
+
+        // 🌟 [จุดแก้ต้นตอ]: จะปลดล็อกโชว์กล่องแม่ เฉพาะตอนผู้ใช้เปิดหน้า List อยู่เท่านั้น! 
+        // ถ้าดู Calendar อยู่ ห้ามไปยุ่งเด็ดขาด!
+        if (mainContainer && currentView === 'list') {
+            mainContainer.classList.remove('d-none');
+        }
+
         if (!repSelect && !terSelect) return;
 
         // จำค่าเดิมที่เคยเลือกไว้
