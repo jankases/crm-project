@@ -3443,7 +3443,8 @@ window.renderCalendarView = function() {
       var bgColor = isPendingUnlock ? '#64748b' : (isPending ? '#f59e0b' : '#10b981');
       
       return {
-          id: v.Visit_ID, title: baseTitle, start: dateOnly, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block',     
+          id: v.Visit_ID, title: baseTitle, start: dateOnly, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block', 
+          order: 3, // 🎯 ลำดับที่ 3 (อยู่ล่างสุด)
           extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
       };
   });
@@ -3475,6 +3476,7 @@ window.renderCalendarView = function() {
                   borderColor: '#fca5a5',     
                   textColor: '#dc2626',       
                   display: 'block',
+                  order: 1, // 🎯 ลำดับที่ 1 (ขึ้นบนสุด)
                   extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
               };
           });
@@ -3501,6 +3503,7 @@ window.renderCalendarView = function() {
                   borderColor: '#8b5cf6', 
                   textColor: '#ffffff', 
                   display: 'block',
+                  order: 1, // 🎯 ลำดับที่ 1 (ขึ้นบนสุด)
                   extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: '🏢 ' + cTitle }
               };
           });
@@ -3545,6 +3548,7 @@ window.renderCalendarView = function() {
 
       var ev = {
           id: 'tot_' + t.TOT_ID, title: baseTitle, start: startDate, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block',
+          order: 2, // 🎯 ลำดับที่ 2 (อยู่ตรงกลาง)
           extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
       };
       if (endDateStr) ev.end = endDateStr;
@@ -3558,11 +3562,12 @@ window.renderCalendarView = function() {
   } : {
       today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
   };
- 
+
  // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งอัปเดตภาษา + เคลียร์และใส่อีเวนต์ใหม่
   if (window.globalCalendarInstance) {
       window.globalCalendarInstance.setOption('locale', isEN ? 'en' : 'th');
       window.globalCalendarInstance.setOption('buttonText', fcButtonText);
+      window.globalCalendarInstance.setOption('eventOrder', 'order');
       
       // 🎯 อัปเดตภาษาข้อความ +more เมื่อสลับภาษา Realtime
       window.globalCalendarInstance.setOption('moreLinkText', function(num) {
@@ -3578,6 +3583,7 @@ window.renderCalendarView = function() {
   if (typeof FullCalendar !== 'undefined') {
       window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth', 
+            eventOrder: 'order', // 🎯 บังคับให้ปฏิทินเรียงลำดับตามตัวแปร order (1 -> 2 -> 3)
             headerToolbar: { 
               left: 'prev,next today', 
               center: 'title', 
@@ -3677,7 +3683,7 @@ window.renderCalendarView = function() {
           var allowedReps = window.myAllowedRepIds || [];
           var uniqueReps = new Map();
           
-         var isEN = window.getCurrentAppLang() === 'en';
+          var isEN = window.getCurrentAppLang() === 'en';
           var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม') + '</option>';
           userList.forEach(function(u) {
             var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
