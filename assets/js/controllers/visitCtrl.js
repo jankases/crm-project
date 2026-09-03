@@ -2079,16 +2079,24 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-    htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
+ 
+
+      htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
       '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i>' + highlightedHosp + '</span>' + distanceBadge + '</td>' +
+      
+      // 🎯 [จุดที่แก้]: เพิ่ม <span> ครอบ highlightedHosp ไว้ เพื่อมัดคำที่ถูกไฮไลต์กับคำที่เหลือให้เป็นชิ้นเดียวกัน Flexbox จะได้ไม่ฉีกคำออกจากกันครับ
+      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
+      
       '<td>' + prodBadges + '</td>' +
       '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
       '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
       '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
     '</tr>';
   });
+
+
+    
 
   tbody.innerHTML = htmlBuffer;
   if (typeof window.renderPaginationControls === 'function') {
