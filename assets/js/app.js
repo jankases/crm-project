@@ -7,15 +7,17 @@ function checkAuthSession() {
   const userStr = sessionStorage.getItem('crmUser');
   
   if (!userStr) {
-    const loginComponent = document.getElementById('loginComponent');
+    const loginScreen = document.getElementById('loginScreen') || document.getElementById('loginComponent');
     const appContainer = document.getElementById('appContainer');
     
-    if (loginComponent) {
-      loginComponent.classList.remove('d-none');
-      loginComponent.style.display = 'block';
+    if (loginScreen) {
+      loginScreen.classList.remove('d-none');
+      loginScreen.classList.add('d-flex');
+      loginScreen.style.display = ''; // เคลียร์ Inline Style เก่า
     }
     if (appContainer) {
-      appContainer.style.display = 'none';
+      appContainer.classList.add('d-none');
+      appContainer.style.display = ''; // เคลียร์ Inline Style เก่า
     }
     return false;
   }
@@ -88,23 +90,22 @@ async function loadLoginComponent() {
     }
 }
 
-// 🛡️ ฟังก์ชันเช็กเตือนเฉพาะกรณี "กดสร้างใหม่ แล้วมีการพิมพ์ค้างไว้" เท่านั้น
+// 🛡️ ฟังก์ชันเช็กเตือนการพิมพ์ค้างไว้ (แก้ไขให้รองรับทั้งเพิ่มใหม่และแก้ไข)
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const isVisible = (el) => el && !el.classList.contains('d-none');
 
     const visitPageView = document.getElementById('view_page_visit');
     const visitFormView = document.getElementById('visitFormView');
-    const visitFormTitle = document.getElementById('visitFormTitle')?.innerText || '';
 
-    if (isVisible(visitPageView) && isVisible(visitFormView) && !visitFormTitle.includes('Edit')) {
+    if (isVisible(visitPageView) && isVisible(visitFormView)) {
         const details = document.getElementById('visitDetails')?.value.trim();
         const insight = document.getElementById('visitInsight')?.value.trim();
         const nextAction = document.getElementById('visitNextAction')?.value.trim();
 
         if (details || insight || nextAction) {
             return appLang === 'en' 
-                ? "You have unsaved changes in the New Visit Form. Are you sure you want to leave?" 
+                ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
                 : "คุณมีข้อมูลการเยี่ยมที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?";
         }
     }
@@ -279,7 +280,7 @@ async function loadComponent(page) {
 // 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้า (Rep, Territory, Doctor)
 async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
-    const loginScreen = document.getElementById('loginScreen'); 
+    const loginScreen = document.getElementById('loginScreen') || document.getElementById('loginComponent'); 
     const appContainer = document.getElementById('appContainer');
 
     if (userStr) {
@@ -288,8 +289,12 @@ async function checkSession() {
         if (loginScreen) {
             loginScreen.classList.remove('d-flex');
             loginScreen.classList.add('d-none');
+            loginScreen.style.display = '';
         }
-        if (appContainer) appContainer.style.display = 'block';
+        if (appContainer) {
+            appContainer.classList.remove('d-none');
+            appContainer.style.display = '';
+        }
         
         const nameDisplay = document.getElementById('displayUserName');
         const roleDisplay = document.getElementById('displayUserRole');
@@ -401,10 +406,11 @@ async function checkSession() {
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
             if (window.myIsGlobalViewer) {
-                el.style.setProperty('display', 'block', 'important');
+                el.classList.remove('d-none');
             } else {
-                el.style.setProperty('display', 'none', 'important');
+                el.classList.add('d-none');
             }
+            el.style.display = ''; 
         });
 
         await loadComponent('visit');
@@ -413,6 +419,7 @@ async function checkSession() {
         if (loginScreen) {
             loginScreen.classList.remove('d-none');
             loginScreen.classList.add('d-flex');
+            loginScreen.style.display = '';
             
             const expireReason = sessionStorage.getItem('session_expired_reason');
             const alertBanner = document.getElementById('loginAlertBanner');
@@ -431,7 +438,10 @@ async function checkSession() {
                 sessionStorage.removeItem('session_expired_reason');
             }
         }
-        if (appContainer) appContainer.style.display = 'none';
+        if (appContainer) {
+            appContainer.classList.add('d-none');
+            appContainer.style.display = '';
+        }
     }
 }
 
