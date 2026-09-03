@@ -17,8 +17,8 @@
 
 <div class="container-fluid p-0 visit-module-wrapper">
   
-  <!-- ================= 1. LIST VIEW ================= --> 
-    <div id="visitListView" class="w-100 h-100 d-flex flex-column is-loading">
+  <!-- ================= 1. LIST VIEW ================= -->
+  <div id="visitListView" class="w-100 h-100 d-flex flex-column is-loading">
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -70,12 +70,13 @@
     <!-- Card Loading Spinner -->
     <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center">
       <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
-      <h5 class="fw-bold text-dark mb-1" id="visitLoadingTitleText" data-i18n="status_loading">Loading Data...</h5>
-      <p class="text-muted mb-0" id="visitLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
+      <h5 class="fw-bold text-dark mb-1" id="loadingTitleText" data-i18n="status_loading">Loading Data...</h5>
+      <p class="text-muted mb-0" id="loadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
     </div>
- 
-      <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden">
- <div class="card p-2 px-3 border-0 shadow-sm mb-2.5 visit-filter-group w-100 flex-shrink-0" id="visitFilterZoneGroup"> 
+
+    <!-- 🌟 [ติด d-none ตั้งต้นไว้ล่วงหน้าเพื่อไม่ให้กระพริบตอนโหลดหน้า] -->
+    <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden"> 
+      <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
@@ -135,7 +136,6 @@
                   <select class="form-select bg-light-subtle shadow-none fs-6" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
                 </div>
               </div>
-              
             </div>
 
             <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear Filters</span></button>
@@ -176,6 +176,7 @@
 
     </div>
 
+    <!-- 🌟 [ปฏิทิน Calendar Zone] -->
     <div id="visitCalendarZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-none">
       <div id="calendar" class="w-100 h-100"></div>
     </div>
@@ -197,7 +198,6 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <!-- แคปซูล 1: สวิตช์ Coaching -->
           <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
             <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
               <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
@@ -206,7 +206,6 @@
             <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
           </div>
 
-          <!-- แคปซูล 2: Dropdown เลือก Coach -->
           <div id="visitCoachWrapper" class="d-none">
             <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
               <i class="fa-solid fa-user-ninja text-primary me-2 ms-1"></i>
@@ -216,12 +215,10 @@
             </div>
           </div>
 
-          <!-- แคปซูล User -->
           <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
             <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <span id="dispSalesRepName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
           </span>
           
-          <!-- แคปซูล Territory -->
           <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
             <i class="fa-solid fa-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <span id="dispTerritoryName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
           </span>
@@ -231,11 +228,9 @@
       <!-- Main Cards Grid Container -->
       <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
         
-        <!-- 🔹 Left Column (Visit Information & Evidences) -->
         <div class="col-12 col-xl-5 h-100 d-flex flex-column">
           <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div>
-              <!-- ไอคอนหัวข้อ -->
               <div class="d-flex align-items-center mb-2.5">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-solid fa-stethoscope fs-6"></i>
@@ -243,7 +238,6 @@
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_visit_info">Visit Information</h6>
               </div>
               
-              <!-- Doctor Selection -->
               <div class="mb-2">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
@@ -259,13 +253,11 @@
                 </div>
               </div>
 
-              <!-- Products -->
               <div class="mb-2">
                 <label class="compact-label mb-1"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
               </div>
 
-              <!-- Date & Start/End Time -->
               <div class="row g-2 align-items-end mb-2">
                 <div class="col-5">
                   <label class="compact-label mb-1"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
@@ -274,7 +266,6 @@
 
                 <div class="col-7">
                   <div class="row g-1">
-                    <!-- 🌟 Quick Time Buttons -->
                     <div class="col-6">
                       <div class="d-flex justify-content-between align-items-center mb-0.5">
                         <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
@@ -294,7 +285,6 @@
                 </div>
               </div>
 
-              <!-- Features & Evidences Section -->
               <div class="pt-1 pb-1">
                 <div class="d-flex align-items-center mb-2">
                   <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
@@ -303,7 +293,6 @@
                   <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_features_evidences">Features & Evidences</h6>
                 </div>
                 
-                <!-- 🌟 2x2 Auto-balanced Grid Layout -->
                 <div class="features-grid-wrapper" id="featuresButtonsWrapper">
                   <div class="feature-item-col" id="sectionGpsCheckin">
                     <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
@@ -341,11 +330,9 @@
           </div>
         </div>
 
-        <!-- 🔹 Right Column (Activity Details) -->
         <div class="col-12 col-xl-7 h-100 d-flex flex-column">
           <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div class="d-flex flex-column h-100" style="min-height: 0;">
-              <!-- ไอคอนหัวข้อ -->
               <div class="d-flex align-items-center mb-2.5">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-solid fa-list-check fs-6"></i>
@@ -353,13 +340,11 @@
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_activity_details">Activity Details</h6>
               </div>
 
-              <!-- Purpose -->
               <div class="mb-2">
                 <label class="compact-label mb-1"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
                 <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
               </div>
 
-              <!-- 🌟 1. Details -->
               <div class="mb-2 d-flex flex-column field-wrapper-details">
                 <label class="compact-label mb-1 d-flex align-items-center gap-1">
                   <i class="fa-regular fa-file-lines text-primary" style="font-size: 0.8rem;"></i>
@@ -373,7 +358,6 @@
                 </div>
               </div>
 
-              <!-- 🌟 2. Insight -->
               <div class="mb-2 d-flex flex-column field-wrapper-insight">
                 <label class="compact-label mb-1 d-flex align-items-center gap-1">
                   <i class="fa-regular fa-lightbulb text-warning" style="font-size: 0.8rem;"></i>
@@ -387,7 +371,6 @@
                 </div>
               </div>
 
-              <!-- 🌟 3. Next Action -->
               <div class="mb-1 d-flex flex-column field-wrapper-nextaction">
                 <label class="compact-label mb-1 d-flex align-items-center gap-1">
                   <i class="fa-solid fa-bullseye text-success" style="font-size: 0.8rem;"></i>
@@ -406,7 +389,6 @@
 
       </div>
 
-      <!-- 📌 FULL-WIDTH FLOATING STICKY ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <div class="d-flex align-items-center gap-2" style="min-width: 180px;">
           <label class="compact-label mb-0 text-secondary" data-i18n="lbl_status">Status:</label>
@@ -426,7 +408,7 @@
   </div>
 </div>
 
-<!-- 📜 Modals ทั้งหมด 5 ตัว -->
+<!-- Modals -->
 <div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg premium-radius">
@@ -450,11 +432,9 @@
   </div>
 </div>
 
-<!-- 📍 GPS Check-in Modal -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-sm">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-      
       <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
         <div class="text-center">
@@ -504,11 +484,9 @@
   </div>
 </div>
 
-<!-- 🎁 Samples Modal -->
 <div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-
       <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
         <div class="text-center">
@@ -542,11 +520,9 @@
   </div>
 </div>
 
-<!-- 📸 Attachments Modal -->
 <div class="modal fade" id="attachmentsDrawerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-      
       <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
         <div class="text-center">
@@ -623,12 +599,9 @@
   </div>
 </div>
 
-<!-- ⛱️ Premium Re-designed Time Off Territory (TOT) Modal -->
 <div class="modal fade" id="totModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
-      
-      <!-- Premium Modal Header -->
       <div class="modal-header border-bottom-0 pt-4 pb-1 px-4 position-relative justify-content-center bg-light-subtle">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="text-center">
@@ -642,12 +615,10 @@
         </div>
       </div>
 
-      <!-- Modal Body Form -->
       <form onsubmit="window.handleSaveTot(event)">
         <div class="modal-body p-4 pt-2">
           <input type="hidden" id="totId">
 
-          <!-- TOT Type -->
           <div class="mb-3">
             <label class="form-label fw-bold text-secondary small mb-1">
               <i class="fa-solid fa-list-check me-1 text-primary"></i> TOT Type <span class="text-danger">*</span>
@@ -655,7 +626,6 @@
             <select class="form-select bg-light-subtle border shadow-xs premium-radius fw-medium" id="totType" required style="height: 42px; font-size: 0.9rem;"></select>
           </div>
 
-          <!-- Date Range (🌟 เปลี่ยนเป็น type="text" และใส่ placeholder="dd/mm/yyyy" เพื่อรองรับ Flatpickr DD/MM/YYYY) -->
           <div class="row g-2.5 mb-3">
             <div class="col-6">
               <label class="form-label fw-bold text-secondary small mb-1">
@@ -671,7 +641,6 @@
             </div>
           </div>
 
-          <!-- Time Range -->
           <div class="row g-2.5 mb-3">
             <div class="col-6">
               <label class="form-label fw-bold text-secondary small mb-1">
@@ -687,7 +656,6 @@
             </div>
           </div>
 
-          <!-- Remark -->
           <div class="mb-3">
             <label class="form-label fw-bold text-secondary small mb-1">
               <i class="fa-regular fa-note-sticky me-1 text-primary"></i> Remark / Reason
@@ -695,7 +663,6 @@
             <textarea class="form-control bg-light-subtle border shadow-xs rounded-3 fs-6" id="totRemark" rows="2.5" placeholder="Enter reason or additional notes..." style="resize: none; font-size: 0.88rem;"></textarea>
           </div>
 
-          <!-- Status -->
           <div class="mb-1">
             <label class="form-label fw-bold text-secondary small mb-1">
               <i class="fa-solid fa-shield-halved me-1 text-primary"></i> Status
@@ -707,7 +674,6 @@
           </div>
         </div>
 
-        <!-- Footer Action Buttons -->
         <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex justify-content-between gap-2">
           <button type="button" class="btn btn-outline-danger border-0 fw-bold rounded-3 px-3 d-none" id="btnDeleteTot" onclick="window.deleteTot()" style="height: 42px;">
             <i class="fa-solid fa-trash-can me-1.5"></i>Delete
@@ -726,7 +692,6 @@
   </div>
 </div>
 
-<!-- ✍️ Doctor Signature Modal -->
 <div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
