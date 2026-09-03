@@ -7,17 +7,16 @@ function checkAuthSession() {
   const userStr = sessionStorage.getItem('crmUser');
   
   if (!userStr) {
-    const loginScreen = document.getElementById('loginScreen') || document.getElementById('loginComponent');
+    const loginComponent = document.getElementById('loginScreen') || document.getElementById('loginComponent');
     const appContainer = document.getElementById('appContainer');
     
-    if (loginScreen) {
-      loginScreen.classList.remove('d-none');
-      loginScreen.classList.add('d-flex');
-      loginScreen.style.display = ''; // เคลียร์ Inline Style เก่า
+    if (loginComponent) {
+      loginComponent.classList.remove('d-none');
+      loginComponent.style.display = 'block'; // 🌟 กู้คืน: เพื่อให้หน้า Login โชว์
     }
     if (appContainer) {
       appContainer.classList.add('d-none');
-      appContainer.style.display = ''; // เคลียร์ Inline Style เก่า
+      appContainer.style.display = 'none'; // 🌟 กู้คืน: เพื่อซ่อนฉากหลัง
     }
     return false;
   }
@@ -90,14 +89,15 @@ async function loadLoginComponent() {
     }
 }
 
-// 🛡️ ฟังก์ชันเช็กเตือนการพิมพ์ค้างไว้ (แก้ไขให้รองรับทั้งเพิ่มใหม่และแก้ไข)
+// 🛡️ ฟังก์ชันเช็กเตือนเฉพาะกรณี "กดสร้างใหม่ แล้วมีการพิมพ์ค้างไว้" เท่านั้น
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    const isVisible = (el) => el && !el.classList.contains('d-none');
+    const isVisible = (el) => el && (!el.classList.contains('d-none') && el.style.display !== 'none');
 
     const visitPageView = document.getElementById('view_page_visit');
     const visitFormView = document.getElementById('visitFormView');
 
+    // 🌟 เอาเงื่อนไขที่กันหน้า Edit ออก ให้เตือนทุกสภาวะที่มีการเปิดฟอร์มค้างไว้
     if (isVisible(visitPageView) && isVisible(visitFormView)) {
         const details = document.getElementById('visitDetails')?.value.trim();
         const insight = document.getElementById('visitInsight')?.value.trim();
@@ -287,13 +287,12 @@ async function checkSession() {
         const user = JSON.parse(userStr);
         
         if (loginScreen) {
-            loginScreen.classList.remove('d-flex');
             loginScreen.classList.add('d-none');
-            loginScreen.style.display = '';
+            loginScreen.style.display = 'none'; // 🌟 กู้คืน: ซ่อนหน้า Login
         }
         if (appContainer) {
             appContainer.classList.remove('d-none');
-            appContainer.style.display = '';
+            appContainer.style.display = 'block'; // 🌟 กู้คืน: โชว์หน้าแอปหลัก
         }
         
         const nameDisplay = document.getElementById('displayUserName');
@@ -410,7 +409,7 @@ async function checkSession() {
             } else {
                 el.classList.add('d-none');
             }
-            el.style.display = ''; 
+            el.style.display = ''; // 🌟 ล้าง Inline style เก่าทิ้ง ป้องกัน Flexbox แตก
         });
 
         await loadComponent('visit');
@@ -419,7 +418,7 @@ async function checkSession() {
         if (loginScreen) {
             loginScreen.classList.remove('d-none');
             loginScreen.classList.add('d-flex');
-            loginScreen.style.display = '';
+            loginScreen.style.display = 'block'; // 🌟 กู้คืน: เพื่อให้หน้า Login โชว์
             
             const expireReason = sessionStorage.getItem('session_expired_reason');
             const alertBanner = document.getElementById('loginAlertBanner');
@@ -440,7 +439,7 @@ async function checkSession() {
         }
         if (appContainer) {
             appContainer.classList.add('d-none');
-            appContainer.style.display = '';
+            appContainer.style.display = 'none'; // 🌟 กู้คืน: เพื่อซ่อนแอปหลัก
         }
     }
 }
