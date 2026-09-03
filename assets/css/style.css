@@ -1961,16 +1961,13 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
  /* ==========================================
-   🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE
+   🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE
    ========================================== */
-
-.d-none,
-#visitMainContentContainer.d-none,
-#visitListZone.d-none,
-#visitCalendarZone.d-none {
+.d-none {
   display: none !important;
 }
 
+/* ซ่อนเนื้อหาทั้งหมดขณะติดสภาวะ Loading */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -1978,32 +1975,8 @@ button.feature-action-btn-lg.has-data-samples i {
 
 #visitListView.is-loading #visitTableLoading {
   display: flex !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 380px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background-color: #ffffff !important;
-  border-radius: 16px !important;
 }
 
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
-}
-
-#visitMainContentContainer:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  height: 100% !important;
-}
-
-#visitCalendarZone:not(.d-none) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  margin-top: 0.5rem !important;
 }
