@@ -892,20 +892,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   align-items: center !important;
 }
 
-/* 🌟 UNIFIED SINGLE-STATE LOADING */
-#visitListView.is-loading #visitMainContentContainer,
-#visitListView.is-loading #visitCalendarZone {
-  display: none !important;
-}
-
-#visitListView.is-loading #visitTableLoading {
-  display: flex !important;
-}
-
-#visitListView:not(.is-loading) #visitTableLoading {
-  display: none !important;
-}
-
 /* ==========================================
    ✨ PREMIUM TABLE & VISUAL REFINEMENTS
    ========================================== */
@@ -1960,7 +1946,7 @@ button.feature-action-btn-lg.has-data-samples i {
   border-color: #3b82f6 !important;
 }
 
- /* ==========================================
+/* ==========================================
    🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE
    ========================================== */
 .d-none {
