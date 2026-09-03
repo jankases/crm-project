@@ -796,32 +796,31 @@ window.toggleMainView = function(viewMode) {
   }
 };
 
-// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form
+// 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form 
 window.switchVisitView = function(viewId) {
   var listView = document.getElementById('visitListView');
   var formView = document.getElementById('visitFormView');
 
   if (viewId === 'visitFormView') {
+      // 1. เปิดหน้าฟอร์ม และสั่งซ่อนหน้า List View หลัก
       if (listView) listView.classList.add('d-none');
       if (formView) formView.classList.remove('d-none');
   } else {
+      // 2. ปิดหน้าฟอร์ม และสั่งเปิดหน้า List View หลัก
       if (formView) formView.classList.add('d-none');
       if (listView) listView.classList.remove('d-none');
       
-      // คืนค่าหน้าสลับ List/Calendar ตามที่เลือกค้างไว้
-      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-      window.toggleMainView(currentView);
+      // 3. คืนค่าการแสดงผล List/Calendar ตามโหมดล่าสุดที่ผู้ใช้เลือกไว้
+      var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
+                        ? window.VisitManagerCache.currentMainView 
+                        : 'list';
+      if (typeof window.toggleMainView === 'function') {
+          window.toggleMainView(currentView);
+      }
   }
   window.scrollTo(0, 0);
 };
-
-window.switchVisitView = function(viewId) {
-  var views = ['visitListView', 'visitFormView'];
-  views.forEach(function(v) { var el = document.getElementById(v); if(el) el.classList.add('d-none'); });
-  var target = document.getElementById(viewId); 
-  if(target) target.classList.remove('d-none');
-  window.scrollTo(0, 0);
-};
+ 
 
 window.updateStatCards = function(totalOrArray, pendingCount, submittedCount) {
     var total = 0, pending = 0, submitted = 0;
@@ -1192,7 +1191,7 @@ window.loadDropdowns = async function(forceReload) {
   }
 };
 
-// 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว
+// 🌟 3. ปรับ setupFiltersDropdowns ไม่ให้ไปปลดซ่อนตารางมั่วซั่ว 
 window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
@@ -1206,17 +1205,18 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
         var mainContainer = document.getElementById('visitMainContentContainer');
         var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
 
-        // 🎯 สั่งซ่อน/โชว์ ตาม View ปัจจุบันเท่านั้น
+        // 🎯 สั่งซ่อน/โชว์ ผ่านการเพิ่ม/ลบ คลาส d-none เท่านั้น (เลิกใช้ setAttribute('style'))
         if (mainContainer) {
             if (currentView === 'list') {
-                mainContainer.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
+                mainContainer.classList.remove('d-none');
             } else {
-                mainContainer.setAttribute('style', 'display: none !important;');
+                mainContainer.classList.add('d-none');
             }
+            mainContainer.style.display = ''; // เคลียร์ Inline Style เก่าทิ้ง
         }
 
         if (!repSelect && !terSelect) return;
- 
+
         // จำค่าเดิมที่เคยเลือกไว้
         var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
         if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
@@ -1534,7 +1534,7 @@ window.clearVisitFilters = function() {
 // ==========================================
 
 // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
- window.loadVisits = async function(forceReload, isBackground) {
+window.loadVisits = async function(forceReload, isBackground) {
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
@@ -1799,13 +1799,17 @@ window.clearVisitFilters = function() {
     } finally {
       if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-      // 🌟 [การันตีการเปิดกล่องแม่เฉพาะโหมด List]: ป้องกันการหลุดไปทับหน้า Calendar
+      // 🎯 [จุดแก้ไขเด็ดขาด]: ถอด style.setProperty ออก และควบคุมผ่านคลาส d-none เท่านั้น
       var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
       var mainContainer = document.getElementById('visitMainContentContainer');
       
-      if (mainContainer && currentMainView === 'list') {
-          mainContainer.classList.remove('d-none');
-          mainContainer.style.setProperty('display', 'flex', 'important');
+      if (mainContainer) {
+          if (currentMainView === 'list') {
+              mainContainer.classList.remove('d-none');
+          } else {
+              mainContainer.classList.add('d-none');
+          }
+          mainContainer.style.display = ''; // เคลียร์ Inline style แปลกปลอมทิ้ง
       }
     }
 };
@@ -3788,16 +3792,16 @@ var noAttachmentText = document.getElementById('noAttachmentText');
 if (noAttachmentText) {
     noAttachmentText.innerText = appLang === 'en' ? 'No attachments yet' : 'ยังไม่มีไฟล์แนบ';
 }
-
+ 
 // ==========================================
 // 🎯 RENDER VISIT FILTERS ENGINE
 // ==========================================
- window.renderVisitFilters = function() {
-    // 🌟 สั่งปลดล็อกคลาส d-none ที่กล่อง id="visitFilterZoneGroup" ใน HTML ของคุณ
+window.renderVisitFilters = function() {
+    // 🌟 สั่งปลดล็อกคลาส d-none โดยไม่ยัด Inline Style เข้าไปข่มระบบ
     var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
     if (filterZone) {
         filterZone.classList.remove('d-none');
-        filterZone.style.setProperty('display', 'block', 'important');
+        filterZone.style.display = ''; // เคลียร์ Inline Style เก่าออกให้สะอาด
     }
 
     var crmUser = null;
