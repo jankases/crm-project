@@ -781,18 +781,30 @@ window.toggleMainView = function(viewMode) {
       if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       
-      // 🎯 บังคับซ่อนกล่องตาราง+Filter และบังคับเปิด Calendar 100%
-      if (mainContainer) mainContainer.setAttribute('style', 'display: none !important;');
-      if (calZone) calZone.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
+      // 🎯 สลับการซ่อน/โชว์ด้วยคลาสมาตรฐาน เคลียร์ Inline Style ทิ้ง
+      if (mainContainer) {
+          mainContainer.classList.add('d-none');
+          mainContainer.style.display = '';
+      }
+      if (calZone) {
+          calZone.classList.remove('d-none');
+          calZone.style.display = '';
+      }
       
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       
-      // 🎯 บังคับซ่อน Calendar และบังคับเปิดกล่องตาราง+Filter 100%
-      if (calZone) calZone.setAttribute('style', 'display: none !important;');
-      if (mainContainer) mainContainer.setAttribute('style', 'display: flex !important; flex-direction: column; flex: 1 1 auto; height: 100%; min-height: 0;');
+      // 🎯 สลับการซ่อน/โชว์ด้วยคลาสมาตรฐาน เคลียร์ Inline Style ทิ้ง
+      if (calZone) {
+          calZone.classList.add('d-none');
+          calZone.style.display = '';
+      }
+      if (mainContainer) {
+          mainContainer.classList.remove('d-none');
+          mainContainer.style.display = '';
+      }
   }
 };
 
@@ -802,15 +814,14 @@ window.switchVisitView = function(viewId) {
   var formView = document.getElementById('visitFormView');
 
   if (viewId === 'visitFormView') {
-      // 1. เปิดหน้าฟอร์ม และสั่งซ่อนหน้า List View หลัก
+      // 🎯 เมื่อเปิดหน้าฟอร์ม ให้ซ่อนหน้า List View ทั้งชุด
       if (listView) listView.classList.add('d-none');
       if (formView) formView.classList.remove('d-none');
   } else {
-      // 2. ปิดหน้าฟอร์ม และสั่งเปิดหน้า List View หลัก
+      // 🎯 เมื่อปิดหน้าฟอร์ม ให้เปิดหน้า List View และคืนค่ามุมมอง (List หรือ Calendar) ตามที่เลือกไว้
       if (formView) formView.classList.add('d-none');
       if (listView) listView.classList.remove('d-none');
       
-      // 3. คืนค่าการแสดงผล List/Calendar ตามโหมดล่าสุดที่ผู้ใช้เลือกไว้
       var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) 
                         ? window.VisitManagerCache.currentMainView 
                         : 'list';
