@@ -782,7 +782,7 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 ซ่อนกล่องแม่หลัก (Filter + ตาราง) ทั้งหมด แล้วเปิด Calendar ให้แผ่เต็มหน้าจอ
+      // 🌟 สั่งซ่อนกล่องแม่หลัก ( Filter + ตาราง ) แล้วเปิดเฉพาะ Calendar
       if (mainContainer) mainContainer.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
@@ -799,7 +799,7 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 ซ่อน Calendar แล้วเปิดกล่องแม่หลัก (Filter + ตาราง) กลับมา
+      // 🌟 สั่งซ่อน Calendar แล้วเปิดกล่องแม่หลัก ( Filter + ตาราง ) กลับมา
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
       
@@ -807,7 +807,6 @@ window.closeMediaPresentation = async function() {
       window.VisitManagerCache.currentMainView = 'list';
   }
 };
-
 window.switchVisitView = function(viewId) {
   var views = ['visitListView', 'visitFormView'];
   views.forEach(function(v) { var el = document.getElementById(v); if(el) el.classList.add('d-none'); });
