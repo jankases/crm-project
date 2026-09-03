@@ -1960,11 +1960,10 @@ button.feature-action-btn-lg.has-data-samples i {
   border-color: #3b82f6 !important;
 }
 
-/* ==========================================
-   🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE (CLEAN & NON-DUPLICATED)
+ /* ==========================================
+   🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE
    ========================================== */
 
-/* 1. สภาวะ d-none: บังคับซ่อน 100% เสมอ */
 .d-none,
 #visitMainContentContainer.d-none,
 #visitListZone.d-none,
@@ -1972,7 +1971,6 @@ button.feature-action-btn-lg.has-data-samples i {
   display: none !important;
 }
 
-/* 2. สภาวะกำลังโหลด (.is-loading): ซ่อนกล่องแม่ และเปิดโชว์เฉพาะสปินเนอร์ Loading */
 #visitListView.is-loading #visitMainContentContainer,
 #visitListView.is-loading #visitCalendarZone {
   display: none !important;
@@ -1989,7 +1987,6 @@ button.feature-action-btn-lg.has-data-samples i {
   border-radius: 16px !important;
 }
 
-/* 3. สภาวะปกติเมื่อไม่ได้ติด d-none */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
@@ -2000,12 +1997,6 @@ button.feature-action-btn-lg.has-data-samples i {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   height: 100% !important;
-}
-
-#visitMainContentContainer:not(.d-none) #visitFilterZoneGroup {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
 }
 
 #visitCalendarZone:not(.d-none) {
