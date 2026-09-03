@@ -1588,12 +1588,11 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.in('Territory_ID', selectedTers);
           countQuery = countQuery.in('Territory_ID', selectedTers);
       }
- 
-      // 🔍 4. Smart Search Filter (Hybrid: ใช้ความฉลาดของ Index ผสมกับการค้นหา Text)
+  
+     // 🔍 4. Smart Search Filter (Strict WYSIWYG: ค้นหาเฉพาะ หมอ, โรงพยาบาล, สินค้า ตาม Placeholder)
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
-          var hasNoMatchOnSomeTerm = false;
           var sb = window.supabaseClient || window.supabase;
 
           for (var i = 0; i < searchTerms.length; i++) {
@@ -1611,7 +1610,7 @@ window.loadVisits = async function(forceReload, isBackground) {
                   }
               });
 
-              // 2. หา Doctor IDs จากชื่อหมอ หรือ หาจากหมอที่สังกัดโรงพยาบาลที่หาเจอ
+              // 2. หา Doctor IDs จาก "ชื่อหมอ" หรือ "โรงพยาบาลหลัก"
               for (var key in window._docIndex) {
                   var doc = window._docIndex[key];
                   var isMatch = false;
@@ -1627,23 +1626,13 @@ window.loadVisits = async function(forceReload, isBackground) {
                       var docHospId = String(doc.Hospital_ID || doc.hospital_id || '').toLowerCase();
                       if (matchedHospIds.indexOf(docHospId) !== -1) {
                           isMatch = true;
-                      } else if (doc.Workplaces_JSON) {
-                          try {
-                              var wps = typeof doc.Workplaces_JSON === 'string' ? JSON.parse(doc.Workplaces_JSON) : doc.Workplaces_JSON;
-                              if (Array.isArray(wps)) {
-                                  for(var w=0; w<wps.length; w++) {
-                                      var wHid = String(wps[w].hospitalId || wps[w].Hospital_ID).toLowerCase();
-                                      if (matchedHospIds.indexOf(wHid) !== -1) { isMatch = true; break; }
-                                  }
-                              }
-                          } catch(e){}
                       }
                   }
 
                   if (isMatch) matchedDocIds.push(doc.Doc_ID || doc.doc_id || doc.id);
               }
 
-              // 3. หา Product IDs จากคำค้นหา
+              // 3. หา Product IDs จากชื่อสินค้า
               var matchedProductIds = [];
               var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
               allProds.forEach(function(p) {
@@ -1654,7 +1643,7 @@ window.loadVisits = async function(forceReload, isBackground) {
                   }
               });
 
-              // ถ้าเจอ Product ให้ไปกวาด Visit_ID จากตาราง Visit_Products
+              // ถ้าเจอ Product ให้ไปกวาด Visit_ID จากตาราง Visit_Products มา
               if (matchedProductIds.length > 0) {
                   try {
                       var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
@@ -1664,12 +1653,8 @@ window.loadVisits = async function(forceReload, isBackground) {
                   } catch (e) { console.error("Search Product Error:", e); }
               }
 
-              // 4. ประกอบร่างเงื่อนไข (OR condition) รวมทั้งจาก Text Field และ ID ที่หาเจอ
-              var orConditionsArray = [
-                  `Details.ilike.%${term}%`,
-                  `Insight.ilike.%${term}%`,
-                  `Next_Action.ilike.%${term}%`
-              ];
+              // 4. ประกอบร่างเงื่อนไข (เอาแค่ หมอ, โรงพยาบาล, สินค้า เท่านั้น)
+              var orConditionsArray = [];
 
               if (matchedDocIds.length > 0) {
                   orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 80).join(',')})`);
@@ -1678,10 +1663,16 @@ window.loadVisits = async function(forceReload, isBackground) {
                   orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 80).join(',')})`);
               }
 
-              // นำเงื่อนไขทั้งหมดจับมัดรวมกัน
-              var finalOrString = orConditionsArray.join(',');
-              dataQuery = dataQuery.or(finalOrString);
-              countQuery = countQuery.or(finalOrString);
+              // 🎯 ดักกรณีหาไม่เจอเลยสักอย่าง (พิมพ์คำที่ไม่มีในระบบ) ให้ Database ส่งค่าว่างกลับมาเลย
+              if (orConditionsArray.length > 0) {
+                  var finalOrString = orConditionsArray.join(',');
+                  dataQuery = dataQuery.or(finalOrString);
+                  countQuery = countQuery.or(finalOrString);
+              } else {
+                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  break; // เบรก Loop การค้นหาคำอื่นๆ ทันทีเพื่อประหยัดทรัพยากร
+              }
           }
       }
 
