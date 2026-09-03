@@ -776,7 +776,7 @@ window.closeMediaPresentation = async function() {
   var listText = isEN ? 'List' : 'รายการ';
   var calText = isEN ? 'Calendar' : 'ปฏิทิน';
 
-  // 1. จำ View ปัจจุบันลง Cache กลางทันที
+  // 1. บันทึกโหมดปัจจุบันลง Cache เพื่อให้ฟังก์ชันอื่นเช็กสภาวะได้
   window.VisitManagerCache = window.VisitManagerCache || {};
   window.VisitManagerCache.currentMainView = viewMode;
 
@@ -790,7 +790,7 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 สั่งพับเก็บกล่องแม่ ( Filter + ตาราง ) และเปิด Calendar
+      // 🌟 พับเก็บ Filter + ตาราง ออกไป และเปิดปฏิทิน
       if (mainContainer) mainContainer.classList.add('d-none');
       if (calZone) calZone.classList.remove('d-none');
       
@@ -805,7 +805,7 @@ window.closeMediaPresentation = async function() {
           calBtn.innerHTML = '<i class="fa-regular fa-calendar-days me-2"></i><span data-i18n="btn_calendar">' + calText + '</span>';
       }
       
-      // 🌟 สั่งพับเก็บ Calendar และเปิดกล่องแม่ ( Filter + ตาราง )
+      // 🌟 พับเก็บปฏิทิน และเปิด Filter + ตาราง
       if (calZone) calZone.classList.add('d-none');
       if (mainContainer) mainContainer.classList.remove('d-none');
   }
@@ -1206,13 +1206,17 @@ window.setupFiltersDropdowns = function(crmUser, productsTeamList) {
                           ? window.VisitManagerCache.currentMainView 
                           : 'list';
 
-        // 🌟 [จุดแก้ต้นตอ]: จะปลดล็อกโชว์กล่องแม่ เฉพาะตอนผู้ใช้เปิดหน้า List อยู่เท่านั้น! 
-        // ถ้าดู Calendar อยู่ ห้ามไปยุ่งเด็ดขาด!
-        if (mainContainer && currentView === 'list') {
-            mainContainer.classList.remove('d-none');
+        // 🎯 [จุดแก้ไขเด็ดขาด]: ปลดล็อกโชว์กล่องแม่เฉพาะโหมด List เท่านั้น! 
+        // ถ้าผู้ใช้เปิดโหมด Calendar อยู่ ห้ามสั่งปลดล็อกเด็ดขาด!
+        if (mainContainer) {
+            if (currentView === 'list') {
+                mainContainer.classList.remove('d-none');
+            } else {
+                mainContainer.classList.add('d-none');
+            }
         }
 
-        if (!repSelect && !terSelect) return;
+        if (!repSelect && !terSelect) return; 
 
         // จำค่าเดิมที่เคยเลือกไว้
         var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
