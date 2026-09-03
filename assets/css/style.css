@@ -1996,12 +1996,11 @@ button.feature-action-btn-lg.has-data-samples i {
    🌟 SINGLE SOURCE OF TRUTH: VIEW ENGINE
    ========================================== */
 
-/* 1. เมื่อติดคลาส .d-none ต้องบังคับซ่อน 100% เสมอ ไม่ว่าจะมี FlexRule ไหนขวางอยู่ */
+/* 1. สภาวะ d-none: บังคับซ่อน 100% เสมอ */
 .d-none,
 #visitMainContentContainer.d-none,
 #visitListZone.d-none,
-#visitCalendarZone.d-none,
-#visitFilterZoneGroup.d-none {
+#visitCalendarZone.d-none {
   display: none !important;
 }
 
@@ -2022,7 +2021,7 @@ button.feature-action-btn-lg.has-data-samples i {
   border-radius: 16px !important;
 }
 
-/* 3. สภาวะโหลดเสร็จแล้ว (:not(.is-loading)) */
+/* 3. สภาวะปกติเมื่อไม่ได้ติด d-none */
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
@@ -2033,6 +2032,13 @@ button.feature-action-btn-lg.has-data-samples i {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   height: 100% !important;
+}
+
+/* 🎯 [จุดแก้ไขเด็ดขาด]: บังคับเปิดแผง Filter Zone เสมอในหน้า List View */
+#visitMainContentContainer:not(.d-none) #visitFilterZoneGroup {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 #visitCalendarZone:not(.d-none) {
