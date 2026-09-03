@@ -3891,6 +3891,11 @@ window.renderVisitFilters = function() {
             window.setupFiltersDropdowns(crmUser, []);
         }
 
+        // 🎯 [จุดที่ต้องเติม] สั่งสร้างปฏิทิน (Date Picker) สำหรับ Filter และ Form ทันทีที่โหลดหน้าเสร็จ
+        if (typeof window.initVisitDatePickers === 'function') {
+            window.initVisitDatePickers();
+        }
+
         if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
 
         if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
