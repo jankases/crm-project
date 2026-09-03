@@ -3407,10 +3407,20 @@ window.renderCalendarView = function() {
       });
   }
 
-  var visitEvents = visitsSource.map(function(v) {
-      var docObj = window._docIndex ? window._docIndex[String(v.Doc_ID || v.doc_id || v.id || '').trim().toLowerCase()] : null;
-      var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, v.Doc_ID) : '-';
-      var hospName = (docObj && typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
+   var visitEvents = visitsSource.map(function(v) {
+      // 🎯 อ่านข้อมูลหมอจาก Relation Join (v.Doctors) ก่อน แล้วค่อย Fallback ไปหาใน List/Index
+      var rawDocId = String(v.Doc_ID || v.doc_id || v.id || '').trim();
+      var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
+      
+      if (!docObj && window.globalAssignedDoctors) {
+          docObj = window.globalAssignedDoctors.find(function(d) {
+              var dId = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
+              return dId === rawDocId.toLowerCase();
+          });
+      }
+
+      var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
+      var hospName = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
       var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-';
 
       var repObj = (window._userIndex && v.Rep_ID) ? window._userIndex[String(v.Rep_ID).trim().toLowerCase()] : null;
@@ -3595,7 +3605,7 @@ window.renderCalendarView = function() {
               <div id="calQuickAddPopover" class="card shadow-lg border-0 p-2 position-absolute rounded-3" style="z-index: 1060; min-width: 170px;">
                 <div class="fw-bold text-secondary tiny mb-1 text-center border-bottom pb-1">📅 ${displayDate}</div>
                 <button class="btn btn-sm btn-light text-primary text-start fw-bold mb-1 rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddVisitView==='function') window.openAddVisitView('${info.dateStr}');">
-                  <i class="fa-solid fa-plus me-1.5"></i>${isEN ? 'Add Visit' : '+บันทึกเยี่ยม'}
+                  <i class="fa-solid fa-plus me-1.5"></i>${isEN ? 'Add Visit' : 'บันทึกเยี่ยม'}
                 </button>
                 <button class="btn btn-sm btn-light text-info text-start fw-bold rounded-2" onclick="document.getElementById('calQuickAddPopover').remove(); if(typeof window.openAddTotModal==='function') { window.openAddTotModal(); document.getElementById('totStartDate').value='${info.dateStr}'; }">
                   <i class="fa-solid fa-umbrella-beach me-1.5"></i>${isEN ? 'Add TOT' : 'แจ้ง TOT / วันลา'}
