@@ -1443,8 +1443,14 @@ window.loadVisits = async function(forceReload, isBackground) {
             loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         }
 
-        // 🎯 สั่งแค่บรรทัดนี้! แล้ว CSS จะจับ Filter และ Table ซ่อนลงใต้ดินพร้อมกันทันที
         if (visitViewEl) visitViewEl.classList.add('is-loading');
+
+        // 🎯 [จุดสำคัญที่ต้องแก้] ต้องใช้ JS บังคับซ่อนด้วย Inline Style! 
+        // เพราะกล่องถูกล็อกด้วย Inline Style (flex !important) จาก toggleMainView ไปแล้ว CSS ธรรมดาเอาไม่อยู่
+        var mainContainer = document.getElementById('visitMainContentContainer');
+        var calZone = document.getElementById('visitCalendarZone');
+        if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
+        if (calZone) calZone.style.setProperty('display', 'none', 'important');
     }
 
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
