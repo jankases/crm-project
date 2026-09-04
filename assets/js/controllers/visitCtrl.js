@@ -3683,8 +3683,8 @@ window.renderCalendarView = function() {
           var allowedReps = window.myAllowedRepIds || [];
           var uniqueReps = new Map();
           
-          var isEN = window.getCurrentAppLang() === 'en';
-          var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม') + '</option>';
+          var isEN = window.getCurrentAppLang() === 'en'; 
+            var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด') + '</option>';
           userList.forEach(function(u) {
             var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
             if (uId && allowedReps.indexOf(uId) !== -1 && !uniqueReps.has(uId)) {
@@ -3716,9 +3716,10 @@ window.updateCalendarLegendLang = function() {
 
     // 🎯 อัปเดตภาษาข้อความ All Team Members Realtime
     var calRepSelect = document.getElementById('calRepFilterSelect');
+    
     if (calRepSelect && calRepSelect.options.length > 0) {
-        calRepSelect.options[0].text = isEN ? '👥 All Team Members' : '👥 พนักงานทุกคนในทีม';
-    }
+    calRepSelect.options[0].text = isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด';
+}
   
   var elBtn = document.getElementById('txtLegendBtn');
   var elHeader = document.getElementById('txtLegendHeader');
