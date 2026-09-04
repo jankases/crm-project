@@ -1034,6 +1034,7 @@ window.deleteTot = async function() {
   // 🚀 loadDropdowns (Pure Server-Side - ดึงเฉพาะ Master Data และตัวเลือกตามสิทธิ์เท่านั้น)
  window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
+  // 🎯 จำค่าเดิมที่ผู้ใช้เลือกไว้ เพื่อเซ็ตกลับคืนหลังจากสร้างกล่องใหม่เสร็จ
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1054,10 +1055,10 @@ window.deleteTot = async function() {
     var appLang = window.getCurrentAppLang();
     var sb = window.supabaseClient || window.supabase;
 
-    // 1. Status Dropdown
+    // 1. Status Dropdown (Static) -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
     var statusSelect = document.getElementById('filterVisitStatus');
     if (statusSelect) {
-        // 🛑 ตัดสายชนวน! ลบ onchange ออกจาก HTML
+        // 🛑 ตัดสายชนวน! ลบ onchange ออกจาก HTML ต้นฉบับ ป้องกันการโหลดตารางทันที
         statusSelect.onchange = null;
         statusSelect.removeAttribute('onchange');
 
@@ -1078,7 +1079,7 @@ window.deleteTot = async function() {
                 allowEmptyOption: true,
                 create: false,
                 placeholder: optAllStatus,
-                dropdownParent: null, // 🎯 [FIX] ทำให้กล่องไม่ลอย ไม่แว๊บ ไม่ทำเมนูกระตุก
+                dropdownParent: null, // 🎯 [FIX] เปลี่ยนเป็น null เพื่อแก้อาการเมนูแว๊บๆ/กระตุก
                 render: {
                     option: function(data, escape) {
                         return '<div class="d-flex align-items-center"><span class="me-2">' + escape(data.icon) + '</span><span>' + escape(data.text) + '</span></div>';
@@ -1088,7 +1089,7 @@ window.deleteTot = async function() {
                     }
                 },
                 onChange: function(value) { 
-                    // ปล่อยว่างไว้ ตารางจะไม่โหลดจนกว่าจะกด Apply
+                    // 🛑 ไม่สั่ง filterVisits() ตรงนี้แล้ว รอผู้ใช้กดปุ่ม Apply 
                 }
             });
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
@@ -1191,7 +1192,7 @@ window.deleteTot = async function() {
         window.renderCoachDropdown();
     }
 
-    // 3. ปั้น Doctor Dropdown
+    // 3. ปั้น Doctor Dropdown 
     var docSelect = document.getElementById('visitDocId');
     if (docSelect) { 
       docSelect.innerHTML = '<option value=""></option>';
@@ -1220,7 +1221,7 @@ window.deleteTot = async function() {
 
     // 4. ตั้งค่า Rep และ Territory Filter Dropdowns
     if (typeof window.setupFiltersDropdowns === 'function') {
-       await window.setupFiltersDropdowns(crmUser, []);
+        await window.setupFiltersDropdowns(crmUser, []);
     }
 
     // 5. ปั้น Purpose Dropdown
