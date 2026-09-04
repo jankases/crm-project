@@ -1424,22 +1424,35 @@ button.feature-action-btn-lg.has-data-samples i {
   }
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1199.98px) {
+  /* 📱 FIX IPAD & TABLET RESPONSIVE FOR VISIT FORM */
   #visitFormView {
     overflow-y: auto !important; 
     overflow-x: hidden !important;
+    height: 100% !important;
   }
   
   #visitFormView form {
     height: auto !important;
     min-height: 100% !important;
-  }
-
-  #visitFormView .row.g-3 {
-    height: auto !important;
-    overflow: visible !important;
     display: flex !important;
     flex-direction: column !important;
+  }
+
+  #visitFormView .row,
+  #visitFormView .row.g-3,
+  #visitFormView .row.g-2.5 {
+    height: auto !important;
+    min-height: min-content !important;
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+  }
+
+  #visitFormView .col-12,
+  #visitFormView [class*="col-lg-"],
+  #visitFormView [class*="col-md-"] {
+    height: auto !important;
+    margin-bottom: 0.75rem !important;
   }
 
   #visitFormView .col-12 > .border,
@@ -1454,8 +1467,16 @@ button.feature-action-btn-lg.has-data-samples i {
     flex: 0 0 auto !important;
   }
   
-  #visitDetails { height: 120px !important; min-height: 120px !important; }
-  #visitInsight, #visitNextAction { height: 80px !important; min-height: 80px !important; }
+  #visitDetails { 
+    height: 120px !important; 
+    min-height: 120px !important; 
+  }
+  
+  #visitInsight, 
+  #visitNextAction { 
+    height: 80px !important; 
+    min-height: 80px !important; 
+  }
 
   .full-width-action-bar {
     position: sticky !important;
