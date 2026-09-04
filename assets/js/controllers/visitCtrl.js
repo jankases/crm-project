@@ -2369,9 +2369,16 @@ window.toggleVisitFormEditable = function(isEditable) {
       }
   }
 
-  var targetDocId = overrideDocId || (v ? v.Doc_ID : null) || sessionStorage.getItem('returnToDocId');
+  var rawDocId = v ? String(v.Doc_ID || v.doc_id || v.id || '').trim() : null;
+  var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
+  
   if (targetDocId && window.tomSelectDocInstance) {
-      window.tomSelectDocInstance.setValue(targetDocId, true);
+      // 🎯 ใช้ setTomSelectValue เพื่อบังคับสร้าง Option จำลอง กรณีเป็นหมอนอกเขตของผู้บริหาร
+      if (typeof window.setTomSelectValue === 'function') {
+          window.setTomSelectValue(window.tomSelectDocInstance, targetDocId);
+      } else {
+          window.tomSelectDocInstance.setValue(targetDocId, true);
+      }
   }
 
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
@@ -2396,7 +2403,12 @@ window.toggleVisitFormEditable = function(isEditable) {
               var visitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
               
               if (window.tomSelectProdInstance && visitProds.length > 0) {
-                  window.tomSelectProdInstance.setValue(visitProds, true);
+                  // 🎯 ใช้ setTomSelectValue เพื่อบังคับสร้าง Option จำลอง กรณีเป็นสินค้านอกเขต
+                  if (typeof window.setTomSelectValue === 'function') {
+                      window.setTomSelectValue(window.tomSelectProdInstance, visitProds);
+                  } else {
+                      window.tomSelectProdInstance.setValue(visitProds, true);
+                  }
               }
               if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
           });
