@@ -2294,12 +2294,21 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
- window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+  window.openEditVisitView = async function(visitId, overrideDocId, overridePurposeId) { 
+  // 🎯 [Fix 1]: เติมคำว่า async ด้านบน เพื่อให้ใช้คำสั่ง await ในฟังก์ชันนี้ได้
+  
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   window.applyVisitFeaturesUI();
 
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+
+  // 🎯 [Fix 2]: บังคับรอโหลด Master Data (ชื่อหมอ/Product) ให้เสร็จชัวร์ๆ ก่อน ค่อยเอาข้อมูลไปยัดลง Dropdown
+  if (!window.VisitManagerCache || !window.VisitManagerCache.dropdownsLoaded) {
+      if (typeof window.loadDropdowns === 'function') {
+          await window.loadDropdowns(true);
+      }
+  }
 
   var v = (window.globalVisits && window.globalVisits.length > 0) 
     ? window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); }) 
@@ -2373,7 +2382,6 @@ window.toggleVisitFormEditable = function(isEditable) {
   var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
   
   if (targetDocId && window.tomSelectDocInstance) {
-      // 🎯 ใช้ setTomSelectValue เพื่อบังคับสร้าง Option จำลอง กรณีเป็นหมอนอกเขตของผู้บริหาร
       if (typeof window.setTomSelectValue === 'function') {
           window.setTomSelectValue(window.tomSelectDocInstance, targetDocId);
       } else {
@@ -2387,7 +2395,6 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.tomSelectPurposeInstance.setValue(dbPurposeVal, true);
   }
 
-  // 🎯 [Fix ล่าสุด]: เติม async เข้าไปตรงนี้ เพื่อบังคับให้รอสร้างกล่อง Product เสร็จ 100% ก่อนใส่ค่า
   requestAnimationFrame(async function() {
       if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
           window.fetchLastVisitHistory(targetDocId);
@@ -2406,7 +2413,6 @@ window.toggleVisitFormEditable = function(isEditable) {
           var visitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
           
           if (window.tomSelectProdInstance && visitProds.length > 0) {
-              // 🎯 ใช้ setTomSelectValue เพื่อบังคับสร้าง Option จำลอง กรณีเป็นสินค้านอกเขต
               if (typeof window.setTomSelectValue === 'function') {
                   window.setTomSelectValue(window.tomSelectProdInstance, visitProds);
               } else {
