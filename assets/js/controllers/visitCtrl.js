@@ -2387,9 +2387,13 @@ window.toggleVisitFormEditable = function(isEditable) {
 
       if (typeof window.renderFormProductDropdown === 'function') {
           window.renderFormProductDropdown().then(function() {
-              var visitProds = (window.globalVisitProducts && v) ? window.globalVisitProducts.filter(function(vp) { 
-                  return String(vp.Visit_ID) === String(visitId); 
-              }).map(function(vp) { return String(vp.Product_ID); }) : [];
+              // 🎯 ใช้ข้อมูลจาก Index ที่เราผูกไว้ เพื่อความเร็วและความชัวร์
+              var vidClean = String(visitId).trim().toLowerCase();
+              var visitProdsObj = window._visitProductIndex && window._visitProductIndex[vidClean] 
+                                    ? window._visitProductIndex[vidClean] 
+                                    : [];
+              
+              var visitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
               
               if (window.tomSelectProdInstance && visitProds.length > 0) {
                   window.tomSelectProdInstance.setValue(visitProds, true);
