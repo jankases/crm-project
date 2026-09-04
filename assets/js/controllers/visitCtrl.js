@@ -1727,22 +1727,26 @@ window.deleteTot = async function() {
               }
           }
       }
-
-      // 🎯 3. Filter Controls
+ 
+    // 🎯 3. Filter Controls (ดึงค่าจาก TomSelect อย่างถูกต้อง)
       var statusEl = document.getElementById('filterVisitStatus');
+      // อ่านค่าจาก TomSelect Instance ถ้ายังไม่มีให้ fallback ไปอ่านจาก select ปกติ
       var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
       
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
+      // ดึงค่า Employee / Sales Rep จาก TomSelect
       var repEl = document.getElementById('filterVisitRep');
       var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
 
+      // ดึงค่า Area / Team จาก TomSelect
       var terEl = document.getElementById('filterVisitTerritory');
       var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
       if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
+         
 
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
@@ -2119,14 +2123,23 @@ window.deleteTot = async function() {
     }
 };
   
-// 🎯 1. กลุ่มฟังก์ชันอัปเดต Filter และค้นหา (ทำงานเบื้องหลัง ไม่ให้หน้าจอกระพริบ)
-window.handleFilterChange = function(source) { 
+ 
+
+// 🎯 ฟังก์ชันสั่ง กรองข้อมูล (ทำงานเมื่อกดปุ่ม Apply & Close หรือเปลี่ยนการค้นหาด้านบน)
+window.filterVisits = function() {
     if (window.isInitialLoading) return; 
-    window.currentPage = 1;
+    
+    // บันทึกสถานะฟิลเตอร์ไว้ใน Cache
+    if (typeof window.saveVisitFilterState === 'function') {
+        window.saveVisitFilterState();
+    }
+    
+    window.currentPage = 1; // รีเซ็ตไปหน้าแรก
+    // สั่งโหลดข้อมูลใหม่ (forceReload = true, isBackground = true)
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
 };
 
-window.filterVisits = function() {
+window.handleFilterChange = function(source) { 
     if (window.isInitialLoading) return; 
     window.currentPage = 1;
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
