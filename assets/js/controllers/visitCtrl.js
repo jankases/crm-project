@@ -1034,7 +1034,6 @@ window.deleteTot = async function() {
   // 🚀 loadDropdowns (Pure Server-Side - ดึงเฉพาะ Master Data และตัวเลือกตามสิทธิ์เท่านั้น)
  window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
-  // 🎯 จำค่าเดิมที่ผู้ใช้เลือกไว้ เพื่อเซ็ตกลับคืนหลังจากสร้างกล่องใหม่เสร็จ
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1055,15 +1054,18 @@ window.deleteTot = async function() {
     var appLang = window.getCurrentAppLang();
     var sb = window.supabaseClient || window.supabase;
 
-    // 1. Status Dropdown (Static) -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
+    // 1. Status Dropdown
     var statusSelect = document.getElementById('filterVisitStatus');
     if (statusSelect) {
+        // 🛑 ตัดสายชนวน! ลบ onchange ออกจาก HTML
+        statusSelect.onchange = null;
+        statusSelect.removeAttribute('onchange');
+
         var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
         if (typeof TomSelect !== 'undefined') {
             window.safeDestroyTs(window.tomSelectStatusInstance);
             statusSelect.innerHTML = '<option value=""></option>'; 
             
-           // 1. Status Dropdown
             window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
                 valueField: 'value',
                 searchField: ['text'],
@@ -1076,24 +1078,17 @@ window.deleteTot = async function() {
                 allowEmptyOption: true,
                 create: false,
                 placeholder: optAllStatus,
-                dropdownParent: null, // 🎯 [สำคัญ] ต้องเป็น null เพื่อไม่ให้เมนูเด้งปิดเอง
+                dropdownParent: null, // 🎯 [FIX] ทำให้กล่องไม่ลอย ไม่แว๊บ ไม่ทำเมนูกระตุก
                 render: {
                     option: function(data, escape) {
-                        return '<div class="d-flex align-items-center">' +
-                               '<span class="me-2">' + escape(data.icon) + '</span>' +
-                               '<span>' + escape(data.text) + '</span>' +
-                               '</div>';
+                        return '<div class="d-flex align-items-center"><span class="me-2">' + escape(data.icon) + '</span><span>' + escape(data.text) + '</span></div>';
                     },
                     item: function(data, escape) {
-                        return '<div class="d-flex align-items-center">' +
-                               '<span class="me-2">' + escape(data.icon) + '</span>' +
-                               '<span>' + escape(data.text) + '</span>' +
-                               '</div>';
+                        return '<div class="d-flex align-items-center"><span class="me-2">' + escape(data.icon) + '</span><span>' + escape(data.text) + '</span></div>';
                     }
                 },
                 onChange: function(value) { 
-                    // 🛑 ลบคำสั่ง filterVisits() ออก 
-                    // เพื่อให้ตารางไม่โหลดแทรกขึ้นมาตอนเลือก รอให้กดปุ่ม Apply & Close ทำงานทีเดียว
+                    // ปล่อยว่างไว้ ตารางจะไม่โหลดจนกว่าจะกด Apply
                 }
             });
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
@@ -1192,12 +1187,11 @@ window.deleteTot = async function() {
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
-    // 🎯 [Fix 1]: สั่งให้วาดกล่อง Coach Dropdown ทันทีที่มีข้อมูล User ครบแล้ว!
     if (typeof window.renderCoachDropdown === 'function') {
         window.renderCoachDropdown();
     }
 
-    // 3. ปั้น Doctor Dropdown -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
+    // 3. ปั้น Doctor Dropdown
     var docSelect = document.getElementById('visitDocId');
     if (docSelect) { 
       docSelect.innerHTML = '<option value=""></option>';
@@ -1229,7 +1223,7 @@ window.deleteTot = async function() {
        await window.setupFiltersDropdowns(crmUser, []);
     }
 
-    // 5. ปั้น Purpose Dropdown -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
+    // 5. ปั้น Purpose Dropdown
     var purposeSelect = document.getElementById('visitPurpose');
     if (purposeSelect) { 
       var types = window.VisitManagerCache.indexTypes || []; 
@@ -1262,7 +1256,6 @@ window.deleteTot = async function() {
               create: false, 
               dropdownParent: 'body'
           });
-          // 🎯 ดึงค่า Purpose เดิมกลับมาหลังจากสร้างเสร็จ
           if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
       }
     }
@@ -1274,28 +1267,37 @@ window.deleteTot = async function() {
 };
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
-  window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🛑 [CORE FIX 1]: สั่งลบ Event ล่องหนที่แฝงอยู่ใน HTML ต้นฉบับ
-    // ตัดวงจรไม่ให้ TomSelect แอบไปสั่งโหลดตารางจาก onchange เก่าใน HTML!
-    var repSelect = document.getElementById('filterVisitRep');
+    // 🛑 [CORE FIX 1]: ตัดสายชนวน! ลบ onchange ที่ฝังอยู่ใน HTML ต้นฉบับทิ้ง
+    // เพื่อหยุดไม่ให้ตารางชิงรีโหลดตัวเองตอนเรากดเลือก (หยุดอาการรีเซ็ต)
+    var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
+    if (repSelect) { repSelect.onchange = null; repSelect.removeAttribute('onchange'); }
+    if (terSelect) { terSelect.onchange = null; terSelect.removeAttribute('onchange'); }
 
-    if (repSelect) {
-        repSelect.onchange = null;
-        repSelect.removeAttribute('onchange');
-    }
-    if (terSelect) {
-        terSelect.onchange = null;
-        terSelect.removeAttribute('onchange');
-    }
+    // 🛑 [CORE FIX 2]: ระบบเกราะป้องกันเมนูพับหนี (Ultimate Click-Shield)
+    if (!window._filterDropdownFixApplied) {
+        document.addEventListener('hide.bs.dropdown', function(e) {
+            if (window._allowFilterClose) return; // อนุญาตให้ปิดเมื่อกดปุ่ม Apply & Close
 
-    // 🛑 [CORE FIX 2]: สั่งล็อกคอ Bootstrap 5 ผ่าน Attribute โดยตรง
-    // บังคับว่าให้ปิดเมนูก็ต่อเมื่อผู้ใช้จิ้มพื้นที่นอกเมนู (outside) เท่านั้น! ห้ามปิดตอน Loading เด็ดขาด
-    var advBtn = document.getElementById('btnAdvFilterDropdown');
-    if (advBtn) {
-        advBtn.setAttribute('data-bs-auto-close', 'outside');
+            var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+            if (filterZone && e.target.contains(filterZone)) {
+                if (e.clickEvent) {
+                    var clickedEl = e.clickEvent.target;
+                    var isInsideFilter = clickedEl.closest('.ts-wrapper, .ts-dropdown, #visitFilterZoneGroup, #visitFilterZone') !== null;
+                    var isDetached = !document.body.contains(clickedEl); // เช็กว่าคลิกโดนไอเท็มที่เพิ่งโดนลบทิ้งหรือไม่
+                    var isToggleBtn = clickedEl.closest('[data-bs-toggle="dropdown"]');
+
+                    // ถ้ากดข้างในฟิลเตอร์ และไม่ได้กดปุ่มเพื่อจงใจปิด -> ล็อกกุญแจตาย ห้ามปิดเมนู!
+                    if (!isToggleBtn && (isInsideFilter || isDetached)) {
+                        e.preventDefault(); 
+                    }
+                }
+            }
+        });
+        window._filterDropdownFixApplied = true;
     }
 
     // 🎯 ลงทะเบียน Plugin "Apply Button" ให้ TomSelect
@@ -1311,18 +1313,23 @@ window.deleteTot = async function() {
                 footer.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    self.close(); // ปิด TomSelect
+                    self.close(); // ปิดเมนู TomSelect
                     
-                    // ปิดเมนู Advanced Filters ตัวแม่
-                    var btnToggle = document.getElementById('btnAdvFilterDropdown');
-                    if (btnToggle && typeof bootstrap !== 'undefined') {
-                        var bsDropdown = bootstrap.Dropdown.getInstance(btnToggle) || new bootstrap.Dropdown(btnToggle);
+                    // ปลดล็อกเกราะ ให้ Bootstrap พับเมนูตัวแม่ได้
+                    window._allowFilterClose = true; 
+                    var fZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+                    var dMenu = fZone ? fZone.closest('.dropdown-menu') : null;
+                    var tBtn = dMenu ? dMenu.previousElementSibling : null;
+                    
+                    if (tBtn && typeof bootstrap !== 'undefined') {
+                        var bsDropdown = bootstrap.Dropdown.getInstance(tBtn) || new bootstrap.Dropdown(tBtn);
                         if (bsDropdown) bsDropdown.hide();
-                    } else if (btnToggle) {
-                        btnToggle.click();
+                    } else if (tBtn) {
+                        tBtn.click();
                     }
+                    setTimeout(function() { window._allowFilterClose = false; }, 200);
 
-                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนกดปุ่มนี้เท่านั้น!
+                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่มนี้เท่านั้น!
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 });
                 self.dropdown.appendChild(footer);
@@ -1339,7 +1346,6 @@ window.deleteTot = async function() {
 
         if (!repSelect && !terSelect) return;
 
-        // 🎯 ทำลายกล่องเก่าก่อนสร้างใหม่
         if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
         if (window.tomSelectTerInstance) { window.tomSelectTerInstance.destroy(); window.tomSelectTerInstance = null; }
         
@@ -1526,7 +1532,6 @@ window.deleteTot = async function() {
                                 var repOpt = this.options[repValue];
                                 if (repOpt && repOpt.value !== 'OTHER_REPS') {
                                     var targetTer = repOpt.terId || repOpt.teamId;
-                                    // 🎯 ใช้ silent mode (true) เพื่อไม่ให้ Trigger Event ซ้อน
                                     if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
                                 }
                             }
