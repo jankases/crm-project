@@ -1384,6 +1384,14 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             });
         }
 
+        // 🎯 [เพิ่มโค้ดตรงนี้]: เติมตัวเลือก "Other" สำหรับ Area/Team
+        if (isBuHead || isProductManager || isGlobalViewer) {
+            terOptionsData.push({ 
+                value: 'OTHER_TERRITORIES', 
+                text: '🌐 ' + (appLang === 'en' ? 'Other / Cross-Area' : 'พื้นที่อื่น / นอกเขต (Other)')
+            });
+        }
+
         // 🌟 5. ผูกเข้ากับ TomSelect 
         if (typeof TomSelect !== 'undefined') {
             if (repSelect) {
@@ -3749,34 +3757,41 @@ window.renderCalendarView = function() {
 
 
 window.updateCalendarLegendLang = function() {
-  var isEN = window.getCurrentAppLang() === 'en';
-
-    // 🎯 อัปเดตภาษาข้อความ All Team Members Realtime
-    var calRepSelect = document.getElementById('calRepFilterSelect');
+    var isEN = window.getCurrentAppLang() === 'en';
     
+    var calRepSelect = document.getElementById('calRepFilterSelect');
     if (calRepSelect && calRepSelect.options.length > 0) {
-    calRepSelect.options[0].text = isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด';
-}
-  
-  var elBtn = document.getElementById('txtLegendBtn');
-  var elHeader = document.getElementById('txtLegendHeader');
-  var elSub = document.getElementById('legTxtSubmitted');
-  var elPen = document.getElementById('legTxtPending');
-  var elUnl = document.getElementById('legTxtUnlock');
-  var elHol = document.getElementById('legTxtHoliday');
-  var elCom = document.getElementById('legTxtCompany');
-  var elTotApp = document.getElementById('legTxtTotAppr');
-  var elTotPen = document.getElementById('legTxtTotPend');
+        // อัปเดตภาษาตัวเลือกแรก (All Users)
+        calRepSelect.options[0].text = isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด';
+        
+        // 🎯 อัปเดตภาษาตัวเลือก Other
+        for (var i = 0; i < calRepSelect.options.length; i++) {
+            if (calRepSelect.options[i].value === 'OTHER_REPS') {
+                calRepSelect.options[i].text = '🌐 ' + (isEN ? 'Other / Cross-Team' : 'บุคคลอื่น / นอกทีม (Other)');
+                break;
+            }
+        }
+    }
 
-  if (elBtn) elBtn.innerText = isEN ? 'Legend' : 'สัญลักษณ์สี';
-  if (elHeader) elHeader.innerText = isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี';
-  if (elSub) elSub.innerText = isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว';
-  if (elPen) elPen.innerText = isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง';
-  if (elUnl) elUnl.innerText = isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก';
-  if (elHol) elHol.innerText = isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์';
-  if (elCom) elCom.innerText = isEN ? 'Company Event' : 'กิจกรรมบริษัท';
-  if (elTotApp) elTotApp.innerText = isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)';
-  if (elTotPen) elTotPen.innerText = isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)';
+    var elBtn = document.getElementById('txtLegendBtn');
+    var elHeader = document.getElementById('txtLegendHeader');
+    var elSub = document.getElementById('legTxtSubmitted');
+    var elPen = document.getElementById('legTxtPending');
+    var elUnl = document.getElementById('legTxtUnlock');
+    var elHol = document.getElementById('legTxtHoliday');
+    var elCom = document.getElementById('legTxtCompany');
+    var elTotApp = document.getElementById('legTxtTotAppr');
+    var elTotPen = document.getElementById('legTxtTotPend');
+
+    if (elBtn) elBtn.innerText = isEN ? 'Legend' : 'สัญลักษณ์สี';
+    if (elHeader) elHeader.innerText = isEN ? 'Color Key' : 'คำอธิบายสัญลักษณ์สี';
+    if (elSub) elSub.innerText = isEN ? 'Submitted Visit' : 'บันทึกเยี่ยมแล้ว';
+    if (elPen) elPen.innerText = isEN ? 'Pending Draft' : 'ฉบับร่างรอส่ง';
+    if (elUnl) elUnl.innerText = isEN ? 'Pending Unlock' : 'รออนุมัติปลดล็อก';
+    if (elHol) elHol.innerText = isEN ? 'Public Holiday' : 'วันหยุดนักขัตฤกษ์';
+    if (elCom) elCom.innerText = isEN ? 'Company Event' : 'กิจกรรมบริษัท';
+    if (elTotApp) elTotApp.innerText = isEN ? 'TOT (Approved)' : 'TOT (อนุมัติแล้ว)';
+    if (elTotPen) elTotPen.innerText = isEN ? 'TOT (Pending)' : 'TOT (รออนุมัติ)';
 };
 
 // ==========================================
