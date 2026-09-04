@@ -1268,38 +1268,93 @@ window.deleteTot = async function() {
 };
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
- window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+ // 🎯 1. ฟังก์ชันวาดรายการ Checkbox ลงในกล่อง
+window.renderCheckboxList = function(containerId, dataList, type) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!dataList || dataList.length === 0) {
+        container.innerHTML = '<div class="text-muted small text-center py-2">No options available</div>';
+        return;
+    }
+
+    dataList.forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'form-check py-1 px-1 rounded hover-bg-light d-flex align-items-center filter-item-' + type;
+        div.setAttribute('data-text', (item.text || '').toLowerCase());
+
+        var input = document.createElement('input');
+        input.className = 'form-check-input me-2 mt-0 cursor-pointer chk-filter-' + type;
+        input.type = 'checkbox';
+        input.value = item.value;
+        input.id = 'chk_' + type + '_' + item.value;
+
+        var label = document.createElement('label');
+        label.className = 'form-check-label small text-dark cursor-pointer text-truncate w-100 mb-0';
+        label.htmlFor = input.id;
+        label.textContent = item.text;
+
+        div.appendChild(input);
+        div.appendChild(label);
+        container.appendChild(div);
+    });
+};
+
+// 🎯 2. ค้นหาตัวเลือกในกล่อง Checkbox
+window.filterCheckboxList = function(type, keyword) {
+    var term = (keyword || '').toLowerCase();
+    var items = document.querySelectorAll('.filter-item-' + type);
+    items.forEach(function(el) {
+        var text = el.getAttribute('data-text') || '';
+        if (text.indexOf(term) !== -1) {
+            el.classList.remove('d-none');
+        } else {
+            el.classList.add('d-none');
+        }
+    });
+};
+
+// 🎯 3. ปุ่ม Select All / Clear
+window.toggleAllCheckboxes = function(type, isSelectAll) {
+    var checkboxes = document.querySelectorAll('.chk-filter-' + type);
+    checkboxes.forEach(function(chk) {
+        var parent = chk.closest('.filter-item-' + type);
+        if (parent && !parent.classList.contains('d-none')) {
+            chk.checked = isSelectAll;
+        }
+    });
+};
+
+// 🎯 4. อ่านค่า Checkbox ทั้งหมดที่ถูกเลือก
+window.getCheckedFilterValues = function(type) {
+    var checked = document.querySelectorAll('.chk-filter-' + type + ':checked');
+    return Array.from(checked).map(function(chk) { return chk.value; });
+};
+
+// 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
+window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🛑 1. ตัดสายชนวน! ลบคำสั่ง onchange ใน HTML ต้นฉบับทิ้ง ป้องกันตารางแอบรีโหลด
-    var repSelect = document.getElementById('filterVisitRep'); 
-    var terSelect = document.getElementById('filterVisitTerritory');
-    if (repSelect) { repSelect.onchange = null; repSelect.removeAttribute('onchange'); }
-    if (terSelect) { terSelect.onchange = null; terSelect.removeAttribute('onchange'); }
-
-    // 🛑 2. บังคับเมนูแม่ให้ปิดก็ต่อเมื่อคลิกพื้นที่ว่างข้างนอกเท่านั้น (ป้องกันเมนูพับหนี)
+    // 🛑 บังคับเมนูแม่ให้อยู่คงที่ ปิดเฉพาะตอนจิ้มข้างนอกเท่านั้น
     var advBtn = document.getElementById('btnAdvFilterDropdown');
     if (advBtn) {
         advBtn.setAttribute('data-bs-auto-close', 'outside');
     }
 
-    // 🛑 3. ระบบเกราะป้องกันเมนูพับหนี (Ultimate Click-Shield) ของ Bootstrap
+    // 🛑 ระบบเกราะป้องกันเมนูพับหนี (Click-Shield)
     if (!window._filterDropdownFixApplied) {
         document.addEventListener('hide.bs.dropdown', function(e) {
-            if (window._allowFilterClose) return; // อนุญาตให้ปิดหากสั่งจากปุ่ม Apply
+            if (window._allowFilterClose) return;
 
             var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
             if (filterZone && e.target.contains(filterZone)) {
                 if (e.clickEvent) {
                     var clickedEl = e.clickEvent.target;
-                    
-                    // เช็กว่าคลิกข้างในฟิลเตอร์ หรือคลิกไอเท็มของ TomSelect ที่เพิ่งโดนลบทิ้งหรือไม่
-                    var isInsideFilter = clickedEl.closest('.ts-wrapper, .ts-dropdown, #visitFilterZoneGroup, #visitFilterZone') !== null;
-                    var isDetached = !document.body.contains(clickedEl); 
+                    var isInsideFilter = clickedEl.closest('#visitFilterZoneGroup, #visitFilterZone') !== null;
                     var isToggleBtn = clickedEl.closest('[data-bs-toggle="dropdown"]');
 
-                    // ถ้าไม่ใช่ปุ่ม Toggle หลัก -> ล็อกกุญแจตาย ห้ามปิดเมนู!
-                    if (!isToggleBtn && (isInsideFilter || isDetached)) {
+                    if (!isToggleBtn && isInsideFilter) {
                         e.preventDefault(); 
                     }
                 }
@@ -1308,7 +1363,7 @@ window.deleteTot = async function() {
         window._filterDropdownFixApplied = true;
     }
 
-    // 🎯 4. จัดการปุ่ม "นำไปใช้ (Apply & Close)" ข้างล่างสุดปุ่มเดียว
+    // 🎯 ผูกอีเวนต์ปุ่ม "นำไปใช้ (Apply & Close)"
     var btnApply = document.getElementById('btnApplyAdvancedFilters');
     if (btnApply && !btnApply.dataset.bound) {
         btnApply.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'th' ? 'นำไปใช้' : 'Apply & Close');
@@ -1317,7 +1372,7 @@ window.deleteTot = async function() {
             e.preventDefault();
             e.stopPropagation();
             
-            // ปลดล็อกเกราะ ให้ Bootstrap พับเมนูตัวแม่ได้
+            // ปลดล็อกเกราะชั่วคราว ให้เมนูปิดได้
             window._allowFilterClose = true; 
             if (advBtn && typeof bootstrap !== 'undefined') {
                 var bsDropdown = bootstrap.Dropdown.getInstance(advBtn) || new bootstrap.Dropdown(advBtn);
@@ -1327,7 +1382,7 @@ window.deleteTot = async function() {
             }
             setTimeout(function() { window._allowFilterClose = false; }, 200);
 
-            // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่มนี้เท่านั้น!
+            // 🎯 สั่งโหลดตารางข้อมูลใหม่
             if (typeof window.filterVisits === 'function') window.filterVisits(); 
         });
         btnApply.dataset.bound = 'true';
@@ -1340,22 +1395,8 @@ window.deleteTot = async function() {
             filterZone.style.display = '';
         }
 
-        if (!repSelect && !terSelect) return;
-
-        // ทำลายกล่องเก่าก่อนสร้างใหม่
-        if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
-        if (window.tomSelectTerInstance) { window.tomSelectTerInstance.destroy(); window.tomSelectTerInstance = null; }
-        
-        repSelect.innerHTML = '';
-        terSelect.innerHTML = '';
-
-        var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
-        if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
-        var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
-        if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
-
+        var sb = window.supabaseClient || window.supabase;
         var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-        var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
         var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
         
         var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
@@ -1372,8 +1413,6 @@ window.deleteTot = async function() {
         var myAllowedTeamIds = []; 
         var myAllowedTerIds = []; 
         var myAllowedRepIds = [uRepId]; 
-
-        var sb = window.supabaseClient || window.supabase;
 
         if (!isGlobalViewer) {
             if (isBuHead && userBuId) {
@@ -1428,6 +1467,7 @@ window.deleteTot = async function() {
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
 
+        // 🎯 1. ปั้นข้อมูล Employee / Sales Rep
         var repOptionsData = [];
         var uniqueUsersMap = new Map();
         
@@ -1444,22 +1484,11 @@ window.deleteTot = async function() {
 
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), u);
-                repOptionsData.push({ 
-                    value: id, 
-                    text: rolePrefix + name,
-                    terId: String(u.Territory_ID || u.Territory || '').trim(),
-                    teamId: String(u.Team_ID || u.Team || '').trim()
-                });
+                repOptionsData.push({ value: id, text: rolePrefix + name });
             }
         });
 
-        if (isBuHead || isProductManager || isGlobalViewer) {
-            repOptionsData.push({ 
-                value: 'OTHER_REPS', 
-                text: '🌐 ' + (appLang === 'th' ? 'บุคคลอื่น / นอกทีม (Other)' : 'Other / Cross-Team')
-            });
-        }
-
+        // 🎯 2. ปั้นข้อมูล Area / Team
         var terOptionsData = [];
         var terMap = new Map();
         var allTers = window.globalTerritories || window.globalTerritoryList || [];
@@ -1479,7 +1508,7 @@ window.deleteTot = async function() {
 
             if (isAllowed && tid && !terMap.has(tid.toLowerCase())) {
                 terMap.set(tid.toLowerCase(), tnm);
-                terOptionsData.push({ value: tid, text: '📍 ' + tnm, teamId: teamId });
+                terOptionsData.push({ value: tid, text: '📍 ' + tnm });
             }
         });
 
@@ -1502,72 +1531,10 @@ window.deleteTot = async function() {
             });
         }
 
-        if (isBuHead || isProductManager || isGlobalViewer) {
-            terOptionsData.push({ 
-                value: 'OTHER_TERRITORIES', 
-                text: '🌐 ' + (appLang === 'th' ? 'พื้นที่อื่น / นอกเขต (Other)' : 'Other / Cross-Area')
-            });
-        }
+        // 🎯 3. วาดรายการ Checkbox เข้าใน HTML
+        window.renderCheckboxList('containerFilterRep', repOptionsData, 'rep');
+        window.renderCheckboxList('containerFilterTer', terOptionsData, 'ter');
 
-        if (typeof TomSelect !== 'undefined') {
-            if (repSelect) {
-                if (!window.tomSelectRepInstance) {
-                    window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
-                        maxItems: null, 
-                        plugins: ['remove_button'], 
-                        create: false, 
-                        allowEmptyOption: false, 
-                        valueField: 'value', 
-                        labelField: 'text', 
-                        searchField: ['text'],
-                        options: repOptionsData, 
-                        hidePlaceholder: true,
-                        placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Reps -', 
-                        dropdownParent: null, 
-                        onChange: function(repValue) { 
-                            if (repValue && window.tomSelectTerInstance) {
-                                var repOpt = this.options[repValue];
-                                if (repOpt && repOpt.value !== 'OTHER_REPS') {
-                                    var targetTer = repOpt.terId || repOpt.teamId;
-                                    if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
-                                }
-                            }
-                        } 
-                    });
-                }
-                if (oldRepVal.length > 0 && window.isInitialLoading) window.tomSelectRepInstance.setValue(oldRepVal, true);
-            }
-
-            if (terSelect) {
-                if (!window.tomSelectTerInstance) {
-                    window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
-                        maxItems: null, 
-                        plugins: ['remove_button'], 
-                        create: false, 
-                        allowEmptyOption: false, 
-                        valueField: 'value', 
-                        labelField: 'text', 
-                        searchField: ['text'],
-                        options: terOptionsData, 
-                        hidePlaceholder: true,
-                        placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas/Teams -', 
-                        dropdownParent: null,
-                        onChange: function(terValue) { 
-                            if (terValue && terValue !== 'OTHER_TERRITORIES' && window.tomSelectRepInstance) {
-                                var currentRep = window.tomSelectRepInstance.getValue();
-                                if (currentRep) {
-                                    var repOpt = window.tomSelectRepInstance.options[currentRep];
-                                    if (repOpt && repOpt.terId !== terValue && repOpt.teamId !== terValue) {
-                                        window.tomSelectRepInstance.setValue('', true); 
-                                    }
-                                }
-                            }
-                        } 
-                    });
-                }
-                if (oldTerVal.length > 0 && window.isInitialLoading) window.tomSelectTerInstance.setValue(oldTerVal, true);
-            }
-        }
     } catch (err) {
         console.error("Error in setupFiltersDropdowns:", err);
     } finally {
@@ -1727,29 +1694,29 @@ window.deleteTot = async function() {
               }
           }
       }
- 
-    // 🎯 3. Filter Controls (ดึงค่าจาก TomSelect อย่างถูกต้อง)
+
+      // 🎯 3. Filter Controls (ดึงค่าจาก Checkbox ตัวใหม่และกล่อง Status)
       var statusEl = document.getElementById('filterVisitStatus');
-      // อ่านค่าจาก TomSelect Instance ถ้ายังไม่มีให้ fallback ไปอ่านจาก select ปกติ
-      var statusTerm = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (statusEl ? statusEl.value : '');
+      var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
       
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // ดึงค่า Employee / Sales Rep จาก TomSelect
-      var repEl = document.getElementById('filterVisitRep');
-      var selectedReps = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : (repEl ? Array.from(repEl.selectedOptions).map(function(o){ return o.value; }) : []);
-      if (!Array.isArray(selectedReps)) selectedReps = selectedReps ? [selectedReps] : [];
+      // 🌟 ดึงค่าจาก Checkbox ตัวใหม่ที่เราทำใน HTML
+      var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
+      var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
 
-      // ดึงค่า Area / Team จาก TomSelect
-      var terEl = document.getElementById('filterVisitTerritory');
-      var selectedTers = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : (terEl ? Array.from(terEl.selectedOptions).map(function(o){ return o.value; }) : []);
-      if (!Array.isArray(selectedTers)) selectedTers = selectedTers ? [selectedTers] : [];
-         
+      // 🌟 แสดงป้ายบอกจำนวนที่กรองตรง Badge หัวข้อ Advanced Filters
+      var lblCountEl = document.getElementById('lblSelectedCount');
+      if (lblCountEl) {
+          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0);
+          lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
+      }
 
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
+          countQuery = countQuery.eq('Status', statusTerm);
       }
 
       if (startDateTerm) {
@@ -1762,65 +1729,24 @@ window.deleteTot = async function() {
       }
 
       if (selectedReps.length > 0) {
-          // 🎯 รองรับลอจิกการค้นหาแบบ "OTHER_REPS" (บุคคลอื่น/นอกทีม)
-          var hasOther = selectedReps.indexOf('OTHER_REPS') !== -1;
-          var normalReps = selectedReps.filter(function(r) { return r !== 'OTHER_REPS'; });
-
-          if (hasOther) {
-              // ดึงรายชื่อคนที่ "อนุญาต" ทั้งหมด ถ้า Other คือ เอาคนที่ "ไม่อยู่" ในลิสต์นี้
-              var allowedList = window.myAllowedRepIds || [];
-              if (allowedList.length === 0) allowedList = ['00000000-0000-0000-0000-000000000000']; // ดักเผื่อว่าง
-              
-              if (normalReps.length > 0) {
-                  // เลือกทั้งลูกน้องปกติ + อื่นๆ
-                  var orStr = 'Rep_ID.in.(' + normalReps.join(',') + '),Rep_ID.not.in.(' + allowedList.join(',') + ')';
-                  dataQuery = dataQuery.or(orStr);
-                  countQuery = countQuery.or(orStr);
-              } else {
-                  // เลือกแค่ Other อย่างเดียว
-                  dataQuery = dataQuery.not('Rep_ID', 'in', '(' + allowedList.join(',') + ')');
-                  countQuery = countQuery.not('Rep_ID', 'in', '(' + allowedList.join(',') + ')');
-              }
-          } else {
-              // เลือกแบบปกติ (ไม่มี Other)
-              dataQuery = dataQuery.in('Rep_ID', normalReps);
-              countQuery = countQuery.in('Rep_ID', normalReps);
-          }
+          dataQuery = dataQuery.in('Rep_ID', selectedReps);
+          countQuery = countQuery.in('Rep_ID', selectedReps);
       }
 
       if (selectedTers.length > 0) {
-          // 🎯 รองรับลอจิกการค้นหาแบบ "OTHER_TERRITORIES" (พื้นที่อื่น/นอกเขต)
-          var hasOtherTer = selectedTers.indexOf('OTHER_TERRITORIES') !== -1;
-          var normalTers = selectedTers.filter(function(t) { return t !== 'OTHER_TERRITORIES'; });
-
-          if (hasOtherTer) {
-              var allowedTerList = window.myAllowedTerIds || [];
-              if (allowedTerList.length === 0) allowedTerList = ['00000000-0000-0000-0000-000000000000']; 
-              
-              if (normalTers.length > 0) {
-                  var orStrTer = 'Territory_ID.in.(' + normalTers.join(',') + '),Territory_ID.not.in.(' + allowedTerList.join(',') + ')';
-                  dataQuery = dataQuery.or(orStrTer);
-                  countQuery = countQuery.or(orStrTer);
-              } else {
-                  dataQuery = dataQuery.not('Territory_ID', 'in', '(' + allowedTerList.join(',') + ')');
-                  countQuery = countQuery.not('Territory_ID', 'in', '(' + allowedTerList.join(',') + ')');
-              }
-          } else {
-              dataQuery = dataQuery.in('Territory_ID', normalTers);
-              countQuery = countQuery.in('Territory_ID', normalTers);
-          }
+          dataQuery = dataQuery.in('Territory_ID', selectedTers);
+          countQuery = countQuery.in('Territory_ID', selectedTers);
       }
    
-     // 🔍 4. Smart Search Filter (รวมมิตร: ไม่สะอึก + ค้นหาจากข้อมูลจริง)
+      // 🔍 4. Smart Search Filter (รวมมิตร: ไม่สะอึก + ค้นหาจากข้อมูลจริง)
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
-            sb = window.supabaseClient || window.supabase;
+          sb = window.supabaseClient || window.supabase;
 
           for (var i = 0; i < searchTerms.length; i++) {
               var term = searchTerms[i];
               
-              // ดักคำสั้นเกินไปเฉพาะตอนพิมพ์หลายคำ ป้องกันคิวล้น
               if (term.length < 2 && searchTerms.length > 1) {
                   continue; 
               }
@@ -1828,7 +1754,6 @@ window.deleteTot = async function() {
               var matchedDocIds = [];
               var matchedVisitIds = [];
 
-              // 🎯 [แก้จุดที่ผมเผลอใส่ผิด]: กลับมาใช้ globalAssignedDoctors (ข้อมูลจริง) แทน _docIndex
               (window.globalAssignedDoctors || []).forEach(function(doc) {
                   var isMatch = false;
                   var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
@@ -1872,7 +1797,6 @@ window.deleteTot = async function() {
 
               var orConditionsArray = [];
               
-              // ขยายโควต้าเป็น 150 ป้องกันโดนหั่นทิ้งจนข้อมูลหาย
               if (matchedDocIds.length > 0) {
                   orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
               }
@@ -1923,8 +1847,7 @@ window.deleteTot = async function() {
 
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
-        window._visitProductIndex = {};
-      
+      window._visitProductIndex = {};
       window._visitSampleIndex = {};
 
       if (window.globalVisits.length > 0) {
@@ -1940,7 +1863,6 @@ window.deleteTot = async function() {
 
           window.globalVisitProducts = (results[0] && results[0].data) ? results[0].data : [];
 
-          // 🎯 [Fix 2]: วนลูปจับคู่ Product เข้ากับ Visit_ID เพื่อให้หน้า Edit ดึงไปแสดงได้
           window.globalVisitProducts.forEach(function(vp) {
               if (vp.Visit_ID) {
                   var vid = String(vp.Visit_ID).trim().toLowerCase();
@@ -1980,7 +1902,7 @@ window.deleteTot = async function() {
 
     } catch (err) {
       console.error("Load Visits Error:", err); 
-        var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
+      var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
