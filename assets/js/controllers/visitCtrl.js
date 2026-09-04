@@ -2449,7 +2449,7 @@ window.toggleVisitFormEditable = function(isEditable) {
                   var roleBadge = (fallbackU && fallbackU.Role) ? ' (' + fallbackU.Role + ')' : '';
                   var opt = document.createElement('option');
                   opt.value = v.Coach_Rep_ID;
-                  opt.textContent = '👤 ' + fallbackName + roleBadge + ' [Historical]';
+                  opt.textContent =   fallbackName + roleBadge + ' [Historical]';
                   coachSelect.appendChild(opt);
               }
               coachSelect.value = v.Coach_Rep_ID || '';
@@ -5227,7 +5227,7 @@ window.renderPaginationControls = function(totalPages) {
             if (shouldInclude) {
                 var uName = u.Rep_Name || u.Name || u.Email || uId;
                 var roleBadge = u.Role ? ' (' + u.Role + ')' : '';
-                html += '<option value="' + uId + '">👤 ' + uName + roleBadge + '</option>';
+                html += '<option value="' + uId + '"> ' + uName + roleBadge + '</option>';
             }
         });
     }
