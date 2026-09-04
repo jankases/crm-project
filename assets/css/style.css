@@ -2007,3 +2007,15 @@ button.feature-action-btn-lg.has-data-samples i {
 #visitListView:not(.is-loading) #visitTableLoading {
   display: none !important;
 }
+
+/* 🌟 PLUGIN APPLY BUTTON FOR TOMSELECT */
+.ts-dropdown-footer {
+  padding: 8px 10px !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background-color: #f8fafc !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+}
