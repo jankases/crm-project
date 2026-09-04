@@ -1651,8 +1651,26 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
       }
 
       if (selectedTers.length > 0) {
-          dataQuery = dataQuery.in('Territory_ID', selectedTers);
-          countQuery = countQuery.in('Territory_ID', selectedTers);
+          // 🎯 รองรับลอจิกการค้นหาแบบ "OTHER_TERRITORIES" (พื้นที่อื่น/นอกเขต)
+          var hasOtherTer = selectedTers.indexOf('OTHER_TERRITORIES') !== -1;
+          var normalTers = selectedTers.filter(function(t) { return t !== 'OTHER_TERRITORIES'; });
+
+          if (hasOtherTer) {
+              var allowedTerList = window.myAllowedTerIds || [];
+              if (allowedTerList.length === 0) allowedTerList = ['00000000-0000-0000-0000-000000000000']; 
+              
+              if (normalTers.length > 0) {
+                  var orStrTer = 'Territory_ID.in.(' + normalTers.join(',') + '),Territory_ID.not.in.(' + allowedTerList.join(',') + ')';
+                  dataQuery = dataQuery.or(orStrTer);
+                  countQuery = countQuery.or(orStrTer);
+              } else {
+                  dataQuery = dataQuery.not('Territory_ID', 'in', '(' + allowedTerList.join(',') + ')');
+                  countQuery = countQuery.not('Territory_ID', 'in', '(' + allowedTerList.join(',') + ')');
+              }
+          } else {
+              dataQuery = dataQuery.in('Territory_ID', normalTers);
+              countQuery = countQuery.in('Territory_ID', normalTers);
+          }
       }
    
      // 🔍 4. Smart Search Filter (รวมมิตร: ไม่สะอึก + ค้นหาจากข้อมูลจริง)
