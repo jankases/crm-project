@@ -76,7 +76,7 @@
  
       <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden">
  
-<div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0" id="visitFilterZoneGroup">
+<div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
@@ -114,12 +114,12 @@
                 <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
               </button>
 
-              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" style="width: 320px; z-index: 1050;">
+              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-3 mt-2 bg-white" id="visitFilterZoneGroup" style="width: 320px; z-index: 1050;">
                 <h6 class="fw-bold text-dark mb-2 border-bottom pb-2 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
                 
                 <div class="mb-2">
                   <label class="form-label fw-bold text-secondary small mb-1" data-i18n="lbl_status">Status</label>
-                  <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus" onchange="window.filterVisits();">
+                  <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus">
                     <option value="" data-i18n="opt_all_status">- All Status -</option>
                     <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
                     <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
@@ -128,12 +128,18 @@
 
                 <div class="mb-2">
                   <label class="form-label fw-bold text-secondary small mb-1" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
-                  <select class="form-select bg-light-subtle shadow-none fs-6" id="filterVisitRep" multiple onchange="window.handleFilterChange('rep')"></select>
+                  <select class="form-select bg-light-subtle shadow-none fs-6" id="filterVisitRep" multiple></select>
                 </div>
                 
                 <div class="mb-1">
                   <label class="form-label fw-bold text-secondary small mb-1" data-i18n="lbl_area_team">Area / Team</label>
-                  <select class="form-select bg-light-subtle shadow-none fs-6" id="filterVisitTerritory" multiple onchange="window.handleFilterChange('ter')"></select>
+                  <select class="form-select bg-light-subtle shadow-none fs-6" id="filterVisitTerritory" multiple></select>
+                </div>
+
+                <div class="mt-3 pt-3 border-top text-end">
+                  <button type="button" class="btn btn-premium-primary w-100 fw-bold shadow-sm" id="btnApplyAdvancedFilters">
+                    <i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_apply_close">Apply & Close</span>
+                  </button>
                 </div>
               </div>
               
