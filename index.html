@@ -28,6 +28,13 @@
         height: 100vh !important;
         overflow: hidden !important;
       }
+
+      /* ซ่อนข้อความโลโก้เฉพาะตอนเปิดบนจอมือถือ (เล็กกว่า 576px) */
+@media (max-width: 575.98px) {
+    .app-logo-text { 
+        display: none !important; 
+    }
+}
       
       .ipad-sidebar-rail {
         width: 70px;
@@ -172,7 +179,7 @@
             <div class="bg-primary text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 32px;">
               <i class="fa-solid fa-briefcase-medical fs-6"></i>
             </div>
-            <span class="d-none d-sm-inline fs-5" data-i18n="app_title">CRM System</span>
+            <span class="app-logo-text fs-5 fw-bold text-dark" data-i18n="app_title">CRM System</span>
           </a>
           
           <button class="navbar-toggler border-0 shadow-none bg-light px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
