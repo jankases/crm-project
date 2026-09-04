@@ -1033,7 +1033,7 @@ window.deleteTot = async function() {
 // 📥 8. DROPDOWNS & PERMISSIONS SETUP
 // ==========================================
   // 🚀 loadDropdowns (Pure Server-Side - ดึงเฉพาะ Master Data และตัวเลือกตามสิทธิ์เท่านั้น)
-window.loadDropdowns = async function(forceReload) {
+ window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
@@ -1055,7 +1055,7 @@ window.loadDropdowns = async function(forceReload) {
     var appLang = window.getCurrentAppLang();
     var sb = window.supabaseClient || window.supabase;
 
-    // 1. สร้าง Status Dropdown (Static)
+    // 1. Status Dropdown (Static)
     var statusSelect = document.getElementById('filterVisitStatus');
     if (statusSelect && (!window.tomSelectStatusInstance || forceReload)) {
         var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
@@ -1076,16 +1076,6 @@ window.loadDropdowns = async function(forceReload) {
                 create: false,
                 placeholder: optAllStatus,
                 dropdownParent: 'body',
-                render: {
-                    option: function(data, escape) {
-                        if (!data.value) return '<div class="py-1 px-2 text-secondary" style="font-size: 0.85rem;">' + escape(data.text) + '</div>';
-                        return '<div class="py-1 px-2"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.4em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
-                    },
-                    item: function(data, escape) {
-                        if (!data.value) return '<div class="item text-secondary" style="font-size: 0.85rem; line-height: 1.5;">' + escape(data.text) + '</div>';
-                        return '<div class="item" style="line-height: 1.5;"><span class="' + data.badgeClass + '" style="font-size: 0.85rem; padding: 0.3em 0.6em;">' + data.icon + escape(data.text) + '</span></div>';
-                    }
-                },
                 onChange: function() { 
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 }
@@ -1094,16 +1084,75 @@ window.loadDropdowns = async function(forceReload) {
         }
     }
 
-    // 2. ดึง Master Data เบาๆ เฉพาะที่จำเป็นต้องใช้สร้าง Dropdown (Server-Side Filtered)
+    // 2. ดึง Master Data และคำนวณสิทธิ์หมอ (Path 1: Assignment ตามโครงสร้าง)
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
-        var isGlobal = window.myIsGlobalViewer || false;
-        var allowedReps = window.myAllowedRepIds || [myRepId];
+        var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+        var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
+        var isGlobal = window.myIsGlobalViewer || adminRoles.indexOf(userRole) !== -1;
+        var isProductManager = window.myIsProductManager || userRole.indexOf('PRODUCT MANAGER') !== -1 || userRole === 'PM';
+        var isBuHead = window.myIsBuHead || (!isGlobal && !isProductManager && (userRole.indexOf('BU') !== -1 || userRole.indexOf('HEAD') !== -1));
+        var isManager = window.myIsManager || (!isGlobal && !isProductManager && !isBuHead && (userRole.indexOf('MANAGER') !== -1 || userRole.indexOf('LEAD') !== -1));
 
-        // ⚡ Query เฉพาะหมอและ Master Data ที่สอดคล้องกับสิทธิ์ 
+        var userBuId = String(crmUser ? (crmUser.BU_ID || crmUser.BU || crmUser.bu_id || window.myUserBuId || '') : '').trim().toLowerCase();
+        var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
+        var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
+
+        var allowedTerIds = [];
+        var allowedDocIds = [];
+
+        if (!isGlobal) {
+            if (isProductManager) {
+                // PM: ดึงหมอจากประวัติสินค้าที่รับผิดชอบ + ทีมสินค้า
+                var pmProdsRaw = sessionStorage.getItem('pmProducts');
+                var pmProdIds = pmProdsRaw ? JSON.parse(pmProdsRaw) : [];
+                if (pmProdIds.length > 0) {
+                    var { data: vpDocs } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', pmProdIds);
+                    var vIds = (vpDocs || []).map(vp => vp.Visit_ID);
+                    if (vIds.length > 0) {
+                        var { data: vLogs } = await sb.from('Visit_Logs').select('Doc_ID').in('Visit_ID', vIds);
+                        (vLogs || []).forEach(v => {
+                            if (v.Doc_ID && allowedDocIds.indexOf(String(v.Doc_ID)) === -1) allowedDocIds.push(String(v.Doc_ID));
+                        });
+                    }
+                }
+            } else if (isBuHead && userBuId) {
+                // BU Head: ทีมใน BU -> เขตในทีม -> หมอที่ Assign
+                var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', userBuId);
+                var buTeamIds = (buTeams || []).map(t => String(t.Team_ID).toLowerCase());
+                if (buTeamIds.length > 0) {
+                    var { data: buTers } = await sb.from('Territory').select('Territory_ID').in('Team_ID', buTeamIds);
+                    buTers.forEach(ter => allowedTerIds.push(String(ter.Territory_ID).toLowerCase()));
+                }
+            } else if (isManager && userTeamId) {
+                // Manager: เขตในทีม -> หมอที่ Assign
+                var { data: mgrTers } = await sb.from('Territory').select('Territory_ID').eq('Team_ID', userTeamId);
+                (mgrTers || []).forEach(t => allowedTerIds.push(String(t.Territory_ID).toLowerCase()));
+            } else if (userTerrId) {
+                // Sales Rep: เขตตัวเอง
+                allowedTerIds.push(userTerrId);
+            }
+
+            // แปลง Territory_ID เป็น Doc_ID จากตาราง Assignment
+            if (allowedTerIds.length > 0) {
+                var { data: assignData } = await sb.from('Assignment').select('Account_ID').eq('Type', 'Doctor').in('Territory_ID', allowedTerIds);
+                (assignData || []).forEach(a => {
+                    if (a.Account_ID && allowedDocIds.indexOf(String(a.Account_ID)) === -1) {
+                        allowedDocIds.push(String(a.Account_ID));
+                    }
+                });
+            }
+        }
+
+        window.myAllowedDocIds = allowedDocIds;
+
+        // Query ข้อมูลหมอที่จะนำมาแสดงใน Dropdown
         var docQuery = sb.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Status, Hospitals(Hospital_ID, Hospital, Known_As)').eq('Status', 'Active');
-        if (!isGlobal && allowedReps.length > 0) {
-            var myAllowedDocIds = window.myAllowedDocIds || [];
-            if (myAllowedDocIds.length > 0) docQuery = docQuery.in('Doc_ID', myAllowedDocIds);
+        if (!isGlobal) {
+            if (allowedDocIds.length > 0) {
+                docQuery = docQuery.in('Doc_ID', allowedDocIds);
+            } else {
+                docQuery = docQuery.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
+            }
         }
 
         var promises = [
