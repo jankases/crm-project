@@ -1274,23 +1274,28 @@ window.deleteTot = async function() {
 };
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
-   window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+  window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🚨 [THE ULTIMATE FIX]: หยุดการพับเมนูเมื่อคลิกใดๆ ก็ตามที่อยู่ข้างใน Advanced Filters
-    var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-    if (filterZone) {
-        filterZone.classList.remove('visit-filter-compact', 'd-none');
-        filterZone.style.display = '';
+    // 🛑 [CORE FIX 1]: สั่งลบ Event ล่องหนที่แฝงอยู่ใน HTML ต้นฉบับ
+    // ตัดวงจรไม่ให้ TomSelect แอบไปสั่งโหลดตารางจาก onchange เก่าใน HTML!
+    var repSelect = document.getElementById('filterVisitRep');
+    var terSelect = document.getElementById('filterVisitTerritory');
 
-        var dropdownMenu = filterZone.closest('.dropdown-menu');
-        // เพิ่มตัวดักจับการคลิก ถ้าคลิกข้างในนี้ จะไม่ส่งคำสั่งไปให้ Bootstrap ปิดเมนู
-        if (dropdownMenu && !dropdownMenu.dataset.clickBound) {
-            dropdownMenu.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-            dropdownMenu.dataset.clickBound = 'true';
-        }
+    if (repSelect) {
+        repSelect.onchange = null;
+        repSelect.removeAttribute('onchange');
+    }
+    if (terSelect) {
+        terSelect.onchange = null;
+        terSelect.removeAttribute('onchange');
+    }
+
+    // 🛑 [CORE FIX 2]: สั่งล็อกคอ Bootstrap 5 ผ่าน Attribute โดยตรง
+    // บังคับว่าให้ปิดเมนูก็ต่อเมื่อผู้ใช้จิ้มพื้นที่นอกเมนู (outside) เท่านั้น! ห้ามปิดตอน Loading เด็ดขาด
+    var advBtn = document.getElementById('btnAdvFilterDropdown');
+    if (advBtn) {
+        advBtn.setAttribute('data-bs-auto-close', 'outside');
     }
 
     // 🎯 ลงทะเบียน Plugin "Apply Button" ให้ TomSelect
@@ -1306,21 +1311,18 @@ window.deleteTot = async function() {
                 footer.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    self.close(); // ปิดเมนู TomSelect ตัวลูก
+                    self.close(); // ปิด TomSelect
                     
-                    // สั่งปิดเมนู Advanced Filters ตัวแม่ของ Bootstrap 
-                    var fZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-                    var dMenu = fZone ? fZone.closest('.dropdown-menu') : null;
-                    var tBtn = dMenu ? dMenu.previousElementSibling : null;
-                    
-                    if (tBtn && typeof bootstrap !== 'undefined') {
-                        var bsDropdown = bootstrap.Dropdown.getInstance(tBtn) || new bootstrap.Dropdown(tBtn);
+                    // ปิดเมนู Advanced Filters ตัวแม่
+                    var btnToggle = document.getElementById('btnAdvFilterDropdown');
+                    if (btnToggle && typeof bootstrap !== 'undefined') {
+                        var bsDropdown = bootstrap.Dropdown.getInstance(btnToggle) || new bootstrap.Dropdown(btnToggle);
                         if (bsDropdown) bsDropdown.hide();
-                    } else if (tBtn) {
-                        tBtn.click();
+                    } else if (btnToggle) {
+                        btnToggle.click();
                     }
 
-                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่ม Apply เท่านั้น!
+                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนกดปุ่มนี้เท่านั้น!
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 });
                 self.dropdown.appendChild(footer);
@@ -1329,11 +1331,15 @@ window.deleteTot = async function() {
     }
 
     try {
-        var repSelect = document.getElementById('filterVisitRep'); 
-        var terSelect = document.getElementById('filterVisitTerritory');
-        
+        var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+        if (filterZone) {
+            filterZone.classList.remove('visit-filter-compact', 'd-none');
+            filterZone.style.display = '';
+        }
+
         if (!repSelect && !terSelect) return;
 
+        // 🎯 ทำลายกล่องเก่าก่อนสร้างใหม่
         if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
         if (window.tomSelectTerInstance) { window.tomSelectTerInstance.destroy(); window.tomSelectTerInstance = null; }
         
@@ -1363,7 +1369,6 @@ window.deleteTot = async function() {
         var myAllowedTeamIds = []; 
         var myAllowedTerIds = []; 
         var myAllowedRepIds = [uRepId]; 
-        var myAllowedEmails = [uEmail];
 
         var sb = window.supabaseClient || window.supabase;
 
@@ -1521,10 +1526,10 @@ window.deleteTot = async function() {
                                 var repOpt = this.options[repValue];
                                 if (repOpt && repOpt.value !== 'OTHER_REPS') {
                                     var targetTer = repOpt.terId || repOpt.teamId;
+                                    // 🎯 ใช้ silent mode (true) เพื่อไม่ให้ Trigger Event ซ้อน
                                     if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
                                 }
                             }
-                            // 🛑 ไม่มีการสั่งโหลดตารางตรงนี้แล้ว
                         } 
                     });
                 }
@@ -1555,7 +1560,6 @@ window.deleteTot = async function() {
                                     }
                                 }
                             }
-                            // 🛑 ไม่มีการสั่งโหลดตารางตรงนี้แล้ว
                         } 
                     });
                 }
