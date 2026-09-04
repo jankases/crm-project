@@ -1063,19 +1063,20 @@ window.deleteTot = async function() {
             window.safeDestroyTs(window.tomSelectStatusInstance);
             statusSelect.innerHTML = '<option value=""></option>'; 
             
+           // 1. Status Dropdown
             window.tomSelectStatusInstance = new TomSelect('#filterVisitStatus', {
                 valueField: 'value',
                 searchField: ['text'],
                 controlInput: null, 
                 options: [
                     { value: '', text: optAllStatus, icon: '', badgeClass: '' },
-                    { value: 'Pending', text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending', icon: '⏳', badgeClass: 'badge badge-soft-pending' },
-                    { value: 'Submitted', text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted', icon: '✅', badgeClass: 'badge badge-soft-success' }
+                    { value: 'Pending', text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending', icon: '⏳ ', badgeClass: 'badge badge-soft-pending' },
+                    { value: 'Submitted', text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted', icon: '✅ ', badgeClass: 'badge badge-soft-success' }
                 ],
                 allowEmptyOption: true,
                 create: false,
                 placeholder: optAllStatus,
-                dropdownParent: 'body',
+                dropdownParent: null, // 🎯 [สำคัญ] ต้องเป็น null เพื่อไม่ให้เมนูเด้งปิดเอง
                 render: {
                     option: function(data, escape) {
                         return '<div class="d-flex align-items-center">' +
@@ -1090,8 +1091,9 @@ window.deleteTot = async function() {
                                '</div>';
                     }
                 },
-                onChange: function() { 
-                    if (typeof window.filterVisits === 'function') window.filterVisits(); 
+                onChange: function(value) { 
+                    // 🛑 ลบคำสั่ง filterVisits() ออก 
+                    // เพื่อให้ตารางไม่โหลดแทรกขึ้นมาตอนเลือก รอให้กดปุ่ม Apply & Close ทำงานทีเดียว
                 }
             });
             if (oldStatusVal) window.tomSelectStatusInstance.setValue(oldStatusVal, true);
@@ -1271,42 +1273,24 @@ window.deleteTot = async function() {
   }
 };
    
- // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100%
-  // 🌟 ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% พร้อมระบบกันคลิกทะลุ
-window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
-    // 🎯 บังคับใช้ 'en' เป็นค่าเริ่มต้นเสมอ
+ // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
+   window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🚨 [THE ULTIMATE FIX]: ดักจับและป้องกัน Bootstrap ปิดเมนูเองเมื่อคลิก TomSelect
-    if (!window._filterDropdownFixApplied) {
-        document.addEventListener('hide.bs.dropdown', function(e) {
-            // ถ้ายอมให้ปิดผ่านปุ่ม Apply & Close ให้ข้ามไปเลย
-            if (window._allowFilterClose) return; 
+    // 🚨 [THE ULTIMATE FIX]: หยุดการพับเมนูเมื่อคลิกใดๆ ก็ตามที่อยู่ข้างใน Advanced Filters
+    var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+    if (filterZone) {
+        filterZone.classList.remove('visit-filter-compact', 'd-none');
+        filterZone.style.display = '';
 
-            var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-            
-            // เช็กว่า Event ปิดเมนูนี้ มาจากกล่อง Advanced Filters ของเราหรือไม่
-            if (filterZone && e.target.contains(filterZone)) {
-                if (e.clickEvent) {
-                    var clickedEl = e.clickEvent.target;
-                    
-                    // 1. เช็กว่าคลิกอยู่ข้างในโซน Filter หรือเป็นส่วนหนึ่งของ TomSelect Dropdown ใช่ไหม?
-                    var isInsideFilter = clickedEl.closest('.ts-wrapper, .ts-dropdown, #visitFilterZoneGroup, #visitFilterZone') !== null;
-                    
-                    // 2. เช็กว่าสิ่งที่คลิกโดนลบออกจากหน้าจอ (DOM) ไปแล้วหรือยัง (พฤติกรรมตอนเลือก Option ของ TomSelect)
-                    var isDetached = !document.body.contains(clickedEl);
-
-                    // 3. เช็กว่าคลิกโดนปุ่ม Toggle (เพื่อจงใจพับเมนู) หรือเปล่า?
-                    var isToggleBtn = clickedEl.closest('[data-bs-toggle="dropdown"]');
-
-                    // 🛑 ถ้ากดข้างใน Filter, หรือกดโดน Option ที่โดนลบไปแล้ว, และไม่ใช่การกดปุ่ม Toggle -> ห้ามปิด!
-                    if (!isToggleBtn && (isInsideFilter || isDetached)) {
-                        e.preventDefault(); 
-                    }
-                }
-            }
-        });
-        window._filterDropdownFixApplied = true;
+        var dropdownMenu = filterZone.closest('.dropdown-menu');
+        // เพิ่มตัวดักจับการคลิก ถ้าคลิกข้างในนี้ จะไม่ส่งคำสั่งไปให้ Bootstrap ปิดเมนู
+        if (dropdownMenu && !dropdownMenu.dataset.clickBound) {
+            dropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            dropdownMenu.dataset.clickBound = 'true';
+        }
     }
 
     // 🎯 ลงทะเบียน Plugin "Apply Button" ให้ TomSelect
@@ -1322,10 +1306,9 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 footer.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    self.close(); // ปิดเมนู TomSelect
+                    self.close(); // ปิดเมนู TomSelect ตัวลูก
                     
-                    // 🌟 อนุญาตให้ Bootstrap ปิดเมนูตัวแม่ได้
-                    window._allowFilterClose = true; 
+                    // สั่งปิดเมนู Advanced Filters ตัวแม่ของ Bootstrap 
                     var fZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
                     var dMenu = fZone ? fZone.closest('.dropdown-menu') : null;
                     var tBtn = dMenu ? dMenu.previousElementSibling : null;
@@ -1336,8 +1319,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     } else if (tBtn) {
                         tBtn.click();
                     }
-
-                    setTimeout(function() { window._allowFilterClose = false; }, 200); // เคลียร์สิทธิ์
 
                     // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่ม Apply เท่านั้น!
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
@@ -1350,13 +1331,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
-        var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
         
-        if (filterZone) {
-            filterZone.classList.remove('visit-filter-compact', 'd-none');
-            filterZone.style.display = '';
-        }
-
         if (!repSelect && !terSelect) return;
 
         if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
@@ -1549,7 +1524,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                                     if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
                                 }
                             }
-                            // 🛑 ตารางไม่โหลดตรงนี้ รอโหลดจากปุ่ม Apply อย่างเดียว
+                            // 🛑 ไม่มีการสั่งโหลดตารางตรงนี้แล้ว
                         } 
                     });
                 }
@@ -1580,7 +1555,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                                     }
                                 }
                             }
-                            // 🛑 ตารางไม่โหลดตรงนี้ รอโหลดจากปุ่ม Apply อย่างเดียว
+                            // 🛑 ไม่มีการสั่งโหลดตารางตรงนี้แล้ว
                         } 
                     });
                 }
