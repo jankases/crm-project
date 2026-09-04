@@ -1034,6 +1034,7 @@ window.deleteTot = async function() {
   // 🚀 loadDropdowns (Pure Server-Side - ดึงเฉพาะ Master Data และตัวเลือกตามสิทธิ์เท่านั้น)
  window.loadDropdowns = async function(forceReload) {
   window.isPermissionCalculated = false;
+  // 🎯 จำค่าเดิมที่ผู้ใช้เลือกไว้ เพื่อเซ็ตกลับคืนหลังจากสร้างกล่องใหม่เสร็จ
   var oldDocVal = window.tomSelectDocInstance ? window.tomSelectDocInstance.getValue() : '';
   var oldPurpVal = window.tomSelectPurposeInstance ? window.tomSelectPurposeInstance.getValue() : ''; 
   var oldStatusVal = window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '';
@@ -1054,9 +1055,9 @@ window.deleteTot = async function() {
     var appLang = window.getCurrentAppLang();
     var sb = window.supabaseClient || window.supabase;
 
-    // 1. Status Dropdown (Static)
+    // 1. Status Dropdown (Static) -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
     var statusSelect = document.getElementById('filterVisitStatus');
-    if (statusSelect && (!window.tomSelectStatusInstance || forceReload)) {
+    if (statusSelect) {
         var optAllStatus = appLang === 'th' ? '- สถานะทั้งหมด -' : '- All Status -';
         if (typeof TomSelect !== 'undefined') {
             window.safeDestroyTs(window.tomSelectStatusInstance);
@@ -1083,7 +1084,7 @@ window.deleteTot = async function() {
         }
     }
 
-    // 2. ดึง Master Data และคำนวณสิทธิ์หมอ (Path 1: Assignment ตามโครงสร้าง)
+    // 2. ดึง Master Data 
     if (forceReload || !window.VisitManagerCache.dropdownsLoaded) {
         var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
         var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
@@ -1101,7 +1102,6 @@ window.deleteTot = async function() {
 
         if (!isGlobal) {
             if (isProductManager) {
-                // PM: ดึงหมอจากประวัติสินค้าที่รับผิดชอบ + ทีมสินค้า
                 var pmProdsRaw = sessionStorage.getItem('pmProducts');
                 var pmProdIds = pmProdsRaw ? JSON.parse(pmProdsRaw) : [];
                 if (pmProdIds.length > 0) {
@@ -1115,7 +1115,6 @@ window.deleteTot = async function() {
                     }
                 }
             } else if (isBuHead && userBuId) {
-                // BU Head: ทีมใน BU -> เขตในทีม -> หมอที่ Assign
                 var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', userBuId);
                 var buTeamIds = (buTeams || []).map(t => String(t.Team_ID).toLowerCase());
                 if (buTeamIds.length > 0) {
@@ -1123,15 +1122,12 @@ window.deleteTot = async function() {
                     buTers.forEach(ter => allowedTerIds.push(String(ter.Territory_ID).toLowerCase()));
                 }
             } else if (isManager && userTeamId) {
-                // Manager: เขตในทีม -> หมอที่ Assign
                 var { data: mgrTers } = await sb.from('Territory').select('Territory_ID').eq('Team_ID', userTeamId);
                 (mgrTers || []).forEach(t => allowedTerIds.push(String(t.Territory_ID).toLowerCase()));
             } else if (userTerrId) {
-                // Sales Rep: เขตตัวเอง
                 allowedTerIds.push(userTerrId);
             }
 
-            // แปลง Territory_ID เป็น Doc_ID จากตาราง Assignment
             if (allowedTerIds.length > 0) {
                 var { data: assignData } = await sb.from('Assignment').select('Account_ID').eq('Type', 'Doctor').in('Territory_ID', allowedTerIds);
                 (assignData || []).forEach(a => {
@@ -1144,7 +1140,6 @@ window.deleteTot = async function() {
 
         window.myAllowedDocIds = allowedDocIds;
 
-        // Query ข้อมูลหมอที่จะนำมาแสดงใน Dropdown
         var docQuery = sb.from('Doctors').select('Doc_ID, Doc_Name, Doc_Name_TH, Hospital_ID, Status, Hospitals(Hospital_ID, Hospital, Known_As)').eq('Status', 'Active');
         if (!isGlobal) {
             if (allowedDocIds.length > 0) {
@@ -1181,9 +1176,14 @@ window.deleteTot = async function() {
 
     if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes(); 
 
-    // 3. ปั้น Doctor Dropdown ใน Visit Form
+    // 🎯 [Fix 1]: สั่งให้วาดกล่อง Coach Dropdown ทันทีที่มีข้อมูล User ครบแล้ว!
+    if (typeof window.renderCoachDropdown === 'function') {
+        window.renderCoachDropdown();
+    }
+
+    // 3. ปั้น Doctor Dropdown -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
     var docSelect = document.getElementById('visitDocId');
-    if (docSelect && (!window.tomSelectDocInstance || forceReload)) { 
+    if (docSelect) { 
       docSelect.innerHTML = '<option value=""></option>';
       window.globalAssignedDoctors.forEach(function(d) {
         var nameEN = d.Doc_Name || ''; 
@@ -1204,6 +1204,7 @@ window.deleteTot = async function() {
               maxOptions: null, 
               dropdownParent: 'body'
           });
+          if (oldDocVal) window.tomSelectDocInstance.setValue(oldDocVal, true);
       }
     }
 
@@ -1212,9 +1213,9 @@ window.deleteTot = async function() {
         window.setupFiltersDropdowns(crmUser, []);
     }
 
-    // 5. ปั้น Purpose Dropdown
+    // 5. ปั้น Purpose Dropdown -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
     var purposeSelect = document.getElementById('visitPurpose');
-    if (purposeSelect && (!window.tomSelectPurposeInstance || forceReload)) { 
+    if (purposeSelect) { 
       var types = window.VisitManagerCache.indexTypes || []; 
       var indexes = window.VisitManagerCache.indexes || [];
       
@@ -1245,6 +1246,8 @@ window.deleteTot = async function() {
               create: false, 
               dropdownParent: 'body'
           });
+          // 🎯 ดึงค่า Purpose เดิมกลับมาหลังจากสร้างเสร็จ
+          if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
       }
     }
 
@@ -2366,12 +2369,18 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-   window.openEditVisitView = function(visitId, overrideDocId, overridePurposeId) {
+  window.openEditVisitView = async function(visitId, overrideDocId, overridePurposeId) { 
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   window.applyVisitFeaturesUI();
 
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
+
+  if (!window.VisitManagerCache || !window.VisitManagerCache.dropdownsLoaded) {
+      if (typeof window.loadDropdowns === 'function') {
+          await window.loadDropdowns(true);
+      }
+  }
 
   var v = (window.globalVisits && window.globalVisits.length > 0) 
     ? window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(visitId); }) 
@@ -2402,15 +2411,22 @@ window.toggleVisitFormEditable = function(isEditable) {
           return (v.Rep_ID && uid === String(v.Rep_ID).trim().toLowerCase()) || (v.Whoupdated && uem === String(v.Whoupdated).trim().toLowerCase());
       });
 
-      if (typeof window.updateFormUserInfo === 'function') window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
+      if (typeof window.updateFormUserInfo === 'function') {
+          window.updateFormUserInfo(targetRepObj, v.Territory_ID, v);
+      }
 
       if (v && v.Visit_Date) {
           var rawDate = String(v.Visit_Date).split('T')[0];
           document.getElementById('visitDate').value = rawDate;
-          if (window.fpFormDateInstance) window.fpFormDateInstance.setDate(rawDate, false);
+          
+          if (window.fpFormDateInstance) {
+              window.fpFormDateInstance.setDate(rawDate, false);
+          }
       } else {
           document.getElementById('visitDate').value = '';
-          if (window.fpFormDateInstance) window.fpFormDateInstance.clear();
+          if (window.fpFormDateInstance) {
+              window.fpFormDateInstance.clear();
+          }
       }
 
       if (typeof window.formatTimeString === 'function') {
@@ -2436,17 +2452,9 @@ window.toggleVisitFormEditable = function(isEditable) {
   var rawDocId = v ? String(v.Doc_ID || v.doc_id || v.id || '').trim() : null;
   var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
   
-  // 🎯 [FIX]: ดึงชื่อหมอที่โชว์ในตาราง ส่งไปให้กล่อง Dropdown เพื่อไม่ให้มันโชว์เป็นรหัส UUID
-  var docFallbackName = targetDocId;
-  if (v && v.Doctors) {
-      docFallbackName = (typeof window.getDoctorNameByLang === 'function') 
-          ? window.getDoctorNameByLang(v.Doctors, targetDocId) 
-          : (v.Doctors.Doc_Name || v.Doctors.Doc_Name_TH || targetDocId);
-  }
-  
   if (targetDocId && window.tomSelectDocInstance) {
       if (typeof window.setTomSelectValue === 'function') {
-          window.setTomSelectValue(window.tomSelectDocInstance, targetDocId, docFallbackName);
+          window.setTomSelectValue(window.tomSelectDocInstance, targetDocId);
       } else {
           window.tomSelectDocInstance.setValue(targetDocId, true);
       }
@@ -2480,6 +2488,13 @@ window.toggleVisitFormEditable = function(isEditable) {
                   window.tomSelectProdInstance.setValue(visitProds, true);
               }
           }
+          
+          // 🎯 [Fix 1]: เช็กสถานะปุ่มเซฟ หากอยู่ในโหมด Read-Only ให้ล็อกกล่อง Product ทิ้งทันทีหลังจากสร้างเสร็จ
+          var saveBtn = document.getElementById('saveVisitBtn');
+          if (saveBtn && saveBtn.dataset.mode === 'disabled' && window.tomSelectProdInstance) {
+              window.tomSelectProdInstance.disable();
+          }
+
           if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
       }
 
@@ -2555,12 +2570,13 @@ window.toggleVisitFormEditable = function(isEditable) {
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
+  // 🎯 [Fix 2]: ตัดคำในปุ่ม Read-Only ให้สั้นกระชับ เพื่อไม่ให้ดัน UI ด้านล่างจนล้นขอบ
   if (isPendingUnlock) {
     if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
     if (btn) {
       btn.disabled = true; 
-      btn.className = 'btn btn-premium-locked px-5';
-      btn.innerHTML = '<i class="fa-solid fa-clock me-2"></i>' + (currentAppLang === 'en' ? 'Waiting for Admin unlock' : 'รอแอดมินอนุมัติปลดล็อก'); 
+      btn.className = 'btn btn-premium-locked px-4';
+      btn.innerHTML = '<i class="fa-solid fa-clock me-1"></i>' + (currentAppLang === 'en' ? 'Pending Unlock' : 'รอแอดมินปลดล็อก'); 
       btn.dataset.mode = 'disabled';
     }
   } else if (v && v.Status === 'Submitted') {
@@ -2568,13 +2584,13 @@ window.toggleVisitFormEditable = function(isEditable) {
     if (btn) {
       if (canEdit) {
         btn.disabled = false; 
-        btn.className = 'btn btn-premium-warning px-5';
-        btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-2"></i>' + (currentAppLang === 'en' ? 'Request Unlock' : 'ขอปลดล็อกแก้ไข'); 
+        btn.className = 'btn btn-premium-warning px-4';
+        btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole me-1"></i>' + (currentAppLang === 'en' ? 'Request Unlock' : 'ขอปลดล็อกแก้ไข'); 
         btn.dataset.mode = 'request_unlock';
       } else {
         btn.disabled = true; 
-        btn.className = 'btn btn-premium-locked px-5';
-        btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>' + (currentAppLang === 'en' ? 'Locked (Read-Only)' : 'ถูกล็อก (ดูได้อย่างเดียว)'); 
+        btn.className = 'btn btn-premium-locked px-4';
+        btn.innerHTML = '<i class="fa-solid fa-lock me-1"></i>' + (currentAppLang === 'en' ? 'Read-Only' : 'ดูได้อย่างเดียว'); 
         btn.dataset.mode = 'disabled';
       }
     }
@@ -2583,7 +2599,7 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
       if (btn) {
         btn.disabled = false; 
-        btn.className = 'btn btn-premium-primary px-5';
+        btn.className = 'btn btn-premium-primary px-4';
         btn.innerHTML = '💾 <span data-i18n="btn_save">' + (currentAppLang === 'en' ? 'Save' : 'บันทึก') + '</span>'; 
         btn.dataset.mode = 'save';
       }
@@ -2591,8 +2607,8 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
       if (btn) {
         btn.disabled = true; 
-        btn.className = 'btn btn-premium-locked px-5';
-        btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>' + (currentAppLang === 'en' ? 'Read-Only (Creator Only)' : 'ดูได้อย่างเดียว (เฉพาะผู้สร้าง)'); 
+        btn.className = 'btn btn-premium-locked px-4';
+        btn.innerHTML = '<i class="fa-solid fa-lock me-1"></i>' + (currentAppLang === 'en' ? 'Read-Only' : 'ดูได้อย่างเดียว'); 
         btn.dataset.mode = 'disabled';
       }
     }
