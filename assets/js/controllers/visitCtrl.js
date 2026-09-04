@@ -2418,15 +2418,10 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (v && v.Visit_Date) {
           var rawDate = String(v.Visit_Date).split('T')[0];
           document.getElementById('visitDate').value = rawDate;
-          
-          if (window.fpFormDateInstance) {
-              window.fpFormDateInstance.setDate(rawDate, false);
-          }
+          if (window.fpFormDateInstance) window.fpFormDateInstance.setDate(rawDate, false);
       } else {
           document.getElementById('visitDate').value = '';
-          if (window.fpFormDateInstance) {
-              window.fpFormDateInstance.clear();
-          }
+          if (window.fpFormDateInstance) window.fpFormDateInstance.clear();
       }
 
       if (typeof window.formatTimeString === 'function') {
@@ -2445,7 +2440,20 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (chkCoach) {
           chkCoach.checked = (v.Is_Coaching === true);
           if (coachWrapper) coachWrapper.classList.toggle('d-none', !v.Is_Coaching);
-          if (coachSelect) coachSelect.value = v.Coach_Rep_ID || '';
+          
+          if (coachSelect) {
+              // 🎯 [Fix 3]: ถ้าเคสนี้มีการระบุโค้ช แต่ดันไม่โชว์ใน Dropdown (เพราะเป็นคน Inactive หรือไม่ได้สิทธิ์) ให้ยัดชื่อกลับไปโชว์
+              if (v.Coach_Rep_ID && !coachSelect.querySelector('option[value="' + v.Coach_Rep_ID + '"]')) {
+                  var fallbackU = userList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Coach_Rep_ID); });
+                  var fallbackName = fallbackU ? (fallbackU.Rep_Name || fallbackU.Name || v.Coach_Rep_ID) : v.Coach_Rep_ID;
+                  var roleBadge = (fallbackU && fallbackU.Role) ? ' (' + fallbackU.Role + ')' : '';
+                  var opt = document.createElement('option');
+                  opt.value = v.Coach_Rep_ID;
+                  opt.textContent = '👤 ' + fallbackName + roleBadge + ' [Historical]';
+                  coachSelect.appendChild(opt);
+              }
+              coachSelect.value = v.Coach_Rep_ID || '';
+          }
       }
   }
 
@@ -2489,7 +2497,6 @@ window.toggleVisitFormEditable = function(isEditable) {
               }
           }
           
-          // 🎯 [Fix 1]: เช็กสถานะปุ่มเซฟ หากอยู่ในโหมด Read-Only ให้ล็อกกล่อง Product ทิ้งทันทีหลังจากสร้างเสร็จ
           var saveBtn = document.getElementById('saveVisitBtn');
           if (saveBtn && saveBtn.dataset.mode === 'disabled' && window.tomSelectProdInstance) {
               window.tomSelectProdInstance.disable();
@@ -2570,7 +2577,6 @@ window.toggleVisitFormEditable = function(isEditable) {
   var btn = document.getElementById('saveVisitBtn');
   var currentAppLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-  // 🎯 [Fix 2]: ตัดคำในปุ่ม Read-Only ให้สั้นกระชับ เพื่อไม่ให้ดัน UI ด้านล่างจนล้นขอบ
   if (isPendingUnlock) {
     if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(false);
     if (btn) {
@@ -5159,8 +5165,17 @@ window.renderPaginationControls = function(totalPages) {
     var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
     var myBuId = crmUser ? String(crmUser.BU_ID || crmUser.BU || '').trim().toLowerCase() : '';
     var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.Team || '').trim().toLowerCase() : '';
+    var myTerrId = crmUser ? String(crmUser.Territory_ID || crmUser.Territory || '').trim().toLowerCase() : '';
 
-    // 🎯 จำแนก Role ของผู้ใช้งานปัจจุบัน
+    // 🎯 [Fix 1]: ถ้า Sales ไม่มี Team_ID ใน User Profile ให้เอา Territory ไปเทียบหา Team ให้อัตโนมัติ!
+    if (!myTeamId && myTerrId) {
+        var terrList = window.globalTerritoryList || (window.VisitManagerCache ? window.VisitManagerCache.territories : []) || [];
+        var matchedTer = terrList.find(function(t) { return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === myTerrId; });
+        if (matchedTer) {
+            myTeamId = String(matchedTer.Team_ID || matchedTer.Team || '').trim().toLowerCase();
+        }
+    }
+
     var isProductManager = myRole.indexOf('PRODUCT MANAGER') !== -1 || myRole === 'PM';
     var isBuHead = !isProductManager && (myRole.indexOf('BU') !== -1 || myRole.indexOf('HEAD') !== -1);
     var isManager = !isProductManager && !isBuHead && (myRole.indexOf('MANAGER') !== -1 || myRole.indexOf('LEAD') !== -1);
@@ -5169,19 +5184,22 @@ window.renderPaginationControls = function(totalPages) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
     var placeholder = appLang === 'en' ? '- Select Coach -' : '- เลือกผู้ร่วมเยี่ยม -';
     
+    var oldVal = coachSelect.value;
     var html = '<option value="">' + placeholder + '</option>';
     
     if (window.globalUsersList && window.globalUsersList.length > 0) {
         window.globalUsersList.forEach(function(u) {
             var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-            // ซ่อนชื่อตัวเอง
             if (!uId || uId === myRepId) return;
+
+            // 🎯 [Fix 2]: กรองเอาเฉพาะคนที่ Status = "Active" มาแสดงให้เลือกเท่านั้น
+            var uStatus = String(u.Status || u.status || 'Active').trim().toLowerCase();
+            if (uStatus !== 'active') return;
 
             var uRoleStr = String(u.Role || u.role || '').toUpperCase().trim();
             var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
             var uTeamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
 
-            // 🎯 จำแนก Role ของ User ในลิสต์
             var uIsPM = uRoleStr.indexOf('PRODUCT MANAGER') !== -1 || uRoleStr === 'PM';
             var uIsBuHead = uRoleStr.indexOf('BU') !== -1 || uRoleStr.indexOf('HEAD') !== -1;
             var uIsManager = !uIsBuHead && !uIsPM && (uRoleStr.indexOf('MANAGER') !== -1 || uRoleStr.indexOf('LEAD') !== -1);
@@ -5189,26 +5207,21 @@ window.renderPaginationControls = function(totalPages) {
             var shouldInclude = false;
 
             if (isSales) {
-                // Sales: เอาเฉพาะหัวหน้าทีมตัวเอง, BU ตัวเอง, และ PM ที่เกี่ยวข้อง (อนุโลมให้เห็น PM ทั้งหมดในฐานะ Product Owner)
                 if (uIsManager && uTeamId === myTeamId) shouldInclude = true;
                 if (uIsBuHead && uBuId === myBuId) shouldInclude = true;
                 if (uIsPM) shouldInclude = true;
             } else if (isBuHead) {
-                // BU Head: ใส่ BU คนอื่น
                 if (uIsBuHead) shouldInclude = true;
             } else if (isProductManager) {
-                // PM: ใส่ BU, Team Manager ที่เกี่ยวข้อง และ PM คนอื่น
                 if (uIsBuHead) shouldInclude = true;
                 if (uIsManager) shouldInclude = true;
                 if (uIsPM) shouldInclude = true;
             } else if (isManager) {
-                // Team Manager: ใส่ BU ทั้งหมด, PM ที่เกี่ยวข้อง และ Team Manager ทั้งหมด
                 if (uIsBuHead) shouldInclude = true;
                 if (uIsPM) shouldInclude = true;
                 if (uIsManager) shouldInclude = true;
             } else {
-                // Admin: เห็นทุกคน
-                shouldInclude = true;
+                shouldInclude = true; // Admin เห็นหมด
             }
 
             if (shouldInclude) {
@@ -5219,7 +5232,7 @@ window.renderPaginationControls = function(totalPages) {
         });
     }
     coachSelect.innerHTML = html;
+    if (oldVal) coachSelect.value = oldVal;
 };
-
 
 
