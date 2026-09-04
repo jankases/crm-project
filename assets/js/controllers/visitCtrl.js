@@ -2114,11 +2114,28 @@ window.clearSmartSearchInput = function() {
 };
  
 
-window.clearVisitFilters = function() {
-    if (window.tomSelectRepInstance) window.tomSelectRepInstance.clear(true);
-    if (window.tomSelectTerInstance) window.tomSelectTerInstance.clear(true);
-    if (window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue('', true);
+ window.clearVisitFilters = function() {
+    // 🎯 ล้างค่า Checkbox ตัวใหม่ทั้งหมด (Rep & Area)
+    if (typeof window.toggleAllCheckboxes === 'function') {
+        window.toggleAllCheckboxes('rep', false);
+        window.toggleAllCheckboxes('ter', false);
+    }
+
+    // 🎯 ล้างค่าช่องพิมพ์ค้นหาด้านใน Advanced Filters
+    var searchRep = document.getElementById('searchRepFilter');
+    var searchTer = document.getElementById('searchTerFilter');
+    if (searchRep) { searchRep.value = ''; window.filterCheckboxList('rep', ''); }
+    if (searchTer) { searchTer.value = ''; window.filterCheckboxList('ter', ''); }
+
+    // 🎯 ล้างค่า Status Dropdown
+    if (window.tomSelectStatusInstance) {
+        window.tomSelectStatusInstance.setValue('', true);
+    } else {
+        var stEl = document.getElementById('filterVisitStatus');
+        if (stEl) stEl.value = '';
+    }
     
+    // 🎯 ล้างค่า Date Pickers ด้านนอก
     if (window.fpStartInstance) window.fpStartInstance.clear();
     if (window.fpEndInstance) window.fpEndInstance.clear();
 
@@ -2127,18 +2144,13 @@ window.clearVisitFilters = function() {
     if (stDate && !window.fpStartInstance) stDate.value = '';
     if (endDate && !window.fpEndInstance) endDate.value = '';
 
-    var stEl = document.getElementById('filterVisitStatus');
-    if (stEl && !window.tomSelectStatusInstance) { 
-        stEl.value = ''; 
-        stEl.classList.add('filter-placeholder-text'); 
-    }
-    
+    // 🎯 ล้างค่า Smart Search ด้านนอก
     var searchEl = document.getElementById('smartSearchInput');
     if (searchEl) searchEl.value = '';
 
+    // สั่งรีโหลดตารางใหม่
     if (typeof window.filterVisits === 'function') window.filterVisits();
 };
-
  
 
 function matchedTerAndUnique(arr) {
@@ -2161,7 +2173,7 @@ window.saveVisitFilterState = function() {
     };
 };
 
-window.restoreVisitFilterState = function() {
+ window.restoreVisitFilterState = function() {
     if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
     var sf = window.VisitManagerCache.savedFilters;
 
@@ -2176,13 +2188,26 @@ window.restoreVisitFilterState = function() {
     }
     if (sf.status && window.tomSelectStatusInstance) {
         window.tomSelectStatusInstance.setValue(sf.status, true);
+    } else if (sf.status && document.getElementById('filterVisitStatus')) {
+        document.getElementById('filterVisitStatus').value = sf.status;
     }
-    if (sf.rep && sf.rep.length > 0 && window.tomSelectRepInstance) {
-        window.tomSelectRepInstance.setValue(sf.rep, true);
+
+    // 🎯 คืนค่า Checkbox Rep ที่เคยติ๊กไว้
+    if (sf.rep && Array.isArray(sf.rep) && sf.rep.length > 0) {
+        sf.rep.forEach(function(val) {
+            var chk = document.getElementById('chk_rep_' + val);
+            if (chk) chk.checked = true;
+        });
     }
-    if (sf.ter && sf.ter.length > 0 && window.tomSelectTerInstance) {
-        window.tomSelectTerInstance.setValue(sf.ter, true);
+
+    // 🎯 คืนค่า Checkbox Territory ที่เคยติ๊กไว้
+    if (sf.ter && Array.isArray(sf.ter) && sf.ter.length > 0) {
+        sf.ter.forEach(function(val) {
+            var chk = document.getElementById('chk_ter_' + val);
+            if (chk) chk.checked = true;
+        });
     }
+
     if (sf.page) window.currentPage = sf.page;
 };
 
