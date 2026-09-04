@@ -5148,13 +5148,23 @@ window.renderPaginationControls = function(totalPages) {
 // ==========================================
 // 🧑‍🏫 COACHING DROPDOWN RENDER
 // ==========================================
-window.renderCoachDropdown = function() {
+ window.renderCoachDropdown = function() {
     var coachSelect = document.getElementById('visitCoachRepId');
     if (!coachSelect) return;
 
     var crmUser = null; 
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || '').trim() : '';
+    var myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+    var myBuId = crmUser ? String(crmUser.BU_ID || crmUser.BU || '').trim().toLowerCase() : '';
+    var myTeamId = crmUser ? String(crmUser.Team_ID || crmUser.Team || '').trim().toLowerCase() : '';
+
+    // 🎯 จำแนก Role ของผู้ใช้งานปัจจุบัน
+    var isProductManager = myRole.indexOf('PRODUCT MANAGER') !== -1 || myRole === 'PM';
+    var isBuHead = !isProductManager && (myRole.indexOf('BU') !== -1 || myRole.indexOf('HEAD') !== -1);
+    var isManager = !isProductManager && !isBuHead && (myRole.indexOf('MANAGER') !== -1 || myRole.indexOf('LEAD') !== -1);
+    var isSales = !isProductManager && !isBuHead && !isManager && myRole.indexOf('ADMIN') === -1;
 
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
     var placeholder = appLang === 'en' ? '- Select Coach -' : '- เลือกผู้ร่วมเยี่ยม -';
@@ -5164,10 +5174,47 @@ window.renderCoachDropdown = function() {
     if (window.globalUsersList && window.globalUsersList.length > 0) {
         window.globalUsersList.forEach(function(u) {
             var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-            // 🌟 ซ่อนชื่อตัวเองออกจาก Dropdown คนร่วมเยี่ยม
-            if (uId && uId !== myRepId) {
+            // ซ่อนชื่อตัวเอง
+            if (!uId || uId === myRepId) return;
+
+            var uRoleStr = String(u.Role || u.role || '').toUpperCase().trim();
+            var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
+            var uTeamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
+
+            // 🎯 จำแนก Role ของ User ในลิสต์
+            var uIsPM = uRoleStr.indexOf('PRODUCT MANAGER') !== -1 || uRoleStr === 'PM';
+            var uIsBuHead = uRoleStr.indexOf('BU') !== -1 || uRoleStr.indexOf('HEAD') !== -1;
+            var uIsManager = !uIsBuHead && !uIsPM && (uRoleStr.indexOf('MANAGER') !== -1 || uRoleStr.indexOf('LEAD') !== -1);
+
+            var shouldInclude = false;
+
+            if (isSales) {
+                // Sales: เอาเฉพาะหัวหน้าทีมตัวเอง, BU ตัวเอง, และ PM ที่เกี่ยวข้อง (อนุโลมให้เห็น PM ทั้งหมดในฐานะ Product Owner)
+                if (uIsManager && uTeamId === myTeamId) shouldInclude = true;
+                if (uIsBuHead && uBuId === myBuId) shouldInclude = true;
+                if (uIsPM) shouldInclude = true;
+            } else if (isBuHead) {
+                // BU Head: ใส่ BU คนอื่น
+                if (uIsBuHead) shouldInclude = true;
+            } else if (isProductManager) {
+                // PM: ใส่ BU, Team Manager ที่เกี่ยวข้อง และ PM คนอื่น
+                if (uIsBuHead) shouldInclude = true;
+                if (uIsManager) shouldInclude = true;
+                if (uIsPM) shouldInclude = true;
+            } else if (isManager) {
+                // Team Manager: ใส่ BU ทั้งหมด, PM ที่เกี่ยวข้อง และ Team Manager ทั้งหมด
+                if (uIsBuHead) shouldInclude = true;
+                if (uIsPM) shouldInclude = true;
+                if (uIsManager) shouldInclude = true;
+            } else {
+                // Admin: เห็นทุกคน
+                shouldInclude = true;
+            }
+
+            if (shouldInclude) {
                 var uName = u.Rep_Name || u.Name || u.Email || uId;
-                html += '<option value="' + uId + '">👤 ' + uName + '</option>';
+                var roleBadge = u.Role ? ' (' + u.Role + ')' : '';
+                html += '<option value="' + uId + '">👤 ' + uName + roleBadge + '</option>';
             }
         });
     }
