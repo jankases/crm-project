@@ -1069,13 +1069,27 @@ window.deleteTot = async function() {
                 controlInput: null, 
                 options: [
                     { value: '', text: optAllStatus, icon: '', badgeClass: '' },
-                    { value: 'Pending', text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending', icon: '⏳ ', badgeClass: 'badge badge-soft-pending' },
-                    { value: 'Submitted', text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted', icon: '✅ ', badgeClass: 'badge badge-soft-success' }
+                    { value: 'Pending', text: appLang === 'th' ? 'รอส่ง (Pending)' : 'Pending', icon: '⏳', badgeClass: 'badge badge-soft-pending' },
+                    { value: 'Submitted', text: appLang === 'th' ? 'ส่งแล้ว (Submitted)' : 'Submitted', icon: '✅', badgeClass: 'badge badge-soft-success' }
                 ],
                 allowEmptyOption: true,
                 create: false,
                 placeholder: optAllStatus,
                 dropdownParent: 'body',
+                render: {
+                    option: function(data, escape) {
+                        return '<div class="d-flex align-items-center">' +
+                               '<span class="me-2">' + escape(data.icon) + '</span>' +
+                               '<span>' + escape(data.text) + '</span>' +
+                               '</div>';
+                    },
+                    item: function(data, escape) {
+                        return '<div class="d-flex align-items-center">' +
+                               '<span class="me-2">' + escape(data.icon) + '</span>' +
+                               '<span>' + escape(data.text) + '</span>' +
+                               '</div>';
+                    }
+                },
                 onChange: function() { 
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 }
@@ -1258,7 +1272,9 @@ window.deleteTot = async function() {
 };
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100%
-  window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+  // 🌟 ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% พร้อมระบบกันคลิกทะลุ
+window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+    // 🎯 บังคับใช้ 'en' เป็นค่าเริ่มต้นเสมอ
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
     // 🚨 [THE ULTIMATE FIX]: ดักจับและป้องกัน Bootstrap ปิดเมนูเองเมื่อคลิก TomSelect
@@ -1274,17 +1290,17 @@ window.deleteTot = async function() {
                 if (e.clickEvent) {
                     var clickedEl = e.clickEvent.target;
                     
-                    // 1. เช็กว่าสิ่งที่คลิกโดน TomSelect ลบไปจากหน้าจอแล้วใช่ไหม? (อาการประจำของ TomSelect)
-                    var isDetached = !document.contains(clickedEl);
-                    
-                    // 2. เช็กว่าคลิกอยู่ข้างในโซน Filter ใช่ไหม?
+                    // 1. เช็กว่าคลิกอยู่ข้างในโซน Filter หรือเป็นส่วนหนึ่งของ TomSelect Dropdown ใช่ไหม?
                     var isInsideFilter = clickedEl.closest('.ts-wrapper, .ts-dropdown, #visitFilterZoneGroup, #visitFilterZone') !== null;
                     
-                    // 3. คลิกโดนปุ่ม Toggle (เพื่อจงใจพับเมนู) หรือเปล่า?
+                    // 2. เช็กว่าสิ่งที่คลิกโดนลบออกจากหน้าจอ (DOM) ไปแล้วหรือยัง (พฤติกรรมตอนเลือก Option ของ TomSelect)
+                    var isDetached = !document.body.contains(clickedEl);
+
+                    // 3. เช็กว่าคลิกโดนปุ่ม Toggle (เพื่อจงใจพับเมนู) หรือเปล่า?
                     var isToggleBtn = clickedEl.closest('[data-bs-toggle="dropdown"]');
 
-                    // 🛑 ถ้าไม่ได้กดปุ่มพับเมนู แต่กดโดน TomSelect (หรือไอเท็มที่เพิ่งโดนลบ) -> ห้ามปิดเมนู!
-                    if (!isToggleBtn && (isDetached || isInsideFilter)) {
+                    // 🛑 ถ้ากดข้างใน Filter, หรือกดโดน Option ที่โดนลบไปแล้ว, และไม่ใช่การกดปุ่ม Toggle -> ห้ามปิด!
+                    if (!isToggleBtn && (isInsideFilter || isDetached)) {
                         e.preventDefault(); 
                     }
                 }
@@ -1323,7 +1339,7 @@ window.deleteTot = async function() {
 
                     setTimeout(function() { window._allowFilterClose = false; }, 200); // เคลียร์สิทธิ์
 
-                    // 🎯 สั่งโหลดตารางข้อมูลใหม่
+                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่ม Apply เท่านั้น!
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 });
                 self.dropdown.appendChild(footer);
