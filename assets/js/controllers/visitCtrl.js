@@ -2387,31 +2387,33 @@ window.toggleVisitFormEditable = function(isEditable) {
       window.tomSelectPurposeInstance.setValue(dbPurposeVal, true);
   }
 
-  requestAnimationFrame(function() {
+  // 🎯 [Fix ล่าสุด]: เติม async เข้าไปตรงนี้ เพื่อบังคับให้รอสร้างกล่อง Product เสร็จ 100% ก่อนใส่ค่า
+  requestAnimationFrame(async function() {
       if (targetDocId && typeof window.fetchLastVisitHistory === 'function') {
           window.fetchLastVisitHistory(targetDocId);
       }
 
       if (typeof window.renderFormProductDropdown === 'function') {
-          window.renderFormProductDropdown().then(function() {
-              // 🎯 ใช้ข้อมูลจาก Index ที่เราผูกไว้ เพื่อความเร็วและความชัวร์
-              var vidClean = String(visitId).trim().toLowerCase();
-              var visitProdsObj = window._visitProductIndex && window._visitProductIndex[vidClean] 
-                                    ? window._visitProductIndex[vidClean] 
-                                    : [];
-              
-              var visitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
-              
-              if (window.tomSelectProdInstance && visitProds.length > 0) {
-                  // 🎯 ใช้ setTomSelectValue เพื่อบังคับสร้าง Option จำลอง กรณีเป็นสินค้านอกเขต
-                  if (typeof window.setTomSelectValue === 'function') {
-                      window.setTomSelectValue(window.tomSelectProdInstance, visitProds);
-                  } else {
-                      window.tomSelectProdInstance.setValue(visitProds, true);
-                  }
+          // 🎯 รอให้มันสร้าง Dropdown ให้เสร็จชัวร์ๆ ค่อยยัดค่า (ใช้ await)
+          await window.renderFormProductDropdown();
+          
+          // 🎯 ใช้ข้อมูลจาก Index ที่เราผูกไว้ เพื่อความเร็วและความชัวร์
+          var vidClean = String(visitId).trim().toLowerCase();
+          var visitProdsObj = window._visitProductIndex && window._visitProductIndex[vidClean] 
+                                ? window._visitProductIndex[vidClean] 
+                                : [];
+          
+          var visitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
+          
+          if (window.tomSelectProdInstance && visitProds.length > 0) {
+              // 🎯 ใช้ setTomSelectValue เพื่อบังคับสร้าง Option จำลอง กรณีเป็นสินค้านอกเขต
+              if (typeof window.setTomSelectValue === 'function') {
+                  window.setTomSelectValue(window.tomSelectProdInstance, visitProds);
+              } else {
+                  window.tomSelectProdInstance.setValue(visitProds, true);
               }
-              if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
-          });
+          }
+          if (typeof window.loadProductMedia === 'function') window.loadProductMedia();
       }
 
       if (typeof window.loadVisitSamplesForEdit === 'function') {
