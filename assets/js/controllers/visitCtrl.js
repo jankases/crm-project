@@ -1858,61 +1858,42 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     }
 };
   
- window.renderFormProductDropdown = async function() {
+window.renderFormProductDropdown = async function() {
     var formProdSelect = document.getElementById('visitProductId');
     if (!formProdSelect) return;
 
-    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) ? window.globalProductsList : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
+    // 1. ดึง Master Products ทั้งหมด
+    var allProds = (window.globalProductsList && window.globalProductsList.length > 0) 
+        ? window.globalProductsList 
+        : (window.VisitManagerCache ? window.VisitManagerCache.products : []);
 
     if (!allProds || allProds.length === 0) {
         try {
             var res = await window.supabaseClient.from('Products').select('*').order('Product', { ascending: true });
-            if (res.data && res.data.length > 0) { allProds = res.data; window.globalProductsList = res.data; }
+            if (res.data && res.data.length > 0) { 
+                allProds = res.data; 
+                window.globalProductsList = res.data; 
+            }
         } catch(e) {}
     }
 
     var filteredProds = [];
     var isGlobalAdmin = window.myIsGlobalViewer;
+    var isBuHead = window.myIsBuHead;
+    var isProductManager = window.myIsProductManager;
 
-    if (isGlobalAdmin) {
+    // 🎯 2. สิทธิ์ระดับ Global Admin / BU Head / PM ให้เห็นสินค้า Master ทั้งหมดที่ตัวเองดูแลได้เลย
+    if (isGlobalAdmin || isBuHead || isProductManager) {
         filteredProds = allProds;
     } else {
-        var targetTeams = [];
-        var visitIdEl = document.getElementById('visitId');
-        var currentVisitId = visitIdEl ? visitIdEl.value : '';
-
-        if (currentVisitId && currentVisitId !== 'NEW' && window.globalVisits) {
-            var v = window.globalVisits.find(function(x) { return String(x.Visit_ID) === String(currentVisitId); });
-            if (v && v.Rep_ID) {
-                var targetUser = window.globalUsersList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Rep_ID); });
-                if (targetUser) {
-                    var uTeam = String(targetUser.Team_ID || targetUser.Team || '').trim();
-                    if (!uTeam) {
-                        var uTerr = String(targetUser.Territory_ID || targetUser.Territory || '').trim();
-                        var matchedTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === uTerr || String(t.Territory) === uTerr; });
-                        if (matchedTer) uTeam = String(matchedTer.Team_ID || matchedTer.Team || '').trim();
-                    }
-                    if (uTeam) targetTeams.push(uTeam);
-                }
-            }
-        }
-
-        if (targetTeams.length === 0) {
-            var crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-            if (crmUser) {
-                var myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
-                if (!myTeam) {
-                    var myTerr = String(crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').trim();
-                    var matchedMyTer = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === myTerr || String(t.Territory) === myTerr; });
-                    if (matchedMyTer) myTeam = String(matchedMyTer.Team_ID || matchedMyTer.Team || '').trim();
-                }
-                if (myTeam) targetTeams.push(myTeam);
-            }
-            if (window.myAllowedTeamIds && window.myAllowedTeamIds.length > 0) {
-                window.myAllowedTeamIds.forEach(function(t) {
-                    if (targetTeams.indexOf(t) === -1) targetTeams.push(t);
-                });
-            }
+        // 🎯 3. สิทธิ์ระดับ Sales / Manager ทั่วไป ให้กรองตามทีมที่ได้รับอนุญาต (myAllowedTeamIds)
+        var myTeams = window.myAllowedTeamIds || [];
+        var crmUser = null; 
+        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+        
+        if (crmUser) {
+            var myTeam = String(crmUser.Team_ID || crmUser.team_id || crmUser.Team || '').trim();
+            if (myTeam && myTeams.indexOf(myTeam) === -1) myTeams.push(myTeam);
         }
 
         var teamProdLinks = (window.VisitManagerCache && window.VisitManagerCache.teamProdLinks) ? window.VisitManagerCache.teamProdLinks : [];
@@ -1920,7 +1901,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         teamProdLinks.forEach(function(link) {
             var tId = String(link.Team_ID || link.Team);
-            if (targetTeams.indexOf(tId) !== -1 || targetTeams.indexOf(String(link.Team_Name)) !== -1) {
+            if (myTeams.indexOf(tId) !== -1 || myTeams.indexOf(String(link.Team_Name)) !== -1) {
                 var pId = String(link.Product_ID || link.Product);
                 if (allowedProdIds.indexOf(pId) === -1) {
                     allowedProdIds.push(pId);
@@ -1928,30 +1909,39 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        if (targetTeams.length > 0) {
+        if (myTeams.length > 0 && allowedProdIds.length > 0) {
             filteredProds = allProds.filter(function(p) {
                 return allowedProdIds.indexOf(String(p.Product_ID || p.id)) !== -1 || allowedProdIds.indexOf(String(p.Product)) !== -1;
             });
         } else {
+            // Fallback เผื่อไม่มีแมปทีม ให้โชว์สินค้าทั้งหมดป้องกันตัวเลือกว่าง
             filteredProds = allProds;
         }
     }
 
+    // 4. วาดตัวเลือกใน HTML Select
     var fHtml = '';
-    (filteredProds).forEach(function(p) {
+    filteredProds.forEach(function(p) {
         fHtml += '<option value="' + p.Product_ID + '">' + p.Product + '</option>';
     });
     formProdSelect.innerHTML = fHtml;
 
+    // 5. ผูกเข้ากับ TomSelect
     if (typeof TomSelect !== 'undefined') {
         window.safeDestroyTs(window.tomSelectProdInstance);
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var prodPlaceholder = appLang === 'th' ? '-- เลือกผลิตภัณฑ์ --' : '-- Select Products --';
+        
         window.tomSelectProdInstance = new TomSelect('#visitProductId', {
-            plugins: ['remove_button'], create: false, sortField: { field: "text", direction: "asc" }, placeholder: prodPlaceholder, dropdownParent: 'body',
-            onChange: function() { if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); }
+            plugins: ['remove_button'], 
+            create: false, 
+            sortField: { field: "text", direction: "asc" }, 
+            placeholder: prodPlaceholder, 
+            dropdownParent: 'body',
+            onChange: function() { 
+                if (typeof window.loadProductMedia === 'function') window.loadProductMedia(); 
+            }
         });
-        // 🎯 [FIX]: ลบคำสั่ง setTimeout ที่คอยล้างค่า Product ออก เพื่อป้องกันโค้ดตีกันเอง
     }
 };
   
