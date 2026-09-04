@@ -806,28 +806,27 @@ window.toggleMainView = function(viewMode) {
 };
 
 // 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form
-window.switchVisitView = function(viewId) {
+ window.switchVisitView = function(viewId) {
   var listView = document.getElementById('visitListView');
   var formView = document.getElementById('visitFormView');
 
   if (viewId === 'visitFormView') {
       if (listView) {
           listView.classList.add('d-none');
-          listView.style.setProperty('display', 'none', 'important'); 
+          listView.style.display = 'none';
       }
       if (formView) {
           formView.classList.remove('d-none');
-          // 🎯 แก้บั๊กฟอร์มหด: เติม flex-direction: column และแพ็กเกจ Flexbox ให้ครบชุด
-          formView.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;'; 
+          formView.style.display = ''; // เคลียร์ Inline Style เพื่อให้ CSS Media Query ทำงานได้บน iPad/Mobile
       }
   } else {
       if (formView) {
           formView.classList.add('d-none');
-          formView.style.setProperty('display', 'none', 'important');
+          formView.style.display = 'none';
       }
       if (listView) {
           listView.classList.remove('d-none');
-          listView.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;'; 
+          listView.style.display = '';
       }
       
       var currentView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
