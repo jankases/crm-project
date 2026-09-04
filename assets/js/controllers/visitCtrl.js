@@ -1277,14 +1277,20 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     e.stopPropagation();
                     self.close(); // ปิดเมนู TomSelect
                     
-                    // ปิดเมนู Advanced Filters ตัวแม่ด้วยเพื่อให้เนียนขึ้น
-                    var advBtn = document.getElementById('btnAdvFilterDropdown');
-                    if (advBtn && typeof bootstrap !== 'undefined') {
-                        var bsDropdown = bootstrap.Dropdown.getInstance(advBtn);
+                    // 🌟 ปลดล็อกให้ Bootstrap ยอมพับเมนูได้
+                    window._allowFilterClose = true; 
+                    
+                    // ปิดเมนู Advanced Filters ตัวแม่
+                    var fZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+                    var dMenu = fZone ? fZone.closest('.dropdown-menu') : null;
+                    var tBtn = dMenu ? dMenu.previousElementSibling : null;
+                    
+                    if (tBtn && typeof bootstrap !== 'undefined') {
+                        var bsDropdown = bootstrap.Dropdown.getInstance(tBtn) || new bootstrap.Dropdown(tBtn);
                         if (bsDropdown) bsDropdown.hide();
                     }
 
-                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่ม Apply เท่านั้น!
+                    // 🎯 สั่งโหลดตารางข้อมูลใหม่
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 });
                 self.dropdown.appendChild(footer);
@@ -1295,21 +1301,35 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
-        
-        // 🚨 [FIX CORE ISSUE]: ป้องกันอาการคลิกทะลุ (Click-Through) ไปโดนตาราง
         var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+        
+        // 🚨 [FIX CORE ISSUE]: ล็อกกุญแจเมนู Bootstrap ห้ามพับหนีเอง (ป้องกันคลิกทะลุ 100%)
         if (filterZone) {
-            // หาเมนู Dropdown ของ Bootstrap ที่ครอบอยู่
+            filterZone.classList.remove('visit-filter-compact', 'd-none');
+            filterZone.style.display = '';
+
             var dropdownMenu = filterZone.closest('.dropdown-menu') || (filterZone.classList.contains('dropdown-menu') ? filterZone : null);
-            if (dropdownMenu) {
-                var toggleBtn = dropdownMenu.previousElementSibling;
-                // สั่ง Bootstrap 5 ว่า "ให้ปิดเมนูก็ต่อเมื่อคลิกพื้นที่ข้างนอกเมนูเท่านั้น ห้ามปิดเองตอนคลิกข้างใน"
-                if (toggleBtn && toggleBtn.classList.contains('dropdown-toggle')) {
-                    toggleBtn.setAttribute('data-bs-auto-close', 'outside');
-                }
+            var dropdownParent = dropdownMenu ? dropdownMenu.parentElement : null;
+            var toggleBtn = dropdownMenu ? dropdownMenu.previousElementSibling : null;
+
+            if (dropdownParent && !dropdownParent.dataset.locked) {
+                dropdownParent.addEventListener('hide.bs.dropdown', function(e) {
+                    // 1. ถ้ายอมให้ปิดผ่านปุ่ม Apply & Close
+                    if (window._allowFilterClose) {
+                        window._allowFilterClose = false; // เคลียร์ค่า
+                        return; // ยอมให้ปิด
+                    }
+                    // 2. ถ้าผู้ใช้จงใจคลิกที่ปุ่ม Toggle (ปุ่ม Advanced Filters) เพื่อปิด
+                    if (e.clickEvent && toggleBtn && toggleBtn.contains(e.clickEvent.target)) {
+                        return; // ยอมให้ปิด
+                    }
+                    // 3. นอกนั้น (คลิกโดน TomSelect หรือคลิกพื้นหลัง) ล็อกตายห้ามปิดเด็ดขาด!
+                    e.preventDefault();
+                });
+                dropdownParent.dataset.locked = 'true';
             }
         }
-        
+
         if (!repSelect && !terSelect) return;
 
         if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
@@ -1544,6 +1564,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.isPermissionCalculated = true; 
     }
 };
+
+
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
