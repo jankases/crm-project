@@ -1423,16 +1423,16 @@ button.feature-action-btn-lg.has-data-samples i {
     background: #fef2f2 !important;
   }
 }
- 
+
 /* 📱 FIX IPAD FLEXBOX SQUEEZE & FULL SCROLLING */
 @media (max-width: 1199.98px) {
-  /* 1. สลับคอนเทนเนอร์หลักเป็น Scroll Zone */
   #visitFormView {
+    display: block !important;
     height: 100% !important;
     max-height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    display: block !important;
+    padding: 0.5rem 0.75rem 1rem 0.75rem !important;
   }
 
   #visitFormView form {
@@ -1443,7 +1443,6 @@ button.feature-action-btn-lg.has-data-samples i {
     justify-content: flex-start !important;
   }
 
-  /* 2. ปลดล็อก Flexbox Row ไม่ให้บีบอัดการ์ด (แก้จุดที่การ์ดขวาโดนตัด) */
   #visitFormView .row,
   #visitFormView .row.g-3,
   #visitFormView .row.g-2.5 {
@@ -1453,11 +1452,11 @@ button.feature-action-btn-lg.has-data-samples i {
     margin-bottom: 1rem !important;
   }
 
-  /* 3. ให้คอลัมน์และการ์ดขยายความสูงตามเนื้อหาจริง */
   #visitFormView [class*="col-"] {
     flex: 0 0 100% !important;
     max-width: 100% !important;
     height: auto !important;
+    margin-bottom: 0.75rem !important;
   }
 
   #visitFormView .col-12 > .border,
@@ -1473,25 +1472,45 @@ button.feature-action-btn-lg.has-data-samples i {
   #visitFormView .field-wrapper-insight,
   #visitFormView .field-wrapper-nextaction {
     flex: 0 0 auto !important;
+    margin-bottom: 0.75rem !important;
   }
 
-  /* 4. กำหนดความสูงช่องข้อความการ์ดขวา */
   #visitDetails { 
     height: 120px !important; 
     min-height: 120px !important; 
   }
+
   #visitInsight, 
   #visitNextAction { 
     height: 80px !important; 
     min-height: 80px !important; 
   }
 
-  /* 5. แถบบาร์ปุ่มกด Save/Cancel ตรึงลอยขอบล่าง */
   .full-width-action-bar {
     position: sticky !important;
     bottom: 0 !important;
     margin-top: 1rem !important;
     z-index: 105 !important;
+  }
+
+  .doc-module-wrapper {
+    height: 100% !important;
+    max-height: 100% !important;
+    padding-bottom: 0.5rem !important;
+    box-sizing: border-box !important;
+  }
+
+  #doctorListView,
+  #doctorMainContentContainer,
+  #doctorListZone {
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  #doctorPaginationContainer {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
   }
 }
 
