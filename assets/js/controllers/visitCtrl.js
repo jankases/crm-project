@@ -1328,6 +1328,15 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
+        // 🎯 [เพิ่มโค้ดตรงนี้]: เติมตัวเลือก "Other" ต่อท้ายรายชื่อลูกน้อง
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        if (isBuHead || isProductManager || isGlobalViewer) {
+            repOptionsData.push({ 
+                value: 'OTHER_REPS', 
+                text: '🌐 ' + (appLang === 'en' ? 'Other / Cross-Team' : 'บุคคลอื่น / นอกทีม (Other)')
+            });
+        }
+
         // 🌟 4. ปั้นข้อมูลตัวเลือกเขตพื้นที่ (Area / Team)
         var terOptionsData = [];
         var terMap = new Map();
@@ -1374,8 +1383,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 }
             });
         }
-
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
         // 🌟 5. ผูกเข้ากับ TomSelect 
         if (typeof TomSelect !== 'undefined') {
@@ -1432,7 +1439,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 // ==========================================
  
  // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
-window.loadVisits = async function(forceReload, isBackground) {
+ window.loadVisits = async function(forceReload, isBackground) {
     // 🎯 [Fix 1]: ฝังระบบ Request ID ป้องกันข้อมูลวิ่งแซงกัน (แก้บั๊กตารางสะอึก)
     window._visitQueryId = (window._visitQueryId || 0) + 1;
     var currentQueryId = window._visitQueryId;
@@ -1609,8 +1616,30 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
       if (selectedReps.length > 0) {
-          dataQuery = dataQuery.in('Rep_ID', selectedReps);
-          countQuery = countQuery.in('Rep_ID', selectedReps);
+          // 🎯 รองรับลอจิกการค้นหาแบบ "OTHER_REPS" (บุคคลอื่น/นอกทีม)
+          var hasOther = selectedReps.indexOf('OTHER_REPS') !== -1;
+          var normalReps = selectedReps.filter(function(r) { return r !== 'OTHER_REPS'; });
+
+          if (hasOther) {
+              // ดึงรายชื่อคนที่ "อนุญาต" ทั้งหมด ถ้า Other คือ เอาคนที่ "ไม่อยู่" ในลิสต์นี้
+              var allowedList = window.myAllowedRepIds || [];
+              if (allowedList.length === 0) allowedList = ['00000000-0000-0000-0000-000000000000']; // ดักเผื่อว่าง
+              
+              if (normalReps.length > 0) {
+                  // เลือกทั้งลูกน้องปกติ + อื่นๆ
+                  var orStr = 'Rep_ID.in.(' + normalReps.join(',') + '),Rep_ID.not.in.(' + allowedList.join(',') + ')';
+                  dataQuery = dataQuery.or(orStr);
+                  countQuery = countQuery.or(orStr);
+              } else {
+                  // เลือกแค่ Other อย่างเดียว
+                  dataQuery = dataQuery.not('Rep_ID', 'in', '(' + allowedList.join(',') + ')');
+                  countQuery = countQuery.not('Rep_ID', 'in', '(' + allowedList.join(',') + ')');
+              }
+          } else {
+              // เลือกแบบปกติ (ไม่มี Other)
+              dataQuery = dataQuery.in('Rep_ID', normalReps);
+              countQuery = countQuery.in('Rep_ID', normalReps);
+          }
       }
 
       if (selectedTers.length > 0) {
@@ -3403,6 +3432,11 @@ window.renderCalendarView = function() {
   var visitsSource = window.globalVisits || [];
   if (selectedRepId) {
       visitsSource = visitsSource.filter(function(v) {
+          // 🎯 3.1 เพิ่มการกรอง Other ในปฏิทิน
+          if (selectedRepId === 'OTHER_REPS') {
+              var allowedList = window.myAllowedRepIds || [];
+              return allowedList.indexOf(String(v.Rep_ID).trim()) === -1;
+          }
           return String(v.Rep_ID) === String(selectedRepId) || String(v.whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
       });
   }
@@ -3694,6 +3728,9 @@ window.renderCalendarView = function() {
                 repOptionsHtml += '<option value="' + uId + '" ' + isSel + '>👤 ' + uName + '</option>';
             }
           });
+
+          // 🎯 3.2 เพิ่ม Option "Other" ปิดท้ายในหน้าปฏิทิน
+          repOptionsHtml += '<option value="OTHER_REPS" ' + (selectedRepId === 'OTHER_REPS' ? 'selected' : '') + '>🌐 ' + (isEN ? 'Other / Cross-Team' : 'บุคคลอื่น / นอกทีม (Other)') + '</option>';
 
           var filterDropdownHtml = `
             <div class="d-inline-block me-2" id="calRepFilterContainer">
