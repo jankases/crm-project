@@ -1259,8 +1259,10 @@ window.deleteTot = async function() {
   
 // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100%
  window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+    // 🎯 บังคับใช้ 'en' เป็นค่าเริ่มต้นเสมอ
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
+    // 🎯 ลงทะเบียน Plugin "Apply Button" ให้ TomSelect
     if (typeof TomSelect !== 'undefined' && !TomSelect.plugins['apply_close_btn']) {
         TomSelect.define('apply_close_btn', function(options) {
             var self = this;
@@ -1273,7 +1275,16 @@ window.deleteTot = async function() {
                 footer.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    self.close(); 
+                    self.close(); // ปิดเมนู TomSelect
+                    
+                    // ปิดเมนู Advanced Filters ตัวแม่ด้วยเพื่อให้เนียนขึ้น
+                    var advBtn = document.getElementById('btnAdvFilterDropdown');
+                    if (advBtn && typeof bootstrap !== 'undefined') {
+                        var bsDropdown = bootstrap.Dropdown.getInstance(advBtn);
+                        if (bsDropdown) bsDropdown.hide();
+                    }
+
+                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่ม Apply เท่านั้น!
                     if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 });
                 self.dropdown.appendChild(footer);
@@ -1284,16 +1295,9 @@ window.deleteTot = async function() {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
-        var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
         
-        if (filterZone) {
-            filterZone.classList.remove('visit-filter-compact', 'd-none');
-            filterZone.style.display = '';
-        }
-
         if (!repSelect && !terSelect) return;
 
-        // 🎯 [Fix สำคัญ]: แก้ชื่อตัวแปรให้ตรงกัน ป้องกันบั๊กปลั๊กอินพังและกล่องหาย
         if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
         if (window.tomSelectTerInstance) { window.tomSelectTerInstance.destroy(); window.tomSelectTerInstance = null; }
         
@@ -1484,7 +1488,7 @@ window.deleteTot = async function() {
                                     if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
                                 }
                             }
-                            if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); 
+                            // 🛑 ลบคำสั่งสั่งโหลดตาราง (handleFilterChange) ออกจากตรงนี้แล้ว
                         } 
                     });
                 }
@@ -1515,7 +1519,7 @@ window.deleteTot = async function() {
                                     }
                                 }
                             }
-                            if (typeof window.handleFilterChange === 'function') window.handleFilterChange('territory'); 
+                            // 🛑 ลบคำสั่งสั่งโหลดตาราง (handleFilterChange) ออกจากตรงนี้แล้ว
                         } 
                     });
                 }
