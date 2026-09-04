@@ -1270,71 +1270,39 @@ window.deleteTot = async function() {
  window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🛑 [CORE FIX 1]: ตัดสายชนวน! ลบ onchange ที่ฝังอยู่ใน HTML ต้นฉบับทิ้ง
-    // เพื่อหยุดไม่ให้ตารางชิงรีโหลดตัวเองตอนเรากดเลือก (หยุดอาการรีเซ็ต)
+    // 🛑 1. ตัดสายชนวน! ลบคำสั่งโหลดตารางอัตโนมัติที่ซ่อนอยู่ใน HTML ต้นฉบับทิ้งให้หมด
     var repSelect = document.getElementById('filterVisitRep'); 
     var terSelect = document.getElementById('filterVisitTerritory');
     if (repSelect) { repSelect.onchange = null; repSelect.removeAttribute('onchange'); }
     if (terSelect) { terSelect.onchange = null; terSelect.removeAttribute('onchange'); }
 
-    // 🛑 [CORE FIX 2]: ระบบเกราะป้องกันเมนูพับหนี (Ultimate Click-Shield)
-    if (!window._filterDropdownFixApplied) {
-        document.addEventListener('hide.bs.dropdown', function(e) {
-            if (window._allowFilterClose) return; // อนุญาตให้ปิดเมื่อกดปุ่ม Apply & Close
-
-            var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-            if (filterZone && e.target.contains(filterZone)) {
-                if (e.clickEvent) {
-                    var clickedEl = e.clickEvent.target;
-                    var isInsideFilter = clickedEl.closest('.ts-wrapper, .ts-dropdown, #visitFilterZoneGroup, #visitFilterZone') !== null;
-                    var isDetached = !document.body.contains(clickedEl); // เช็กว่าคลิกโดนไอเท็มที่เพิ่งโดนลบทิ้งหรือไม่
-                    var isToggleBtn = clickedEl.closest('[data-bs-toggle="dropdown"]');
-
-                    // ถ้ากดข้างในฟิลเตอร์ และไม่ได้กดปุ่มเพื่อจงใจปิด -> ล็อกกุญแจตาย ห้ามปิดเมนู!
-                    if (!isToggleBtn && (isInsideFilter || isDetached)) {
-                        e.preventDefault(); 
-                    }
-                }
-            }
-        });
-        window._filterDropdownFixApplied = true;
+    // 🛑 2. บังคับเมนูให้ปิดก็ต่อเมื่อคลิกพื้นที่ว่างข้างนอกเท่านั้น (ป้องกันเมนูพับหนี)
+    var advBtn = document.getElementById('btnAdvFilterDropdown');
+    if (advBtn) {
+        advBtn.setAttribute('data-bs-auto-close', 'outside');
     }
 
-    // 🎯 ลงทะเบียน Plugin "Apply Button" ให้ TomSelect
-    if (typeof TomSelect !== 'undefined' && !TomSelect.plugins['apply_close_btn']) {
-        TomSelect.define('apply_close_btn', function(options) {
-            var self = this;
-            self.hook('after', 'setup', function() {
-                var footer = document.createElement('div');
-                footer.className = 'ts-dropdown-footer';
-                var btnText = appLang === 'th' ? 'นำไปใช้' : 'Apply & Close';
-                footer.innerHTML = '<button type="button" class="btn btn-sm btn-primary w-100 fw-bold shadow-sm" style="border-radius: 8px;"><i class="fa-solid fa-check me-1"></i> ' + btnText + '</button>';
-                
-                footer.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    self.close(); // ปิดเมนู TomSelect
-                    
-                    // ปลดล็อกเกราะ ให้ Bootstrap พับเมนูตัวแม่ได้
-                    window._allowFilterClose = true; 
-                    var fZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
-                    var dMenu = fZone ? fZone.closest('.dropdown-menu') : null;
-                    var tBtn = dMenu ? dMenu.previousElementSibling : null;
-                    
-                    if (tBtn && typeof bootstrap !== 'undefined') {
-                        var bsDropdown = bootstrap.Dropdown.getInstance(tBtn) || new bootstrap.Dropdown(tBtn);
-                        if (bsDropdown) bsDropdown.hide();
-                    } else if (tBtn) {
-                        tBtn.click();
-                    }
-                    setTimeout(function() { window._allowFilterClose = false; }, 200);
+    // 🎯 3. จัดการปุ่ม "นำไปใช้ (Apply & Close)" ข้างล่างสุดปุ่มเดียว (ตามไอเดียของคุณเลยครับ)
+    var btnApply = document.getElementById('btnApplyAdvancedFilters');
+    if (btnApply && !btnApply.dataset.bound) {
+        btnApply.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'th' ? 'นำไปใช้' : 'Apply & Close');
+        
+        btnApply.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // สั่งพับเมนูเก็บ
+            if (advBtn && typeof bootstrap !== 'undefined') {
+                var bsDropdown = bootstrap.Dropdown.getInstance(advBtn) || new bootstrap.Dropdown(advBtn);
+                if (bsDropdown) bsDropdown.hide();
+            } else if (advBtn) {
+                advBtn.click();
+            }
 
-                    // 🎯 สั่งโหลดตารางข้อมูลใหม่ เฉพาะตอนที่กดปุ่มนี้เท่านั้น!
-                    if (typeof window.filterVisits === 'function') window.filterVisits(); 
-                });
-                self.dropdown.appendChild(footer);
-            });
+            // สั่งโหลดตารางใหม่ตรงนี้ที่เดียวจบ!
+            if (typeof window.filterVisits === 'function') window.filterVisits(); 
         });
+        btnApply.dataset.bound = 'true';
     }
 
     try {
@@ -1346,6 +1314,7 @@ window.deleteTot = async function() {
 
         if (!repSelect && !terSelect) return;
 
+        // ทำลายกล่องเก่าก่อนสร้างใหม่
         if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
         if (window.tomSelectTerInstance) { window.tomSelectTerInstance.destroy(); window.tomSelectTerInstance = null; }
         
@@ -1517,7 +1486,7 @@ window.deleteTot = async function() {
                 if (!window.tomSelectRepInstance) {
                     window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
                         maxItems: null, 
-                        plugins: ['remove_button', 'apply_close_btn'], 
+                        plugins: ['remove_button'], // ถอดปลั๊กอินเก่าออกตามที่คุณเสนอ
                         create: false, 
                         allowEmptyOption: false, 
                         valueField: 'value', 
@@ -1545,7 +1514,7 @@ window.deleteTot = async function() {
                 if (!window.tomSelectTerInstance) {
                     window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
                         maxItems: null, 
-                        plugins: ['remove_button', 'apply_close_btn'], 
+                        plugins: ['remove_button'], // ถอดปลั๊กอินเก่าออก
                         create: false, 
                         allowEmptyOption: false, 
                         valueField: 'value', 
