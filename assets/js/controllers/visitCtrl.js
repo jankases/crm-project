@@ -1256,9 +1256,9 @@ window.deleteTot = async function() {
     console.error("Error loading dropdowns:", err.message); 
   }
 };
-  
-// 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100%
- window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
+   
+ // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100%
+window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     // 🎯 บังคับใช้ 'en' เป็นค่าเริ่มต้นเสมอ
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
@@ -1295,6 +1295,20 @@ window.deleteTot = async function() {
     try {
         var repSelect = document.getElementById('filterVisitRep'); 
         var terSelect = document.getElementById('filterVisitTerritory');
+        
+        // 🚨 [FIX CORE ISSUE]: ป้องกันอาการคลิกทะลุ (Click-Through) ไปโดนตาราง
+        var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
+        if (filterZone) {
+            // หาเมนู Dropdown ของ Bootstrap ที่ครอบอยู่
+            var dropdownMenu = filterZone.closest('.dropdown-menu') || (filterZone.classList.contains('dropdown-menu') ? filterZone : null);
+            if (dropdownMenu) {
+                var toggleBtn = dropdownMenu.previousElementSibling;
+                // สั่ง Bootstrap 5 ว่า "ให้ปิดเมนูก็ต่อเมื่อคลิกพื้นที่ข้างนอกเมนูเท่านั้น ห้ามปิดเองตอนคลิกข้างใน"
+                if (toggleBtn && toggleBtn.classList.contains('dropdown-toggle')) {
+                    toggleBtn.setAttribute('data-bs-auto-close', 'outside');
+                }
+            }
+        }
         
         if (!repSelect && !terSelect) return;
 
@@ -1488,7 +1502,6 @@ window.deleteTot = async function() {
                                     if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
                                 }
                             }
-                            // 🛑 ลบคำสั่งสั่งโหลดตาราง (handleFilterChange) ออกจากตรงนี้แล้ว
                         } 
                     });
                 }
@@ -1519,7 +1532,6 @@ window.deleteTot = async function() {
                                     }
                                 }
                             }
-                            // 🛑 ลบคำสั่งสั่งโหลดตาราง (handleFilterChange) ออกจากตรงนี้แล้ว
                         } 
                     });
                 }
@@ -1532,7 +1544,6 @@ window.deleteTot = async function() {
         window.isPermissionCalculated = true; 
     }
 };
-
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
