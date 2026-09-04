@@ -1785,6 +1785,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
+        window._visitProductIndex = {};
       
       window._visitSampleIndex = {};
 
@@ -1800,6 +1801,15 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
           var results = await Promise.all(subPromises);
 
           window.globalVisitProducts = (results[0] && results[0].data) ? results[0].data : [];
+
+          // 🎯 [Fix 2]: วนลูปจับคู่ Product เข้ากับ Visit_ID เพื่อให้หน้า Edit ดึงไปแสดงได้
+          window.globalVisitProducts.forEach(function(vp) {
+              if (vp.Visit_ID) {
+                  var vid = String(vp.Visit_ID).trim().toLowerCase();
+                  if (!window._visitProductIndex[vid]) window._visitProductIndex[vid] = [];
+                  window._visitProductIndex[vid].push(vp);
+              }
+          });
 
           if (results[1] && results[1].data) {
             results[1].data.forEach(function(s) {
