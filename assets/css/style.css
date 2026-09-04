@@ -1975,9 +1975,16 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE
+   🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE (FIX VISIBILITY CONFLICTS)
    ========================================== */
-.d-none {
+.d-none,
+#visitListView.d-none,
+#visitFormView.d-none,
+#doctorListView.d-none,
+#doctorAddView.d-none,
+#doctorEditView.d-none,
+#doctorProfileView.d-none,
+#hospListView.d-none {
   display: none !important;
 }
 
