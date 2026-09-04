@@ -1452,10 +1452,17 @@ button.feature-action-btn-lg.has-data-samples i {
     margin-bottom: 1rem !important;
   }
 
-  #visitFormView [class*="col-"] {
+  /* 🎯 ปรับให้คอลัมน์หลักขยายเต็ม 100% แต่ยกเว้น .col-6 ให้คงขนาด 50% ไว้เพื่อแบ่งครึ่งหน้าจอ (เช่น Start/End Time) */
+  #visitFormView [class*="col-"]:not(.col-6):not(.col-auto) {
     flex: 0 0 100% !important;
     max-width: 100% !important;
     height: auto !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  #visitFormView .col-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
     margin-bottom: 0.75rem !important;
   }
 
@@ -1513,7 +1520,6 @@ button.feature-action-btn-lg.has-data-samples i {
     flex-shrink: 0 !important;
   }
 }
-
 /* 🌟 FORM CONTROL PLACEHOLDER FIX */
 #visitFormView .form-control:disabled::placeholder,
 #visitFormView .form-control[readonly]:not(#filterStartDate):not(#filterEndDate)::placeholder,
