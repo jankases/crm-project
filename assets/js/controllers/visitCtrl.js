@@ -1210,7 +1210,7 @@ window.deleteTot = async function() {
 
     // 4. ตั้งค่า Rep และ Territory Filter Dropdowns
     if (typeof window.setupFiltersDropdowns === 'function') {
-        window.setupFiltersDropdowns(crmUser, []);
+       await window.setupFiltersDropdowns(crmUser, []);
     }
 
     // 5. ปั้น Purpose Dropdown -> 🎯 สร้างใหม่ทุกครั้งเพื่อแปลภาษา
@@ -1258,11 +1258,9 @@ window.deleteTot = async function() {
 };
   
 // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100%
-window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
-    // 🎯 บังคับใช้ 'en' เป็นค่าเริ่มต้นเสมอ หากตรวจไม่พบภาษา
+ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🎯 ลงทะเบียน Plugin "Apply Button" ให้ TomSelect
     if (typeof TomSelect !== 'undefined' && !TomSelect.plugins['apply_close_btn']) {
         TomSelect.define('apply_close_btn', function(options) {
             var self = this;
@@ -1295,12 +1293,17 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         if (!repSelect && !terSelect) return;
 
+        // 🎯 [Fix สำคัญ]: แก้ชื่อตัวแปรให้ตรงกัน ป้องกันบั๊กปลั๊กอินพังและกล่องหาย
+        if (window.tomSelectRepInstance) { window.tomSelectRepInstance.destroy(); window.tomSelectRepInstance = null; }
+        if (window.tomSelectTerInstance) { window.tomSelectTerInstance.destroy(); window.tomSelectTerInstance = null; }
+        
+        repSelect.innerHTML = '';
+        terSelect.innerHTML = '';
+
         var oldRepVal = window.tomSelectRepInstance ? window.tomSelectRepInstance.getValue() : []; 
         if (!Array.isArray(oldRepVal)) oldRepVal = oldRepVal ? [oldRepVal] : [];
         var oldTerVal = window.tomSelectTerInstance ? window.tomSelectTerInstance.getValue() : []; 
         if (!Array.isArray(oldTerVal)) oldTerVal = oldTerVal ? [oldTerVal] : [];
-
- 
 
         var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
         var uEmail = crmUser ? String(crmUser.Email || crmUser.email || '').trim().toLowerCase() : '';
@@ -1322,9 +1325,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         var myAllowedRepIds = [uRepId]; 
         var myAllowedEmails = [uEmail];
 
-        
+        var sb = window.supabaseClient || window.supabase;
 
-        // 🎯 [ดึงข้อมูลจริงจาก Database] ป้องกันบั๊ก Cache ว่างเปล่า
         if (!isGlobalViewer) {
             if (isBuHead && userBuId) {
                 var { data: buTeams } = await sb.from('Team').select('Team_ID, Team').eq('BU_ID', userBuId);
@@ -1378,7 +1380,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
 
-        // 🌟 3. ปั้นข้อมูลตัวเลือกพนักงาน
         var repOptionsData = [];
         var uniqueUsersMap = new Map();
         
@@ -1391,12 +1392,10 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             var role = String(u.Role || '').toUpperCase();
-            
             var rolePrefix = (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM') ? '📦 ' : (role.indexOf('MANAGER') !== -1 ? '🧑‍💼 ' : '👤 ');
 
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), u);
-                // 🎯 เก็บ terId และ teamId ไว้ใช้ทำ Smart Cascading
                 repOptionsData.push({ 
                     value: id, 
                     text: rolePrefix + name,
@@ -1413,11 +1412,10 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             });
         }
 
-        // 🌟 4. ปั้นข้อมูลตัวเลือกเขตพื้นที่
         var terOptionsData = [];
         var terMap = new Map();
-        
         var allTers = window.globalTerritories || window.globalTerritoryList || [];
+        
         if (allTers.length === 0) {
             var { data: trData } = await sb.from('Territory').select('*');
             allTers = trData || [];
@@ -1433,7 +1431,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
             if (isAllowed && tid && !terMap.has(tid.toLowerCase())) {
                 terMap.set(tid.toLowerCase(), tnm);
-                // 🎯 เก็บ teamId ไว้ใช้ทำ Smart Cascading
                 terOptionsData.push({ value: tid, text: '📍 ' + tnm, teamId: teamId });
             }
         });
@@ -1464,15 +1461,14 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             });
         }
 
-        // 🌟 5. ผูกเข้ากับ TomSelect พร้อมตั้งค่า Apply Button & Smart Cascading
         if (typeof TomSelect !== 'undefined') {
             if (repSelect) {
                 if (!window.tomSelectRepInstance) {
                     window.tomSelectRepInstance = new TomSelect('#filterVisitRep', { 
                         maxItems: null, 
-                        plugins: ['remove_button', 'apply_close_btn'], // 🎯 เรียกใช้ Plugin
+                        plugins: ['remove_button', 'apply_close_btn'], 
                         create: false, 
-                        allowEmptyOption: false, // 🎯 ป้องกันบัค Tag ว่าง
+                        allowEmptyOption: false, 
                         valueField: 'value', 
                         labelField: 'text', 
                         searchField: ['text'],
@@ -1481,33 +1477,27 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         placeholder: appLang === 'th' ? '- พนักงานทั้งหมด -' : '- All Reps -', 
                         dropdownParent: null, 
                         onChange: function(repValue) { 
-                            // 🎯 Smart Cascading: ยูสเซอร์เลือก Rep -> ตั้งค่า Area ให้ตรงกับ Rep อัตโนมัติ
                             if (repValue && window.tomSelectTerInstance) {
                                 var repOpt = this.options[repValue];
                                 if (repOpt && repOpt.value !== 'OTHER_REPS') {
                                     var targetTer = repOpt.terId || repOpt.teamId;
-                                    if (targetTer) {
-                                        window.tomSelectTerInstance.setValue(targetTer, true); 
-                                    }
+                                    if (targetTer) window.tomSelectTerInstance.setValue(targetTer, true); 
                                 }
                             }
                             if (typeof window.handleFilterChange === 'function') window.handleFilterChange('rep'); 
                         } 
                     });
                 }
-                
-                if (oldRepVal.length > 0 && window.isInitialLoading) {
-                    window.tomSelectRepInstance.setValue(oldRepVal, true);
-                }
+                if (oldRepVal.length > 0 && window.isInitialLoading) window.tomSelectRepInstance.setValue(oldRepVal, true);
             }
 
             if (terSelect) {
                 if (!window.tomSelectTerInstance) {
                     window.tomSelectTerInstance = new TomSelect('#filterVisitTerritory', { 
                         maxItems: null, 
-                        plugins: ['remove_button', 'apply_close_btn'], // 🎯 เรียกใช้ Plugin
+                        plugins: ['remove_button', 'apply_close_btn'], 
                         create: false, 
-                        allowEmptyOption: false, // 🎯 ป้องกันบัค Tag ว่าง
+                        allowEmptyOption: false, 
                         valueField: 'value', 
                         labelField: 'text', 
                         searchField: ['text'],
@@ -1516,13 +1506,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         placeholder: appLang === 'th' ? '- พื้นที่ทั้งหมด -' : '- All Areas/Teams -', 
                         dropdownParent: null,
                         onChange: function(terValue) { 
-                            // 🎯 Smart Cascading: ยูสเซอร์เลือก Area -> เช็ก Rep ที่ค้างอยู่ว่ายังตรงกับ Area ไหม
                             if (terValue && terValue !== 'OTHER_TERRITORIES' && window.tomSelectRepInstance) {
                                 var currentRep = window.tomSelectRepInstance.getValue();
                                 if (currentRep) {
                                     var repOpt = window.tomSelectRepInstance.options[currentRep];
                                     if (repOpt && repOpt.terId !== terValue && repOpt.teamId !== terValue) {
-                                        window.tomSelectRepInstance.setValue('', true); // ล้างค่า Rep ทิ้งถ้าไม่ตรงเขต
+                                        window.tomSelectRepInstance.setValue('', true); 
                                     }
                                 }
                             }
@@ -1530,10 +1519,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         } 
                     });
                 }
-                
-                if (oldTerVal.length > 0 && window.isInitialLoading) {
-                    window.tomSelectTerInstance.setValue(oldTerVal, true);
-                }
+                if (oldTerVal.length > 0 && window.isInitialLoading) window.tomSelectTerInstance.setValue(oldTerVal, true);
             }
         }
     } catch (err) {
@@ -4234,21 +4220,14 @@ if (noAttachmentText) {
  
 // ==========================================
 // 🎯 RENDER VISIT FILTERS ENGINE
-// ==========================================
+// ========================================== 
 window.renderVisitFilters = function() {
     // 🌟 สั่งปลดล็อกคลาส d-none โดยไม่ยัด Inline Style เข้าไปข่มระบบ
     var filterZone = document.getElementById('visitFilterZoneGroup') || document.getElementById('visitFilterZone');
     if (filterZone) {
         filterZone.classList.remove('d-none');
         filterZone.style.display = ''; // เคลียร์ Inline Style เก่าออกให้สะอาด
-    }
-
-    var crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-
-    if (typeof window.setupFiltersDropdowns === 'function') {
-        window.setupFiltersDropdowns(crmUser, []);
-    }
+    } 
 };
 
  window.initVisitPage = async function(forceReload) {
