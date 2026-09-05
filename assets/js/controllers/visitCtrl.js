@@ -1901,6 +1901,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 // ==========================================
  
  // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
+ // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
 window.loadVisits = async function(forceReload, isBackground) {
     // 🎯 [Fix 1]: ฝังระบบ Request ID ป้องกันข้อมูลวิ่งแซงกัน (แก้บั๊กตารางสะอึก)
     window._visitQueryId = (window._visitQueryId || 0) + 1;
@@ -2048,7 +2049,9 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-       // 🎯 3. Advanced Filter Controls
+      // ==============================================================
+      // 🎯 3. FOOLPROOF ADVANCED FILTER CONTROLS 
+      // ==============================================================
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
@@ -2056,39 +2059,75 @@ window.loadVisits = async function(forceReload, isBackground) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      var purposeEl = document.getElementById('filterVisitPurpose');
-      var purposeTerm = purposeEl ? purposeEl.value : '';
-      if (!purposeTerm && window.tomSelectFilterPurposeInstance) {
+      // 🌟 [FIX 1] ดึงค่า Purpose และแปลงกลับเป็น UUID เสมอ
+      var purposeTerm = '';
+      if (window.tomSelectFilterPurposeInstance) {
           purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
+      } else if (document.getElementById('filterVisitPurpose')) {
+          purposeTerm = document.getElementById('filterVisitPurpose').value;
+      }
+      
+      var finalPurposeId = '';
+      if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
+          var isUUID = /^[0-9a-f]{8}-/i.test(purposeTerm);
+          if (isUUID) {
+              finalPurposeId = purposeTerm;
+          } else {
+              var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
+                  return idx.Value === purposeTerm || idx.Value1 === purposeTerm;
+              });
+              if (idxItem) finalPurposeId = idxItem.Index_ID || idxItem.id || purposeTerm;
+          }
       }
 
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
-      var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
-      var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
+      // 🌟 [FIX 2] ฟังก์ชันสแกนหา UUID จาก Tree-View โดยเฉพาะ (ดักจับบั๊กโฟลเดอร์เปล่า)
+      var getSafeCheckedIds = function(type) {
+          var container = document.getElementById(type === 'rep' ? 'containerFilterRep' : 'containerFilterTer');
+          if (!container) return [];
+          var checked = container.querySelectorAll('input[type="checkbox"]:checked');
+          var results = [];
+          checked.forEach(function(chk) {
+              var raw = chk.value;
+              if (!raw || raw === 'on' || raw === 'undefined') raw = chk.id.replace('chk_' + type + '_', '');
+              
+              if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null') {
+                  if (raw.indexOf('ter_tm_') !== -1) raw = raw.replace('ter_tm_', '');
+                  else if (raw.indexOf('tm_ter_') !== -1) raw = raw.replace('tm_ter_', '');
+                  else if (raw.indexOf('ter_bu_') !== -1) raw = raw.replace('ter_bu_', '');
+                  else if (raw.indexOf('bu_ter_') !== -1) raw = raw.replace('bu_ter_', '');
+                  else if (raw.indexOf('bu_rep_') !== -1) raw = raw.replace('bu_rep_', '');
+                  else if (raw.indexOf('grp_sales_') !== -1) raw = raw.split('_').pop();
+                  else if (raw.indexOf('rep_') !== -1) raw = raw.replace('rep_', '');
+                  else if (raw.indexOf('ter_') !== -1) raw = raw.replace('ter_', '');
+                  
+                  if (results.indexOf(raw) === -1) results.push(raw);
+              }
+          });
+          return results;
+      };
+
+      var selectedReps = getSafeCheckedIds('rep');
+      var selectedTers = getSafeCheckedIds('ter');
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
-          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
+          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (finalPurposeId ? 1 : 0) + (coachingTerm ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
-      // 🌟 นำค่าไปใส่ในเงื่อนไขการดึงข้อมูล
+      // ==============================================================
+      // 🌟 นำค่า UUID ที่สกัดได้ไปยัดลง Supabase Query
+      // ==============================================================
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
 
-      // 🌟 [FIX Purpose]: เช็กค่าให้ชัวร์ ถ้าเป็น UUID ใช้ eq ถ้าเป็นข้อความใช้ ilike
-      if (purposeTerm && purposeTerm !== 'null' && purposeTerm !== 'undefined') {
-          var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(purposeTerm);
-          if (isUUID) {
-              dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
-              countQuery = countQuery.eq('Purpose_ID', purposeTerm);
-          } else {
-              dataQuery = dataQuery.ilike('Purpose', '%' + purposeTerm + '%');
-              countQuery = countQuery.ilike('Purpose', '%' + purposeTerm + '%');
-          }
+      if (finalPurposeId) {
+          dataQuery = dataQuery.eq('Purpose_ID', finalPurposeId);
+          countQuery = countQuery.eq('Purpose_ID', finalPurposeId);
       }
 
       if (coachingTerm) {
@@ -2106,27 +2145,102 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      // 🌟 [FIX Employee]: โยน Array ของ ID ที่หามาได้เข้าไปตรงๆ
       if (selectedReps.length > 0) {
           if (selectedReps.includes('other_reps')) {
-             var orRepCond = `Rep_ID.is.null,Rep_ID.eq.""`;
-             dataQuery = dataQuery.or(orRepCond);
-             countQuery = countQuery.or(orRepCond);
+             dataQuery = dataQuery.is('Rep_ID', null);
+             countQuery = countQuery.is('Rep_ID', null);
           } else {
              dataQuery = dataQuery.in('Rep_ID', selectedReps);
              countQuery = countQuery.in('Rep_ID', selectedReps);
           }
       }
 
-      // 🌟 [FIX Territory]: โยน Array ของ ID ที่หามาได้เข้าไปตรงๆ
       if (selectedTers.length > 0) {
           if (selectedTers.includes('other_ter')) {
-             var orTerCond = `Territory_ID.is.null,Territory_ID.eq.""`;
-             dataQuery = dataQuery.or(orTerCond);
-             countQuery = countQuery.or(orTerCond);
+             dataQuery = dataQuery.is('Territory_ID', null);
+             countQuery = countQuery.is('Territory_ID', null);
           } else {
              dataQuery = dataQuery.in('Territory_ID', selectedTers);
              countQuery = countQuery.in('Territory_ID', selectedTers);
+          }
+      }
+      // ==============================================================
+
+      // 🔍 4. Smart Search Filter
+      var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+      if (rawSearchVal) {
+          var searchTerms = rawSearchVal.split(/\s+/); 
+          sb = window.supabaseClient || window.supabase;
+
+          for (var i = 0; i < searchTerms.length; i++) {
+              var term = searchTerms[i];
+              
+              if (term.length < 2 && searchTerms.length > 1) {
+                  continue; 
+              }
+
+              var matchedDocIds = [];
+              var matchedVisitIds = [];
+
+              (window.globalAssignedDoctors || []).forEach(function(doc) {
+                  var isMatch = false;
+                  var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
+                  var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
+
+                  if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
+                      isMatch = true;
+                  }
+
+                  if (!isMatch && doc.Hospitals) {
+                      var hEn = String(doc.Hospitals.Hospital || doc.Hospitals.Known_As || '').toLowerCase();
+                      if (hEn.indexOf(term) !== -1) {
+                          isMatch = true;
+                      }
+                  }
+
+                  if (isMatch) {
+                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
+                      if (docId) matchedDocIds.push(docId);
+                  }
+              });
+
+              var matchedProductIds = [];
+              var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
+              allProds.forEach(function(p) {
+                  var pEn = String(p.Product || '').toLowerCase();
+                  var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
+                  if (pEn.indexOf(term) !== -1 || pTh.indexOf(term) !== -1) {
+                      matchedProductIds.push(p.Product_ID || p.id);
+                  }
+              });
+
+              if (matchedProductIds.length > 0) {
+                  try {
+                      var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
+                      if (!vpRes.error && vpRes.data) {
+                          matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
+                      }
+                  } catch (e) { console.error("Search Product Error:", e); }
+              }
+
+              var orConditionsArray = [];
+              
+              if (matchedDocIds.length > 0) {
+                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
+              }
+              if (matchedVisitIds.length > 0) {
+                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 150).join(',')})`);
+              }
+
+              if (orConditionsArray.length > 0) {
+                  var finalOrString = orConditionsArray.join(',');
+                  dataQuery = dataQuery.or(finalOrString);
+                  countQuery = countQuery.or(finalOrString);
+              } else {
+                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  break; 
+              }
           }
       }
 
