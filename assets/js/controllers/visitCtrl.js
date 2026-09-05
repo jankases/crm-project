@@ -1684,7 +1684,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             var role = String(u.Role || '').toUpperCase();
             
-            // 🌟 สืบหาต้นสังกัด (Territory -> Team -> BU)
             var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
             var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
             var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
@@ -1699,12 +1698,26 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var buMatched = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
             }
+            
+            // 🌟 [อัปเกรด] Fallback ป้องกัน Unassigned BU สำหรับระดับผู้บริหาร
+            var isNodeBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
+            var isNodePM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
+            var isNodeMgr = !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
+
+            if (!uBuId || uBuId === 'no_bu') {
+                if (isNodeBuHead || isNodePM || isNodeMgr) {
+                    // ถ้าเป็นระดับหัวหน้า แต่ไม่มี BU_ID ในฐานข้อมูล -> ดึงเข้า BU หลักแรกในระบบโดยอัตโนมัติ
+                    if (allBus.length > 0) {
+                        uBuId = String(allBus[0].BU_ID || allBus[0].id || allBus[0].BU).trim().toLowerCase();
+                    }
+                }
+            }
             if (!uBuId) uBuId = 'no_bu';
 
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), true);
                 
-                // 2.1 สร้างโหนด BU (ชั้นที่ 1) พร้อมโฟลเดอร์ตำแหน่งที่เตรียมรอไว้
+                // 2.1 สร้างโหนด BU (ชั้นที่ 1)
                 if (!buMapRep[uBuId]) {
                     var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
                     var rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : (uBuId === 'no_bu' ? 'Unassigned BU' : uBuId);
@@ -1714,7 +1727,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         text: '🏢 ' + rBuName,
                         isLeaf: false,
                         children: [],
-                        // 🌟 เตรียม "โฟลเดอร์ตำแหน่ง" ระดับ BU
                         _headFolder: { id: 'fld_head_' + uBuId, text: '👑 BU Head', isLeaf: false, children: [] },
                         _pmFolder: { id: 'fld_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
                         _teams: {} 
@@ -1722,12 +1734,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 }
 
                 var currentBuRepNode = buMapRep[uBuId];
-                
-                // 2.2 คัดแยก Role
-                var isNodeBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
-                var isNodePM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
-                var isNodeMgr = !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
-
                 var node = { id: 'rep_' + id, value: id, text: '👤 ' + name, isLeaf: true };
 
                 // 2.3 โยนพนักงานเข้า "โฟลเดอร์ตำแหน่ง" ของตัวเอง
@@ -1744,7 +1750,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                             id: 'grp_sales_' + uBuId + '_' + teamId, 
                             text: '👥 ' + teamNameRep, 
                             isLeaf: false, 
-                            // 🌟 เตรียม "โฟลเดอร์ตำแหน่ง" ระดับ Team
                             _mgrFolder: { id: 'fld_mgr_' + teamId, text: '🧑‍💼 Team Managers', isLeaf: false, children: [] },
                             _salesFolder: { id: 'fld_sales_' + teamId, text: '👤 Sales Reps', isLeaf: false, children: [] }
                         };
@@ -1764,16 +1769,14 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var nodeBU = buMapRep[buKey];
             var finalChildren = []; 
             
-            // นำโฟลเดอร์ BU Head และ PM ขึ้นก่อนในระดับ BU
+            // นำโฟลเดอร์ BU Head และ PM ขึ้นก่อน
             if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
             if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
             
-            // นำโฟลเดอร์ Team เข้ามาต่อท้าย
             Object.keys(nodeBU._teams).forEach(function(tId) {
                 var teamNode = nodeBU._teams[tId];
                 var teamChildren = [];
                 
-                // ภายในทีม ให้เรียงโฟลเดอร์ Manager ขึ้นก่อน Sales
                 if (teamNode._mgrFolder.children.length > 0) teamChildren.push(teamNode._mgrFolder);
                 if (teamNode._salesFolder.children.length > 0) teamChildren.push(teamNode._salesFolder);
                 
