@@ -2437,68 +2437,44 @@ window.clearSmartSearchInput = function() {
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
 };
  
-
-// 5. ปั้น Purpose Dropdown (สำหรับในฟอร์ม และ แผง Filter)
-    var purposeSelect = document.getElementById('visitPurpose');
-    var filterPurposeSelect = document.getElementById('filterVisitPurpose'); // 🌟 ตัวใหม่สำหรับ Filter
-    
-    if (purposeSelect || filterPurposeSelect) { 
-      var types = window.VisitManagerCache.indexTypes || []; 
-      var indexes = window.VisitManagerCache.indexes || [];
-      
-      var purposeTypes = types.filter(function(t) { 
-        var name = (t.Name || '').trim().toLowerCase();
-        return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || name === 'purpose' || name === 'callpurpose' || name === 'call purpose';
-      });
-
-      var typeIds = purposeTypes.map(function(t) { return t.IndexType_ID; });
-      var purposeItems = indexes.filter(function(i) { return typeIds.indexOf(i.IndexType_ID) !== -1; });
-
-      var purposeData = [];
-      purposeItems.forEach(function(i) {
-          var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
-          var dispText = (appLang === 'en') ? valEN : valTH;
-          purposeData.push({ value: String(i.Index_ID), text: dispText });
-      });
-
-      if (typeof TomSelect !== 'undefined') {
-          // 5.1 🌟 ผูก TomSelect ให้ในฟอร์มบันทึกเยี่ยม
-          if (purposeSelect) {
-              window.safeDestroyTs(window.tomSelectPurposeInstance);
-              purposeSelect.innerHTML = '<option value=""></option>'; 
-              window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
-                  options: purposeData, 
-                  valueField: 'value', labelField: 'text', searchField: ["text"], 
-                  placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', 
-                  create: false, dropdownParent: 'body'
-              });
-              if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
-          }
-
-          // 5.2 🌟 ผูก TomSelect ให้กล่อง Advanced Filters
-          if (filterPurposeSelect) {
-              window.safeDestroyTs(window.tomSelectFilterPurposeInstance);
-              filterPurposeSelect.innerHTML = '<option value=""></option>'; 
-              window.tomSelectFilterPurposeInstance = new TomSelect('#filterVisitPurpose', { 
-                  options: purposeData, 
-                  valueField: 'value', labelField: 'text', searchField: ["text"], 
-                  placeholder: appLang === 'th' ? '- ทุกวัตถุประสงค์ -' : '- All Purposes -', 
-                  create: false, allowEmptyOption: true, dropdownParent: null // ใช้ null เพื่อไม่ให้เมนูบั๊ก
-              });
-              
-              // คืนค่าเก่าถ้าเคยเซฟไว้
-              var oldFilterPurpVal = window.VisitManagerCache && window.VisitManagerCache.savedFilters ? window.VisitManagerCache.savedFilters.purpose : '';
-              if (oldFilterPurpVal) window.tomSelectFilterPurposeInstance.setValue(oldFilterPurpVal, true);
-          }
-      }
+// 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
+window.clearVisitFilters = function() {
+    if (typeof window.toggleAllCheckboxes === 'function') {
+        window.toggleAllCheckboxes('rep', false);
+        window.toggleAllCheckboxes('ter', false);
     }
 
-    window.isPermissionCalculated = true;
-  } catch (err) { 
-    console.error("Error loading dropdowns:", err.message); 
-  }
+    var searchRep = document.getElementById('searchRepFilter');
+    var searchTer = document.getElementById('searchTerFilter');
+    if (searchRep) { searchRep.value = ''; window.filterCheckboxList('rep', ''); }
+    if (searchTer) { searchTer.value = ''; window.filterCheckboxList('ter', ''); }
+
+    if (window.tomSelectStatusInstance) {
+        window.tomSelectStatusInstance.setValue('', true);
+    } else {
+        var stEl = document.getElementById('filterVisitStatus');
+        if (stEl) stEl.value = '';
+    }
+
+    if (window.tomSelectFilterPurposeInstance) {
+        window.tomSelectFilterPurposeInstance.setValue('', true);
+    }
+    var chkCoaching = document.getElementById('filterVisitCoaching');
+    if (chkCoaching) chkCoaching.checked = false;
+    
+    if (window.fpStartInstance) window.fpStartInstance.clear();
+    if (window.fpEndInstance) window.fpEndInstance.clear();
+
+    var stDate = document.getElementById('filterStartDate');
+    var endDate = document.getElementById('filterEndDate');
+    if (stDate && !window.fpStartInstance) stDate.value = '';
+    if (endDate && !window.fpEndInstance) endDate.value = '';
+
+    var searchEl = document.getElementById('smartSearchInput');
+    if (searchEl) searchEl.value = '';
+
+    if (typeof window.filterVisits === 'function') window.filterVisits();
 };
- 
 
 function matchedTerAndUnique(arr) {
     return arr.filter(function(item, pos) {
@@ -2506,68 +2482,7 @@ function matchedTerAndUnique(arr) {
     });
 }
 
- // ==========================================
-// 💾 HELPER: SAVE & RESTORE FILTER STATE
-// ==========================================
-
-// 🎯 2. จำค่าที่ติ๊กไว้ (Save State)
-window.saveVisitFilterState = function() {
-    window.VisitManagerCache = window.VisitManagerCache || {};
-    window.VisitManagerCache.savedFilters = {
-        search: document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '',
-        status: window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : ''),
-        // 🌟 เก็บค่า Purpose & Coaching
-        purpose: window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '',
-        coaching: document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false,
-        
-        startDate: document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '',
-        endDate: document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '',
-        page: window.currentPage || 1,
-        rep: (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [],
-        ter: (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : []
-    };
-};
-
-// 🎯 3. คืนค่าติ๊กถูก (Restore State)
-window.restoreVisitFilterState = function() {
-    if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
-    var sf = window.VisitManagerCache.savedFilters;
-
-    if (sf.search && document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = sf.search;
-    if (sf.startDate && document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = sf.startDate;
-    if (sf.endDate && document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = sf.endDate;
-    
-    if (sf.status && window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue(sf.status, true);
-    else if (sf.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = sf.status;
-
-    // 🌟 คืนค่า Purpose & Coaching
-    if (sf.purpose && window.tomSelectFilterPurposeInstance) window.tomSelectFilterPurposeInstance.setValue(sf.purpose, true);
-    if (sf.coaching !== undefined && document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = sf.coaching;
-
-    if (sf.rep && Array.isArray(sf.rep) && sf.rep.length > 0) {
-        sf.rep.forEach(function(val) {
-            var chk = document.getElementById('chk_rep_' + val);
-            if (chk) { chk.checked = true; if (typeof window.updateTreeAncestorState === 'function') window.updateTreeAncestorState(chk.closest('li'), 'rep'); }
-        });
-    }
-
-    if (sf.ter && Array.isArray(sf.ter) && sf.ter.length > 0) {
-        sf.ter.forEach(function(val) {
-            var chk = document.getElementById('chk_ter_' + val);
-            if (chk) { chk.checked = true; if (typeof window.updateTreeAncestorState === 'function') window.updateTreeAncestorState(chk.closest('li'), 'ter'); }
-        });
-    }
-
-    if (sf.page) window.currentPage = sf.page;
-    
-    var lblCountEl = document.getElementById('lblSelectedCount');
-    if (lblCountEl) {
-        var totalActive = (sf.rep ? sf.rep.length : 0) + (sf.ter ? sf.ter.length : 0) + (sf.status ? 1 : 0) + (sf.purpose ? 1 : 0) + (sf.coaching ? 1 : 0);
-        lblCountEl.textContent = totalActive > 0 ? (totalActive + ' Active') : 'All Data';
-    }
-};
-
-window.renderVisitTableServerSide = function() {
+ window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
 
@@ -2614,7 +2529,6 @@ window.renderVisitTableServerSide = function() {
 
     var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : v.Visit_Date;
     
-    // 🌟 [FIX]: อ่านข้อมูลหมอจาก Relation Join v.Doctors ก่อน ถ้าไม่มีค่อย fallback ไปใช้ Index
     var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
     var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
     var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
@@ -2624,7 +2538,6 @@ window.renderVisitTableServerSide = function() {
     var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
 
     var distanceBadge = '';
-    // 🌟 ดักจับ Config GPS: โชว์ไอคอนหมุดเมื่อฟีเจอร์เปิดอยู่เท่านั้น
     if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
       var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
       if (hospLat && hospLng) {
@@ -2645,87 +2558,72 @@ window.renderVisitTableServerSide = function() {
 
     var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
     
-    // 🎯 1. ฟังก์ชัน Highlight แบบใหม่ (ป้องกัน HTML พังเมื่อพิมพ์หลายคำ เช่น "sura r") 
     var applySafeHighlight = function(text, searchStr) {
         if (!text || !searchStr) return text;
         var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
         if (terms.length === 0) return text;
-        
-        // มัดรวมคำค้นหาเป็น Regex ตัวเดียว เพื่อแทนที่พร้อมกัน (ป้องกันการสร้าง Span ซ้อน Span จนโค้ดพัง)
         var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
         var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
-        
-        // 🎯 คืนชีพ <mark> ให้สีเหลืองกลับมา และบังคับ padding: 0 !important เพื่อไม่ให้คำถ่าง
         return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important; color: inherit;">$1</mark>');
     };
 
     var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
     var highlightedHosp = applySafeHighlight(hospNameShow, smartSearchVal);
-    
-    // 🎯 2. ยกเลิกการ Highlight ที่คอลัมน์ Purpose (แสดงผลข้อความธรรมดาตามกฎ WYSIWYG)
     var highlightedPurpose = purposeShow; 
 
     var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
-    var visitProds = (window._visitProdIndex && cleanVid) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[v.Visit_ID] || []) : [];
+    var rawVid = String(v.Visit_ID || v.visit_id || '').trim();
+    var visitProds = (window._visitProdIndex) 
+                        ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || (v.Products_List ? v.Products_List.split(',') : [])) 
+                        : [];
+
     var prodBadges = '';
     if (visitProds.length > 0) {
       visitProds.forEach(function(vp) {
-          var rawPId = String(vp.Product_ID || vp.product_id || '').trim();
+          var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
           var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
           var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
-          // 🎯 ใช้ฟังก์ชัน Safe Highlight กับ Product ด้วย
           prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
       });
-    } else prodBadges = '<span class="text-muted small">-</span>';
+    } else {
+        prodBadges = '<span class="text-muted small">-</span>';
+    }
  
     var evidenceBadges = '';
-    
     if (v.Is_Coaching) {
       var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
       evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
     }
 
-    // 🌟 ดักจับ Config Attachments: โชว์เฉพาะเปิดฟีเจอร์
     if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
       var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
       evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
     }
 
-    // 🌟 ดักจับ Config Signature: โชว์เฉพาะเปิดฟีเจอร์
     if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) {
       var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
       evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
     }
 
-    var vidClean = String(v.Visit_ID || '').trim().toLowerCase();
-    var sampleItems = (window._visitSampleIndex && window._visitSampleIndex[vidClean]) 
-                      ? window._visitSampleIndex[vidClean] 
+    var sampleItems = (window._visitSampleIndex && (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid])) 
+                      ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid]) 
                       : (v.Visit_Samples || []);
                       
-    // 🌟 ดักจับ Config Samples: โชว์เฉพาะเปิดฟีเจอร์
     if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
       var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
- 
-
       htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
       '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-      
-      // 🎯 [จุดที่แก้]: เพิ่ม <span> ครอบ highlightedHosp ไว้ เพื่อมัดคำที่ถูกไฮไลต์กับคำที่เหลือให้เป็นชิ้นเดียวกัน Flexbox จะได้ไม่ฉีกคำออกจากกันครับ
       '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
-      
       '<td>' + prodBadges + '</td>' +
       '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
       '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
       '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
     '</tr>';
   });
-
-
-    
 
   tbody.innerHTML = htmlBuffer;
   if (typeof window.renderPaginationControls === 'function') {
@@ -2741,8 +2639,6 @@ window.renderVisitTableServerSide = function() {
       }
   }
 };
- 
- 
 
 // ==========================================
 // 📝 10. FORM ACTIONS
@@ -2768,7 +2664,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 };
 
-  window.openEditVisitView = async function(visitId, overrideDocId, overridePurposeId) { 
+ window.openEditVisitView = async function(visitId, overrideDocId, overridePurposeId) { 
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
   window.applyVisitFeaturesUI();
 
@@ -2841,7 +2737,6 @@ window.toggleVisitFormEditable = function(isEditable) {
           if (coachWrapper) coachWrapper.classList.toggle('d-none', !v.Is_Coaching);
           
           if (coachSelect) {
-              // 🎯 [Fix 3]: ถ้าเคสนี้มีการระบุโค้ช แต่ดันไม่โชว์ใน Dropdown (เพราะเป็นคน Inactive หรือไม่ได้สิทธิ์) ให้ยัดชื่อกลับไปโชว์
               if (v.Coach_Rep_ID && !coachSelect.querySelector('option[value="' + v.Coach_Rep_ID + '"]')) {
                   var fallbackU = userList.find(function(u) { return String(u.Rep_ID || u.id) === String(v.Coach_Rep_ID); });
                   var fallbackName = fallbackU ? (fallbackU.Rep_Name || fallbackU.Name || v.Coach_Rep_ID) : v.Coach_Rep_ID;
@@ -2881,18 +2776,18 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (typeof window.renderFormProductDropdown === 'function') {
           await window.renderFormProductDropdown();
           
-          var vidClean = String(visitId).trim().toLowerCase();
-          var visitProdsObj = window._visitProductIndex && window._visitProductIndex[vidClean] 
-                                ? window._visitProductIndex[vidClean] 
+          var validVisitId = (visitId && String(visitId).toUpperCase() !== 'NEW') ? String(visitId).trim().toLowerCase() : null;
+          var visitProdsObj = (validVisitId && window._visitProductIndex && window._visitProductIndex[validVisitId]) 
+                                ? window._visitProductIndex[validVisitId] 
                                 : [];
           
-          var visitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
+          var mappedVisitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
           
-          if (window.tomSelectProdInstance && visitProds.length > 0) {
+          if (window.tomSelectProdInstance && mappedVisitProds.length > 0) {
               if (typeof window.setTomSelectValue === 'function') {
-                  window.setTomSelectValue(window.tomSelectProdInstance, visitProds);
+                  window.setTomSelectValue(window.tomSelectProdInstance, mappedVisitProds);
               } else {
-                  window.tomSelectProdInstance.setValue(visitProds, true);
+                  window.tomSelectProdInstance.setValue(mappedVisitProds, true);
               }
           }
           
@@ -3028,7 +2923,7 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 };
 
- window.openAddVisitView = async function(presetDate) {
+window.openAddVisitView = async function(presetDate) {
   window.applyVisitFeaturesUI();
   var fields = ['visitDocId', 'visitProductId', 'visitDate', 'visitPurpose'];
   fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('is-invalid'); });
@@ -3036,7 +2931,6 @@ window.toggleVisitFormEditable = function(isEditable) {
   document.getElementById('visitForm').reset();
   document.getElementById('visitId').value = ''; 
 
-  // 🌟 [FIXED]: แปลภาษาหัวข้อ Add New Visit แบบ Dynamic
   var appLangTitle = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   var titleTextAdd = (typeof window.t === 'function') ? window.t('title_add_visit') : (appLangTitle === 'th' ? 'สร้างบันทึกเยี่ยมใหม่' : 'Add New Visit');
   document.getElementById('formVisitTitle').innerHTML = '📝 <span data-i18n="title_add_visit">' + titleTextAdd + '</span>';
@@ -3092,7 +2986,6 @@ window.toggleVisitFormEditable = function(isEditable) {
   if (window.tomSelectPurposeInstance) { window.tomSelectPurposeInstance.clear(); window.tomSelectPurposeInstance.enable(); }
   if (window.tomSelectProdInstance) { window.tomSelectProdInstance.clear(); window.tomSelectProdInstance.enable(); }
 
-  if (typeof window.renderFormProductDropdown === 'function') await window.renderFormProductDropdown();
   if (typeof window.toggleVisitFormEditable === 'function') window.toggleVisitFormEditable(true);
 
   if (typeof window.updateFeatureButtonIndicators === 'function') window.updateFeatureButtonIndicators(null);
@@ -3112,6 +3005,9 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   if (typeof window.switchVisitView === 'function') window.switchVisitView('visitFormView');
+  
+  if (typeof window.renderFormProductDropdown === 'function') window.renderFormProductDropdown();
+
   window.attachAutosaveListeners();
   setTimeout(() => { window.checkAndRestoreAutosave(); }, 500);
 };
