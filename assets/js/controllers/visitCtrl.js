@@ -2114,6 +2114,24 @@ window.loadVisits = async function(forceReload, isBackground) {
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
+
+        // 🚨 ================= DEBUG ZONE ================= 🚨
+      console.log("🚨 [1] Purpose Term (จากตัวแปร):", purposeTerm);
+      if (window.tomSelectFilterPurposeInstance) {
+          console.log("🚨 [1.1] Purpose (จาก TomSelect ตรงๆ):", window.tomSelectFilterPurposeInstance.getValue());
+      }
+      console.log("🚨 [2] Selected Reps (Employee):", selectedReps);
+      console.log("🚨 [3] Selected Ters (Area):", selectedTers);
+      
+      // ดักดูโครงสร้าง HTML ของ Checkbox ที่ถูกติ๊ก เพื่อดูว่ามันซ่อนค่าอะไรไว้
+      var debugRepContainer = document.getElementById('containerFilterRep');
+      if (debugRepContainer) {
+          var repChecked = debugRepContainer.querySelectorAll('input[type="checkbox"]:checked');
+          var repHTML = Array.from(repChecked).map(function(el) { return "ID: " + el.id + " | Value: " + el.value; });
+          console.log("🚨 [2.1] DOM Checkbox (Rep):", repHTML);
+      }
+      // 🚨 ============================================== 🚨
+
       // ==============================================================
       // 🌟 ยัดเงื่อนไขลง Supabase Query
       // ==============================================================
