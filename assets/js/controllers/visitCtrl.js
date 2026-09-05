@@ -1890,13 +1890,50 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
 // ==========================================
- 
- // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
- // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
+  // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
 window.loadVisits = async function(forceReload, isBackground) {
-    // 🎯 [Fix 1]: ฝังระบบ Request ID ป้องกันข้อมูลวิ่งแซงกัน (แก้บั๊กตารางสะอึก)
+    // 🎯 [Fix 1]: ฝังระบบ Request ID ป้องกันข้อมูลวิ่งแซงกัน
     window._visitQueryId = (window._visitQueryId || 0) + 1;
     var currentQueryId = window._visitQueryId;
+
+    // 🚨🚨 THE MASTER FIX: งับค่าจากหน้าจอ "ทันที" ตั้งแต่วินาทีแรก! 🚨🚨
+    // (ก่อนที่หน้าต่าง Filter จะถูกปิด และก่อนที่ระบบจะไป await คุยกับ Database)
+    var statusEl = document.getElementById('filterVisitStatus');
+    var capturedStatus = statusEl ? statusEl.value : '';
+    var capturedStartDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
+    var capturedEndDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+
+    var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+    if (!purposeTerm) {
+        var pEl = document.getElementById('filterVisitPurpose');
+        if (pEl) purposeTerm = pEl.value;
+    }
+    var capturedPurposeId = '';
+    if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
+        if (/^[0-9a-f]{8}-/i.test(purposeTerm)) {
+            capturedPurposeId = purposeTerm;
+        } else {
+            var idxItem = (window.VisitManagerCache && window.VisitManagerCache.indexes || []).find(function(idx) {
+                return String(idx.Value).trim() === purposeTerm || String(idx.Value1).trim() === purposeTerm;
+            });
+            capturedPurposeId = idxItem ? (idxItem.Index_ID || idxItem.id || purposeTerm) : purposeTerm;
+        }
+    }
+
+    var capturedCoaching = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
+
+    var capturedReps = [];
+    document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') capturedReps.push(c.value.trim());
+    });
+    if (document.querySelector('input[id*="other_reps"]:checked') && capturedReps.length === 0) capturedReps.push('EMPTY_OTHER');
+
+    var capturedTers = [];
+    document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') capturedTers.push(c.value.trim());
+    });
+    if (document.querySelector('input[id*="other_ter"]:checked') && capturedTers.length === 0) capturedTers.push('EMPTY_OTHER');
+    // ==============================================================
 
     var crmUser = null;
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -1920,18 +1957,12 @@ window.loadVisits = async function(forceReload, isBackground) {
     var visitViewEl = document.getElementById('visitListView');
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
-
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
-        if (loadingTitleEl) {
-            loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
-        }
-        if (loadingDescEl) {
-            loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
-        }
-
+        if (loadingTitleEl) loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
+        if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         if (visitViewEl) visitViewEl.classList.add('is-loading');
 
         var mainContainer = document.getElementById('visitMainContentContainer');
@@ -1943,11 +1974,8 @@ window.loadVisits = async function(forceReload, isBackground) {
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
-
         window.renderVisitTableServerSide();
-        if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') {
-            window.renderCalendarView();
-        }
+        if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') window.renderCalendarView();
         return; 
     }
 
@@ -1961,7 +1989,7 @@ window.loadVisits = async function(forceReload, isBackground) {
               (typeof window.fetchAllRecords === 'function' ? window.fetchAllRecords('TOT_Logs') : []),
               (typeof window.loadMasterDataForVisits === 'function' ? window.loadMasterDataForVisits() : Promise.resolve())
           ];
-          var additionalRes = await Promise.all(promises);
+          var additionalRes = await Promise.all(promises); 
           window.VisitManagerCache.pendingUnlocks = (additionalRes[0] && additionalRes[0].data) ? additionalRes[0].data.map(function(d) { return d.Ref_ID; }) : [];
           window.VisitManagerCache.totLogs = additionalRes[1] || [];
           window.VisitManagerCache.isLoaded = true;
@@ -2039,102 +2067,70 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           }
       }
-       // ==============================================================
-      // 🎯 3. ADVANCED FILTER CONTROLS (พร้อมระบบหยุดเวลาตรวจจับบั๊ก)
-      // ==============================================================
-      var statusEl = document.getElementById('filterVisitStatus');
-      var statusTerm = statusEl ? statusEl.value : '';
-      if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
 
-      var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-      var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
-
-      // 🌟 ดึงค่า Purpose
-      var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
-      if (!purposeTerm) {
-          var pEl = document.getElementById('filterVisitPurpose');
-          if (pEl) purposeTerm = pEl.value;
-      }
-
-      var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
-
-      // 🌟 ดึงค่า Employee
-      var selectedReps = [];
-      document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
-          if (c.value && c.value !== 'on') selectedReps.push(c.value.trim());
-      });
-      if (document.querySelector('input[id*="other_reps"]:checked') && selectedReps.length === 0) selectedReps.push('EMPTY_OTHER');
-
-      // 🌟 ดึงค่า Area
-      var selectedTers = [];
-      document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
-          if (c.value && c.value !== 'on') selectedTers.push(c.value.trim());
-      });
-      if (document.querySelector('input[id*="other_ter"]:checked') && selectedTers.length === 0) selectedTers.push('EMPTY_OTHER');
-
+      // 🎯 3. Advanced Filter (อัปเดต UI ด้วยค่าที่งับมาได้ตั้งแต่แรก)
+      if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(capturedStatus);
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
-          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
+          var totalActiveFilters = capturedReps.length + capturedTers.length + (capturedStatus ? 1 : 0) + (capturedPurposeId ? 1 : 0) + (capturedCoaching ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
-      // 🚨 ALERT DEBUG: หยุดเวลาเพื่อดูว่าค่าถูกลบไปก่อนทำงานหรือไม่
-      alert("🚨 ดักจับค่าก่อนส่งให้ Database:\n\n" +
-            "Purpose: " + (purposeTerm || "ว่างเปล่า") + "\n" +
-            "Employee: " + (selectedReps.length > 0 ? selectedReps.join(', ') : "ว่างเปล่า") + "\n" +
-            "Area: " + (selectedTers.length > 0 ? selectedTers.join(', ') : "ว่างเปล่า"));
-
       // ==============================================================
-      // 🌟 ยัดเงื่อนไขลง Supabase
+      // 🌟 ยัดเงื่อนไขลง Supabase Query โดยใช้ค่าที่งับมาไว้ในตัวแปร
       // ==============================================================
-      if (statusTerm) {
-          dataQuery = dataQuery.eq('Status', statusTerm);
-          countQuery = countQuery.eq('Status', statusTerm);
+      if (capturedStatus) {
+          dataQuery = dataQuery.eq('Status', capturedStatus);
+          countQuery = countQuery.eq('Status', capturedStatus);
       }
 
-      if (purposeTerm) {
-          dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
-          countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+      if (capturedPurposeId) {
+          var isUUID = /^[0-9a-f]{8}-/i.test(capturedPurposeId);
+          if (isUUID) {
+              dataQuery = dataQuery.eq('Purpose_ID', capturedPurposeId);
+              countQuery = countQuery.eq('Purpose_ID', capturedPurposeId);
+          } else {
+              dataQuery = dataQuery.ilike('Purpose', '%' + capturedPurposeId + '%');
+              countQuery = countQuery.ilike('Purpose', '%' + capturedPurposeId + '%');
+          }
       }
 
-      if (coachingTerm) {
+      if (capturedCoaching) {
           dataQuery = dataQuery.eq('Is_Coaching', true);
           countQuery = countQuery.eq('Is_Coaching', true);
       }
 
-      if (startDateTerm) {
-          dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
-          countQuery = countQuery.gte('Visit_Date', startDateTerm);
+      if (capturedStartDate) {
+          dataQuery = dataQuery.gte('Visit_Date', capturedStartDate);
+          countQuery = countQuery.gte('Visit_Date', capturedStartDate);
       }
 
-      if (endDateTerm) {
-          dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
-          countQuery = countQuery.lte('Visit_Date', endDateTerm);
+      if (capturedEndDate) {
+          dataQuery = dataQuery.lte('Visit_Date', capturedEndDate);
+          countQuery = countQuery.lte('Visit_Date', capturedEndDate);
       }
 
-      if (selectedReps.length > 0) {
-          if (selectedReps.indexOf('EMPTY_OTHER') !== -1) {
+      if (capturedReps.length > 0) {
+          if (capturedReps.indexOf('EMPTY_OTHER') !== -1) {
               dataQuery = dataQuery.is('Rep_ID', null);
               countQuery = countQuery.is('Rep_ID', null);
           } else {
-              dataQuery = dataQuery.in('Rep_ID', selectedReps);
-              countQuery = countQuery.in('Rep_ID', selectedReps);
+              dataQuery = dataQuery.in('Rep_ID', capturedReps);
+              countQuery = countQuery.in('Rep_ID', capturedReps);
           }
       }
 
-      if (selectedTers.length > 0) {
-          if (selectedTers.indexOf('EMPTY_OTHER') !== -1) {
+      if (capturedTers.length > 0) {
+          if (capturedTers.indexOf('EMPTY_OTHER') !== -1) {
               dataQuery = dataQuery.is('Territory_ID', null);
               countQuery = countQuery.is('Territory_ID', null);
           } else {
-              dataQuery = dataQuery.in('Territory_ID', selectedTers);
-              countQuery = countQuery.in('Territory_ID', selectedTers);
+              dataQuery = dataQuery.in('Territory_ID', capturedTers);
+              countQuery = countQuery.in('Territory_ID', capturedTers);
           }
       }
 
-      // ==============================================================
-      // 🔍 4. Smart Search Filter (ใส่คืนให้แล้วครับ!)
-      // ==============================================================
+      // 🔍 4. Smart Search Filter
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
@@ -2176,7 +2172,7 @@ window.loadVisits = async function(forceReload, isBackground) {
                       if (!vpRes.error && vpRes.data) {
                           matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
                       }
-                  } catch (e) {}
+                  } catch (e) { }
               }
 
               var orConditionsArray = [];
@@ -2194,6 +2190,7 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           }
       }
+
       // 📊 5. KPI Count Query
       var countRes = await countQuery;
       
@@ -2205,9 +2202,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           pendingC = countRes.data.filter(function(d) { return d.Status === 'Pending'; }).length;
           submittedC = countRes.data.filter(function(d) { return d.Status === 'Submitted'; }).length;
       }
-      if (typeof window.updateStatCards === 'function') {
-          window.updateStatCards(totalC, pendingC, submittedC);
-      }
+      if (typeof window.updateStatCards === 'function') window.updateStatCards(totalC, pendingC, submittedC);
 
       // 📊 6. Server-Side Range (ดึงแค่ 20 แถว)
       var page = window.currentPage || 1;
@@ -2257,7 +2252,6 @@ window.loadVisits = async function(forceReload, isBackground) {
             });
           }
         } catch (subErr) {
-          console.warn("Sub-tables fetch error:", subErr);
           window.globalVisitProducts = [];
         }
       } else {
@@ -2286,9 +2280,7 @@ window.loadVisits = async function(forceReload, isBackground) {
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-            if (typeof window.toggleMainView === 'function') {
-                window.toggleMainView(currentMainView);
-            }
+            if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
         }
     }
 };
