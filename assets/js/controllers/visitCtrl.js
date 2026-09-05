@@ -1245,11 +1245,10 @@ window.deleteTot = async function() {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
           var dispText = (appLang === 'en') ? valEN : valTH; 
           
-          // 🌟 [FIX]: ดึง ID ให้ชัวร์ ถ้าไม่มี Index_ID ให้ใช้ id หรือข้อความแทน
-          var pVal = i.Index_ID || i.id || i.Value || ''; 
+          // 🌟 [FIX]: ควานหา ID ให้เจอ ไม่ว่า Supabase จะคืนตัวพิมพ์เล็กหรือใหญ่ ถ้าหาไม่เจอจริงๆ ให้ใช้ชื่อข้อความไปเลย
+          var pVal = i.Index_ID || i.index_id || i.id || i.Value || ''; 
           purposeData.push({ value: String(pVal).trim(), text: dispText });
       });
-
       if (typeof TomSelect !== 'undefined') {
           // 5.1 🌟 ผูก TomSelect ให้ในฟอร์มบันทึกเยี่ยม
           if (purposeSelect) {
@@ -2049,9 +2048,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-      // ==============================================================
-      // 🎯 3. FOOLPROOF ADVANCED FILTER CONTROLS 
-      // ==============================================================
+    // 🎯 3. Advanced Filter Controls
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
@@ -2059,30 +2056,18 @@ window.loadVisits = async function(forceReload, isBackground) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 [FIX 1] ดึงค่า Purpose และแปลงกลับเป็น UUID เสมอ
+      // 🌟 [FIX Purpose]: ดึงค่าอย่างระมัดระวัง ป้องกันค่าเป็น undefined
       var purposeTerm = '';
       if (window.tomSelectFilterPurposeInstance) {
           purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
-      } else if (document.getElementById('filterVisitPurpose')) {
-          purposeTerm = document.getElementById('filterVisitPurpose').value;
-      }
-      
-      var finalPurposeId = '';
-      if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
-          var isUUID = /^[0-9a-f]{8}-/i.test(purposeTerm);
-          if (isUUID) {
-              finalPurposeId = purposeTerm;
-          } else {
-              var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
-                  return idx.Value === purposeTerm || idx.Value1 === purposeTerm;
-              });
-              if (idxItem) finalPurposeId = idxItem.Index_ID || idxItem.id || purposeTerm;
-          }
+      } else {
+          var purposeEl = document.getElementById('filterVisitPurpose');
+          purposeTerm = purposeEl ? purposeEl.value : '';
       }
 
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
-      // 🌟 [FIX 2] ฟังก์ชันสแกนหา UUID จาก Tree-View โดยเฉพาะ (ดักจับบั๊กโฟลเดอร์เปล่า)
+      // 🌟 [FIX Employee/Area]: ตัวสแกนทะลุทะลวง (ดักจับติ๊กโฟลเดอร์เปล่า)
       var getSafeCheckedIds = function(type) {
           var container = document.getElementById(type === 'rep' ? 'containerFilterRep' : 'containerFilterTer');
           if (!container) return [];
@@ -2090,9 +2075,12 @@ window.loadVisits = async function(forceReload, isBackground) {
           var results = [];
           checked.forEach(function(chk) {
               var raw = chk.value;
-              if (!raw || raw === 'on' || raw === 'undefined') raw = chk.id.replace('chk_' + type + '_', '');
+              // ถ้าไม่มี value ให้ไปถอดรหัสจาก id ของตัวกล่อง Checkbox มาใช้แทน
+              if (!raw || raw === 'on' || raw === 'undefined' || raw === 'null') {
+                  raw = chk.id.replace('chk_' + type + '_', '');
+              }
               
-              if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null') {
+              if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null' && raw !== '') {
                   if (raw.indexOf('ter_tm_') !== -1) raw = raw.replace('ter_tm_', '');
                   else if (raw.indexOf('tm_ter_') !== -1) raw = raw.replace('tm_ter_', '');
                   else if (raw.indexOf('ter_bu_') !== -1) raw = raw.replace('ter_bu_', '');
@@ -2105,6 +2093,8 @@ window.loadVisits = async function(forceReload, isBackground) {
                   if (results.indexOf(raw) === -1) results.push(raw);
               }
           });
+          // 🚨 ไม้ตาย: ถ้าโฟลเดอร์ที่ติ๊กมันว่างเปล่าจริงๆ ให้ยัดค่ายหลอกไป เพื่อสั่งให้ตารางกรองเหลือ 0 แถว
+          if (results.length === 0 && checked.length > 0) results.push('EMPTY_FOLDER');
           return results;
       };
 
@@ -2113,21 +2103,28 @@ window.loadVisits = async function(forceReload, isBackground) {
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
-          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (finalPurposeId ? 1 : 0) + (coachingTerm ? 1 : 0);
+          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
-      // ==============================================================
-      // 🌟 นำค่า UUID ที่สกัดได้ไปยัดลง Supabase Query
-      // ==============================================================
+      // =======================================================
+      // 🌟 ยัดเงื่อนไขลง Supabase (แก้ไขให้ไม่บักตายกลางทาง)
+      // =======================================================
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
 
-      if (finalPurposeId) {
-          dataQuery = dataQuery.eq('Purpose_ID', finalPurposeId);
-          countQuery = countQuery.eq('Purpose_ID', finalPurposeId);
+      // 🌟 [FIX Purpose]: เช็กก่อนว่าส่ง UUID มา หรือส่งข้อความมา (เพื่อไม่ให้ฐานข้อมูล Error)
+      if (purposeTerm && purposeTerm !== 'null' && purposeTerm !== 'undefined') {
+          var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(purposeTerm);
+          if (isUUID) {
+              dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
+              countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+          } else {
+              dataQuery = dataQuery.ilike('Purpose', '%' + purposeTerm + '%');
+              countQuery = countQuery.ilike('Purpose', '%' + purposeTerm + '%');
+          }
       }
 
       if (coachingTerm) {
@@ -2146,104 +2143,26 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
       if (selectedReps.length > 0) {
-          if (selectedReps.includes('other_reps')) {
-             dataQuery = dataQuery.is('Rep_ID', null);
-             countQuery = countQuery.is('Rep_ID', null);
+          if (selectedReps.indexOf('EMPTY_FOLDER') !== -1) {
+              // กรองให้ไม่เจออะไรเลย
+              dataQuery = dataQuery.is('Rep_ID', null);
+              countQuery = countQuery.is('Rep_ID', null);
           } else {
-             dataQuery = dataQuery.in('Rep_ID', selectedReps);
-             countQuery = countQuery.in('Rep_ID', selectedReps);
+              dataQuery = dataQuery.in('Rep_ID', selectedReps);
+              countQuery = countQuery.in('Rep_ID', selectedReps);
           }
       }
 
       if (selectedTers.length > 0) {
-          if (selectedTers.includes('other_ter')) {
-             dataQuery = dataQuery.is('Territory_ID', null);
-             countQuery = countQuery.is('Territory_ID', null);
+          if (selectedTers.indexOf('EMPTY_FOLDER') !== -1) {
+              // กรองให้ไม่เจออะไรเลย
+              dataQuery = dataQuery.is('Territory_ID', null);
+              countQuery = countQuery.is('Territory_ID', null);
           } else {
-             dataQuery = dataQuery.in('Territory_ID', selectedTers);
-             countQuery = countQuery.in('Territory_ID', selectedTers);
+              dataQuery = dataQuery.in('Territory_ID', selectedTers);
+              countQuery = countQuery.in('Territory_ID', selectedTers);
           }
       }
-      // ==============================================================
-
-      // 🔍 4. Smart Search Filter
-      var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-      if (rawSearchVal) {
-          var searchTerms = rawSearchVal.split(/\s+/); 
-          sb = window.supabaseClient || window.supabase;
-
-          for (var i = 0; i < searchTerms.length; i++) {
-              var term = searchTerms[i];
-              
-              if (term.length < 2 && searchTerms.length > 1) {
-                  continue; 
-              }
-
-              var matchedDocIds = [];
-              var matchedVisitIds = [];
-
-              (window.globalAssignedDoctors || []).forEach(function(doc) {
-                  var isMatch = false;
-                  var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
-                  var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
-
-                  if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
-                      isMatch = true;
-                  }
-
-                  if (!isMatch && doc.Hospitals) {
-                      var hEn = String(doc.Hospitals.Hospital || doc.Hospitals.Known_As || '').toLowerCase();
-                      if (hEn.indexOf(term) !== -1) {
-                          isMatch = true;
-                      }
-                  }
-
-                  if (isMatch) {
-                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
-                      if (docId) matchedDocIds.push(docId);
-                  }
-              });
-
-              var matchedProductIds = [];
-              var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
-              allProds.forEach(function(p) {
-                  var pEn = String(p.Product || '').toLowerCase();
-                  var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
-                  if (pEn.indexOf(term) !== -1 || pTh.indexOf(term) !== -1) {
-                      matchedProductIds.push(p.Product_ID || p.id);
-                  }
-              });
-
-              if (matchedProductIds.length > 0) {
-                  try {
-                      var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
-                      if (!vpRes.error && vpRes.data) {
-                          matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
-                      }
-                  } catch (e) { console.error("Search Product Error:", e); }
-              }
-
-              var orConditionsArray = [];
-              
-              if (matchedDocIds.length > 0) {
-                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
-              }
-              if (matchedVisitIds.length > 0) {
-                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 150).join(',')})`);
-              }
-
-              if (orConditionsArray.length > 0) {
-                  var finalOrString = orConditionsArray.join(',');
-                  dataQuery = dataQuery.or(finalOrString);
-                  countQuery = countQuery.or(finalOrString);
-              } else {
-                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-                  break; 
-              }
-          }
-      }
-
       // 📊 5. KPI Count Query
       var countRes = await countQuery;
       
