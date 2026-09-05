@@ -1426,6 +1426,7 @@ window.getCheckedFilterValues = function(type) {
 };
 
 // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
+ // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
 window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
@@ -1560,11 +1561,11 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
 
-    // ==============================================
+        // ==============================================
         // 🎯 1. ปั้นข้อมูล AREA / TEAM (โครงสร้าง BU ➔ Team ➔ Territory)
         // ==============================================
         var terOptionsTree = [];
-        var buMapTer = {}; // ตัวแปรเก็บโครงสร้าง BU
+        var buMapTer = {}; 
         
         var allTers = window.globalTerritories || window.globalTerritoryList || [];
         if (allTers.length === 0) {
@@ -1580,7 +1581,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             window.globalTeamList = allTms;
         }
 
-        // 🌟 ดึงข้อมูลตาราง BU (ถ้ายังไม่มีใน Cache)
         var allBus = window.globalBuList || [];
         if (allBus.length === 0) {
             try {
@@ -1598,11 +1598,9 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var isAllowed = isGlobalViewer || myAllowedTerIds.indexOf(tid.toLowerCase()) !== -1 || myAllowedTeamIds.indexOf(teamId) !== -1;
 
             if (isAllowed && tid) {
-                // หา BU ของทีมนี้
                 var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 var buId = tmObj ? String(tmObj.BU_ID || tmObj.BU || '').trim().toLowerCase() : 'no_bu';
                 
-                // 1.1 สร้างโหนด BU (ชั้นที่ 1)
                 if (!buMapTer[buId]) {
                     var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === buId; });
                     var buName = buObj ? (buObj.BU_Name || buObj.BU || buId) : (buId === 'no_bu' ? 'Unassigned BU' : buId);
@@ -1612,10 +1610,9 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         text: '🏢 ' + buName, 
                         isLeaf: false, 
                         children: [],
-                        _teamMap: {} // แผนที่จำลองเก็บทีมย่อยใน BU นี้
+                        _teamMap: {} 
                     };
 
-                    // 🌟 [อัปเกรด] เพิ่ม BU เป็นลูกตัวแรกสุด เพื่อให้ติ๊กข้อมูลระดับ BU เดี่ยวๆ ได้
                     if (buId !== 'no_bu') {
                         buMapTer[buId].children.push({
                             id: 'ter_bu_' + buId,
@@ -1629,7 +1626,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var currentBuNode = buMapTer[buId];
                 var parentTeamId = teamId || 'no_team';
 
-                // 1.2 สร้างโหนด Team (ชั้นที่ 2 - ลูกของ BU)
                 if (!currentBuNode._teamMap[parentTeamId]) {
                     var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || parentTeamId) : (parentTeamId === 'no_team' ? 'Other Territories' : parentTeamId);
                     
@@ -1640,7 +1636,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         children: []
                     };
 
-                    // 🌟 [อัปเกรด] เพิ่ม Team เป็นลูกตัวแรกสุด เพื่อให้ติ๊กข้อมูลระดับ Team เดี่ยวๆ ได้
                     if (parentTeamId !== 'no_team') {
                         newTeamNode.children.push({
                             id: 'ter_tm_' + parentTeamId,
@@ -1654,7 +1649,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     currentBuNode.children.push(newTeamNode);
                 }
 
-                // 1.3 เอา Territory ไปใส่ใน Team (ชั้นที่ 3 - ลูกของ Team)
                 currentBuNode._teamMap[parentTeamId].children.push({ 
                     id: 'ter_' + tid, 
                     value: tid, 
@@ -1664,7 +1658,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        // ดัน BU ทั้งหมดที่จัดโครงสร้างเสร็จแล้วเข้า Tree หลัก
         Object.keys(buMapTer).forEach(function(key) {
             terOptionsTree.push(buMapTer[key]);
         });
@@ -1673,11 +1666,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             terOptionsTree.push({ id: 'other_ter', value: 'OTHER_TERRITORIES', text: '🌐 Other / Cross-Area', isLeaf: true });
         }
 
-// ==============================================
+
+        // ==============================================
         // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง BU ➔ Team ➔ ลำดับขั้นพนักงาน)
         // ==============================================
         var repOptionsTree = [];
-        var buMapRep = {}; // ตัวแปรเก็บโครงสร้าง BU ของพนักงาน
+        var buMapRep = {}; 
         
         var uniqueUsersMap = new Map();
         var fullAllowedUsers = isGlobalViewer ? window.globalUsersList : window.globalUsersList.filter(function(u) {
@@ -1690,7 +1684,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             var role = String(u.Role || '').toUpperCase();
             
-            // 🌟 สืบหาต้นสังกัด (Territory -> Team -> BU)
             var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
             var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
             var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
@@ -1710,7 +1703,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), true);
                 
-                // 2.1 สร้างโหนด BU (ชั้นที่ 1)
                 if (!buMapRep[uBuId]) {
                     var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
                     var rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : (uBuId === 'no_bu' ? 'Unassigned BU' : uBuId);
@@ -1719,40 +1711,35 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         id: 'bu_rep_' + uBuId,
                         text: '🏢 ' + rBuName,
                         isLeaf: false,
-                        children: [], // เก็บระดับ BU Head ให้อยู่ข้างนอกสุด
+                        children: [], 
                         _pmGroup: { id: 'grp_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
-                        _teams: {} // เก็บโฟลเดอร์ทีมย่อย
+                        _teams: {} 
                     };
                 }
 
                 var currentBuRepNode = buMapRep[uBuId];
                 
-                // 2.2 คัดแยก Role และกำหนดลำดับขั้น (Priority) อย่างแม่นยำ
-                var isBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
-                var isPM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
-                var isMgr = !isBuHead && !isPM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
+                var isNodeBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
+                var isNodePM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
+                var isNodeMgr = !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
                 
-                // ตัวแปรจัดลำดับความสำคัญ (Priority 1 ขึ้นก่อนเสมอ)
-                var rolePriority = isBuHead ? 1 : (isMgr ? 2 : (isPM ? 3 : 4));
-                var icon = isBuHead ? '👑 ' : (isMgr ? '🧑‍💼 ' : (isPM ? '👤 ' : '👤 '));
+                var rolePriority = isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4));
+                var icon = isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : (isNodePM ? '👤 ' : '👤 '));
 
                 var node = { id: 'rep_' + id, value: id, text: icon + name, isLeaf: true, _priority: rolePriority };
 
-                if (isBuHead) {
-                    // BU Head เอาไว้นอกสุดใต้ชื่อ BU เลย (ไม่ต้องมีโฟลเดอร์คุม)
+                if (isNodeBuHead) {
                     currentBuRepNode.children.push(node);
-                } else if (isPM) {
-                    // PM เอาเข้าโฟลเดอร์แยกต่างหาก
+                } else if (isNodePM) {
                     currentBuRepNode._pmGroup.children.push(node);
                 } else {
-                    // Manager และ Sales จัดเข้าโฟลเดอร์ Team ของตัวเอง
                     if (!currentBuRepNode._teams[teamId]) {
-                        var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
-                        var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
+                        var tmObjRep = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
+                        var teamNameRep = tmObjRep ? (tmObjRep.Team || tmObjRep.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
                         
                         currentBuRepNode._teams[teamId] = { 
                             id: 'grp_sales_' + uBuId + '_' + teamId, 
-                            text: '👥 ' + teamName, 
+                            text: '👥 ' + teamNameRep, 
                             isLeaf: false, 
                             children: [] 
                         };
@@ -1762,21 +1749,16 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        // 2.3 ประกอบร่าง Tree ของแต่ละ BU ให้สมบูรณ์ก่อนดันเข้า Tree หลัก
         Object.keys(buMapRep).forEach(function(buKey) {
             var nodeBU = buMapRep[buKey];
-            var finalChildren = [...nodeBU.children]; // เอา BU Head ที่ Push ไว้มาใส่คิวแรกก่อนเลย
+            var finalChildren = [...nodeBU.children]; 
             
-            // เรียงลำดับแก๊งระดับหัวหน้า (ถ้ามีหลายคน)
             finalChildren.sort(function(a, b) { return a._priority - b._priority; });
 
-            // โยนโฟลเดอร์ PM ตามลงไป
             if (nodeBU._pmGroup.children.length > 0) finalChildren.push(nodeBU._pmGroup);
             
-            // โยนโฟลเดอร์ Team ต่างๆ ตามลงไป
             Object.keys(nodeBU._teams).forEach(function(tId) {
                 var teamNode = nodeBU._teams[tId];
-                // บังคับเรียงให้ Manager (Priority 2) ขึ้นก่อน Sales (Priority 4) ภายในทีม
                 teamNode.children.sort(function(a, b) { return a._priority - b._priority; });
                 finalChildren.push(teamNode);
             });
@@ -1792,6 +1774,18 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             repOptionsTree.push({ id: 'other_reps', value: 'OTHER_REPS', text: '🌐 Other / Cross-Team', isLeaf: true });
         }
 
+        // ==============================================
+        // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
+        // ==============================================
+        window.renderTreeCheckboxList('containerFilterRep', repOptionsTree, 'rep');
+        window.renderTreeCheckboxList('containerFilterTer', terOptionsTree, 'ter');
+
+    } catch (err) {
+        console.error("Error in setupFiltersDropdowns:", err);
+    } finally {
+        window.isPermissionCalculated = true; 
+    }
+};
 
 // ==========================================
 // 📥 9. DATA LOADING & SERVER-SIDE PAGINATION
