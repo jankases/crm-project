@@ -2020,16 +2020,57 @@ button.feature-action-btn-lg.has-data-samples i {
   z-index: 10 !important;
 }
 
-.tree-list { list-style: none; padding-left: 0; margin-bottom: 0; }
-  .tree-list ul { list-style: none; padding-left: 1.5rem; display: none; margin-top: 0.25rem; border-left: 1px dashed #cbd5e1; margin-left: 0.5rem; }
+/* 🌳 Premium Tree-View Checkbox Styles (iPad Optimized) */
+  .tree-list { list-style: none; padding-left: 0; margin-bottom: 0; }
+  .tree-list ul { list-style: none; padding-left: 1.5rem; display: none; margin-top: 0.25rem; border-left: 1px dashed #cbd5e1; margin-left: 0.85rem; }
   .tree-list ul.expanded { display: block; }
   
-  .tree-item-row { display: flex; align-items: center; padding: 0.35rem 0.5rem; border-radius: 6px; transition: background 0.2s; }
+  .tree-item-row { 
+    display: flex; 
+    align-items: center; 
+    padding: 0.45rem 0.5rem; /* 🌟 ขยายพื้นที่ Padding สำหรับนิ้วสัมผัส */
+    border-radius: 8px; 
+    transition: background 0.2s; 
+    min-height: 42px; /* 🌟 บังคับความสูงขั้นต่ำสำหรับ iPad */
+  }
   .tree-item-row:hover { background-color: #f1f5f9; }
   
-  .tree-toggle-icon { width: 24px; text-align: center; cursor: pointer; color: #64748b; font-size: 0.75rem; transition: transform 0.2s; }
-  .tree-toggle-icon:hover { color: #0f172a; }
-  .tree-toggle-icon.empty { cursor: default; color: transparent; }
+  .tree-toggle-icon { 
+    width: 32px; /* 🌟 ขยายเป้าหมายการกดลูกศรย่อขยาย */
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer; 
+    color: #64748b; 
+    font-size: 0.95rem; 
+    transition: all 0.2s ease-in-out; 
+    border-radius: 8px;
+  }
+  .tree-toggle-icon:hover { color: #0f172a; background-color: #e2e8f0; }
+  .tree-toggle-icon.empty { cursor: default; color: transparent; background-color: transparent; }
+
+  /* 🌟 ขยาย Checkbox สำหรับ iPad */
+  .tree-item-row .form-check-input {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    margin-top: 0;
+    cursor: pointer;
+    border-radius: 6px !important;
+    border: 2px solid #cbd5e1;
+  }
+  .tree-item-row .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .tree-item-row .form-check-label {
+    font-size: 0.95rem; /* 🌟 ตัวหนังสือใหญ่ขึ้นอ่านง่าย */
+    padding-left: 0.6rem;
+    cursor: pointer;
+    font-weight: 500;
+  }
 
   /* 🌟 Indeterminate (Minus) State */
   .form-check-input:indeterminate {
