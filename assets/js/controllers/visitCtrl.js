@@ -2385,6 +2385,10 @@ window.filterVisits = function() {
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
 };
 
+window.applyAdvancedFilters = function() {
+  if (typeof window.filterVisits === 'function') window.filterVisits();
+};
+
 window.handleFilterChange = function(source) { 
     if (window.isInitialLoading) return; 
     window.currentPage = 1;
