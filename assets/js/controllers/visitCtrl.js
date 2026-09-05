@@ -2281,6 +2281,11 @@ window.loadVisits = async function(forceReload, isBackground) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
+            
+            // 🌟 ปลุกความจำ! คืนค่าให้หน้าจอเสมอหลังจากดึงข้อมูลเสร็จ
+            if (typeof window.restoreVisitFilterState === 'function') {
+                window.restoreVisitFilterState();
+            }
         }
     }
 };
@@ -2412,19 +2417,83 @@ window.loadVisits = async function(forceReload, isBackground) {
     }
 };
   
- 
+// ==============================================================
+// 💾 ระบบบันทึกและกู้คืนสถานะ Filter (ป้องกันหน้าจอลืมค่าที่ติ๊ก)
+// ==============================================================
+window.saveVisitFilterState = function() {
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    
+    var reps = [];
+    document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') reps.push(c.value.trim());
+    });
+
+    var ters = [];
+    document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') ters.push(c.value.trim());
+    });
+
+    window.VisitManagerCache.savedFilters = {
+        purpose: window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : (document.getElementById('filterVisitPurpose') ? document.getElementById('filterVisitPurpose').value : ''),
+        status: document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '',
+        coaching: document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false,
+        reps: reps,
+        ters: ters
+    };
+}; 
+
+window.restoreVisitFilterState = function() {
+    if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
+    var f = window.VisitManagerCache.savedFilters;
+
+    if (window.tomSelectFilterPurposeInstance && f.purpose) window.tomSelectFilterPurposeInstance.setValue(f.purpose, true);
+    if (window.tomSelectStatusInstance && f.status) window.tomSelectStatusInstance.setValue(f.status, true);
+    if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
+
+    // ฟังก์ชันช่วยกางโฟลเดอร์แม่ ให้เห็นว่าลูกโดนติ๊กอยู่
+    var expandParent = function(checkbox) {
+        var li = checkbox.closest('li.tree-node-item');
+        if (li && li.parentElement && li.parentElement.tagName === 'UL') {
+            li.parentElement.classList.add('expanded');
+            var parentLi = li.parentElement.closest('li.tree-node-item');
+            if (parentLi) {
+                var icon = parentLi.querySelector('.tree-toggle-icon');
+                if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
+            }
+        }
+    };
+
+    if (f.reps) {
+        document.querySelectorAll('.chk-tree-rep.chk-leaf').forEach(function(c) {
+            var isChecked = f.reps.indexOf(c.value.trim()) !== -1;
+            c.checked = isChecked;
+            if (isChecked) {
+                if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, 'rep');
+                expandParent(c);
+            }
+        });
+    }
+    
+    if (f.ters) {
+        document.querySelectorAll('.chk-tree-ter.chk-leaf').forEach(function(c) {
+            var isChecked = f.ters.indexOf(c.value.trim()) !== -1;
+            c.checked = isChecked;
+            if (isChecked) {
+                if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, 'ter');
+                expandParent(c);
+            }
+        });
+    }
+};
 
 // 🎯 ฟังก์ชันสั่ง กรองข้อมูล (ทำงานเมื่อกดปุ่ม Apply & Close หรือเปลี่ยนการค้นหาด้านบน)
 window.filterVisits = function() {
     if (window.isInitialLoading) return; 
     
-    // บันทึกสถานะฟิลเตอร์ไว้ใน Cache
-    if (typeof window.saveVisitFilterState === 'function') {
-        window.saveVisitFilterState();
-    }
+    // 🌟 สั่งให้ระบบ "จำ" สิ่งที่ติ๊กไว้ทันทีก่อนหน้าต่างปิด
+    if (typeof window.saveVisitFilterState === 'function') window.saveVisitFilterState();
     
-    window.currentPage = 1; // รีเซ็ตไปหน้าแรก
-    // สั่งโหลดข้อมูลใหม่ (forceReload = true, isBackground = true)
+    window.currentPage = 1;
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
 };
 
