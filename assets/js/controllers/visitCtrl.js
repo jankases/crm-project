@@ -1560,36 +1560,24 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
 
-        // 🎯 1. ปั้นข้อมูล Employee / Sales Rep
-        var repOptionsData = [];
-        var uniqueUsersMap = new Map();
+     // ==============================================
+        // 🎯 1. ปั้นข้อมูล AREA / TEAM (จัดกลุ่ม Team ➔ Territory)
+        // ==============================================
+        var terOptionsTree = [];
+        var teamMap = {};
         
-        var fullAllowedUsers = isGlobalViewer ? window.globalUsersList : window.globalUsersList.filter(function(u) {
-            var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
-            return isSales ? (uid === uRepId) : (myAllowedRepIds.indexOf(uid) !== -1);
-        });
-        
-        fullAllowedUsers.forEach(function(u) {
-            var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
-            var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
-            var role = String(u.Role || '').toUpperCase();
-            var rolePrefix = (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM') ? '📦 ' : (role.indexOf('MANAGER') !== -1 ? '🧑‍💼 ' : '👤 ');
-
-            if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
-                uniqueUsersMap.set(id.toLowerCase(), u);
-                repOptionsData.push({ value: id, text: rolePrefix + name });
-            }
-        });
-
-        // 🎯 2. ปั้นข้อมูล Area / Team
-        var terOptionsData = [];
-        var terMap = new Map();
         var allTers = window.globalTerritories || window.globalTerritoryList || [];
-        
         if (allTers.length === 0) {
             var { data: trData } = await sb.from('Territory').select('*');
             allTers = trData || [];
             window.globalTerritoryList = allTers;
+        }
+
+        var allTms = window.globalTeams || window.globalTeamList || [];
+        if (allTms.length === 0) {
+            var { data: tmData } = await sb.from('Team').select('*');
+            allTms = tmData || [];
+            window.globalTeamList = allTms;
         }
 
         allTers.forEach(function(t) {
@@ -1599,34 +1587,103 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
             var isAllowed = isGlobalViewer || myAllowedTerIds.indexOf(tid.toLowerCase()) !== -1 || myAllowedTeamIds.indexOf(teamId) !== -1;
 
-            if (isAllowed && tid && !terMap.has(tid.toLowerCase())) {
-                terMap.set(tid.toLowerCase(), tnm);
-                terOptionsData.push({ value: tid, text: '📍 ' + tnm });
+            if (isAllowed && tid) {
+                var parentId = teamId || 'no_team';
+                
+                // ถ้ายังไม่มีแม่ (Team) ในระบบ ให้สร้างขึ้นมาก่อน
+                if (!teamMap[parentId]) {
+                    var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === parentId; });
+                    var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || parentId) : (parentId === 'no_team' ? 'Other Territories' : parentId);
+                    
+                    teamMap[parentId] = { 
+                        id: 'tm_' + parentId, 
+                        text: '🏢 ' + teamName, 
+                        isLeaf: false, 
+                        children: [] 
+                    };
+                    terOptionsTree.push(teamMap[parentId]);
+                }
+
+                // เอาลูก (Territory) ไปใส่ในแม่
+                teamMap[parentId].children.push({ 
+                    id: 'ter_' + tid, 
+                    value: tid, 
+                    text: '📍 ' + tnm, 
+                    isLeaf: true 
+                });
             }
         });
 
-        if (isBuHead || isGlobalViewer) {
-            var allTms = window.globalTeams || window.globalTeamList || [];
-            if (allTms.length === 0) {
-                var { data: tmData } = await sb.from('Team').select('*');
-                allTms = tmData || [];
-                window.globalTeamList = allTms;
-            }
-
-            allTms.forEach(function(tm) {
-                var tmid = String(tm.Team_ID || tm.id || tm.Team || '').trim();
-                var tmnm = String(tm.Team || tm.Team_Name || tmid).trim();
-                
-                if ((isGlobalViewer || myAllowedTeamIds.indexOf(tmid.toLowerCase()) !== -1) && tmid && !terMap.has(tmid.toLowerCase())) {
-                    terMap.set(tmid.toLowerCase(), tmnm);
-                    terOptionsData.unshift({ value: tmid, text: '🏢 ' + tmnm + ' (Team)' }); 
-                }
-            });
+        if (isBuHead || isProductManager || isGlobalViewer) {
+            terOptionsTree.push({ id: 'other_ter', value: 'OTHER_TERRITORIES', text: '🌐 Other / Cross-Area', isLeaf: true });
         }
 
-        // 🎯 3. วาดรายการ Checkbox เข้าใน HTML
-        window.renderCheckboxList('containerFilterRep', repOptionsData, 'rep');
-        window.renderCheckboxList('containerFilterTer', terOptionsData, 'ter');
+
+        // ==============================================
+        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (จัดกลุ่มตาม Role ➔ Team)
+        // ==============================================
+        var repOptionsTree = [];
+        var roleGroups = {
+            'PM': { id: 'grp_pm', text: '📦 Product Managers', isLeaf: false, children: [] },
+            'MGR': { id: 'grp_mgr', text: '🧑‍💼 Managers / Leads', isLeaf: false, children: [] },
+            'SALES': {} // กลุ่ม Sales จะถูกแบ่งย่อยตามชื่อทีมอีกที
+        };
+        
+        var uniqueUsersMap = new Map();
+        var fullAllowedUsers = isGlobalViewer ? window.globalUsersList : window.globalUsersList.filter(function(u) {
+            var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
+            return isSales ? (uid === uRepId) : (myAllowedRepIds.indexOf(uid) !== -1);
+        });
+        
+        fullAllowedUsers.forEach(function(u) {
+            var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
+            var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
+            var role = String(u.Role || '').toUpperCase();
+            var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase() || 'no_team';
+
+            if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
+                uniqueUsersMap.set(id.toLowerCase(), true);
+                
+                var node = { id: 'rep_' + id, value: id, text: '👤 ' + name, isLeaf: true };
+
+                if (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM') {
+                    roleGroups['PM'].children.push(node);
+                } else if (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1) {
+                    roleGroups['MGR'].children.push(node);
+                } else {
+                    if (!roleGroups['SALES'][teamId]) {
+                        var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
+                        var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
+                        
+                        roleGroups['SALES'][teamId] = { 
+                            id: 'grp_sales_' + teamId, 
+                            text: '👥 ' + teamName + ' (Sales)', 
+                            isLeaf: false, 
+                            children: [] 
+                        };
+                    }
+                    roleGroups['SALES'][teamId].children.push(node);
+                }
+            }
+        });
+
+        // จัดเรียงกลุ่มเข้า Tree (เอา PM ขึ้นก่อน ตามด้วย Manager และ Sales Team)
+        if (roleGroups['PM'].children.length > 0) repOptionsTree.push(roleGroups['PM']);
+        if (roleGroups['MGR'].children.length > 0) repOptionsTree.push(roleGroups['MGR']);
+        Object.keys(roleGroups['SALES']).forEach(function(tId) {
+            repOptionsTree.push(roleGroups['SALES'][tId]);
+        });
+
+        if (isBuHead || isProductManager || isGlobalViewer) {
+            repOptionsTree.push({ id: 'other_reps', value: 'OTHER_REPS', text: '🌐 Other / Cross-Team', isLeaf: true });
+        }
+
+        // ==============================================
+        // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
+        // ==============================================
+        // สังเกตว่าเราเปลี่ยนจากการเรียก renderCheckboxList มาเป็น renderTreeCheckboxList
+        window.renderTreeCheckboxList('containerFilterRep', repOptionsTree, 'rep');
+        window.renderTreeCheckboxList('containerFilterTer', terOptionsTree, 'ter');
 
     } catch (err) {
         console.error("Error in setupFiltersDropdowns:", err);
