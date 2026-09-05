@@ -107,77 +107,104 @@
 
           </div>
 
-          <!-- Action Buttons & Advanced Filters Dropdown (✨ Custom Checkbox UI แบบพรีเมียม) -->
+         <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
-              <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="small fw-semibold" data-i18n="btn_filters">Filters</span>
+              
+              <!-- ปุ่มเปิดเมนู Filters -->
+              <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="fw-semibold" data-i18n="btn_filters">Filters</span>
               </button>
 
-              <div class="dropdown-menu dropdown-menu-end p-3 border shadow-lg rounded-4 mt-2 bg-white" id="visitFilterZoneGroup" style="width: 340px; z-index: 1050; max-height: 85vh; overflow-y: auto;">
-                <h6 class="fw-bold text-dark mb-3 border-bottom pb-2 fs-6 d-flex align-items-center justify-content-between">
-                  <span><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</span>
-                </h6>
+              <!-- 🌟 แผงกรองแนวกว้าง (Premium Horizontal Panel - 850px) -->
+              <div class="dropdown-menu dropdown-menu-end p-0 border shadow-lg mt-2 bg-white" id="visitFilterZoneGroup" style="width: 850px; max-width: 95vw; z-index: 1050; border-radius: 12px; overflow: hidden;">
                 
-                <!-- 1. Status Filter -->
-                <div class="mb-3">
-                  <label class="form-label fw-bold text-secondary small mb-1" data-i18n="lbl_status">Status</label>
-                  <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus">
-                    <option value="" data-i18n="opt_all_status">- All Status -</option>
-                    <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
-                    <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
-                  </select>
+                <!-- 📌 1. Panel Header (ตรึงอยู่ด้านบน) -->
+                <div class="bg-light-subtle px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <h6 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i>Advanced Filters</h6>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill small font-normal ms-3" id="lblSelectedCount">All Data</span>
+                  </div>
+                  <!-- ปุ่มกากบาทมุมขวาบน สำหรับปิด -->
+                  <button type="button" class="btn-close" onclick="document.getElementById('btnAdvFilterDropdown').click()"></button>
                 </div>
 
-                <!-- 2. Employee / Sales Rep Checkbox Panel -->
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold text-secondary small mb-0" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
-                    <div class="small">
-                      <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold me-1" onclick="window.toggleAllCheckboxes('rep', true)">All</a>
-                      <span class="text-muted">|</span>
-                      <a href="javascript:void(0)" class="text-muted text-decoration-none ms-1" onclick="window.toggleAllCheckboxes('rep', false)">Clear</a>
+                <!-- 📌 2. Panel Body (มี Scrollbar ถ้ายาวเกินจอ) -->
+                <div class="p-4" style="max-height: 55vh; overflow-y: auto; overflow-x: hidden;">
+                  <div class="row g-4">
+                    
+                    <!-- 🔹 คอลัมน์ที่ 1: Status -->
+                    <div class="col-12 col-md-4">
+                      <label class="form-label fw-bold text-secondary small mb-2" data-i18n="lbl_status">Status</label>
+                      <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus">
+                        <option value="" data-i18n="opt_all_status">- All Status -</option>
+                        <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
+                        <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
+                      </select>
                     </div>
-                  </div>
-                  
-                  <div class="border rounded-3 p-2 bg-light-subtle">
-                    <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchRepFilter" placeholder="🔍 Search employee..." oninput="window.filterCheckboxList('rep', this.value)">
-                    <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterRep" style="max-height: 120px;">
-                      <!-- Checkbox List Render Here -->
+
+                    <!-- 🔹 คอลัมน์ที่ 2: Employee / Sales Rep -->
+                    <div class="col-12 col-md-4 border-start border-light" style="border-color: #e2e8f0 !important;">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold text-secondary small mb-0" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
+                        <div class="small">
+                          <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold me-1" onclick="window.toggleAllCheckboxes('rep', true)">All</a>
+                          <span class="text-muted">|</span>
+                          <a href="javascript:void(0)" class="text-muted text-decoration-none ms-1" onclick="window.toggleAllCheckboxes('rep', false)">Clear</a>
+                        </div>
+                      </div>
+                      
+                      <div class="border rounded-3 p-2 bg-light-subtle">
+                        <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchRepFilter" placeholder="🔍 Search employee..." oninput="window.filterCheckboxList('rep', this.value)">
+                        <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterRep" style="height: 180px;">
+                          <!-- Checkbox List Render Here -->
+                        </div>
+                      </div>
                     </div>
+                    
+                    <!-- 🔹 คอลัมน์ที่ 3: Area / Team -->
+                    <div class="col-12 col-md-4 border-start border-light" style="border-color: #e2e8f0 !important;">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold text-secondary small mb-0" data-i18n="lbl_area_team">Area / Team</label>
+                        <div class="small">
+                          <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold me-1" onclick="window.toggleAllCheckboxes('ter', true)">All</a>
+                          <span class="text-muted">|</span>
+                          <a href="javascript:void(0)" class="text-muted text-decoration-none ms-1" onclick="window.toggleAllCheckboxes('ter', false)">Clear</a>
+                        </div>
+                      </div>
+
+                      <div class="border rounded-3 p-2 bg-light-subtle">
+                        <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchTerFilter" placeholder="🔍 Search area..." oninput="window.filterCheckboxList('ter', this.value)">
+                        <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterTer" style="height: 180px;">
+                          <!-- Checkbox List Render Here -->
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
-                
-                <!-- 3. Area / Team Checkbox Panel -->
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold text-secondary small mb-0" data-i18n="lbl_area_team">Area / Team</label>
-                    <div class="small">
-                      <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold me-1" onclick="window.toggleAllCheckboxes('ter', true)">All</a>
-                      <span class="text-muted">|</span>
-                      <a href="javascript:void(0)" class="text-muted text-decoration-none ms-1" onclick="window.toggleAllCheckboxes('ter', false)">Clear</a>
-                    </div>
-                  </div>
 
-                  <div class="border rounded-3 p-2 bg-light-subtle">
-                    <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchTerFilter" placeholder="🔍 Search area..." oninput="window.filterCheckboxList('ter', this.value)">
-                    <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterTer" style="max-height: 120px;">
-                      <!-- Checkbox List Render Here -->
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 4. Single Apply & Close Button -->
-                <div class="mt-3 pt-2 border-top text-end">
-                  <button type="button" class="btn btn-premium-primary w-100 fw-bold shadow-sm py-2" id="btnApplyAdvancedFilters">
-                    <i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_apply_close">Apply & Close</span>
+                <!-- 📌 3. Panel Footer (ตรึงอยู่ด้านล่างสุดเสมอ) -->
+                <div class="bg-light px-4 py-3 border-top d-flex justify-content-between align-items-center">
+                  <!-- ปุ่ม Clear All ย้ายมาอยู่มุมซ้ายล่างให้เหมือนสากล -->
+                  <button type="button" class="btn btn-link text-danger text-decoration-none fw-bold px-0" onclick="window.clearVisitFilters()">
+                    <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear">Clear all</span>
                   </button>
+                  
+                  <div class="d-flex gap-2">
+                    <!-- ปุ่ม Cancel สำหรับปิดเมนูทิ้งโดยไม่เซฟ -->
+                    <button type="button" class="btn btn-white border fw-semibold shadow-sm px-4 text-secondary" onclick="document.getElementById('btnAdvFilterDropdown').click()">
+                      Cancel
+                    </button>
+                    <!-- ปุ่ม Apply หลัก -->
+                    <button type="button" class="btn btn-premium-primary fw-bold shadow-sm px-5" id="btnApplyAdvancedFilters">
+                      Apply filters
+                    </button>
+                  </div>
                 </div>
-              </div>
-              
-            </div>
 
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearVisitFilters()"><i class="fa-solid fa-eraser me-2 text-danger"></i><span class="small fw-semibold" data-i18n="btn_clear">Clear Filters</span></button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
