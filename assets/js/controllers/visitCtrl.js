@@ -2039,29 +2039,27 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           }
       }
- // ==============================================================
-      // 🎯 3. FOOLPROOF ADVANCED FILTER CONTROLS (กันบั๊กหน้าเว็บแฝด)
+// ==============================================================
+      // 🎯 3. ULTIMATE ADVANCED FILTER CONTROLS (ทะลวงหน้าจอแฝด)
       // ==============================================================
-      var getInputValueAnywhere = function(selector) {
-          var els = document.querySelectorAll(selector);
+      var getValAnywhere = function(keyword) {
+          var els = document.querySelectorAll('select, input[type="text"]');
           for (var i = 0; i < els.length; i++) {
-              if (els[i].value && els[i].value !== '') return els[i].value;
+              if (String(els[i].id).toLowerCase().indexOf(keyword) !== -1 && els[i].value) return els[i].value;
           }
           return '';
       };
 
       var statusTerm = window.tomSelectStatusInstance && window.tomSelectStatusInstance.getValue() !== '' 
-                       ? window.tomSelectStatusInstance.getValue() 
-                       : getInputValueAnywhere('#filterVisitStatus, .filterVisitStatus');
+                       ? window.tomSelectStatusInstance.getValue() : getValAnywhere('filtervisitstatus');
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
 
-      var startDateTerm = getInputValueAnywhere('#filterStartDate, .filterStartDate');
-      var endDateTerm = getInputValueAnywhere('#filterEndDate, .filterEndDate');
+      var startDateTerm = getValAnywhere('startdate');
+      var endDateTerm = getValAnywhere('enddate');
 
-      // 🌟 [FIX 1: Purpose] ดึงค่าจากหน้าต่างไหนก็ได้ที่ถูกเลือก
+      // 🌟 [FIX 1: Purpose] ควานหาค่า Purpose จากทุกจุดบนหน้าเว็บ
       var purposeTerm = window.tomSelectFilterPurposeInstance && window.tomSelectFilterPurposeInstance.getValue() !== '' 
-                        ? window.tomSelectFilterPurposeInstance.getValue() 
-                        : getInputValueAnywhere('#filterVisitPurpose, .filterVisitPurpose');
+                        ? window.tomSelectFilterPurposeInstance.getValue() : getValAnywhere('filtervisitpurpose');
                         
       var finalPurposeId = '';
       if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
@@ -2069,7 +2067,6 @@ window.loadVisits = async function(forceReload, isBackground) {
           if (isUUID) {
               finalPurposeId = purposeTerm;
           } else {
-              // 🌟 เผื่อคอลัมน์ในตารางชื่อ ID ตัวใหญ่
               var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
                   return idx.Value === purposeTerm || idx.Value1 === purposeTerm;
               });
@@ -2078,12 +2075,44 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
       var coachingTerm = false;
-      document.querySelectorAll('#filterVisitCoaching, .filterVisitCoaching').forEach(function(el) {
-          if (el.checked) coachingTerm = true;
+      document.querySelectorAll('input[type="checkbox"]').forEach(function(el) {
+          if (String(el.id).toLowerCase().indexOf('coaching') !== -1 && el.checked) coachingTerm = true;
       });
 
-      var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
-      var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
+      // 🌟 [FIX 2: Employee & Area] กวาดหา Checkbox ทั่วหน้าจอ ไม่พึ่งพา ID
+      var getCheckedAnywhere = function(type) {
+          var checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+          var results = [];
+          var isOtherFolderChecked = false;
+          
+          checkedBoxes.forEach(function(chk) {
+              var idStr = String(chk.id || '').toLowerCase();
+              var classStr = String(chk.className || '').toLowerCase();
+              
+              if (idStr.indexOf('chk_' + type) !== -1 || classStr.indexOf('chk-tree-' + type) !== -1) {
+                  var raw = chk.value;
+                  if (!raw || raw === 'on' || raw === 'undefined') raw = idStr.replace('chk_' + type + '_', '');
+                  
+                  if (raw.indexOf('other_reps') !== -1 || raw.indexOf('other_bu') !== -1 || raw.indexOf('no_bu') !== -1 || raw.indexOf('other_ter') !== -1) {
+                      isOtherFolderChecked = true;
+                  }
+
+                  if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null' && raw !== '') {
+                      raw = raw.replace('ter_tm_', '').replace('tm_ter_', '')
+                               .replace('ter_bu_', '').replace('bu_ter_', '')
+                               .replace('bu_rep_', '').replace('grp_sales_', '')
+                               .replace('rep_', '').replace('ter_', '');
+                      if (results.indexOf(raw) === -1) results.push(raw);
+                  }
+              }
+          });
+          
+          if (results.length === 0 && isOtherFolderChecked) results.push('EMPTY_FOLDER');
+          return results;
+      };
+
+      var selectedReps = getCheckedAnywhere('rep');
+      var selectedTers = getCheckedAnywhere('ter');
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
@@ -2091,25 +2120,12 @@ window.loadVisits = async function(forceReload, isBackground) {
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
+      // ================= DEBUG =================
+      console.log("✅ Purpose ID ที่กวาดมาได้:", finalPurposeId);
+      console.log("✅ Selected Reps ที่กวาดมาได้:", selectedReps);
+      console.log("✅ Selected Ters ที่กวาดมาได้:", selectedTers);
+      // ==========================================
 
-        
-        // 🚨 ================= DEBUG ZONE ================= 🚨
-      console.log("🚨 [1] Purpose Term (จากตัวแปร):", purposeTerm);
-      if (window.tomSelectFilterPurposeInstance) {
-          console.log("🚨 [1.1] Purpose (จาก TomSelect ตรงๆ):", window.tomSelectFilterPurposeInstance.getValue());
-      }
-      console.log("🚨 [2] Selected Reps (Employee):", selectedReps);
-      console.log("🚨 [3] Selected Ters (Area):", selectedTers);
-      
-      // ดักดูโครงสร้าง HTML ของ Checkbox ที่ถูกติ๊ก เพื่อดูว่ามันซ่อนค่าอะไรไว้
-      var debugRepContainer = document.getElementById('containerFilterRep');
-      if (debugRepContainer) {
-          var repChecked = debugRepContainer.querySelectorAll('input[type="checkbox"]:checked');
-          var repHTML = Array.from(repChecked).map(function(el) { return "ID: " + el.id + " | Value: " + el.value; });
-          console.log("🚨 [2.1] DOM Checkbox (Rep):", repHTML);
-      }
-      // 🚨 ============================================== 🚨
-        
       // ==============================================================
       // 🌟 ยัดเงื่อนไขลง Supabase Query
       // ==============================================================
@@ -2138,12 +2154,14 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      // 🌟 [FIX 2: Employee] แปลงโฟลเดอร์ให้เป็น Rep_ID
+      // 🌟 แปลงโครงสร้าง Employee เป็น Rep_ID
       var validReps = selectedReps.filter(function(r) { return r && r !== ''; });
       if (validReps.length > 0) {
           var finalRepIds = [];
           validReps.forEach(function(rVal) {
               var valLower = rVal.toLowerCase();
+              if (valLower === 'empty_folder') return;
+              
               (window.globalUsersList || []).forEach(function(u) {
                   if (valLower === 'other_reps' || valLower === 'other_bu' || valLower === 'no_bu') {
                       if (!u.BU_ID || String(u.BU_ID).toLowerCase() === 'no_bu') {
@@ -2166,12 +2184,14 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-      // 🌟 [FIX 3: Area] แปลงโฟลเดอร์ ให้เป็น Territory_ID
+      // 🌟 แปลงโครงสร้าง Area เป็น Territory_ID
       var validTers = selectedTers.filter(function(t) { return t && t !== ''; });
       if (validTers.length > 0) {
           var finalTerIds = [];
           validTers.forEach(function(tVal) {
               var valLower = tVal.toLowerCase();
+              if (valLower === 'empty_folder') return;
+              
               (window.globalTerritoryList || []).forEach(function(t) {
                   if (valLower === 'other_ter' || valLower === 'other_bu' || valLower === 'no_bu') {
                       var tmObj = (window.globalTeamList || []).find(function(tm) { return String(tm.Team_ID) === String(t.Team_ID); });
