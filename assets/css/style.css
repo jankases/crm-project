@@ -2078,3 +2078,33 @@ button.feature-action-btn-lg.has-data-samples i {
     border-color: #0d6efd;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
   }
+
+/* 🌟 ขยายปุ่มสวิตช์ Coaching และสวิตช์ใน Advanced Filters ให้ใหญ่ขึ้นสำหรับ Touch Screen / iPad */
+.form-switch .form-check-input {
+    width: 3.2em !important;
+    height: 1.7em !important;
+    cursor: pointer;
+    border-radius: 2em !important;
+    transition: background-color 0.2s ease-in-out, background-position 0.2s ease-in-out;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+/* เพิ่มระยะห่างแถวของสวิตช์ Coaching ให้กดง่าย ไม่ติดตัวอักษรเกินไป */
+.form-switch {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding-left: 3.5em !important;
+    min-height: 2.2rem !important;
+}
+
+.form-switch .form-check-label {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    user-select: none;
+}
