@@ -2527,7 +2527,7 @@ window.saveVisitFilterState = function() {
     };
 };
 
- / 🎯 3. คืนค่าติ๊กถูก (Restore State)
+ // 🎯 3. คืนค่าติ๊กถูก (Restore State)
 window.restoreVisitFilterState = function() {
     if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
     var sf = window.VisitManagerCache.savedFilters;
