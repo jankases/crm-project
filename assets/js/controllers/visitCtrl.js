@@ -2039,8 +2039,8 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           }
       }
-     // ==============================================================
-      // 🎯 3. ADVANCED FILTER CONTROLS (DIRECT DOM EXTRACTION)
+      // ==============================================================
+      // 🎯 3. ADVANCED FILTER CONTROLS (THE ULTIMATE CLEAN FIX)
       // ==============================================================
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
@@ -2049,89 +2049,50 @@ window.loadVisits = async function(forceReload, isBackground) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 [FIX 1: Purpose] ดึงค่าตรงๆ และแปลงเป็น UUID ให้ทันที
-      var purposeTerm = '';
-      if (window.tomSelectFilterPurposeInstance) {
-          purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
-      } else {
-          var purposeEl = document.getElementById('filterVisitPurpose');
-          purposeTerm = purposeEl ? purposeEl.value : '';
-      }
-      
-      var finalPurposeId = '';
-      if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
-          if (/^[0-9a-f]{8}-/i.test(purposeTerm)) {
-              finalPurposeId = purposeTerm; // เป็น UUID อยู่แล้ว ผ่านได้เลย
-          } else {
-              // ถ้าหลุดมาเป็นชื่อ ให้ไปงัดเอา UUID จาก Cache
-              var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
-                  return String(idx.Value).trim() === purposeTerm || String(idx.Value1).trim() === purposeTerm;
-              });
-              finalPurposeId = idxItem ? (idxItem.Index_ID || idxItem.id || purposeTerm) : purposeTerm;
-          }
+      // 🌟 Purpose: ดึงค่า UUID ตรงๆ จากกล่อง (ภาพ Debug ยืนยันแล้วว่ามาเป็น UUID สมบูรณ์แบบ)
+      var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+      if (!purposeTerm && document.getElementById('filterVisitPurpose')) {
+          purposeTerm = document.getElementById('filterVisitPurpose').value;
       }
 
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
-      // 🌟 [FIX 2: Employee/Area] กวาดค่า Checkbox แบบตรงไปตรงมาที่สุด
-      var getCheckboxValues = function(containerId) {
-          var box = document.getElementById(containerId);
-          if (!box) return [];
-          var chks = box.querySelectorAll('input[type="checkbox"]:checked');
-          var vals = [];
-          var hasOther = false;
-          
-          chks.forEach(function(c) {
-              var v = c.value;
-              if (!v || v === 'on' || v === 'undefined') v = c.id; // ถ้าไม่มี value ให้ดึงจาก id แทน
-              
-              if (v) {
-                  var vLower = String(v).toLowerCase();
-                  if (vLower.indexOf('other') !== -1 || vLower.indexOf('no_bu') !== -1) {
-                      hasOther = true;
-                  } else {
-                      // ลอกคราบ prefix ออกให้หมด เหลือแค่ UUID
-                      var cleanId = v.replace('chk_rep_', '').replace('chk_ter_', '')
-                                     .replace('ter_tm_', '').replace('tm_ter_', '')
-                                     .replace('ter_bu_', '').replace('bu_ter_', '')
-                                     .replace('bu_rep_', '').replace('grp_sales_', '')
-                                     .replace('rep_', '').replace('ter_', '');
-                      if (cleanId && cleanId !== 'on' && vals.indexOf(cleanId) === -1) {
-                          vals.push(cleanId);
-                      }
-                  }
-              }
-          });
-          if (hasOther) vals.push('OTHER_FOLDER');
-          return vals;
-      };
+      // 🌟 Employee (Rep) & Area (Ter): ดึงเฉพาะ "ใบไม้ (ลูกตาสีดำ)" ที่มี UUID สมบูรณ์อยู่แล้ว
+      var selectedReps = [];
+      document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
+          if (c.value && c.value !== 'on') selectedReps.push(c.value.trim());
+      });
 
-      var selectedReps = getCheckboxValues('containerFilterRep');
-      var selectedTers = getCheckboxValues('containerFilterTer');
+      var selectedTers = [];
+      document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
+          if (c.value && c.value !== 'on') selectedTers.push(c.value.trim());
+      });
+
+      // เผื่อคลิกเลือกโฟลเดอร์ Other ที่ไม่มีลูก (Empty Folder)
+      var otherRepChecked = document.querySelector('input[id*="other_reps"]:checked');
+      if (otherRepChecked && selectedReps.length === 0) selectedReps.push('EMPTY_OTHER');
+
+      var otherTerChecked = document.querySelector('input[id*="other_ter"]:checked');
+      if (otherTerChecked && selectedTers.length === 0) selectedTers.push('EMPTY_OTHER');
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
-          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (finalPurposeId ? 1 : 0) + (coachingTerm ? 1 : 0);
+          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
       // ==============================================================
-      // 🌟 ยัดเงื่อนไขลง Supabase Query
+      // 🌟 ยัดเงื่อนไขลง Supabase Query แบบตรงไปตรงมา
       // ==============================================================
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
 
-      if (finalPurposeId) {
-          var isUUID = /^[0-9a-f]{8}-/i.test(finalPurposeId);
-          if (isUUID) {
-              dataQuery = dataQuery.eq('Purpose_ID', finalPurposeId);
-              countQuery = countQuery.eq('Purpose_ID', finalPurposeId);
-          } else {
-              dataQuery = dataQuery.ilike('Purpose', '%' + finalPurposeId + '%');
-              countQuery = countQuery.ilike('Purpose', '%' + finalPurposeId + '%');
-          }
+      // ส่ง UUID ให้ Supabase ตรงๆ ไม่ต้องแปลงอะไรแล้ว
+      if (purposeTerm) {
+          dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
+          countQuery = countQuery.eq('Purpose_ID', purposeTerm);
       }
 
       if (coachingTerm) {
@@ -2149,10 +2110,8 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      // 🌟 จัดการเงื่อนไข Employee
       if (selectedReps.length > 0) {
-          if (selectedReps.indexOf('OTHER_FOLDER') !== -1) {
-              // ค้นหาแถวที่ไม่ได้มอบหมายพนักงาน (ค่าว่าง)
+          if (selectedReps.includes('EMPTY_OTHER')) {
               dataQuery = dataQuery.is('Rep_ID', null);
               countQuery = countQuery.is('Rep_ID', null);
           } else {
@@ -2161,9 +2120,8 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-      // 🌟 จัดการเงื่อนไข Area
       if (selectedTers.length > 0) {
-          if (selectedTers.indexOf('OTHER_FOLDER') !== -1) {
+          if (selectedTers.includes('EMPTY_OTHER')) {
               dataQuery = dataQuery.is('Territory_ID', null);
               countQuery = countQuery.is('Territory_ID', null);
           } else {
@@ -2171,7 +2129,6 @@ window.loadVisits = async function(forceReload, isBackground) {
               countQuery = countQuery.in('Territory_ID', selectedTers);
           }
       }
-      // ==============================================================
 
       // ==============================================================
       // 🔍 4. Smart Search Filter (ใส่คืนให้แล้วครับ!)
