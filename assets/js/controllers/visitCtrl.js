@@ -1444,16 +1444,17 @@ window.getCheckedFilterValues = function(type) {
 };
   
 // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
+// ==========================================
+// 🎯 1. แก้ไข setupFiltersDropdowns (ปรับ Other ให้เป็น 🌐 และอยู่ล่างสุด)
+// ==========================================
 window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
-    // 🛑 บังคับเมนูแม่ให้อยู่คงที่ ปิดเฉพาะตอนจิ้มข้างนอกเท่านั้น
     var advBtn = document.getElementById('btnAdvFilterDropdown');
     if (advBtn) {
         advBtn.setAttribute('data-bs-auto-close', 'outside');
     }
 
-    // 🛑 ระบบเกราะป้องกันเมนูพับหนี (Click-Shield)
     if (!window._filterDropdownFixApplied) {
         document.addEventListener('hide.bs.dropdown', function(e) {
             if (window._allowFilterClose) return;
@@ -1474,7 +1475,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window._filterDropdownFixApplied = true;
     }
 
-    // 🎯 ผูกอีเวนต์ปุ่ม "นำไปใช้ (Apply & Close)"
     var btnApply = document.getElementById('btnApplyAdvancedFilters');
     if (btnApply && !btnApply.dataset.bound) {
         btnApply.innerHTML = '<i class="fa-solid fa-check me-1"></i> ' + (appLang === 'th' ? 'นำไปใช้' : 'Apply & Close');
@@ -1483,7 +1483,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             e.preventDefault();
             e.stopPropagation();
             
-            // ปลดล็อกเกราะชั่วคราว ให้เมนูปิดได้
             window._allowFilterClose = true; 
             if (advBtn && typeof bootstrap !== 'undefined') {
                 var bsDropdown = bootstrap.Dropdown.getInstance(advBtn) || new bootstrap.Dropdown(advBtn);
@@ -1493,7 +1492,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
             setTimeout(function() { window._allowFilterClose = false; }, 200);
 
-            // 🎯 สั่งโหลดตารางข้อมูลใหม่
             if (typeof window.filterVisits === 'function') window.filterVisits(); 
         });
         btnApply.dataset.bound = 'true';
@@ -1579,7 +1577,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedRepIds = myAllowedRepIds; 
 
         // ==============================================
-        // 🎯 1. ปั้นข้อมูล AREA / TEAM (โครงสร้าง BU ➔ Team ➔ Territory)
+        // 🎯 1. ปั้นข้อมูล AREA / TEAM
         // ==============================================
         var terOptionsTree = [];
         var buMapTer = {}; 
@@ -1608,7 +1606,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             } catch(e) {}
         }
 
-        // 🌟 ปลดล็อกให้ผู้บริหารเห็นพื้นที่ข้ามเขตได้
         var allowedTerArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager)
             ? allTers
             : allTers.filter(function(t) {
@@ -1633,10 +1630,9 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 if (!buMapTer[buId]) {
                     var buName = buId;
                     var icon = '🏢 ';
-                    var isOther = (buId === 'other_bu');
+                    var isOther = (buId === 'other_bu' || buId === 'no_bu');
 
-                    if (buId === 'no_bu') buName = 'Other'; // 🌟 เปลี่ยนจาก Unassigned BU เป็น Other
-                    else if (isOther) { buName = 'Other / Cross-Area'; icon = '🌐 '; }
+                    if (isOther) { buName = 'Other / Cross-Area'; icon = '🌐 '; }
                     else {
                         var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === buId; });
                         buName = buObj ? (buObj.BU_Name || buObj.BU || buId) : buId;
@@ -1695,10 +1691,11 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
+        // เรียงให้ Other อยู่ล่างสุด
         var sortedTerKeys = Object.keys(buMapTer).sort((a,b) => {
-            if (a === 'other_bu') return 1;
-            if (b === 'other_bu') return -1;
-            return 0;
+            if (a === 'other_bu' || a === 'no_bu') return 1;
+            if (b === 'other_bu' || b === 'no_bu') return -1;
+            return a.localeCompare(b);
         });
         sortedTerKeys.forEach(function(key) {
             terOptionsTree.push(buMapTer[key]);
@@ -1706,7 +1703,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
 
         // ==============================================
-        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง: BU ➔ โฟลเดอร์ตำแหน่ง ➔ พนักงาน)
+        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (🌟 ปรับปรุงให้ Other ใช้ 🌐 และอยู่ล่างสุด)
         // ==============================================
         var repOptionsTree = [];
         var buMapRep = {}; 
@@ -1739,7 +1736,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
             }
 
-            // 🌟 ดักจับประเภท Role อย่างละเอียด
             var isAdminOrStaff = role.indexOf('ADMIN') !== -1 || role.indexOf('STAFF') !== -1 || role.indexOf('SECRETARY') !== -1 || role.indexOf('EXECUTIVE') !== -1;
             var isNodeBuHead = !isAdminOrStaff && (role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1);
             var isNodePM = !isAdminOrStaff && (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM');
@@ -1762,11 +1758,13 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 if (!buMapRep[uBuId]) {
                     var rBuName = uBuId;
                     var icon = '🏢 ';
-                    var isOther = (uBuId === 'other_bu');
+                    var isOther = (uBuId === 'other_bu' || uBuId === 'no_bu');
 
-                    if (uBuId === 'no_bu') rBuName = 'Other'; // 🌟 เปลี่ยนจาก Unassigned BU เป็น Other
-                    else if (isOther) { rBuName = 'Other / Cross-Team'; icon = '🌐 '; }
-                    else {
+                    // 🌟 ปรับปรุงชื่อและไอคอนของกลุ่ม Other ฝั่ง Employee
+                    if (isOther) { 
+                        rBuName = 'Other / Cross-Team'; 
+                        icon = '🌐 '; 
+                    } else {
                         var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
                         rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : uBuId;
                     }
@@ -1778,7 +1776,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         children: [],
                         _headFolder: { id: 'fld_head_' + uBuId, text: '👑 BU Head', isLeaf: false, children: [] },
                         _pmFolder: { id: 'fld_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
-                        _staffFolder: { id: 'fld_staff_' + uBuId, text: '🏢 Admin & Support Staff', isLeaf: false, children: [] }, // 🌟 เพิ่มโฟลเดอร์ Admin/Staff
+                        _staffFolder: { id: 'fld_staff_' + uBuId, text: '🏢 Admin & Support Staff', isLeaf: false, children: [] },
                         _teams: {} 
                     };
                 }
@@ -1789,7 +1787,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
                 var node = { id: 'rep_' + id, value: id, text: nodeIcon + name, isLeaf: true, _priority: rolePriority };
 
-                // 🌟 แยกจัดประเภทโฟลเดอร์ ไม่ให้ Admin / เลขา หลุดเข้าไปปะปนกับ Sales Reps
                 if (isAdminOrStaff) {
                     currentBuRepNode._staffFolder.children.push(node);
                 } else if (isNodeBuHead) {
@@ -1819,10 +1816,11 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
+        // 🌟 สั่งเรียงให้กลุ่ม Other อยู่ล่างสุดเสมอสำหรับ Employee
         var sortedRepKeys = Object.keys(buMapRep).sort((a,b) => {
-            if (a === 'other_bu') return 1;
-            if (b === 'other_bu') return -1;
-            return 0;
+            if (a === 'other_bu' || a === 'no_bu') return 1;
+            if (b === 'other_bu' || b === 'no_bu') return -1;
+            return a.localeCompare(b);
         });
 
         sortedRepKeys.forEach(function(buKey) {
@@ -1831,7 +1829,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             
             if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
             if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
-            if (nodeBU._staffFolder && nodeBU._staffFolder.children.length > 0) finalChildren.push(nodeBU._staffFolder); // 🌟 รวมโฟลเดอร์ Admin/Staff
+            if (nodeBU._staffFolder && nodeBU._staffFolder.children.length > 0) finalChildren.push(nodeBU._staffFolder);
             
             Object.keys(nodeBU._teams).forEach(function(tId) {
                 var teamNode = nodeBU._teams[tId];
