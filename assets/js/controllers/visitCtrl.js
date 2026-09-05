@@ -1444,18 +1444,28 @@ window.toggleAllCheckboxes = function(type, isSelectAll) {
 };
 
 // 🎯 6. ดึงเฉพาะค่า "ลูกตาสีดำ" (Leaf Node) ที่ถูกเลือกไปใช้ Query Database
+ 
 window.getCheckedFilterValues = function(type) {
     var containerId = type === 'rep' ? 'containerFilterRep' : 'containerFilterTer';
     var container = document.getElementById(containerId);
     if (!container) return [];
     
+    // 🌟 [FIX]: ดึงค่าจากทุก Checkbox ที่ถูกติ๊ก (ไม่จำกัดเฉพาะใบไม้)
     var checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
     var values = [];
+    
     checkedBoxes.forEach(function(chk) {
-        if (chk.classList.contains('chk-leaf') && chk.value && chk.value !== 'null' && chk.value !== 'undefined') {
-            values.push(chk.value);
+        var val = chk.value;
+        if (val && val !== 'null' && val !== 'undefined' && val !== 'on' && val !== '') {
+            values.push(val);
         }
     });
+    
+    // 🌟 ถ้ายอดฮิตคือเลือก "Other" แล้วมันเป็นโฟลเดอร์เปล่า บังคับส่งค่ากลับไปเพื่อให้ระบบกรองข้อมูลออก
+    if (values.length === 0 && checkedBoxes.length > 0) {
+        values.push('OTHER_' + type.toUpperCase()); 
+    }
+    
     return values;
 };
   
@@ -2030,7 +2040,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-      // 🎯 3. Filter Controls
+       // 🎯 3. Advanced Filter Controls
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
@@ -2038,13 +2048,18 @@ window.loadVisits = async function(forceReload, isBackground) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+      // 🌟 [FIX Purpose]: ดึงค่าตรงๆ จาก DOM เพื่อป้องกันบั๊ก Dropdown ตีกัน
+      var purposeEl = document.getElementById('filterVisitPurpose');
+      var purposeTerm = purposeEl ? purposeEl.value : '';
+      if (!purposeTerm && window.tomSelectFilterPurposeInstance) {
+          purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
+      }
+
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
       var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
       var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
 
-      // 🌟 อัปเดตตัวนับ Active Filters
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
           var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
@@ -2056,27 +2071,35 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
-       
-      // 🌟 [FIX Purpose]: ค้นหาด้วย UUID ผ่านคอลัมน์ Purpose_ID 
+      
+      // 🌟 [FIX Purpose]: เช็กก่อนว่าเป็น UUID หรือ Text ค่อยสั่ง Query เพื่อไม่ให้ระบบ Error เบื้องหลัง
       if (purposeTerm) {
-          dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
-          countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+          var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(purposeTerm);
+          if (isUUID) {
+              dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
+              countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+          } else {
+              dataQuery = dataQuery.ilike('Purpose', '%' + purposeTerm + '%');
+              countQuery = countQuery.ilike('Purpose', '%' + purposeTerm + '%');
+          }
       }
 
       if (coachingTerm) {
           dataQuery = dataQuery.eq('Is_Coaching', true);
           countQuery = countQuery.eq('Is_Coaching', true);
       }
+      
       if (startDateTerm) {
           dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
           countQuery = countQuery.gte('Visit_Date', startDateTerm);
       }
+      
       if (endDateTerm) {
           dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
-      // ✅ เอาโค้ดก้อนนี้วางแทนที่ด้านล่างสุดของบล็อกเมื่อกี้
-      // 🌟 [FIX Employee]: คัดกรองค่าว่าง และนำชื่อ/อีเมลไป Query ด้วย เผื่อในตารางเก็บเป็นข้อความ
+
+      // 🌟 [FIX Employee]: รองรับกรณีคลิกโฟลเดอร์เปล่า และ Query ทั้ง UUID/Name
       var validReps = selectedReps.filter(function(r) { return r && String(r).trim() !== ''; });
       if (validReps.length > 0) {
           var repSearchValues = [...validReps];
@@ -2087,15 +2110,13 @@ window.loadVisits = async function(forceReload, isBackground) {
                   if (uObj.Email) repSearchValues.push(uObj.Email);
               }
           });
-          
-          // จับมัดรวมเพื่อค้นหาทั้ง UUID, Name, Email ในคอลัมน์ Rep_ID และ Whoupdated
           var cleanRepVals = repSearchValues.map(function(v) { return '"' + String(v).replace(/"/g, '') + '"'; }).join(',');
           var orRepCond = `Rep_ID.in.(${cleanRepVals}),Whoupdated.in.(${cleanRepVals})`;
           dataQuery = dataQuery.or(orRepCond);
           countQuery = countQuery.or(orRepCond);
       }
 
-      // 🌟 [FIX Territory]: นำชื่อเขตไป Query ด้วย เผื่อในตารางไม่ได้เก็บเป็น UUID
+      // 🌟 [FIX Territory]: รองรับกรณีคลิกโฟลเดอร์เปล่า และ Query ทั้ง UUID/Name
       var validTers = selectedTers.filter(function(t) { return t && String(t).trim() !== ''; });
       if (validTers.length > 0) {
           var terSearchValues = [...validTers];
@@ -2106,7 +2127,6 @@ window.loadVisits = async function(forceReload, isBackground) {
               var tmObj = (window.globalTeamList || []).find(function(tm) { return String(tm.Team_ID) === String(tId); });
               if (tmObj && tmObj.Team) terSearchValues.push(tmObj.Team);
           });
-          
           var cleanTerVals = terSearchValues.map(function(v) { return '"' + String(v).replace(/"/g, '') + '"'; }).join(',');
           var orTerCond = `Territory_ID.in.(${cleanTerVals})`;
           dataQuery = dataQuery.or(orTerCond);
