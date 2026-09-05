@@ -1653,7 +1653,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         }
 
 
-        // ==============================================
+         // ==============================================
         // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง BU ➔ Role/Team ➔ พนักงาน)
         // ==============================================
         var repOptionsTree = [];
@@ -1669,13 +1669,23 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             var role = String(u.Role || '').toUpperCase();
-            var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase() || 'no_team';
             
-            // หา BU ของพนักงาน
+            // 🌟 สืบหาต้นสังกัด (Territory -> Team -> BU)
+            var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
+            var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
             var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
-            if (!uBuId && teamId && teamId !== 'no_team') {
-                var tmObjForRep = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
-                if (tmObjForRep) uBuId = String(tmObjForRep.BU_ID || tmObjForRep.BU || '').trim().toLowerCase();
+
+            // 1) ถ้าพนักงานไม่มี Team_ID ให้สืบหาจาก Territory_ID
+            if (!teamId && uTerrId) {
+                var tmMatched = allTers.find(function(t) { return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === uTerrId; });
+                if (tmMatched) teamId = String(tmMatched.Team_ID || tmMatched.Team || '').trim().toLowerCase();
+            }
+            if (!teamId) teamId = 'no_team';
+
+            // 2) ถ้าพนักงานไม่มี BU_ID ให้สืบหาจาก Team_ID
+            if (!uBuId && teamId !== 'no_team') {
+                var buMatched = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
+                if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
             }
             if (!uBuId) uBuId = 'no_bu';
 
@@ -1703,12 +1713,17 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var currentBuRepNode = buMapRep[uBuId];
                 var node = { id: 'rep_' + id, value: id, text: '👤 ' + name, isLeaf: true };
 
-                // 2.2 โยนพนักงานเข้ากลุ่มที่ถูกต้องภายใต้ BU นั้นๆ (ชั้นที่ 2)
-                if (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM') {
+                // 2.2 โยนพนักงานเข้ากลุ่มตาม Role อย่างแม่นยำ
+                var isPM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
+                // ดักจับ Manager, Lead, BU Head, Director ให้อยู่กลุ่มเดียวกัน
+                var isMgr = role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1 || role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
+
+                if (isPM) {
                     currentBuRepNode._roleGroups['PM'].children.push(node);
-                } else if (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1) {
+                } else if (isMgr) {
                     currentBuRepNode._roleGroups['MGR'].children.push(node);
                 } else {
+                    // ถ้าไม่ใช่ PM หรือ Manager ถือว่าเป็นทีม Sales
                     if (!currentBuRepNode._roleGroups['SALES'][teamId]) {
                         var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                         var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
