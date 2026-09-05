@@ -1442,9 +1442,8 @@ window.getCheckedFilterValues = function(type) {
     var checkedLeaves = document.querySelectorAll('.chk-tree-' + type + '.chk-leaf:checked');
     return Array.from(checkedLeaves).map(function(chk) { return chk.value; });
 };
-
+  
 // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
- // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
 window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
 
@@ -1578,6 +1577,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTeamIds = myAllowedTeamIds; 
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
+
         // ==============================================
         // 🎯 1. ปั้นข้อมูล AREA / TEAM (โครงสร้าง BU ➔ Team ➔ Territory)
         // ==============================================
@@ -1608,7 +1608,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             } catch(e) {}
         }
 
-        // 🌟 ปลดล็อกให้ผู้บริหารเห็นพื้นที่ข้ามเขตได้ (เพื่อให้กล่อง Other ทำงาน)
+        // 🌟 ปลดล็อกให้ผู้บริหารเห็นพื้นที่ข้ามเขตได้
         var allowedTerArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager)
             ? allTers
             : allTers.filter(function(t) {
@@ -1626,7 +1626,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 var buId = tmObj ? String(tmObj.BU_ID || tmObj.BU || '').trim().toLowerCase() : 'no_bu';
                 
-                // 🌟 [Virtual Routing] ถ้านอกเขต BU หลัก ให้ย้ายไปเข้าโฟลเดอร์ Other
                 if (!isGlobalViewer && buId !== 'no_bu' && buId !== primaryBuId) {
                     buId = 'other_bu';
                 }
@@ -1651,7 +1650,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         _teamMap: {} 
                     };
 
-                    // ให้เลือก BU ย่อยเดี่ยวๆ ได้ (ข้าม Other ไป)
                     if (buId !== 'no_bu' && !isOther) {
                         buMapTer[buId].children.push({
                             id: 'ter_bu_' + buId,
@@ -1697,7 +1695,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        // 🌟 ดัน Other ให้อยู่ล่างสุดเสมอ
         var sortedTerKeys = Object.keys(buMapTer).sort((a,b) => {
             if (a === 'other_bu') return 1;
             if (b === 'other_bu') return -1;
@@ -1754,7 +1751,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
             if (!uBuId) uBuId = 'no_bu';
 
-            // 🌟 [Virtual Routing] ถ้านอกเขต BU หลัก ให้ย้ายไปเข้าโฟลเดอร์ Other
             if (!isGlobalViewer && uBuId !== 'no_bu' && uBuId !== primaryBuId) {
                 uBuId = 'other_bu';
             }
@@ -1848,7 +1844,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 repOptionsTree.push(nodeBU);
             }
         });
- 
+
         // ==============================================
         // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
         // ==============================================
