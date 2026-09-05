@@ -5649,4 +5649,106 @@ window.renderPaginationControls = function(totalPages) {
     if (oldVal) coachSelect.value = oldVal;
 };
 
+// ==============================================================
+// 🧠 ULTIMATE FILTER MEMORY SYSTEM (ระบบความจำฝังเข็ม)
+// ==============================================================
+
+window.saveVisitFilterState = function() {
+    var memory = { purpose: '', status: '', coaching: false, reps: [], ters: [] };
+    
+    // จำค่า Purpose & Status
+    if (window.tomSelectFilterPurposeInstance) {
+        memory.purpose = window.tomSelectFilterPurposeInstance.getValue();
+    } else if (document.getElementById('filterVisitPurpose')) {
+        memory.purpose = document.getElementById('filterVisitPurpose').value;
+    }
+    
+    if (document.getElementById('filterVisitStatus')) {
+        memory.status = document.getElementById('filterVisitStatus').value;
+    }
+    if (document.getElementById('filterVisitCoaching')) {
+        memory.coaching = document.getElementById('filterVisitCoaching').checked;
+    }
+
+    // จำค่า Employee (ติ๊กคนไหนไว้บ้าง)
+    document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') memory.reps.push(c.value.trim());
+    });
+    
+    // จำค่า Area (ติ๊กเขตไหนไว้บ้าง)
+    document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') memory.ters.push(c.value.trim());
+    });
+
+    // ฝังลงในหน่วยความจำของเบราว์เซอร์ (รีเฟรชหน้าเว็บก็ไม่หาย)
+    localStorage.setItem('crm_super_memory_filter', JSON.stringify(memory));
+};
+
+window.restoreVisitFilterState = function() {
+    var memStr = localStorage.getItem('crm_super_memory_filter');
+    if (!memStr) return;
+    try {
+        var f = JSON.parse(memStr);
+        
+        // คืนค่า Purpose & Status
+        if (f.purpose) {
+            if (window.tomSelectFilterPurposeInstance) window.tomSelectFilterPurposeInstance.setValue(f.purpose, true);
+            else if (document.getElementById('filterVisitPurpose')) document.getElementById('filterVisitPurpose').value = f.purpose;
+        }
+        if (f.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status;
+        if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
+        
+        var expandTree = function(c) {
+            var ul = c.closest('ul'); if (ul) ul.classList.add('expanded');
+            var li = c.closest('li.tree-node-item'); 
+            if (li && li.parentElement && li.parentElement.closest('li')) {
+                var parentLi = li.parentElement.closest('li');
+                var icon = parentLi.querySelector('.tree-toggle-icon');
+                if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
+            }
+        };
+
+        // ล้าง Checkbox เดิมให้สะอาดก่อน
+        document.querySelectorAll('input[type="checkbox"].chk-tree-rep, input[type="checkbox"].chk-tree-ter').forEach(function(c) { 
+            c.checked = false; 
+        });
+
+        // 🌟 คืนชีพ Checkbox เฉพาะคนที่อยู่ในความจำ!
+        if (f.reps && f.reps.length > 0) {
+            document.querySelectorAll('.chk-tree-rep.chk-leaf').forEach(function(c) {
+                if (f.reps.indexOf(c.value.trim()) !== -1) {
+                    c.checked = true;
+                    if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, 'rep');
+                    expandTree(c);
+                }
+            });
+        }
+        if (f.ters && f.ters.length > 0) {
+            document.querySelectorAll('.chk-tree-ter.chk-leaf').forEach(function(c) {
+                if (f.ters.indexOf(c.value.trim()) !== -1) {
+                    c.checked = true;
+                    if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, 'ter');
+                    expandTree(c);
+                }
+            });
+        }
+    } catch(e) { console.error('Memory Restore Error', e); }
+};
+
+// 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" ทันทีที่กด Apply
+window.filterVisits = function() {
+    if (window.isInitialLoading) return; 
+    window.saveVisitFilterState(); // <--- สั่งจำค่าเดี๋ยวนี้!
+    window.currentPage = 1;
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
+};
+
+// 🎯 ดักจับปุ่มเปิด Filter! ทันทีที่พี่กดเปิดแผง Filter โค้ดจะยัดค่ากลับให้ใน 0.05 วินาที
+document.addEventListener('click', function(e) {
+    var advBtn = e.target.closest('#btnAdvFilterDropdown'); // ไอดีของปุ่ม Advanced Filters
+    if (advBtn) {
+        setTimeout(window.restoreVisitFilterState, 50);
+    }
+});
+// ==============================================================
 
