@@ -2039,92 +2039,81 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           }
       }
-// ==============================================================
-      // 🎯 3. ULTIMATE ADVANCED FILTER CONTROLS (ทะลวงหน้าจอแฝด)
+     // ==============================================================
+      // 🎯 3. ADVANCED FILTER CONTROLS (DIRECT DOM EXTRACTION)
       // ==============================================================
-      var getValAnywhere = function(keyword) {
-          var els = document.querySelectorAll('select, input[type="text"]');
-          for (var i = 0; i < els.length; i++) {
-              if (String(els[i].id).toLowerCase().indexOf(keyword) !== -1 && els[i].value) return els[i].value;
-          }
-          return '';
-      };
-
-      var statusTerm = window.tomSelectStatusInstance && window.tomSelectStatusInstance.getValue() !== '' 
-                       ? window.tomSelectStatusInstance.getValue() : getValAnywhere('filtervisitstatus');
+      var statusEl = document.getElementById('filterVisitStatus');
+      var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
 
-      var startDateTerm = getValAnywhere('startdate');
-      var endDateTerm = getValAnywhere('enddate');
+      var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
+      var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 [FIX 1: Purpose] ควานหาค่า Purpose จากทุกจุดบนหน้าเว็บ
-      var purposeTerm = window.tomSelectFilterPurposeInstance && window.tomSelectFilterPurposeInstance.getValue() !== '' 
-                        ? window.tomSelectFilterPurposeInstance.getValue() : getValAnywhere('filtervisitpurpose');
-                        
+      // 🌟 [FIX 1: Purpose] ดึงค่าตรงๆ และแปลงเป็น UUID ให้ทันที
+      var purposeTerm = '';
+      if (window.tomSelectFilterPurposeInstance) {
+          purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
+      } else {
+          var purposeEl = document.getElementById('filterVisitPurpose');
+          purposeTerm = purposeEl ? purposeEl.value : '';
+      }
+      
       var finalPurposeId = '';
       if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
-          var isUUID = /^[0-9a-f]{8}-/i.test(purposeTerm);
-          if (isUUID) {
-              finalPurposeId = purposeTerm;
+          if (/^[0-9a-f]{8}-/i.test(purposeTerm)) {
+              finalPurposeId = purposeTerm; // เป็น UUID อยู่แล้ว ผ่านได้เลย
           } else {
+              // ถ้าหลุดมาเป็นชื่อ ให้ไปงัดเอา UUID จาก Cache
               var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
-                  return idx.Value === purposeTerm || idx.Value1 === purposeTerm;
+                  return String(idx.Value).trim() === purposeTerm || String(idx.Value1).trim() === purposeTerm;
               });
-              finalPurposeId = idxItem ? (idxItem.Index_ID || idxItem.index_id || idxItem.ID || idxItem.id) : purposeTerm;
+              finalPurposeId = idxItem ? (idxItem.Index_ID || idxItem.id || purposeTerm) : purposeTerm;
           }
       }
 
-      var coachingTerm = false;
-      document.querySelectorAll('input[type="checkbox"]').forEach(function(el) {
-          if (String(el.id).toLowerCase().indexOf('coaching') !== -1 && el.checked) coachingTerm = true;
-      });
+      var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
-      // 🌟 [FIX 2: Employee & Area] กวาดหา Checkbox ทั่วหน้าจอ ไม่พึ่งพา ID
-      var getCheckedAnywhere = function(type) {
-          var checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
-          var results = [];
-          var isOtherFolderChecked = false;
+      // 🌟 [FIX 2: Employee/Area] กวาดค่า Checkbox แบบตรงไปตรงมาที่สุด
+      var getCheckboxValues = function(containerId) {
+          var box = document.getElementById(containerId);
+          if (!box) return [];
+          var chks = box.querySelectorAll('input[type="checkbox"]:checked');
+          var vals = [];
+          var hasOther = false;
           
-          checkedBoxes.forEach(function(chk) {
-              var idStr = String(chk.id || '').toLowerCase();
-              var classStr = String(chk.className || '').toLowerCase();
+          chks.forEach(function(c) {
+              var v = c.value;
+              if (!v || v === 'on' || v === 'undefined') v = c.id; // ถ้าไม่มี value ให้ดึงจาก id แทน
               
-              if (idStr.indexOf('chk_' + type) !== -1 || classStr.indexOf('chk-tree-' + type) !== -1) {
-                  var raw = chk.value;
-                  if (!raw || raw === 'on' || raw === 'undefined') raw = idStr.replace('chk_' + type + '_', '');
-                  
-                  if (raw.indexOf('other_reps') !== -1 || raw.indexOf('other_bu') !== -1 || raw.indexOf('no_bu') !== -1 || raw.indexOf('other_ter') !== -1) {
-                      isOtherFolderChecked = true;
-                  }
-
-                  if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null' && raw !== '') {
-                      raw = raw.replace('ter_tm_', '').replace('tm_ter_', '')
-                               .replace('ter_bu_', '').replace('bu_ter_', '')
-                               .replace('bu_rep_', '').replace('grp_sales_', '')
-                               .replace('rep_', '').replace('ter_', '');
-                      if (results.indexOf(raw) === -1) results.push(raw);
+              if (v) {
+                  var vLower = String(v).toLowerCase();
+                  if (vLower.indexOf('other') !== -1 || vLower.indexOf('no_bu') !== -1) {
+                      hasOther = true;
+                  } else {
+                      // ลอกคราบ prefix ออกให้หมด เหลือแค่ UUID
+                      var cleanId = v.replace('chk_rep_', '').replace('chk_ter_', '')
+                                     .replace('ter_tm_', '').replace('tm_ter_', '')
+                                     .replace('ter_bu_', '').replace('bu_ter_', '')
+                                     .replace('bu_rep_', '').replace('grp_sales_', '')
+                                     .replace('rep_', '').replace('ter_', '');
+                      if (cleanId && cleanId !== 'on' && vals.indexOf(cleanId) === -1) {
+                          vals.push(cleanId);
+                      }
                   }
               }
           });
-          
-          if (results.length === 0 && isOtherFolderChecked) results.push('EMPTY_FOLDER');
-          return results;
+          if (hasOther) vals.push('OTHER_FOLDER');
+          return vals;
       };
 
-      var selectedReps = getCheckedAnywhere('rep');
-      var selectedTers = getCheckedAnywhere('ter');
+      var selectedReps = getCheckboxValues('containerFilterRep');
+      var selectedTers = getCheckboxValues('containerFilterTer');
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
           var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (finalPurposeId ? 1 : 0) + (coachingTerm ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
-
-      // ================= DEBUG =================
-      console.log("✅ Purpose ID ที่กวาดมาได้:", finalPurposeId);
-      console.log("✅ Selected Reps ที่กวาดมาได้:", selectedReps);
-      console.log("✅ Selected Ters ที่กวาดมาได้:", selectedTers);
-      // ==========================================
 
       // ==============================================================
       // 🌟 ยัดเงื่อนไขลง Supabase Query
@@ -2135,8 +2124,14 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
       if (finalPurposeId) {
-          dataQuery = dataQuery.eq('Purpose_ID', finalPurposeId);
-          countQuery = countQuery.eq('Purpose_ID', finalPurposeId);
+          var isUUID = /^[0-9a-f]{8}-/i.test(finalPurposeId);
+          if (isUUID) {
+              dataQuery = dataQuery.eq('Purpose_ID', finalPurposeId);
+              countQuery = countQuery.eq('Purpose_ID', finalPurposeId);
+          } else {
+              dataQuery = dataQuery.ilike('Purpose', '%' + finalPurposeId + '%');
+              countQuery = countQuery.ilike('Purpose', '%' + finalPurposeId + '%');
+          }
       }
 
       if (coachingTerm) {
@@ -2154,66 +2149,29 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      // 🌟 แปลงโครงสร้าง Employee เป็น Rep_ID
-      var validReps = selectedReps.filter(function(r) { return r && r !== ''; });
-      if (validReps.length > 0) {
-          var finalRepIds = [];
-          validReps.forEach(function(rVal) {
-              var valLower = rVal.toLowerCase();
-              if (valLower === 'empty_folder') return;
-              
-              (window.globalUsersList || []).forEach(function(u) {
-                  if (valLower === 'other_reps' || valLower === 'other_bu' || valLower === 'no_bu') {
-                      if (!u.BU_ID || String(u.BU_ID).toLowerCase() === 'no_bu') {
-                          if (finalRepIds.indexOf(u.Rep_ID) === -1) finalRepIds.push(u.Rep_ID);
-                      }
-                  } else if ((u.Rep_ID && String(u.Rep_ID).toLowerCase() === valLower) ||
-                             (u.Team_ID && String(u.Team_ID).toLowerCase() === valLower) ||
-                             (u.BU_ID && String(u.BU_ID).toLowerCase() === valLower)) {
-                      if (finalRepIds.indexOf(u.Rep_ID) === -1) finalRepIds.push(u.Rep_ID);
-                  }
-              });
-          });
-          
-          if (finalRepIds.length > 0) {
-              dataQuery = dataQuery.in('Rep_ID', finalRepIds);
-              countQuery = countQuery.in('Rep_ID', finalRepIds);
-          } else {
-              dataQuery = dataQuery.is('Rep_ID', null); 
+      // 🌟 จัดการเงื่อนไข Employee
+      if (selectedReps.length > 0) {
+          if (selectedReps.indexOf('OTHER_FOLDER') !== -1) {
+              // ค้นหาแถวที่ไม่ได้มอบหมายพนักงาน (ค่าว่าง)
+              dataQuery = dataQuery.is('Rep_ID', null);
               countQuery = countQuery.is('Rep_ID', null);
+          } else {
+              dataQuery = dataQuery.in('Rep_ID', selectedReps);
+              countQuery = countQuery.in('Rep_ID', selectedReps);
           }
       }
 
-      // 🌟 แปลงโครงสร้าง Area เป็น Territory_ID
-      var validTers = selectedTers.filter(function(t) { return t && t !== ''; });
-      if (validTers.length > 0) {
-          var finalTerIds = [];
-          validTers.forEach(function(tVal) {
-              var valLower = tVal.toLowerCase();
-              if (valLower === 'empty_folder') return;
-              
-              (window.globalTerritoryList || []).forEach(function(t) {
-                  if (valLower === 'other_ter' || valLower === 'other_bu' || valLower === 'no_bu') {
-                      var tmObj = (window.globalTeamList || []).find(function(tm) { return String(tm.Team_ID) === String(t.Team_ID); });
-                      var buId = tmObj ? String(tmObj.BU_ID || '').toLowerCase() : 'no_bu';
-                      if (!buId || buId === 'no_bu') {
-                          if (finalTerIds.indexOf(t.Territory_ID) === -1) finalTerIds.push(t.Territory_ID);
-                      }
-                  } else if ((t.Territory_ID && String(t.Territory_ID).toLowerCase() === valLower) ||
-                             (t.Team_ID && String(t.Team_ID).toLowerCase() === valLower)) {
-                      if (finalTerIds.indexOf(t.Territory_ID) === -1) finalTerIds.push(t.Territory_ID);
-                  }
-              });
-          });
-          
-          if (finalTerIds.length > 0) {
-              dataQuery = dataQuery.in('Territory_ID', finalTerIds);
-              countQuery = countQuery.in('Territory_ID', finalTerIds);
-          } else {
+      // 🌟 จัดการเงื่อนไข Area
+      if (selectedTers.length > 0) {
+          if (selectedTers.indexOf('OTHER_FOLDER') !== -1) {
               dataQuery = dataQuery.is('Territory_ID', null);
               countQuery = countQuery.is('Territory_ID', null);
+          } else {
+              dataQuery = dataQuery.in('Territory_ID', selectedTers);
+              countQuery = countQuery.in('Territory_ID', selectedTers);
           }
       }
+      // ==============================================================
 
       // ==============================================================
       // 🔍 4. Smart Search Filter (ใส่คืนให้แล้วครับ!)
