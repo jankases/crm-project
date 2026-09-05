@@ -1268,68 +1268,161 @@ window.deleteTot = async function() {
 };
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
- // 🎯 1. ฟังก์ชันวาดรายการ Checkbox ลงในกล่อง
-window.renderCheckboxList = function(containerId, dataList, type) {
+ 
+ // 🎯 1. ฟังก์ชันวาด Tree-View Checkbox แบบย่อขยายได้
+window.renderTreeCheckboxList = function(containerId, dataTree, type) {
     var container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
 
-    if (!dataList || dataList.length === 0) {
+    if (!dataTree || dataTree.length === 0) {
         container.innerHTML = '<div class="text-muted small text-center py-2">No options available</div>';
         return;
     }
 
-    dataList.forEach(function(item) {
-        var div = document.createElement('div');
-        div.className = 'form-check py-1 px-1 rounded hover-bg-light d-flex align-items-center filter-item-' + type;
-        div.setAttribute('data-text', (item.text || '').toLowerCase());
+    var buildHtml = function(nodes, isRoot) {
+        var html = '<ul class="' + (isRoot ? 'tree-list' : '') + '">';
+        nodes.forEach(function(node) {
+            var hasChildren = node.children && node.children.length > 0;
+            var toggleIcon = hasChildren ? '<i class="fa-solid fa-chevron-right tree-toggle-icon" onclick="window.toggleTreeNode(this)"></i>' : '<i class="fa-solid fa-circle tree-toggle-icon empty"></i>';
+            
+            html += '<li class="tree-node-item" data-text="' + (node.text || '').toLowerCase() + '" data-type="' + type + '">';
+            html += '  <div class="tree-item-row">';
+            html += '    ' + toggleIcon;
+            html += '    <input class="form-check-input ms-1 me-2 mt-0 cursor-pointer chk-tree-' + type + (node.isLeaf ? ' chk-leaf' : '') + '" type="checkbox" value="' + (node.value || '') + '" id="chk_' + type + '_' + (node.value || node.id) + '" onchange="window.handleTreeCheckboxChange(this, \'' + type + '\')">';
+            html += '    <label class="form-check-label small text-dark cursor-pointer text-truncate w-100 fw-medium mb-0" for="chk_' + type + '_' + (node.value || node.id) + '">' + node.text + '</label>';
+            html += '  </div>';
+            
+            if (hasChildren) {
+                html += buildHtml(node.children, false);
+            }
+            html += '</li>';
+        });
+        html += '</ul>';
+        return html;
+    };
 
-        var input = document.createElement('input');
-        input.className = 'form-check-input me-2 mt-0 cursor-pointer chk-filter-' + type;
-        input.type = 'checkbox';
-        input.value = item.value;
-        input.id = 'chk_' + type + '_' + item.value;
-
-        var label = document.createElement('label');
-        label.className = 'form-check-label small text-dark cursor-pointer text-truncate w-100 mb-0';
-        label.htmlFor = input.id;
-        label.textContent = item.text;
-
-        div.appendChild(input);
-        div.appendChild(label);
-        container.appendChild(div);
-    });
+    container.innerHTML = buildHtml(dataTree, true);
 };
 
-// 🎯 2. ค้นหาตัวเลือกในกล่อง Checkbox
+// 🎯 2. สลับลูกศรย่อขยาย
+window.toggleTreeNode = function(iconEl) {
+    var childUl = iconEl.closest('li').querySelector(':scope > ul');
+    if (childUl) {
+        var isExpanded = childUl.classList.toggle('expanded');
+        iconEl.classList.toggle('fa-chevron-down', isExpanded);
+        iconEl.classList.toggle('fa-chevron-right', !isExpanded);
+    }
+};
+
+// 🎯 3. จัดการสถานะ แม่-ลูก (ติ๊กถูก, ขีดลบ, ว่างเปล่า)
+window.handleTreeCheckboxChange = function(checkbox, type) {
+    var li = checkbox.closest('li');
+    
+    // 3.1 สั่งลูกทุกคนให้เปลี่ยนตามแม่
+    var childCheckboxes = li.querySelectorAll(':scope > ul .chk-tree-' + type);
+    childCheckboxes.forEach(function(childChk) {
+        childChk.checked = checkbox.checked;
+        childChk.indeterminate = false;
+    });
+
+    // 3.2 สั่งเช็กสถานะย้อนกลับไปหาแม่ทุกชั้น
+    window.updateTreeAncestorState(li, type);
+};
+
+window.updateTreeAncestorState = function(li, type) {
+    var parentUl = li.parentElement;
+    if (parentUl.classList.contains('tree-list')) return; // ถึงจุดสูงสุดแล้ว
+
+    var parentLi = parentUl.closest('li');
+    if (!parentLi) return;
+
+    var parentCheckbox = parentLi.querySelector(':scope > .tree-item-row .chk-tree-' + type);
+    var siblingCheckboxes = parentUl.querySelectorAll(':scope > li > .tree-item-row .chk-tree-' + type);
+
+    var checkedCount = 0;
+    var indeterminateCount = 0;
+
+    siblingCheckboxes.forEach(function(cb) {
+        if (cb.checked) checkedCount++;
+        if (cb.indeterminate) indeterminateCount++;
+    });
+
+    if (checkedCount === siblingCheckboxes.length) {
+        parentCheckbox.checked = true;
+        parentCheckbox.indeterminate = false;
+    } else if (checkedCount === 0 && indeterminateCount === 0) {
+        parentCheckbox.checked = false;
+        parentCheckbox.indeterminate = false;
+    } else {
+        parentCheckbox.checked = false;
+        parentCheckbox.indeterminate = true; // 🌟 กำหนดสถานะขีดลบ
+    }
+
+    // ทำซ้ำวิ่งขึ้นไปหาแม่ชั้นถัดไป
+    window.updateTreeAncestorState(parentLi, type);
+};
+
+// 🎯 4. ระบบค้นหาอัจฉริยะ (ค้นหาเจอ ➔ กางแม่ ➔ ซ่อนตัวที่ไม่เกี่ยว)
 window.filterCheckboxList = function(type, keyword) {
     var term = (keyword || '').toLowerCase();
-    var items = document.querySelectorAll('.filter-item-' + type);
-    items.forEach(function(el) {
+    var allItems = document.querySelectorAll('.tree-node-item[data-type="' + type + '"]');
+    
+    if (!term) {
+        // ล้างคำค้นหา: โชว์ทุกตัว และพับเก็บให้เรียบร้อย
+        allItems.forEach(function(el) { 
+            el.classList.remove('d-none');
+            var ul = el.querySelector(':scope > ul');
+            var icon = el.querySelector(':scope > .tree-item-row .tree-toggle-icon.fa-chevron-down');
+            if (ul) ul.classList.remove('expanded');
+            if (icon) { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-right'); }
+        });
+        return;
+    }
+
+    // ซ่อนทั้งหมดก่อน
+    allItems.forEach(function(el) { el.classList.add('d-none'); });
+
+    // หาตัวที่ตรงกับคำค้นหา
+    allItems.forEach(function(el) {
         var text = el.getAttribute('data-text') || '';
         if (text.indexOf(term) !== -1) {
+            // โชว์ตัวเอง
             el.classList.remove('d-none');
-        } else {
-            el.classList.add('d-none');
+            
+            // โชว์แม่ทุกชั้น และสั่งให้แม่กาง (Expand) อัตโนมัติ
+            var parentLi = el.parentElement.closest('li');
+            while (parentLi) {
+                parentLi.classList.remove('d-none');
+                var ul = parentLi.querySelector(':scope > ul');
+                var icon = parentLi.querySelector(':scope > .tree-item-row .tree-toggle-icon');
+                if (ul) ul.classList.add('expanded');
+                if (icon && icon.classList.contains('fa-chevron-right')) {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-down');
+                }
+                parentLi = parentLi.parentElement.closest('li');
+            }
         }
     });
 };
 
-// 🎯 3. ปุ่ม Select All / Clear
+// 🎯 5. ปุ่ม Select All / Clear
 window.toggleAllCheckboxes = function(type, isSelectAll) {
-    var checkboxes = document.querySelectorAll('.chk-filter-' + type);
-    checkboxes.forEach(function(chk) {
-        var parent = chk.closest('.filter-item-' + type);
-        if (parent && !parent.classList.contains('d-none')) {
+    var rootCheckboxes = document.querySelectorAll('.tree-list > li > .tree-item-row .chk-tree-' + type);
+    rootCheckboxes.forEach(function(chk) {
+        if (!chk.closest('li').classList.contains('d-none')) {
             chk.checked = isSelectAll;
+            chk.indeterminate = false;
+            window.handleTreeCheckboxChange(chk, type); // กระจายคำสั่งไปให้ลูกๆ
         }
     });
 };
 
-// 🎯 4. อ่านค่า Checkbox ทั้งหมดที่ถูกเลือก
+// 🎯 6. ดึงเฉพาะค่า "ลูกตาสีดำ" (Leaf Node) ที่ถูกเลือกไปใช้ Query Database
 window.getCheckedFilterValues = function(type) {
-    var checked = document.querySelectorAll('.chk-filter-' + type + ':checked');
-    return Array.from(checked).map(function(chk) { return chk.value; });
+    var checkedLeaves = document.querySelectorAll('.chk-tree-' + type + '.chk-leaf:checked');
+    return Array.from(checkedLeaves).map(function(chk) { return chk.value; });
 };
 
 // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
