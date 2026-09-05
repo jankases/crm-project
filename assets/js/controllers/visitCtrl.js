@@ -1635,7 +1635,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     var icon = '🏢 ';
                     var isOther = (buId === 'other_bu');
 
-                    if (buId === 'no_bu') buName = 'Unassigned BU';
+                    if (buId === 'no_bu') buName = 'Other'; // 🌟 เปลี่ยนจาก Unassigned BU เป็น Other
                     else if (isOther) { buName = 'Other / Cross-Area'; icon = '🌐 '; }
                     else {
                         var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === buId; });
@@ -1712,7 +1712,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         var buMapRep = {}; 
         var uniqueUsersMap = new Map();
 
-        // 🌟 ปลดล็อกให้ผู้บริหารเห็นรายชื่อข้ามสายงานได้
         var allowedRepArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager) 
             ? window.globalUsersList 
             : window.globalUsersList.filter(function(u) {
@@ -1723,7 +1722,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         allowedRepArrayForDropdown.forEach(function(u) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
-            var role = String(u.Role || '').toUpperCase();
+            var role = String(u.Role || u.role || '').toUpperCase().trim();
             
             var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
             var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
@@ -1740,9 +1739,11 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
             }
 
-            var isNodeBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
-            var isNodePM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
-            var isNodeMgr = !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
+            // 🌟 ดักจับประเภท Role อย่างละเอียด
+            var isAdminOrStaff = role.indexOf('ADMIN') !== -1 || role.indexOf('STAFF') !== -1 || role.indexOf('SECRETARY') !== -1 || role.indexOf('EXECUTIVE') !== -1;
+            var isNodeBuHead = !isAdminOrStaff && (role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1);
+            var isNodePM = !isAdminOrStaff && (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM');
+            var isNodeMgr = !isAdminOrStaff && !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
 
             if (!uBuId || uBuId === 'no_bu') {
                 if (isNodeBuHead || isNodePM || isNodeMgr) {
@@ -1763,7 +1764,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     var icon = '🏢 ';
                     var isOther = (uBuId === 'other_bu');
 
-                    if (uBuId === 'no_bu') rBuName = 'Unassigned BU';
+                    if (uBuId === 'no_bu') rBuName = 'Other'; // 🌟 เปลี่ยนจาก Unassigned BU เป็น Other
                     else if (isOther) { rBuName = 'Other / Cross-Team'; icon = '🌐 '; }
                     else {
                         var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
@@ -1777,17 +1778,21 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         children: [],
                         _headFolder: { id: 'fld_head_' + uBuId, text: '👑 BU Head', isLeaf: false, children: [] },
                         _pmFolder: { id: 'fld_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
+                        _staffFolder: { id: 'fld_staff_' + uBuId, text: '🏢 Admin & Support Staff', isLeaf: false, children: [] }, // 🌟 เพิ่มโฟลเดอร์ Admin/Staff
                         _teams: {} 
                     };
                 }
 
                 var currentBuRepNode = buMapRep[uBuId];
-                var rolePriority = isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4));
-                var nodeIcon = isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 ');
+                var rolePriority = isAdminOrStaff ? 5 : (isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4)));
+                var nodeIcon = isAdminOrStaff ? '🏢 ' : (isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 '));
 
                 var node = { id: 'rep_' + id, value: id, text: nodeIcon + name, isLeaf: true, _priority: rolePriority };
 
-                if (isNodeBuHead) {
+                // 🌟 แยกจัดประเภทโฟลเดอร์ ไม่ให้ Admin / เลขา หลุดเข้าไปปะปนกับ Sales Reps
+                if (isAdminOrStaff) {
+                    currentBuRepNode._staffFolder.children.push(node);
+                } else if (isNodeBuHead) {
                     currentBuRepNode._headFolder.children.push(node);
                 } else if (isNodePM) {
                     currentBuRepNode._pmFolder.children.push(node);
@@ -1826,6 +1831,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             
             if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
             if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
+            if (nodeBU._staffFolder && nodeBU._staffFolder.children.length > 0) finalChildren.push(nodeBU._staffFolder); // 🌟 รวมโฟลเดอร์ Admin/Staff
             
             Object.keys(nodeBU._teams).forEach(function(tId) {
                 var teamNode = nodeBU._teams[tId];
@@ -2019,7 +2025,14 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
       // 🌟 ดึงค่าจากกล่อง Purpose และ สวิตช์ Coaching
-      var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+      // ในฟังก์ชัน loadVisits
+        var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+        
+        if (purposeTerm) {
+            // กรองด้วย Purpose_ID หรือ fallback ไปกู้ค่า Index เพื่อเทียบ
+            dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
+            countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+        }
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
       var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
