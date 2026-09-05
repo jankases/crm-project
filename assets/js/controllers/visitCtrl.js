@@ -1451,24 +1451,22 @@ window.getCheckedFilterValues = function(type) {
     var container = document.getElementById(containerId);
     if (!container) return [];
     
-    // 🌟 กวาดเอาค่าจากทุก Checkbox ที่โดนติ๊ก
     var checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
     var values = [];
     
     checkedBoxes.forEach(function(chk) {
         var val = chk.value;
-        // คัดเอาเฉพาะค่าที่ใช้งานได้จริง
-        if (val && val !== 'null' && val !== 'undefined' && val !== 'on' && val !== '') {
-            // ถ้าติ๊กโดนโฟลเดอร์ มันจะติด Prefix มาด้วย ให้เราสับเอาเฉพาะรหัส UUID ของจริงมาใช้
-            if (val.indexOf('ter_tm_') !== -1) val = val.replace('ter_tm_', '');
-            else if (val.indexOf('tm_ter_') !== -1) val = val.replace('tm_ter_', '');
-            else if (val.indexOf('ter_bu_') !== -1) val = val.replace('ter_bu_', '');
-            else if (val.indexOf('bu_ter_') !== -1) val = val.replace('bu_ter_', '');
-            else if (val.indexOf('bu_rep_') !== -1) val = val.replace('bu_rep_', '');
-            else if (val.indexOf('grp_sales_') !== -1) val = val.split('_').pop();
-            else if (val.indexOf('rep_') !== -1) val = val.replace('rep_', '');
-            else if (val.indexOf('ter_') !== -1) val = val.replace('ter_', '');
-            
+        // 🌟 ดึงค่าจาก id ถ้า value ไม่มี
+        if (!val || val === 'on' || val === 'undefined') {
+            val = chk.id.replace('chk_' + type + '_', '');
+        }
+        
+        if (val && val !== 'on' && val !== 'undefined' && val !== 'null' && val !== '') {
+            // ล้าง prefix ของ TreeView ออกให้หมดให้เหลือแต่รหัสแท้ๆ
+            val = val.replace('ter_tm_', '').replace('tm_ter_', '')
+                     .replace('ter_bu_', '').replace('bu_ter_', '')
+                     .replace('bu_rep_', '').replace('grp_sales_', '')
+                     .replace('rep_', '').replace('ter_', '');
             if (values.indexOf(val) === -1) values.push(val);
         }
     });
@@ -2048,7 +2046,9 @@ window.loadVisits = async function(forceReload, isBackground) {
           }
       }
 
-    // 🎯 3. Advanced Filter Controls
+  // ==============================================================
+      // 🎯 3. FOOLPROOF ADVANCED FILTER CONTROLS 
+      // ==============================================================
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
@@ -2056,18 +2056,30 @@ window.loadVisits = async function(forceReload, isBackground) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 [FIX Purpose]: ดึงค่าอย่างระมัดระวัง ป้องกันค่าเป็น undefined
+      // 🌟 [FIX 1] ดึงค่า Purpose และแปลงกลับเป็น UUID เสมอ (แก้ปัญหา Dropdown ส่งค่าเป็นข้อความ)
       var purposeTerm = '';
       if (window.tomSelectFilterPurposeInstance) {
           purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
-      } else {
-          var purposeEl = document.getElementById('filterVisitPurpose');
-          purposeTerm = purposeEl ? purposeEl.value : '';
+      } else if (document.getElementById('filterVisitPurpose')) {
+          purposeTerm = document.getElementById('filterVisitPurpose').value;
+      }
+      
+      var finalPurposeId = '';
+      if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
+          var isUUID = /^[0-9a-f]{8}-/i.test(purposeTerm);
+          if (isUUID) {
+              finalPurposeId = purposeTerm;
+          } else {
+              var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
+                  return idx.Value === purposeTerm || idx.Value1 === purposeTerm;
+              });
+              if (idxItem) finalPurposeId = idxItem.Index_ID || idxItem.id || purposeTerm;
+          }
       }
 
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
-      // 🌟 [FIX Employee/Area]: ตัวสแกนทะลุทะลวง (ดักจับติ๊กโฟลเดอร์เปล่า)
+      // 🌟 [FIX 2] ฟังก์ชันสแกนหา ID จาก Tree-View (ดักจับบั๊กโฟลเดอร์เปล่า)
       var getSafeCheckedIds = function(type) {
           var container = document.getElementById(type === 'rep' ? 'containerFilterRep' : 'containerFilterTer');
           if (!container) return [];
@@ -2075,12 +2087,9 @@ window.loadVisits = async function(forceReload, isBackground) {
           var results = [];
           checked.forEach(function(chk) {
               var raw = chk.value;
-              // ถ้าไม่มี value ให้ไปถอดรหัสจาก id ของตัวกล่อง Checkbox มาใช้แทน
-              if (!raw || raw === 'on' || raw === 'undefined' || raw === 'null') {
-                  raw = chk.id.replace('chk_' + type + '_', '');
-              }
+              if (!raw || raw === 'on' || raw === 'undefined') raw = chk.id.replace('chk_' + type + '_', '');
               
-              if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null' && raw !== '') {
+              if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null') {
                   if (raw.indexOf('ter_tm_') !== -1) raw = raw.replace('ter_tm_', '');
                   else if (raw.indexOf('tm_ter_') !== -1) raw = raw.replace('tm_ter_', '');
                   else if (raw.indexOf('ter_bu_') !== -1) raw = raw.replace('ter_bu_', '');
@@ -2093,8 +2102,6 @@ window.loadVisits = async function(forceReload, isBackground) {
                   if (results.indexOf(raw) === -1) results.push(raw);
               }
           });
-          // 🚨 ไม้ตาย: ถ้าโฟลเดอร์ที่ติ๊กมันว่างเปล่าจริงๆ ให้ยัดค่ายหลอกไป เพื่อสั่งให้ตารางกรองเหลือ 0 แถว
-          if (results.length === 0 && checked.length > 0) results.push('EMPTY_FOLDER');
           return results;
       };
 
@@ -2103,46 +2110,21 @@ window.loadVisits = async function(forceReload, isBackground) {
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
-          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
+          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (finalPurposeId ? 1 : 0) + (coachingTerm ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
-// 🚨 ================= DEBUG ZONE ================= 🚨
-      console.log("🚨 [1] Purpose Term (จากตัวแปร):", purposeTerm);
-      if (window.tomSelectFilterPurposeInstance) {
-          console.log("🚨 [1.1] Purpose (จาก TomSelect ตรงๆ):", window.tomSelectFilterPurposeInstance.getValue());
-      }
-      console.log("🚨 [2] Selected Reps (Employee):", selectedReps);
-      console.log("🚨 [3] Selected Ters (Area):", selectedTers);
-      
-      // ดักดูโครงสร้าง HTML ของ Checkbox ที่ถูกติ๊ก เพื่อดูว่ามันซ่อนค่าอะไรไว้
-      var debugRepContainer = document.getElementById('containerFilterRep');
-      if (debugRepContainer) {
-          var repChecked = debugRepContainer.querySelectorAll('input[type="checkbox"]:checked');
-          var repHTML = Array.from(repChecked).map(function(el) { return "ID: " + el.id + " | Value: " + el.value; });
-          console.log("🚨 [2.1] DOM Checkbox (Rep):", repHTML);
-      }
-      // 🚨 ============================================== 🚨
-        
-
-      // =======================================================
-      // 🌟 ยัดเงื่อนไขลง Supabase (แก้ไขให้ไม่บักตายกลางทาง)
-      // =======================================================
+      // ==============================================================
+      // 🌟 ยัดเงื่อนไขลง Supabase Query
+      // ==============================================================
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
 
-      // 🌟 [FIX Purpose]: เช็กก่อนว่าส่ง UUID มา หรือส่งข้อความมา (เพื่อไม่ให้ฐานข้อมูล Error)
-      if (purposeTerm && purposeTerm !== 'null' && purposeTerm !== 'undefined') {
-          var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(purposeTerm);
-          if (isUUID) {
-              dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
-              countQuery = countQuery.eq('Purpose_ID', purposeTerm);
-          } else {
-              dataQuery = dataQuery.ilike('Purpose', '%' + purposeTerm + '%');
-              countQuery = countQuery.ilike('Purpose', '%' + purposeTerm + '%');
-          }
+      if (finalPurposeId) {
+          dataQuery = dataQuery.eq('Purpose_ID', finalPurposeId);
+          countQuery = countQuery.eq('Purpose_ID', finalPurposeId);
       }
 
       if (coachingTerm) {
@@ -2160,25 +2142,123 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      if (selectedReps.length > 0) {
-          if (selectedReps.indexOf('EMPTY_FOLDER') !== -1) {
-              // กรองให้ไม่เจออะไรเลย
-              dataQuery = dataQuery.is('Rep_ID', null);
-              countQuery = countQuery.is('Rep_ID', null);
+      // 🌟 [FIX 3: Employee] แปลงโฟลเดอร์/ทีมที่เลือก ให้กลายเป็นรายชื่อคน (Rep_ID)
+      var validReps = selectedReps.filter(function(r) { return r && r !== ''; });
+      if (validReps.length > 0) {
+          var finalRepIds = [];
+          validReps.forEach(function(rVal) {
+              var valLower = rVal.toLowerCase();
+              (window.globalUsersList || []).forEach(function(u) {
+                  if (valLower === 'other_reps' || valLower === 'other_bu' || valLower === 'no_bu') {
+                      if (!u.BU_ID || String(u.BU_ID).toLowerCase() === 'no_bu') {
+                          if (finalRepIds.indexOf(u.Rep_ID) === -1) finalRepIds.push(u.Rep_ID);
+                      }
+                  } else if ((u.Rep_ID && String(u.Rep_ID).toLowerCase() === valLower) ||
+                             (u.Team_ID && String(u.Team_ID).toLowerCase() === valLower) ||
+                             (u.BU_ID && String(u.BU_ID).toLowerCase() === valLower)) {
+                      if (finalRepIds.indexOf(u.Rep_ID) === -1) finalRepIds.push(u.Rep_ID);
+                  }
+              });
+          });
+          
+          if (finalRepIds.length > 0) {
+              dataQuery = dataQuery.in('Rep_ID', finalRepIds);
+              countQuery = countQuery.in('Rep_ID', finalRepIds);
           } else {
-              dataQuery = dataQuery.in('Rep_ID', selectedReps);
-              countQuery = countQuery.in('Rep_ID', selectedReps);
+              dataQuery = dataQuery.is('Rep_ID', null); // กรองให้ไม่เจออะไรเลย
+              countQuery = countQuery.is('Rep_ID', null);
           }
       }
 
-      if (selectedTers.length > 0) {
-          if (selectedTers.indexOf('EMPTY_FOLDER') !== -1) {
-              // กรองให้ไม่เจออะไรเลย
+      // 🌟 [FIX 4: Area] แปลงโฟลเดอร์/ทีม ให้กลายเป็นรหัสเขต (Territory_ID)
+      var validTers = selectedTers.filter(function(t) { return t && t !== ''; });
+      if (validTers.length > 0) {
+          var finalTerIds = [];
+          validTers.forEach(function(tVal) {
+              var valLower = tVal.toLowerCase();
+              (window.globalTerritoryList || []).forEach(function(t) {
+                  if (valLower === 'other_ter' || valLower === 'other_bu' || valLower === 'no_bu') {
+                      var tmObj = (window.globalTeamList || []).find(function(tm) { return String(tm.Team_ID) === String(t.Team_ID); });
+                      var buId = tmObj ? String(tmObj.BU_ID || '').toLowerCase() : 'no_bu';
+                      if (!buId || buId === 'no_bu') {
+                          if (finalTerIds.indexOf(t.Territory_ID) === -1) finalTerIds.push(t.Territory_ID);
+                      }
+                  } else if ((t.Territory_ID && String(t.Territory_ID).toLowerCase() === valLower) ||
+                             (t.Team_ID && String(t.Team_ID).toLowerCase() === valLower)) {
+                      if (finalTerIds.indexOf(t.Territory_ID) === -1) finalTerIds.push(t.Territory_ID);
+                  }
+              });
+          });
+          
+          if (finalTerIds.length > 0) {
+              dataQuery = dataQuery.in('Territory_ID', finalTerIds);
+              countQuery = countQuery.in('Territory_ID', finalTerIds);
+          } else {
               dataQuery = dataQuery.is('Territory_ID', null);
               countQuery = countQuery.is('Territory_ID', null);
-          } else {
-              dataQuery = dataQuery.in('Territory_ID', selectedTers);
-              countQuery = countQuery.in('Territory_ID', selectedTers);
+          }
+      }
+
+      // ==============================================================
+      // 🔍 4. Smart Search Filter (ใส่คืนให้แล้วครับ!)
+      // ==============================================================
+      var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
+      if (rawSearchVal) {
+          var searchTerms = rawSearchVal.split(/\s+/); 
+          sb = window.supabaseClient || window.supabase;
+
+          for (var i = 0; i < searchTerms.length; i++) {
+              var term = searchTerms[i];
+              if (term.length < 2 && searchTerms.length > 1) continue; 
+
+              var matchedDocIds = [];
+              var matchedVisitIds = [];
+
+              (window.globalAssignedDoctors || []).forEach(function(doc) {
+                  var isMatch = false;
+                  var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
+                  var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
+                  if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) isMatch = true;
+                  if (!isMatch && doc.Hospitals) {
+                      var hEn = String(doc.Hospitals.Hospital || doc.Hospitals.Known_As || '').toLowerCase();
+                      if (hEn.indexOf(term) !== -1) isMatch = true;
+                  }
+                  if (isMatch) {
+                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
+                      if (docId) matchedDocIds.push(docId);
+                  }
+              });
+
+              var matchedProductIds = [];
+              var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
+              allProds.forEach(function(p) {
+                  var pEn = String(p.Product || '').toLowerCase();
+                  var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
+                  if (pEn.indexOf(term) !== -1 || pTh.indexOf(term) !== -1) matchedProductIds.push(p.Product_ID || p.id);
+              });
+
+              if (matchedProductIds.length > 0) {
+                  try {
+                      var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
+                      if (!vpRes.error && vpRes.data) {
+                          matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
+                      }
+                  } catch (e) {}
+              }
+
+              var orConditionsArray = [];
+              if (matchedDocIds.length > 0) orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
+              if (matchedVisitIds.length > 0) orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 150).join(',')})`);
+
+              if (orConditionsArray.length > 0) {
+                  var finalOrString = orConditionsArray.join(',');
+                  dataQuery = dataQuery.or(finalOrString);
+                  countQuery = countQuery.or(finalOrString);
+              } else {
+                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
+                  break; 
+              }
           }
       }
       // 📊 5. KPI Count Query
