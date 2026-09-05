@@ -1243,8 +1243,8 @@ window.deleteTot = async function() {
       var purposeData = [];
       purposeItems.forEach(function(i) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
-          var dispText = (appLang === 'en') ? valEN : valTH;
-          purposeData.push({ value: String(i.Index_ID), text: dispText });
+          var dispText = (appLang === 'en') ? valEN : valTH; 
+            purposeData.push({ value: i.Value || i.Index_ID, text: dispText });
       });
 
       if (typeof TomSelect !== 'undefined') {
@@ -1867,7 +1867,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 // ==========================================
  
  // 🚀 loadVisits (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
- window.loadVisits = async function(forceReload, isBackground) {
+window.loadVisits = async function(forceReload, isBackground) {
     // 🎯 [Fix 1]: ฝังระบบ Request ID ป้องกันข้อมูลวิ่งแซงกัน (แก้บั๊กตารางสะอึก)
     window._visitQueryId = (window._visitQueryId || 0) + 1;
     var currentQueryId = window._visitQueryId;
@@ -2014,7 +2014,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
           }
       }
 
-     // 🎯 3. Filter Controls (ดึงค่าจาก Checkbox ตัวใหม่และกล่อง Status)
+      // 🎯 3. Filter Controls
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
@@ -2022,21 +2022,13 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 ดึงค่าจากกล่อง Purpose และ สวิตช์ Coaching
-      // ในฟังก์ชัน loadVisits
-        var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
-        
-        if (purposeTerm) {
-            // กรองด้วย Purpose_ID หรือ fallback ไปกู้ค่า Index เพื่อเทียบ
-            dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
-            countQuery = countQuery.eq('Purpose_ID', purposeTerm);
-        }
+      var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
       var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
       var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
       var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
 
-      // 🌟 อัปเดตตัวนับ Active Filters ให้บวกรวม Purpose กับ Coaching ด้วย
+      // 🌟 อัปเดตตัวนับ Active Filters
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
           var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
@@ -2048,10 +2040,14 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
+      
+      // 🌟 [FIXED]: ค้นหา Purpose รองรับทั้งชื่อข้อความตรงๆ และ UUID
       if (purposeTerm) {
-          dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
-          countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+          var purposeCond = `Purpose_ID.eq.${purposeTerm},Purpose.eq.${purposeTerm}`;
+          dataQuery = dataQuery.or(purposeCond);
+          countQuery = countQuery.or(purposeCond);
       }
+
       if (coachingTerm) {
           dataQuery = dataQuery.eq('Is_Coaching', true);
           countQuery = countQuery.eq('Is_Coaching', true);
@@ -2073,7 +2069,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
           countQuery = countQuery.in('Territory_ID', selectedTers);
       }
    
-      // 🔍 4. Smart Search Filter (รวมมิตร: ไม่สะอึก + ค้นหาจากข้อมูลจริง)
+      // 🔍 4. Smart Search Filter
       var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
       if (rawSearchVal) {
           var searchTerms = rawSearchVal.split(/\s+/); 
@@ -2154,7 +2150,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
       // 📊 5. KPI Count Query
       var countRes = await countQuery;
       
-      // 🎯 [Fix 1]: เช็กว่า Request นี้เก่าไปแล้วหรือยัง ถ้าเก่าให้ทิ้งไปเลย (แก้สะอึก)
       if (currentQueryId !== window._visitQueryId) return;
 
       var totalC = 0, pendingC = 0, submittedC = 0;
@@ -2176,7 +2171,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
       var res = await dataQuery;
       
-      // 🎯 [Fix 1]: เช็กอีกรอบก่อนวาดตาราง
       if (currentQueryId !== window._visitQueryId) return;
       if (res.error) throw res.error;
 
@@ -2242,7 +2236,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
-        // 🎯 [Fix 1]: คลายการหมุน Loading เฉพาะคิวล่าสุดเท่านั้น
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
