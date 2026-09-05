@@ -1244,7 +1244,8 @@ window.deleteTot = async function() {
       purposeItems.forEach(function(i) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
           var dispText = (appLang === 'en') ? valEN : valTH; 
-            purposeData.push({ value: i.Value || i.Index_ID, text: dispText });
+          // 🌟 [FIX]: บังคับให้ Dropdown ส่งค่า UUID กลับไปค้นหาในฐานข้อมูล
+          purposeData.push({ value: String(i.Index_ID), text: dispText });
       });
 
       if (typeof TomSelect !== 'undefined') {
@@ -2040,12 +2041,11 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
-      
-      // 🌟 [FIXED]: ค้นหา Purpose รองรับทั้งชื่อข้อความตรงๆ และ UUID
+       
+      // 🌟 [FIX Purpose]: ค้นหาด้วย UUID ผ่านคอลัมน์ Purpose_ID 
       if (purposeTerm) {
-          var purposeCond = `Purpose_ID.eq.${purposeTerm},Purpose.eq.${purposeTerm}`;
-          dataQuery = dataQuery.or(purposeCond);
-          countQuery = countQuery.or(purposeCond);
+          dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
+          countQuery = countQuery.eq('Purpose_ID', purposeTerm);
       }
 
       if (coachingTerm) {
