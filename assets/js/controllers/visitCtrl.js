@@ -1560,8 +1560,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTeamIds = myAllowedTeamIds; 
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
-
-        // ==============================================
+// ==============================================
         // 🎯 1. ปั้นข้อมูล AREA / TEAM (โครงสร้าง BU ➔ Team ➔ Territory)
         // ==============================================
         var terOptionsTree = [];
@@ -1590,6 +1589,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             } catch(e) {}
         }
 
+        var primaryBuId = userBuId || 'no_bu';
+
         allTers.forEach(function(t) {
             var tid = String(t.Territory_ID || t.id || t.Territory || '').trim(); 
             var tnm = String(t.Territory || t.Territory_Name || t.Name || tid).trim();
@@ -1601,23 +1602,37 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 var buId = tmObj ? String(tmObj.BU_ID || tmObj.BU || '').trim().toLowerCase() : 'no_bu';
                 
+                // 🌟 [Virtual Routing] ถ้านอกเขต BU หลัก ให้ย้ายไปเข้าโฟลเดอร์ Other
+                if (!isGlobalViewer && buId !== 'no_bu' && buId !== primaryBuId) {
+                    buId = 'other_bu';
+                }
+                
                 if (!buMapTer[buId]) {
-                    var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === buId; });
-                    var buName = buObj ? (buObj.BU_Name || buObj.BU || buId) : (buId === 'no_bu' ? 'Unassigned BU' : buId);
+                    var buName = buId;
+                    var icon = '🏢 ';
+                    var isOther = (buId === 'other_bu');
+
+                    if (buId === 'no_bu') buName = 'Unassigned BU';
+                    else if (isOther) { buName = 'Other / Cross-Area'; icon = '🌐 '; }
+                    else {
+                        var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === buId; });
+                        buName = buObj ? (buObj.BU_Name || buObj.BU || buId) : buId;
+                    }
                     
                     buMapTer[buId] = { 
-                        id: 'bu_ter_' + buId, 
-                        text: '🏢 ' + buName, 
+                        id: isOther ? 'other_ter' : 'bu_ter_' + buId, 
+                        text: icon + buName, 
                         isLeaf: false, 
                         children: [],
                         _teamMap: {} 
                     };
 
-                    if (buId !== 'no_bu') {
+                    // เติมให้เลือก BU เดี่ยวๆ ได้ (ยกเว้นกล่อง Other/Unassigned)
+                    if (buId !== 'no_bu' && !isOther) {
                         buMapTer[buId].children.push({
                             id: 'ter_bu_' + buId,
                             value: buObj ? (buObj.BU_ID || buObj.id || buId) : buId,
-                            text: '🏢 ' + buName + ' (BU Level)',
+                            text: icon + buName + ' (BU Level)',
                             isLeaf: true
                         });
                     }
@@ -1662,12 +1677,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             terOptionsTree.push(buMapTer[key]);
         });
 
-        if (isBuHead || isProductManager || isGlobalViewer) {
-            terOptionsTree.push({ id: 'other_ter', value: 'OTHER_TERRITORIES', text: '🌐 Other / Cross-Area', isLeaf: true });
-        }
 
-
-       // ==============================================
+        // ==============================================
         // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง: BU ➔ โฟลเดอร์ตำแหน่ง ➔ พนักงาน)
         // ==============================================
         var repOptionsTree = [];
@@ -1698,33 +1709,41 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var buMatched = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
             }
-            
-            // 🌟 [อัปเกรด] Fallback ป้องกัน Unassigned BU สำหรับระดับผู้บริหาร
+
             var isNodeBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
             var isNodePM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
             var isNodeMgr = !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
 
             if (!uBuId || uBuId === 'no_bu') {
                 if (isNodeBuHead || isNodePM || isNodeMgr) {
-                    // ถ้าเป็นระดับหัวหน้า แต่ไม่มี BU_ID ในฐานข้อมูล -> ดึงเข้า BU หลักแรกในระบบโดยอัตโนมัติ
-                    if (allBus.length > 0) {
-                        uBuId = String(allBus[0].BU_ID || allBus[0].id || allBus[0].BU).trim().toLowerCase();
-                    }
+                    if (allBus.length > 0) uBuId = String(allBus[0].BU_ID || allBus[0].id || allBus[0].BU).trim().toLowerCase();
                 }
             }
             if (!uBuId) uBuId = 'no_bu';
 
+            // 🌟 [Virtual Routing] ถ้านอกเขต BU หลัก ให้ย้ายไปเข้าโฟลเดอร์ Other
+            if (!isGlobalViewer && uBuId !== 'no_bu' && uBuId !== primaryBuId) {
+                uBuId = 'other_bu';
+            }
+
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), true);
                 
-                // 2.1 สร้างโหนด BU (ชั้นที่ 1)
                 if (!buMapRep[uBuId]) {
-                    var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
-                    var rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : (uBuId === 'no_bu' ? 'Unassigned BU' : uBuId);
+                    var rBuName = uBuId;
+                    var icon = '🏢 ';
+                    var isOther = (uBuId === 'other_bu');
+
+                    if (uBuId === 'no_bu') rBuName = 'Unassigned BU';
+                    else if (isOther) { rBuName = 'Other / Cross-Team'; icon = '🌐 '; }
+                    else {
+                        var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
+                        rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : uBuId;
+                    }
                     
                     buMapRep[uBuId] = {
-                        id: 'bu_rep_' + uBuId,
-                        text: '🏢 ' + rBuName,
+                        id: isOther ? 'other_reps' : 'bu_rep_' + uBuId,
+                        text: icon + rBuName,
                         isLeaf: false,
                         children: [],
                         _headFolder: { id: 'fld_head_' + uBuId, text: '👑 BU Head', isLeaf: false, children: [] },
@@ -1734,9 +1753,11 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 }
 
                 var currentBuRepNode = buMapRep[uBuId];
-                var node = { id: 'rep_' + id, value: id, text: '👤 ' + name, isLeaf: true };
+                var rolePriority = isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4));
+                var nodeIcon = isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 ');
 
-                // 2.3 โยนพนักงานเข้า "โฟลเดอร์ตำแหน่ง" ของตัวเอง
+                var node = { id: 'rep_' + id, value: id, text: nodeIcon + name, isLeaf: true, _priority: rolePriority };
+
                 if (isNodeBuHead) {
                     currentBuRepNode._headFolder.children.push(node);
                 } else if (isNodePM) {
@@ -1764,12 +1785,10 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        // 2.4 ประกอบร่าง Tree ให้เรียงลำดับสายบังคับบัญชาสวยงาม
         Object.keys(buMapRep).forEach(function(buKey) {
             var nodeBU = buMapRep[buKey];
             var finalChildren = []; 
             
-            // นำโฟลเดอร์ BU Head และ PM ขึ้นก่อน
             if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
             if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
             
@@ -1790,10 +1809,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 repOptionsTree.push(nodeBU);
             }
         });
-
-        if (isBuHead || isProductManager || isGlobalViewer) {
-            repOptionsTree.push({ id: 'other_reps', value: 'OTHER_REPS', text: '🌐 Other / Cross-Team', isLeaf: true });
-        }
+ 
 
         // ==============================================
         // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
