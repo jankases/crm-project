@@ -1445,24 +1445,18 @@ window.toggleAllCheckboxes = function(type, isSelectAll) {
 };
 
 // 🎯 6. ดึงเฉพาะค่า "ลูกตาสีดำ" (Leaf Node) ที่ถูกเลือกไปใช้ Query Database
- 
+  
 window.getCheckedFilterValues = function(type) {
-    var containerId = type === 'rep' ? 'containerFilterRep' : 'containerFilterTer';
-    var container = document.getElementById(containerId);
-    if (!container) return [];
-    
-    var checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    // 🌟 เปลี่ยนมาหาจาก Class แทน ID เพื่อกวาดให้ครบทุกแผงที่ถูกติ๊ก
+    var checkedBoxes = document.querySelectorAll('.chk-tree-' + type + ':checked');
     var values = [];
     
     checkedBoxes.forEach(function(chk) {
         var val = chk.value;
-        // 🌟 ดึงค่าจาก id ถ้า value ไม่มี
-        if (!val || val === 'on' || val === 'undefined') {
-            val = chk.id.replace('chk_' + type + '_', '');
-        }
+        if (!val || val === 'on' || val === 'undefined') val = chk.id.replace('chk_' + type + '_', '');
         
         if (val && val !== 'on' && val !== 'undefined' && val !== 'null' && val !== '') {
-            // ล้าง prefix ของ TreeView ออกให้หมดให้เหลือแต่รหัสแท้ๆ
+            // ลอกคราบเอาเฉพาะรหัสเพียวๆ
             val = val.replace('ter_tm_', '').replace('tm_ter_', '')
                      .replace('ter_bu_', '').replace('bu_ter_', '')
                      .replace('bu_rep_', '').replace('grp_sales_', '')
@@ -2045,68 +2039,51 @@ window.loadVisits = async function(forceReload, isBackground) {
               }
           }
       }
-
-  // ==============================================================
-      // 🎯 3. FOOLPROOF ADVANCED FILTER CONTROLS 
+ // ==============================================================
+      // 🎯 3. FOOLPROOF ADVANCED FILTER CONTROLS (กันบั๊กหน้าเว็บแฝด)
       // ==============================================================
-      var statusEl = document.getElementById('filterVisitStatus');
-      var statusTerm = statusEl ? statusEl.value : '';
+      var getInputValueAnywhere = function(selector) {
+          var els = document.querySelectorAll(selector);
+          for (var i = 0; i < els.length; i++) {
+              if (els[i].value && els[i].value !== '') return els[i].value;
+          }
+          return '';
+      };
+
+      var statusTerm = window.tomSelectStatusInstance && window.tomSelectStatusInstance.getValue() !== '' 
+                       ? window.tomSelectStatusInstance.getValue() 
+                       : getInputValueAnywhere('#filterVisitStatus, .filterVisitStatus');
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
 
-      var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
-      var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
+      var startDateTerm = getInputValueAnywhere('#filterStartDate, .filterStartDate');
+      var endDateTerm = getInputValueAnywhere('#filterEndDate, .filterEndDate');
 
-      // 🌟 [FIX 1] ดึงค่า Purpose และแปลงกลับเป็น UUID เสมอ (แก้ปัญหา Dropdown ส่งค่าเป็นข้อความ)
-      var purposeTerm = '';
-      if (window.tomSelectFilterPurposeInstance) {
-          purposeTerm = window.tomSelectFilterPurposeInstance.getValue();
-      } else if (document.getElementById('filterVisitPurpose')) {
-          purposeTerm = document.getElementById('filterVisitPurpose').value;
-      }
-      
+      // 🌟 [FIX 1: Purpose] ดึงค่าจากหน้าต่างไหนก็ได้ที่ถูกเลือก
+      var purposeTerm = window.tomSelectFilterPurposeInstance && window.tomSelectFilterPurposeInstance.getValue() !== '' 
+                        ? window.tomSelectFilterPurposeInstance.getValue() 
+                        : getInputValueAnywhere('#filterVisitPurpose, .filterVisitPurpose');
+                        
       var finalPurposeId = '';
       if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
           var isUUID = /^[0-9a-f]{8}-/i.test(purposeTerm);
           if (isUUID) {
               finalPurposeId = purposeTerm;
           } else {
+              // 🌟 เผื่อคอลัมน์ในตารางชื่อ ID ตัวใหญ่
               var idxItem = (window.VisitManagerCache.indexes || []).find(function(idx) {
                   return idx.Value === purposeTerm || idx.Value1 === purposeTerm;
               });
-              if (idxItem) finalPurposeId = idxItem.Index_ID || idxItem.id || purposeTerm;
+              finalPurposeId = idxItem ? (idxItem.Index_ID || idxItem.index_id || idxItem.ID || idxItem.id) : purposeTerm;
           }
       }
 
-      var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
+      var coachingTerm = false;
+      document.querySelectorAll('#filterVisitCoaching, .filterVisitCoaching').forEach(function(el) {
+          if (el.checked) coachingTerm = true;
+      });
 
-      // 🌟 [FIX 2] ฟังก์ชันสแกนหา ID จาก Tree-View (ดักจับบั๊กโฟลเดอร์เปล่า)
-      var getSafeCheckedIds = function(type) {
-          var container = document.getElementById(type === 'rep' ? 'containerFilterRep' : 'containerFilterTer');
-          if (!container) return [];
-          var checked = container.querySelectorAll('input[type="checkbox"]:checked');
-          var results = [];
-          checked.forEach(function(chk) {
-              var raw = chk.value;
-              if (!raw || raw === 'on' || raw === 'undefined') raw = chk.id.replace('chk_' + type + '_', '');
-              
-              if (raw && raw !== 'on' && raw !== 'undefined' && raw !== 'null') {
-                  if (raw.indexOf('ter_tm_') !== -1) raw = raw.replace('ter_tm_', '');
-                  else if (raw.indexOf('tm_ter_') !== -1) raw = raw.replace('tm_ter_', '');
-                  else if (raw.indexOf('ter_bu_') !== -1) raw = raw.replace('ter_bu_', '');
-                  else if (raw.indexOf('bu_ter_') !== -1) raw = raw.replace('bu_ter_', '');
-                  else if (raw.indexOf('bu_rep_') !== -1) raw = raw.replace('bu_rep_', '');
-                  else if (raw.indexOf('grp_sales_') !== -1) raw = raw.split('_').pop();
-                  else if (raw.indexOf('rep_') !== -1) raw = raw.replace('rep_', '');
-                  else if (raw.indexOf('ter_') !== -1) raw = raw.replace('ter_', '');
-                  
-                  if (results.indexOf(raw) === -1) results.push(raw);
-              }
-          });
-          return results;
-      };
-
-      var selectedReps = getSafeCheckedIds('rep');
-      var selectedTers = getSafeCheckedIds('ter');
+      var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
+      var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
 
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
@@ -2115,6 +2092,7 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
 
+        
         // 🚨 ================= DEBUG ZONE ================= 🚨
       console.log("🚨 [1] Purpose Term (จากตัวแปร):", purposeTerm);
       if (window.tomSelectFilterPurposeInstance) {
@@ -2131,7 +2109,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           console.log("🚨 [2.1] DOM Checkbox (Rep):", repHTML);
       }
       // 🚨 ============================================== 🚨
-
+        
       // ==============================================================
       // 🌟 ยัดเงื่อนไขลง Supabase Query
       // ==============================================================
@@ -2160,7 +2138,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      // 🌟 [FIX 3: Employee] แปลงโฟลเดอร์/ทีมที่เลือก ให้กลายเป็นรายชื่อคน (Rep_ID)
+      // 🌟 [FIX 2: Employee] แปลงโฟลเดอร์ให้เป็น Rep_ID
       var validReps = selectedReps.filter(function(r) { return r && r !== ''; });
       if (validReps.length > 0) {
           var finalRepIds = [];
@@ -2183,12 +2161,12 @@ window.loadVisits = async function(forceReload, isBackground) {
               dataQuery = dataQuery.in('Rep_ID', finalRepIds);
               countQuery = countQuery.in('Rep_ID', finalRepIds);
           } else {
-              dataQuery = dataQuery.is('Rep_ID', null); // กรองให้ไม่เจออะไรเลย
+              dataQuery = dataQuery.is('Rep_ID', null); 
               countQuery = countQuery.is('Rep_ID', null);
           }
       }
 
-      // 🌟 [FIX 4: Area] แปลงโฟลเดอร์/ทีม ให้กลายเป็นรหัสเขต (Territory_ID)
+      // 🌟 [FIX 3: Area] แปลงโฟลเดอร์ ให้เป็น Territory_ID
       var validTers = selectedTers.filter(function(t) { return t && t !== ''; });
       if (validTers.length > 0) {
           var finalTerIds = [];
