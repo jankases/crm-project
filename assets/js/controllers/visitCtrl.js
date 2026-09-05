@@ -1337,9 +1337,10 @@ window.toggleTreeNode = function(iconEl) {
 // 🎯 3. จัดการสถานะ แม่-ลูก (ติ๊กถูก, ขีดลบ, ว่างเปล่า)
 window.handleTreeCheckboxChange = function(checkbox, type) {
     var li = checkbox.closest('li');
+    if (!li) return;
     
-    // 3.1 สั่งลูกทุกคนให้เปลี่ยนตามแม่
-    var childCheckboxes = li.querySelectorAll(':scope > ul .chk-tree-' + type);
+    // 3.1 สั่งลูกทุกคนให้เปลี่ยนตามแม่ (ปรับให้รองรับโครงสร้าง HTML ทุกรูปแบบ)
+    var childCheckboxes = li.querySelectorAll('ul input[type="checkbox"]');
     childCheckboxes.forEach(function(childChk) {
         childChk.checked = checkbox.checked;
         childChk.indeterminate = false;
@@ -1351,13 +1352,18 @@ window.handleTreeCheckboxChange = function(checkbox, type) {
 
 window.updateTreeAncestorState = function(li, type) {
     var parentUl = li.parentElement;
-    if (parentUl.classList.contains('tree-list')) return; // ถึงจุดสูงสุดแล้ว
+    if (!parentUl || parentUl.classList.contains('tree-list')) return; 
 
     var parentLi = parentUl.closest('li');
     if (!parentLi) return;
 
-    var parentCheckbox = parentLi.querySelector(':scope > .tree-item-row .chk-tree-' + type);
-    var siblingCheckboxes = parentUl.querySelectorAll(':scope > li > .tree-item-row .chk-tree-' + type);
+    var parentCheckbox = parentLi.querySelector('.tree-item-row input[type="checkbox"]');
+    if (!parentCheckbox) return;
+
+    var siblingCheckboxes = parentUl.querySelectorAll(':scope > li > .tree-item-row input[type="checkbox"]');
+    if (!siblingCheckboxes || siblingCheckboxes.length === 0) {
+        siblingCheckboxes = parentUl.querySelectorAll('li > .tree-item-row input[type="checkbox"]');
+    }
 
     var checkedCount = 0;
     var indeterminateCount = 0;
@@ -1367,7 +1373,7 @@ window.updateTreeAncestorState = function(li, type) {
         if (cb.indeterminate) indeterminateCount++;
     });
 
-    if (checkedCount === siblingCheckboxes.length) {
+    if (checkedCount === siblingCheckboxes.length && siblingCheckboxes.length > 0) {
         parentCheckbox.checked = true;
         parentCheckbox.indeterminate = false;
     } else if (checkedCount === 0 && indeterminateCount === 0) {
@@ -1375,12 +1381,11 @@ window.updateTreeAncestorState = function(li, type) {
         parentCheckbox.indeterminate = false;
     } else {
         parentCheckbox.checked = false;
-        parentCheckbox.indeterminate = true; // 🌟 กำหนดสถานะขีดลบ
+        parentCheckbox.indeterminate = true; 
     }
 
-    // ทำซ้ำวิ่งขึ้นไปหาแม่ชั้นถัดไป
     window.updateTreeAncestorState(parentLi, type);
-};
+}; 
 
 // 🎯 4. ระบบค้นหาอัจฉริยะ (ค้นหาเจอ ➔ กางแม่ ➔ ซ่อนตัวที่ไม่เกี่ยว)
 window.filterCheckboxList = function(type, keyword) {
@@ -1440,8 +1445,18 @@ window.toggleAllCheckboxes = function(type, isSelectAll) {
 
 // 🎯 6. ดึงเฉพาะค่า "ลูกตาสีดำ" (Leaf Node) ที่ถูกเลือกไปใช้ Query Database
 window.getCheckedFilterValues = function(type) {
-    var checkedLeaves = document.querySelectorAll('.chk-tree-' + type + '.chk-leaf:checked');
-    return Array.from(checkedLeaves).map(function(chk) { return chk.value; });
+    var containerId = type === 'rep' ? 'containerFilterRep' : 'containerFilterTer';
+    var container = document.getElementById(containerId);
+    if (!container) return [];
+    
+    var checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    var values = [];
+    checkedBoxes.forEach(function(chk) {
+        if (chk.classList.contains('chk-leaf') && chk.value && chk.value !== 'null' && chk.value !== 'undefined') {
+            values.push(chk.value);
+        }
+    });
+    return values;
 };
   
 // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
@@ -2060,13 +2075,42 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
-      if (selectedReps.length > 0) {
-          dataQuery = dataQuery.in('Rep_ID', selectedReps);
-          countQuery = countQuery.in('Rep_ID', selectedReps);
+      // ✅ เอาโค้ดก้อนนี้วางแทนที่ด้านล่างสุดของบล็อกเมื่อกี้
+      // 🌟 [FIX Employee]: คัดกรองค่าว่าง และนำชื่อ/อีเมลไป Query ด้วย เผื่อในตารางเก็บเป็นข้อความ
+      var validReps = selectedReps.filter(function(r) { return r && String(r).trim() !== ''; });
+      if (validReps.length > 0) {
+          var repSearchValues = [...validReps];
+          validReps.forEach(function(rId) {
+              var uObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID) === String(rId); });
+              if (uObj) {
+                  if (uObj.Rep_Name) repSearchValues.push(uObj.Rep_Name);
+                  if (uObj.Email) repSearchValues.push(uObj.Email);
+              }
+          });
+          
+          // จับมัดรวมเพื่อค้นหาทั้ง UUID, Name, Email ในคอลัมน์ Rep_ID และ Whoupdated
+          var cleanRepVals = repSearchValues.map(function(v) { return '"' + String(v).replace(/"/g, '') + '"'; }).join(',');
+          var orRepCond = `Rep_ID.in.(${cleanRepVals}),Whoupdated.in.(${cleanRepVals})`;
+          dataQuery = dataQuery.or(orRepCond);
+          countQuery = countQuery.or(orRepCond);
       }
-      if (selectedTers.length > 0) {
-          dataQuery = dataQuery.in('Territory_ID', selectedTers);
-          countQuery = countQuery.in('Territory_ID', selectedTers);
+
+      // 🌟 [FIX Territory]: นำชื่อเขตไป Query ด้วย เผื่อในตารางไม่ได้เก็บเป็น UUID
+      var validTers = selectedTers.filter(function(t) { return t && String(t).trim() !== ''; });
+      if (validTers.length > 0) {
+          var terSearchValues = [...validTers];
+          validTers.forEach(function(tId) {
+              var tObj = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(tId); });
+              if (tObj && tObj.Territory) terSearchValues.push(tObj.Territory);
+              
+              var tmObj = (window.globalTeamList || []).find(function(tm) { return String(tm.Team_ID) === String(tId); });
+              if (tmObj && tmObj.Team) terSearchValues.push(tmObj.Team);
+          });
+          
+          var cleanTerVals = terSearchValues.map(function(v) { return '"' + String(v).replace(/"/g, '') + '"'; }).join(',');
+          var orTerCond = `Territory_ID.in.(${cleanTerVals})`;
+          dataQuery = dataQuery.or(orTerCond);
+          countQuery = countQuery.or(orTerCond);
       }
    
       // 🔍 4. Smart Search Filter
