@@ -1614,6 +1614,16 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         children: [],
                         _teamMap: {} // แผนที่จำลองเก็บทีมย่อยใน BU นี้
                     };
+
+                    // 🌟 [อัปเกรด] เพิ่ม BU เป็นลูกตัวแรกสุด เพื่อให้ติ๊กข้อมูลระดับ BU เดี่ยวๆ ได้
+                    if (buId !== 'no_bu') {
+                        buMapTer[buId].children.push({
+                            id: 'ter_bu_' + buId,
+                            value: buObj ? (buObj.BU_ID || buObj.id || buId) : buId,
+                            text: '🏢 ' + buName + ' (BU Level)',
+                            isLeaf: true
+                        });
+                    }
                 }
 
                 var currentBuNode = buMapTer[buId];
@@ -1629,8 +1639,19 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         isLeaf: false,
                         children: []
                     };
+
+                    // 🌟 [อัปเกรด] เพิ่ม Team เป็นลูกตัวแรกสุด เพื่อให้ติ๊กข้อมูลระดับ Team เดี่ยวๆ ได้
+                    if (parentTeamId !== 'no_team') {
+                        newTeamNode.children.push({
+                            id: 'ter_tm_' + parentTeamId,
+                            value: tmObj ? (tmObj.Team_ID || tmObj.id || parentTeamId) : parentTeamId,
+                            text: '👥 ' + teamName + ' (Team Level)',
+                            isLeaf: true
+                        });
+                    }
+
                     currentBuNode._teamMap[parentTeamId] = newTeamNode;
-                    currentBuNode.children.push(newTeamNode); // ดันทีมเข้า BU
+                    currentBuNode.children.push(newTeamNode);
                 }
 
                 // 1.3 เอา Territory ไปใส่ใน Team (ชั้นที่ 3 - ลูกของ Team)
@@ -1652,9 +1673,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             terOptionsTree.push({ id: 'other_ter', value: 'OTHER_TERRITORIES', text: '🌐 Other / Cross-Area', isLeaf: true });
         }
 
-
-         // ==============================================
-        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง BU ➔ Role/Team ➔ พนักงาน)
+// ==============================================
+        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง BU ➔ Team ➔ ลำดับขั้นพนักงาน)
         // ==============================================
         var repOptionsTree = [];
         var buMapRep = {}; // ตัวแปรเก็บโครงสร้าง BU ของพนักงาน
@@ -1675,14 +1695,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
             var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
 
-            // 1) ถ้าพนักงานไม่มี Team_ID ให้สืบหาจาก Territory_ID
             if (!teamId && uTerrId) {
                 var tmMatched = allTers.find(function(t) { return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === uTerrId; });
                 if (tmMatched) teamId = String(tmMatched.Team_ID || tmMatched.Team || '').trim().toLowerCase();
             }
             if (!teamId) teamId = 'no_team';
 
-            // 2) ถ้าพนักงานไม่มี BU_ID ให้สืบหาจาก Team_ID
             if (!uBuId && teamId !== 'no_team') {
                 var buMatched = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
@@ -1701,41 +1719,45 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         id: 'bu_rep_' + uBuId,
                         text: '🏢 ' + rBuName,
                         isLeaf: false,
-                        children: [],
-                        _roleGroups: {
-                            'PM': { id: 'grp_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
-                            'MGR': { id: 'grp_mgr_' + uBuId, text: '🧑‍💼 Managers / Leads', isLeaf: false, children: [] },
-                            'SALES': {} // กลุ่ม Sales จะถูกแบ่งย่อยตามชื่อทีม
-                        }
+                        children: [], // เก็บระดับ BU Head ให้อยู่ข้างนอกสุด
+                        _pmGroup: { id: 'grp_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
+                        _teams: {} // เก็บโฟลเดอร์ทีมย่อย
                     };
                 }
 
                 var currentBuRepNode = buMapRep[uBuId];
-                var node = { id: 'rep_' + id, value: id, text: '👤 ' + name, isLeaf: true };
-
-                // 2.2 โยนพนักงานเข้ากลุ่มตาม Role อย่างแม่นยำ
+                
+                // 2.2 คัดแยก Role และกำหนดลำดับขั้น (Priority) อย่างแม่นยำ
+                var isBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
                 var isPM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
-                // ดักจับ Manager, Lead, BU Head, Director ให้อยู่กลุ่มเดียวกัน
-                var isMgr = role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1 || role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
+                var isMgr = !isBuHead && !isPM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
+                
+                // ตัวแปรจัดลำดับความสำคัญ (Priority 1 ขึ้นก่อนเสมอ)
+                var rolePriority = isBuHead ? 1 : (isMgr ? 2 : (isPM ? 3 : 4));
+                var icon = isBuHead ? '👑 ' : (isMgr ? '🧑‍💼 ' : (isPM ? '👤 ' : '👤 '));
 
-                if (isPM) {
-                    currentBuRepNode._roleGroups['PM'].children.push(node);
-                } else if (isMgr) {
-                    currentBuRepNode._roleGroups['MGR'].children.push(node);
+                var node = { id: 'rep_' + id, value: id, text: icon + name, isLeaf: true, _priority: rolePriority };
+
+                if (isBuHead) {
+                    // BU Head เอาไว้นอกสุดใต้ชื่อ BU เลย (ไม่ต้องมีโฟลเดอร์คุม)
+                    currentBuRepNode.children.push(node);
+                } else if (isPM) {
+                    // PM เอาเข้าโฟลเดอร์แยกต่างหาก
+                    currentBuRepNode._pmGroup.children.push(node);
                 } else {
-                    // ถ้าไม่ใช่ PM หรือ Manager ถือว่าเป็นทีม Sales
-                    if (!currentBuRepNode._roleGroups['SALES'][teamId]) {
+                    // Manager และ Sales จัดเข้าโฟลเดอร์ Team ของตัวเอง
+                    if (!currentBuRepNode._teams[teamId]) {
                         var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                         var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
                         
-                        currentBuRepNode._roleGroups['SALES'][teamId] = { 
+                        currentBuRepNode._teams[teamId] = { 
                             id: 'grp_sales_' + uBuId + '_' + teamId, 
-                            text: '👥 ' + teamName + ' (Sales)', 
+                            text: '👥 ' + teamName, 
                             isLeaf: false, 
                             children: [] 
                         };
                     }
-                    currentBuRepNode._roleGroups['SALES'][teamId].children.push(node);
+                    currentBuRepNode._teams[teamId].children.push(node);
                 }
             }
         });
@@ -1743,18 +1765,24 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         // 2.3 ประกอบร่าง Tree ของแต่ละ BU ให้สมบูรณ์ก่อนดันเข้า Tree หลัก
         Object.keys(buMapRep).forEach(function(buKey) {
             var nodeBU = buMapRep[buKey];
-            var finalChildren = [];
+            var finalChildren = [...nodeBU.children]; // เอา BU Head ที่ Push ไว้มาใส่คิวแรกก่อนเลย
             
-            // เรียงลำดับ: นำ PM ขึ้นก่อน ตามด้วย Manager และ ทีม Sales
-            if (nodeBU._roleGroups['PM'].children.length > 0) finalChildren.push(nodeBU._roleGroups['PM']);
-            if (nodeBU._roleGroups['MGR'].children.length > 0) finalChildren.push(nodeBU._roleGroups['MGR']);
-            Object.keys(nodeBU._roleGroups['SALES']).forEach(function(tId) {
-                finalChildren.push(nodeBU._roleGroups['SALES'][tId]);
+            // เรียงลำดับแก๊งระดับหัวหน้า (ถ้ามีหลายคน)
+            finalChildren.sort(function(a, b) { return a._priority - b._priority; });
+
+            // โยนโฟลเดอร์ PM ตามลงไป
+            if (nodeBU._pmGroup.children.length > 0) finalChildren.push(nodeBU._pmGroup);
+            
+            // โยนโฟลเดอร์ Team ต่างๆ ตามลงไป
+            Object.keys(nodeBU._teams).forEach(function(tId) {
+                var teamNode = nodeBU._teams[tId];
+                // บังคับเรียงให้ Manager (Priority 2) ขึ้นก่อน Sales (Priority 4) ภายในทีม
+                teamNode.children.sort(function(a, b) { return a._priority - b._priority; });
+                finalChildren.push(teamNode);
             });
             
             nodeBU.children = finalChildren;
             
-            // ถ้า BU นี้มีคนอยู่ข้างใน ถึงจะเอาไปโชว์
             if (nodeBU.children.length > 0) {
                 repOptionsTree.push(nodeBU);
             }
@@ -1763,19 +1791,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         if (isBuHead || isProductManager || isGlobalViewer) {
             repOptionsTree.push({ id: 'other_reps', value: 'OTHER_REPS', text: '🌐 Other / Cross-Team', isLeaf: true });
         }
-
-        // ==============================================
-        // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
-        // ==============================================
-        window.renderTreeCheckboxList('containerFilterRep', repOptionsTree, 'rep');
-        window.renderTreeCheckboxList('containerFilterTer', terOptionsTree, 'ter');
-
-    } catch (err) {
-        console.error("Error in setupFiltersDropdowns:", err);
-    } finally {
-        window.isPermissionCalculated = true; 
-    }
-};
 
 
 // ==========================================
