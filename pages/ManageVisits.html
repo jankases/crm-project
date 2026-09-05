@@ -134,14 +134,36 @@
                 <div class="p-4" style="max-height: 55vh; overflow-y: auto; overflow-x: hidden;">
                   <div class="row g-4">
                     
-                    <!-- 🔹 คอลัมน์ที่ 1: Status -->
+                    <!-- 🔹 คอลัมน์ที่ 1: Status, Purpose, Coaching -->
                     <div class="col-12 col-md-4">
-                      <label class="form-label fw-bold text-secondary small mb-2" data-i18n="lbl_status">Status</label>
-                      <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus">
-                        <option value="" data-i18n="opt_all_status">- All Status -</option>
-                        <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
-                        <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
-                      </select>
+                      
+                      <!-- 1. Status -->
+                      <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-2" data-i18n="lbl_status">Status</label>
+                        <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus">
+                          <option value="" data-i18n="opt_all_status">- All Status -</option>
+                          <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
+                          <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
+                        </select>
+                      </div>
+
+                      <!-- 2. Purpose -->
+                      <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-2" data-i18n="lbl_purpose">Purpose</label>
+                        <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitPurpose">
+                          <option value="" data-i18n="opt_all_purposes">- All Purposes -</option>
+                          <!-- Options จะถูกวาดโดย TomSelect จาก JS -->
+                        </select>
+                      </div>
+
+                      <!-- 3. Coaching Switch -->
+                      <div class="mt-4 pt-2 border-top border-light">
+                        <div class="form-check form-switch d-flex align-items-center gap-2">
+                          <input class="form-check-input mt-0" type="checkbox" role="switch" id="filterVisitCoaching" style="width: 2.2rem; height: 1.2rem; cursor: pointer;">
+                          <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer" for="filterVisitCoaching" data-i18n="lbl_coaching_only">Show Coaching Only 🧑‍🏫</label>
+                        </div>
+                      </div>
+
                     </div>
 
                     <!-- 🔹 คอลัมน์ที่ 2: Employee / Sales Rep -->
