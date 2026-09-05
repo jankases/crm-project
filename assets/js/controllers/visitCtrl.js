@@ -1667,8 +1667,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         }
 
 
-        // ==============================================
-        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง BU ➔ Team ➔ ลำดับขั้นพนักงาน)
+       // ==============================================
+        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (โครงสร้าง: BU ➔ โฟลเดอร์ตำแหน่ง ➔ พนักงาน)
         // ==============================================
         var repOptionsTree = [];
         var buMapRep = {}; 
@@ -1684,6 +1684,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             var role = String(u.Role || '').toUpperCase();
             
+            // 🌟 สืบหาต้นสังกัด (Territory -> Team -> BU)
             var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
             var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
             var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
@@ -1703,6 +1704,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), true);
                 
+                // 2.1 สร้างโหนด BU (ชั้นที่ 1) พร้อมโฟลเดอร์ตำแหน่งที่เตรียมรอไว้
                 if (!buMapRep[uBuId]) {
                     var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
                     var rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : (uBuId === 'no_bu' ? 'Unassigned BU' : uBuId);
@@ -1711,27 +1713,28 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         id: 'bu_rep_' + uBuId,
                         text: '🏢 ' + rBuName,
                         isLeaf: false,
-                        children: [], 
-                        _pmGroup: { id: 'grp_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
+                        children: [],
+                        // 🌟 เตรียม "โฟลเดอร์ตำแหน่ง" ระดับ BU
+                        _headFolder: { id: 'fld_head_' + uBuId, text: '👑 BU Head', isLeaf: false, children: [] },
+                        _pmFolder: { id: 'fld_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
                         _teams: {} 
                     };
                 }
 
                 var currentBuRepNode = buMapRep[uBuId];
                 
+                // 2.2 คัดแยก Role
                 var isNodeBuHead = role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1;
                 var isNodePM = role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM';
                 var isNodeMgr = !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
-                
-                var rolePriority = isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4));
-                var icon = isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : (isNodePM ? '👤 ' : '👤 '));
 
-                var node = { id: 'rep_' + id, value: id, text: icon + name, isLeaf: true, _priority: rolePriority };
+                var node = { id: 'rep_' + id, value: id, text: '👤 ' + name, isLeaf: true };
 
+                // 2.3 โยนพนักงานเข้า "โฟลเดอร์ตำแหน่ง" ของตัวเอง
                 if (isNodeBuHead) {
-                    currentBuRepNode.children.push(node);
+                    currentBuRepNode._headFolder.children.push(node);
                 } else if (isNodePM) {
-                    currentBuRepNode._pmGroup.children.push(node);
+                    currentBuRepNode._pmFolder.children.push(node);
                 } else {
                     if (!currentBuRepNode._teams[teamId]) {
                         var tmObjRep = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
@@ -1741,26 +1744,41 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                             id: 'grp_sales_' + uBuId + '_' + teamId, 
                             text: '👥 ' + teamNameRep, 
                             isLeaf: false, 
-                            children: [] 
+                            // 🌟 เตรียม "โฟลเดอร์ตำแหน่ง" ระดับ Team
+                            _mgrFolder: { id: 'fld_mgr_' + teamId, text: '🧑‍💼 Team Managers', isLeaf: false, children: [] },
+                            _salesFolder: { id: 'fld_sales_' + teamId, text: '👤 Sales Reps', isLeaf: false, children: [] }
                         };
                     }
-                    currentBuRepNode._teams[teamId].children.push(node);
+
+                    if (isNodeMgr) {
+                        currentBuRepNode._teams[teamId]._mgrFolder.children.push(node);
+                    } else {
+                        currentBuRepNode._teams[teamId]._salesFolder.children.push(node);
+                    }
                 }
             }
         });
 
+        // 2.4 ประกอบร่าง Tree ให้เรียงลำดับสายบังคับบัญชาสวยงาม
         Object.keys(buMapRep).forEach(function(buKey) {
             var nodeBU = buMapRep[buKey];
-            var finalChildren = [...nodeBU.children]; 
+            var finalChildren = []; 
             
-            finalChildren.sort(function(a, b) { return a._priority - b._priority; });
-
-            if (nodeBU._pmGroup.children.length > 0) finalChildren.push(nodeBU._pmGroup);
+            // นำโฟลเดอร์ BU Head และ PM ขึ้นก่อนในระดับ BU
+            if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
+            if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
             
+            // นำโฟลเดอร์ Team เข้ามาต่อท้าย
             Object.keys(nodeBU._teams).forEach(function(tId) {
                 var teamNode = nodeBU._teams[tId];
-                teamNode.children.sort(function(a, b) { return a._priority - b._priority; });
-                finalChildren.push(teamNode);
+                var teamChildren = [];
+                
+                // ภายในทีม ให้เรียงโฟลเดอร์ Manager ขึ้นก่อน Sales
+                if (teamNode._mgrFolder.children.length > 0) teamChildren.push(teamNode._mgrFolder);
+                if (teamNode._salesFolder.children.length > 0) teamChildren.push(teamNode._salesFolder);
+                
+                teamNode.children = teamChildren;
+                if (teamNode.children.length > 0) finalChildren.push(teamNode);
             });
             
             nodeBU.children = finalChildren;
