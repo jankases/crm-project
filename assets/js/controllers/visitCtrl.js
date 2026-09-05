@@ -2506,9 +2506,10 @@ function matchedTerAndUnique(arr) {
     });
 }
 
-// ==========================================
+ // ==========================================
 // 💾 HELPER: SAVE & RESTORE FILTER STATE
 // ==========================================
+
 // 🎯 2. จำค่าที่ติ๊กไว้ (Save State)
 window.saveVisitFilterState = function() {
     window.VisitManagerCache = window.VisitManagerCache || {};
@@ -2527,7 +2528,7 @@ window.saveVisitFilterState = function() {
     };
 };
 
- // 🎯 3. คืนค่าติ๊กถูก (Restore State)
+// 🎯 3. คืนค่าติ๊กถูก (Restore State)
 window.restoreVisitFilterState = function() {
     if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
     var sf = window.VisitManagerCache.savedFilters;
