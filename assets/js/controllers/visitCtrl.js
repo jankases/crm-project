@@ -1244,8 +1244,10 @@ window.deleteTot = async function() {
       purposeItems.forEach(function(i) {
           var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
           var dispText = (appLang === 'en') ? valEN : valTH; 
-          // 🌟 [FIX]: บังคับให้ Dropdown ส่งค่า UUID กลับไปค้นหาในฐานข้อมูล
-          purposeData.push({ value: String(i.Index_ID), text: dispText });
+          
+          // 🌟 [FIX]: ดึง ID ให้ชัวร์ ถ้าไม่มี Index_ID ให้ใช้ id หรือข้อความแทน
+          var pVal = i.Index_ID || i.id || i.Value || ''; 
+          purposeData.push({ value: String(pVal).trim(), text: dispText });
       });
 
       if (typeof TomSelect !== 'undefined') {
@@ -1450,21 +1452,27 @@ window.getCheckedFilterValues = function(type) {
     var container = document.getElementById(containerId);
     if (!container) return [];
     
-    // 🌟 [FIX]: ดึงค่าจากทุก Checkbox ที่ถูกติ๊ก (ไม่จำกัดเฉพาะใบไม้)
+    // 🌟 กวาดเอาค่าจากทุก Checkbox ที่โดนติ๊ก
     var checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
     var values = [];
     
     checkedBoxes.forEach(function(chk) {
         var val = chk.value;
+        // คัดเอาเฉพาะค่าที่ใช้งานได้จริง
         if (val && val !== 'null' && val !== 'undefined' && val !== 'on' && val !== '') {
-            values.push(val);
+            // ถ้าติ๊กโดนโฟลเดอร์ มันจะติด Prefix มาด้วย ให้เราสับเอาเฉพาะรหัส UUID ของจริงมาใช้
+            if (val.indexOf('ter_tm_') !== -1) val = val.replace('ter_tm_', '');
+            else if (val.indexOf('tm_ter_') !== -1) val = val.replace('tm_ter_', '');
+            else if (val.indexOf('ter_bu_') !== -1) val = val.replace('ter_bu_', '');
+            else if (val.indexOf('bu_ter_') !== -1) val = val.replace('bu_ter_', '');
+            else if (val.indexOf('bu_rep_') !== -1) val = val.replace('bu_rep_', '');
+            else if (val.indexOf('grp_sales_') !== -1) val = val.split('_').pop();
+            else if (val.indexOf('rep_') !== -1) val = val.replace('rep_', '');
+            else if (val.indexOf('ter_') !== -1) val = val.replace('ter_', '');
+            
+            if (values.indexOf(val) === -1) values.push(val);
         }
     });
-    
-    // 🌟 ถ้ายอดฮิตคือเลือก "Other" แล้วมันเป็นโฟลเดอร์เปล่า บังคับส่งค่ากลับไปเพื่อให้ระบบกรองข้อมูลออก
-    if (values.length === 0 && checkedBoxes.length > 0) {
-        values.push('OTHER_' + type.toUpperCase()); 
-    }
     
     return values;
 };
@@ -2044,11 +2052,10 @@ window.loadVisits = async function(forceReload, isBackground) {
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
-      
+
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 [FIX Purpose]: ดึงค่าตรงๆ จาก DOM เพื่อป้องกันบั๊ก Dropdown ตีกัน
       var purposeEl = document.getElementById('filterVisitPurpose');
       var purposeTerm = purposeEl ? purposeEl.value : '';
       if (!purposeTerm && window.tomSelectFilterPurposeInstance) {
@@ -2066,14 +2073,14 @@ window.loadVisits = async function(forceReload, isBackground) {
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
-      // นำค่าไปใส่ในเงื่อนไขการดึงข้อมูลจาก Database
+      // 🌟 นำค่าไปใส่ในเงื่อนไขการดึงข้อมูล
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
-      
-      // 🌟 [FIX Purpose]: เช็กก่อนว่าเป็น UUID หรือ Text ค่อยสั่ง Query เพื่อไม่ให้ระบบ Error เบื้องหลัง
-      if (purposeTerm) {
+
+      // 🌟 [FIX Purpose]: เช็กค่าให้ชัวร์ ถ้าเป็น UUID ใช้ eq ถ้าเป็นข้อความใช้ ilike
+      if (purposeTerm && purposeTerm !== 'null' && purposeTerm !== 'undefined') {
           var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(purposeTerm);
           if (isUUID) {
               dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
@@ -2088,126 +2095,38 @@ window.loadVisits = async function(forceReload, isBackground) {
           dataQuery = dataQuery.eq('Is_Coaching', true);
           countQuery = countQuery.eq('Is_Coaching', true);
       }
-      
+
       if (startDateTerm) {
           dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
           countQuery = countQuery.gte('Visit_Date', startDateTerm);
       }
-      
+
       if (endDateTerm) {
           dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
 
-      // 🌟 [FIX Employee]: รองรับกรณีคลิกโฟลเดอร์เปล่า และ Query ทั้ง UUID/Name
-      var validReps = selectedReps.filter(function(r) { return r && String(r).trim() !== ''; });
-      if (validReps.length > 0) {
-          var repSearchValues = [...validReps];
-          validReps.forEach(function(rId) {
-              var uObj = (window.globalUsersList || []).find(function(u) { return String(u.Rep_ID) === String(rId); });
-              if (uObj) {
-                  if (uObj.Rep_Name) repSearchValues.push(uObj.Rep_Name);
-                  if (uObj.Email) repSearchValues.push(uObj.Email);
-              }
-          });
-          var cleanRepVals = repSearchValues.map(function(v) { return '"' + String(v).replace(/"/g, '') + '"'; }).join(',');
-          var orRepCond = `Rep_ID.in.(${cleanRepVals}),Whoupdated.in.(${cleanRepVals})`;
-          dataQuery = dataQuery.or(orRepCond);
-          countQuery = countQuery.or(orRepCond);
+      // 🌟 [FIX Employee]: โยน Array ของ ID ที่หามาได้เข้าไปตรงๆ
+      if (selectedReps.length > 0) {
+          if (selectedReps.includes('other_reps')) {
+             var orRepCond = `Rep_ID.is.null,Rep_ID.eq.""`;
+             dataQuery = dataQuery.or(orRepCond);
+             countQuery = countQuery.or(orRepCond);
+          } else {
+             dataQuery = dataQuery.in('Rep_ID', selectedReps);
+             countQuery = countQuery.in('Rep_ID', selectedReps);
+          }
       }
 
-      // 🌟 [FIX Territory]: รองรับกรณีคลิกโฟลเดอร์เปล่า และ Query ทั้ง UUID/Name
-      var validTers = selectedTers.filter(function(t) { return t && String(t).trim() !== ''; });
-      if (validTers.length > 0) {
-          var terSearchValues = [...validTers];
-          validTers.forEach(function(tId) {
-              var tObj = (window.globalTerritoryList || []).find(function(t) { return String(t.Territory_ID) === String(tId); });
-              if (tObj && tObj.Territory) terSearchValues.push(tObj.Territory);
-              
-              var tmObj = (window.globalTeamList || []).find(function(tm) { return String(tm.Team_ID) === String(tId); });
-              if (tmObj && tmObj.Team) terSearchValues.push(tmObj.Team);
-          });
-          var cleanTerVals = terSearchValues.map(function(v) { return '"' + String(v).replace(/"/g, '') + '"'; }).join(',');
-          var orTerCond = `Territory_ID.in.(${cleanTerVals})`;
-          dataQuery = dataQuery.or(orTerCond);
-          countQuery = countQuery.or(orTerCond);
-      }
-   
-      // 🔍 4. Smart Search Filter
-      var rawSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value.trim().toLowerCase() : '';
-      if (rawSearchVal) {
-          var searchTerms = rawSearchVal.split(/\s+/); 
-          sb = window.supabaseClient || window.supabase;
-
-          for (var i = 0; i < searchTerms.length; i++) {
-              var term = searchTerms[i];
-              
-              if (term.length < 2 && searchTerms.length > 1) {
-                  continue; 
-              }
-
-              var matchedDocIds = [];
-              var matchedVisitIds = [];
-
-              (window.globalAssignedDoctors || []).forEach(function(doc) {
-                  var isMatch = false;
-                  var dNameEn = String(doc.Doc_Name || doc.doc_name || doc.name || '').toLowerCase();
-                  var dNameTh = String(doc.Doc_Name_TH || '').toLowerCase();
-
-                  if (dNameEn.indexOf(term) !== -1 || dNameTh.indexOf(term) !== -1) {
-                      isMatch = true;
-                  }
-
-                  if (!isMatch && doc.Hospitals) {
-                      var hEn = String(doc.Hospitals.Hospital || doc.Hospitals.Known_As || '').toLowerCase();
-                      if (hEn.indexOf(term) !== -1) {
-                          isMatch = true;
-                      }
-                  }
-
-                  if (isMatch) {
-                      var docId = doc.Doc_ID || doc.doc_id || doc.id;
-                      if (docId) matchedDocIds.push(docId);
-                  }
-              });
-
-              var matchedProductIds = [];
-              var allProds = window.globalProductsList || (window.VisitManagerCache ? window.VisitManagerCache.products : []) || [];
-              allProds.forEach(function(p) {
-                  var pEn = String(p.Product || '').toLowerCase();
-                  var pTh = String(p.Product_TH || p.product_th || '').toLowerCase();
-                  if (pEn.indexOf(term) !== -1 || pTh.indexOf(term) !== -1) {
-                      matchedProductIds.push(p.Product_ID || p.id);
-                  }
-              });
-
-              if (matchedProductIds.length > 0) {
-                  try {
-                      var vpRes = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', matchedProductIds);
-                      if (!vpRes.error && vpRes.data) {
-                          matchedVisitIds = vpRes.data.map(function(vp) { return vp.Visit_ID; });
-                      }
-                  } catch (e) { console.error("Search Product Error:", e); }
-              }
-
-              var orConditionsArray = [];
-              
-              if (matchedDocIds.length > 0) {
-                  orConditionsArray.push(`Doc_ID.in.(${matchedDocIds.slice(0, 150).join(',')})`);
-              }
-              if (matchedVisitIds.length > 0) {
-                  orConditionsArray.push(`Visit_ID.in.(${matchedVisitIds.slice(0, 150).join(',')})`);
-              }
-
-              if (orConditionsArray.length > 0) {
-                  var finalOrString = orConditionsArray.join(',');
-                  dataQuery = dataQuery.or(finalOrString);
-                  countQuery = countQuery.or(finalOrString);
-              } else {
-                  dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-                  countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
-                  break; 
-              }
+      // 🌟 [FIX Territory]: โยน Array ของ ID ที่หามาได้เข้าไปตรงๆ
+      if (selectedTers.length > 0) {
+          if (selectedTers.includes('other_ter')) {
+             var orTerCond = `Territory_ID.is.null,Territory_ID.eq.""`;
+             dataQuery = dataQuery.or(orTerCond);
+             countQuery = countQuery.or(orTerCond);
+          } else {
+             dataQuery = dataQuery.in('Territory_ID', selectedTers);
+             countQuery = countQuery.in('Territory_ID', selectedTers);
           }
       }
 
