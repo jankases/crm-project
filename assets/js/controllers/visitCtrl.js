@@ -1224,9 +1224,11 @@ window.deleteTot = async function() {
         await window.setupFiltersDropdowns(crmUser, []);
     }
 
-    // 5. ปั้น Purpose Dropdown
+   // 5. ปั้น Purpose Dropdown (สำหรับในฟอร์ม และ แผง Filter)
     var purposeSelect = document.getElementById('visitPurpose');
-    if (purposeSelect) { 
+    var filterPurposeSelect = document.getElementById('filterVisitPurpose'); // 🌟 ตัวใหม่สำหรับ Filter
+    
+    if (purposeSelect || filterPurposeSelect) { 
       var types = window.VisitManagerCache.indexTypes || []; 
       var indexes = window.VisitManagerCache.indexes || [];
       
@@ -1246,18 +1248,34 @@ window.deleteTot = async function() {
       });
 
       if (typeof TomSelect !== 'undefined') {
-          window.safeDestroyTs(window.tomSelectPurposeInstance);
-          purposeSelect.innerHTML = '<option value=""></option>'; 
-          window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
-              options: purposeData, 
-              valueField: 'value', 
-              labelField: 'text', 
-              searchField: ["text"], 
-              placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', 
-              create: false, 
-              dropdownParent: 'body'
-          });
-          if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
+          // 5.1 🌟 ผูก TomSelect ให้ในฟอร์มบันทึกเยี่ยม
+          if (purposeSelect) {
+              window.safeDestroyTs(window.tomSelectPurposeInstance);
+              purposeSelect.innerHTML = '<option value=""></option>'; 
+              window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
+                  options: purposeData, 
+                  valueField: 'value', labelField: 'text', searchField: ["text"], 
+                  placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', 
+                  create: false, dropdownParent: 'body'
+              });
+              if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
+          }
+
+          // 5.2 🌟 ผูก TomSelect ให้กล่อง Advanced Filters
+          if (filterPurposeSelect) {
+              window.safeDestroyTs(window.tomSelectFilterPurposeInstance);
+              filterPurposeSelect.innerHTML = '<option value=""></option>'; 
+              window.tomSelectFilterPurposeInstance = new TomSelect('#filterVisitPurpose', { 
+                  options: purposeData, 
+                  valueField: 'value', labelField: 'text', searchField: ["text"], 
+                  placeholder: appLang === 'th' ? '- ทุกวัตถุประสงค์ -' : '- All Purposes -', 
+                  create: false, allowEmptyOption: true, dropdownParent: null // ใช้ null เพื่อไม่ให้เมนูบั๊ก
+              });
+              
+              // คืนค่าเก่าถ้าเคยเซฟไว้
+              var oldFilterPurpVal = window.VisitManagerCache && window.VisitManagerCache.savedFilters ? window.VisitManagerCache.savedFilters.purpose : '';
+              if (oldFilterPurpVal) window.tomSelectFilterPurposeInstance.setValue(oldFilterPurpVal, true);
+          }
       }
     }
 
@@ -1560,11 +1578,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTeamIds = myAllowedTeamIds; 
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
-// ==============================================
+        // ==============================================
         // 🎯 1. ปั้นข้อมูล AREA / TEAM (โครงสร้าง BU ➔ Team ➔ Territory)
         // ==============================================
         var terOptionsTree = [];
         var buMapTer = {}; 
+        var primaryBuId = String(userBuId || 'no_bu').trim().toLowerCase();
         
         var allTers = window.globalTerritories || window.globalTerritoryList || [];
         if (allTers.length === 0) {
@@ -1589,16 +1608,21 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             } catch(e) {}
         }
 
-        var primaryBuId = userBuId || 'no_bu';
+        // 🌟 ปลดล็อกให้ผู้บริหารเห็นพื้นที่ข้ามเขตได้ (เพื่อให้กล่อง Other ทำงาน)
+        var allowedTerArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager)
+            ? allTers
+            : allTers.filter(function(t) {
+                var tid = String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase();
+                var tId = String(t.Team_ID || t.Team || '').trim().toLowerCase();
+                return myAllowedTerIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tId) !== -1;
+            });
 
-        allTers.forEach(function(t) {
+        allowedTerArrayForDropdown.forEach(function(t) {
             var tid = String(t.Territory_ID || t.id || t.Territory || '').trim(); 
             var tnm = String(t.Territory || t.Territory_Name || t.Name || tid).trim();
             var teamId = String(t.Team_ID || t.Team || '').trim().toLowerCase();
 
-            var isAllowed = isGlobalViewer || myAllowedTerIds.indexOf(tid.toLowerCase()) !== -1 || myAllowedTeamIds.indexOf(teamId) !== -1;
-
-            if (isAllowed && tid) {
+            if (tid) {
                 var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                 var buId = tmObj ? String(tmObj.BU_ID || tmObj.BU || '').trim().toLowerCase() : 'no_bu';
                 
@@ -1627,7 +1651,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         _teamMap: {} 
                     };
 
-                    // เติมให้เลือก BU เดี่ยวๆ ได้ (ยกเว้นกล่อง Other/Unassigned)
+                    // ให้เลือก BU ย่อยเดี่ยวๆ ได้ (ข้าม Other ไป)
                     if (buId !== 'no_bu' && !isOther) {
                         buMapTer[buId].children.push({
                             id: 'ter_bu_' + buId,
@@ -1673,7 +1697,13 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        Object.keys(buMapTer).forEach(function(key) {
+        // 🌟 ดัน Other ให้อยู่ล่างสุดเสมอ
+        var sortedTerKeys = Object.keys(buMapTer).sort((a,b) => {
+            if (a === 'other_bu') return 1;
+            if (b === 'other_bu') return -1;
+            return 0;
+        });
+        sortedTerKeys.forEach(function(key) {
             terOptionsTree.push(buMapTer[key]);
         });
 
@@ -1683,14 +1713,17 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         // ==============================================
         var repOptionsTree = [];
         var buMapRep = {}; 
-        
         var uniqueUsersMap = new Map();
-        var fullAllowedUsers = isGlobalViewer ? window.globalUsersList : window.globalUsersList.filter(function(u) {
-            var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
-            return isSales ? (uid === uRepId) : (myAllowedRepIds.indexOf(uid) !== -1);
-        });
+
+        // 🌟 ปลดล็อกให้ผู้บริหารเห็นรายชื่อข้ามสายงานได้
+        var allowedRepArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager) 
+            ? window.globalUsersList 
+            : window.globalUsersList.filter(function(u) {
+                var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
+                return myAllowedRepIds.indexOf(uid) !== -1;
+            });
         
-        fullAllowedUsers.forEach(function(u) {
+        allowedRepArrayForDropdown.forEach(function(u) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
             var role = String(u.Role || '').toUpperCase();
@@ -1785,7 +1818,13 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
 
-        Object.keys(buMapRep).forEach(function(buKey) {
+        var sortedRepKeys = Object.keys(buMapRep).sort((a,b) => {
+            if (a === 'other_bu') return 1;
+            if (b === 'other_bu') return -1;
+            return 0;
+        });
+
+        sortedRepKeys.forEach(function(buKey) {
             var nodeBU = buMapRep[buKey];
             var finalChildren = []; 
             
@@ -1810,7 +1849,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             }
         });
  
-
         // ==============================================
         // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
         // ==============================================
@@ -1976,7 +2014,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
           }
       }
 
-      // 🎯 3. Filter Controls (ดึงค่าจาก Checkbox ตัวใหม่และกล่อง Status)
+     // 🎯 3. Filter Controls (ดึงค่าจาก Checkbox ตัวใหม่และกล่อง Status)
       var statusEl = document.getElementById('filterVisitStatus');
       var statusTerm = statusEl ? statusEl.value : '';
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(statusTerm);
@@ -1984,22 +2022,33 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
       var startDateTerm = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
       var endDateTerm = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-      // 🌟 ดึงค่าจาก Checkbox ตัวใหม่ที่เราทำใน HTML
+      // 🌟 ดึงค่าจากกล่อง Purpose และ สวิตช์ Coaching
+      var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+      var coachingTerm = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
+
       var selectedReps = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [];
       var selectedTers = (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : [];
 
-      // 🌟 แสดงป้ายบอกจำนวนที่กรองตรง Badge หัวข้อ Advanced Filters
+      // 🌟 อัปเดตตัวนับ Active Filters ให้บวกรวม Purpose กับ Coaching ด้วย
       var lblCountEl = document.getElementById('lblSelectedCount');
       if (lblCountEl) {
-          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0);
+          var totalActiveFilters = selectedReps.length + selectedTers.length + (statusTerm ? 1 : 0) + (purposeTerm ? 1 : 0) + (coachingTerm ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
+      // นำค่าไปใส่ในเงื่อนไขการดึงข้อมูลจาก Database
       if (statusTerm) {
           dataQuery = dataQuery.eq('Status', statusTerm);
           countQuery = countQuery.eq('Status', statusTerm);
       }
-
+      if (purposeTerm) {
+          dataQuery = dataQuery.eq('Purpose_ID', purposeTerm);
+          countQuery = countQuery.eq('Purpose_ID', purposeTerm);
+      }
+      if (coachingTerm) {
+          dataQuery = dataQuery.eq('Is_Coaching', true);
+          countQuery = countQuery.eq('Is_Coaching', true);
+      }
       if (startDateTerm) {
           dataQuery = dataQuery.gte('Visit_Date', startDateTerm);
           countQuery = countQuery.gte('Visit_Date', startDateTerm);
@@ -2008,12 +2057,10 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
           dataQuery = dataQuery.lte('Visit_Date', endDateTerm);
           countQuery = countQuery.lte('Visit_Date', endDateTerm);
       }
-
       if (selectedReps.length > 0) {
           dataQuery = dataQuery.in('Rep_ID', selectedReps);
           countQuery = countQuery.in('Rep_ID', selectedReps);
       }
-
       if (selectedTers.length > 0) {
           dataQuery = dataQuery.in('Territory_ID', selectedTers);
           countQuery = countQuery.in('Territory_ID', selectedTers);
@@ -2395,42 +2442,65 @@ window.clearSmartSearchInput = function() {
 };
  
 
- window.clearVisitFilters = function() {
-    // 🎯 ล้างค่า Checkbox ตัวใหม่ทั้งหมด (Rep & Area)
-    if (typeof window.toggleAllCheckboxes === 'function') {
-        window.toggleAllCheckboxes('rep', false);
-        window.toggleAllCheckboxes('ter', false);
-    }
-
-    // 🎯 ล้างค่าช่องพิมพ์ค้นหาด้านใน Advanced Filters
-    var searchRep = document.getElementById('searchRepFilter');
-    var searchTer = document.getElementById('searchTerFilter');
-    if (searchRep) { searchRep.value = ''; window.filterCheckboxList('rep', ''); }
-    if (searchTer) { searchTer.value = ''; window.filterCheckboxList('ter', ''); }
-
-    // 🎯 ล้างค่า Status Dropdown
-    if (window.tomSelectStatusInstance) {
-        window.tomSelectStatusInstance.setValue('', true);
-    } else {
-        var stEl = document.getElementById('filterVisitStatus');
-        if (stEl) stEl.value = '';
-    }
+// 5. ปั้น Purpose Dropdown (สำหรับในฟอร์ม และ แผง Filter)
+    var purposeSelect = document.getElementById('visitPurpose');
+    var filterPurposeSelect = document.getElementById('filterVisitPurpose'); // 🌟 ตัวใหม่สำหรับ Filter
     
-    // 🎯 ล้างค่า Date Pickers ด้านนอก
-    if (window.fpStartInstance) window.fpStartInstance.clear();
-    if (window.fpEndInstance) window.fpEndInstance.clear();
+    if (purposeSelect || filterPurposeSelect) { 
+      var types = window.VisitManagerCache.indexTypes || []; 
+      var indexes = window.VisitManagerCache.indexes || [];
+      
+      var purposeTypes = types.filter(function(t) { 
+        var name = (t.Name || '').trim().toLowerCase();
+        return String(t.IndexType_ID) === '9e6feb89-83e2-4c83-a0e5-5fbd057afbf2' || name === 'purpose' || name === 'callpurpose' || name === 'call purpose';
+      });
 
-    var stDate = document.getElementById('filterStartDate');
-    var endDate = document.getElementById('filterEndDate');
-    if (stDate && !window.fpStartInstance) stDate.value = '';
-    if (endDate && !window.fpEndInstance) endDate.value = '';
+      var typeIds = purposeTypes.map(function(t) { return t.IndexType_ID; });
+      var purposeItems = indexes.filter(function(i) { return typeIds.indexOf(i.IndexType_ID) !== -1; });
 
-    // 🎯 ล้างค่า Smart Search ด้านนอก
-    var searchEl = document.getElementById('smartSearchInput');
-    if (searchEl) searchEl.value = '';
+      var purposeData = [];
+      purposeItems.forEach(function(i) {
+          var valTH = i.Value || ''; var valEN = i.Value1 || valTH; 
+          var dispText = (appLang === 'en') ? valEN : valTH;
+          purposeData.push({ value: String(i.Index_ID), text: dispText });
+      });
 
-    // สั่งรีโหลดตารางใหม่
-    if (typeof window.filterVisits === 'function') window.filterVisits();
+      if (typeof TomSelect !== 'undefined') {
+          // 5.1 🌟 ผูก TomSelect ให้ในฟอร์มบันทึกเยี่ยม
+          if (purposeSelect) {
+              window.safeDestroyTs(window.tomSelectPurposeInstance);
+              purposeSelect.innerHTML = '<option value=""></option>'; 
+              window.tomSelectPurposeInstance = new TomSelect('#visitPurpose', { 
+                  options: purposeData, 
+                  valueField: 'value', labelField: 'text', searchField: ["text"], 
+                  placeholder: appLang === 'th' ? '-- เลือกวัตถุประสงค์ --' : '-- Select Purpose --', 
+                  create: false, dropdownParent: 'body'
+              });
+              if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
+          }
+
+          // 5.2 🌟 ผูก TomSelect ให้กล่อง Advanced Filters
+          if (filterPurposeSelect) {
+              window.safeDestroyTs(window.tomSelectFilterPurposeInstance);
+              filterPurposeSelect.innerHTML = '<option value=""></option>'; 
+              window.tomSelectFilterPurposeInstance = new TomSelect('#filterVisitPurpose', { 
+                  options: purposeData, 
+                  valueField: 'value', labelField: 'text', searchField: ["text"], 
+                  placeholder: appLang === 'th' ? '- ทุกวัตถุประสงค์ -' : '- All Purposes -', 
+                  create: false, allowEmptyOption: true, dropdownParent: null // ใช้ null เพื่อไม่ให้เมนูบั๊ก
+              });
+              
+              // คืนค่าเก่าถ้าเคยเซฟไว้
+              var oldFilterPurpVal = window.VisitManagerCache && window.VisitManagerCache.savedFilters ? window.VisitManagerCache.savedFilters.purpose : '';
+              if (oldFilterPurpVal) window.tomSelectFilterPurposeInstance.setValue(oldFilterPurpVal, true);
+          }
+      }
+    }
+
+    window.isPermissionCalculated = true;
+  } catch (err) { 
+    console.error("Error loading dropdowns:", err.message); 
+  }
 };
  
 
@@ -2443,53 +2513,61 @@ function matchedTerAndUnique(arr) {
 // ==========================================
 // 💾 HELPER: SAVE & RESTORE FILTER STATE
 // ==========================================
+// 🎯 2. จำค่าที่ติ๊กไว้ (Save State)
 window.saveVisitFilterState = function() {
     window.VisitManagerCache = window.VisitManagerCache || {};
     window.VisitManagerCache.savedFilters = {
         search: document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '',
-        status: window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : '',
+        status: window.tomSelectStatusInstance ? window.tomSelectStatusInstance.getValue() : (document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : ''),
+        // 🌟 เก็บค่า Purpose & Coaching
+        purpose: window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '',
+        coaching: document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false,
+        
         startDate: document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '',
         endDate: document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '',
-        page: window.currentPage || 1
+        page: window.currentPage || 1,
+        rep: (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('rep') : [],
+        ter: (typeof window.getCheckedFilterValues === 'function') ? window.getCheckedFilterValues('ter') : []
     };
 };
 
- window.restoreVisitFilterState = function() {
+ / 🎯 3. คืนค่าติ๊กถูก (Restore State)
+window.restoreVisitFilterState = function() {
     if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
     var sf = window.VisitManagerCache.savedFilters;
 
-    if (sf.search && document.getElementById('smartSearchInput')) {
-        document.getElementById('smartSearchInput').value = sf.search;
-    }
-    if (sf.startDate && document.getElementById('filterStartDate')) {
-        document.getElementById('filterStartDate').value = sf.startDate;
-    }
-    if (sf.endDate && document.getElementById('filterEndDate')) {
-        document.getElementById('filterEndDate').value = sf.endDate;
-    }
-    if (sf.status && window.tomSelectStatusInstance) {
-        window.tomSelectStatusInstance.setValue(sf.status, true);
-    } else if (sf.status && document.getElementById('filterVisitStatus')) {
-        document.getElementById('filterVisitStatus').value = sf.status;
-    }
+    if (sf.search && document.getElementById('smartSearchInput')) document.getElementById('smartSearchInput').value = sf.search;
+    if (sf.startDate && document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = sf.startDate;
+    if (sf.endDate && document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = sf.endDate;
+    
+    if (sf.status && window.tomSelectStatusInstance) window.tomSelectStatusInstance.setValue(sf.status, true);
+    else if (sf.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = sf.status;
 
-    // 🎯 คืนค่า Checkbox Rep ที่เคยติ๊กไว้
+    // 🌟 คืนค่า Purpose & Coaching
+    if (sf.purpose && window.tomSelectFilterPurposeInstance) window.tomSelectFilterPurposeInstance.setValue(sf.purpose, true);
+    if (sf.coaching !== undefined && document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = sf.coaching;
+
     if (sf.rep && Array.isArray(sf.rep) && sf.rep.length > 0) {
         sf.rep.forEach(function(val) {
             var chk = document.getElementById('chk_rep_' + val);
-            if (chk) chk.checked = true;
+            if (chk) { chk.checked = true; if (typeof window.updateTreeAncestorState === 'function') window.updateTreeAncestorState(chk.closest('li'), 'rep'); }
         });
     }
 
-    // 🎯 คืนค่า Checkbox Territory ที่เคยติ๊กไว้
     if (sf.ter && Array.isArray(sf.ter) && sf.ter.length > 0) {
         sf.ter.forEach(function(val) {
             var chk = document.getElementById('chk_ter_' + val);
-            if (chk) chk.checked = true;
+            if (chk) { chk.checked = true; if (typeof window.updateTreeAncestorState === 'function') window.updateTreeAncestorState(chk.closest('li'), 'ter'); }
         });
     }
 
     if (sf.page) window.currentPage = sf.page;
+    
+    var lblCountEl = document.getElementById('lblSelectedCount');
+    if (lblCountEl) {
+        var totalActive = (sf.rep ? sf.rep.length : 0) + (sf.ter ? sf.ter.length : 0) + (sf.status ? 1 : 0) + (sf.purpose ? 1 : 0) + (sf.coaching ? 1 : 0);
+        lblCountEl.textContent = totalActive > 0 ? (totalActive + ' Active') : 'All Data';
+    }
 };
 
 window.renderVisitTableServerSide = function() {
