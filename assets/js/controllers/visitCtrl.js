@@ -1263,19 +1263,23 @@ window.deleteTot = async function() {
               if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
           }
 
-          // 5.2 🌟 ผูก TomSelect ให้กล่อง Advanced Filters
+         // 5.2 🌟 ผูก TomSelect ให้กล่อง Advanced Filters
           if (filterPurposeSelect) {
               window.safeDestroyTs(window.tomSelectFilterPurposeInstance);
               filterPurposeSelect.innerHTML = '<option value=""></option>'; 
               window.tomSelectFilterPurposeInstance = new TomSelect('#filterVisitPurpose', { 
                   options: purposeData, 
                   valueField: 'value', labelField: 'text', searchField: ["text"], 
-                  placeholder: appLang === 'th' ? '- ทุกวัตถุประสงค์ -' : '- All Purposes -', 
-                  create: false, allowEmptyOption: true, dropdownParent: null // ใช้ null เพื่อไม่ให้เมนูบั๊ก
+                  placeholder: appLang === 'th' ? '- ทุกวัตถุประสงค์ (เลือกได้หลายข้อ) -' : '- All Purposes (Multi) -', 
+                  create: false, 
+                  allowEmptyOption: true, 
+                  dropdownParent: null,
+                  maxItems: null, // 👈 1. ปลดล็อกให้เลือกได้หลายอัน
+                  plugins: ['remove_button'] // 👈 2. เพิ่มปุ่ม (x) ให้กดลบง่ายๆ
               });
               
-              // คืนค่าเก่าถ้าเคยเซฟไว้
-              var oldFilterPurpVal = window.VisitManagerCache && window.VisitManagerCache.savedFilters ? window.VisitManagerCache.savedFilters.purpose : '';
+              // คืนค่าเก่าถ้าเคยเซฟไว้ (รองรับทั้งแบบ Array และแบบ String เดิม)
+              var oldFilterPurpVal = window.VisitManagerCache && window.VisitManagerCache.savedFilters ? window.VisitManagerCache.savedFilters.purpose : [];
               if (oldFilterPurpVal) window.tomSelectFilterPurposeInstance.setValue(oldFilterPurpVal, true);
           }
       }
@@ -1923,22 +1927,28 @@ window.loadVisits = async function(forceReload, isBackground) {
     var capturedStartDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : '';
     var capturedEndDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : '';
 
-    var purposeTerm = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
-    if (!purposeTerm) {
-        var pEl = document.getElementById('filterVisitPurpose');
-        if (pEl) purposeTerm = pEl.value;
+    // 🌟 [FIX 1: Purpose] รองรับ Multi-select (รับค่ามาเป็น Array)
+    var rawPurposeVal = window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : '';
+    var purposeTerms = Array.isArray(rawPurposeVal) ? rawPurposeVal : (rawPurposeVal ? [rawPurposeVal] : []);
+    
+    if (purposeTerms.length === 0 && document.getElementById('filterVisitPurpose')) {
+        var pElVal = document.getElementById('filterVisitPurpose').value;
+        purposeTerms = pElVal ? [pElVal] : [];
     }
-    var capturedPurposeId = '';
-    if (purposeTerm && purposeTerm !== 'undefined' && purposeTerm !== 'null') {
-        if (/^[0-9a-f]{8}-/i.test(purposeTerm)) {
-            capturedPurposeId = purposeTerm;
-        } else {
-            var idxItem = (window.VisitManagerCache && window.VisitManagerCache.indexes || []).find(function(idx) {
-                return String(idx.Value).trim() === purposeTerm || String(idx.Value1).trim() === purposeTerm;
-            });
-            capturedPurposeId = idxItem ? (idxItem.Index_ID || idxItem.id || purposeTerm) : purposeTerm;
+
+    var capturedPurposeIds = []; // เปลี่ยนเป็น Array เก็บหลาย ID
+    purposeTerms.forEach(function(pTerm) {
+        if (pTerm && pTerm !== 'undefined' && pTerm !== 'null' && pTerm !== '') {
+            if (/^[0-9a-f]{8}-/i.test(pTerm)) {
+                capturedPurposeIds.push(pTerm);
+            } else {
+                var idxItem = (window.VisitManagerCache && window.VisitManagerCache.indexes || []).find(function(idx) {
+                    return String(idx.Value).trim() === pTerm || String(idx.Value1).trim() === pTerm;
+                });
+                if (idxItem) capturedPurposeIds.push(idxItem.Index_ID || idxItem.id || pTerm);
+            }
         }
-    }
+    });
 
     var capturedCoaching = document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false;
 
@@ -2149,8 +2159,9 @@ window.loadVisits = async function(forceReload, isBackground) {
       // 🎯 3. Advanced Filter (อัปเดต UI ด้วยค่าที่งับมาได้ตั้งแต่แรก)
       if (typeof window.updateStatCardActiveUI === 'function') window.updateStatCardActiveUI(capturedStatus);
       var lblCountEl = document.getElementById('lblSelectedCount');
-      if (lblCountEl) {
-          var totalActiveFilters = capturedReps.length + capturedTers.length + (capturedStatus ? 1 : 0) + (capturedPurposeId ? 1 : 0) + (capturedCoaching ? 1 : 0);
+   
+        if (lblCountEl) {
+          var totalActiveFilters = capturedReps.length + capturedTers.length + (capturedStatus ? 1 : 0) + capturedPurposeIds.length + (capturedCoaching ? 1 : 0);
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
@@ -2162,15 +2173,10 @@ window.loadVisits = async function(forceReload, isBackground) {
           countQuery = countQuery.eq('Status', capturedStatus);
       }
 
-      if (capturedPurposeId) {
-          var isUUID = /^[0-9a-f]{8}-/i.test(capturedPurposeId);
-          if (isUUID) {
-              dataQuery = dataQuery.eq('Purpose_ID', capturedPurposeId);
-              countQuery = countQuery.eq('Purpose_ID', capturedPurposeId);
-          } else {
-              dataQuery = dataQuery.ilike('Purpose', '%' + capturedPurposeId + '%');
-              countQuery = countQuery.ilike('Purpose', '%' + capturedPurposeId + '%');
-          }
+      // 🌟 ส่ง Array ของ Purpose ให้ Supabase ค้นหาทั้งหมดที่ตรงกัน
+      if (finalPurposeIds.length > 0) {
+          dataQuery = dataQuery.in('Purpose_ID', finalPurposeIds);
+          countQuery = countQuery.in('Purpose_ID', finalPurposeIds);
       }
 
       if (capturedCoaching) {
