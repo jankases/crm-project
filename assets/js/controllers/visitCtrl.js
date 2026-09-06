@@ -1658,7 +1658,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             } catch(e) {}
         }
 
-        var allowedTerArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager)
+       var allowedTerArrayForDropdown = isGlobalViewer
             ? allTers
             : allTers.filter(function(t) {
                 var tid = String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase();
@@ -1761,7 +1761,7 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         var buMapRep = {}; 
         var uniqueUsersMap = new Map();
 
-        var allowedRepArrayForDropdown = (isGlobalViewer || isBuHead || isProductManager) 
+       var allowedRepArrayForDropdown = isGlobalViewer 
             ? window.globalUsersList 
             : window.globalUsersList.filter(function(u) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
