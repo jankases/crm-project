@@ -213,8 +213,8 @@
 
                 <!-- 📌 3. Panel Footer (ตรึงอยู่ด้านล่างสุดเสมอ) -->
                 <div class="bg-light px-4 py-3 border-top d-flex justify-content-between align-items-center">
-                  <!-- ปุ่ม Clear All -->
-                  <button type="button" class="btn btn-link text-danger text-decoration-none fw-bold px-0" onclick="window.clearVisitFilters()">
+                  <!-- 🌟 แก้ไข: เติมคำว่า event ลงไปในวงเล็บ เพื่อกันหน้าต่างพับ -->
+                  <button type="button" class="btn btn-link text-danger text-decoration-none fw-bold px-0" onclick="window.clearVisitFilters(event)">
                     <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_all">Clear all</span>
                   </button>
                   
@@ -223,8 +223,8 @@
                     <button type="button" class="btn btn-white border fw-semibold shadow-sm px-4 text-secondary" onclick="document.getElementById('btnAdvFilterDropdown').click()">
                       <span data-i18n="btn_cancel">Cancel</span>
                     </button>
-                    <!-- 🌟 ปุ่ม Apply หลัก (ผูก onclick เพื่อ Save State & Load ข้อมูล) -->
-                    <button type="button" class="btn btn-premium-primary fw-bold shadow-sm px-5" id="btnApplyAdvancedFilters" onclick="window.applyAdvancedFilters()">
+                    <!-- 🌟 แก้ไข: ลบ onclick ทิ้งไปเลย เพราะใน JS เราดัก Event พร้อมแอนิเมชันปุ่มไว้แล้ว -->
+                    <button type="button" class="btn btn-premium-primary fw-bold shadow-sm px-5" id="btnApplyAdvancedFilters">
                       <i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_apply_close">Apply & Close</span>
                     </button>
                   </div>
@@ -236,7 +236,15 @@
         </div>
       </div>
 
-      <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column" style="min-height: 0;">
+       <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column position-relative" style="min-height: 0;">
+        
+        <!-- 🌟 สร้าง Overlay Loading ทับตารางให้เต็มพื้นที่ (ซ่อนไว้ก่อนด้วย d-none) -->
+        <div id="tableLoadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center d-none" style="z-index: 10; border-radius: inherit;">
+          <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+          <!-- 🌟 ใช้ data-i18n="status_loading" เพื่อให้ระบบ 2 ภาษาทำงานอัตโนมัติ -->
+          <span class="text-muted fw-bold fs-6" data-i18n="status_loading">Loading Data...</span>
+        </div>
+
         <div class="table-responsive table-scroll-inside flex-grow-1">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header text-center">
