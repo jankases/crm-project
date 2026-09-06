@@ -2054,6 +2054,13 @@ window.loadVisits = async function(forceReload, isBackground) {
               var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', window.myUserBuId);
               var ownTeamIds = (buTeams || []).map(function(t) { return String(t.Team_ID).toLowerCase(); });
 
+              // ดึง Territory ทั้งหมดในทีมของ BU
+              var ownTerIds = [];
+              if (ownTeamIds.length > 0) {
+                  var { data: buTers } = await sb.from('Territory').select('Territory_ID').in('Team_ID', ownTeamIds);
+                  ownTerIds = (buTers || []).map(function(t) { return String(t.Territory_ID).toLowerCase(); });
+              }
+
               // 2. กวาด Product ที่ BU ดูแลทั้งหมด
               var buProdIds = [];
               if (ownTeamIds.length > 0) {
@@ -2061,32 +2068,64 @@ window.loadVisits = async function(forceReload, isBackground) {
                   buProdIds = (teamProds || []).map(function(p) { return String(p.Product_ID).toLowerCase(); });
               }
 
-              // 3. รวบรวม Rep_ID (เฉพาะลูกทีมตัวเอง + PM ที่มี Product ตรงกัน)
+              // 3. รวบรวม Rep_ID (ลูกทีมตัวเองแบบเจาะลึกทุกระดับชั้น)
               var allowedReps = [];
               (window.globalUsersList || []).forEach(function(u) {
+                  var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
+                  var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
+                  var uter = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
+                  var uBu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
                   var uRole = String(u.Role || u.role || '').toUpperCase().trim();
+                  
+                  // ไม่เอาเลขาฯ หรือแอดมิน
                   var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1 || uRole.indexOf('SECRETARY') !== -1 || uRole.indexOf('SEC') !== -1;
                   
-                  if (!isAdminRole && String(u.BU_ID).toLowerCase() === String(window.myUserBuId).toLowerCase()) {
-                      allowedReps.push(String(u.Rep_ID).toLowerCase());
+                  if (!isAdminRole) {
+                      var isMatchTeam = ownTeamIds.indexOf(uteam) !== -1;
+                      var isMatchTer = ownTerIds.indexOf(uter) !== -1;
+                      var isMatchBu = uBu === String(window.myUserBuId).toLowerCase();
+                      
+                      // ถ้าอยู่ใต้ BU นี้ในทางใดทางหนึ่ง ให้รวบชื่อมาให้หมด!
+                      if (isMatchTeam || isMatchTer || isMatchBu || uid === String(myRepId).toLowerCase()) {
+                          if (uid && allowedReps.indexOf(uid) === -1) allowedReps.push(uid);
+                      }
                   }
               });
 
-              // ดึง PM ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
+              // ดึง PM หรือคนนอกทีม ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
               if (buProdIds.length > 0) {
                   var { data: crossReps } = await sb.from('Rep_Products').select('Rep_ID').in('Product_ID', buProdIds);
                   if (crossReps) {
                       crossReps.forEach(function(rp) {
                           var rId = String(rp.Rep_ID).toLowerCase();
-                          if (allowedReps.indexOf(rId) === -1) allowedReps.push(rId);
+                          if (rId && allowedReps.indexOf(rId) === -1) allowedReps.push(rId);
                       });
                   }
               }
 
-              // 🌟 ส่งรหัสค้นหา (ไม่ดึง Area ข้ามเขตอีกต่อไป)
+              // 4. หา Visit_ID ข้ามทีมที่มี Product ตรงกับของ BU
+              var buVisitIds = [];
+              if (buProdIds.length > 0) {
+                  var { data: vpBuRes } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', buProdIds);
+                  buVisitIds = (vpBuRes || []).map(function(vp) { return vp.Visit_ID; });
+              }
+
+              // 5. จับรวมกัน (เป็นลูกทีมตัวเอง OR เป็น Visit ที่มีสินค้าตัวเอง)
+              var orConditions = [];
               if (allowedReps.length > 0) {
-                  dataQuery = dataQuery.in('Rep_ID', allowedReps);
-                  countQuery = countQuery.in('Rep_ID', allowedReps);
+                  var cleanRepIds = allowedReps.map(function(id) { return '"' + id + '"'; }).join(',');
+                  orConditions.push(`Rep_ID.in.(${cleanRepIds})`);
+              }
+              if (buVisitIds.length > 0) {
+                  var safeBuVisitIds = buVisitIds.slice(0, 150); // ป้องกัน URL ยาวเกินไป
+                  var cleanVisitIds = safeBuVisitIds.map(function(id) { return '"' + id + '"'; }).join(',');
+                  orConditions.push(`Visit_ID.in.(${cleanVisitIds})`);
+              }
+
+              if (orConditions.length > 0) {
+                  var finalOr = orConditions.join(',');
+                  dataQuery = dataQuery.or(finalOr);
+                  countQuery = countQuery.or(finalOr);
               } else {
                   dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
