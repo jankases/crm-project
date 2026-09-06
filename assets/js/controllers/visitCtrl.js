@@ -1550,21 +1550,19 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         if (!isGlobalViewer) {
             if (isBuHead && userBuId) {
-                // 1. หา Team ใน BU ตัวเอง
+                // 1. หา Team เฉพาะใน BU ตัวเอง
                 var { data: buTeams } = await sb.from('Team').select('Team_ID, Team').eq('BU_ID', userBuId);
                 if (buTeams) buTeams.forEach(t => myAllowedTeamIds.push(String(t.Team_ID).toLowerCase()));
 
                 var buProductIds = [];
                 if (myAllowedTeamIds.length > 0) {
-                    // 2. กวาด Product ที่ BU ดูแลทั้งหมด (จากตาราง Products_Team)
+                    // 2. กวาด Product ที่ BU ดูแลทั้งหมด
                     var { data: teamProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', myAllowedTeamIds);
-                    if (teamProds) {
-                        buProductIds = teamProds.map(p => String(p.Product_ID).toLowerCase());
-                    }
+                    if (teamProds) buProductIds = teamProds.map(p => String(p.Product_ID).toLowerCase());
                 }
 
                 if (buProductIds.length > 0) {
-                    // 3. Employee: กวาด PM/พนักงานนอกทีม ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
+                    // 3. กวาด PM ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
                     var { data: crossReps } = await sb.from('Rep_Products').select('Rep_ID').in('Product_ID', buProductIds);
                     if (crossReps) {
                         crossReps.forEach(rp => {
@@ -1572,23 +1570,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                             if (myAllowedRepIds.indexOf(rId) === -1) myAllowedRepIds.push(rId);
                         });
                     }
-
-                    // 4. Area: ช่อง filter area ทำเหมือนกัน กวาดทีม/Area อื่นที่มี Product ตรงกับ BU
-                    var { data: crossTeams } = await sb.from('Products_Team').select('Team_ID').in('Product_ID', buProductIds);
-                    if (crossTeams) {
-                        crossTeams.forEach(ct => {
-                            var tId = String(ct.Team_ID).toLowerCase();
-                            if (myAllowedTeamIds.indexOf(tId) === -1) myAllowedTeamIds.push(tId);
-                        });
-                    }
                 }
 
-                // 5. ดึง Territory ทั้งหมดที่ผูกกับ Team ที่รวบรวมมาได้ (ทั้งของตัวเอง และ Cross-Area)
+                // 4. ดึง Territory ที่ผูกกับ Team ของ BU ตัวเอง (ไม่มี Area ข้ามเขตอีกต่อไป!)
                 if (myAllowedTeamIds.length > 0) {
                     var { data: allowedTers } = await sb.from('Territory').select('Territory_ID, Territory, Team_ID').in('Team_ID', myAllowedTeamIds);
-                    if (allowedTers) {
-                        allowedTers.forEach(t => myAllowedTerIds.push(String(t.Territory_ID).toLowerCase()));
-                    }
+                    if (allowedTers) allowedTers.forEach(t => myAllowedTerIds.push(String(t.Territory_ID).toLowerCase()));
                 }
             } else if (isManager && userTeamId) {
                 myAllowedTeamIds.push(userTeamId);
@@ -1609,16 +1596,22 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
                 var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
                 var uter = String(u.Territory_ID || u.Territory || '').trim().toLowerCase(); 
+                var uBu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
                 var uRole = String(u.Role || u.role || '').toUpperCase().trim();
 
-                var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1;
+                // 🌟 ตัดแอดมิน, เลขาฯ ออกจากระบบอย่างเด็ดขาด
+                var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1 || uRole.indexOf('SECRETARY') !== -1 || uRole.indexOf('SEC') !== -1;
 
-                if (!isSales && !isProductManager) {
-                    var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1;
-                    var isMatchTer = myAllowedTerIds.indexOf(uter) !== -1;
-                    
-                    if ((isMatchTeam || isMatchTer || uid === uRepId) && !isAdminRole) {
+                if (!isAdminRole) {
+                    if (isBuHead && uBu === userBuId) {
                         if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                    }
+                    if (!isSales && !isProductManager) {
+                        var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1;
+                        var isMatchTer = myAllowedTerIds.indexOf(uter) !== -1;
+                        if (isMatchTeam || isMatchTer || uid === uRepId || myAllowedRepIds.indexOf(uid) !== -1) {
+                            if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
+                        }
                     }
                 }
             });
@@ -2068,14 +2061,18 @@ window.loadVisits = async function(forceReload, isBackground) {
                   buProdIds = (teamProds || []).map(function(p) { return String(p.Product_ID).toLowerCase(); });
               }
 
-              // 3. รวบรวม Rep_ID (ลูกทีมตัวเอง + PM ข้ามทีมที่มี Product ตรงกัน)
+              // 3. รวบรวม Rep_ID (เฉพาะลูกทีมตัวเอง + PM ที่มี Product ตรงกัน)
               var allowedReps = [];
               (window.globalUsersList || []).forEach(function(u) {
-                  if (String(u.BU_ID).toLowerCase() === String(window.myUserBuId).toLowerCase()) {
+                  var uRole = String(u.Role || u.role || '').toUpperCase().trim();
+                  var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1 || uRole.indexOf('SECRETARY') !== -1 || uRole.indexOf('SEC') !== -1;
+                  
+                  if (!isAdminRole && String(u.BU_ID).toLowerCase() === String(window.myUserBuId).toLowerCase()) {
                       allowedReps.push(String(u.Rep_ID).toLowerCase());
                   }
               });
 
+              // ดึง PM ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
               if (buProdIds.length > 0) {
                   var { data: crossReps } = await sb.from('Rep_Products').select('Rep_ID').in('Product_ID', buProdIds);
                   if (crossReps) {
@@ -2086,28 +2083,10 @@ window.loadVisits = async function(forceReload, isBackground) {
                   }
               }
 
-              // 4. หา Visit_ID ข้ามทีมที่มี Product ตรงกับของ BU 
-              var buVisitIds = [];
-              if (buProdIds.length > 0) {
-                  var { data: vpBuRes } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', buProdIds);
-                  buVisitIds = (vpBuRes || []).map(function(vp) { return vp.Visit_ID; });
-              }
-
-              var orConditions = [];
+              // 🌟 ส่งรหัสค้นหา (ไม่ดึง Area ข้ามเขตอีกต่อไป)
               if (allowedReps.length > 0) {
-                  var cleanRepIds = allowedReps.map(function(id) { return '"' + id + '"'; }).join(',');
-                  orConditions.push(`Rep_ID.in.(${cleanRepIds})`);
-              }
-              if (buVisitIds.length > 0) {
-                  var safeBuVisitIds = buVisitIds.slice(0, 150); // ป้องกัน URL ยาวเกินไป
-                  var cleanVisitIds = safeBuVisitIds.map(function(id) { return '"' + id + '"'; }).join(',');
-                  orConditions.push(`Visit_ID.in.(${cleanVisitIds})`);
-              }
-
-              if (orConditions.length > 0) {
-                  var finalOr = orConditions.join(',');
-                  dataQuery = dataQuery.or(finalOr);
-                  countQuery = countQuery.or(finalOr);
+                  dataQuery = dataQuery.in('Rep_ID', allowedReps);
+                  countQuery = countQuery.in('Rep_ID', allowedReps);
               } else {
                   dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
