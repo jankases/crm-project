@@ -2863,20 +2863,23 @@ function matchedTerAndUnique(arr) {
 
     var distanceBadge = '';
     if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
-      var googleMapUrl = 'https://www.google.com/maps?q=' + v.CheckIn_Lat + ',' + v.CheckIn_Long;
+      // 🌟 สร้างคำสั่งเรียก Modal ตัวใหม่ พร้อมส่งพิกัดไปให้ (ใช้ stopPropagation เพื่อไม่ให้ฟอร์ม Edit เด้งขึ้นมาซ้อน)
+      var onClickAction = "event.stopPropagation(); window.openViewOnlyGpsModal(" + v.CheckIn_Lat + ", " + v.CheckIn_Long + ", '" + (v.CheckIn_Time || '') + "');";
+
       if (hospLat && hospLng) {
         var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
         if (distKm !== null && distKm <= 0.5) {
           var ttCheckOk = appLang === 'en' ? 'Check-in verified (<500m)' : 'พิกัดถูกต้อง (<500ม.)';
-          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-success ms-1" title="' + ttCheckOk + '"><i class="fa-solid fa-circle-check"></i></a>';
+          // เปลี่ยนจาก <a href> เป็น <span onclick> เพื่อไม่ให้เด้งไปหน้าอื่น
+          distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + ttCheckOk + '"><i class="fa-solid fa-circle-check"></i></span>';
         } else {
           var distShow = distKm < 1 ? Math.round(distKm * 1000) + 'm' : distKm.toFixed(1) + 'km';
           var ttCheckFar = appLang === 'en' ? 'Off-site: ' : 'ห่างจากจุดหมาย: ';
-          distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-danger ms-1" title="' + ttCheckFar + distShow + '"><i class="fa-solid fa-location-dot"></i></a>';
+          distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + ttCheckFar + distShow + '"><i class="fa-solid fa-location-dot"></i></span>';
         }
       } else {
-        var ttMap = appLang === 'en' ? 'Open Google Maps' : 'เปิด Google Maps';
-        distanceBadge = ' <a href="' + googleMapUrl + '" target="_blank" class="text-secondary opacity-75 ms-1" title="' + ttMap + '"><i class="fa-solid fa-location-dot"></i></a>';
+        var ttMap = appLang === 'en' ? 'View Location' : 'ดูพิกัด';
+        distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer" title="' + ttMap + '"><i class="fa-solid fa-location-dot"></i></span>';
       }
     }
 
@@ -3871,6 +3874,50 @@ window.getLocationCheckin = function() {
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
+};
+
+
+// 🎯 ฟังก์ชันเปิดหน้าต่าง GPS แบบดูพิกัดอย่างเดียว (เรียกจากตาราง)
+window.openViewOnlyGpsModal = function(lat, lng, checkinTime) {
+    var modalEl = document.getElementById('gpsDrawerModal');
+    if (!modalEl) return;
+
+    // 1. ใส่ค่าพิกัด
+    var latInput = document.getElementById('visitLat');
+    var lngInput = document.getElementById('visitLng');
+    if (latInput) latInput.value = lat || '';
+    if (lngInput) lngInput.value = lng || '';
+
+    // 2. จัดการเวลาเช็คอิน
+    var timeWrapper = document.getElementById('locationTimeWrapper');
+    var timeText = document.getElementById('visitCheckinTimeText');
+    if (checkinTime && timeWrapper && timeText) {
+        var cTime = new Date(checkinTime);
+        timeText.innerText = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
+        timeWrapper.classList.remove('d-none');
+    } else if (timeWrapper) {
+        timeWrapper.classList.add('d-none');
+    }
+
+    // 3. สั่งวาดแผนที่
+    if (typeof window.updateGpsMapUI === 'function') {
+        window.updateGpsMapUI(lat, lng);
+    }
+
+    // 4. เปลี่ยนปุ่มกดหลักให้กลายเป็นปุ่มแสดงสถานะ (เพราะเราแค่เข้ามาดู)
+    var btnGps = document.getElementById('btnGpsCheckin');
+    if (btnGps) {
+        btnGps.className = 'btn btn-success w-100 py-3 mb-3 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2 pe-none'; // ใส่ pe-none ให้กดไม่ได้
+        btnGps.style.borderRadius = '16px';
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        btnGps.innerHTML = '<i class="fa-solid fa-location-dot fs-5"></i> <span>' + (appLang === 'en' ? 'Checked-in Location' : 'พิกัดที่บันทึกไว้') + '</span>';
+    }
+
+    // 5. เปิด Modal
+    if(typeof bootstrap !== 'undefined') {
+        var myModal = new bootstrap.Modal(modalEl);
+        myModal.show();
+    }
 };
 
 window.calculateDistanceKm = function(lat1, lon1, lat2, lon2) {
