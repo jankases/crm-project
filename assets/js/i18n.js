@@ -46,6 +46,7 @@ const i18nDictionary = {
 
     // --- Common Buttons & Labels ---
     btn_filters: "Filters",
+    btn_adv_filters: "Advanced Filters",
     btn_clear: "Clear Filters",
     btn_export: "Export",
     btn_back: "Back",
@@ -279,6 +280,7 @@ const i18nDictionary = {
 
     // --- Common Buttons & Labels ---
     btn_filters: "ตัวกรอง",
+    btn_adv_filters: "ตัวกรองขั้นสูง",
     btn_clear: "ล้างตัวกรอง",
     btn_export: "ส่งออก",
     btn_back: "ย้อนกลับ",
