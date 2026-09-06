@@ -2734,14 +2734,16 @@ window.clearSmartSearchInput = function() {
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
 };
   
-// 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
-// 🌟 [FIX] รับค่า Event (e) เข้ามา เพื่อใช้หยุดการพับปิดหน้าต่างของ Bootstrap
+// 🎯 ฟังก์ชันล้างค่าตัวกรองเฉพาะในหน้าต่าง Advanced Filters (Local Clear)
 window.clearVisitFilters = function(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation(); // 🛑 สั่งเบรก! ห้ามหน้าต่าง Filter พับปิดเองเด็ดขาด
+    // 🛑 ดักจับ Event เพื่อสั่งเบรก! ห้ามหน้าต่าง Filter พับปิดเองเด็ดขาด
+    var evt = e || window.event;
+    if (evt) {
+        evt.preventDefault();
+        evt.stopPropagation(); 
     }
 
+    // 🌟 ล้างเฉพาะค่าที่อยู่ "ด้านใน" หน้าต่าง Advanced Filters เท่านั้น
     if (typeof window.toggleAllCheckboxes === 'function') {
         window.toggleAllCheckboxes('rep', false);
         window.toggleAllCheckboxes('ter', false);
@@ -2762,19 +2764,9 @@ window.clearVisitFilters = function(e) {
 
     var chkCoaching = document.getElementById('filterVisitCoaching');
     if (chkCoaching) chkCoaching.checked = false;
-    
-    if (window.fpStartInstance) window.fpStartInstance.clear();
-    if (window.fpEndInstance) window.fpEndInstance.clear();
 
-    var stDate = document.getElementById('filterStartDate');
-    var endDate = document.getElementById('filterEndDate');
-    if (stDate && !window.fpStartInstance) stDate.value = '';
-    if (endDate && !window.fpEndInstance) endDate.value = '';
-
-    var searchEl = document.getElementById('smartSearchInput');
-    if (searchEl) searchEl.value = '';
-
-    // 🛑 ไม่สั่งโหลดตารางใดๆ ทั้งสิ้น ให้ผู้ใช้กด Apply เอง
+    // 🛑 ตัดโค้ดส่วนที่ไปล้างค่า Date Picker และ Smart Search ด้านนอกออกทั้งหมด
+    // เพื่อให้ระบบทำงานแยกกันอย่างชัดเจนตามมาตรฐานสากล
 };
 
 function matchedTerAndUnique(arr) {
