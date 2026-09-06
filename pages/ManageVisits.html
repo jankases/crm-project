@@ -53,9 +53,12 @@
         <button type="button" class="btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-2"></i> <span data-i18n="btn_calendar">Calendar</span></button>
       </div>
 
-        <button type="button" class="btn btn-premium-icon" onclick="window.loadVisits(true)" id="btnRefreshVisits" title="Refresh Data">
-          <i class="fa-solid fa-arrows-rotate fs-6"></i>
-        </button>
+       
+
+        <!-- เปลี่ยน onclick เป็น window.initVisitPage(true) -->
+    <button type="button" class="btn btn-premium-icon" onclick="window.initVisitPage(true)" id="btnRefreshVisits" title="Refresh Data">
+      <i class="fa-solid fa-arrows-rotate fs-6"></i>
+    </button>
 
         <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
@@ -67,12 +70,12 @@
       </div>
     </div>
 
-    <!-- Card Loading Spinner -->  
-      <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center d-flex">
-      <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
-      <h5 class="fw-bold text-dark mb-1" id="visitLoadingTitleText" data-i18n="status_loading">Loading Data...</h5>
-      <p class="text-muted mb-0" id="visitLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
-    </div>
+    <!-- Card Loading Spinner -->   
+<div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center d-flex">
+  <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+  <h5 class="fw-bold text-dark mb-1" id="visitLoadingTitleText" data-i18n="status_loading">Loading Data...</h5>
+  <p class="text-muted mb-0" id="visitLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
+</div>
  
       <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden">
  
