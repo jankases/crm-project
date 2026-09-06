@@ -1550,18 +1550,45 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         if (!isGlobalViewer) {
             if (isBuHead && userBuId) {
+                // 1. หา Team ใน BU ตัวเอง
                 var { data: buTeams } = await sb.from('Team').select('Team_ID, Team').eq('BU_ID', userBuId);
                 if (buTeams) buTeams.forEach(t => myAllowedTeamIds.push(String(t.Team_ID).toLowerCase()));
 
+                var buProductIds = [];
                 if (myAllowedTeamIds.length > 0) {
-                    var { data: buTers } = await sb.from('Territory').select('Territory_ID, Territory, Team_ID').in('Team_ID', myAllowedTeamIds);
-                    if (buTers) buTers.forEach(t => myAllowedTerIds.push(String(t.Territory_ID).toLowerCase()));
-                    
-                    var { data: pmUsers } = await sb.from('Rep_Users').select('Rep_ID').ilike('Role', '%PRODUCT MANAGER%').eq('BU_ID', userBuId);
-                    if (pmUsers) pmUsers.forEach(pm => {
-                        var pmId = String(pm.Rep_ID).toLowerCase();
-                        if (myAllowedRepIds.indexOf(pmId) === -1) myAllowedRepIds.push(pmId);
-                    });
+                    // 2. กวาด Product ที่ BU ดูแลทั้งหมด (จากตาราง Products_Team)
+                    var { data: teamProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', myAllowedTeamIds);
+                    if (teamProds) {
+                        buProductIds = teamProds.map(p => String(p.Product_ID).toLowerCase());
+                    }
+                }
+
+                if (buProductIds.length > 0) {
+                    // 3. Employee: กวาด PM/พนักงานนอกทีม ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
+                    var { data: crossReps } = await sb.from('Rep_Products').select('Rep_ID').in('Product_ID', buProductIds);
+                    if (crossReps) {
+                        crossReps.forEach(rp => {
+                            var rId = String(rp.Rep_ID).toLowerCase();
+                            if (myAllowedRepIds.indexOf(rId) === -1) myAllowedRepIds.push(rId);
+                        });
+                    }
+
+                    // 4. Area: ช่อง filter area ทำเหมือนกัน กวาดทีม/Area อื่นที่มี Product ตรงกับ BU
+                    var { data: crossTeams } = await sb.from('Products_Team').select('Team_ID').in('Product_ID', buProductIds);
+                    if (crossTeams) {
+                        crossTeams.forEach(ct => {
+                            var tId = String(ct.Team_ID).toLowerCase();
+                            if (myAllowedTeamIds.indexOf(tId) === -1) myAllowedTeamIds.push(tId);
+                        });
+                    }
+                }
+
+                // 5. ดึง Territory ทั้งหมดที่ผูกกับ Team ที่รวบรวมมาได้ (ทั้งของตัวเอง และ Cross-Area)
+                if (myAllowedTeamIds.length > 0) {
+                    var { data: allowedTers } = await sb.from('Territory').select('Territory_ID, Territory, Team_ID').in('Team_ID', myAllowedTeamIds);
+                    if (allowedTers) {
+                        allowedTers.forEach(t => myAllowedTerIds.push(String(t.Territory_ID).toLowerCase()));
+                    }
                 }
             } else if (isManager && userTeamId) {
                 myAllowedTeamIds.push(userTeamId);
@@ -2030,24 +2057,57 @@ window.loadVisits = async function(forceReload, isBackground) {
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
               }
           } else if (isBuHead && window.myUserBuId) {
+              // 1. หา Team ทั้งหมดของ BU ตัวเอง
               var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', window.myUserBuId);
-              var buTeamIds = (buTeams || []).map(function(t) { return t.Team_ID; });
+              var ownTeamIds = (buTeams || []).map(function(t) { return String(t.Team_ID).toLowerCase(); });
 
-              var buVisitIds = [];
-              if (buTeamIds.length > 0) {
-                  var { data: buProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', buTeamIds);
-                  var buProdIds = (buProds || []).map(function(p) { return p.Product_ID; });
+              // 2. กวาด Product ที่ BU ดูแลทั้งหมด
+              var buProdIds = [];
+              if (ownTeamIds.length > 0) {
+                  var { data: teamProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', ownTeamIds);
+                  buProdIds = (teamProds || []).map(function(p) { return String(p.Product_ID).toLowerCase(); });
+              }
 
-                  if (buProdIds.length > 0) {
-                      var { data: vpBuRes } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', buProdIds);
-                      buVisitIds = (vpBuRes || []).map(function(vp) { return vp.Visit_ID; });
+              // 3. รวบรวม Rep_ID (ลูกทีมตัวเอง + PM ข้ามทีมที่มี Product ตรงกัน)
+              var allowedReps = [];
+              (window.globalUsersList || []).forEach(function(u) {
+                  if (String(u.BU_ID).toLowerCase() === String(window.myUserBuId).toLowerCase()) {
+                      allowedReps.push(String(u.Rep_ID).toLowerCase());
+                  }
+              });
+
+              if (buProdIds.length > 0) {
+                  var { data: crossReps } = await sb.from('Rep_Products').select('Rep_ID').in('Product_ID', buProdIds);
+                  if (crossReps) {
+                      crossReps.forEach(function(rp) {
+                          var rId = String(rp.Rep_ID).toLowerCase();
+                          if (allowedReps.indexOf(rId) === -1) allowedReps.push(rId);
+                      });
                   }
               }
 
+              // 4. หา Visit_ID ข้ามทีมที่มี Product ตรงกับของ BU 
+              var buVisitIds = [];
+              if (buProdIds.length > 0) {
+                  var { data: vpBuRes } = await sb.from('Visit_Products').select('Visit_ID').in('Product_ID', buProdIds);
+                  buVisitIds = (vpBuRes || []).map(function(vp) { return vp.Visit_ID; });
+              }
+
+              var orConditions = [];
+              if (allowedReps.length > 0) {
+                  var cleanRepIds = allowedReps.map(function(id) { return '"' + id + '"'; }).join(',');
+                  orConditions.push(`Rep_ID.in.(${cleanRepIds})`);
+              }
               if (buVisitIds.length > 0) {
-                  var safeBuVisitIds = buVisitIds.slice(0, 100);
-                  dataQuery = dataQuery.in('Visit_ID', safeBuVisitIds);
-                  countQuery = countQuery.in('Visit_ID', safeBuVisitIds);
+                  var safeBuVisitIds = buVisitIds.slice(0, 150); // ป้องกัน URL ยาวเกินไป
+                  var cleanVisitIds = safeBuVisitIds.map(function(id) { return '"' + id + '"'; }).join(',');
+                  orConditions.push(`Visit_ID.in.(${cleanVisitIds})`);
+              }
+
+              if (orConditions.length > 0) {
+                  var finalOr = orConditions.join(',');
+                  dataQuery = dataQuery.or(finalOr);
+                  countQuery = countQuery.or(finalOr);
               } else {
                   dataQuery = dataQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
                   countQuery = countQuery.eq('Visit_ID', '00000000-0000-0000-0000-000000000000');
