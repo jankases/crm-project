@@ -94,28 +94,34 @@
                 <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')"><i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i></button>
               </div>
             </div>
-
-            <!-- Date Range Picker Filter -->
-            <div style="width: 260px;">
-              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer" id="dateFilterRangeWrapper">
+ 
+          <!-- Date Range Picker Filter -->
+            <div style="width: 280px;"> <!-- 🌟 ปรับความกว้างจาก 260px เป็น 280px เพื่อเผื่อที่ให้ปุ่มกากบาท -->
+              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer position-relative" id="dateFilterRangeWrapper">
                 <span class="text-muted pe-1" onclick="if(window.fpStartInstance) window.fpStartInstance.open();"><i class="fa-regular fa-calendar-days"></i></span>
-                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center" id="filterStartDate" placeholder="dd/mm/yyyy" readonly>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterStartDate" placeholder="dd/mm/yyyy" readonly>
                 <span class="text-muted small px-1">-</span>
-                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center" id="filterEndDate" placeholder="dd/mm/yyyy" readonly>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterEndDate" placeholder="dd/mm/yyyy" readonly>
+                
+                <!-- 🌟 เพิ่มปุ่มกากบาท (x) สำหรับเคลียร์วันที่ (ซ่อนไว้ก่อนด้วย d-none) -->
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent p-0 ms-1 d-none" type="button" id="btnClearDateFilter" onclick="window.clearDateFilterExternal(event)">
+                  <i class="fa-solid fa-circle-xmark opacity-50 hover-opacity-100 transition-all"></i>
+                </button>
               </div>
             </div>
 
           </div>
-
-         <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
+ 
         <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               
-              <!-- ปุ่มเปิดเมนู Filters -->
-              <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                <i class="fa-solid fa-sliders me-2 text-primary"></i><span class="fw-semibold" data-i18n="btn_filters">Filters</span>
-              </button>
+              <!-- ปุ่มเปิดเมนู Advanced Filters -->
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+              <i class="fa-solid fa-sliders me-2 text-primary"></i>
+              <!-- 🌟 เปลี่ยน data-i18n เป็น btn_adv_filters -->
+              <span class="fw-semibold" data-i18n="btn_adv_filters">Advanced Filters</span>
+            </button>
 
               <!-- 🌟 แผงกรองแนวกว้าง (Premium Horizontal Panel - ขยายกว้างเป็น 1050px) --> 
                 <div class="dropdown-menu dropdown-menu-end p-0 border shadow-lg mt-2 bg-white" id="visitFilterZoneGroup" style="width: 1050px; max-width: 95vw; z-index: 1050; border-radius: 12px; overflow: hidden;">
