@@ -2998,24 +2998,25 @@ window.toggleVisitFormEditable = function(isEditable) {
   var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction', 'btnQuickNow', 'btnQuick30', 'btnQuick60'];
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
 
-  // 🌟 6. [เพิ่มใหม่] จัดการ Dropdown เลือก Coach
+ // 🌟 6. จัดการ Dropdown เลือก Coach
   var coachSelect = document.getElementById('visitCoachRepId');
   if (coachSelect) {
-      coachSelect.disabled = !isEditable; // ล็อคหรือปลดล็อคตามโหมด
+      coachSelect.disabled = !isEditable; 
       
-      // ปรับแต่ง UI ให้ดูเป็น Read-Only มากขึ้น
       var coachWrapper = document.getElementById('visitCoachWrapper');
       if (coachWrapper) {
-          var innerDiv = coachWrapper.querySelector('.bg-white');
+          // หา div ที่เป็นแคปซูลด้านใน
+          var innerDiv = coachWrapper.querySelector('.d-inline-flex');
           if (innerDiv) {
               if (isEditable) {
-                  innerDiv.classList.remove('bg-light');
+                  innerDiv.classList.remove('bg-light', 'text-muted');
                   innerDiv.classList.add('bg-white');
                   innerDiv.style.opacity = '1';
               } else {
                   innerDiv.classList.remove('bg-white');
                   innerDiv.classList.add('bg-light');
-                  innerDiv.style.opacity = '0.7';
+                  // 🌟 เอา opacity: 0.7 ออก แล้วปรับเป็น 1 ให้ตัวหนังสือชัดเจนขึ้น แต่พื้นหลังยังเป็นสีเทาเพื่อบอกว่าล็อกอยู่
+                  innerDiv.style.opacity = '1'; 
               }
           }
       }
