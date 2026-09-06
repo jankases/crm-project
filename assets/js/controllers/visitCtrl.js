@@ -2075,11 +2075,20 @@ window.loadVisits = async function(forceReload, isBackground) {
 
    // ... โค้ดด้านบนของ loadVisits ...
 
+    // ภายในฟังก์ชัน window.loadVisits ช่วงบรรทัดต้นๆ
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
         if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         if (visitViewEl) visitViewEl.classList.add('is-loading');
+
+        // 🎯 [เพิ่มโค้ดบล็อกนี้] สั่งบังคับโชว์วงล้อ Loading ทันทีที่เริ่มดึงข้อมูล
+        var loadingCard = document.getElementById('visitTableLoading');
+        if (loadingCard) {
+            loadingCard.style.setProperty('display', 'flex', 'important');
+            loadingCard.classList.remove('d-none');
+            loadingCard.classList.add('d-flex');
+        }
 
         var mainContainer = document.getElementById('visitMainContentContainer');
         var calZone = document.getElementById('visitCalendarZone');
