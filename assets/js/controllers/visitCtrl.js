@@ -1263,24 +1263,34 @@ window.deleteTot = async function() {
               if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
           }
 
-         // 5.2 🌟 ผูก TomSelect ให้กล่อง Advanced Filters
+         // 5.2 🌟 เปลี่ยน Purpose ให้เป็น Checkbox Tree เหมือน Employee/Area
           if (filterPurposeSelect) {
               window.safeDestroyTs(window.tomSelectFilterPurposeInstance);
-              filterPurposeSelect.innerHTML = '<option value=""></option>'; 
-              window.tomSelectFilterPurposeInstance = new TomSelect('#filterVisitPurpose', { 
-                  options: purposeData, 
-                  valueField: 'value', labelField: 'text', searchField: ["text"], 
-                  placeholder: appLang === 'th' ? '- ทุกวัตถุประสงค์ (เลือกได้หลายข้อ) -' : '- All Purposes (Multi) -', 
-                  create: false, 
-                  allowEmptyOption: true, 
-                  dropdownParent: null,
-                  maxItems: null, // 👈 1. ปลดล็อกให้เลือกได้หลายอัน
-                  plugins: ['remove_button'] // 👈 2. เพิ่มปุ่ม (x) ให้กดลบง่ายๆ
-              });
+              filterPurposeSelect.style.display = 'none'; // ซ่อน Dropdown เดิม
               
-              // คืนค่าเก่าถ้าเคยเซฟไว้ (รองรับทั้งแบบ Array และแบบ String เดิม)
-              var oldFilterPurpVal = window.VisitManagerCache && window.VisitManagerCache.savedFilters ? window.VisitManagerCache.savedFilters.purpose : [];
-              if (oldFilterPurpVal) window.tomSelectFilterPurposeInstance.setValue(oldFilterPurpVal, true);
+              // สร้างกล่อง Container สไตล์เดียวกับ Employee
+              var containerId = 'containerFilterPurpose';
+              var containerEl = document.getElementById(containerId);
+              if (!containerEl) {
+                  containerEl = document.createElement('div');
+                  containerEl.id = containerId;
+                  containerEl.className = 'border rounded-3 p-2 bg-white mt-1 overflow-auto shadow-sm';
+                  containerEl.style.maxHeight = '180px';
+                  filterPurposeSelect.parentNode.insertBefore(containerEl, filterPurposeSelect.nextSibling);
+              }
+
+              // แปลงข้อมูลให้อยู่ในรูปแบบ Tree 
+              var purposeTree = [{
+                  id: 'fld_purpose_all',
+                  text: '🎯 ' + (appLang === 'th' ? 'วัตถุประสงค์ทั้งหมด' : 'All Purposes'),
+                  isLeaf: false,
+                  children: purposeData.map(function(p) {
+                      return { id: 'purp_' + p.value, value: p.value, text: p.text, isLeaf: true };
+                  })
+              }];
+
+              // สั่งวาด Checkbox ลงกล่อง
+              window.renderTreeCheckboxList(containerId, purposeTree, 'purpose');
           }
       }
     }
@@ -1936,7 +1946,11 @@ window.loadVisits = async function(forceReload, isBackground) {
         purposeTerms = pElVal ? [pElVal] : [];
     }
 
-    var capturedPurposeIds = []; // เปลี่ยนเป็น Array เก็บหลาย ID
+    // 🌟 ดึงค่า Purpose จาก Checkbox Tree
+    var capturedPurposeIds = [];
+    document.querySelectorAll('.chk-tree-purpose.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') capturedPurposeIds.push(c.value.trim());
+    });
     purposeTerms.forEach(function(pTerm) {
         if (pTerm && pTerm !== 'undefined' && pTerm !== 'null' && pTerm !== '') {
             if (/^[0-9a-f]{8}-/i.test(pTerm)) {
@@ -2123,12 +2137,14 @@ window.loadVisits = async function(forceReload, isBackground) {
               // 5. จับรวมกัน (เป็นลูกทีมตัวเอง OR เป็น Visit ที่มีสินค้าตัวเอง)
               var orConditions = [];
               if (allowedReps.length > 0) {
-                  var cleanRepIds = allowedReps.map(function(id) { return '"' + id + '"'; }).join(',');
+                  // 🚨 แก้บั๊ก: ลบเครื่องหมาย " ออกจาก UUID 
+                  var cleanRepIds = allowedReps.join(',');
                   orConditions.push(`Rep_ID.in.(${cleanRepIds})`);
               }
               if (buVisitIds.length > 0) {
                   var safeBuVisitIds = buVisitIds.slice(0, 150); // ป้องกัน URL ยาวเกินไป
-                  var cleanVisitIds = safeBuVisitIds.map(function(id) { return '"' + id + '"'; }).join(',');
+                  // 🚨 แก้บั๊ก: ลบเครื่องหมาย " ออกจาก UUID
+                  var cleanVisitIds = safeBuVisitIds.join(',');
                   orConditions.push(`Visit_ID.in.(${cleanVisitIds})`);
               }
 
@@ -2505,69 +2521,64 @@ window.loadVisits = async function(forceReload, isBackground) {
 // 💾 ระบบบันทึกและกู้คืนสถานะ Filter (ป้องกันหน้าจอลืมค่าที่ติ๊ก)
 // ==============================================================
 window.saveVisitFilterState = function() {
-    window.VisitManagerCache = window.VisitManagerCache || {};
+    var memory = { purpose: [], status: '', coaching: false, reps: [], ters: [] };
     
-    var reps = [];
+    document.querySelectorAll('.chk-tree-purpose.chk-leaf:checked').forEach(function(c) {
+        if (c.value && c.value !== 'on') memory.purpose.push(c.value.trim());
+    });
     document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
-        if (c.value && c.value !== 'on') reps.push(c.value.trim());
+        if (c.value && c.value !== 'on') memory.reps.push(c.value.trim());
     });
-
-    var ters = [];
     document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
-        if (c.value && c.value !== 'on') ters.push(c.value.trim());
+        if (c.value && c.value !== 'on') memory.ters.push(c.value.trim());
     });
 
-    window.VisitManagerCache.savedFilters = {
-        purpose: window.tomSelectFilterPurposeInstance ? window.tomSelectFilterPurposeInstance.getValue() : (document.getElementById('filterVisitPurpose') ? document.getElementById('filterVisitPurpose').value : ''),
-        status: document.getElementById('filterVisitStatus') ? document.getElementById('filterVisitStatus').value : '',
-        coaching: document.getElementById('filterVisitCoaching') ? document.getElementById('filterVisitCoaching').checked : false,
-        reps: reps,
-        ters: ters
-    };
-}; 
+    if (document.getElementById('filterVisitStatus')) memory.status = document.getElementById('filterVisitStatus').value;
+    if (document.getElementById('filterVisitCoaching')) memory.coaching = document.getElementById('filterVisitCoaching').checked;
+
+    localStorage.setItem('crm_super_memory_filter', JSON.stringify(memory));
+};
 
 window.restoreVisitFilterState = function() {
-    if (!window.VisitManagerCache || !window.VisitManagerCache.savedFilters) return;
-    var f = window.VisitManagerCache.savedFilters;
-
-    if (window.tomSelectFilterPurposeInstance && f.purpose) window.tomSelectFilterPurposeInstance.setValue(f.purpose, true);
-    if (window.tomSelectStatusInstance && f.status) window.tomSelectStatusInstance.setValue(f.status, true);
-    if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
-
-    // ฟังก์ชันช่วยกางโฟลเดอร์แม่ ให้เห็นว่าลูกโดนติ๊กอยู่
-    var expandParent = function(checkbox) {
-        var li = checkbox.closest('li.tree-node-item');
-        if (li && li.parentElement && li.parentElement.tagName === 'UL') {
-            li.parentElement.classList.add('expanded');
-            var parentLi = li.parentElement.closest('li.tree-node-item');
-            if (parentLi) {
+    var memStr = localStorage.getItem('crm_super_memory_filter');
+    if (!memStr) return;
+    try {
+        var f = JSON.parse(memStr);
+        if (f.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status;
+        if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
+        
+        var expandTree = function(c) {
+            var ul = c.closest('ul'); if (ul) ul.classList.add('expanded');
+            var li = c.closest('li.tree-node-item'); 
+            if (li && li.parentElement && li.parentElement.closest('li')) {
+                var parentLi = li.parentElement.closest('li');
                 var icon = parentLi.querySelector('.tree-toggle-icon');
                 if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
             }
-        }
-    };
+        };
 
-    if (f.reps) {
-        document.querySelectorAll('.chk-tree-rep.chk-leaf').forEach(function(c) {
-            var isChecked = f.reps.indexOf(c.value.trim()) !== -1;
-            c.checked = isChecked;
-            if (isChecked) {
-                if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, 'rep');
-                expandParent(c);
+        // ล้างค่า Checkbox เดิมทั้งหมดก่อน
+        document.querySelectorAll('input[type="checkbox"].chk-tree-rep, input[type="checkbox"].chk-tree-ter, input[type="checkbox"].chk-tree-purpose').forEach(function(c) { c.checked = false; });
+
+        // คืนค่า Checkbox สำหรับ Purpose, Reps, Ters
+        var types = [
+            { className: '.chk-tree-purpose.chk-leaf', data: f.purpose, typeStr: 'purpose' },
+            { className: '.chk-tree-rep.chk-leaf', data: f.reps, typeStr: 'rep' },
+            { className: '.chk-tree-ter.chk-leaf', data: f.ters, typeStr: 'ter' }
+        ];
+
+        types.forEach(function(t) {
+            if (t.data && t.data.length > 0) {
+                document.querySelectorAll(t.className).forEach(function(c) {
+                    if (t.data.indexOf(c.value.trim()) !== -1) {
+                        c.checked = true;
+                        if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, t.typeStr);
+                        expandTree(c);
+                    }
+                });
             }
         });
-    }
-    
-    if (f.ters) {
-        document.querySelectorAll('.chk-tree-ter.chk-leaf').forEach(function(c) {
-            var isChecked = f.ters.indexOf(c.value.trim()) !== -1;
-            c.checked = isChecked;
-            if (isChecked) {
-                if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, 'ter');
-                expandParent(c);
-            }
-        });
-    }
+    } catch(e) { console.error('Memory Restore Error', e); }
 };
 
 // 🎯 ฟังก์ชันสั่ง กรองข้อมูล (ทำงานเมื่อกดปุ่ม Apply & Close หรือเปลี่ยนการค้นหาด้านบน)
