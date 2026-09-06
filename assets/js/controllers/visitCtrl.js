@@ -769,6 +769,13 @@ window.closeMediaPresentation = async function() {
 // ==========================================  
 // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
 window.toggleMainView = function(viewMode) {
+  // 🌟 บังคับซ่อน Loading Card ทันทีที่ผู้ใช้กดสลับปฏิทิน/List 
+  var loadingCard = document.getElementById('visitTableLoading');
+  if (loadingCard) {
+      loadingCard.classList.add('d-none');
+      loadingCard.classList.remove('d-flex');
+  }
+
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer'); 
@@ -2053,6 +2060,8 @@ window.loadVisits = async function(forceReload, isBackground) {
     var loadingDescEl = document.getElementById('loadingDescText');
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
 
+   // ... โค้ดด้านบนของ loadVisits ...
+
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
@@ -2068,13 +2077,26 @@ window.loadVisits = async function(forceReload, isBackground) {
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
+        
+        // 🎯 [ROOT CAUSE FIX]: ถ้ากระโดดออกตรงนี้ ต้องสั่งซ่อน Loading Card ก่อนออกเสมอ!
+        var loadingCardEarly = document.getElementById('visitTableLoading');
+        if (loadingCardEarly) {
+            loadingCardEarly.classList.add('d-none');
+            loadingCardEarly.classList.remove('d-flex');
+        }
+
         window.renderVisitTableServerSide();
         if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') window.renderCalendarView();
-        return; 
+        
+        // 🎯 [เพิ่มดักอีกชั้น]: สั่งซ่อน Overlay ของตารางด้วย (ถ้ามันเปิดค้างไว้)
+        var overlayEarly = document.getElementById('tableLoadingOverlay');
+        if (overlayEarly) overlayEarly.classList.add('d-none');
+
+        return; // 🚨🚨 กระโดดออกได้อย่างปลอดภัย เพราะเราซ่อน Loading หมดแล้ว
     }
 
     try {
-      var sb = window.supabaseClient || window.supabase;
+        var sb = window.supabaseClient || window.supabase; 
       if (!sb) throw new Error("Supabase client not initialized");
 
       if (forceReload || !window.VisitManagerCache.isLoaded) {
