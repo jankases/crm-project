@@ -760,20 +760,36 @@ window.closeMediaPresentation = async function() {
   window.currentActiveMedia = null; window.presentationStartTime = null; window.pdfDocInstance = null; window.pageLogsBuffer = [];
 };
 
- 
  // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================  
- 
+
+// 🌟 ฟังก์ชันประกาศิต: จัดการ Loading แบบทะลุ Framework
+window.setLoadingCardState = function(isShow) {
+    var card = document.getElementById('visitTableLoading');
+    var styleId = 'anti-framework-loading-style';
+    var styleEl = document.getElementById(styleId);
+
+    if (isShow) {
+        if (card) { card.classList.remove('d-none'); card.classList.add('d-flex'); card.style.removeProperty('display'); }
+        if (styleEl) styleEl.remove(); // ลบกฎซ่อนทิ้ง
+    } else {
+        if (card) { card.classList.add('d-none'); card.classList.remove('d-flex'); card.style.setProperty('display', 'none', 'important'); }
+        
+        // 🛑 ฝัง CSS ลง <head> เพื่อสกัดกั้น Framework ไม่ให้เสกวงล้อกลับมาตอนวาด DOM ใหม่
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+        styleEl.innerHTML = '#visitTableLoading { display: none !important; }';
+    }
+};
+
 // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
 window.toggleMainView = function(viewMode) {
-  // 🎯 [NUKE FIX] บังคับซ่อน Loading Card ด้วย Inline Style ทะลวง CSS ทุกกฎ
-  var loadingCard = document.getElementById('visitTableLoading');
-  if (loadingCard) {
-      loadingCard.style.setProperty('display', 'none', 'important');
-      loadingCard.classList.add('d-none');
-      loadingCard.classList.remove('d-flex');
-  }
+  // 🎯 ปิดตายวงล้อทันทีแบบชัวร์ 100%
+  if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
 
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
@@ -2445,17 +2461,13 @@ window.loadVisits = async function(forceReload, isBackground) {
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
-      } finally {
+ 
+    } finally {
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-            // 🎯 [NUKE FIX] ปิดตายวงล้อหลังโหลดข้อมูลสำเร็จ
-            var loadingCard = document.getElementById('visitTableLoading');
-            if (loadingCard) {
-                loadingCard.style.setProperty('display', 'none', 'important');
-                loadingCard.classList.add('d-none');
-                loadingCard.classList.remove('d-flex');
-            }
+            // 🎯 ปิดตายวงล้อทันทีที่โหลดข้อมูลเสร็จ
+            if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
 
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
@@ -4963,22 +4975,15 @@ window.renderVisitFilters = function() {
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
+    // 🎯 ถ้าต้องดึงข้อมูลใหม่ ค่อยเปิดวงล้อ
     if (shouldFetchDB) {
-        if (loadingCard) {
-            loadingCard.style.setProperty('display', 'flex', 'important');
-            loadingCard.classList.remove('d-none');
-            loadingCard.classList.add('d-flex');
-        }
+        if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(true);
         if (visitViewEl) visitViewEl.classList.add('is-loading');
         if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
         if (calZone) calZone.style.setProperty('display', 'none', 'important');
     } else {
-        // 🎯 [NUKE FIX] ถ้ามี Cache อยู่แล้ว ต้องตัดไฟแต่ต้นลม สั่งซ่อนวงล้อให้เด็ดขาด
-        if (loadingCard) {
-            loadingCard.style.setProperty('display', 'none', 'important');
-            loadingCard.classList.add('d-none');
-            loadingCard.classList.remove('d-flex');
-        }
+        // 🎯 ถ้าใช้ Cache ให้ชัตดาวน์วงล้อทันที
+        if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
     }
 
     var domWaitCount = 0;
@@ -5041,11 +5046,8 @@ window.renderVisitFilters = function() {
         if (shouldFetchDB === false) {
              if (visitViewEl) visitViewEl.classList.remove('is-loading');
              
-             // 🎯 ป้องกันเหนียวอีกชั้น: ถึงไม่ได้โหลด DB ใหม่ ก็สั่งปิดเผื่อไว้
-             if (loadingCard) {
-                 loadingCard.classList.add('d-none');
-                 loadingCard.classList.remove('d-flex');
-             }
+             // 🎯 ป้องกันวงล้อผีหลอก
+             if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
 
              var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
              if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
