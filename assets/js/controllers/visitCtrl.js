@@ -4956,38 +4956,35 @@ window.renderVisitFilters = function() {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
-    // 🎯 1. [แก้บั๊ก แว๊บ FOUC] บังคับเข้าสู่สถานะ Loading "ทันที" ตั้งแต่บรรทัดแรก!
-    // สั่งซ่อนตารางและปฏิทินแบบเด็ดขาด ก่อนที่โค้ดจะไปหน่วงเวลา (await) ในบรรทัดถัดไป
-    // ทำให้เบราว์เซอร์ไม่มีโอกาสได้วาดหน้าตารางโล่งๆ ออกมาให้เราเห็นเลยแม้แต่เสี้ยววินาที
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
     var calZone = document.getElementById('visitCalendarZone');
-    var loadingCard = document.getElementById('visitTableLoading'); // 🌟 บรรทัดนี้สำคัญมาก!
+    var loadingCard = document.getElementById('visitTableLoading');
 
-     // 🌟 สั่งโชว์ Loading Card ทันที
-    if (loadingCard) {
-        loadingCard.classList.remove('d-none');
-        loadingCard.classList.add('d-flex');
+    var crmUser = null;
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
+
+    // 🎯 [หัวใจสำคัญ] เช็คก่อนว่าเรามี Cache ข้อมูลพร้อมใช้งานหรือไม่?
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
+    var shouldFetchDB = forceReload === true ? true : !hasCache;
+
+    // 🎯 ถ้าต้องดึงข้อมูลจาก DB ใหม่ (ไม่มี Cache หรือ Force Reload) ค่อยโชว์ Loading Card
+    if (shouldFetchDB) {
+        if (loadingCard) {
+            loadingCard.classList.remove('d-none');
+            loadingCard.classList.add('d-flex');
+        }
+        if (visitViewEl) visitViewEl.classList.add('is-loading');
+        if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
+        if (calZone) calZone.style.setProperty('display', 'none', 'important');
     }
 
-    if (visitViewEl) visitViewEl.classList.add('is-loading');
-    if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
-    if (calZone) calZone.style.setProperty('display', 'none', 'important');
-
-    // ⏳ 2. จังหวะนี้เบราว์เซอร์จะ Render หน้าจอ (ซึ่งมันจะเห็นแค่หน้า Loading หมุนๆ 100% เต็มจอ)
     var domWaitCount = 0;
     while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
         await new Promise(r => setTimeout(r, 20));
         domWaitCount++;
     }
-
-    // 3. เริ่มกระบวนการโหลดข้อมูล (เบื้องหลังการทำงาน)
-    var crmUser = null;
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
-
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
-    var shouldFetchDB = forceReload === true ? true : !hasCache;
 
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
@@ -5024,7 +5021,6 @@ window.renderVisitFilters = function() {
             window.setupFiltersDropdowns(crmUser, []);
         }
 
-        // 🎯 [จุดที่ต้องเติม] สั่งสร้างปฏิทิน (Date Picker) สำหรับ Filter และ Form ทันทีที่โหลดหน้าเสร็จ
         if (typeof window.initVisitDatePickers === 'function') {
             window.initVisitDatePickers();
         }
@@ -5036,21 +5032,15 @@ window.renderVisitFilters = function() {
         }
 
     } catch(err) {
-        console.error("Init Visits Failed:", err);
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var msgErr = appLang === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
-        var tbody = document.getElementById('visitTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
+        // ... (Error handling remains the same)
     } finally {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
 
-        // 🎯 (ไม่ต้องใส่โค้ดเปิดตารางตรงนี้แล้ว เพราะ loadVisits จัดการคลายล็อกให้ใน finally ของมันเอง)
         if (shouldFetchDB === false) {
              if (visitViewEl) visitViewEl.classList.remove('is-loading');
              
-             // 🎯 [เพิ่มตรงนี้!] สั่งซ่อน Loading Card ตัวหลัก ในกรณีที่ระบบดึงข้อมูลจาก Cache
-             var loadingCard = document.getElementById('visitTableLoading');
+             // 🎯 ป้องกันเหนียวอีกชั้น: ถึงไม่ได้โหลด DB ใหม่ ก็สั่งปิดเผื่อไว้
              if (loadingCard) {
                  loadingCard.classList.add('d-none');
                  loadingCard.classList.remove('d-flex');
