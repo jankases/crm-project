@@ -2523,12 +2523,17 @@ window.loadVisits = async function(forceReload, isBackground) {
 window.saveVisitFilterState = function() {
     var memory = { purpose: [], status: '', coaching: false, reps: [], ters: [] };
     
+    // 🌟 ดึงค่า Purpose แบบ Checkbox
     document.querySelectorAll('.chk-tree-purpose.chk-leaf:checked').forEach(function(c) {
         if (c.value && c.value !== 'on') memory.purpose.push(c.value.trim());
     });
+
+    // จำค่า Employee
     document.querySelectorAll('.chk-tree-rep.chk-leaf:checked').forEach(function(c) {
         if (c.value && c.value !== 'on') memory.reps.push(c.value.trim());
     });
+    
+    // จำค่า Area
     document.querySelectorAll('.chk-tree-ter.chk-leaf:checked').forEach(function(c) {
         if (c.value && c.value !== 'on') memory.ters.push(c.value.trim());
     });
@@ -2536,6 +2541,7 @@ window.saveVisitFilterState = function() {
     if (document.getElementById('filterVisitStatus')) memory.status = document.getElementById('filterVisitStatus').value;
     if (document.getElementById('filterVisitCoaching')) memory.coaching = document.getElementById('filterVisitCoaching').checked;
 
+    // ฝังลงในหน่วยความจำของเบราว์เซอร์
     localStorage.setItem('crm_super_memory_filter', JSON.stringify(memory));
 };
 
@@ -2544,23 +2550,29 @@ window.restoreVisitFilterState = function() {
     if (!memStr) return;
     try {
         var f = JSON.parse(memStr);
+        
         if (f.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status;
         if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
         
         var expandTree = function(c) {
-            var ul = c.closest('ul'); if (ul) ul.classList.add('expanded');
-            var li = c.closest('li.tree-node-item'); 
-            if (li && li.parentElement && li.parentElement.closest('li')) {
-                var parentLi = li.parentElement.closest('li');
-                var icon = parentLi.querySelector('.tree-toggle-icon');
-                if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
-            }
+            try {
+                var ul = c.closest('ul'); if (ul) ul.classList.add('expanded');
+                var li = c.closest('li.tree-node-item'); 
+                if (li && li.parentElement && li.parentElement.closest('li')) {
+                    var parentLi = li.parentElement.closest('li');
+                    var icon = parentLi.querySelector('.tree-toggle-icon');
+                    if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
+                }
+            } catch(e) {}
         };
 
-        // ล้างค่า Checkbox เดิมทั้งหมดก่อน
-        document.querySelectorAll('input[type="checkbox"].chk-tree-rep, input[type="checkbox"].chk-tree-ter, input[type="checkbox"].chk-tree-purpose').forEach(function(c) { c.checked = false; });
+        // ล้าง Checkbox เดิมให้สะอาดทั้งหมดก่อน
+        document.querySelectorAll('.chk-tree-rep, .chk-tree-ter, .chk-tree-purpose').forEach(function(c) { 
+            c.checked = false; 
+            c.indeterminate = false;
+        });
 
-        // คืนค่า Checkbox สำหรับ Purpose, Reps, Ters
+        // 🌟 คืนชีพ Checkbox เฉพาะคนที่อยู่ในความจำ
         var types = [
             { className: '.chk-tree-purpose.chk-leaf', data: f.purpose, typeStr: 'purpose' },
             { className: '.chk-tree-rep.chk-leaf', data: f.reps, typeStr: 'rep' },
@@ -2568,14 +2580,21 @@ window.restoreVisitFilterState = function() {
         ];
 
         types.forEach(function(t) {
-            if (t.data && t.data.length > 0) {
-                document.querySelectorAll(t.className).forEach(function(c) {
-                    if (t.data.indexOf(c.value.trim()) !== -1) {
-                        c.checked = true;
-                        if (typeof window.handleTreeCheckboxChange === 'function') window.handleTreeCheckboxChange(c, t.typeStr);
-                        expandTree(c);
-                    }
-                });
+            if (t.data) {
+                // 🚨 ป้องกันบั๊กหน่วยความจำเก่า (บังคับแปลง String เป็น Array เสมอ)
+                var arr = Array.isArray(t.data) ? t.data : [t.data]; 
+                
+                if (arr.length > 0) {
+                    document.querySelectorAll(t.className).forEach(function(c) {
+                        if (arr.indexOf(c.value.trim()) !== -1) {
+                            c.checked = true;
+                            if (typeof window.handleTreeCheckboxChange === 'function') {
+                                window.handleTreeCheckboxChange(c, t.typeStr);
+                            }
+                            expandTree(c);
+                        }
+                    });
+                }
             }
         });
     } catch(e) { console.error('Memory Restore Error', e); }
@@ -2647,12 +2666,13 @@ window.clearSmartSearchInput = function() {
     window.currentPage = 1;
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
 };
- 
+  
 // 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
 window.clearVisitFilters = function() {
     if (typeof window.toggleAllCheckboxes === 'function') {
         window.toggleAllCheckboxes('rep', false);
         window.toggleAllCheckboxes('ter', false);
+        window.toggleAllCheckboxes('purpose', false); // 🌟 สั่งล้าง Checkbox Purpose ด้วย
     }
 
     var searchRep = document.getElementById('searchRepFilter');
@@ -2667,9 +2687,6 @@ window.clearVisitFilters = function() {
         if (stEl) stEl.value = '';
     }
 
-    if (window.tomSelectFilterPurposeInstance) {
-        window.tomSelectFilterPurposeInstance.setValue('', true);
-    }
     var chkCoaching = document.getElementById('filterVisitCoaching');
     if (chkCoaching) chkCoaching.checked = false;
     
