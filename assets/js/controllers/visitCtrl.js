@@ -1523,14 +1523,15 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             e.preventDefault();
             e.stopPropagation();
             
-            // 🌟 1. เปลี่ยนสถานะปุ่มเป็น Loading หมุนๆ
+            // 🌟 1. เปลี่ยนปุ่มเป็นสถานะกำลังโหลด
             var originalHtml = btnApply.innerHTML;
             btnApply.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> ' + (appLang === 'th' ? 'กำลังโหลด...' : 'Applying...');
             btnApply.disabled = true;
 
-            // 🌟 2. หน่วงเวลา 50ms ให้เบราว์เซอร์โชว์อนิเมชันปุ่มก่อน ค่อยปิดหน้าต่างและดึงข้อมูล
+            // 🌟 2. หน่วงเวลา 100ms ให้ผู้ใช้เห็นลูกศรหมุนก่อนปิดหน้าต่าง
             setTimeout(function() {
                 window._allowFilterClose = true; 
+                var advBtn = document.getElementById('btnAdvFilterDropdown');
                 if (advBtn && typeof bootstrap !== 'undefined') {
                     var bsDropdown = bootstrap.Dropdown.getInstance(advBtn) || new bootstrap.Dropdown(advBtn);
                     if (bsDropdown) bsDropdown.hide();
@@ -1540,13 +1541,13 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 setTimeout(function() { window._allowFilterClose = false; }, 200);
 
                 if (typeof window.filterVisits === 'function') window.filterVisits(); 
-
-                // 🌟 3. คืนค่าปุ่มกลับเป็นปกติหลังจากโหลดเสร็จ
+                
+                // 🌟 3. คืนค่าปุ่มกลับเป็นปกติ
                 setTimeout(function() {
                     btnApply.innerHTML = originalHtml;
                     btnApply.disabled = false;
-                }, 800);
-            }, 50);
+                }, 500);
+            }, 100);
         });
         btnApply.dataset.bound = 'true';
     }
@@ -2637,13 +2638,23 @@ window.restoreVisitFilterState = function() {
     } catch(e) { console.error('Memory Restore Error', e); }
 };
 
-// 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" ทันทีที่กด Apply
+// 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" และขึ้น Loading ในตารางทันที
 window.filterVisits = function() {
     if (window.isInitialLoading) return; 
+    
     window.saveVisitFilterState(); 
     window.currentPage = 1;
-    // 🌟 เปลี่ยนจาก (true, true) เป็น (true, false) เพื่อบังคับให้โชว์ไอคอน Loading บนตาราง!
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, false); 
+    
+    // 🌟 เปลี่ยนเนื้อหาในตารางให้เป็น Loading แบบเนียนๆ โดยไม่ลบแถบด้านบนทิ้ง
+    var tbody = document.getElementById('visitTableBody');
+    if (tbody) {
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var loadText = appLang === 'en' ? 'Loading Data...' : 'กำลังประมวลผลข้อมูล...';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><i class="fa-solid fa-circle-notch fa-spin fs-2 text-primary mb-3"></i><br><span class="text-muted fw-bold">' + loadText + '</span></td></tr>';
+    }
+
+    // 🌟 สั่ง loadVisits แบบ Background Mode (true, true) หน้าจอจะได้ไม่กระพริบขาว
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
 };
 
 // 🎯 ดักจับปุ่มเปิด Filter! ทันทีที่พี่กดเปิดแผง Filter โค้ดจะยัดค่ากลับให้ใน 0.05 วินาที
@@ -2713,11 +2724,12 @@ window.clearSmartSearchInput = function() {
 };
   
 // 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
+ // 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
 window.clearVisitFilters = function() {
     if (typeof window.toggleAllCheckboxes === 'function') {
         window.toggleAllCheckboxes('rep', false);
         window.toggleAllCheckboxes('ter', false);
-        window.toggleAllCheckboxes('purpose', false);
+        window.toggleAllCheckboxes('purpose', false); // 🌟 สั่งล้าง Checkbox Purpose ด้วย
     }
 
     var searchRep = document.getElementById('searchRepFilter');
@@ -2746,7 +2758,7 @@ window.clearVisitFilters = function() {
     var searchEl = document.getElementById('smartSearchInput');
     if (searchEl) searchEl.value = '';
 
-    // 🛑 เอาคำสั่งโหลดตาราง (window.filterVisits) ออก เพื่อให้ผู้ใช้กด Apply เอง
+    // 🛑 เอาคำสั่งโหลดตารางตรงนี้ออกไป เพื่อให้ทำงานต่อเมื่อผู้ใช้กด Apply เท่านั้น
 };
 
 function matchedTerAndUnique(arr) {
