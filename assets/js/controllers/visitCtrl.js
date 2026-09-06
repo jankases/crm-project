@@ -2426,10 +2426,18 @@ window.loadVisits = async function(forceReload, isBackground) {
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
-        } finally {
+      } finally {
         // 🌟 1. ซ่อนหน้าจอ Loading แบบเต็มแผ่น (ที่ขึ้นตอนโหลดครั้งแรก)
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
+
+            // 🎯 [เพิ่มตรงนี้!] สั่งซ่อน Loading Card ตัวหลักเมื่อดึงข้อมูลเสร็จแล้ว
+            var loadingCard = document.getElementById('visitTableLoading');
+            if (loadingCard) {
+                loadingCard.classList.add('d-none');
+                loadingCard.classList.remove('d-flex');
+            }
+
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
             
@@ -2439,7 +2447,7 @@ window.loadVisits = async function(forceReload, isBackground) {
             }
         }
         
-        // 🌟 2. [เพิ่มใหม่] สั่งปิดแผ่น Loading Overlay ทับตารางเสมอ (ไม่ว่าจะถูกหรือผิด)
+        // 🌟 2. สั่งปิดแผ่น Loading Overlay ทับตารางเสมอ (ไม่ว่าจะถูกหรือผิด)
         var overlay = document.getElementById('tableLoadingOverlay');
         if (overlay) overlay.classList.add('d-none');
     }
@@ -5015,9 +5023,17 @@ window.renderVisitFilters = function() {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
 
-        // 🎯 (ไม่ต้องใส่โค้ดเปิดตารางตรงนี้แล้ว เพราะ loadVisits จัดการคลายล็อกให้ใน finally ของมันเองอย่างสมบูรณ์แบบ)
+        // 🎯 (ไม่ต้องใส่โค้ดเปิดตารางตรงนี้แล้ว เพราะ loadVisits จัดการคลายล็อกให้ใน finally ของมันเอง)
         if (shouldFetchDB === false) {
              if (visitViewEl) visitViewEl.classList.remove('is-loading');
+             
+             // 🎯 [เพิ่มตรงนี้!] สั่งซ่อน Loading Card ตัวหลัก ในกรณีที่ระบบดึงข้อมูลจาก Cache
+             var loadingCard = document.getElementById('visitTableLoading');
+             if (loadingCard) {
+                 loadingCard.classList.add('d-none');
+                 loadingCard.classList.remove('d-flex');
+             }
+
              var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
              if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
         }
