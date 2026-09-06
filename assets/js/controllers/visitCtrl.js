@@ -2395,7 +2395,8 @@ window.loadVisits = async function(forceReload, isBackground) {
       var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
-    } finally {
+        } finally {
+        // 🌟 1. ซ่อนหน้าจอ Loading แบบเต็มแผ่น (ที่ขึ้นตอนโหลดครั้งแรก)
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
@@ -2406,6 +2407,10 @@ window.loadVisits = async function(forceReload, isBackground) {
                 window.restoreVisitFilterState();
             }
         }
+        
+        // 🌟 2. [เพิ่มใหม่] สั่งปิดแผ่น Loading Overlay ทับตารางเสมอ (ไม่ว่าจะถูกหรือผิด)
+        var overlay = document.getElementById('tableLoadingOverlay');
+        if (overlay) overlay.classList.add('d-none');
     }
 };
   
@@ -2637,20 +2642,30 @@ window.restoreVisitFilterState = function() {
         });
     } catch(e) { console.error('Memory Restore Error', e); }
 };
-
-// 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" และขึ้น Loading เต็มพื้นที่
+ 
+ // 🎯 ฟังก์ชันสั่ง กรองข้อมูล (ทำงานเมื่อกดปุ่ม Apply & Close หรือเปลี่ยนการค้นหาด้านบน)
 window.filterVisits = function() {
     if (window.isInitialLoading) return; 
     
-    window.saveVisitFilterState(); 
+    // 🌟 1. สั่งให้ระบบ "จำ" สิ่งที่ติ๊กไว้ทันทีก่อนหน้าต่างปิด
+    if (typeof window.saveVisitFilterState === 'function') window.saveVisitFilterState();
+    
     window.currentPage = 1;
     
-    // 🌟 โชว์ Loading Overlay ทับบนตาราง (ถ้ามี)
+    // 🌟 2. เปิดหน้าจอ Loading Overlay ให้ทับตารางทันทีที่กดกรอง
     var overlay = document.getElementById('tableLoadingOverlay');
-    if (overlay) overlay.classList.remove('d-none');
-
-    // 🌟 สั่ง loadVisits แบบ Background Mode เพื่อไม่ให้หน้าจอกระพริบ
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, false); 
+    if (overlay) {
+        // ให้แน่ใจว่าหน้า List เปิดอยู่
+        var listView = document.getElementById('visitListView');
+        if (listView) {
+            listView.classList.remove('d-none');
+            listView.style.display = '';
+        }
+        overlay.classList.remove('d-none');
+    }
+    
+    // 🌟 3. สั่งโหลดข้อมูลใหม่ โดยให้เป็น background mode (true, true) เพื่อข้ามส่วนที่ซ่อนหน้าตารางหลัก
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
 };
 
 // 🎯 ดักจับปุ่มเปิด Filter! ทันทีที่พี่กดเปิดแผง Filter โค้ดจะยัดค่ากลับให้ใน 0.05 วินาที
