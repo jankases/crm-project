@@ -2190,9 +2190,9 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
       // 🌟 ส่ง Array ของ Purpose ให้ Supabase ค้นหาทั้งหมดที่ตรงกัน
-      if (finalPurposeIds.length > 0) {
-          dataQuery = dataQuery.in('Purpose_ID', finalPurposeIds);
-          countQuery = countQuery.in('Purpose_ID', finalPurposeIds);
+      if (capturedPurposeIds && capturedPurposeIds.length > 0) {
+          dataQuery = dataQuery.in('Purpose_ID', capturedPurposeIds);
+          countQuery = countQuery.in('Purpose_ID', capturedPurposeIds);
       }
 
       if (capturedCoaching) {
