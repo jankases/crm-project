@@ -1301,6 +1301,27 @@ window.deleteTot = async function() {
     console.error("Error loading dropdowns:", err.message); 
   }
 };
+
+// 🎯 ฟังก์ชันล้างค่าวันที่ด้านนอก
+window.clearDateFilterExternal = function(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    
+    // ล้างค่า Flatpickr
+    if (window.fpStartInstance) window.fpStartInstance.clear();
+    if (window.fpEndInstance) window.fpEndInstance.clear();
+    
+    var stDate = document.getElementById('filterStartDate');
+    var endDate = document.getElementById('filterEndDate');
+    if (stDate) stDate.value = '';
+    if (endDate) endDate.value = '';
+
+    // ซ่อนปุ่มกากบาท (x)
+    var clearBtn = document.getElementById('btnClearDateFilter');
+    if (clearBtn) clearBtn.classList.add('d-none');
+
+    // โหลดตารางใหม่
+    if (typeof window.filterVisits === 'function') window.filterVisits();
+};
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
  
