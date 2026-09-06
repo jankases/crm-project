@@ -2645,15 +2645,11 @@ window.filterVisits = function() {
     window.saveVisitFilterState(); 
     window.currentPage = 1;
     
-    // 🌟 เปลี่ยนเนื้อหาในตารางให้เป็น Loading แบบจัดเต็ม (สูง 400px)
-    var tbody = document.getElementById('visitTableBody');
-    if (tbody) {
-        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var loadText = appLang === 'en' ? 'Loading Data...' : 'กำลังประมวลผลข้อมูล...';
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center border-0" style="height: 400px; vertical-align: middle;"><i class="fa-solid fa-circle-notch fa-spin text-primary mb-3" style="font-size: 3.5rem;"></i><br><span class="text-muted fw-bold fs-6">' + loadText + '</span></td></tr>';
-    }
+    // 🌟 โชว์ Loading Overlay ทับบนตาราง (ถ้ามี)
+    var overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) overlay.classList.remove('d-none');
 
-    // 🌟 สั่ง loadVisits แบบ Background Mode
+    // 🌟 สั่ง loadVisits แบบ Background Mode เพื่อไม่ให้หน้าจอกระพริบ
     if (typeof window.loadVisits === 'function') window.loadVisits(true, false); 
 };
 
