@@ -760,18 +760,17 @@ window.closeMediaPresentation = async function() {
   window.currentActiveMedia = null; window.presentationStartTime = null; window.pdfDocInstance = null; window.pageLogsBuffer = [];
 };
 
-// ==========================================
-// 📊 6. VIEW & UI SWITCHERS & STATS
-// ========================================== 
- // 🌟 ฟังก์ชันสลับหน้า List / Calendar (แก้ไขจุดสลับ View ให้เสร็จสมบูรณ์)
+ 
  // ==========================================
 // 📊 6. VIEW & UI SWITCHERS & STATS
 // ==========================================  
+ 
 // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
 window.toggleMainView = function(viewMode) {
-  // 🌟 บังคับซ่อน Loading Card ทันทีที่ผู้ใช้กดสลับปฏิทิน/List 
+  // 🎯 [NUKE FIX] บังคับซ่อน Loading Card ด้วย Inline Style ทะลวง CSS ทุกกฎ
   var loadingCard = document.getElementById('visitTableLoading');
   if (loadingCard) {
+      loadingCard.style.setProperty('display', 'none', 'important');
       loadingCard.classList.add('d-none');
       loadingCard.classList.remove('d-flex');
   }
@@ -779,7 +778,7 @@ window.toggleMainView = function(viewMode) {
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
   var mainContainer = document.getElementById('visitMainContentContainer'); 
-  var calZone = document.getElementById('visitCalendarZone');               
+  var calZone = document.getElementById('visitCalendarZone');                
 
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var isEN = (appLang === 'en');
@@ -794,7 +793,6 @@ window.toggleMainView = function(viewMode) {
       if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
       if (calZone) {
           calZone.classList.remove('d-none');
-          // 🎯 เติมกฎ Flexbox เต็มชุด
           calZone.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
       }
       
@@ -806,7 +804,6 @@ window.toggleMainView = function(viewMode) {
       if (calZone) calZone.style.setProperty('display', 'none', 'important');
       if (mainContainer) {
           mainContainer.classList.remove('d-none');
-          // 🎯 เติมกฎ Flexbox เต็มชุด
           mainContainer.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
       }
   }
@@ -2078,9 +2075,10 @@ window.loadVisits = async function(forceReload, isBackground) {
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
         
-        // 🎯 [ROOT CAUSE FIX]: ถ้ากระโดดออกตรงนี้ ต้องสั่งซ่อน Loading Card ก่อนออกเสมอ!
+        // 🎯 [NUKE FIX] ปิดตายวงล้อก่อนกระโดดออก
         var loadingCardEarly = document.getElementById('visitTableLoading');
         if (loadingCardEarly) {
+            loadingCardEarly.style.setProperty('display', 'none', 'important');
             loadingCardEarly.classList.add('d-none');
             loadingCardEarly.classList.remove('d-flex');
         }
@@ -2088,11 +2086,10 @@ window.loadVisits = async function(forceReload, isBackground) {
         window.renderVisitTableServerSide();
         if (window.VisitManagerCache.currentMainView === 'calendar' && typeof window.renderCalendarView === 'function') window.renderCalendarView();
         
-        // 🎯 [เพิ่มดักอีกชั้น]: สั่งซ่อน Overlay ของตารางด้วย (ถ้ามันเปิดค้างไว้)
         var overlayEarly = document.getElementById('tableLoadingOverlay');
         if (overlayEarly) overlayEarly.classList.add('d-none');
 
-        return; // 🚨🚨 กระโดดออกได้อย่างปลอดภัย เพราะเราซ่อน Loading หมดแล้ว
+        return; 
     }
 
     try {
@@ -2449,13 +2446,13 @@ window.loadVisits = async function(forceReload, isBackground) {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
       } finally {
-        // 🌟 1. ซ่อนหน้าจอ Loading แบบเต็มแผ่น (ที่ขึ้นตอนโหลดครั้งแรก)
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-            // 🎯 [เพิ่มตรงนี้!] สั่งซ่อน Loading Card ตัวหลักเมื่อดึงข้อมูลเสร็จแล้ว
+            // 🎯 [NUKE FIX] ปิดตายวงล้อหลังโหลดข้อมูลสำเร็จ
             var loadingCard = document.getElementById('visitTableLoading');
             if (loadingCard) {
+                loadingCard.style.setProperty('display', 'none', 'important');
                 loadingCard.classList.add('d-none');
                 loadingCard.classList.remove('d-flex');
             }
@@ -2463,13 +2460,11 @@ window.loadVisits = async function(forceReload, isBackground) {
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
             
-            // 🌟 ปลุกความจำ! คืนค่าให้หน้าจอเสมอหลังจากดึงข้อมูลเสร็จ
             if (typeof window.restoreVisitFilterState === 'function') {
                 window.restoreVisitFilterState();
             }
         }
         
-        // 🌟 2. สั่งปิดแผ่น Loading Overlay ทับตารางเสมอ (ไม่ว่าจะถูกหรือผิด)
         var overlay = document.getElementById('tableLoadingOverlay');
         if (overlay) overlay.classList.add('d-none');
     }
@@ -4965,19 +4960,25 @@ window.renderVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🎯 [หัวใจสำคัญ] เช็คก่อนว่าเรามี Cache ข้อมูลพร้อมใช้งานหรือไม่?
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
-    // 🎯 ถ้าต้องดึงข้อมูลจาก DB ใหม่ (ไม่มี Cache หรือ Force Reload) ค่อยโชว์ Loading Card
     if (shouldFetchDB) {
         if (loadingCard) {
+            loadingCard.style.setProperty('display', 'flex', 'important');
             loadingCard.classList.remove('d-none');
             loadingCard.classList.add('d-flex');
         }
         if (visitViewEl) visitViewEl.classList.add('is-loading');
         if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
         if (calZone) calZone.style.setProperty('display', 'none', 'important');
+    } else {
+        // 🎯 [NUKE FIX] ถ้ามี Cache อยู่แล้ว ต้องตัดไฟแต่ต้นลม สั่งซ่อนวงล้อให้เด็ดขาด
+        if (loadingCard) {
+            loadingCard.style.setProperty('display', 'none', 'important');
+            loadingCard.classList.add('d-none');
+            loadingCard.classList.remove('d-flex');
+        }
     }
 
     var domWaitCount = 0;
