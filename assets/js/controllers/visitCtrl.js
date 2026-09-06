@@ -1523,16 +1523,30 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             e.preventDefault();
             e.stopPropagation();
             
-            window._allowFilterClose = true; 
-            if (advBtn && typeof bootstrap !== 'undefined') {
-                var bsDropdown = bootstrap.Dropdown.getInstance(advBtn) || new bootstrap.Dropdown(advBtn);
-                if (bsDropdown) bsDropdown.hide();
-            } else if (advBtn) {
-                advBtn.click();
-            }
-            setTimeout(function() { window._allowFilterClose = false; }, 200);
+            // 🌟 1. เปลี่ยนสถานะปุ่มเป็น Loading หมุนๆ
+            var originalHtml = btnApply.innerHTML;
+            btnApply.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> ' + (appLang === 'th' ? 'กำลังโหลด...' : 'Applying...');
+            btnApply.disabled = true;
 
-            if (typeof window.filterVisits === 'function') window.filterVisits(); 
+            // 🌟 2. หน่วงเวลา 50ms ให้เบราว์เซอร์โชว์อนิเมชันปุ่มก่อน ค่อยปิดหน้าต่างและดึงข้อมูล
+            setTimeout(function() {
+                window._allowFilterClose = true; 
+                if (advBtn && typeof bootstrap !== 'undefined') {
+                    var bsDropdown = bootstrap.Dropdown.getInstance(advBtn) || new bootstrap.Dropdown(advBtn);
+                    if (bsDropdown) bsDropdown.hide();
+                } else if (advBtn) {
+                    advBtn.click();
+                }
+                setTimeout(function() { window._allowFilterClose = false; }, 200);
+
+                if (typeof window.filterVisits === 'function') window.filterVisits(); 
+
+                // 🌟 3. คืนค่าปุ่มกลับเป็นปกติหลังจากโหลดเสร็จ
+                setTimeout(function() {
+                    btnApply.innerHTML = originalHtml;
+                    btnApply.disabled = false;
+                }, 800);
+            }, 50);
         });
         btnApply.dataset.bound = 'true';
     }
@@ -2626,9 +2640,10 @@ window.restoreVisitFilterState = function() {
 // 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" ทันทีที่กด Apply
 window.filterVisits = function() {
     if (window.isInitialLoading) return; 
-    window.saveVisitFilterState(); // <--- สั่งจำค่าเดี๋ยวนี้!
+    window.saveVisitFilterState(); 
     window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
+    // 🌟 เปลี่ยนจาก (true, true) เป็น (true, false) เพื่อบังคับให้โชว์ไอคอน Loading บนตาราง!
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, false); 
 };
 
 // 🎯 ดักจับปุ่มเปิด Filter! ทันทีที่พี่กดเปิดแผง Filter โค้ดจะยัดค่ากลับให้ใน 0.05 วินาที
@@ -2639,24 +2654,7 @@ document.addEventListener('click', function(e) {
     }
 });
  
-// 🎯 ฟังก์ชันสั่ง กรองข้อมูล (ทำงานเมื่อกดปุ่ม Apply & Close หรือเปลี่ยนการค้นหาด้านบน)
-window.filterVisits = function() {
-    if (window.isInitialLoading) return; 
-    
-    // 🌟 สั่งให้ระบบ "จำ" สิ่งที่ติ๊กไว้ทันทีก่อนหน้าต่างปิด
-    if (typeof window.saveVisitFilterState === 'function') window.saveVisitFilterState();
-    
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
-};
-
-// 🎯 ดักจับปุ่มเปิด Filter! ทันทีที่พี่กดเปิดแผง Filter โค้ดจะยัดค่ากลับให้ใน 0.05 วินาที
-document.addEventListener('click', function(e) {
-    var advBtn = e.target.closest('#btnAdvFilterDropdown');
-    if (advBtn) {
-        setTimeout(window.restoreVisitFilterState, 50);
-    }
-});
+ 
  
 window.applyAdvancedFilters = function() {
   if (typeof window.filterVisits === 'function') window.filterVisits();
@@ -2719,7 +2717,7 @@ window.clearVisitFilters = function() {
     if (typeof window.toggleAllCheckboxes === 'function') {
         window.toggleAllCheckboxes('rep', false);
         window.toggleAllCheckboxes('ter', false);
-        window.toggleAllCheckboxes('purpose', false); // 🌟 สั่งล้าง Checkbox Purpose ด้วย
+        window.toggleAllCheckboxes('purpose', false);
     }
 
     var searchRep = document.getElementById('searchRepFilter');
@@ -2748,7 +2746,7 @@ window.clearVisitFilters = function() {
     var searchEl = document.getElementById('smartSearchInput');
     if (searchEl) searchEl.value = '';
 
-    if (typeof window.filterVisits === 'function') window.filterVisits();
+    // 🛑 เอาคำสั่งโหลดตาราง (window.filterVisits) ออก เพื่อให้ผู้ใช้กด Apply เอง
 };
 
 function matchedTerAndUnique(arr) {
