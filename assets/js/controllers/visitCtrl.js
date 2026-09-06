@@ -4932,6 +4932,7 @@ window.renderVisitFilters = function() {
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
     var calZone = document.getElementById('visitCalendarZone');
+    var loadingCard = document.getElementById('visitTableLoading'); // 🌟 บรรทัดนี้สำคัญมาก!
 
      // 🌟 สั่งโชว์ Loading Card ทันที
     if (loadingCard) {
