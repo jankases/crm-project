@@ -3177,6 +3177,10 @@ window.toggleVisitFormEditable = function(isEditable) {
       var cTime = new Date(v.CheckIn_Time);
       timeText.innerText = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
     }
+    
+    // 🌟 สั่งวาดแผนที่ของเก่าที่เคยเช็คอินไว้
+    if (typeof window.updateGpsMapUI === 'function') window.updateGpsMapUI(v.CheckIn_Lat, v.CheckIn_Long);
+
     if (btnGps) {
       btnGps.className = 'btn btn-success w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
       btnGps.style.borderRadius = '16px';
@@ -3187,6 +3191,10 @@ window.toggleVisitFormEditable = function(isEditable) {
     if (latInput) latInput.value = '';
     if (lngInput) lngInput.value = '';
     if (timeWrapper) timeWrapper.classList.add('d-none');
+    
+    // 🌟 ล้างแผนที่ทิ้งถ้ายังไม่ได้เช็คอิน
+    if (typeof window.updateGpsMapUI === 'function') window.updateGpsMapUI(null, null);
+
     if (btnGps) {
       btnGps.className = 'btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
       btnGps.style.borderRadius = '16px';
@@ -3325,6 +3333,7 @@ window.openAddVisitView = async function(presetDate) {
   if (document.getElementById('visitLat')) document.getElementById('visitLat').value = '';
   if (document.getElementById('visitLng')) document.getElementById('visitLng').value = '';
   if (document.getElementById('locationTimeWrapper')) document.getElementById('locationTimeWrapper').classList.add('d-none');
+  if (typeof window.updateGpsMapUI === 'function') window.updateGpsMapUI(null, null);
   
   var btnGps = document.getElementById('btnGpsCheckin');
   if (btnGps) {
@@ -3828,6 +3837,9 @@ window.getLocationCheckin = function() {
       if(lngInput) lngInput.value = lng;
       if(timeWrapper) timeWrapper.classList.remove('d-none');
       if(timeText) timeText.innerText = timeString;
+
+      // 🌟 สั่งวาดแผนที่ทันทีที่ได้พิกัด (เพิ่มเข้ามาตรงนี้ครับ!)
+      if(typeof window.updateGpsMapUI === 'function') window.updateGpsMapUI(lat, lng);
 
       // 🌟 อัปเกรดคลาส CSS เป็นปุ่มสีเขียวขนาดใหญ่ (Hero Button) เมื่อสำเร็จ
       btn.className = 'btn btn-success w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2';
@@ -5897,6 +5909,32 @@ window.renderPaginationControls = function(totalPages) {
     if (oldVal) coachSelect.value = oldVal;
 };
 
-  
+ // 🎯 ฟังก์ชันอัปเดตแผนที่ Google Maps ในหน้าต่าง GPS
+window.updateGpsMapUI = function(lat, lng) {
+    var mapContainer = document.getElementById('gpsMapContainer');
+    var mapIframe = document.getElementById('gpsMapIframe');
+    var btnOpenMap = document.getElementById('btnOpenGoogleMaps');
+
+    if (lat && lng) {
+        // ใช้ Google Maps Embed API แบบฝังหมุด
+        var mapUrl = 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&t=&z=16&ie=UTF8&iwloc=&output=embed';
+        var externalUrl = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+
+        if (mapIframe) mapIframe.src = mapUrl;
+        if (mapContainer) mapContainer.classList.remove('d-none');
+        
+        if (btnOpenMap) {
+            btnOpenMap.href = externalUrl;
+            btnOpenMap.classList.remove('d-none');
+        }
+    } else {
+        if (mapIframe) mapIframe.src = '';
+        if (mapContainer) mapContainer.classList.add('d-none');
+        if (btnOpenMap) {
+            btnOpenMap.href = '#';
+            btnOpenMap.classList.add('d-none');
+        }
+    }
+}; 
  
  
