@@ -2545,7 +2545,7 @@ window.saveVisitFilterState = function() {
     localStorage.setItem('crm_super_memory_filter', JSON.stringify(memory));
 };
 
-window.restoreVisitFilterState = function() {
+ window.restoreVisitFilterState = function() {
     var memStr = localStorage.getItem('crm_super_memory_filter');
     if (!memStr) return;
     try {
@@ -2554,16 +2554,32 @@ window.restoreVisitFilterState = function() {
         if (f.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status;
         if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
         
+        // 🌟 [FIX 1] ปรับปรุงฟังก์ชัน Expand Tree ให้แข็งแกร่งขึ้น ทนทานต่อโครงสร้าง HTML
         var expandTree = function(c) {
             try {
-                var ul = c.closest('ul'); if (ul) ul.classList.add('expanded');
-                var li = c.closest('li.tree-node-item'); 
-                if (li && li.parentElement && li.parentElement.closest('li')) {
-                    var parentLi = li.parentElement.closest('li');
-                    var icon = parentLi.querySelector('.tree-toggle-icon');
-                    if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
+                // กางลูกๆ ของตัวเอง (ถ้ามี)
+                var childUl = c.closest('li').querySelector(':scope > ul');
+                if (childUl) childUl.classList.add('expanded');
+
+                // กางแม่ของตัวเองขึ้นไปเรื่อยๆ จนสุด
+                var parentLi = c.closest('li.tree-node-item');
+                while (parentLi) {
+                    var parentUl = parentLi.closest('ul');
+                    if (parentUl) {
+                        parentUl.classList.add('expanded');
+                        // เปลี่ยนลูกศรของแม่ให้ทิ่มลง
+                        var grandParentLi = parentUl.closest('li.tree-node-item');
+                        if (grandParentLi) {
+                            var icon = grandParentLi.querySelector('.tree-toggle-icon');
+                            if (icon) {
+                                icon.classList.remove('fa-chevron-right');
+                                icon.classList.add('fa-chevron-down');
+                            }
+                        }
+                    }
+                    parentLi = parentUl ? parentUl.closest('li.tree-node-item') : null;
                 }
-            } catch(e) {}
+            } catch(e) { console.warn('Tree expand error:', e); }
         };
 
         // ล้าง Checkbox เดิมให้สะอาดทั้งหมดก่อน
@@ -2572,21 +2588,22 @@ window.restoreVisitFilterState = function() {
             c.indeterminate = false;
         });
 
-        // 🌟 คืนชีพ Checkbox เฉพาะคนที่อยู่ในความจำ
+        // 🌟 [FIX 2] เพิ่มการค้นหาแบบครอบคลุมทั้งแบบมี .chk-leaf และไม่มี (เผื่อกรณีสร้าง Tree แล้วไม่มีคลาสนี้)
         var types = [
-            { className: '.chk-tree-purpose.chk-leaf', data: f.purpose, typeStr: 'purpose' },
+            { className: 'input[type="checkbox"][class*="chk-tree-purpose"]', data: f.purpose, typeStr: 'purpose' },
             { className: '.chk-tree-rep.chk-leaf', data: f.reps, typeStr: 'rep' },
             { className: '.chk-tree-ter.chk-leaf', data: f.ters, typeStr: 'ter' }
         ];
 
         types.forEach(function(t) {
             if (t.data) {
-                // 🚨 ป้องกันบั๊กหน่วยความจำเก่า (บังคับแปลง String เป็น Array เสมอ)
                 var arr = Array.isArray(t.data) ? t.data : [t.data]; 
                 
                 if (arr.length > 0) {
                     document.querySelectorAll(t.className).forEach(function(c) {
-                        if (arr.indexOf(c.value.trim()) !== -1) {
+                        // ดึงค่ามาเช็กแบบปลอดภัย (ลบ prefix ถ้ามี)
+                        var valToCheck = c.value.replace('purp_', '').trim();
+                        if (arr.indexOf(valToCheck) !== -1 || arr.indexOf(c.value.trim()) !== -1) {
                             c.checked = true;
                             if (typeof window.handleTreeCheckboxChange === 'function') {
                                 window.handleTreeCheckboxChange(c, t.typeStr);
