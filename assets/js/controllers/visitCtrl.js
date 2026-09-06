@@ -1301,12 +1301,19 @@ window.deleteTot = async function() {
     console.error("Error loading dropdowns:", err.message); 
   }
 };
-
+ 
 // 🎯 ฟังก์ชันล้างค่าวันที่ด้านนอก (ผูกกับปุ่ม x)
 window.clearDateFilterExternal = function(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     
-    // ล้างค่า Flatpickr
+    // 🌟 1. โชว์ Loading Overlay ทันทีก่อนทำสิ่งอื่น เพื่อบังหน้าจอไว้ก่อน!
+    var overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) overlay.classList.remove('d-none');
+    
+    // 🌟 2. เปิดโหมด Clearing เพื่อหยุดไม่ให้ Flatpickr รันตารางซ้ำซ้อน
+    window._isClearingFilters = true;
+
+    // 🌟 3. ล้างค่า Flatpickr (จะไม่โหลดตารางแล้วเพราะติด _isClearingFilters)
     if (window.fpStartInstance) window.fpStartInstance.clear();
     if (window.fpEndInstance) window.fpEndInstance.clear();
     
@@ -1315,12 +1322,15 @@ window.clearDateFilterExternal = function(e) {
     if (stDate) stDate.value = '';
     if (endDate) endDate.value = '';
 
-    // 🌟 ซ่อนปุ่มกากบาทกลับไปเหมือนเดิม
+    // 🌟 4. ซ่อนปุ่มกากบาทกลับไป
     var clearBtn = document.getElementById('btnClearDateFilter');
     if (clearBtn) clearBtn.classList.add('d-none');
 
-    // สั่งโหลดตารางใหม่
-    if (typeof window.filterVisits === 'function') window.filterVisits();
+    // 🌟 5. ปลดโหมด Clearing แล้วสั่งโหลดตารางหลักแบบสมบูรณ์
+    setTimeout(function() {
+        window._isClearingFilters = false;
+        if (typeof window.filterVisits === 'function') window.filterVisits();
+    }, 50); // ดีเลย์สั้นๆ เพื่อให้ชัวร์ว่า Flatpickr ถูกเคลียร์สนิทแล้ว
 };
    
  // 🌟 3. ปรับ setupFiltersDropdowns ให้เป็น Async และ Query โครงสร้างทีม/เขต/PM ให้ครบถ้วนแบบ 100% 
