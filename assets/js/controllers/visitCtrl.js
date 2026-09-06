@@ -1302,7 +1302,7 @@ window.deleteTot = async function() {
   }
 };
 
-// 🎯 ฟังก์ชันล้างค่าวันที่ด้านนอก
+// 🎯 ฟังก์ชันล้างค่าวันที่ด้านนอก (ผูกกับปุ่ม x)
 window.clearDateFilterExternal = function(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     
@@ -1315,11 +1315,11 @@ window.clearDateFilterExternal = function(e) {
     if (stDate) stDate.value = '';
     if (endDate) endDate.value = '';
 
-    // ซ่อนปุ่มกากบาท (x)
+    // 🌟 ซ่อนปุ่มกากบาทกลับไปเหมือนเดิม
     var clearBtn = document.getElementById('btnClearDateFilter');
     if (clearBtn) clearBtn.classList.add('d-none');
 
-    // โหลดตารางใหม่
+    // สั่งโหลดตารางใหม่
     if (typeof window.filterVisits === 'function') window.filterVisits();
 };
    
@@ -5352,10 +5352,19 @@ window.fpEndInstance = null;
   var commonConfig = {
     dateFormat: "Y-m-d",
     altInput: true,
-    altFormat: "d/m/Y", // 👈 บังคับโชว์หน้าจอเป็น DD/MM/YYYY
+    altFormat: "d/m/Y", 
     locale: localeConfig,
     allowInput: false,
-    onChange: function() {
+    onChange: function(selectedDates, dateStr) {
+      // 🌟 1. เช็กว่าถ้ามีค่าวันที่ ให้โชว์ปุ่มกากบาท
+      var clearBtn = document.getElementById('btnClearDateFilter');
+      if (clearBtn) {
+          if (dateStr) clearBtn.classList.remove('d-none');
+          else clearBtn.classList.add('d-none');
+      }
+
+      // 🌟 2. โหลดข้อมูลตาราง
+      if (window._isClearingFilters) return;
       if (typeof window.filterVisits === 'function') window.filterVisits();
     }
   };
