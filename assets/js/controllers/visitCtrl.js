@@ -4964,13 +4964,17 @@ window.renderVisitFilters = function() {
 };
 
  window.initVisitPage = async function(forceReload) {
+    // 🚨 ถอนคำสาป! ลบ CSS ที่บล็อก Loading จากรอบที่แล้วทิ้งทันที เพื่อให้วงล้อใน HTML ทำงานได้ทันทีที่เปิดหน้า
+    var oldStyle = document.getElementById('anti-framework-loading-style');
+    if (oldStyle) oldStyle.remove();
+
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) return;
 
     window._isInitRunning = true; 
-    window.isInitialLoading = true; 
+    window.isInitialLoading = true;
 
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
