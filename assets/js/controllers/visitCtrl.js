@@ -2638,23 +2638,23 @@ window.restoreVisitFilterState = function() {
     } catch(e) { console.error('Memory Restore Error', e); }
 };
 
-// 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" และขึ้น Loading ในตารางทันที
+// 🎯 แทนที่ฟังก์ชัน filterVisits เดิม ให้สั่ง "จำค่า" และขึ้น Loading เต็มพื้นที่
 window.filterVisits = function() {
     if (window.isInitialLoading) return; 
     
     window.saveVisitFilterState(); 
     window.currentPage = 1;
     
-    // 🌟 เปลี่ยนเนื้อหาในตารางให้เป็น Loading แบบเนียนๆ โดยไม่ลบแถบด้านบนทิ้ง
+    // 🌟 เปลี่ยนเนื้อหาในตารางให้เป็น Loading แบบจัดเต็ม (สูง 400px)
     var tbody = document.getElementById('visitTableBody');
     if (tbody) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         var loadText = appLang === 'en' ? 'Loading Data...' : 'กำลังประมวลผลข้อมูล...';
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><i class="fa-solid fa-circle-notch fa-spin fs-2 text-primary mb-3"></i><br><span class="text-muted fw-bold">' + loadText + '</span></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center border-0" style="height: 400px; vertical-align: middle;"><i class="fa-solid fa-circle-notch fa-spin text-primary mb-3" style="font-size: 3.5rem;"></i><br><span class="text-muted fw-bold fs-6">' + loadText + '</span></td></tr>';
     }
 
-    // 🌟 สั่ง loadVisits แบบ Background Mode (true, true) หน้าจอจะได้ไม่กระพริบขาว
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true); 
+    // 🌟 สั่ง loadVisits แบบ Background Mode
+    if (typeof window.loadVisits === 'function') window.loadVisits(true, false); 
 };
 
 // 🎯 ดักจับปุ่มเปิด Filter! ทันทีที่พี่กดเปิดแผง Filter โค้ดจะยัดค่ากลับให้ใน 0.05 วินาที
@@ -2724,12 +2724,17 @@ window.clearSmartSearchInput = function() {
 };
   
 // 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
- // 🎯 ฟังก์ชันล้างค่าตัวกรองทั้งหมด (Clear All)
-window.clearVisitFilters = function() {
+// 🌟 [FIX] รับค่า Event (e) เข้ามา เพื่อใช้หยุดการพับปิดหน้าต่างของ Bootstrap
+window.clearVisitFilters = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation(); // 🛑 สั่งเบรก! ห้ามหน้าต่าง Filter พับปิดเองเด็ดขาด
+    }
+
     if (typeof window.toggleAllCheckboxes === 'function') {
         window.toggleAllCheckboxes('rep', false);
         window.toggleAllCheckboxes('ter', false);
-        window.toggleAllCheckboxes('purpose', false); // 🌟 สั่งล้าง Checkbox Purpose ด้วย
+        window.toggleAllCheckboxes('purpose', false); 
     }
 
     var searchRep = document.getElementById('searchRepFilter');
@@ -2758,7 +2763,7 @@ window.clearVisitFilters = function() {
     var searchEl = document.getElementById('smartSearchInput');
     if (searchEl) searchEl.value = '';
 
-    // 🛑 เอาคำสั่งโหลดตารางตรงนี้ออกไป เพื่อให้ทำงานต่อเมื่อผู้ใช้กด Apply เท่านั้น
+    // 🛑 ไม่สั่งโหลดตารางใดๆ ทั้งสิ้น ให้ผู้ใช้กด Apply เอง
 };
 
 function matchedTerAndUnique(arr) {
