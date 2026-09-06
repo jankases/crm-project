@@ -3005,18 +3005,28 @@ window.toggleVisitFormEditable = function(isEditable) {
       
       var coachWrapper = document.getElementById('visitCoachWrapper');
       if (coachWrapper) {
-          // หา div ที่เป็นแคปซูลด้านใน
           var innerDiv = coachWrapper.querySelector('.d-inline-flex');
+          var icon = coachWrapper.querySelector('i.fa-user-ninja');
+          
           if (innerDiv) {
               if (isEditable) {
-                  innerDiv.classList.remove('bg-light', 'text-muted');
+                  // 🟢 โหมดแก้ไข: พื้นขาว, ตัวหนังสือสีฟ้า (text-primary)
+                  innerDiv.classList.remove('bg-light');
                   innerDiv.classList.add('bg-white');
                   innerDiv.style.opacity = '1';
+                  
+                  if (icon) { icon.classList.remove('text-secondary'); icon.classList.add('text-primary'); }
+                  coachSelect.classList.remove('text-secondary');
+                  coachSelect.classList.add('text-primary');
               } else {
-                  innerDiv.classList.remove('bg-white');
-                  innerDiv.classList.add('bg-light');
-                  // 🌟 เอา opacity: 0.7 ออก แล้วปรับเป็น 1 ให้ตัวหนังสือชัดเจนขึ้น แต่พื้นหลังยังเป็นสีเทาเพื่อบอกว่าล็อกอยู่
+                  // 🔒 โหมด Read-Only: พื้นขาวยังอยู่ขอบจะได้ไม่หาย แต่ตัวหนังสือ/ไอคอนเปลี่ยนเป็นสีเทา
+                  innerDiv.classList.remove('bg-light');
+                  innerDiv.classList.add('bg-white');
                   innerDiv.style.opacity = '1'; 
+                  
+                  if (icon) { icon.classList.remove('text-primary'); icon.classList.add('text-secondary'); }
+                  coachSelect.classList.remove('text-primary');
+                  coachSelect.classList.add('text-secondary');
               }
           }
       }
