@@ -3003,6 +3003,9 @@ window.toggleVisitFormEditable = function(isEditable) {
   if (coachSelect) {
       coachSelect.disabled = !isEditable; 
       
+      // 🛑 [FIX] บังคับให้พื้นหลัง select โปร่งใสเสมอ ป้องกันสี่เหลี่ยมสีเทาไปทับขอบมนของแคปซูล
+      coachSelect.style.setProperty('background-color', 'transparent', 'important'); 
+      
       var coachWrapper = document.getElementById('visitCoachWrapper');
       if (coachWrapper) {
           var innerDiv = coachWrapper.querySelector('.d-inline-flex');
@@ -3010,7 +3013,7 @@ window.toggleVisitFormEditable = function(isEditable) {
           
           if (innerDiv) {
               if (isEditable) {
-                  // 🟢 โหมดแก้ไข: พื้นขาว, ตัวหนังสือสีฟ้า (text-primary)
+                  // 🟢 โหมดแก้ไข: พื้นขาว, ตัวหนังสือสีฟ้า
                   innerDiv.classList.remove('bg-light');
                   innerDiv.classList.add('bg-white');
                   innerDiv.style.opacity = '1';
@@ -3019,7 +3022,7 @@ window.toggleVisitFormEditable = function(isEditable) {
                   coachSelect.classList.remove('text-secondary');
                   coachSelect.classList.add('text-primary');
               } else {
-                  // 🔒 โหมด Read-Only: พื้นขาวยังอยู่ขอบจะได้ไม่หาย แต่ตัวหนังสือ/ไอคอนเปลี่ยนเป็นสีเทา
+                  // 🔒 โหมด Read-Only: พื้นขาว, ตัวหนังสือและไอคอนสีเทา
                   innerDiv.classList.remove('bg-light');
                   innerDiv.classList.add('bg-white');
                   innerDiv.style.opacity = '1'; 
