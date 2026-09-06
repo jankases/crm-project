@@ -4933,6 +4933,12 @@ window.renderVisitFilters = function() {
     var mainContainer = document.getElementById('visitMainContentContainer');
     var calZone = document.getElementById('visitCalendarZone');
 
+     // 🌟 สั่งโชว์ Loading Card ทันที
+    if (loadingCard) {
+        loadingCard.classList.remove('d-none');
+        loadingCard.classList.add('d-flex');
+    }
+
     if (visitViewEl) visitViewEl.classList.add('is-loading');
     if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
     if (calZone) calZone.style.setProperty('display', 'none', 'important');
