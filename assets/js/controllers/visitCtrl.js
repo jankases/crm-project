@@ -2971,21 +2971,52 @@ window.toggleVisitFormEditable = function(isEditable) {
   var fields = ['visitDate', 'visitStartTime', 'visitEndTime', 'visitDetails', 'visitInsight', 'visitNextAction', 'visitStatus', 'visitIsCoaching'];
   var formView = document.getElementById('visitFormView');
 
+  // 1. จัดการ TomSelect
   if (window.tomSelectDocInstance) { if (isEditable) window.tomSelectDocInstance.enable(); else window.tomSelectDocInstance.disable(); }
   if (window.tomSelectProdInstance) { if (isEditable) window.tomSelectProdInstance.enable(); else window.tomSelectProdInstance.disable(); }
   if (window.tomSelectPurposeInstance) { if (isEditable) window.tomSelectPurposeInstance.enable(); else window.tomSelectPurposeInstance.disable(); }
 
-  // 🌟 [FIXED] สั่งควบคุมสถานะล็อก / ปลดล็อกของ Flatpickr สำหรับช่องวันที่ (#visitDate)
+  // 2. จัดการ Flatpickr
   if (window.fpFormDateInstance) {
       if (window.fpFormDateInstance._input) window.fpFormDateInstance._input.disabled = !isEditable;
       if (window.fpFormDateInstance.altInput) window.fpFormDateInstance.altInput.disabled = !isEditable;
   }
 
+  // 3. จัดการ FormView Class
   if (formView) { if(isEditable) formView.classList.remove('disabled-ts'); else formView.classList.add('disabled-ts'); }
-  fields.forEach(function(id) { var el = document.getElementById(id); if (el) el.disabled = !isEditable; });
   
+  // 4. จัดการ Input/Select/Textarea ทั่วไป
+  fields.forEach(function(id) { 
+      var el = document.getElementById(id); 
+      if (el) el.disabled = !isEditable; 
+  });
+  
+  // 5. จัดการปุ่มต่างๆ
   var btns = ['btnMicDoc', 'btnMicDetails', 'btnMicInsight', 'btnMicNextAction', 'btnQuickNow', 'btnQuick30', 'btnQuick60'];
   btns.forEach(function(id) { var btn = document.getElementById(id); if (btn) btn.disabled = !isEditable; });
+
+  // 🌟 6. [เพิ่มใหม่] จัดการ Dropdown เลือก Coach
+  var coachSelect = document.getElementById('visitCoachRepId');
+  if (coachSelect) {
+      coachSelect.disabled = !isEditable; // ล็อคหรือปลดล็อคตามโหมด
+      
+      // ปรับแต่ง UI ให้ดูเป็น Read-Only มากขึ้น
+      var coachWrapper = document.getElementById('visitCoachWrapper');
+      if (coachWrapper) {
+          var innerDiv = coachWrapper.querySelector('.bg-white');
+          if (innerDiv) {
+              if (isEditable) {
+                  innerDiv.classList.remove('bg-light');
+                  innerDiv.classList.add('bg-white');
+                  innerDiv.style.opacity = '1';
+              } else {
+                  innerDiv.classList.remove('bg-white');
+                  innerDiv.classList.add('bg-light');
+                  innerDiv.style.opacity = '0.7';
+              }
+          }
+      }
+  }
 };
 
  window.openEditVisitView = async function(visitId, overrideDocId, overridePurposeId) { 
