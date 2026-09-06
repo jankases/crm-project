@@ -1263,7 +1263,7 @@ window.deleteTot = async function() {
               if (oldPurpVal) window.tomSelectPurposeInstance.setValue(oldPurpVal, true);
           }
 
-         // 5.2 🌟 เปลี่ยน Purpose ให้เป็น Checkbox Tree เหมือน Employee/Area
+        // 5.2 🌟 เปลี่ยน Purpose ให้เป็น Checkbox Tree เหมือน Employee/Area
           if (filterPurposeSelect) {
               window.safeDestroyTs(window.tomSelectFilterPurposeInstance);
               filterPurposeSelect.style.display = 'none'; // ซ่อน Dropdown เดิม
@@ -1274,8 +1274,9 @@ window.deleteTot = async function() {
               if (!containerEl) {
                   containerEl = document.createElement('div');
                   containerEl.id = containerId;
+                  // ใส่ CSS ให้หน้าตาเหมือนกล่อง Employee เป๊ะๆ
                   containerEl.className = 'border rounded-3 p-2 bg-white mt-1 overflow-auto shadow-sm';
-                  containerEl.style.maxHeight = '180px';
+                  containerEl.style.maxHeight = '200px'; 
                   filterPurposeSelect.parentNode.insertBefore(containerEl, filterPurposeSelect.nextSibling);
               }
 
@@ -1946,11 +1947,14 @@ window.loadVisits = async function(forceReload, isBackground) {
         purposeTerms = pElVal ? [pElVal] : [];
     }
 
+ 
+
     // 🌟 ดึงค่า Purpose จาก Checkbox Tree
     var capturedPurposeIds = [];
     document.querySelectorAll('.chk-tree-purpose.chk-leaf:checked').forEach(function(c) {
         if (c.value && c.value !== 'on') capturedPurposeIds.push(c.value.trim());
     });
+    
     purposeTerms.forEach(function(pTerm) {
         if (pTerm && pTerm !== 'undefined' && pTerm !== 'null' && pTerm !== '') {
             if (/^[0-9a-f]{8}-/i.test(pTerm)) {
@@ -2520,11 +2524,15 @@ window.loadVisits = async function(forceReload, isBackground) {
 // ==============================================================
 // 💾 ระบบบันทึกและกู้คืนสถานะ Filter (ป้องกันหน้าจอลืมค่าที่ติ๊ก)
 // ==============================================================
+// ==============================================================
+// 🧠 ULTIMATE FILTER MEMORY SYSTEM (ระบบความจำฝังเข็ม)
+// ==============================================================
+
 window.saveVisitFilterState = function() {
     var memory = { purpose: [], status: '', coaching: false, reps: [], ters: [] };
     
     // 🌟 ดึงค่า Purpose แบบ Checkbox
-    document.querySelectorAll('.chk-tree-purpose.chk-leaf:checked').forEach(function(c) {
+    document.querySelectorAll('input[type="checkbox"][class*="chk-tree-purpose"].chk-leaf:checked').forEach(function(c) {
         if (c.value && c.value !== 'on') memory.purpose.push(c.value.trim());
     });
 
@@ -2543,6 +2551,61 @@ window.saveVisitFilterState = function() {
 
     // ฝังลงในหน่วยความจำของเบราว์เซอร์
     localStorage.setItem('crm_super_memory_filter', JSON.stringify(memory));
+};
+
+window.restoreVisitFilterState = function() {
+    var memStr = localStorage.getItem('crm_super_memory_filter');
+    if (!memStr) return;
+    try {
+        var f = JSON.parse(memStr);
+        
+        if (f.status && document.getElementById('filterVisitStatus')) document.getElementById('filterVisitStatus').value = f.status;
+        if (document.getElementById('filterVisitCoaching')) document.getElementById('filterVisitCoaching').checked = f.coaching;
+        
+        var expandTree = function(c) {
+            try {
+                var ul = c.closest('ul'); if (ul) ul.classList.add('expanded');
+                var li = c.closest('li.tree-node-item'); 
+                if (li && li.parentElement && li.parentElement.closest('li')) {
+                    var parentLi = li.parentElement.closest('li');
+                    var icon = parentLi.querySelector('.tree-toggle-icon');
+                    if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); }
+                }
+            } catch(e) {}
+        };
+
+        // ล้าง Checkbox เดิมให้สะอาดทั้งหมดก่อน
+        document.querySelectorAll('input[type="checkbox"][class*="chk-tree-rep"], input[type="checkbox"][class*="chk-tree-ter"], input[type="checkbox"][class*="chk-tree-purpose"]').forEach(function(c) { 
+            c.checked = false; 
+            c.indeterminate = false;
+        });
+
+        // 🌟 คืนชีพ Checkbox (รองรับโครงสร้าง Tree ใหม่ 100%)
+        var types = [
+            { className: 'input[type="checkbox"][class*="chk-tree-purpose"]', data: f.purpose, typeStr: 'purpose' },
+            { className: '.chk-tree-rep.chk-leaf', data: f.reps, typeStr: 'rep' },
+            { className: '.chk-tree-ter.chk-leaf', data: f.ters, typeStr: 'ter' }
+        ];
+
+        types.forEach(function(t) {
+            if (t.data) {
+                var arr = Array.isArray(t.data) ? t.data : [t.data]; 
+                
+                if (arr.length > 0) {
+                    document.querySelectorAll(t.className).forEach(function(c) {
+                        var valToCheck = c.value.replace('purp_', '').trim();
+                        if (arr.indexOf(valToCheck) !== -1 || arr.indexOf(c.value.trim()) !== -1) {
+                            c.checked = true;
+                            if (typeof window.handleTreeCheckboxChange === 'function') {
+                                window.handleTreeCheckboxChange(c, t.typeStr);
+                            }
+                            expandTree(c);
+                        }
+                    });
+                }
+            }
+        });
+    } catch(e) { console.error('Memory Restore Error', e); }
 };
 
  window.restoreVisitFilterState = function() {
