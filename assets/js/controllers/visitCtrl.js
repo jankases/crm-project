@@ -101,52 +101,54 @@ window._userIndex = {};
 window._purposeIndex = {}; 
 
 window.buildDataIndexes = function() {
-  window._docIndex = {};
-  (window.globalAllDoctors || []).forEach(function(d) {
-    var id = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
-    if (id) {
-      window._docIndex[id] = d;
-      if (d.Doc_ID) window._docIndex[String(d.Doc_ID).trim()] = d;
-    }
-  });
-
-  window._prodIndex = {};
-  (window.globalProductsList || []).forEach(function(p) {
-    var id = String(p.Product_ID || p.id || p.product_id || '').trim().toLowerCase();
-    if (id) {
-      window._prodIndex[id] = p;
-      if (p.Product_ID) window._prodIndex[String(p.Product_ID).trim()] = p;
-    }
-  });
-
-  window._visitProdIndex = {};
-  (window.globalVisitProducts || []).forEach(function(vp) {
-    var vid = String(vp.Visit_ID || vp.visit_id || '').trim().toLowerCase();
-    if (vid) {
-      if (!window._visitProdIndex[vid]) window._visitProdIndex[vid] = [];
-      window._visitProdIndex[vid].push(vp);
-    }
-  });
-
-  window._userIndex = {};
-  (window.globalUsersList || []).forEach(function(u) {
-    var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
-    if (uid) {
-      window._userIndex[uid] = u;
-      if (u.Rep_ID) window._userIndex[String(u.Rep_ID).trim()] = u;
-    }
-  });
-
-  window._purposeIndex = {};
-  if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
-    window.VisitManagerCache.indexes.forEach(function(i) {
-      var ixId = String(i.Index_ID || i.id || '').trim().toLowerCase();
-      if (ixId) {
-        window._purposeIndex[ixId] = i;
-        if (i.Index_ID) window._purposeIndex[String(i.Index_ID).trim()] = i;
-      }
+    window._docIndex = {};
+    // 🌟 [FIX] รวมทั้ง globalAllDoctors และ globalAssignedDoctors เพื่อให้ Index มีรายชื่อหมอครบถ้วนที่สุด
+    var allDocsToMap = (window.globalAllDoctors || []).concat(window.globalAssignedDoctors || []);
+    allDocsToMap.forEach(function(d) {
+        var id = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
+        if (id) {
+            window._docIndex[id] = d;
+            if (d.Doc_ID) window._docIndex[String(d.Doc_ID).trim()] = d;
+        }
     });
-  }
+
+    window._prodIndex = {};
+    (window.globalProductsList || []).forEach(function(p) {
+        var id = String(p.Product_ID || p.id || p.product_id || '').trim().toLowerCase();
+        if (id) {
+            window._prodIndex[id] = p;
+            if (p.Product_ID) window._prodIndex[String(p.Product_ID).trim()] = p;
+        }
+    });
+
+    window._visitProdIndex = {};
+    (window.globalVisitProducts || []).forEach(function(vp) {
+        var vid = String(vp.Visit_ID || vp.visit_id || '').trim().toLowerCase();
+        if (vid) {
+            if (!window._visitProdIndex[vid]) window._visitProdIndex[vid] = [];
+            window._visitProdIndex[vid].push(vp);
+        }
+    });
+
+    window._userIndex = {};
+    (window.globalUsersList || []).forEach(function(u) {
+        var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
+        if (uid) {
+            window._userIndex[uid] = u;
+            if (u.Rep_ID) window._userIndex[String(u.Rep_ID).trim()] = u;
+        }
+    });
+
+    window._purposeIndex = {};
+    if (window.VisitManagerCache && window.VisitManagerCache.indexes) {
+        window.VisitManagerCache.indexes.forEach(function(i) {
+            var ixId = String(i.Index_ID || i.id || '').trim().toLowerCase();
+            if (ixId) {
+                window._purposeIndex[ixId] = i;
+                if (i.Index_ID) window._purposeIndex[String(i.Index_ID).trim()] = i;
+            }
+        });
+    }
 };
 
 // ==========================================
@@ -3139,15 +3141,20 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   var rawDocId = v ? String(v.Doc_ID || v.doc_id || v.id || '').trim() : null;
-  var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
-  
-  if (targetDocId && window.tomSelectDocInstance) {
-      if (typeof window.setTomSelectValue === 'function') {
-          window.setTomSelectValue(window.tomSelectDocInstance, targetDocId);
-      } else {
-          window.tomSelectDocInstance.setValue(targetDocId, true);
-      }
-  }
+    var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
+    
+    if (targetDocId && window.tomSelectDocInstance) {
+        // 🌟 [FIX] ดึงชื่อหมอที่มีอยู่แล้วในข้อมูล Visit มาเป็นตัวสำรอง (Fallback)
+        var docObjForSelect = (v && v.Doctors) ? v.Doctors : ((window._docIndex && window._docIndex[String(targetDocId).toLowerCase()]) ? window._docIndex[String(targetDocId).toLowerCase()] : null);
+        var fallbackDocName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObjForSelect, targetDocId) : targetDocId;
+
+        if (typeof window.setTomSelectValue === 'function') {
+            // ส่งชื่อหมอสำรอง (fallbackDocName) เข้าไปให้ TomSelect เอาไปโชว์แทน UUID
+            window.setTomSelectValue(window.tomSelectDocInstance, targetDocId, fallbackDocName);
+        } else {
+            window.tomSelectDocInstance.setValue(targetDocId, true);
+        }
+    }
 
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
   var dbPurposeVal = String(rawPurpose || '').trim();
@@ -6033,4 +6040,80 @@ window.updateGpsMapUI = function(lat, lng) {
     }
 }; 
  
- 
+ // 🌟 ฟังก์ชันใหม่: ดึงรายชื่อหมอตามสิทธิ์ (รองรับ PM แบบสืบจาก Product และ Admin แบบดึงทะลุ 1,000)
+window.fetchDoctorsByRole = async function(crmUser) {
+    var sb = window.supabaseClient || window.supabase;
+    if (!sb) return;
+
+    var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+    var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
+    var isGlobalViewer = adminRoles.indexOf(userRole) !== -1;
+    var isPM = userRole.indexOf('PRODUCT MANAGER') !== -1 || userRole === 'PM';
+    
+    try {
+        if (isGlobalViewer) {
+            // 1. Admin / Staff -> ดึงทั้งหมดทะลุกำแพง 1000 แถว (เพื่อให้มีครบตอน Add New)
+            if (typeof window.fetchAllRecords === 'function') {
+                window.globalAllDoctors = await window.fetchAllRecords('Doctors', '*', { column: 'Status', value: 'Active' });
+            } else {
+                // Fallback เผื่อไม่มีฟังก์ชัน fetchAllRecords: เขียนลูปดึงทีละ 1000
+                var allDocs = [];
+                for (var i = 0; i < 20; i++) {
+                    var { data } = await sb.from('Doctors').select('*').eq('Status', 'Active').range(i * 1000, (i + 1) * 1000 - 1);
+                    if (!data || data.length === 0) break;
+                    allDocs = allDocs.concat(data);
+                    if (data.length < 1000) break;
+                }
+                window.globalAllDoctors = allDocs;
+            }
+        } else {
+            // 2. Sales, Manager, BU Head, PM -> ดึงตาม Territory ที่เกี่ยวข้อง
+            var allowedTers = window.myAllowedTerIds ? [...window.myAllowedTerIds] : [];
+            
+            // 🎯 ลอจิกพิเศษสำหรับ PM: สืบจาก Product -> Team -> Territory
+            if (isPM && crmUser) {
+                var uRepId = String(crmUser.Rep_ID || crmUser.id || '').trim();
+                var { data: pmProds } = await sb.from('Rep_Products').select('Product_ID').eq('Rep_ID', uRepId);
+                if (pmProds && pmProds.length > 0) {
+                    var prodIds = pmProds.map(p => p.Product_ID);
+                    var { data: teamProds } = await sb.from('Products_Team').select('Team_ID').in('Product_ID', prodIds);
+                    if (teamProds && teamProds.length > 0) {
+                        var teamIds = teamProds.map(t => t.Team_ID);
+                        var { data: ters } = await sb.from('Territory').select('Territory_ID').in('Team_ID', teamIds);
+                        if (ters && ters.length > 0) {
+                            ters.forEach(t => {
+                                var tId = String(t.Territory_ID).toLowerCase();
+                                if (allowedTers.indexOf(tId) === -1) allowedTers.push(tId);
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (allowedTers.length > 0) {
+                var { data: assignments } = await sb.from('Assignment').select('Doc_ID').in('Territory_ID', allowedTers);
+                if (assignments && assignments.length > 0) {
+                    var docIds = [...new Set(assignments.map(a => a.Doc_ID))];
+                    var finalDocs = [];
+                    // ทยอยดึงทีละ 1000 ป้องกัน URL ยาวเกินไปตอนคิวรี่ In(...)
+                    for (var i = 0; i < docIds.length; i += 1000) {
+                        var chunk = docIds.slice(i, i + 1000);
+                        var { data: dData } = await sb.from('Doctors').select('*').in('Doc_ID', chunk).eq('Status', 'Active');
+                        if (dData) finalDocs = finalDocs.concat(dData);
+                    }
+                    window.globalAllDoctors = finalDocs;
+                } else {
+                    window.globalAllDoctors = [];
+                }
+            } else {
+                window.globalAllDoctors = [];
+            }
+        }
+        
+        // ให้มัน Update Index ใน RAM ทันที
+        if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
+        
+    } catch (error) {
+        console.error("Error fetching role-based doctors:", error);
+    }
+};
