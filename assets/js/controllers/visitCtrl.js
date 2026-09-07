@@ -1618,7 +1618,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         var sb = window.supabaseClient || window.supabase;
         
-        // 🎯 [STEP 1]: ดึง Master Data ทุกอย่างมากางไว้ก่อน ป้องกันการ Mapping แตก
         var allTers = window.globalTerritoryList || [];
         if (allTers.length === 0) {
             try { var { data: trData } = await sb.from('Territory').select('*'); allTers = trData || []; window.globalTerritoryList = allTers; } catch(e){}
@@ -1636,7 +1635,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             try { var { data: allUsers } = await sb.from('Rep_Users').select('*'); usersSource = allUsers || []; window.globalUsersList = usersSource; } catch(e){}
         }
 
-        // 🎯 [STEP 2]: เตรียมตัวแปร User ปัจจุบัน
         var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
         var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
         
@@ -1651,7 +1649,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         var userTeamId = String(crmUser ? (crmUser.Team_ID || crmUser.Team || crmUser.team_id || window.myUserTeamId || '') : '').trim().toLowerCase();
         var userTerrId = String(crmUser ? (crmUser.Territory_ID || crmUser.Territory || crmUser.territory_id || window.myUserTerritoryId || '') : '').trim().toLowerCase();
 
-        // 🎯 [FIX CRITICAL]: ถ้า Session ไม่มีข้อมูลรหัสทีม ให้แอบไปดึงจากฐานข้อมูลตรงๆ มาเติมให้
         if (uRepId && usersSource.length > 0) {
             var dbMe = usersSource.find(u => String(u.Rep_ID || u.id || '').trim().toLowerCase() === uRepId.toLowerCase());
             if (dbMe) {
@@ -1665,7 +1662,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         var myAllowedTerIds = []; 
         var myAllowedRepIds = [uRepId]; 
 
-        // 🎯 [STEP 3]: คำนวณสิทธิ์การมองเห็น โดยกรองจากอาร์เรย์ Master Data แทนการใช้ Query ป้องกันชื่อคอลัมน์ผิด
         if (!isGlobalViewer) {
             if (isBuHead && userBuId) {
                 var buTeams = allTms.filter(t => String(t.BU_ID || t.BU || '').trim().toLowerCase() === userBuId);
@@ -1754,6 +1750,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : '';
                         if (!teamName) teamName = (teamId === 'no_team') ? 'Territories' : (teamId.length > 15 ? 'Sales Team' : teamId);
                         tmMapTer[teamId] = { id: 'tm_ter_' + teamId, text: '👥 ' + teamName, isLeaf: false, children: [] };
+                        
+                        // 🎯 [FIX]: คืนชีพโหนด (Team Level) ให้ Manager ไว้ติ๊กดูผลงานของทีม
+                        if (teamId !== 'no_team') {
+                            var valTeam = tmObj ? (tmObj.Team_ID || tmObj.id || teamId) : teamId;
+                            tmMapTer[teamId].children.push({ id: 'ter_tm_' + teamId, value: valTeam, text: '👥 ' + teamName + ' (Team Level)', isLeaf: true });
+                        }
                     }
                     tmMapTer[teamId].children.push(nodeTer);
                 } 
@@ -1762,7 +1764,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === rootBuId; });
                     var buName = buObj ? (buObj.BU_Name || buObj.BU) : '';
                     
-                    // ป้องกัน UUID แสดงแทนชื่อ
                     if (!buName) {
                         if (rootBuId === 'no_bu' || rootBuId === 'other_bu') buName = 'Other / Cross-Area';
                         else if (rootBuId.length > 15) buName = 'Business Unit'; // ซ่อน UUID
@@ -1772,6 +1773,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
                     if (!buMapTer[rootBuId]) {
                         buMapTer[rootBuId] = { id: 'bu_ter_' + rootBuId, text: icon + buName, isLeaf: false, children: [], _teamMap: {} };
+                        
+                        // 🎯 [FIX]: คืนชีพโหนด (BU Level) ให้ BU Head / Admin ไว้ติ๊กดูผลงานของ BU ตัวเอง
+                        if (rootBuId !== 'no_bu' && rootBuId !== 'other_bu') {
+                            var valBu = buObj ? (buObj.BU_ID || buObj.id || rootBuId) : rootBuId;
+                            buMapTer[rootBuId].children.push({ id: 'ter_bu_' + rootBuId, value: valBu, text: icon + buName + ' (BU Level)', isLeaf: true });
+                        }
                     }
                     
                     var currentBuNode = buMapTer[rootBuId];
@@ -1782,7 +1789,8 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                         var newTeamNode = { id: 'tm_ter_' + teamId, text: '👥 ' + teamName2, isLeaf: false, children: [] };
                         
                         if (teamId !== 'no_team' && !isSales) { 
-                            newTeamNode.children.push({ id: 'ter_tm_' + teamId, value: tmObj ? (tmObj.Team_ID || tmObj.id || teamId) : teamId, text: '👥 ' + teamName2 + ' (Team Level)', isLeaf: true });
+                            var valTeam2 = tmObj ? (tmObj.Team_ID || tmObj.id || teamId) : teamId;
+                            newTeamNode.children.push({ id: 'ter_tm_' + teamId, value: valTeam2, text: '👥 ' + teamName2 + ' (Team Level)', isLeaf: true });
                         }
                         currentBuNode._teamMap[teamId] = newTeamNode;
                         currentBuNode.children.push(newTeamNode);
