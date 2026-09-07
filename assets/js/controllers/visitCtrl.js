@@ -4975,7 +4975,7 @@ window.renderVisitFilters = function() {
     } 
 };
 
- window.initVisitPage = async function(forceReload) {
+  window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -4983,10 +4983,6 @@ window.renderVisitFilters = function() {
 
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
-
-    // 🎯 1. ป้องกันตัวแปร Cache โดนล้างเวลา Framework โหลดสลับหน้า (Standard SPA UX)
-    window.globalVisits = window.globalVisits || [];
-    window.VisitManagerCache = window.VisitManagerCache || {};
 
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
@@ -4997,8 +4993,11 @@ window.renderVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    var hasCache = (window.VisitManagerCache.isLoaded && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
-    var shouldFetchDB = forceReload === true ? true : !hasCache;
+    // 🎯 1. เช็ค Cache: ถ้ามีของเดิมอยู่แล้ว ถือว่ามี Cache ทันที (ไม่สนว่าเมนูจะส่ง forceReload มาหรือไม่)
+    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
+    
+    // 🎯 2. จะดึง Database ใหม่ ก็ต่อเมื่อ "ไม่มี Cache" เท่านั้น!
+    var shouldFetchDB = !hasCache;
 
     if (shouldFetchDB) {
         if (typeof window.setUIVisibility === 'function') {
@@ -5011,17 +5010,10 @@ window.renderVisitFilters = function() {
         if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
     }
 
-    // รอให้โครงสร้าง HTML หน้าจอวาดเสร็จก่อน
     var domWaitCount = 0;
     while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
         await new Promise(r => setTimeout(r, 20));
         domWaitCount++;
-    }
-
-    // 🎯 2. กู้คืนความจำ Filter ทันทีที่ DOM พร้อม! 
-    // (ต้องทำตรงนี้ "ก่อน" ไปเรียก loadVisits ระบบจะได้ดึงค่าที่ติ๊กไว้ไป Query ได้แม่นยำ)
-    if (typeof window.restoreVisitFilterState === 'function') {
-        window.restoreVisitFilterState();
     }
 
     var loadingTitleEl = document.getElementById('loadingTitleText');
@@ -5029,7 +5021,6 @@ window.renderVisitFilters = function() {
 
     if (shouldFetchDB && visitViewEl) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        
         if (loadingTitleEl) loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (appLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
         if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
     }
@@ -5038,14 +5029,21 @@ window.renderVisitFilters = function() {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
 
-        // 3. พอ Checkbox มีค่าที่ถูกต้องแล้ว ค่อยสั่งไปดึงข้อมูลจาก Database
-        var subTasks = [];
-        if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(shouldFetchDB));
-        if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
-        if (typeof window.fetchVisitFeaturesConfig === 'function') subTasks.push(window.fetchVisitFeaturesConfig());
-        if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
+        // 🎯 3. ฟื้นความจำ Checkbox ทันที (ไม่ว่าจะดึง DB หรือใช้ Cache)
+        if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
 
-        await Promise.all(subTasks);
+        if (shouldFetchDB) {
+            // กรณีไม่มี Cache -> ไปดึง Database ปกติ
+            var subTasks = [];
+            if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(true));
+            if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
+            if (typeof window.fetchVisitFeaturesConfig === 'function') subTasks.push(window.fetchVisitFeaturesConfig());
+            if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
+            await Promise.all(subTasks);
+        } else {
+            // 🎯 กรณีมี Cache -> เอาของเดิมมาวาดลงตาราง "ทันที" โดยไม่แตะ Database เลย!
+            if (typeof window.renderVisitTableServerSide === 'function') window.renderVisitTableServerSide();
+        }
 
         if (typeof window.renderVisitFilters === 'function') window.renderVisitFilters();
         else if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, []);
@@ -5060,20 +5058,21 @@ window.renderVisitFilters = function() {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
 
-        if (shouldFetchDB === false) {
-             if (visitViewEl) visitViewEl.classList.remove('is-loading');
-             
-             if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
+        if (visitViewEl) visitViewEl.classList.remove('is-loading');
+        if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
 
-             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
-             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
-        }
+        var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
+        if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
     }
 };
 
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
-    btnRef.onclick = function() { window.initVisitPage(true); };
+    btnRef.onclick = function() { 
+        // 🎯 สั่งเคลียร์ความจำทิ้ง เพื่อบังคับให้ระบบรู้ว่าต้องไปดึง Database ใหม่
+        window.globalVisits = []; 
+        window.initVisitPage(true); 
+    };
 }
 
 window.loadMasterDataForVisits = async function() {
