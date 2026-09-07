@@ -3141,20 +3141,20 @@ window.toggleVisitFormEditable = function(isEditable) {
   }
 
   var rawDocId = v ? String(v.Doc_ID || v.doc_id || v.id || '').trim() : null;
-    var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
+  var targetDocId = overrideDocId || rawDocId || sessionStorage.getItem('returnToDocId');
     
-    if (targetDocId && window.tomSelectDocInstance) {
-        // 🌟 [FIX] ดึงชื่อหมอที่มีอยู่แล้วในข้อมูล Visit มาเป็นตัวสำรอง (Fallback)
-        var docObjForSelect = (v && v.Doctors) ? v.Doctors : ((window._docIndex && window._docIndex[String(targetDocId).toLowerCase()]) ? window._docIndex[String(targetDocId).toLowerCase()] : null);
-        var fallbackDocName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObjForSelect, targetDocId) : targetDocId;
+  if (targetDocId && window.tomSelectDocInstance) {
+      // 🌟 [FIX] ดึงชื่อหมอที่มีอยู่แล้วในข้อมูล Visit มาเป็นตัวสำรอง (Fallback)
+      var docObjForSelect = (v && v.Doctors) ? v.Doctors : ((window._docIndex && window._docIndex[String(targetDocId).toLowerCase()]) ? window._docIndex[String(targetDocId).toLowerCase()] : null);
+      var fallbackDocName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObjForSelect, targetDocId) : targetDocId;
 
-        if (typeof window.setTomSelectValue === 'function') {
-            // ส่งชื่อหมอสำรอง (fallbackDocName) เข้าไปให้ TomSelect เอาไปโชว์แทน UUID
-            window.setTomSelectValue(window.tomSelectDocInstance, targetDocId, fallbackDocName);
-        } else {
-            window.tomSelectDocInstance.setValue(targetDocId, true);
-        }
-    }
+      if (typeof window.setTomSelectValue === 'function') {
+          // ส่งชื่อหมอสำรอง (fallbackDocName) เข้าไปให้ TomSelect เอาไปโชว์แทน UUID
+          window.setTomSelectValue(window.tomSelectDocInstance, targetDocId, fallbackDocName);
+      } else {
+          window.tomSelectDocInstance.setValue(targetDocId, true);
+      }
+  }
 
   var rawPurpose = overridePurposeId || (v ? (v.Purpose_ID || v.Purpose || v.Objective) : '');
   var dbPurposeVal = String(rawPurpose || '').trim();
@@ -3217,7 +3217,6 @@ window.toggleVisitFormEditable = function(isEditable) {
       timeText.innerText = cTime.getHours().toString().padStart(2, '0') + ':' + cTime.getMinutes().toString().padStart(2, '0');
     }
     
-    // 🌟 สั่งวาดแผนที่ของเก่าที่เคยเช็คอินไว้
     if (typeof window.updateGpsMapUI === 'function') window.updateGpsMapUI(v.CheckIn_Lat, v.CheckIn_Long);
 
     if (btnGps) {
@@ -3231,7 +3230,6 @@ window.toggleVisitFormEditable = function(isEditable) {
     if (lngInput) lngInput.value = '';
     if (timeWrapper) timeWrapper.classList.add('d-none');
     
-    // 🌟 ล้างแผนที่ทิ้งถ้ายังไม่ได้เช็คอิน
     if (typeof window.updateGpsMapUI === 'function') window.updateGpsMapUI(null, null);
 
     if (btnGps) {
@@ -3395,7 +3393,15 @@ window.openAddVisitView = async function(presetDate) {
 
   var returnToDocId = sessionStorage.getItem('returnToDocId');
   if (returnToDocId && window.tomSelectDocInstance) {
-      if (typeof window.setTomSelectValue === 'function') window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId);
+      // 🌟 [FIX] ดึงชื่อหมอสำรอง (Fallback) ตอนที่ส่งมาจากหน้า Doctors Profile
+      var docObjForSelectAdd = (window._docIndex && window._docIndex[String(returnToDocId).toLowerCase()]) ? window._docIndex[String(returnToDocId).toLowerCase()] : null;
+      var fallbackDocNameAdd = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObjForSelectAdd, returnToDocId) : returnToDocId;
+
+      if (typeof window.setTomSelectValue === 'function') {
+          window.setTomSelectValue(window.tomSelectDocInstance, returnToDocId, fallbackDocNameAdd);
+      } else {
+          window.tomSelectDocInstance.setValue(returnToDocId, true);
+      }
       window.tomSelectDocInstance.disable(); 
   }
 
@@ -6115,5 +6121,84 @@ window.fetchDoctorsByRole = async function(crmUser) {
         
     } catch (error) {
         console.error("Error fetching role-based doctors:", error);
+    }
+};
+
+// 🌟 ฟังก์ชันใหม่: ดึงรายชื่อสินค้าตามสิทธิ์ (Role-Based Products Filtering)
+window.fetchProductsByRole = async function(crmUser) {
+    var sb = window.supabaseClient || window.supabase;
+    if (!sb) return;
+
+    var userRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
+    var adminRoles = ['ADMIN', 'STAFF', 'DIRECTOR', 'EXECUTIVE', 'SYSTEM ADMIN'];
+    var isGlobalViewer = adminRoles.indexOf(userRole) !== -1;
+    var isPM = userRole.indexOf('PRODUCT MANAGER') !== -1 || userRole === 'PM';
+    var isBuHead = window.myIsBuHead || (!isGlobalViewer && !isPM && (userRole.indexOf('BU') !== -1 || userRole.indexOf('HEAD') !== -1));
+    var isManager = window.myIsManager || (!isGlobalViewer && !isPM && !isBuHead && (userRole.indexOf('MANAGER') !== -1 || userRole.indexOf('LEAD') !== -1));
+    var isSales = !isGlobalViewer && !isPM && !isBuHead && !isManager;
+
+    var uRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || '').trim() : '';
+    var userBuId = String(crmUser.BU_ID || crmUser.BU || '').trim().toLowerCase();
+    var userTeamId = String(crmUser.Team_ID || crmUser.Team || '').trim().toLowerCase();
+
+    try {
+        // 1. สำรองข้อมูลสินค้า Active ทั้งหมดของบริษัทไว้ที่ตัวแปร Backup ก่อน (ดึงแค่ครั้งเดียว)
+        if (!window.globalAllProducts_Backup || window.globalAllProducts_Backup.length === 0) {
+            var { data: allProds } = await sb.from('Products').select('*').eq('Status', 'Active');
+            window.globalAllProducts_Backup = allProds || [];
+        }
+        
+        var allProductsSource = window.globalAllProducts_Backup;
+        var allowedProductIds = [];
+
+        if (isGlobalViewer) {
+            // 🛠️ Admin: เห็นทุกตัว ไม่ต้องกรอง โยนกลับเข้าตัวแปรหลักได้เลย
+            window.globalProductsList = [...allProductsSource];
+        } else {
+            // กรองตาม Role
+            if (isPM) {
+                // 📦 PM: เช็คจากตาราง Rep_Products (เฉพาะที่ตัวเองดูแล)
+                var { data: repProds } = await sb.from('Rep_Products').select('Product_ID').eq('Rep_ID', uRepId);
+                if (repProds) allowedProductIds = repProds.map(p => String(p.Product_ID).toLowerCase());
+            } 
+            else if (isBuHead && userBuId) {
+                // 👑 BU Head: เช็คจาก Team ทั้งหมดภายใต้ BU
+                var { data: buTeams } = await sb.from('Team').select('Team_ID').eq('BU_ID', userBuId);
+                if (buTeams && buTeams.length > 0) {
+                    var tIds = buTeams.map(t => String(t.Team_ID));
+                    var { data: teamProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', tIds);
+                    if (teamProds) allowedProductIds = teamProds.map(p => String(p.Product_ID).toLowerCase());
+                }
+            } 
+            else if ((isManager || isSales) && userTeamId) {
+                // 🧑‍💼 Manager / 👤 Sales: เช็คจาก Team_ID ตัวเอง
+                var { data: teamProds } = await sb.from('Products_Team').select('Product_ID').eq('Team_ID', userTeamId);
+                if (teamProds) allowedProductIds = teamProds.map(p => String(p.Product_ID).toLowerCase());
+            }
+
+            // 🎯 ทำการสกัด (Filter) เฉพาะสินค้าที่รหัสตรงกับสิทธิ์ แล้วทับค่าตัวแปรหลัก!
+            if (allowedProductIds.length > 0) {
+                window.globalProductsList = allProductsSource.filter(p => {
+                    var pid = String(p.Product_ID || p.id).toLowerCase();
+                    return allowedProductIds.indexOf(pid) !== -1;
+                });
+            } else {
+                window.globalProductsList = []; // ไม่มีสิทธิ์ = ไม่ให้เลือกอะไรเลย
+            }
+        }
+
+        // 🔄 อัปเดต Index เพื่อให้ระบบแปลรหัส UUID เป็นชื่อสินค้าได้อย่างถูกต้อง
+        if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
+        
+        // 🔄 บังคับอัปเดตตัว TomSelect Product (ถ้ามีอยู่ในหน้าจอตอนนั้น) ให้ Refresh ตัวเลือกใหม่ทันที
+        if (window.tomSelectProdInstance) {
+            window.tomSelectProdInstance.clearOptions();
+            window.globalProductsList.forEach(p => {
+                window.tomSelectProdInstance.addOption(p);
+            });
+        }
+
+    } catch (error) {
+        console.error("Error fetching role-based products:", error);
     }
 };
