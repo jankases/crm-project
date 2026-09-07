@@ -788,38 +788,52 @@ window.setLoadingCardState = function(isShow) {
 
 // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
 window.toggleMainView = function(viewMode) {
-  var loadingCard = document.getElementById('visitTableLoading');
-  if (loadingCard) {
-      loadingCard.classList.add('d-none');
-      loadingCard.classList.remove('d-flex');
-  }
+    var listBtn = document.getElementById('btnToggleList');
+    var calBtn = document.getElementById('btnToggleCal');
+    var mainContainer = document.getElementById('visitMainContentContainer'); 
+    var calZone = document.getElementById('visitCalendarZone');                
 
-  var listBtn = document.getElementById('btnToggleList');
-  var calBtn = document.getElementById('btnToggleCal');
-  var mainContainer = document.getElementById('visitMainContentContainer'); 
-  var calZone = document.getElementById('visitCalendarZone');                
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var isEN = (appLang === 'en');
 
-  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  var isEN = (appLang === 'en');
+    window.VisitManagerCache = window.VisitManagerCache || {};
+    window.VisitManagerCache.currentMainView = viewMode;
 
-  window.VisitManagerCache = window.VisitManagerCache || {};
-  window.VisitManagerCache.currentMainView = viewMode;
-
-  if (viewMode === 'calendar') {
-      if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
-      if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
-      
-      if (mainContainer) mainContainer.classList.add('d-none');
-      if (calZone) calZone.classList.remove('d-none');
-      
-      if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
-  } else {
-      if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
-      if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
-      
-      if (calZone) calZone.classList.add('d-none');
-      if (mainContainer) mainContainer.classList.remove('d-none');
-  }
+    if (viewMode === 'calendar') {
+        if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
+        if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
+        
+        // 🎯 ซ่อนตาราง (List) แบบเด็ดขาด
+        if (mainContainer) {
+            mainContainer.style.removeProperty('display'); // เคลียร์ของเก่าทิ้ง
+            mainContainer.classList.remove('d-flex');      // ต้องถอด d-flex ออกก่อน!
+            mainContainer.classList.add('d-none');         // แล้วค่อยสั่งซ่อนด้วย d-none
+        }
+        // 🎯 โชว์ปฏิทิน (Calendar)
+        if (calZone) {
+            calZone.style.removeProperty('display');
+            calZone.classList.remove('d-none');
+            calZone.classList.add('d-flex');
+        }
+        
+        if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
+    } else {
+        if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
+        if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
+        
+        // 🎯 ซ่อนปฏิทิน (Calendar) แบบเด็ดขาด
+        if (calZone) {
+            calZone.style.removeProperty('display');
+            calZone.classList.remove('d-flex');       // ต้องถอด d-flex ออกก่อน!
+            calZone.classList.add('d-none');          // แล้วค่อยสั่งซ่อนด้วย d-none
+        }
+        // 🎯 โชว์ตาราง (List)
+        if (mainContainer) {
+            mainContainer.style.removeProperty('display');
+            mainContainer.classList.remove('d-none');
+            mainContainer.classList.add('d-flex');
+        }
+    }
 };
 
 // 🌟 2. ฟังก์ชันสลับหน้า Table List / Edit Form
@@ -2069,8 +2083,7 @@ window.loadVisits = async function(forceReload, isBackground) {
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
-   
-
+    
     // ภายในฟังก์ชัน window.loadVisits ช่วงบรรทัดต้นๆ
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
@@ -2078,22 +2091,25 @@ window.loadVisits = async function(forceReload, isBackground) {
         if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         if (visitViewEl) visitViewEl.classList.add('is-loading');
 
-        // 🎯 สั่งโชว์วงล้อ Loading ด้วยวิธีมาตรฐาน (คลีน 100% ไม่มี !important)
+        // โชว์วงล้อ Loading 
         var loadingCard = document.getElementById('visitTableLoading');
         if (loadingCard) {
-            loadingCard.style.removeProperty('display'); // เคลียร์ของเก่าทิ้งเผื่อเหนียว
+            loadingCard.style.removeProperty('display');
             loadingCard.classList.remove('d-none');
             loadingCard.classList.add('d-flex');
         }
 
+        // 🎯 ซ่อนตารางและปฏิทินแบบเด็ดขาด (ต้องถอด d-flex เสมอ)
         var mainContainer = document.getElementById('visitMainContentContainer');
         var calZone = document.getElementById('visitCalendarZone');
         if (mainContainer) {
             mainContainer.style.removeProperty('display');
+            mainContainer.classList.remove('d-flex');
             mainContainer.classList.add('d-none');
         }
         if (calZone) {
             calZone.style.removeProperty('display');
+            calZone.classList.remove('d-flex');
             calZone.classList.add('d-none');
         }
     }
