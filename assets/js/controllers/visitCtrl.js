@@ -788,8 +788,11 @@ window.setLoadingCardState = function(isShow) {
 
 // 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
 window.toggleMainView = function(viewMode) {
-  // 🎯 ปิดตายวงล้อทันทีแบบชัวร์ 100%
-  if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
+  var loadingCard = document.getElementById('visitTableLoading');
+  if (loadingCard) {
+      loadingCard.classList.add('d-none');
+      loadingCard.classList.remove('d-flex');
+  }
 
   var listBtn = document.getElementById('btnToggleList');
   var calBtn = document.getElementById('btnToggleCal');
@@ -806,22 +809,16 @@ window.toggleMainView = function(viewMode) {
       if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       
-      if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
-      if (calZone) {
-          calZone.classList.remove('d-none');
-          calZone.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
-      }
+      if (mainContainer) mainContainer.classList.add('d-none');
+      if (calZone) calZone.classList.remove('d-none');
       
       if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
   } else {
       if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
       if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
       
-      if (calZone) calZone.style.setProperty('display', 'none', 'important');
-      if (mainContainer) {
-          mainContainer.classList.remove('d-none');
-          mainContainer.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
-      }
+      if (calZone) calZone.classList.add('d-none');
+      if (mainContainer) mainContainer.classList.remove('d-none');
   }
 };
 
@@ -2475,8 +2472,12 @@ window.loadVisits = async function(forceReload, isBackground) {
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-            // 🎯 ปิดตายวงล้อทันทีที่โหลดข้อมูลเสร็จ
-            if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
+            // 🎯 ปิดวงล้อด้วยวิธีมาตรฐาน (ไม่มี !important ไม่มีฟังก์ชันประหลาดแล้ว)
+            var loadingCard = document.getElementById('visitTableLoading');
+            if (loadingCard) {
+                loadingCard.classList.add('d-none');
+                loadingCard.classList.remove('d-flex');
+            }
 
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
@@ -4964,6 +4965,10 @@ window.renderVisitFilters = function() {
 };
 
 window.initVisitPage = async function(forceReload) {
+    // ล้างบาง CSS ผีดิบจากรอบที่แล้ว (ถ้ามีค้างอยู่)
+    var oldStyle = document.getElementById('anti-framework-loading-style');
+    if (oldStyle) oldStyle.remove();
+
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -4984,19 +4989,16 @@ window.initVisitPage = async function(forceReload) {
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
-    // 🎯 ตัดสินใจทันที: ถ้ามี Cache ให้ปิดวงล้อ ถ้าไม่มีให้โชว์วงล้อ
     if (shouldFetchDB) {
         if (loadingCard) {
-            loadingCard.style.setProperty('display', 'flex', 'important');
             loadingCard.classList.remove('d-none');
             loadingCard.classList.add('d-flex');
         }
         if (visitViewEl) visitViewEl.classList.add('is-loading');
-        if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
-        if (calZone) calZone.style.setProperty('display', 'none', 'important');
+        if (mainContainer) mainContainer.classList.add('d-none');
+        if (calZone) calZone.classList.add('d-none');
     } else {
         if (loadingCard) {
-            loadingCard.style.setProperty('display', 'none', 'important');
             loadingCard.classList.add('d-none');
             loadingCard.classList.remove('d-flex');
         }
