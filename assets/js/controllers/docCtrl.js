@@ -246,7 +246,7 @@ window.initMultiTomSelect = function(id, placeholder) {
 };
 
  // ==========================================
-// 🎯 HELPER RENDER FILTER DROPDOWNS (DRAFT FROM INDEX MASTER)
+// 2. FIXED: renderFilterDropdowns (แสดงผลแบบ Clean & Compact ไม่พอง)
 // ==========================================
 window.renderFilterDropdowns = function(validDocsData) {
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -257,7 +257,7 @@ window.renderFilterDropdowns = function(validDocsData) {
     const el = document.getElementById(elementId);
     if (!el) return;
 
-    let html = '';
+    let html = `<option value="">${placeholder}</option>`;
     optionsArray.forEach(item => {
       html += `<option value="${item.id}">${item.label}</option>`;
     });
@@ -280,40 +280,33 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   };
 
-  // 1. ดึง Master Data ของ Specialty จากตาราง Index ผ่าน getIndexValues / DocManagerCache
-  const specRawItems = window.getIndexValues('Specialty') || [];
   const indexes = window.globalIndexes || (window.DocManagerCache ? window.DocManagerCache.indexes : []) || [];
   
-  // กรองหา Index_ID ของ Specialty
+  // 1. ดึง Specialty Master Data
   const specTypeObj = (window.DocManagerCache.indexTypes || []).find(t => (t.Name || '').toLowerCase().trim() === 'specialty');
   let specOptions = [];
-  
   if (specTypeObj) {
     const specIndexList = indexes.filter(i => String(i.IndexType_ID) === String(specTypeObj.IndexType_ID));
-    specOptions = specIndexList.map(i => {
-      const id = i.Index_ID || i.id;
-      const label = (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-');
-      return { id: id, label: label };
-    });
+    specOptions = specIndexList.map(i => ({
+      id: i.Index_ID || i.id,
+      label: (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-')
+    }));
   }
 
-  // 2. ดึง Master Data ของ DoctorType จากตาราง Index
+  // 2. ดึง DoctorType Master Data
   const docTypeObj = (window.DocManagerCache.indexTypes || []).find(t => {
     const name = (t.Name || '').toLowerCase().trim();
     return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
   });
   let typeOptions = [];
-
   if (docTypeObj) {
     const typeIndexList = indexes.filter(i => String(i.IndexType_ID) === String(docTypeObj.IndexType_ID));
-    typeOptions = typeIndexList.map(i => {
-      const id = i.Index_ID || i.id;
-      const label = (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-');
-      return { id: id, label: label };
-    });
+    typeOptions = typeIndexList.map(i => ({
+      id: i.Index_ID || i.id,
+      label: (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-')
+    }));
   }
 
-  // Render เข้า Dropdown
   updateSelectElement('filterDocSpecialty', specOptions, phSpec);
   updateSelectElement('filterDocType', typeOptions, phType);
 };
@@ -680,11 +673,13 @@ window.restoreDocFilterState = function() {
 // 📊 5. SERVER-SIDE PAGINATION
 // ==========================================
  // 🚀 loadDoctors (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
+ // ==========================================
+// 1. FIXED: loadDoctors (แก้ไข Query Supabase ไม่ให้เรียกคอลัมน์ที่ไม่มีจริง)
+// ==========================================
 window.loadDoctors = async function(forceReload = false, isBackground = false) {
   const docViewEl = document.getElementById('doctorListView');
   const hasData = (window.globalDoctors && window.globalDoctors.length > 0);
 
-  // 1. แสดง UI Loading เฉพาะตอนโหลดครั้งแรกหรือกด Refresh
   if (!isBackground && (forceReload || !window.DocManagerCache.isLoaded || !hasData)) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const lTitle = document.getElementById('docLoadingTitleText');
@@ -696,11 +691,9 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     if (lDesc) {
       lDesc.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
     }
-    
     if (docViewEl) docViewEl.classList.add('is-loading');
   }
 
-  // 2. ใช้ Cache หน้าเดิมถ้าไม่ได้สั่ง Force Reload
   if (!forceReload && window.DocManagerCache.isLoaded && hasData) {
     window.restoreDocFilterState();
     window.renderDoctorTableServerSide();
@@ -712,10 +705,8 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     const sb = window.supabaseClient || window.supabase;
     if (!sb) throw new Error("Supabase client not initialized");
 
-    // ⚡ 3. สร้าง Base Server-Side Query (ดึงเฉพาะ Count + Columns ล่าสุด)
     let query = sb.from('Doctors').select('*', { count: 'exact' });
 
-    // 🔐 4. Apply Permission กรองสิทธิ์ที่ Server-Side โดยตรง
     const isGlobalViewer = window.myIsGlobalViewer || false;
     const allowedDocIds = window.myAllowedDocIds || [];
 
@@ -723,13 +714,12 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
       if (allowedDocIds.length > 0) {
         query = query.in('Doc_ID', allowedDocIds);
       } else {
-        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000'); // ป้องกันกรณีไม่มีสิทธิ์
+        query = query.eq('Doc_ID', '00000000-0000-0000-0000-000000000000');
       }
     }
 
     window.saveDocFilterState();
 
-    // 🔍 5. Server-Side Smart Search
     const smartSearchInput = document.getElementById('smartDocSearchInput');
     const rawSearchVal = smartSearchInput ? smartSearchInput.value.trim().toLowerCase() : '';
 
@@ -741,21 +731,27 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
       }
     }
 
-    // 🎯 6. Server-Side Category Filters
+    // 🎯 FIX: สั่ง Query เฉพาะคอลัมน์ Specialty_ID และ DoctorType_ID ที่มีจริงใน Supabase
     const specEl = document.getElementById('filterDocSpecialty');
     const typeEl = document.getElementById('filterDocType');
 
     const selectedSpecs = specEl && specEl.tomselect ? specEl.tomselect.getValue() : [];
     const selectedTypes = typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [];
 
-    if (Array.isArray(selectedSpecs) && selectedSpecs.length > 0) {
-      query = query.or(`Specialty_ID.in.(${selectedSpecs.join(',')}),Specialty.in.(${selectedSpecs.join(',')})`);
+    if (Array.isArray(selectedSpecs)) {
+      const validSpecs = selectedSpecs.filter(v => v && String(v).trim() !== '');
+      if (validSpecs.length > 0) query = query.in('Specialty_ID', validSpecs);
+    } else if (selectedSpecs && String(selectedSpecs).trim() !== '') {
+      query = query.eq('Specialty_ID', selectedSpecs);
     }
-    if (Array.isArray(selectedTypes) && selectedTypes.length > 0) {
-      query = query.or(`DoctorType_ID.in.(${selectedTypes.join(',')}),Type.in.(${selectedTypes.join(',')})`);
+    
+    if (Array.isArray(selectedTypes)) {
+      const validTypes = selectedTypes.filter(v => v && String(v).trim() !== '');
+      if (validTypes.length > 0) query = query.in('DoctorType_ID', validTypes);
+    } else if (selectedTypes && String(selectedTypes).trim() !== '') {
+      query = query.eq('DoctorType_ID', selectedTypes);
     }
 
-    // 📊 7. Server-Side Sorting & Pagination Range (ดึงแค่ 20 แถว)
     const sortCol = window.currentDocSortCol || 'Doc_Name';
     query = query.order(sortCol, { ascending: window.currentDocSortAsc });
 
@@ -766,7 +762,6 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
 
     query = query.range(from, to);
 
-    // 🚀 8. ยิง Request เดียวไปที่ Supabase
     const res = await query;
     if (res.error) throw res.error;
 
@@ -774,7 +769,6 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     window.totalDoctorsCount = res.count || 0;
     window.DocManagerCache.isLoaded = true;
 
-    // 9. แสดงผลบนตาราง
     window.renderDoctorTableServerSide();
 
   } catch (err) {
