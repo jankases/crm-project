@@ -4964,17 +4964,13 @@ window.renderVisitFilters = function() {
 };
 
  window.initVisitPage = async function(forceReload) {
-    // 🚨 ถอนคำสาป! ลบ CSS ที่บล็อก Loading จากรอบที่แล้วทิ้งทันที เพื่อให้วงล้อใน HTML ทำงานได้ทันทีที่เปิดหน้า
-    var oldStyle = document.getElementById('anti-framework-loading-style');
-    if (oldStyle) oldStyle.remove();
-
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
     if (formView && !formView.classList.contains('d-none')) return;
 
     window._isInitRunning = true; 
-    window.isInitialLoading = true;
+    window.isInitialLoading = true; 
 
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
@@ -4985,17 +4981,33 @@ window.renderVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
+    // 🎯 1. เช็คสิทธิ์ Cache ก่อนทำสิ่งใดทั้งสิ้น!
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
-    // 🎯 ถ้าต้องดึงข้อมูลใหม่ ค่อยเปิดวงล้อ
+    // 🎯 2. ตัดสินใจแสดงหน้าจอ "ทันที" ตามผลลัพธ์ Cache
     if (shouldFetchDB) {
-        if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(true);
+        // กรณีต้องโหลดใหม่ (เช่น กด Refresh หรือเพิ่งเข้าเว็บ) -> ถอนคำสาป แล้วเปิดวงล้อโหลดทันที!
+        var oldStyle = document.getElementById('anti-framework-loading-style');
+        if (oldStyle) oldStyle.remove();
+
+        if (loadingCard) {
+            loadingCard.style.setProperty('display', 'flex', 'important');
+            loadingCard.classList.remove('d-none');
+            loadingCard.classList.add('d-flex');
+        }
         if (visitViewEl) visitViewEl.classList.add('is-loading');
         if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
         if (calZone) calZone.style.setProperty('display', 'none', 'important');
+        
     } else {
-        // 🎯 ถ้าใช้ Cache ให้ชัตดาวน์วงล้อทันที
+        // กรณีมี Cache (กดเมนูเข้ามาใหม่) -> สั่งปิดตายวงล้อทันที! ห้ามโผล่มากระพริบเด็ดขาด!
+        if (loadingCard) {
+            loadingCard.style.setProperty('display', 'none', 'important');
+            loadingCard.classList.add('d-none');
+            loadingCard.classList.remove('d-flex');
+        }
+        // ร่ายมนต์ปิดทับกันเหนียว
         if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
     }
 
