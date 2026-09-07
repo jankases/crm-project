@@ -2495,10 +2495,7 @@ window.loadVisits = async function(forceReload, isBackground) {
 
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
-            
-            if (typeof window.restoreVisitFilterState === 'function') {
-                window.restoreVisitFilterState();
-            }
+             
         }
         
         var overlay = document.getElementById('tableLoadingOverlay');
@@ -4987,6 +4984,10 @@ window.renderVisitFilters = function() {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
+    // 🎯 1. ป้องกันตัวแปร Cache โดนล้างเวลา Framework โหลดสลับหน้า (Standard SPA UX)
+    window.globalVisits = window.globalVisits || [];
+    window.VisitManagerCache = window.VisitManagerCache || {};
+
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
     var calZone = document.getElementById('visitCalendarZone');
@@ -4996,11 +4997,10 @@ window.renderVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
+    var hasCache = (window.VisitManagerCache.isLoaded && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
     if (shouldFetchDB) {
-        // 🎯 โชว์โหลดดิ้ง ซ่อนตารางและปฏิทินแบบหมดจด (ใช้ Standard Function)
         if (typeof window.setUIVisibility === 'function') {
             window.setUIVisibility(loadingCard, true);
             window.setUIVisibility(mainContainer, false);
@@ -5008,14 +5008,20 @@ window.renderVisitFilters = function() {
         }
         if (visitViewEl) visitViewEl.classList.add('is-loading');
     } else {
-        // 🎯 ปิดโหลดดิ้งทันทีถ้ามี Cache
         if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
     }
 
+    // รอให้โครงสร้าง HTML หน้าจอวาดเสร็จก่อน
     var domWaitCount = 0;
     while (!document.getElementById('filterVisitStatus') && domWaitCount < 20) {
         await new Promise(r => setTimeout(r, 20));
         domWaitCount++;
+    }
+
+    // 🎯 2. กู้คืนความจำ Filter ทันทีที่ DOM พร้อม! 
+    // (ต้องทำตรงนี้ "ก่อน" ไปเรียก loadVisits ระบบจะได้ดึงค่าที่ติ๊กไว้ไป Query ได้แม่นยำ)
+    if (typeof window.restoreVisitFilterState === 'function') {
+        window.restoreVisitFilterState();
     }
 
     var loadingTitleEl = document.getElementById('loadingTitleText');
@@ -5032,6 +5038,7 @@ window.renderVisitFilters = function() {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
 
+        // 3. พอ Checkbox มีค่าที่ถูกต้องแล้ว ค่อยสั่งไปดึงข้อมูลจาก Database
         var subTasks = [];
         if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(shouldFetchDB));
         if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
@@ -5056,7 +5063,6 @@ window.renderVisitFilters = function() {
         if (shouldFetchDB === false) {
              if (visitViewEl) visitViewEl.classList.remove('is-loading');
              
-             // 🎯 ปิดโหลดดิ้งอย่างปลอดภัย
              if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
 
              var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
