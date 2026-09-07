@@ -5366,8 +5366,8 @@ window.checkAndRestoreAutosave = function() {
         } catch(e) {}
     }
 };
-
-// ==========================================
+ 
+ // ==========================================
 // 🔍 LAST VISIT HISTORY ENGINE
 // ==========================================
 window.fetchLastVisitHistory = async function(docId) {
@@ -5413,41 +5413,57 @@ window.fetchLastVisitHistory = async function(docId) {
             
             if (lastVisit.Visit_Date) {
                 const lastDateObj = new Date(lastVisit.Visit_Date);
-                const localeStr = (appLang === 'en') ? 'en-US' : 'th-TH';
                 
-                formattedDate = lastDateObj.toLocaleDateString(localeStr, { 
-                    day: '2-digit', 
-                    month: 'short', 
-                    year: 'numeric' 
-                });
+                // 🌟 [FIX 1] ปรับ Format วันที่ให้เป็น DD/MM/YYYY ตามมาตรฐานฟอร์มหลัก
+                formattedDate = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(lastVisit.Visit_Date) : lastVisit.Visit_Date.split('T')[0];
 
                 const today = new Date();
-                const diffDays = Math.round((today - lastDateObj) / (1000 * 60 * 60 * 24));
+                today.setHours(0,0,0,0);
+                const lastDateCompare = new Date(lastDateObj);
+                lastDateCompare.setHours(0,0,0,0);
                 
+                const diffTime = today - lastDateCompare;
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                
+                // 🌟 [FIX 2] แก้ไข Grammar (Singular/Plural) ให้ถูกต้องเป๊ะๆ
                 if (diffDays >= 0) {
-                    if (diffDays === 0) relativeTimeStr = appLang === 'en' ? 'Today' : 'วันนี้';
-                    else if (diffDays === 1) relativeTimeStr = appLang === 'en' ? 'Yesterday' : 'เมื่อวาน';
-                    else if (diffDays < 7) relativeTimeStr = appLang === 'en' ? `${diffDays} days ago` : `${diffDays} วันที่แล้ว`;
-                    else if (diffDays < 30) relativeTimeStr = appLang === 'en' ? `${Math.floor(diffDays / 7)} weeks ago` : `${Math.floor(diffDays / 7)} สัปดาห์ที่แล้ว`;
-                    else relativeTimeStr = appLang === 'en' ? `${Math.floor(diffDays / 30)} months ago` : `${Math.floor(diffDays / 30)} เดือนที่แล้ว`;
+                    if (diffDays === 0) {
+                        relativeTimeStr = appLang === 'en' ? 'Today' : 'วันนี้';
+                    } else if (diffDays === 1) {
+                        relativeTimeStr = appLang === 'en' ? 'Yesterday' : 'เมื่อวาน';
+                    } else if (diffDays < 7) {
+                        relativeTimeStr = appLang === 'en' ? `${diffDays} days ago` : `${diffDays} วันที่แล้ว`;
+                    } else if (diffDays < 30) {
+                        var w = Math.floor(diffDays / 7);
+                        relativeTimeStr = appLang === 'en' ? `${w} week${w > 1 ? 's' : ''} ago` : `${w} สัปดาห์ที่แล้ว`;
+                    } else if (diffDays < 365) {
+                        var m = Math.floor(diffDays / 30);
+                        relativeTimeStr = appLang === 'en' ? `${m} month${m > 1 ? 's' : ''} ago` : `${m} เดือนที่แล้ว`;
+                    } else {
+                        var y = Math.floor(diffDays / 365);
+                        relativeTimeStr = appLang === 'en' ? `${y} year${y > 1 ? 's' : ''} ago` : `${y} ปีที่แล้ว`;
+                    }
                 }
             }
             
             const dateBadge = document.getElementById('lastVisitDateBadge');
             const visitDateInput = document.getElementById('visitDate');
             const currentSelectedDate = visitDateInput ? new Date(visitDateInput.value) : new Date();
+            currentSelectedDate.setHours(0,0,0,0);
             const lastVisitDateObj = new Date(lastVisit.Visit_Date);
+            lastVisitDateObj.setHours(0,0,0,0);
 
             if (dateBadge) {
                 const displayText = relativeTimeStr ? `${formattedDate} (${relativeTimeStr})` : formattedDate;
                 
+                // 🌟 [Premium UI] ปรับป้ายให้ขอบมนแบบแคปซูล และใช้สี Soft (Subtle) เพื่อความหรูหรา
                 if (lastVisitDateObj > currentSelectedDate) {
-                    dateBadge.className = 'badge bg-warning text-dark border border-warning-subtle shadow-xs';
+                    dateBadge.className = 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle shadow-sm px-3 py-2 rounded-pill';
                     var warnText = appLang === 'en' ? 'Backdated' : 'บันทึกย้อนหลัง';
-                    dateBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left me-1"></i> ${displayText} [${warnText}]`;
+                    dateBadge.innerHTML = `<i class="fa-solid fa-clock-rotate-left me-1"></i> ${displayText} <span class="ms-1 text-danger fw-bold">[${warnText}]</span>`;
                 } else {
-                    dateBadge.className = 'badge bg-primary shadow-xs';
-                    dateBadge.innerText = displayText;
+                    dateBadge.className = 'badge bg-primary-subtle text-primary-emphasis border border-primary-subtle shadow-sm px-3 py-2 rounded-pill';
+                    dateBadge.innerHTML = `<i class="fa-solid fa-calendar-check me-1"></i> ${displayText}`;
                 }
             }
             
