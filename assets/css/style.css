@@ -277,12 +277,15 @@ html, body {
   padding-bottom: 0 !important;
 }
 
+/* 🌟 แก้ไข: เพิ่ม .doctor-filter-group ให้คลุมไปด้วยกันเลย */
 .visit-filter-compact .input-group,
+.doctor-filter-group .input-group,
 #doctorFilterZoneGroup .input-group {
   height: 38px !important;
   min-height: 38px !important;
-  border-radius: 12px !important;
-  background-color: #f8fafc !important;
+  border-radius: 8px !important; /* ปรับเป็น 8px เพื่อความคม */
+  background-color: #ffffff !important; /* ปรับเป็นสีขาวล้วน */
+  border-color: #dee2e6 !important;
   overflow: hidden !important;
 }
 
@@ -337,8 +340,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 /* ==========================================
    🌟 GLOBAL TOMSELECT STYLING
    ========================================== */
-.visit-filter-compact .ts-control,
-#doctorFilterZoneGroup .ts-control { 
+.visit-filter-compact .ts-control { 
   border-radius: 12px !important; 
   min-height: 38px !important; 
   height: 38px !important;
@@ -348,6 +350,28 @@ input:checked + .slider:before { transform: translateX(22px); }
   background-color: #f8fafc !important; 
   border: 1px solid #dee2e6 !important;
   box-sizing: border-box !important;
+}
+
+/* 🌟 [NEW] บังคับ TomSelect ในหน้า Doctor ให้สูงเป๊ะและขาวเนียนเหมือน Input Search */
+#doctorFilterZoneGroup .ts-control {
+  height: 38px !important;
+  min-height: 38px !important;
+  background-color: #ffffff !important;
+  border-color: #dee2e6 !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 12px !important;
+  box-shadow: none !important;
+}
+
+#doctorFilterZoneGroup .ts-control > input,
+#doctorFilterZoneGroup .ts-control .item {
+  font-size: 0.95rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
 }
 
 .ts-control { border-radius: 12px !important; min-height: 44px; display: flex; align-items: center; background-color: #ffffff !important; }
