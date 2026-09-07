@@ -1544,8 +1544,8 @@ window.getCheckedFilterValues = function(type) {
 };
   
 // 🌟 5. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox
-// ==========================================
-// 🎯 1. แก้ไข setupFiltersDropdowns (ปรับ Other ให้เป็น 🌐 และอยู่ล่างสุด)
+ // ==========================================
+// 🎯 1. ฟังก์ชันตั้งค่า Advanced Filters แบบ Checkbox (Role-Based Dynamic Tree)
 // ==========================================
 window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
     var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
@@ -1583,12 +1583,10 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             e.preventDefault();
             e.stopPropagation();
             
-            // 🌟 1. เปลี่ยนปุ่มเป็นสถานะกำลังโหลด
             var originalHtml = btnApply.innerHTML;
             btnApply.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> ' + (appLang === 'th' ? 'กำลังโหลด...' : 'Applying...');
             btnApply.disabled = true;
 
-            // 🌟 2. หน่วงเวลา 100ms ให้ผู้ใช้เห็นลูกศรหมุนก่อนปิดหน้าต่าง
             setTimeout(function() {
                 window._allowFilterClose = true; 
                 var advBtn = document.getElementById('btnAdvFilterDropdown');
@@ -1602,7 +1600,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
                 if (typeof window.filterVisits === 'function') window.filterVisits(); 
                 
-                // 🌟 3. คืนค่าปุ่มกลับเป็นปกติ
                 setTimeout(function() {
                     btnApply.innerHTML = originalHtml;
                     btnApply.disabled = false;
@@ -1640,19 +1637,16 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
 
         if (!isGlobalViewer) {
             if (isBuHead && userBuId) {
-                // 1. หา Team เฉพาะใน BU ตัวเอง
                 var { data: buTeams } = await sb.from('Team').select('Team_ID, Team').eq('BU_ID', userBuId);
                 if (buTeams) buTeams.forEach(t => myAllowedTeamIds.push(String(t.Team_ID).toLowerCase()));
 
                 var buProductIds = [];
                 if (myAllowedTeamIds.length > 0) {
-                    // 2. กวาด Product ที่ BU ดูแลทั้งหมด
                     var { data: teamProds } = await sb.from('Products_Team').select('Product_ID').in('Team_ID', myAllowedTeamIds);
                     if (teamProds) buProductIds = teamProds.map(p => String(p.Product_ID).toLowerCase());
                 }
 
                 if (buProductIds.length > 0) {
-                    // 3. กวาด PM ที่มี Product ตรงกับ BU (จากตาราง Rep_Products)
                     var { data: crossReps } = await sb.from('Rep_Products').select('Rep_ID').in('Product_ID', buProductIds);
                     if (crossReps) {
                         crossReps.forEach(rp => {
@@ -1662,7 +1656,6 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                     }
                 }
 
-                // 4. ดึง Territory ที่ผูกกับ Team ของ BU ตัวเอง (ไม่มี Area ข้ามเขตอีกต่อไป!)
                 if (myAllowedTeamIds.length > 0) {
                     var { data: allowedTers } = await sb.from('Territory').select('Territory_ID, Territory, Team_ID').in('Team_ID', myAllowedTeamIds);
                     if (allowedTers) allowedTers.forEach(t => myAllowedTerIds.push(String(t.Territory_ID).toLowerCase()));
@@ -1686,16 +1679,12 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
                 var uteam = String(u.Team_ID || u.Team || '').trim().toLowerCase();
                 var uter = String(u.Territory_ID || u.Territory || '').trim().toLowerCase(); 
-                var uBu = String(u.BU_ID || u.BU || '').trim().toLowerCase();
                 var uRole = String(u.Role || u.role || '').toUpperCase().trim();
 
-                // 🌟 ตัดแอดมิน, เลขาฯ ออกจากระบบอย่างเด็ดขาด
                 var isAdminRole = uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1 || uRole.indexOf('DIRECTOR') !== -1 || uRole.indexOf('EXECUTIVE') !== -1 || uRole.indexOf('SECRETARY') !== -1 || uRole.indexOf('SEC') !== -1;
 
                 if (!isAdminRole) {
-                    if (isBuHead && uBu === userBuId) {
-                        if (uid && myAllowedRepIds.indexOf(uid) === -1) myAllowedRepIds.push(uid);
-                    }
+                    // BU Head รวบรวมคนใน BU อัตโนมัติในขั้นตอน Grouping ด้านล่าง
                     if (!isSales && !isProductManager) {
                         var isMatchTeam = myAllowedTeamIds.indexOf(uteam) !== -1;
                         var isMatchTer = myAllowedTerIds.indexOf(uter) !== -1;
@@ -1711,37 +1700,11 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedRepIds = myAllowedRepIds; 
 
-        // ==============================================
-        // 🎯 1. ปั้นข้อมูล AREA / TEAM
-        // ==============================================
-        var terOptionsTree = [];
-        var buMapTer = {}; 
-        var primaryBuId = String(userBuId || 'no_bu').trim().toLowerCase();
-        
         var allTers = window.globalTerritories || window.globalTerritoryList || [];
-        if (allTers.length === 0) {
-            var { data: trData } = await sb.from('Territory').select('*');
-            allTers = trData || [];
-            window.globalTerritoryList = allTers;
-        }
-
         var allTms = window.globalTeams || window.globalTeamList || [];
-        if (allTms.length === 0) {
-            var { data: tmData } = await sb.from('Team').select('*');
-            allTms = tmData || [];
-            window.globalTeamList = allTms;
-        }
-
         var allBus = window.globalBuList || [];
-        if (allBus.length === 0) {
-            try {
-                var { data: buData } = await sb.from('BU').select('*');
-                allBus = buData || [];
-                window.globalBuList = allBus;
-            } catch(e) {}
-        }
 
-       var allowedTerArrayForDropdown = isGlobalViewer
+        var allowedTerArrayForDropdown = isGlobalViewer
             ? allTers
             : allTers.filter(function(t) {
                 var tid = String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase();
@@ -1749,107 +1712,84 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
                 return myAllowedTerIds.indexOf(tid) !== -1 || myAllowedTeamIds.indexOf(tId) !== -1;
             });
 
-        allowedTerArrayForDropdown.forEach(function(t) {
-            var tid = String(t.Territory_ID || t.id || t.Territory || '').trim(); 
-            var tnm = String(t.Territory || t.Territory_Name || t.Name || tid).trim();
-            var teamId = String(t.Team_ID || t.Team || '').trim().toLowerCase();
-
-            if (tid) {
-                var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
-                var buId = tmObj ? String(tmObj.BU_ID || tmObj.BU || '').trim().toLowerCase() : 'no_bu';
-                
-                if (!isGlobalViewer && buId !== 'no_bu' && buId !== primaryBuId) {
-                    buId = 'other_bu';
-                }
-                
-                if (!buMapTer[buId]) {
-                    var buName = buId;
-                    var icon = '🏢 ';
-                    var isOther = (buId === 'other_bu' || buId === 'no_bu');
-
-                    if (isOther) { buName = 'Other / Cross-Area'; icon = '🌐 '; }
-                    else {
-                        var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === buId; });
-                        buName = buObj ? (buObj.BU_Name || buObj.BU || buId) : buId;
-                    }
-                    
-                    buMapTer[buId] = { 
-                        id: isOther ? 'other_ter' : 'bu_ter_' + buId, 
-                        text: icon + buName, 
-                        isLeaf: false, 
-                        children: [],
-                        _teamMap: {} 
-                    };
-
-                    if (buId !== 'no_bu' && !isOther) {
-                        buMapTer[buId].children.push({
-                            id: 'ter_bu_' + buId,
-                            value: buObj ? (buObj.BU_ID || buObj.id || buId) : buId,
-                            text: icon + buName + ' (BU Level)',
-                            isLeaf: true
-                        });
-                    }
-                }
-
-                var currentBuNode = buMapTer[buId];
-                var parentTeamId = teamId || 'no_team';
-
-                if (!currentBuNode._teamMap[parentTeamId]) {
-                    var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || parentTeamId) : (parentTeamId === 'no_team' ? 'Other Territories' : parentTeamId);
-                    
-                    var newTeamNode = {
-                        id: 'tm_ter_' + parentTeamId,
-                        text: '👥 ' + teamName,
-                        isLeaf: false,
-                        children: []
-                    };
-
-                    if (parentTeamId !== 'no_team') {
-                        newTeamNode.children.push({
-                            id: 'ter_tm_' + parentTeamId,
-                            value: tmObj ? (tmObj.Team_ID || tmObj.id || parentTeamId) : parentTeamId,
-                            text: '👥 ' + teamName + ' (Team Level)',
-                            isLeaf: true
-                        });
-                    }
-
-                    currentBuNode._teamMap[parentTeamId] = newTeamNode;
-                    currentBuNode.children.push(newTeamNode);
-                }
-
-                currentBuNode._teamMap[parentTeamId].children.push({ 
-                    id: 'ter_' + tid, 
-                    value: tid, 
-                    text: '📍 ' + tnm, 
-                    isLeaf: true 
-                });
-            }
-        });
-
-        // เรียงให้ Other อยู่ล่างสุด
-        var sortedTerKeys = Object.keys(buMapTer).sort((a,b) => {
-            if (a === 'other_bu' || a === 'no_bu') return 1;
-            if (b === 'other_bu' || b === 'no_bu') return -1;
-            return a.localeCompare(b);
-        });
-        sortedTerKeys.forEach(function(key) {
-            terOptionsTree.push(buMapTer[key]);
-        });
-
-
-        // ==============================================
-        // 🎯 2. ปั้นข้อมูล EMPLOYEE / SALES REP (🌟 ปรับปรุงให้ Other ใช้ 🌐 และอยู่ล่างสุด)
-        // ==============================================
-        var repOptionsTree = [];
-        var buMapRep = {}; 
-        var uniqueUsersMap = new Map();
-
-       var allowedRepArrayForDropdown = isGlobalViewer 
+        var allowedRepArrayForDropdown = isGlobalViewer 
             ? window.globalUsersList 
             : window.globalUsersList.filter(function(u) {
                 var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase(); 
                 return myAllowedRepIds.indexOf(uid) !== -1;
             });
+
+        // ==============================================
+        // 🎯 2. ปั้นโครงสร้าง AREA / TEAM (Role-Based Depth)
+        // ==============================================
+        var terOptionsTree = [];
+        var buMapTer = {}; 
+        var tmMapTer = {}; 
+
+        allowedTerArrayForDropdown.forEach(function(t) {
+            var tid = String(t.Territory_ID || t.id || t.Territory || '').trim(); 
+            var tnm = String(t.Territory || t.Territory_Name || t.Name || tid).trim();
+            var teamId = String(t.Team_ID || t.Team || '').trim().toLowerCase() || 'no_team';
+
+            if (tid) {
+                var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
+                var buId = tmObj ? String(tmObj.BU_ID || tmObj.BU || '').trim().toLowerCase() : 'no_bu';
+                
+                var nodeTer = { id: 'ter_' + tid, value: tid, text: '📍 ' + tnm, isLeaf: true };
+
+                if (isSales) {
+                    // 🟢 Role: Sales -> Flat Level (1 ชั้น) โชว์เฉพาะเขตพื้นที่
+                    terOptionsTree.push(nodeTer);
+                } 
+                else if (isManager) {
+                    // 🔵 Role: Manager -> Root คือ Team (2 ชั้น)
+                    if (!tmMapTer[teamId]) {
+                        var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : (teamId === 'no_team' ? 'Other Territories' : teamId);
+                        tmMapTer[teamId] = { id: 'tm_ter_' + teamId, text: '👥 ' + teamName, isLeaf: false, children: [] };
+                    }
+                    tmMapTer[teamId].children.push(nodeTer);
+                } 
+                else {
+                    // 🟣 Role: BU Head, PM, Admin -> Root คือ BU (3 ชั้น)
+                    var rootBuId = (isBuHead && userBuId) ? userBuId : buId; // บังคับยัดเข้า BU ตัวเองถ้าเป็น BU Head
+                    var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === rootBuId; });
+                    var buName = buObj ? (buObj.BU_Name || buObj.BU || rootBuId) : (rootBuId === 'no_bu' ? 'Other / Cross-Area' : rootBuId);
+                    var icon = (rootBuId === 'no_bu' || rootBuId === 'other_bu') ? '🌐 ' : '🏢 ';
+
+                    if (!buMapTer[rootBuId]) {
+                        buMapTer[rootBuId] = { id: 'bu_ter_' + rootBuId, text: icon + buName, isLeaf: false, children: [], _teamMap: {} };
+                    }
+                    
+                    var currentBuNode = buMapTer[rootBuId];
+                    if (!currentBuNode._teamMap[teamId]) {
+                        var teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
+                        var newTeamNode = { id: 'tm_ter_' + teamId, text: '👥 ' + teamName, isLeaf: false, children: [] };
+                        
+                        if (teamId !== 'no_team') { // ให้ผู้บริหารสามารถติ๊กทั้งทีมได้
+                            newTeamNode.children.push({ id: 'ter_tm_' + teamId, value: tmObj ? (tmObj.Team_ID || tmObj.id || teamId) : teamId, text: '👥 ' + teamName + ' (Team Level)', isLeaf: true });
+                        }
+                        currentBuNode._teamMap[teamId] = newTeamNode;
+                        currentBuNode.children.push(newTeamNode);
+                    }
+                    currentBuNode._teamMap[teamId].children.push(nodeTer);
+                }
+            }
+        });
+
+        // จัดเรียง Area Tree เข้าอาร์เรย์หลัก
+        if (isManager) {
+            Object.keys(tmMapTer).forEach(function(k) { terOptionsTree.push(tmMapTer[k]); });
+        } else if (!isSales) {
+            Object.keys(buMapTer).forEach(function(k) { terOptionsTree.push(buMapTer[k]); });
+        }
+
+        // ==============================================
+        // 🎯 3. ปั้นข้อมูล EMPLOYEE / SALES REP (Role-Based Depth)
+        // ==============================================
+        var repOptionsTree = [];
+        var buMapRep = {}; 
+        var tmMapRep = {}; 
+        var uniqueUsersMap = new Map();
         
         allowedRepArrayForDropdown.forEach(function(u) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim(); 
@@ -1876,116 +1816,103 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
             var isNodePM = !isAdminOrStaff && (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM');
             var isNodeMgr = !isAdminOrStaff && !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
 
-            if (!uBuId || uBuId === 'no_bu') {
-                if (isNodeBuHead || isNodePM || isNodeMgr) {
-                    if (allBus.length > 0) uBuId = String(allBus[0].BU_ID || allBus[0].id || allBus[0].BU).trim().toLowerCase();
-                }
-            }
-            if (!uBuId) uBuId = 'no_bu';
+            var rolePriority = isAdminOrStaff ? 5 : (isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4)));
+            var nodeIcon = isAdminOrStaff ? '🏢 ' : (isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 '));
 
-            if (!isGlobalViewer && uBuId !== 'no_bu' && uBuId !== primaryBuId) {
-                uBuId = 'other_bu';
-            }
+            var nodeRep = { id: 'rep_' + id, value: id, text: nodeIcon + name, isLeaf: true, _priority: rolePriority };
 
             if (id && id !== 'undefined' && id !== 'null' && !uniqueUsersMap.has(id.toLowerCase())) {
                 uniqueUsersMap.set(id.toLowerCase(), true);
                 
-                if (!buMapRep[uBuId]) {
-                    var rBuName = uBuId;
-                    var icon = '🏢 ';
-                    var isOther = (uBuId === 'other_bu' || uBuId === 'no_bu');
-
-                    // 🌟 ปรับปรุงชื่อและไอคอนของกลุ่ม Other ฝั่ง Employee
-                    if (isOther) { 
-                        rBuName = 'Other / Cross-Team'; 
-                        icon = '🌐 '; 
-                    } else {
-                        var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === uBuId; });
-                        rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU || uBuId) : uBuId;
-                    }
-                    
-                    buMapRep[uBuId] = {
-                        id: isOther ? 'other_reps' : 'bu_rep_' + uBuId,
-                        text: icon + rBuName,
-                        isLeaf: false,
-                        children: [],
-                        _headFolder: { id: 'fld_head_' + uBuId, text: '👑 BU Head', isLeaf: false, children: [] },
-                        _pmFolder: { id: 'fld_pm_' + uBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
-                        _staffFolder: { id: 'fld_staff_' + uBuId, text: '🏢 Admin & Support Staff', isLeaf: false, children: [] },
-                        _teams: {} 
-                    };
-                }
-
-                var currentBuRepNode = buMapRep[uBuId];
-                var rolePriority = isAdminOrStaff ? 5 : (isNodeBuHead ? 1 : (isNodeMgr ? 2 : (isNodePM ? 3 : 4)));
-                var nodeIcon = isAdminOrStaff ? '🏢 ' : (isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 '));
-
-                var node = { id: 'rep_' + id, value: id, text: nodeIcon + name, isLeaf: true, _priority: rolePriority };
-
-                if (isAdminOrStaff) {
-                    currentBuRepNode._staffFolder.children.push(node);
-                } else if (isNodeBuHead) {
-                    currentBuRepNode._headFolder.children.push(node);
-                } else if (isNodePM) {
-                    currentBuRepNode._pmFolder.children.push(node);
-                } else {
-                    if (!currentBuRepNode._teams[teamId]) {
+                if (isSales) {
+                    // 🟢 Role: Sales -> Flat Level โชว์แค่รายชื่อพนักงานเปล่าๆ
+                    repOptionsTree.push(nodeRep);
+                } 
+                else if (isManager) {
+                    // 🔵 Role: Manager -> Root คือ Team ของตัวเอง
+                    if (!tmMapRep[teamId]) {
                         var tmObjRep = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
                         var teamNameRep = tmObjRep ? (tmObjRep.Team || tmObjRep.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
-                        
-                        currentBuRepNode._teams[teamId] = { 
-                            id: 'grp_sales_' + uBuId + '_' + teamId, 
-                            text: '👥 ' + teamNameRep, 
-                            isLeaf: false, 
+                        tmMapRep[teamId] = { 
+                            id: 'tm_rep_' + teamId, text: '👥 ' + teamNameRep, isLeaf: false, children: [],
                             _mgrFolder: { id: 'fld_mgr_' + teamId, text: '🧑‍💼 Team Managers', isLeaf: false, children: [] },
                             _salesFolder: { id: 'fld_sales_' + teamId, text: '👤 Sales Reps', isLeaf: false, children: [] }
                         };
                     }
+                    if (isNodeMgr) tmMapRep[teamId]._mgrFolder.children.push(nodeRep);
+                    else tmMapRep[teamId]._salesFolder.children.push(nodeRep);
+                } 
+                else {
+                    // 🟣 Role: BU Head, PM, Admin -> Root คือ BU จัดโฟลเดอร์เต็มรูปแบบ
+                    var rootBuId = (isBuHead && userBuId) ? userBuId : (uBuId || 'no_bu'); 
+                    var rBuObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU || '').trim().toLowerCase() === rootBuId; });
+                    var rBuName = rBuObj ? (rBuObj.BU_Name || rBuObj.BU) : (rootBuId === 'no_bu' ? 'Other / Cross-Team' : rootBuId);
+                    var icon = (rootBuId === 'no_bu' || rootBuId === 'other_bu') ? '🌐 ' : '🏢 ';
 
-                    if (isNodeMgr) {
-                        currentBuRepNode._teams[teamId]._mgrFolder.children.push(node);
-                    } else {
-                        currentBuRepNode._teams[teamId]._salesFolder.children.push(node);
+                    if (!buMapRep[rootBuId]) {
+                        buMapRep[rootBuId] = {
+                            id: 'bu_rep_' + rootBuId, text: icon + rBuName, isLeaf: false, children: [],
+                            _headFolder: { id: 'fld_head_' + rootBuId, text: '👑 BU Head', isLeaf: false, children: [] },
+                            _pmFolder: { id: 'fld_pm_' + rootBuId, text: '📦 Product Managers', isLeaf: false, children: [] },
+                            _staffFolder: { id: 'fld_staff_' + rootBuId, text: '🏢 Admin & Support Staff', isLeaf: false, children: [] },
+                            _teams: {} 
+                        };
+                    }
+
+                    var currentBuRepNode = buMapRep[rootBuId];
+
+                    if (isAdminOrStaff) currentBuRepNode._staffFolder.children.push(nodeRep);
+                    else if (isNodeBuHead) currentBuRepNode._headFolder.children.push(nodeRep);
+                    else if (isNodePM) currentBuRepNode._pmFolder.children.push(nodeRep);
+                    else {
+                        if (!currentBuRepNode._teams[teamId]) {
+                            var tmObjRep2 = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
+                            var teamNameRep2 = tmObjRep2 ? (tmObjRep2.Team || tmObjRep2.Team_Name || teamId) : (teamId === 'no_team' ? 'Unassigned Team' : teamId);
+                            currentBuRepNode._teams[teamId] = { 
+                                id: 'grp_sales_' + rootBuId + '_' + teamId, text: '👥 ' + teamNameRep2, isLeaf: false, 
+                                _mgrFolder: { id: 'fld_mgr_' + teamId, text: '🧑‍💼 Team Managers', isLeaf: false, children: [] },
+                                _salesFolder: { id: 'fld_sales_' + teamId, text: '👤 Sales Reps', isLeaf: false, children: [] }
+                            };
+                        }
+                        if (isNodeMgr) currentBuRepNode._teams[teamId]._mgrFolder.children.push(nodeRep);
+                        else currentBuRepNode._teams[teamId]._salesFolder.children.push(nodeRep);
                     }
                 }
             }
         });
 
-        // 🌟 สั่งเรียงให้กลุ่ม Other อยู่ล่างสุดเสมอสำหรับ Employee
-        var sortedRepKeys = Object.keys(buMapRep).sort((a,b) => {
-            if (a === 'other_bu' || a === 'no_bu') return 1;
-            if (b === 'other_bu' || b === 'no_bu') return -1;
-            return a.localeCompare(b);
-        });
-
-        sortedRepKeys.forEach(function(buKey) {
-            var nodeBU = buMapRep[buKey];
-            var finalChildren = []; 
-            
-            if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
-            if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
-            if (nodeBU._staffFolder && nodeBU._staffFolder.children.length > 0) finalChildren.push(nodeBU._staffFolder);
-            
-            Object.keys(nodeBU._teams).forEach(function(tId) {
-                var teamNode = nodeBU._teams[tId];
-                var teamChildren = [];
-                
-                if (teamNode._mgrFolder.children.length > 0) teamChildren.push(teamNode._mgrFolder);
-                if (teamNode._salesFolder.children.length > 0) teamChildren.push(teamNode._salesFolder);
-                
-                teamNode.children = teamChildren;
-                if (teamNode.children.length > 0) finalChildren.push(teamNode);
+        // จัดเรียง Employee Tree เข้าอาร์เรย์หลัก
+        if (isManager) {
+            Object.keys(tmMapRep).forEach(function(k) { 
+                var tNode = tmMapRep[k];
+                var fChild = [];
+                if (tNode._mgrFolder.children.length > 0) fChild.push(tNode._mgrFolder);
+                if (tNode._salesFolder.children.length > 0) fChild.push(tNode._salesFolder);
+                tNode.children = fChild;
+                if (tNode.children.length > 0) repOptionsTree.push(tNode);
             });
-            
-            nodeBU.children = finalChildren;
-            
-            if (nodeBU.children.length > 0) {
-                repOptionsTree.push(nodeBU);
-            }
-        });
+        } else if (!isSales) {
+            Object.keys(buMapRep).forEach(function(buKey) {
+                var nodeBU = buMapRep[buKey];
+                var finalChildren = []; 
+                if (nodeBU._headFolder.children.length > 0) finalChildren.push(nodeBU._headFolder);
+                if (nodeBU._pmFolder.children.length > 0) finalChildren.push(nodeBU._pmFolder);
+                if (nodeBU._staffFolder.children.length > 0) finalChildren.push(nodeBU._staffFolder);
+                Object.keys(nodeBU._teams).forEach(function(tId) {
+                    var teamNode = nodeBU._teams[tId];
+                    var teamChildren = [];
+                    if (teamNode._mgrFolder.children.length > 0) teamChildren.push(teamNode._mgrFolder);
+                    if (teamNode._salesFolder.children.length > 0) teamChildren.push(teamNode._salesFolder);
+                    teamNode.children = teamChildren;
+                    if (teamNode.children.length > 0) finalChildren.push(teamNode);
+                });
+                nodeBU.children = finalChildren;
+                if (nodeBU.children.length > 0) repOptionsTree.push(nodeBU);
+            });
+        }
 
         // ==============================================
-        // 🎯 3. วาดรายการ Tree-View Checkbox เข้าใน HTML
+        // 🎯 4. วาดรายการ Tree-View Checkbox เข้าใน HTML
         // ==============================================
         window.renderTreeCheckboxList('containerFilterRep', repOptionsTree, 'rep');
         window.renderTreeCheckboxList('containerFilterTer', terOptionsTree, 'ter');
