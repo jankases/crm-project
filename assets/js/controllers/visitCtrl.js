@@ -1,67 +1,66 @@
-
-
 // ==========================================
-// 1. GLOBAL STATE VARIABLES & CACHE 
+// 1. GLOBAL STATE VARIABLES & CACHE (SAFE MODE)
 // ==========================================
-window.globalVisits = [];
-window.totalVisitsCount = 0; 
-window.globalFilteredVisits = [];
-window.globalTotLogs = []; 
-window.globalFilteredTotLogs = [];
-window.globalVisitProducts = []; 
-window.globalAllDoctors = []; 
-window.globalAssignedDoctors = [];
-window.globalAllHospitals = []; 
-window.globalAssignedHospitals = [];
-window.globalProductsList = [];
-window.globalTerritoryList = []; 
-window.globalUsersList = []; 
-window.globalTeamList = [];
-window.globalPendingUnlockVisits = []; 
-window.globalCurrentUserRole = '';
+// 🎯 ป้องกันการล้าง Cache เมื่อสลับเมนู: ถ้ามีค่าอยู่แล้วให้ใช้ค่าเดิม ถ้าไม่มีให้เป็นอาร์เรย์ว่าง
+window.globalVisits = window.globalVisits || [];
+window.totalVisitsCount = window.totalVisitsCount || 0; 
+window.globalFilteredVisits = window.globalFilteredVisits || [];
+window.globalTotLogs = window.globalTotLogs || []; 
+window.globalFilteredTotLogs = window.globalFilteredTotLogs || [];
+window.globalVisitProducts = window.globalVisitProducts || []; 
+window.globalAllDoctors = window.globalAllDoctors || []; 
+window.globalAssignedDoctors = window.globalAssignedDoctors || [];
+window.globalAllHospitals = window.globalAllHospitals || []; 
+window.globalAssignedHospitals = window.globalAssignedHospitals || [];
+window.globalProductsList = window.globalProductsList || [];
+window.globalTerritoryList = window.globalTerritoryList || []; 
+window.globalUsersList = window.globalUsersList || []; 
+window.globalTeamList = window.globalTeamList || [];
+window.globalPendingUnlockVisits = window.globalPendingUnlockVisits || []; 
+window.globalCurrentUserRole = window.globalCurrentUserRole || '';
 
-window.myIsGlobalViewer = false; 
-window.myIsBuHead = false; 
-window.myIsManager = false; 
-window.myIsSalesRole = true;
-window.myAllowedTeamIds = [];
-window.myAllowedTerIds = [];
-window.myAllowedRepIds = [];
-window.myAllowedEmails = [];
+window.myIsGlobalViewer = window.myIsGlobalViewer || false; 
+window.myIsBuHead = window.myIsBuHead || false; 
+window.myIsManager = window.myIsManager || false; 
+window.myIsSalesRole = window.myIsSalesRole !== undefined ? window.myIsSalesRole : true;
+window.myAllowedTeamIds = window.myAllowedTeamIds || [];
+window.myAllowedTerIds = window.myAllowedTerIds || [];
+window.myAllowedRepIds = window.myAllowedRepIds || [];
+window.myAllowedEmails = window.myAllowedEmails || [];
 
-window.tomSelectDocInstance = null; 
-window.tomSelectProdInstance = null; 
-window.tomSelectPurposeInstance = null; 
-window.tomSelectRepInstance = null; 
-window.tomSelectTerInstance = null; 
-window.tomSelectStatusInstance = null;
-window.globalCalendarInstance = null; 
-window.totModalInstance = null;
+window.tomSelectDocInstance = window.tomSelectDocInstance || null; 
+window.tomSelectProdInstance = window.tomSelectProdInstance || null; 
+window.tomSelectPurposeInstance = window.tomSelectPurposeInstance || null; 
+window.tomSelectRepInstance = window.tomSelectRepInstance || null; 
+window.tomSelectTerInstance = window.tomSelectTerInstance || null; 
+window.tomSelectStatusInstance = window.tomSelectStatusInstance || null;
+window.globalCalendarInstance = window.globalCalendarInstance || null; 
+window.totModalInstance = window.totModalInstance || null;
 
-window.currentSortCol = 'date'; 
-window.currentSortAsc = false; 
-window.currentPage = 1; 
-window.rowsPerPage = 20;
+window.currentSortCol = window.currentSortCol || 'date'; 
+window.currentSortAsc = window.currentSortAsc !== undefined ? window.currentSortAsc : false; 
+window.currentPage = window.currentPage || 1; 
+window.rowsPerPage = window.rowsPerPage || 20;
 
-window.globalAllMediaList = []; 
-window.currentActiveMedia = null; 
-window.presentationStartTime = null;
-window.presentationTimerInterval = null; 
-window.pdfDocInstance = null; 
-window.currentPdfPage = 1;
-window.totalPdfPages = 1; 
-window.currentPageStartTime = null; 
-window.pageLogsBuffer = []; 
-window.globalIsMediaPreviewMode = false;
-window.pendingDetailingLogs = [];
+window.globalAllMediaList = window.globalAllMediaList || []; 
+window.currentActiveMedia = window.currentActiveMedia || null; 
+window.presentationStartTime = window.presentationStartTime || null;
+window.presentationTimerInterval = window.presentationTimerInterval || null; 
+window.pdfDocInstance = window.pdfDocInstance || null; 
+window.currentPdfPage = window.currentPdfPage || 1;
+window.totalPdfPages = window.totalPdfPages || 1; 
+window.currentPageStartTime = window.currentPageStartTime || null; 
+window.pageLogsBuffer = window.pageLogsBuffer || []; 
+window.globalIsMediaPreviewMode = window.globalIsMediaPreviewMode || false;
+window.pendingDetailingLogs = window.pendingDetailingLogs || [];
 
-window.filterDebounceTimer = null; 
-window.isVisitPageReady = false; 
-window.docRecognition = null; 
-window.textRecognition = null; 
-window.searchRecognition = null;
+window.filterDebounceTimer = window.filterDebounceTimer || null; 
+window.isVisitPageReady = window.isVisitPageReady || false; 
+window.docRecognition = window.docRecognition || null; 
+window.textRecognition = window.textRecognition || null; 
+window.searchRecognition = window.searchRecognition || null;
 
-window.globalVisitConfigs = { gps: true, att: true, sig: true, samples: true };
+window.globalVisitConfigs = window.globalVisitConfigs || { gps: true, att: true, sig: true, samples: true };
 
 window.fetchVisitFeaturesConfig = async function() {
     try {
