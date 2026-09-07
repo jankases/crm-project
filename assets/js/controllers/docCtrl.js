@@ -217,6 +217,9 @@ window.goBackFromDoctorProfile = function() {
   }
 };
 
+ // ==========================================
+// 1.ปรับปรุง initMultiTomSelect ให้ Render Dropdown สมบูรณ์
+// ==========================================
 window.initMultiTomSelect = function(id, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
@@ -235,17 +238,66 @@ window.initMultiTomSelect = function(id, placeholder) {
       searchField: ["text"],
       sortField: { field: "text", direction: "asc" }, 
       placeholder: placeholder, 
-      allowEmptyOption: true, 
-      dropdownParent: 'body',
-      // 🌟 บังคับใช้คลาสของ Bootstrap และกำหนดสีพื้นหลังให้เป็นสีขาว
-      controlClass: 'ts-control form-control bg-white premium-radius border shadow-none d-flex align-items-center',
-      onInitialize: function() {
-        // 🌟 Force ความสูงและฟอนต์ให้เป๊ะเท่ากับช่อง Input Search
-        this.control.style.height = '38px';
-        this.control.style.fontSize = '0.95rem';
-      }
+      allowEmptyOption: true,
+      // 🌟 ลบ dropdownParent: 'body' ออกเพื่อป้องกัน z-index หลุด และบังคับเปิดเมนูใต้ตัวมันเอง
+      controlClass: 'ts-control form-control bg-white premium-radius border shadow-none d-flex align-items-center'
     });
   }
+};
+
+// ==========================================
+// 2. ปรับปรุง renderFilterDropdowns ให้สร้างตัวเลือกและ Re-render ทันที
+// ==========================================
+window.renderFilterDropdowns = function(validDocsData) {
+  if (!validDocsData || !Array.isArray(validDocsData)) return;
+
+  window.DocManagerCache.validDocsData = validDocsData;
+
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const phSpec = (appLang === 'en') ? '🩺 - All Specialties -' : '🩺 - ความเชี่ยวชาญทั้งหมด -';
+  const phType = (appLang === 'en') ? '🏷️ - All Types -' : '🏷️ - ประเภททั้งหมด -';
+
+  const updateSelectElement = (elementId, optionsArray, placeholder) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    // 🌟 สร้าง <option> เข้าไปใน <select> HTML ดั้งเดิมก่อน
+    let html = `<option value="">${placeholder}</option>`;
+    optionsArray.forEach(item => {
+      html += `<option value="${item.id}">${item.label}</option>`;
+    });
+
+    // หากเคยมี TomSelect ให้สั่ง destroy เพื่อล้าง instance แล้ววาดใหม่ชัวร์สุด 100%
+    if (el.tomselect) {
+      const curVal = el.tomselect.getValue();
+      el.tomselect.destroy();
+      el.innerHTML = html;
+      
+      window.initMultiTomSelect(elementId, placeholder);
+      if (curVal && curVal.length > 0) {
+        el.tomselect.setValue(curVal, true);
+      }
+    } else {
+      el.innerHTML = html;
+      window.initMultiTomSelect(elementId, placeholder);
+    }
+  };
+
+  // 1. Specialty Options
+  const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  const specOptions = uniqueSpecs.map(s => ({
+    id: s,
+    label: window.getSpecialtyText(s, s)
+  }));
+  updateSelectElement('filterDocSpecialty', specOptions, phSpec);
+
+  // 2. Type Options
+  const uniqueTypes = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  const typeOptions = uniqueTypes.map(t => ({
+    id: t,
+    label: window.getDoctorTypeText(t, t)
+  }));
+  updateSelectElement('filterDocType', typeOptions, phType);
 };
 
 window.updateTomSelect = function(id, html, placeholder) {
@@ -350,64 +402,7 @@ window.stopSpeechSearch = function() {
   window.currentSearchIconId = null;
 };
  
-// ==========================================
-// 🎯 HELPER RENDER FILTER DROPDOWNS (PREMIUM & CONSISTENT FIX)
-// ==========================================
-window.renderFilterDropdowns = function(validDocsData) {
-  if (!validDocsData || !Array.isArray(validDocsData)) return;
-
-  window.DocManagerCache.validDocsData = validDocsData;
-
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const phSpec = (appLang === 'en') ? '🩺 - All Specialties -' : '🩺 - ความเชี่ยวชาญทั้งหมด -';
-  const phType = (appLang === 'en') ? '🏷️ - All Types -' : '🏷️ - ประเภททั้งหมด -';
-
-  // Helper สำหรับ Re-populate ข้อมูลใส่ TomSelect อย่างปลอดภัย ไม่หลุดสเปกระบบ
-  const populateTomSelect = (elementId, optionsArray, placeholder) => {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-
-    if (!el.tomselect) {
-      window.initMultiTomSelect(elementId, placeholder);
-    }
-
-    if (el.tomselect) {
-      const ts = el.tomselect;
-      const currentSelected = ts.getValue(); // จำค่าที่เลือกไว้เดิม
-      
-      ts.clearOptions(); // ล้าง Options เก่าออกก่อน
-      
-      optionsArray.forEach(item => {
-        ts.addOption({
-          value: item.id,
-          text: item.label
-        });
-      });
-
-      ts.refreshOptions(false);
-
-      if (Array.isArray(currentSelected) && currentSelected.length > 0) {
-        ts.setValue(currentSelected, true);
-      }
-    }
-  };
-
-  // 1. Specialty Data Prepare
-  const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-  const specOptions = uniqueSpecs.map(s => ({
-    id: s,
-    label: window.getSpecialtyText(s, s)
-  }));
-  populateTomSelect('filterDocSpecialty', specOptions, phSpec);
-
-  // 2. Type Data Prepare
-  const uniqueTypes = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-  const typeOptions = uniqueTypes.map(t => ({
-    id: t,
-    label: window.getDoctorTypeText(t, t)
-  }));
-  populateTomSelect('filterDocType', typeOptions, phType);
-};
+ 
 
 // ==========================================
 // 📥 LOAD INDEX DROPDOWNS & AUTO MULTI-LANG
