@@ -2483,27 +2483,21 @@ window.loadVisits = async function(forceReload, isBackground) {
       var myDraftsCount = (window.globalVisits || []).filter(function(v) { return v.Status === 'Pending' && String(v.Rep_ID) === myRepId; }).length;
       if (typeof window.checkMyDraftsReminder === 'function') window.checkMyDraftsReminder(myDraftsCount);
 
-    } catch (err) {
-      console.error("Load Visits Error:", err); 
-      var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
-      var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
-      var tbody = document.getElementById('visitTableBody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
- 
-} finally {
+   } catch (err) {
+        console.error("Load Visits Error:", err); 
+        var appLang = (typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang()) ? window.getCurrentAppLang() : 'en';
+        var msgErr = appLang === 'en' ? '❌ Failed to load data: ' : '❌ ดึงข้อมูลไม่สำเร็จ: ';
+        var tbody = document.getElementById('visitTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
+    } finally {
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-            // 🎯 สั่งปิดด้วยฟังก์ชันที่มีอยู่แล้ว (บรรทัด 767) เพื่อฝัง Anti-Framework CSS
             if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
 
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
         }
-        
-        var overlay = document.getElementById('tableLoadingOverlay');
-        if (overlay) overlay.classList.add('d-none');
-    }
         
         var overlay = document.getElementById('tableLoadingOverlay');
         if (overlay) overlay.classList.add('d-none');
