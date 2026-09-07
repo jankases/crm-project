@@ -220,9 +220,11 @@ window.goBackFromDoctorProfile = function() {
 window.initMultiTomSelect = function(id, placeholder) {
   const el = document.getElementById(id);
   if(!el) return;
+
   if(el.tomselect) {
     el.tomselect.settings.placeholder = placeholder;
     el.tomselect.inputState();
+    el.tomselect.sync(); 
     return;
   }
   
@@ -234,7 +236,14 @@ window.initMultiTomSelect = function(id, placeholder) {
       sortField: { field: "text", direction: "asc" }, 
       placeholder: placeholder, 
       allowEmptyOption: true, 
-      dropdownParent: 'body'
+      dropdownParent: 'body',
+      // 🌟 บังคับใช้คลาสของ Bootstrap และกำหนดสีพื้นหลังให้เป็นสีขาว
+      controlClass: 'ts-control form-control bg-white premium-radius border shadow-none d-flex align-items-center',
+      onInitialize: function() {
+        // 🌟 Force ความสูงและฟอนต์ให้เป๊ะเท่ากับช่อง Input Search
+        this.control.style.height = '38px';
+        this.control.style.fontSize = '0.95rem';
+      }
     });
   }
 };
