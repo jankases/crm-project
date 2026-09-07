@@ -4963,7 +4963,7 @@ window.renderVisitFilters = function() {
     } 
 };
 
- window.initVisitPage = async function(forceReload) {
+window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -4981,16 +4981,11 @@ window.renderVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🎯 1. เช็คสิทธิ์ Cache ก่อนทำสิ่งใดทั้งสิ้น!
     var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
-    // 🎯 2. ตัดสินใจแสดงหน้าจอ "ทันที" ตามผลลัพธ์ Cache
+    // 🎯 ตัดสินใจทันที: ถ้ามี Cache ให้ปิดวงล้อ ถ้าไม่มีให้โชว์วงล้อ
     if (shouldFetchDB) {
-        // กรณีต้องโหลดใหม่ (เช่น กด Refresh หรือเพิ่งเข้าเว็บ) -> ถอนคำสาป แล้วเปิดวงล้อโหลดทันที!
-        var oldStyle = document.getElementById('anti-framework-loading-style');
-        if (oldStyle) oldStyle.remove();
-
         if (loadingCard) {
             loadingCard.style.setProperty('display', 'flex', 'important');
             loadingCard.classList.remove('d-none');
@@ -4999,16 +4994,12 @@ window.renderVisitFilters = function() {
         if (visitViewEl) visitViewEl.classList.add('is-loading');
         if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
         if (calZone) calZone.style.setProperty('display', 'none', 'important');
-        
     } else {
-        // กรณีมี Cache (กดเมนูเข้ามาใหม่) -> สั่งปิดตายวงล้อทันที! ห้ามโผล่มากระพริบเด็ดขาด!
         if (loadingCard) {
             loadingCard.style.setProperty('display', 'none', 'important');
             loadingCard.classList.add('d-none');
             loadingCard.classList.remove('d-flex');
         }
-        // ร่ายมนต์ปิดทับกันเหนียว
-        if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
     }
 
     var domWaitCount = 0;
@@ -5063,7 +5054,11 @@ window.renderVisitFilters = function() {
         }
 
     } catch(err) {
-        // ... (Error handling remains the same)
+        console.error("Init Visits Failed:", err);
+        var appLangErr = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var msgErr = appLangErr === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
+        var tbody = document.getElementById('visitTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
@@ -5071,14 +5066,17 @@ window.renderVisitFilters = function() {
         if (shouldFetchDB === false) {
              if (visitViewEl) visitViewEl.classList.remove('is-loading');
              
-             // 🎯 ป้องกันวงล้อผีหลอก
-             if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
+             if (loadingCard) {
+                 loadingCard.style.setProperty('display', 'none', 'important');
+                 loadingCard.classList.add('d-none');
+                 loadingCard.classList.remove('d-flex');
+             }
 
              var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
              if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
         }
     }
-};
+};  
 
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
