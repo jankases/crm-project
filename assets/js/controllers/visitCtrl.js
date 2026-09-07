@@ -4641,18 +4641,9 @@ window.renderCalendarView = function() {
 window.updateCalendarLegendLang = function() {
     var isEN = window.getCurrentAppLang() === 'en';
     
-    var calRepSelect = document.getElementById('calRepFilterSelect');
-    if (calRepSelect && calRepSelect.options.length > 0) {
-        // อัปเดตภาษาตัวเลือกแรก (All Users)
-        calRepSelect.options[0].text = isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด';
-        
-        // 🎯 อัปเดตภาษาตัวเลือก Other
-        for (var i = 0; i < calRepSelect.options.length; i++) {
-            if (calRepSelect.options[i].value === 'OTHER_REPS') {
-                calRepSelect.options[i].text = '🌐 ' + (isEN ? 'Other / Cross-Team' : 'บุคคลอื่น / นอกทีม (Other)');
-                break;
-            }
-        }
+    // 🌟 สั่งวาด Dropdown พนักงานใน Calendar ใหม่ทั้งก้อน เพื่อให้แปลภาษาครบทุกโฟลเดอร์
+    if (typeof window.renderCalendarUserDropdown === 'function') {
+        window.renderCalendarUserDropdown('calRepFilterSelect');
     }
 
     var elBtn = document.getElementById('txtLegendBtn');
@@ -6203,80 +6194,102 @@ window.fetchProductsByRole = async function(crmUser) {
 // 🎯 ฟังก์ชันอัปเดต Dropdown รายชื่อพนักงานในหน้า Calendar ให้ตรงกับลอจิก Filter
 // ==========================================
 window.renderCalendarUserDropdown = function(selectElementId) {
-    // กำหนด ID ของ Dropdown ในหน้า Calendar
     var targetId = selectElementId || 'calendarUserFilter'; 
     var selectEl = document.getElementById(targetId);
     
     if (!selectEl) return;
 
+    // 🌟 ดึงภาษาปัจจุบัน
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var isEN = (appLang === 'en');
+
+    // 🌟 จำค่าเดิมที่เลือกไว้ จะได้ไม่หลุดเวลาเปลี่ยนภาษา
+    var currentSelected = window.currentCalendarRepFilter || 'ALL';
+
     var allUsers = window.globalUsersList || [];
     var allowedRepIds = window.myAllowedRepIds || [];
     var allTms = window.globalTeamList || [];
-    // 🌟 ดึง Master Data ของเขตและแผนกมารอไว้สืบค้น
     var allTers = window.globalTerritoryList || (window.VisitManagerCache ? window.VisitManagerCache.territories : []) || [];
     var allBus = window.globalBuList || (window.VisitManagerCache ? window.VisitManagerCache.bus : []) || [];
 
-    // 1. กรองเอาเฉพาะรายชื่อที่มีสิทธิ์มองเห็น (อิงจากลอจิก Advanced Filter)
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || '').trim().toLowerCase() : '';
+    var myBuId = crmUser ? String(crmUser.BU_ID || crmUser.BU || '').trim().toLowerCase() : '';
+
     var allowedUsers = allUsers.filter(function(u) {
         var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
         return allowedRepIds.indexOf(uid) !== -1;
     });
 
-    // 2. จัดกลุ่มรายชื่อ
     var groupedUsers = {};
     allowedUsers.forEach(function(u) {
+        var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
         var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
         var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
         var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
 
-        // 🌟 [FIX 1]: สืบหา Team_ID จาก Territory_ID (แก้ปัญหา Sales Rep ตกหล่น)
+        if (!uBuId && uid === myRepId) uBuId = myBuId;
+
         if (!teamId && uTerrId) {
             var tmMatched = allTers.find(function(t) { return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === uTerrId; });
             if (tmMatched) teamId = String(tmMatched.Team_ID || tmMatched.Team || '').trim().toLowerCase();
         }
 
-        // 🌟 [FIX 2]: สร้าง Group Key ที่รองรับระดับ BU (แก้ปัญหา BU Head ตกหล่น)
+        if (!uBuId && teamId && teamId !== 'no_team') {
+            var buMatched = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team || '').trim().toLowerCase() === teamId; });
+            if (buMatched) uBuId = String(buMatched.BU_ID || buMatched.BU || '').trim().toLowerCase();
+        }
+
+        var role = String(u.Role || u.role || '').toUpperCase().trim();
+        var isAdminOrStaff = role.indexOf('ADMIN') !== -1 || role.indexOf('STAFF') !== -1 || role.indexOf('SECRETARY') !== -1;
+        var isNodeBuHead = !isAdminOrStaff && (role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1);
+        var isNodePM = !isAdminOrStaff && (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM');
+        
         var groupKey = 'other';
-        if (teamId) {
+        
+        if (isAdminOrStaff) {
+            groupKey = 'admin';
+        } else if (isNodeBuHead || isNodePM) {
+            groupKey = uBuId ? 'bu_' + uBuId : 'other';
+        } else if (teamId && teamId !== 'no_team') {
             groupKey = 'team_' + teamId;
         } else if (uBuId) {
             groupKey = 'bu_' + uBuId;
-        } else {
-            var uRole = String(u.Role || '').toUpperCase();
-            if (uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1) groupKey = 'admin';
         }
-        
+
         if (!groupedUsers[groupKey]) groupedUsers[groupKey] = [];
         groupedUsers[groupKey].push(u);
     });
 
-    // 3. ปั้น HTML สำหรับ Dropdown
-    var html = '<option value="ALL" selected>👥 All Users (ทุกคนที่มองเห็น)</option>';
+    // 🌟 แปลงภาษาข้อความ All Users
+    var allUsersText = isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด';
+    var isAllSel = (currentSelected === 'ALL' || !currentSelected) ? 'selected' : '';
+    var html = '<option value="ALL" ' + isAllSel + '>' + allUsersText + '</option>';
     
     Object.keys(groupedUsers).forEach(function(key) {
-        var groupName = 'Unassigned Team';
+        // 🌟 แปลงภาษาชื่อโฟลเดอร์ต่างๆ
+        var groupName = isEN ? 'Unassigned Team' : 'ทีมที่ไม่ได้ระบุ';
         
-        // 🌟 แปลง Group Key กลับมาเป็นชื่อที่สวยงาม
         if (key.startsWith('team_')) {
             var tId = key.replace('team_', '');
             var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team).toLowerCase() === tId; });
-            groupName = tmObj ? (tmObj.Team || tmObj.Team_Name || tId) : (tId.length > 15 ? 'Sales Team' : tId);
+            groupName = tmObj ? (tmObj.Team || tmObj.Team_Name || tId) : (tId.length > 15 ? (isEN ? 'Sales Team' : 'ทีมขาย') : tId);
             groupName = '👥 ' + groupName;
         } else if (key.startsWith('bu_')) {
             var bId = key.replace('bu_', '');
             var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU).toLowerCase() === bId; });
-            groupName = buObj ? (buObj.BU_Name || buObj.BU) : 'Business Unit';
-            if (!groupName || groupName.length > 15) groupName = 'Business Unit Level'; // กัน UUID โผล่
-            groupName = '🏢 ' + groupName;
+            groupName = buObj ? (buObj.BU_Name || buObj.BU) : bId;
+            if (!groupName || groupName.length > 15) groupName = isEN ? 'Business Unit' : 'หน่วยธุรกิจ';
+            groupName = '🏢 ' + groupName + (isEN ? ' (BU Level)' : ' (ระดับ BU)'); 
         } else if (key === 'admin') {
-            groupName = '🛡️ Admin / Global';
+            groupName = isEN ? '🛡️ Admin / Global' : '🛡️ แอดมิน / ส่วนกลาง';
         } else {
-            groupName = '🌐 Other / Cross-Team';
+            groupName = isEN ? '🌐 Other / Cross-Team' : '🌐 บุคคลอื่น / นอกทีม';
         }
         
         html += '<optgroup label="' + groupName + '">';
         
-        // 4. เรียงลำดับคนในทีมตามตำแหน่ง (BU Head -> Manager -> PM -> Sales)
         var sortedUsers = groupedUsers[key].sort(function(a, b) {
             var getPri = function(roleStr) {
                 var r = String(roleStr).toUpperCase();
@@ -6284,12 +6297,11 @@ window.renderCalendarUserDropdown = function(selectElementId) {
                 if (r.indexOf('HEAD') !== -1 || r === 'BU') return 1;
                 if (r.indexOf('MANAGER') !== -1 || r.indexOf('LEAD') !== -1) return 2;
                 if (r.indexOf('PRODUCT MANAGER') !== -1 || r === 'PM') return 3;
-                return 4; // Sales Rep
+                return 4; 
             };
             return getPri(a.Role) - getPri(b.Role);
         });
 
-        // 5. ใส่ Icon ตาม Role
         sortedUsers.forEach(function(u) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim();
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
@@ -6302,13 +6314,14 @@ window.renderCalendarUserDropdown = function(selectElementId) {
 
             var nodeIcon = isAdminOrStaff ? '🏢 ' : (isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 '));
             
-            html += '<option value="' + id + '">' + nodeIcon + name + '</option>';
+            // 🌟 ติ๊กเลือกค่าเดิมที่ค้างไว้
+            var isSel = (id === currentSelected) ? 'selected' : '';
+            html += '<option value="' + id + '" ' + isSel + '>' + nodeIcon + name + '</option>';
         });
         
         html += '</optgroup>';
     });
 
-    // 6. อัปเดตเข้าไปใน Select Element
     selectEl.innerHTML = html;
     
     if (selectEl.tomselect) {
