@@ -2251,12 +2251,13 @@ window.loadVisits = async function(forceReload, isBackground) {
           lblCountEl.textContent = totalActiveFilters > 0 ? (totalActiveFilters + ' Active') : 'All Data';
       }
 
-      // ==============================================================
+     // ==============================================================
       // 🌟 ยัดเงื่อนไขลง Supabase Query โดยใช้ค่าที่งับมาไว้ในตัวแปร
       // ==============================================================
       if (capturedStatus) {
           dataQuery = dataQuery.eq('Status', capturedStatus);
-          countQuery = countQuery.eq('Status', capturedStatus);
+          // 🛑 [FIX] ลบ countQuery.eq('Status', capturedStatus) ออก!
+          // เพื่อให้กล่อง KPI จำยอดรวมจาก Filter หลักเสมอ ไม่เปลี่ยนตามการคลิกกล่องสถานะ
       }
 
       // 🌟 ส่ง Array ของ Purpose ให้ Supabase ค้นหาทั้งหมดที่ตรงกัน
