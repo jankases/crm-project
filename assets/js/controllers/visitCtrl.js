@@ -787,10 +787,13 @@ window.setLoadingCardState = function(isShow) {
 
  
 window.toggleMainView = function(viewMode) {
+    // 🎯 เพิ่มบรรทัดนี้ลงไปบรรทัดแรกสุดเลยครับ! (สั่งใช้ฟังก์ชันที่มีอยู่แล้วในบรรทัด 767)
+    if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
+
     var listBtn = document.getElementById('btnToggleList');
     var calBtn = document.getElementById('btnToggleCal');
     var mainContainer = document.getElementById('visitMainContentContainer'); 
-    var calZone = document.getElementById('visitCalendarZone');                
+    var calZone = document.getElementById('visitCalendarZone'); 
 
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     var isEN = (appLang === 'en');
@@ -2487,21 +2490,20 @@ window.loadVisits = async function(forceReload, isBackground) {
       var tbody = document.getElementById('visitTableBody');
       if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
  
-    } finally {
+} finally {
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-            var loadingCardFinal = document.getElementById('visitTableLoading');
-            if (loadingCardFinal) {
-                loadingCardFinal.classList.remove('d-flex');
-                loadingCardFinal.classList.add('d-none');
-                loadingCardFinal.style.setProperty('display', 'none', 'important');
-            }
+            // 🎯 สั่งปิดด้วยฟังก์ชันที่มีอยู่แล้ว (บรรทัด 767) เพื่อฝัง Anti-Framework CSS
+            if (typeof window.setLoadingCardState === 'function') window.setLoadingCardState(false);
 
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
             if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
-             
         }
+        
+        var overlay = document.getElementById('tableLoadingOverlay');
+        if (overlay) overlay.classList.add('d-none');
+    }
         
         var overlay = document.getElementById('tableLoadingOverlay');
         if (overlay) overlay.classList.add('d-none');
