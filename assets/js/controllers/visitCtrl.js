@@ -4301,219 +4301,220 @@ window.getSignatureDataUrl = function() {
   var sampleInputs = document.querySelectorAll('.sample-id-select, .sample-qty');
   sampleInputs.forEach(function(input) { input.disabled = isReadOnly; });
 };
+ 
 
 // ==========================================
-// 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND)
+// 📅 15. FULL CALENDAR (UPDATED FULL-HEIGHT + HEADER LEGEND + DYNAMIC REPS)
 // ==========================================  
- // 🌟 ตัวแปร Global จำค่าที่ถูกเลือก
- window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
+// 🌟 ตัวแปร Global จำค่าที่ถูกเลือก
+window.currentCalendarRepFilter = window.currentCalendarRepFilter || '';
 
 window.renderCalendarView = function() {
-  var calendarEl = document.getElementById('calendar');
-  if (!calendarEl) return;
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
 
-  var calRepFilter = document.getElementById('calRepFilterSelect');
-  if (calRepFilter) {
-      window.currentCalendarRepFilter = calRepFilter.value;
-  }
-  var selectedRepId = window.currentCalendarRepFilter || '';
-  
-  var appLang = window.getCurrentAppLang();
-  var isEN = (appLang === 'en');
-  var crmUser = null; 
-  try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
-  var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
+    var calRepFilter = document.getElementById('calRepFilterSelect');
+    if (calRepFilter) {
+        window.currentCalendarRepFilter = calRepFilter.value;
+    }
+    var selectedRepId = window.currentCalendarRepFilter || '';
+    
+    var appLang = window.getCurrentAppLang();
+    var isEN = (appLang === 'en');
+    var crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
+    var isManagerOrAdmin = window.myIsGlobalViewer || window.myIsBuHead || window.myIsManager;
 
-  // ==========================================
-  // 1. Visit Logs
-  // ==========================================
-  var visitsSource = window.globalVisits || [];
-  if (selectedRepId) {
-      visitsSource = visitsSource.filter(function(v) {
-          // 🎯 3.1 เพิ่มการกรอง Other ในปฏิทิน
-          if (selectedRepId === 'OTHER_REPS') {
-              var allowedList = window.myAllowedRepIds || [];
-              return allowedList.indexOf(String(v.Rep_ID).trim()) === -1;
-          }
-          return String(v.Rep_ID) === String(selectedRepId) || String(v.whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
-      });
-  }
+    // ==========================================
+    // 1. Visit Logs
+    // ==========================================
+    var visitsSource = window.globalVisits || [];
+    if (selectedRepId && selectedRepId !== 'ALL') { // 🌟 ข้ามการกรองถ้าเลือก ALL
+        visitsSource = visitsSource.filter(function(v) {
+            // 🎯 3.1 เพิ่มการกรอง Other ในปฏิทิน
+            if (selectedRepId === 'OTHER_REPS') {
+                var allowedList = window.myAllowedRepIds || [];
+                return allowedList.indexOf(String(v.Rep_ID).trim()) === -1;
+            }
+            return String(v.Rep_ID) === String(selectedRepId) || String(v.Whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
+        });
+    }
 
-   var visitEvents = visitsSource.map(function(v) {
-      // 🎯 อ่านข้อมูลหมอจาก Relation Join (v.Doctors) ก่อน แล้วค่อย Fallback ไปหาใน List/Index
-      var rawDocId = String(v.Doc_ID || v.doc_id || v.id || '').trim();
-      var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
-      
-      if (!docObj && window.globalAssignedDoctors) {
-          docObj = window.globalAssignedDoctors.find(function(d) {
-              var dId = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
-              return dId === rawDocId.toLowerCase();
-          });
-      }
+    var visitEvents = visitsSource.map(function(v) {
+        // 🎯 อ่านข้อมูลหมอจาก Relation Join (v.Doctors) ก่อน แล้วค่อย Fallback ไปหาใน List/Index
+        var rawDocId = String(v.Doc_ID || v.doc_id || v.id || '').trim();
+        var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
+        
+        if (!docObj && window.globalAssignedDoctors) {
+            docObj = window.globalAssignedDoctors.find(function(d) {
+                var dId = String(d.Doc_ID || d.doc_id || d.id || '').trim().toLowerCase();
+                return dId === rawDocId.toLowerCase();
+            });
+        }
 
-      var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
-      var hospName = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
-      var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-';
+        var docName = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
+        var hospName = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
+        var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose) : '-';
 
-      var repObj = (window._userIndex && v.Rep_ID) ? window._userIndex[String(v.Rep_ID).trim().toLowerCase()] : null;
-      var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
+        var repObj = (window._userIndex && v.Rep_ID) ? window._userIndex[String(v.Rep_ID).trim().toLowerCase()] : null;
+        var repNamePrefix = (isManagerOrAdmin && (!selectedRepId || selectedRepId === 'ALL') && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
 
-      var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
-      if (dateOnly.indexOf('/') !== -1) {
-           var vParts = dateOnly.split('/');
-           if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
-      }
+        var dateOnly = v.Visit_Date ? v.Visit_Date.split('T')[0] : '';
+        if (dateOnly.indexOf('/') !== -1) {
+            var vParts = dateOnly.split('/');
+            if(vParts.length === 3) dateOnly = vParts[2] + '-' + vParts[1] + '-' + vParts[0];
+        }
 
-      var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
-      var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
-      var baseTitle = repNamePrefix + timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
-      var fullTooltipText = baseTitle + '\n' + (appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ') + purposeShow;
-      if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
+        var timePrefix = v.Start_Time ? v.Start_Time.substring(0, 5) + ' ' : '';
+        var coachingIcon = v.Is_Coaching ? '🧑‍🏫 ' : '';
+        var baseTitle = repNamePrefix + timePrefix + coachingIcon + docName + (hospName && hospName !== '-' ? ' (' + hospName + ')' : '');
+        var fullTooltipText = baseTitle + '\n' + (appLang === 'en' ? 'Purpose: ' : 'วัตถุประสงค์: ') + purposeShow;
+        if(v.Is_Coaching) fullTooltipText += (appLang === 'en' ? '\n(Joint Visit / Coaching)' : '\n(ออกเยี่ยมร่วม / โค้ชชิ่ง)');
 
-      var isPending = (v.Status === 'Pending');
-      var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
-      var bgColor = isPendingUnlock ? '#64748b' : (isPending ? '#f59e0b' : '#10b981');
-      
-      return {
-          id: v.Visit_ID, title: baseTitle, start: dateOnly, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block', 
-          order: 3, // 🎯 ลำดับที่ 3 (อยู่ล่างสุด)
-          extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
-      };
-  });
+        var isPending = (v.Status === 'Pending');
+        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+        var bgColor = isPendingUnlock ? '#64748b' : (isPending ? '#f59e0b' : '#10b981');
+        
+        return {
+            id: v.Visit_ID, title: baseTitle, start: dateOnly, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block', 
+            order: 3, // 🎯 ลำดับที่ 3 (อยู่ล่างสุด)
+            extendedProps: { status: v.Status, isHoliday: false, fullTooltip: fullTooltipText }
+        };
+    });
 
-  // ==========================================
-  // 🌟 2. Public Holidays & Company Events
-  // ==========================================
-  var holidayEvents = []; var companyEvents = []; 
-  
-  if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
-      var holidayType = window.VisitManagerCache.indexTypes.find(function(t) { 
-          var n = (t.Name || '').trim().toLowerCase();
-          return n.indexOf('holiday') !== -1 && n.indexOf('company') === -1 && n.indexOf('corporate') === -1; 
-      });
-      
-      if (holidayType) {
-          var holidayData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === holidayType.IndexType_ID; });
-          holidayEvents = holidayData.map(function(h) {
-              var hDate = h.Value ? h.Value.split('T')[0] : '';
-              if (hDate.indexOf('/') !== -1) { var dParts = hDate.split('/'); if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0]; }
-              var hTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || h.Value2 || 'วันหยุด');
+    // ==========================================
+    // 🌟 2. Public Holidays & Company Events
+    // ==========================================
+    var holidayEvents = []; var companyEvents = []; 
+    
+    if (window.VisitManagerCache && window.VisitManagerCache.indexTypes && window.VisitManagerCache.indexes) {
+        var holidayType = window.VisitManagerCache.indexTypes.find(function(t) { 
+            var n = (t.Name || '').trim().toLowerCase();
+            return n.indexOf('holiday') !== -1 && n.indexOf('company') === -1 && n.indexOf('corporate') === -1; 
+        });
+        
+        if (holidayType) {
+            var holidayData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === holidayType.IndexType_ID; });
+            holidayEvents = holidayData.map(function(h) {
+                var hDate = h.Value ? h.Value.split('T')[0] : '';
+                if (hDate.indexOf('/') !== -1) { var dParts = hDate.split('/'); if(dParts.length === 3) hDate = dParts[2] + '-' + dParts[1] + '-' + dParts[0]; }
+                var hTitle = appLang === 'en' ? (h.Value2 || h.Value1 || 'Holiday') : (h.Value1 || h.Value2 || 'วันหยุด');
 
-              return {
-                  id: 'hol_' + h.Index_ID, 
-                  title: '🌴 ' + hTitle, 
-                  start: hDate, 
-                  allDay: true, 
-                  backgroundColor: '#fef2f2', 
-                  borderColor: '#fca5a5',     
-                  textColor: '#dc2626',       
-                  display: 'block',
-                  order: 1, // 🎯 ลำดับที่ 1 (ขึ้นบนสุด)
-                  extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
-              };
-          });
-      }
+                return {
+                    id: 'hol_' + h.Index_ID, 
+                    title: '🌴 ' + hTitle, 
+                    start: hDate, 
+                    allDay: true, 
+                    backgroundColor: '#fef2f2', 
+                    borderColor: '#fca5a5',     
+                    textColor: '#dc2626',        
+                    display: 'block',
+                    order: 1, // 🎯 ลำดับที่ 1 (ขึ้นบนสุด)
+                    extendedProps: { status: 'Holiday', isHoliday: true, fullTooltip: '🌴 ' + hTitle }
+                };
+            });
+        }
 
-      var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) { 
-          var n = (t.Name || '').trim().toLowerCase();
-          return n.indexOf('company event') !== -1 || n.indexOf('corporate') !== -1; 
-      });
+        var companyEventType = window.VisitManagerCache.indexTypes.find(function(t) { 
+            var n = (t.Name || '').trim().toLowerCase();
+            return n.indexOf('company event') !== -1 || n.indexOf('corporate') !== -1; 
+        });
 
-      if (companyEventType) {
-          var companyData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === companyEventType.IndexType_ID; });
-          companyEvents = companyData.map(function(c) {
-              var cDate = c.Value ? c.Value.split('T')[0] : '';
-              if (cDate.indexOf('/') !== -1) { var dParts2 = cDate.split('/'); if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0]; }
-              var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || c.Value2 || 'กิจกรรมบริษัท');
+        if (companyEventType) {
+            var companyData = window.VisitManagerCache.indexes.filter(function(i) { return i.IndexType_ID === companyEventType.IndexType_ID; });
+            companyEvents = companyData.map(function(c) {
+                var cDate = c.Value ? c.Value.split('T')[0] : '';
+                if (cDate.indexOf('/') !== -1) { var dParts2 = cDate.split('/'); if(dParts2.length === 3) cDate = dParts2[2] + '-' + dParts2[1] + '-' + dParts2[0]; }
+                var cTitle = appLang === 'en' ? (c.Value2 || c.Value1 || 'Company Event') : (c.Value1 || c.Value2 || 'กิจกรรมบริษัท');
 
-              return {
-                  id: 'ce_' + c.Index_ID, 
-                  title: '🏢 ' + cTitle, 
-                  start: cDate, 
-                  allDay: true, 
-                  backgroundColor: '#8b5cf6', 
-                  borderColor: '#8b5cf6', 
-                  textColor: '#ffffff', 
-                  display: 'block',
-                  order: 1, // 🎯 ลำดับที่ 1 (ขึ้นบนสุด)
-                  extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: '🏢 ' + cTitle }
-              };
-          });
-      }
-  }
+                return {
+                    id: 'ce_' + c.Index_ID, 
+                    title: '🏢 ' + cTitle, 
+                    start: cDate, 
+                    allDay: true, 
+                    backgroundColor: '#8b5cf6', 
+                    borderColor: '#8b5cf6', 
+                    textColor: '#ffffff', 
+                    display: 'block',
+                    order: 1, // 🎯 ลำดับที่ 1 (ขึ้นบนสุด)
+                    extendedProps: { status: 'Company Event', isHoliday: true, fullTooltip: '🏢 ' + cTitle }
+                };
+            });
+        }
+    }
 
-  // ==========================================
-  // 3. TOT Logs
-  // ==========================================
-  var totSource = window.globalFilteredTotLogs || [];
-  if (selectedRepId) {
-      totSource = totSource.filter(function(tot) {
-          return String(tot.Rep_ID) === String(selectedRepId) || String(tot.Whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
-      });
-  }
+    // ==========================================
+    // 3. TOT Logs
+    // ==========================================
+    var totSource = window.globalFilteredTotLogs || [];
+    if (selectedRepId && selectedRepId !== 'ALL') {
+        totSource = totSource.filter(function(tot) {
+            return String(tot.Rep_ID) === String(selectedRepId) || String(tot.Whoupdated).toLowerCase() === String(selectedRepId).toLowerCase();
+        });
+    }
 
-  var totEvents = totSource.map(function(t) {
-      var repObj = (window._userIndex && t.Rep_ID) ? window._userIndex[String(t.Rep_ID).trim().toLowerCase()] : null;
-      var repNamePrefix = (isManagerOrAdmin && !selectedRepId && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
-      
-      var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
-      var displayType = t.TOT_Type || 'Time Off';
-      if (appLang === 'en' && window.VisitManagerCache.indexes) {
-          var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
-          if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
-      }
-      var baseTitle = repNamePrefix + timePrefix + '⛱️ ' + displayType;
-      var fullTooltipText = baseTitle + (t.Remark ? '\n' + (appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ') + t.Remark : '');
-      var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
+    var totEvents = totSource.map(function(t) {
+        var repObj = (window._userIndex && t.Rep_ID) ? window._userIndex[String(t.Rep_ID).trim().toLowerCase()] : null;
+        var repNamePrefix = (isManagerOrAdmin && (!selectedRepId || selectedRepId === 'ALL') && repObj) ? '[' + (repObj.Rep_Name || repObj.Name || 'Rep') + '] ' : '';
+        
+        var timePrefix = t.Start_Time ? t.Start_Time.substring(0, 5) + ' ' : '';
+        var displayType = t.TOT_Type || 'Time Off';
+        if (appLang === 'en' && window.VisitManagerCache.indexes) {
+            var tIdx = window.VisitManagerCache.indexes.find(function(idx) { return idx.Value === t.TOT_Type; });
+            if (tIdx && tIdx.Value1) displayType = tIdx.Value1;
+        }
+        var baseTitle = repNamePrefix + timePrefix + '⛱️ ' + displayType;
+        var fullTooltipText = baseTitle + (t.Remark ? '\n' + (appLang === 'en' ? 'Remark: ' : 'หมายเหตุ: ') + t.Remark : '');
+        var bgColor = t.Status === 'Approved' ? '#0ea5e9' : '#94a3b8'; 
 
-      var startDate = '';
-      if (t.Start_Date) {
-          startDate = t.Start_Date.split('T')[0];
-          if (startDate.indexOf('/') !== -1) { var p1 = startDate.split('/'); if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0]; }
-      }
-      var endDateStr = '';
-      if (t.End_Date && t.End_Date !== t.Start_Date) {
-          endDateStr = t.End_Date.split('T')[0];
-          if (endDateStr.indexOf('/') !== -1) { var p2 = endDateStr.split('/'); if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0]; }
-          var eDate = new Date(endDateStr); eDate.setDate(eDate.getDate() + 1); endDateStr = eDate.toISOString().split('T')[0];
-      }
+        var startDate = '';
+        if (t.Start_Date) {
+            startDate = t.Start_Date.split('T')[0];
+            if (startDate.indexOf('/') !== -1) { var p1 = startDate.split('/'); if (p1.length===3) startDate = p1[2]+'-'+p1[1]+'-'+p1[0]; }
+        }
+        var endDateStr = '';
+        if (t.End_Date && t.End_Date !== t.Start_Date) {
+            endDateStr = t.End_Date.split('T')[0];
+            if (endDateStr.indexOf('/') !== -1) { var p2 = endDateStr.split('/'); if (p2.length===3) endDateStr = p2[2]+'-'+p2[1]+'-'+p2[0]; }
+            var eDate = new Date(endDateStr); eDate.setDate(eDate.getDate() + 1); endDateStr = eDate.toISOString().split('T')[0];
+        }
 
-      var ev = {
-          id: 'tot_' + t.TOT_ID, title: baseTitle, start: startDate, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block',
-          order: 2, // 🎯 ลำดับที่ 2 (อยู่ตรงกลาง)
-          extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
-      };
-      if (endDateStr) ev.end = endDateStr;
-      return ev;
-  });
+        var ev = {
+            id: 'tot_' + t.TOT_ID, title: baseTitle, start: startDate, allDay: true, backgroundColor: bgColor, borderColor: bgColor, textColor: '#ffffff', display: 'block',
+            order: 2, // 🎯 ลำดับที่ 2 (อยู่ตรงกลาง)
+            extendedProps: { isTot: true, totId: t.TOT_ID, fullTooltip: fullTooltipText }
+        };
+        if (endDateStr) ev.end = endDateStr;
+        return ev;
+    });
 
-  var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
-  
-  var fcButtonText = isEN ? {
-      today: 'Today', month: 'Month', week: 'Week', day: 'Day'
-  } : {
-      today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
-  };
+    var allEvents = visitEvents.concat(holidayEvents).concat(totEvents).concat(companyEvents);
+    
+    var fcButtonText = isEN ? {
+        today: 'Today', month: 'Month', week: 'Week', day: 'Day'
+    } : {
+        today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน'
+    };
 
- // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งอัปเดตภาษา + เคลียร์และใส่อีเวนต์ใหม่
-  if (window.globalCalendarInstance) {
-      window.globalCalendarInstance.setOption('locale', isEN ? 'en' : 'th');
-      window.globalCalendarInstance.setOption('buttonText', fcButtonText);
-      window.globalCalendarInstance.setOption('eventOrder', 'order');
-      
-      // 🎯 อัปเดตภาษาข้อความ +more เมื่อสลับภาษา Realtime
-      window.globalCalendarInstance.setOption('moreLinkText', function(num) {
-          return isEN ? '+' + num + ' more' : '+อีก ' + num + ' รายการ';
-      });
+    // 🌟 [ป้องกันปฏิทินแว๊บ/กระพริบ]: ถ้ามี Instance ปฏิทินอยู่แล้ว สั่งอัปเดตภาษา + เคลียร์และใส่อีเวนต์ใหม่
+    if (window.globalCalendarInstance) {
+        window.globalCalendarInstance.setOption('locale', isEN ? 'en' : 'th');
+        window.globalCalendarInstance.setOption('buttonText', fcButtonText);
+        window.globalCalendarInstance.setOption('eventOrder', 'order');
+        
+        // 🎯 อัปเดตภาษาข้อความ +more เมื่อสลับภาษา Realtime
+        window.globalCalendarInstance.setOption('moreLinkText', function(num) {
+            return isEN ? '+' + num + ' more' : '+อีก ' + num + ' รายการ';
+        });
 
-      window.globalCalendarInstance.removeAllEvents();
-      window.globalCalendarInstance.addEventSource(allEvents);
-      return;
-  }
+        window.globalCalendarInstance.removeAllEvents();
+        window.globalCalendarInstance.addEventSource(allEvents);
+        return;
+    }
 
-  // 🌟 ถ้ายังไม่มี Instance ค่อยวาด FullCalendar ใหม่
-  if (typeof FullCalendar !== 'undefined') {
-      window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+    // 🌟 ถ้ายังไม่มี Instance ค่อยวาด FullCalendar ใหม่
+    if (typeof FullCalendar !== 'undefined') {
+        window.globalCalendarInstance = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth', 
             eventOrder: 'order', // 🎯 บังคับให้ปฏิทินเรียงลำดับตามตัวแปร order (1 -> 2 -> 3)
             headerToolbar: { 
@@ -4610,34 +4611,25 @@ window.renderCalendarView = function() {
       }
 
       if (!document.getElementById('calRepFilterContainer')) {
-        var userList = window.globalUsersList || [];
-        if (isManagerOrAdmin && userList.length > 0) {
-          var allowedReps = window.myAllowedRepIds || [];
-          var uniqueReps = new Map();
-          
-          var isEN = window.getCurrentAppLang() === 'en'; 
-            var repOptionsHtml = '<option value="">' + (isEN ? '👥 All Users' : '👥 พนักงานทั้งหมด') + '</option>';
-          userList.forEach(function(u) {
-            var uId = String(u.Rep_ID || u.User_ID || u.id || '').trim();
-            if (uId && allowedReps.indexOf(uId) !== -1 && !uniqueReps.has(uId)) {
-                uniqueReps.set(uId, true);
-                var uName = u.Rep_Name || u.Name || u.Email || uId;
-                var isSel = (uId === selectedRepId) ? 'selected' : '';
-                repOptionsHtml += '<option value="' + uId + '" ' + isSel + '>👤 ' + uName + '</option>';
+        // 🌟 เรียกใช้ลอจิกที่เราสร้างไว้เพื่อวาด Dropdown
+        if (typeof window.renderCalendarUserDropdown === 'function') {
+            // สร้าง container ว่างๆ ไว้ก่อน แล้วให้ฟังก์ชันของเรามาเติมข้างใน
+            var filterContainerHtml = `
+              <div class="d-inline-block me-2" id="calRepFilterContainer">
+                <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs premium-radius text-primary cursor-pointer" id="calRepFilterSelect" style="font-size: 0.85rem; height: 34px; min-width: 180px;" onchange="window.currentCalendarRepFilter = this.value; window.renderCalendarView();">
+                </select>
+              </div>
+            `;
+            headerRight.insertAdjacentHTML('afterbegin', filterContainerHtml);
+            
+            // เรียกฟังก์ชันเพื่อวาด option ทั้งหมด
+            window.renderCalendarUserDropdown('calRepFilterSelect');
+            
+            // ตั้งค่าเดิมที่เคยเลือกไว้กลับคืนมา
+            var newSelect = document.getElementById('calRepFilterSelect');
+            if (newSelect && selectedRepId) {
+                newSelect.value = selectedRepId;
             }
-          });
-
-          // 🎯 3.2 เพิ่ม Option "Other" ปิดท้ายในหน้าปฏิทิน
-          repOptionsHtml += '<option value="OTHER_REPS" ' + (selectedRepId === 'OTHER_REPS' ? 'selected' : '') + '>🌐 ' + (isEN ? 'Other / Cross-Team' : 'บุคคลอื่น / นอกทีม (Other)') + '</option>';
-
-          var filterDropdownHtml = `
-            <div class="d-inline-block me-2" id="calRepFilterContainer">
-              <select class="form-select form-select-sm border-primary fw-bold bg-white shadow-xs premium-radius text-primary cursor-pointer" id="calRepFilterSelect" style="font-size: 0.85rem; height: 34px; min-width: 180px;" onchange="window.currentCalendarRepFilter = this.value; window.renderCalendarView();">
-                ${repOptionsHtml}
-              </select>
-            </div>
-          `;
-          headerRight.insertAdjacentHTML('afterbegin', filterDropdownHtml);
         }
       }
 
