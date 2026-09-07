@@ -53,7 +53,7 @@
         <button type="button" class="btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-2"></i> <span data-i18n="btn_calendar">Calendar</span></button>
       </div>
 
-       
+        
 
         <!-- เปลี่ยน onclick เป็น window.initVisitPage(true) -->
     <button type="button" class="btn btn-premium-icon" onclick="window.initVisitPage(true)" id="btnRefreshVisits" title="Refresh Data">
@@ -545,15 +545,38 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3" id="lastVisitHistoryBox">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-secondary small" data-i18n="th_date">Last Visit Date</span>
-          <span class="badge bg-primary text-white shadow-xs" id="lastVisitDateBadge">-</span>
-        </div>
-        <div class="p-2.5 bg-light border rounded-3 mb-2 small text-dark" style="line-height: 1.5;">
-          <strong>📝 <span data-i18n="lbl_details">Details</span>:</strong> <span id="lastVisitDetails">-</span>
-        </div>
-        <div class="p-2.5 bg-danger-subtle border border-danger-subtle rounded-3 small text-dark">
-          <strong>🎯 <span data-i18n="lbl_next_action">Next Action</span>:</strong> <span id="lastVisitNextAction" class="text-danger fw-bold">-</span>
+        <!-- 🌟 Premium Last Visit History Box -->
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff);">
+          <div class="card-body p-4">
+            <!-- Header & Badge -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-3 gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
+                  <i class="fa-solid fa-clock-rotate-left fs-6"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-dark fs-6" data-i18n="title_last_visit">Last Visit History</h6>
+              </div>
+              <div id="lastVisitDateBadge"></div>
+            </div>
+            
+            <!-- Details & Insight -->
+            <div class="mb-3 px-1">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-comment-dots text-secondary fs-6"></i>
+                <span class="fw-bold text-secondary" style="font-size: 0.85rem;" data-i18n="lbl_details_insight">Details & Insight</span>
+              </div>
+              <div id="lastVisitDetails" class="text-dark ms-4 bg-white p-3 rounded-3 border shadow-xs" style="font-size: 0.9rem; line-height: 1.6;">-</div>
+            </div>
+
+            <!-- Next Action -->
+            <div class="px-1">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-bullseye text-danger fs-6"></i>
+                <span class="fw-bold text-danger" style="font-size: 0.85rem;" data-i18n="lbl_next_action">Next Action</span>
+              </div>
+              <div id="lastVisitNextAction" class="text-danger-emphasis ms-4 bg-danger bg-opacity-10 p-3 rounded-3 fw-medium border border-danger-subtle" style="font-size: 0.9rem; line-height: 1.6;">-</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
