@@ -2416,6 +2416,7 @@ window.loadVisits = async function(forceReload, isBackground) {
       var to = from + limit - 1;
       dataQuery = dataQuery.range(from, to);
 
+      // ภายใน window.loadVisits ช่วงที่ดึงข้อมูลเสร็จ
       var res = await dataQuery;
       
       if (currentQueryId !== window._visitQueryId) return;
@@ -2423,6 +2424,10 @@ window.loadVisits = async function(forceReload, isBackground) {
 
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
+
+      // 🎯 [เพิ่มบรรทัดนี้] สำรองข้อมูลลง sessionStorage ทันทีที่โหลดเสร็จ
+      sessionStorage.setItem('crm_visits_cache', JSON.stringify(window.globalVisits));
+
       window._visitProductIndex = {};
       window._visitSampleIndex = {};
 
@@ -4984,6 +4989,14 @@ window.renderVisitFilters = function() {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
+    // 🎯 1. ฟื้นความจำตารางจาก sessionStorage (กุญแจสำคัญที่ทำให้รอดจากการโดนล้างตอนสลับเมนู)
+    var cachedData = sessionStorage.getItem('crm_visits_cache');
+    if (cachedData) {
+        try { window.globalVisits = JSON.parse(cachedData); } catch(e) { window.globalVisits = []; }
+    } else {
+        window.globalVisits = window.globalVisits || [];
+    }
+
     var visitViewEl = document.getElementById('visitListView');
     var mainContainer = document.getElementById('visitMainContentContainer');
     var calZone = document.getElementById('visitCalendarZone');
@@ -4993,21 +5006,33 @@ window.renderVisitFilters = function() {
     try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
     var myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
 
-    // 🎯 1. เช็ค Cache: ถ้ามีของเดิมอยู่แล้ว ถือว่ามี Cache ทันที (ไม่สนว่าเมนูจะส่ง forceReload มาหรือไม่)
-    var hasCache = (window.VisitManagerCache && window.VisitManagerCache.isLoaded && window.globalVisits && window.globalVisits.length > 0 && window.VisitManagerCache.ownerId === myRepId);
-    
-    // 🎯 2. จะดึง Database ใหม่ ก็ต่อเมื่อ "ไม่มี Cache" เท่านั้น!
-    var shouldFetchDB = !hasCache;
+    // 🎯 2. ใช้ globalVisits ที่รอดตายมาเป็นตัวตัดสินใจว่าต้องดึง DB ไหม
+    var hasCache = (window.globalVisits && window.globalVisits.length > 0);
+    var shouldFetchDB = forceReload === true ? true : !hasCache;
 
     if (shouldFetchDB) {
-        if (typeof window.setUIVisibility === 'function') {
-            window.setUIVisibility(loadingCard, true);
-            window.setUIVisibility(mainContainer, false);
-            window.setUIVisibility(calZone, false);
+        if (loadingCard) {
+            loadingCard.classList.remove('d-none');
+            loadingCard.classList.add('d-flex');
+            loadingCard.style.setProperty('display', 'flex', 'important');
+        }
+        if (mainContainer) {
+            mainContainer.classList.remove('d-flex');
+            mainContainer.classList.add('d-none');
+            mainContainer.style.setProperty('display', 'none', 'important');
+        }
+        if (calZone) {
+            calZone.classList.remove('d-flex');
+            calZone.classList.add('d-none');
+            calZone.style.setProperty('display', 'none', 'important');
         }
         if (visitViewEl) visitViewEl.classList.add('is-loading');
     } else {
-        if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
+        if (loadingCard) {
+            loadingCard.classList.remove('d-flex');
+            loadingCard.classList.add('d-none');
+            loadingCard.style.setProperty('display', 'none', 'important');
+        }
     }
 
     var domWaitCount = 0;
@@ -5029,11 +5054,11 @@ window.renderVisitFilters = function() {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
         if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
 
-        // 🎯 3. ฟื้นความจำ Checkbox ทันที (ไม่ว่าจะดึง DB หรือใช้ Cache)
+        // กู้ความจำ Checkbox คืนมา
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
 
         if (shouldFetchDB) {
-            // กรณีไม่มี Cache -> ไปดึง Database ปกติ
+            // กรณีไม่มี Cache หรือกด Refresh
             var subTasks = [];
             if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(true));
             if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
@@ -5041,7 +5066,7 @@ window.renderVisitFilters = function() {
             if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
             await Promise.all(subTasks);
         } else {
-            // 🎯 กรณีมี Cache -> เอาของเดิมมาวาดลงตาราง "ทันที" โดยไม่แตะ Database เลย!
+            // 🎯 กรณีมี Cache: วาดตารางทันที "ไม่แตะ Database"
             if (typeof window.renderVisitTableServerSide === 'function') window.renderVisitTableServerSide();
         }
 
@@ -5059,7 +5084,12 @@ window.renderVisitFilters = function() {
         window._isInitRunning = false;  
 
         if (visitViewEl) visitViewEl.classList.remove('is-loading');
-        if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
+        
+        if (loadingCard) {
+            loadingCard.classList.remove('d-flex');
+            loadingCard.classList.add('d-none');
+            loadingCard.style.setProperty('display', 'none', 'important');
+        }
 
         var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
         if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
@@ -5069,12 +5099,12 @@ window.renderVisitFilters = function() {
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
     btnRef.onclick = function() { 
-        // 🎯 สั่งเคลียร์ความจำทิ้ง เพื่อบังคับให้ระบบรู้ว่าต้องไปดึง Database ใหม่
+        // 🎯 สั่งเคลียร์ความจำทิ้ง เพื่อบังคับดึง Database ใหม่
+        sessionStorage.removeItem('crm_visits_cache');
         window.globalVisits = []; 
         window.initVisitPage(true); 
     };
 }
-
 window.loadMasterDataForVisits = async function() {
     if (!window.globalTerritories || window.globalTerritories.length === 0) {
         try {
