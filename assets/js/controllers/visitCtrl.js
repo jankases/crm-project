@@ -786,7 +786,7 @@ window.setLoadingCardState = function(isShow) {
     }
 };
 
-// 🌟 1. ฟังก์ชันสลับหน้า List / Calendar
+ 
 window.toggleMainView = function(viewMode) {
     var listBtn = document.getElementById('btnToggleList');
     var calBtn = document.getElementById('btnToggleCal');
@@ -803,17 +803,15 @@ window.toggleMainView = function(viewMode) {
         if (listBtn) listBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
         if (calBtn) calBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
         
-        // 🎯 ซ่อนตาราง (List) แบบเด็ดขาด
         if (mainContainer) {
-            mainContainer.style.removeProperty('display'); // เคลียร์ของเก่าทิ้ง
-            mainContainer.classList.remove('d-flex');      // ต้องถอด d-flex ออกก่อน!
-            mainContainer.classList.add('d-none');         // แล้วค่อยสั่งซ่อนด้วย d-none
+            mainContainer.classList.remove('d-flex');
+            mainContainer.classList.add('d-none');
+            mainContainer.style.setProperty('display', 'none', 'important');
         }
-        // 🎯 โชว์ปฏิทิน (Calendar)
         if (calZone) {
-            calZone.style.removeProperty('display');
             calZone.classList.remove('d-none');
             calZone.classList.add('d-flex');
+            calZone.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
         }
         
         if (typeof window.renderCalendarView === 'function') window.renderCalendarView();
@@ -821,17 +819,15 @@ window.toggleMainView = function(viewMode) {
         if (listBtn) listBtn.className = 'btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius';
         if (calBtn) calBtn.className = 'btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius';
         
-        // 🎯 ซ่อนปฏิทิน (Calendar) แบบเด็ดขาด
         if (calZone) {
-            calZone.style.removeProperty('display');
-            calZone.classList.remove('d-flex');       // ต้องถอด d-flex ออกก่อน!
-            calZone.classList.add('d-none');          // แล้วค่อยสั่งซ่อนด้วย d-none
+            calZone.classList.remove('d-flex');
+            calZone.classList.add('d-none');
+            calZone.style.setProperty('display', 'none', 'important');
         }
-        // 🎯 โชว์ตาราง (List)
         if (mainContainer) {
-            mainContainer.style.removeProperty('display');
             mainContainer.classList.remove('d-none');
             mainContainer.classList.add('d-flex');
+            mainContainer.style.cssText = 'display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: 100% !important; min-height: 0 !important;';
         }
     }
 };
@@ -2085,32 +2081,30 @@ window.loadVisits = async function(forceReload, isBackground) {
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
     
     // ภายในฟังก์ชัน window.loadVisits ช่วงบรรทัดต้นๆ
-    if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
+   if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
         var currentLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th'; 
         if (loadingTitleEl) loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (currentLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
         if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         if (visitViewEl) visitViewEl.classList.add('is-loading');
 
-        // โชว์วงล้อ Loading 
         var loadingCard = document.getElementById('visitTableLoading');
         if (loadingCard) {
-            loadingCard.style.removeProperty('display');
             loadingCard.classList.remove('d-none');
             loadingCard.classList.add('d-flex');
+            loadingCard.style.setProperty('display', 'flex', 'important');
         }
 
-        // 🎯 ซ่อนตารางและปฏิทินแบบเด็ดขาด (ต้องถอด d-flex เสมอ)
         var mainContainer = document.getElementById('visitMainContentContainer');
         var calZone = document.getElementById('visitCalendarZone');
         if (mainContainer) {
-            mainContainer.style.removeProperty('display');
             mainContainer.classList.remove('d-flex');
             mainContainer.classList.add('d-none');
+            mainContainer.style.setProperty('display', 'none', 'important');
         }
         if (calZone) {
-            calZone.style.removeProperty('display');
             calZone.classList.remove('d-flex');
             calZone.classList.add('d-none');
+            calZone.style.setProperty('display', 'none', 'important');
         }
     }
 
@@ -2493,11 +2487,11 @@ window.loadVisits = async function(forceReload, isBackground) {
         if (currentQueryId === window._visitQueryId) {
             if (visitViewEl) visitViewEl.classList.remove('is-loading');
 
-            // 🎯 ปิดวงล้อด้วยวิธีมาตรฐาน (ไม่มี !important ไม่มีฟังก์ชันประหลาดแล้ว)
-            var loadingCard = document.getElementById('visitTableLoading');
-            if (loadingCard) {
-                loadingCard.classList.add('d-none');
-                loadingCard.classList.remove('d-flex');
+            var loadingCardFinal = document.getElementById('visitTableLoading');
+            if (loadingCardFinal) {
+                loadingCardFinal.classList.remove('d-flex');
+                loadingCardFinal.classList.add('d-none');
+                loadingCardFinal.style.setProperty('display', 'none', 'important');
             }
 
             var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
@@ -4985,11 +4979,7 @@ window.renderVisitFilters = function() {
     } 
 };
 
-window.initVisitPage = async function(forceReload) {
-    // ล้างบาง CSS ผีดิบจากรอบที่แล้ว (ถ้ามีค้างอยู่)
-    var oldStyle = document.getElementById('anti-framework-loading-style');
-    if (oldStyle) oldStyle.remove();
-
+ window.initVisitPage = async function(forceReload) {
     if (window._isInitRunning) return;
 
     var formView = document.getElementById('visitFormView');
@@ -5011,18 +5001,16 @@ window.initVisitPage = async function(forceReload) {
     var shouldFetchDB = forceReload === true ? true : !hasCache;
 
     if (shouldFetchDB) {
-        if (loadingCard) {
-            loadingCard.classList.remove('d-none');
-            loadingCard.classList.add('d-flex');
+        // 🎯 โชว์โหลดดิ้ง ซ่อนตารางและปฏิทินแบบหมดจด (ใช้ Standard Function)
+        if (typeof window.setUIVisibility === 'function') {
+            window.setUIVisibility(loadingCard, true);
+            window.setUIVisibility(mainContainer, false);
+            window.setUIVisibility(calZone, false);
         }
         if (visitViewEl) visitViewEl.classList.add('is-loading');
-        if (mainContainer) mainContainer.classList.add('d-none');
-        if (calZone) calZone.classList.add('d-none');
     } else {
-        if (loadingCard) {
-            loadingCard.classList.add('d-none');
-            loadingCard.classList.remove('d-flex');
-        }
+        // 🎯 ปิดโหลดดิ้งทันทีถ้ามี Cache
+        if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
     }
 
     var domWaitCount = 0;
@@ -5037,20 +5025,13 @@ window.initVisitPage = async function(forceReload) {
     if (shouldFetchDB && visitViewEl) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
         
-        if (loadingTitleEl) {
-            loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (appLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
-        }
-        if (loadingDescEl) {
-            loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
-        }
+        if (loadingTitleEl) loadingTitleEl.textContent = (typeof t === 'function') ? t('status_loading') : (appLang === 'en' ? 'Loading Data...' : 'กำลังโหลดข้อมูล...');
+        if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
     }
 
     try {
         if (typeof window.initUserInfo === 'function') window.initUserInfo(); 
-
-        if (typeof window.loadDropdowns === 'function') {
-            await window.loadDropdowns(shouldFetchDB); 
-        }
+        if (typeof window.loadDropdowns === 'function') await window.loadDropdowns(shouldFetchDB); 
 
         var subTasks = [];
         if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(shouldFetchDB));
@@ -5060,28 +5041,15 @@ window.initVisitPage = async function(forceReload) {
 
         await Promise.all(subTasks);
 
-        if (typeof window.renderVisitFilters === 'function') {
-            window.renderVisitFilters();
-        } else if (typeof window.setupFiltersDropdowns === 'function') {
-            window.setupFiltersDropdowns(crmUser, []);
-        }
+        if (typeof window.renderVisitFilters === 'function') window.renderVisitFilters();
+        else if (typeof window.setupFiltersDropdowns === 'function') window.setupFiltersDropdowns(crmUser, []);
 
-        if (typeof window.initVisitDatePickers === 'function') {
-            window.initVisitDatePickers();
-        }
-
+        if (typeof window.initVisitDatePickers === 'function') window.initVisitDatePickers();
         if (typeof window.bindDoctorChangeForHistory === 'function') window.bindDoctorChangeForHistory();
-
-        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') {
-            setLanguage(currentLang);
-        }
+        if (typeof setLanguage === 'function' && typeof currentLang !== 'undefined') setLanguage(currentLang);
 
     } catch(err) {
         console.error("Init Visits Failed:", err);
-        var appLangErr = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var msgErr = appLangErr === 'en' ? '❌ Failed to load data' : '❌ ดึงข้อมูลไม่สำเร็จ';
-        var tbody = document.getElementById('visitTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">' + msgErr + err.message + '</td></tr>';
     } finally {
         window.isInitialLoading = false; 
         window._isInitRunning = false;  
@@ -5089,17 +5057,14 @@ window.initVisitPage = async function(forceReload) {
         if (shouldFetchDB === false) {
              if (visitViewEl) visitViewEl.classList.remove('is-loading');
              
-             if (loadingCard) {
-                 loadingCard.style.setProperty('display', 'none', 'important');
-                 loadingCard.classList.add('d-none');
-                 loadingCard.classList.remove('d-flex');
-             }
+             // 🎯 ปิดโหลดดิ้งอย่างปลอดภัย
+             if (typeof window.setUIVisibility === 'function') window.setUIVisibility(loadingCard, false);
 
              var currentMainView = (window.VisitManagerCache && window.VisitManagerCache.currentMainView) ? window.VisitManagerCache.currentMainView : 'list';
              if (typeof window.toggleMainView === 'function') window.toggleMainView(currentMainView);
         }
     }
-};  
+};
 
 var btnRef = document.getElementById('btnRefreshVisits');
 if (btnRef) {
