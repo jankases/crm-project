@@ -349,9 +349,9 @@ window.stopSpeechSearch = function() {
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 };
-
+ 
 // ==========================================
-// 🎯 HELPER RENDER FILTER DROPDOWNS
+// 🎯 HELPER RENDER FILTER DROPDOWNS (PREMIUM & CONSISTENT FIX)
 // ==========================================
 window.renderFilterDropdowns = function(validDocsData) {
   if (!validDocsData || !Array.isArray(validDocsData)) return;
@@ -359,42 +359,54 @@ window.renderFilterDropdowns = function(validDocsData) {
   window.DocManagerCache.validDocsData = validDocsData;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const phSpec = (appLang === 'en') ? '- All Specialties -' : '- ความเชี่ยวชาญทั้งหมด -';
-  const phType = (appLang === 'en') ? '- All Types -' : '- ประเภททั้งหมด -';
+  const phSpec = (appLang === 'en') ? '🩺 - All Specialties -' : '🩺 - ความเชี่ยวชาญทั้งหมด -';
+  const phType = (appLang === 'en') ? '🏷️ - All Types -' : '🏷️ - ประเภททั้งหมด -';
 
-  // 1. Specialty Filter
-  const specSelect = document.getElementById('filterDocSpecialty');
-  if (specSelect) {
-    const selectedVals = specSelect.tomselect ? specSelect.tomselect.getValue() : [];
-    const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-    
-    specSelect.innerHTML = uniqueSpecs.map(s => {
-      const showLabel = window.getSpecialtyText(s, s);
-      return `<option value="${s}">${showLabel}</option>`;
-    }).join('');
-    window.initMultiTomSelect('filterDocSpecialty', phSpec);
-    
-    if (selectedVals.length > 0 && specSelect.tomselect) {
-      specSelect.tomselect.setValue(selectedVals, true);
+  // Helper สำหรับ Re-populate ข้อมูลใส่ TomSelect อย่างปลอดภัย ไม่หลุดสเปกระบบ
+  const populateTomSelect = (elementId, optionsArray, placeholder) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    if (!el.tomselect) {
+      window.initMultiTomSelect(elementId, placeholder);
     }
-  }
 
-  // 2. Type Filter
-  const typeSelect = document.getElementById('filterDocType');
-  if (typeSelect) {
-    const selectedVals = typeSelect.tomselect ? typeSelect.tomselect.getValue() : [];
-    const uniqueTypes = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-    
-    typeSelect.innerHTML = uniqueTypes.map(t => {
-      const showLabel = window.getDoctorTypeText(t, t);
-      return `<option value="${t}">${showLabel}</option>`;
-    }).join('');
-    window.initMultiTomSelect('filterDocType', phType);
+    if (el.tomselect) {
+      const ts = el.tomselect;
+      const currentSelected = ts.getValue(); // จำค่าที่เลือกไว้เดิม
+      
+      ts.clearOptions(); // ล้าง Options เก่าออกก่อน
+      
+      optionsArray.forEach(item => {
+        ts.addOption({
+          value: item.id,
+          text: item.label
+        });
+      });
 
-    if (selectedVals.length > 0 && typeSelect.tomselect) {
-      typeSelect.tomselect.setValue(selectedVals, true);
+      ts.refreshOptions(false);
+
+      if (Array.isArray(currentSelected) && currentSelected.length > 0) {
+        ts.setValue(currentSelected, true);
+      }
     }
-  }
+  };
+
+  // 1. Specialty Data Prepare
+  const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  const specOptions = uniqueSpecs.map(s => ({
+    id: s,
+    label: window.getSpecialtyText(s, s)
+  }));
+  populateTomSelect('filterDocSpecialty', specOptions, phSpec);
+
+  // 2. Type Data Prepare
+  const uniqueTypes = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  const typeOptions = uniqueTypes.map(t => ({
+    id: t,
+    label: window.getDoctorTypeText(t, t)
+  }));
+  populateTomSelect('filterDocType', typeOptions, phType);
 };
 
 // ==========================================
