@@ -245,14 +245,10 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
 
-// ==========================================
-// 2. ปรับปรุง renderFilterDropdowns ให้สร้างตัวเลือกและ Re-render ทันที
+ // ==========================================
+// 🎯 HELPER RENDER FILTER DROPDOWNS (DRAFT FROM INDEX MASTER)
 // ==========================================
 window.renderFilterDropdowns = function(validDocsData) {
-  if (!validDocsData || !Array.isArray(validDocsData)) return;
-
-  window.DocManagerCache.validDocsData = validDocsData;
-
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const phSpec = (appLang === 'en') ? '🩺 - All Specialties -' : '🩺 - ความเชี่ยวชาญทั้งหมด -';
   const phType = (appLang === 'en') ? '🏷️ - All Types -' : '🏷️ - ประเภททั้งหมด -';
@@ -261,13 +257,11 @@ window.renderFilterDropdowns = function(validDocsData) {
     const el = document.getElementById(elementId);
     if (!el) return;
 
-    // 🌟 สร้าง <option> เข้าไปใน <select> HTML ดั้งเดิมก่อน
-    let html = `<option value="">${placeholder}</option>`;
+    let html = '';
     optionsArray.forEach(item => {
       html += `<option value="${item.id}">${item.label}</option>`;
     });
 
-    // หากเคยมี TomSelect ให้สั่ง destroy เพื่อล้าง instance แล้ววาดใหม่ชัวร์สุด 100%
     if (el.tomselect) {
       const curVal = el.tomselect.getValue();
       el.tomselect.destroy();
@@ -275,7 +269,10 @@ window.renderFilterDropdowns = function(validDocsData) {
       
       window.initMultiTomSelect(elementId, placeholder);
       if (curVal && curVal.length > 0) {
-        el.tomselect.setValue(curVal, true);
+        const cleanVal = Array.isArray(curVal) ? curVal.filter(v => v && v !== '') : curVal;
+        if (cleanVal.length > 0) {
+          el.tomselect.setValue(cleanVal, true);
+        }
       }
     } else {
       el.innerHTML = html;
@@ -283,20 +280,41 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   };
 
-  // 1. Specialty Options
-  const uniqueSpecs = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-  const specOptions = uniqueSpecs.map(s => ({
-    id: s,
-    label: window.getSpecialtyText(s, s)
-  }));
-  updateSelectElement('filterDocSpecialty', specOptions, phSpec);
+  // 1. ดึง Master Data ของ Specialty จากตาราง Index ผ่าน getIndexValues / DocManagerCache
+  const specRawItems = window.getIndexValues('Specialty') || [];
+  const indexes = window.globalIndexes || (window.DocManagerCache ? window.DocManagerCache.indexes : []) || [];
+  
+  // กรองหา Index_ID ของ Specialty
+  const specTypeObj = (window.DocManagerCache.indexTypes || []).find(t => (t.Name || '').toLowerCase().trim() === 'specialty');
+  let specOptions = [];
+  
+  if (specTypeObj) {
+    const specIndexList = indexes.filter(i => String(i.IndexType_ID) === String(specTypeObj.IndexType_ID));
+    specOptions = specIndexList.map(i => {
+      const id = i.Index_ID || i.id;
+      const label = (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-');
+      return { id: id, label: label };
+    });
+  }
 
-  // 2. Type Options
-  const uniqueTypes = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
-  const typeOptions = uniqueTypes.map(t => ({
-    id: t,
-    label: window.getDoctorTypeText(t, t)
-  }));
+  // 2. ดึง Master Data ของ DoctorType จากตาราง Index
+  const docTypeObj = (window.DocManagerCache.indexTypes || []).find(t => {
+    const name = (t.Name || '').toLowerCase().trim();
+    return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
+  });
+  let typeOptions = [];
+
+  if (docTypeObj) {
+    const typeIndexList = indexes.filter(i => String(i.IndexType_ID) === String(docTypeObj.IndexType_ID));
+    typeOptions = typeIndexList.map(i => {
+      const id = i.Index_ID || i.id;
+      const label = (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-');
+      return { id: id, label: label };
+    });
+  }
+
+  // Render เข้า Dropdown
+  updateSelectElement('filterDocSpecialty', specOptions, phSpec);
   updateSelectElement('filterDocType', typeOptions, phType);
 };
 
