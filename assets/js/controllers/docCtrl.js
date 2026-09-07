@@ -244,11 +244,14 @@ window.initMultiTomSelect = function(id, placeholder) {
     });
   }
 };
-
  // ==========================================
-// 2. FIXED: renderFilterDropdowns (แสดงผลแบบ Clean & Compact ไม่พอง)
+// 🎯 HELPER RENDER FILTER DROPDOWNS (แสดงเฉพาะที่มีในรายชื่อหมอเท่านั้น)
 // ==========================================
 window.renderFilterDropdowns = function(validDocsData) {
+  if (!validDocsData || !Array.isArray(validDocsData)) return;
+
+  window.DocManagerCache.validDocsData = validDocsData;
+
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const phSpec = (appLang === 'en') ? '🩺 - All Specialties -' : '🩺 - ความเชี่ยวชาญทั้งหมด -';
   const phType = (appLang === 'en') ? '🏷️ - All Types -' : '🏷️ - ประเภททั้งหมด -';
@@ -280,33 +283,21 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   };
 
-  const indexes = window.globalIndexes || (window.DocManagerCache ? window.DocManagerCache.indexes : []) || [];
-  
-  // 1. ดึง Specialty Master Data
-  const specTypeObj = (window.DocManagerCache.indexTypes || []).find(t => (t.Name || '').toLowerCase().trim() === 'specialty');
-  let specOptions = [];
-  if (specTypeObj) {
-    const specIndexList = indexes.filter(i => String(i.IndexType_ID) === String(specTypeObj.IndexType_ID));
-    specOptions = specIndexList.map(i => ({
-      id: i.Index_ID || i.id,
-      label: (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-')
-    }));
-  }
+  // 1. ดึงเฉพาะ Specialty_ID ที่มีอยู่ในรายชื่อหมอชุดนี้เท่านั้น
+  const uniqueSpecIds = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  const specOptions = uniqueSpecIds.map(id => ({
+    id: id,
+    label: (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(id, id) : id
+  }));
 
-  // 2. ดึง DoctorType Master Data
-  const docTypeObj = (window.DocManagerCache.indexTypes || []).find(t => {
-    const name = (t.Name || '').toLowerCase().trim();
-    return name === 'type' || name === 'doctortype' || name === 'doctor type' || name === 'doctor_type';
-  });
-  let typeOptions = [];
-  if (docTypeObj) {
-    const typeIndexList = indexes.filter(i => String(i.IndexType_ID) === String(docTypeObj.IndexType_ID));
-    typeOptions = typeIndexList.map(i => ({
-      id: i.Index_ID || i.id,
-      label: (appLang === 'en') ? (i.Value1 || i.Value || '-') : (i.Value || i.Value1 || '-')
-    }));
-  }
+  // 2. ดึงเฉพาะ DoctorType_ID ที่มีอยู่ในรายชื่อหมอชุดนี้เท่านั้น
+  const uniqueTypeIds = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  const typeOptions = uniqueTypeIds.map(id => ({
+    id: id,
+    label: (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(id, id) : id
+  }));
 
+  // Render เข้า TomSelect
   updateSelectElement('filterDocSpecialty', specOptions, phSpec);
   updateSelectElement('filterDocType', typeOptions, phType);
 };
