@@ -1948,6 +1948,10 @@ window.setupFiltersDropdowns = async function(crmUser, productsTeamList) {
         window.renderTreeCheckboxList('containerFilterRep', repOptionsTree, 'rep');
         window.renderTreeCheckboxList('containerFilterTer', terOptionsTree, 'ter');
 
+        if (typeof window.renderCalendarUserDropdown === 'function') {
+        window.renderCalendarUserDropdown('calendarUserSelect'); // <-- เปลี่ยนชื่อ ID ให้ตรงกับ HTML ของพี่
+    }
+
     } catch (err) {
         console.error("Error in setupFiltersDropdowns:", err);
     } finally {
@@ -6200,5 +6204,90 @@ window.fetchProductsByRole = async function(crmUser) {
 
     } catch (error) {
         console.error("Error fetching role-based products:", error);
+    }
+};
+
+// ==========================================
+// 🎯 ฟังก์ชันอัปเดต Dropdown รายชื่อพนักงานในหน้า Calendar ให้ตรงกับลอจิก Filter
+// ==========================================
+window.renderCalendarUserDropdown = function(selectElementId) {
+    // กำหนด ID ของ Dropdown ในหน้า Calendar (เปลี่ยน ID ให้ตรงกับ HTML ของพี่ได้เลยครับ)
+    var targetId = selectElementId || 'calendarUserFilter'; 
+    var selectEl = document.getElementById(targetId);
+    
+    if (!selectEl) return;
+
+    var allUsers = window.globalUsersList || [];
+    var allowedRepIds = window.myAllowedRepIds || [];
+    var allTms = window.globalTeamList || [];
+
+    // 1. กรองเอาเฉพาะรายชื่อที่มีสิทธิ์มองเห็น (อิงจากลอจิก Advanced Filter)
+    var allowedUsers = allUsers.filter(function(u) {
+        var uid = String(u.Rep_ID || u.User_ID || u.id || '').trim().toLowerCase();
+        return allowedRepIds.indexOf(uid) !== -1;
+    });
+
+    // 2. จัดกลุ่มรายชื่อตาม Team_ID
+    var groupedUsers = {};
+    allowedUsers.forEach(function(u) {
+        var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
+        if (!teamId) teamId = 'no_team';
+        
+        if (!groupedUsers[teamId]) groupedUsers[teamId] = [];
+        groupedUsers[teamId].push(u);
+    });
+
+    // 3. ปั้น HTML สำหรับ Dropdown (รองรับ <optgroup>)
+    var html = '<option value="ALL" selected>👥 All Users (ทุกคนที่มองเห็น)</option>';
+    
+    Object.keys(groupedUsers).forEach(function(tId) {
+        var teamName = 'Unassigned Team';
+        if (tId !== 'no_team') {
+            var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team).toLowerCase() === tId; });
+            teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || tId) : (tId.length > 15 ? 'Sales Team' : tId);
+        }
+        
+        html += '<optgroup label="👥 ' + teamName + '">';
+        
+        // 4. เรียงลำดับคนในทีมตามตำแหน่ง (BU Head -> Manager -> PM -> Sales)
+        var sortedUsers = groupedUsers[tId].sort(function(a, b) {
+            var getPri = function(roleStr) {
+                var r = String(roleStr).toUpperCase();
+                if (r.indexOf('ADMIN') !== -1 || r.indexOf('STAFF') !== -1) return 5;
+                if (r.indexOf('HEAD') !== -1 || r === 'BU') return 1;
+                if (r.indexOf('MANAGER') !== -1 || r.indexOf('LEAD') !== -1) return 2;
+                if (r.indexOf('PRODUCT MANAGER') !== -1 || r === 'PM') return 3;
+                return 4; // Sales Rep
+            };
+            return getPri(a.Role) - getPri(b.Role);
+        });
+
+        // 5. ใส่ Icon ตาม Role ให้เหมือนเป๊ะกับใน Filter
+        sortedUsers.forEach(function(u) {
+            var id = String(u.Rep_ID || u.User_ID || u.id || '').trim();
+            var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
+            var role = String(u.Role || u.role || '').toUpperCase().trim();
+            
+            var isAdminOrStaff = role.indexOf('ADMIN') !== -1 || role.indexOf('STAFF') !== -1 || role.indexOf('SECRETARY') !== -1;
+            var isNodeBuHead = !isAdminOrStaff && (role.indexOf('HEAD') !== -1 || role === 'BU' || role.indexOf('DIRECTOR') !== -1);
+            var isNodePM = !isAdminOrStaff && (role.indexOf('PRODUCT MANAGER') !== -1 || role === 'PM');
+            var isNodeMgr = !isAdminOrStaff && !isNodeBuHead && !isNodePM && (role.indexOf('MANAGER') !== -1 || role.indexOf('LEAD') !== -1);
+
+            var nodeIcon = isAdminOrStaff ? '🏢 ' : (isNodeBuHead ? '👑 ' : (isNodeMgr ? '🧑‍💼 ' : '👤 '));
+            
+            html += '<option value="' + id + '">' + nodeIcon + name + '</option>';
+        });
+        
+        html += '</optgroup>';
+    });
+
+    // 6. อัปเดตเข้าไปใน Select Element
+    selectEl.innerHTML = html;
+    
+    // 7. หาก Dropdown นี้ใช้ TomSelect หรือ Select2 ให้สั่ง Sync/Update ให้รู้จัก Option ใหม่ด้วย
+    if (selectEl.tomselect) {
+        selectEl.tomselect.sync();
+    } else if (typeof jQuery !== 'undefined' && $(selectEl).hasClass('select2-hidden-accessible')) {
+        $(selectEl).trigger('change.select2');
     }
 };
