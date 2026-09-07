@@ -6199,11 +6199,11 @@ window.fetchProductsByRole = async function(crmUser) {
     }
 };
 
-// ==========================================
+ // ==========================================
 // 🎯 ฟังก์ชันอัปเดต Dropdown รายชื่อพนักงานในหน้า Calendar ให้ตรงกับลอจิก Filter
 // ==========================================
 window.renderCalendarUserDropdown = function(selectElementId) {
-    // กำหนด ID ของ Dropdown ในหน้า Calendar (เปลี่ยน ID ให้ตรงกับ HTML ของพี่ได้เลยครับ)
+    // กำหนด ID ของ Dropdown ในหน้า Calendar
     var targetId = selectElementId || 'calendarUserFilter'; 
     var selectEl = document.getElementById(targetId);
     
@@ -6212,6 +6212,9 @@ window.renderCalendarUserDropdown = function(selectElementId) {
     var allUsers = window.globalUsersList || [];
     var allowedRepIds = window.myAllowedRepIds || [];
     var allTms = window.globalTeamList || [];
+    // 🌟 ดึง Master Data ของเขตและแผนกมารอไว้สืบค้น
+    var allTers = window.globalTerritoryList || (window.VisitManagerCache ? window.VisitManagerCache.territories : []) || [];
+    var allBus = window.globalBuList || (window.VisitManagerCache ? window.VisitManagerCache.bus : []) || [];
 
     // 1. กรองเอาเฉพาะรายชื่อที่มีสิทธิ์มองเห็น (อิงจากลอจิก Advanced Filter)
     var allowedUsers = allUsers.filter(function(u) {
@@ -6219,30 +6222,62 @@ window.renderCalendarUserDropdown = function(selectElementId) {
         return allowedRepIds.indexOf(uid) !== -1;
     });
 
-    // 2. จัดกลุ่มรายชื่อตาม Team_ID
+    // 2. จัดกลุ่มรายชื่อ
     var groupedUsers = {};
     allowedUsers.forEach(function(u) {
         var teamId = String(u.Team_ID || u.Team || '').trim().toLowerCase();
-        if (!teamId) teamId = 'no_team';
-        
-        if (!groupedUsers[teamId]) groupedUsers[teamId] = [];
-        groupedUsers[teamId].push(u);
-    });
+        var uTerrId = String(u.Territory_ID || u.Territory || '').trim().toLowerCase();
+        var uBuId = String(u.BU_ID || u.BU || '').trim().toLowerCase();
 
-    // 3. ปั้น HTML สำหรับ Dropdown (รองรับ <optgroup>)
-    var html = '<option value="ALL" selected>👥 All Users (ทุกคนที่มองเห็น)</option>';
-    
-    Object.keys(groupedUsers).forEach(function(tId) {
-        var teamName = 'Unassigned Team';
-        if (tId !== 'no_team') {
-            var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team).toLowerCase() === tId; });
-            teamName = tmObj ? (tmObj.Team || tmObj.Team_Name || tId) : (tId.length > 15 ? 'Sales Team' : tId);
+        // 🌟 [FIX 1]: สืบหา Team_ID จาก Territory_ID (แก้ปัญหา Sales Rep ตกหล่น)
+        if (!teamId && uTerrId) {
+            var tmMatched = allTers.find(function(t) { return String(t.Territory_ID || t.id || t.Territory || '').trim().toLowerCase() === uTerrId; });
+            if (tmMatched) teamId = String(tmMatched.Team_ID || tmMatched.Team || '').trim().toLowerCase();
+        }
+
+        // 🌟 [FIX 2]: สร้าง Group Key ที่รองรับระดับ BU (แก้ปัญหา BU Head ตกหล่น)
+        var groupKey = 'other';
+        if (teamId) {
+            groupKey = 'team_' + teamId;
+        } else if (uBuId) {
+            groupKey = 'bu_' + uBuId;
+        } else {
+            var uRole = String(u.Role || '').toUpperCase();
+            if (uRole.indexOf('ADMIN') !== -1 || uRole.indexOf('STAFF') !== -1) groupKey = 'admin';
         }
         
-        html += '<optgroup label="👥 ' + teamName + '">';
+        if (!groupedUsers[groupKey]) groupedUsers[groupKey] = [];
+        groupedUsers[groupKey].push(u);
+    });
+
+    // 3. ปั้น HTML สำหรับ Dropdown
+    var html = '<option value="ALL" selected>👥 All Users (ทุกคนที่มองเห็น)</option>';
+    
+    Object.keys(groupedUsers).forEach(function(key) {
+        var groupName = 'Unassigned Team';
+        
+        // 🌟 แปลง Group Key กลับมาเป็นชื่อที่สวยงาม
+        if (key.startsWith('team_')) {
+            var tId = key.replace('team_', '');
+            var tmObj = allTms.find(function(tm) { return String(tm.Team_ID || tm.id || tm.Team).toLowerCase() === tId; });
+            groupName = tmObj ? (tmObj.Team || tmObj.Team_Name || tId) : (tId.length > 15 ? 'Sales Team' : tId);
+            groupName = '👥 ' + groupName;
+        } else if (key.startsWith('bu_')) {
+            var bId = key.replace('bu_', '');
+            var buObj = allBus.find(function(b) { return String(b.BU_ID || b.id || b.BU).toLowerCase() === bId; });
+            groupName = buObj ? (buObj.BU_Name || buObj.BU) : 'Business Unit';
+            if (!groupName || groupName.length > 15) groupName = 'Business Unit Level'; // กัน UUID โผล่
+            groupName = '🏢 ' + groupName;
+        } else if (key === 'admin') {
+            groupName = '🛡️ Admin / Global';
+        } else {
+            groupName = '🌐 Other / Cross-Team';
+        }
+        
+        html += '<optgroup label="' + groupName + '">';
         
         // 4. เรียงลำดับคนในทีมตามตำแหน่ง (BU Head -> Manager -> PM -> Sales)
-        var sortedUsers = groupedUsers[tId].sort(function(a, b) {
+        var sortedUsers = groupedUsers[key].sort(function(a, b) {
             var getPri = function(roleStr) {
                 var r = String(roleStr).toUpperCase();
                 if (r.indexOf('ADMIN') !== -1 || r.indexOf('STAFF') !== -1) return 5;
@@ -6254,7 +6289,7 @@ window.renderCalendarUserDropdown = function(selectElementId) {
             return getPri(a.Role) - getPri(b.Role);
         });
 
-        // 5. ใส่ Icon ตาม Role ให้เหมือนเป๊ะกับใน Filter
+        // 5. ใส่ Icon ตาม Role
         sortedUsers.forEach(function(u) {
             var id = String(u.Rep_ID || u.User_ID || u.id || '').trim();
             var name = u.Rep_Name || u.Name || u.rep_name || u.Email || id;
@@ -6276,7 +6311,6 @@ window.renderCalendarUserDropdown = function(selectElementId) {
     // 6. อัปเดตเข้าไปใน Select Element
     selectEl.innerHTML = html;
     
-    // 7. หาก Dropdown นี้ใช้ TomSelect หรือ Select2 ให้สั่ง Sync/Update ให้รู้จัก Option ใหม่ด้วย
     if (selectEl.tomselect) {
         selectEl.tomselect.sync();
     } else if (typeof jQuery !== 'undefined' && $(selectEl).hasClass('select2-hidden-accessible')) {
