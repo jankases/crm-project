@@ -2069,8 +2069,7 @@ window.loadVisits = async function(forceReload, isBackground) {
     var loadingTitleEl = document.getElementById('loadingTitleText');
     var loadingDescEl = document.getElementById('loadingDescText');
     var hasData = (window.globalVisits && window.globalVisits.length > 0);
-
-   // ... โค้ดด้านบนของ loadVisits ...
+   
 
     // ภายในฟังก์ชัน window.loadVisits ช่วงบรรทัดต้นๆ
     if (!isBackground && (forceReload || !window.VisitManagerCache.isLoaded || !hasData)) {
@@ -2079,18 +2078,24 @@ window.loadVisits = async function(forceReload, isBackground) {
         if (loadingDescEl) loadingDescEl.textContent = (typeof t === 'function') ? t('status_loading_desc') : (currentLang === 'en' ? 'Processing your access rights and retrieving records.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
         if (visitViewEl) visitViewEl.classList.add('is-loading');
 
-        // 🎯 [เพิ่มโค้ดบล็อกนี้] สั่งบังคับโชว์วงล้อ Loading ทันทีที่เริ่มดึงข้อมูล
+        // 🎯 สั่งโชว์วงล้อ Loading ด้วยวิธีมาตรฐาน (คลีน 100% ไม่มี !important)
         var loadingCard = document.getElementById('visitTableLoading');
         if (loadingCard) {
-            loadingCard.style.setProperty('display', 'flex', 'important');
+            loadingCard.style.removeProperty('display'); // เคลียร์ของเก่าทิ้งเผื่อเหนียว
             loadingCard.classList.remove('d-none');
             loadingCard.classList.add('d-flex');
         }
 
         var mainContainer = document.getElementById('visitMainContentContainer');
         var calZone = document.getElementById('visitCalendarZone');
-        if (mainContainer) mainContainer.style.setProperty('display', 'none', 'important');
-        if (calZone) calZone.style.setProperty('display', 'none', 'important');
+        if (mainContainer) {
+            mainContainer.style.removeProperty('display');
+            mainContainer.classList.add('d-none');
+        }
+        if (calZone) {
+            calZone.style.removeProperty('display');
+            calZone.classList.add('d-none');
+        }
     }
 
     if (!forceReload && window.VisitManagerCache.isLoaded && hasData) {
