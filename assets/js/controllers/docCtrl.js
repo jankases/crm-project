@@ -863,7 +863,8 @@ window.renderDoctorTableServerSide = function() {
         <td class="text-start ps-3">${nameCellLink}</td>
         <td class="fw-medium text-secondary">${docNameThShow}</td>
         <td><span class="badge badge-soft-product">${specialtyShow}</span></td>
-        <td class="text-secondary"><small><i class="fa-regular fa-hospital me-1 text-primary"></i>${hospNameShow}</small></td>
+        <!-- 🌟 เปลี่ยน Icon ตรงนี้เป็น fa-location-dot (หรือ fa-building ก็ได้ครับ) -->
+        <td class="text-secondary"><small><i class="fa-solid fa-location-dot me-1 text-primary"></i>${hospNameShow}</small></td>
         <td class="text-center">
           <span class="badge ${badge}">${statusTextShow}</span>
           ${pendingBadgeHtml}
@@ -874,7 +875,6 @@ window.renderDoctorTableServerSide = function() {
           </a>
         </td>
       </tr>`;
-  });
 
   tbody.innerHTML = htmlBuffer;
 
@@ -1101,7 +1101,8 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
 
   row.innerHTML = `
     <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">
-      <i class="fa-regular fa-hospital text-primary"></i>
+      <!-- 🌟 เปลี่ยนตรงนี้ครับ -->
+      <i class="fa-regular fa-building text-primary"></i> 
     </div>
     
     <div class="flex-grow-1 min-w-0">
