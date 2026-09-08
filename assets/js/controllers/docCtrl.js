@@ -58,7 +58,7 @@ window.rowsPerPage = 20;
 
 window._isDocInitRunning = false;
 window.isDocInitialLoading = true;
-window.docFilterDebounceTimer = null;
+window.docSearchDebounceTimer = null;
 
 window.activeSearchRecognition = null;
 window.currentSearchInputId = null;
@@ -217,8 +217,8 @@ window.goBackFromDoctorProfile = function() {
   }
 };
 
- // ==========================================
-// 1.ปรับปรุง initMultiTomSelect ให้ Render Dropdown สมบูรณ์
+// ==========================================
+// 🎯 TOMSELECT CONTROL ENGINE
 // ==========================================
 window.initMultiTomSelect = function(id, placeholder) {
   const el = document.getElementById(id);
@@ -239,14 +239,11 @@ window.initMultiTomSelect = function(id, placeholder) {
       sortField: { field: "text", direction: "asc" }, 
       placeholder: placeholder, 
       allowEmptyOption: true,
-      // 🌟 ลบ dropdownParent: 'body' ออกเพื่อป้องกัน z-index หลุด และบังคับเปิดเมนูใต้ตัวมันเอง
       controlClass: 'ts-control form-control bg-white premium-radius border shadow-none d-flex align-items-center'
     });
   }
 };
- // ==========================================
-// 🎯 HELPER RENDER FILTER DROPDOWNS (FIX BADGE DUPLICATE & EMPTY VALUE)
-// ==========================================
+
 window.renderFilterDropdowns = function(validDocsData) {
   if (!validDocsData || !Array.isArray(validDocsData)) return;
 
@@ -260,10 +257,8 @@ window.renderFilterDropdowns = function(validDocsData) {
     const el = document.getElementById(elementId);
     if (!el) return;
 
-    // 🌟 ไม่ใส่ <option value=""> เข้าไปใน HTML เพื่อป้องกัน TomSelect เอาไปขึ้น Badge ซ้ำ
     let html = '';
     optionsArray.forEach(item => {
-      // ป้องกันกรณีไอดีหรือข้อความว่างเปล่าหลุดเข้ามา
       if (item.id && String(item.id).trim() !== '' && item.id !== '-') {
         html += `<option value="${item.id}">${item.label}</option>`;
       }
@@ -276,7 +271,6 @@ window.renderFilterDropdowns = function(validDocsData) {
       
       window.initMultiTomSelect(elementId, placeholder);
       
-      // คืนค่าเฉพาะตัวเลือกที่ผู้ใช้คลิกเลือกจริง (ตัดค่าว่างทิ้ง)
       if (curVal) {
         const cleanVal = Array.isArray(curVal) ? curVal.filter(v => v && String(v).trim() !== '') : (curVal !== '' ? curVal : null);
         if (cleanVal && (Array.isArray(cleanVal) ? cleanVal.length > 0 : true)) {
@@ -293,7 +287,6 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   };
 
-  // 1. ดึงเฉพาะ Specialty_ID ที่มีในรายชื่อหมอ (ตัดค่าว่าง/NULL ออก)
   const uniqueSpecIds = [...new Set(
     validDocsData
       .map(d => d.Specialty_ID || d.Specialty)
@@ -305,7 +298,6 @@ window.renderFilterDropdowns = function(validDocsData) {
     label: (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(id, id) : id
   }));
 
-  // 2. ดึงเฉพาะ DoctorType_ID ที่มีในรายชื่อหมอ (ตัดค่าว่าง/NULL ออก)
   const uniqueTypeIds = [...new Set(
     validDocsData
       .map(d => d.DoctorType_ID || d.Type)
@@ -317,7 +309,6 @@ window.renderFilterDropdowns = function(validDocsData) {
     label: (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(id, id) : id
   }));
 
-  // Render เข้า TomSelect
   updateSelectElement('filterDocSpecialty', specOptions, phSpec);
   updateSelectElement('filterDocType', typeOptions, phType);
 };
@@ -396,7 +387,7 @@ window.toggleSpeechSearch = function(inputId, btnId, iconId) {
     const inputEl = document.getElementById(inputId);
     if (inputEl && spokenText) {
       inputEl.value = spokenText;
-      window.debouncedFilterDoctors();
+      window.handleDocSearchInput(inputEl);
     }
     window.stopSpeechSearch();
   };
@@ -423,13 +414,11 @@ window.stopSpeechSearch = function() {
   window.currentSearchBtnId = null;
   window.currentSearchIconId = null;
 };
- 
- 
 
 // ==========================================
 // 📥 LOAD INDEX DROPDOWNS & AUTO MULTI-LANG
 // ==========================================
- window.loadIndexDropdowns = async function(forceReload = false) {
+window.loadIndexDropdowns = async function(forceReload = false) {
   try {
     const sb = window.supabaseClient || window.supabase;
     if (!sb) return;
@@ -493,7 +482,6 @@ window.stopSpeechSearch = function() {
 
       window.buildDocIndexes();
 
-      // สิทธิ์การเข้าถึงแบบ 4-Level Architecture
       var isGlobalViewer = window.myIsGlobalViewer || false;
       var isProductManager = window.myIsProductManager || false;
       var isBuHead = window.myIsBuHead || false;
@@ -681,11 +669,7 @@ window.restoreDocFilterState = function() {
 };
 
 // ==========================================
-// 📊 5. SERVER-SIDE PAGINATION
-// ==========================================
- // 🚀 loadDoctors (Pure Server-Side Pagination - ดึงทีละ 20 รายการตรงจาก Supabase)
- // ==========================================
-// 1. FIXED: loadDoctors (แก้ไข Query Supabase ไม่ให้เรียกคอลัมน์ที่ไม่มีจริง)
+// 📊 5. SERVER-SIDE PAGINATION & ENGINE
 // ==========================================
 window.loadDoctors = async function(forceReload = false, isBackground = false) {
   const docViewEl = document.getElementById('doctorListView');
@@ -742,7 +726,6 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
       }
     }
 
-    // 🎯 FIX: สั่ง Query เฉพาะคอลัมน์ Specialty_ID และ DoctorType_ID ที่มีจริงใน Supabase
     const specEl = document.getElementById('filterDocSpecialty');
     const typeEl = document.getElementById('filterDocType');
 
@@ -802,7 +785,6 @@ window.renderDoctorTableServerSide = function() {
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
-  // 🎯 ดึงคำค้นหาจากช่อง Search เพื่อนำไปทำ Highlight ข้อความ
   const searchInput = document.getElementById('smartDocSearchInput');
   const searchVal = searchInput ? searchInput.value.trim() : '';
 
@@ -855,11 +837,9 @@ window.renderDoctorTableServerSide = function() {
       pendingBadgeHtml = `<span class="badge badge-soft-warning ms-1" title="${tooltipText}" style="cursor: help;">${badgeText}</span>`;
     }
     
-    // 🎯 1. ดึงข้อความดิบ
     const rawDocNameEn = d.Doc_Name || d.doc_name || '-';
     const rawDocNameTh = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
-    // 🎯 2. สั่ง Highlight คำที่ตรงกับคำค้นหา (เหมือนหน้า Visit)
     const docNameEnShow = (typeof window.highlightDocSearchText === 'function') 
       ? window.highlightDocSearchText(rawDocNameEn, searchVal) 
       : rawDocNameEn;
@@ -868,10 +848,8 @@ window.renderDoctorTableServerSide = function() {
       ? window.highlightDocSearchText(rawDocNameTh, searchVal) 
       : rawDocNameTh;
 
-    // 🎯 แปลง Specialty_ID เป็นภาษาที่เลือก
     const specialtyShow = window.getSpecialtyText(d.Specialty_ID || d.Specialty, d.Specialty);
 
-    // 🎯 3. ดึงชื่อโรงพยาบาลและสั่ง Highlight
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
     const rawHospName = window.getHospitalNameByLang(hospObj);
     const hospNameShow = (typeof window.highlightDocSearchText === 'function') 
@@ -942,10 +920,9 @@ window.clearDoctorFilters = function() {
     const el = document.getElementById(id);
     if (el && el.tomselect) el.tomselect.clear();
   };
-  if (document.getElementById('smartDocSearchInput')) document.getElementById('smartDocSearchInput').value = '';
+  window.clearDocSearchInput();
   clearTs('filterDocSpecialty');
   clearTs('filterDocType');
-  window.filterDoctors();
 };
 
 window.sortDoctors = function(col) {
@@ -964,6 +941,64 @@ window.sortDoctors = function(col) {
 window.forceReloadDoctors = async function() {
   await window.loadIndexDropdowns(true);
   await window.loadDoctors(true, false);
+};
+
+// ==========================================
+// 🔍 SEARCH INPUT & HIGHLIGHT ENGINE (DEBOUNCE FIX)
+// ==========================================
+window.highlightDocSearchText = function(text, query) {
+  if (!text) return '';
+  if (!query || query.trim() === '') return text;
+  
+  const terms = query.trim().split(/\s+/).filter(t => t.length > 0);
+  if (terms.length === 0) return text;
+
+  let highlighted = String(text);
+  terms.forEach(term => {
+    const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    highlighted = highlighted.replace(regex, '<mark class="highlight-search">$1</mark>');
+  });
+
+  return highlighted;
+};
+
+window.handleDocSearchInput = function(inputEl) {
+  const btnClear = document.getElementById('btnClearDocSearch');
+  const val = inputEl ? inputEl.value : '';
+
+  if (btnClear) {
+    if (val.trim().length > 0) {
+      btnClear.classList.remove('d-none');
+    } else {
+      btnClear.classList.add('d-none');
+    }
+  }
+
+  if (window.docSearchDebounceTimer) {
+    clearTimeout(window.docSearchDebounceTimer);
+  }
+
+  // 🌟 หน่วงเวลาพิมพ์ 400ms ให้สมูทนุ่มนวลแบบหน้า Visit
+  window.docSearchDebounceTimer = setTimeout(() => {
+    window.currentPage = 1;
+    window.loadDoctors(true, true);
+  }, 400);
+};
+
+window.clearDocSearchInput = function() {
+  const inputEl = document.getElementById('smartDocSearchInput');
+  const btnClear = document.getElementById('btnClearDocSearch');
+  
+  if (window.docSearchDebounceTimer) {
+    clearTimeout(window.docSearchDebounceTimer);
+  }
+
+  if (inputEl) {
+    inputEl.value = '';
+    if (btnClear) btnClear.classList.add('d-none');
+    window.currentPage = 1;
+    window.loadDoctors(true, true);
+  }
 };
 
 window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
@@ -997,7 +1032,7 @@ window.switchDoctorProfileTab = function(btnOrTarget, targetPaneId) {
 };
 
 // ==========================================
-// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE (Exact Height Fix)
+// 🏥 6. WORKPLACE DYNAMIC ROW ENGINE
 // ==========================================
 window.clearWorkplaceContainer = function(containerId) {
   const container = document.getElementById(containerId);
@@ -1207,7 +1242,6 @@ window.checkPendingDCR = async function(docId) {
       if (summaryCard) {
         summaryCard.classList.remove('d-none');
 
-        // แปลง Whoupdated เป็นชื่อผู้ใช้งานจริง
         const requesterEl = document.getElementById('pendingDcrRequester');
         if (requesterEl) {
           const rawWho = dcr.Whoupdated || '';
@@ -1226,7 +1260,6 @@ window.checkPendingDCR = async function(docId) {
           requesterEl.textContent = showName || '-';
         }
 
-        // ปรับการแสดงผลวันที่เป็นฟอร์แมต DD/MM/YYYY, HH:mm
         const dateEl = document.getElementById('pendingDcrDate');
         if (dateEl) {
           if (dcr.Whenupdated) {
@@ -1278,7 +1311,6 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
   const container = document.getElementById('pendingDcrChangesList');
   if (!container) return;
 
-  // ล้างค่า Highlight เก่าก่อน
   const form = document.getElementById('editDoctorForm');
   if (form) {
     form.querySelectorAll('.dcr-field-highlight').forEach(el => el.classList.remove('dcr-field-highlight', 'border-warning', 'bg-warning-subtle'));
@@ -1297,7 +1329,6 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
 
     let items = [];
 
-    // Helper เพิ่ม Highlight ให้ฟิลด์ฝั่งซ้าย
     const highlightField = (elementId) => {
       const el = document.getElementById(elementId);
       if (el) {
@@ -1356,7 +1387,6 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
   const form = document.getElementById('editDoctorForm');
   if (!form) return;
 
-  // 1. ควบคุมการระบุข้อความ/ตัวเลือกทั่วไป
   const inputs = form.querySelectorAll('input:not([type="checkbox"]), select, textarea');
   inputs.forEach(el => {
     if (el.id !== 'editDocId') {
@@ -1364,7 +1394,6 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
     }
   });
 
-  // 2. ควบคุมสวิตช์ Toggle (Privacy, TOS, Status)
   const switches = form.querySelectorAll('.form-check-input[type="checkbox"]');
   switches.forEach(sw => {
     if (isReadOnly) {
@@ -1376,7 +1405,6 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
     }
   });
 
-  // 3. ควบคุม TomSelect Dropdowns
   ['editDocTitle', 'editDocSpecialty', 'editDocType'].forEach(id => {
     const el = document.getElementById(id);
     if (el && el.tomselect) {
@@ -1385,7 +1413,6 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
     }
   });
 
-  // 4. ล็อก/ซ่อนปุ่ม Workplace Add/Delete ให้สมบูรณ์
   const container = document.getElementById('workplaceContainerEdit');
   if (container) {
     const deleteBtns = container.querySelectorAll('.btn-wp-delete-icon');
@@ -1490,7 +1517,6 @@ window.openEditDoctorView = function(id) {
     }
   };
 
-  // แมปข้อมูลลงช่อง Input และ Dropdown
   setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
   setTsVal('editDocSpecialty', d.Specialty_ID || d.specialty_id || d.Specialty || '');
   setTsVal('editDocType', d.DoctorType_ID || d.doctortype_id || d.Type || '');
@@ -1513,7 +1539,6 @@ window.openEditDoctorView = function(id) {
     document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
   }
 
-  // ตรวจสอบและซิงค์สวิตช์ Status ให้ตรงกับ Active/Inactive ตามข้อมูลจริง
   const currentStatus = d.Status || d.status || 'Active';
   const isStatusActive = (currentStatus === 'Active');
   
@@ -1523,7 +1548,6 @@ window.openEditDoctorView = function(id) {
   }
   window.toggleDoctorStatusText(isStatusActive);
 
-  // วาดรายการ Workplace
   window.clearWorkplaceContainer('workplaceContainerEdit');
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
@@ -1534,7 +1558,6 @@ window.openEditDoctorView = function(id) {
     window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.Hospital_ID || d.hospitalId, true);
   }
 
-  // ตรวจสอบ DCR ล่าสุดเพื่อล็อกฟอร์มและโชว์ Pending DCR Summary Card ฝั่งขวา
   window.checkPendingDCR(d.Doc_ID || d.id); 
   window.switchDoctorView('doctorEditView');
 };
@@ -1791,7 +1814,6 @@ window.filterAndRenderDoctorVisits = function() {
 
   const adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
   
-  // 🟢 [Safe Fallback Pattern]: เช็กสิทธิ์ให้อ่านจาก DocManagerCache ก่อน ถ้านักพัฒนากำหนดค่า myIsGlobalViewer ไว้ค่อยใช้ของเดิม
   const isGlobalAdmin = (window.DocManagerCache && window.DocManagerCache.isGlobalViewer !== undefined)
     ? window.DocManagerCache.isGlobalViewer
     : (window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL');
@@ -2095,7 +2117,6 @@ window.getSelectedRatingProductIds = function(excludeSelectId = null) {
   return selectedIds;
 };
 
-// AUTO CALCULATION LOGIC FOR RATING & TARGETING
 window.triggerCalcTarget = function(element) {
   const tr = element.closest('tr');
   if (!tr) return;
@@ -2326,9 +2347,6 @@ window.saveTargetCallRow = async function(btn) {
   }
 };
 
-// ==========================================
-// 🚀 QUICK ADD CALL FROM DOCTOR PROFILE
-// ==========================================
 window.goToQuickAddCall = function() {
   const docId = window.currentTargetDocId;
   if (!docId) return;
@@ -2420,13 +2438,11 @@ if (!window._isDocLangListenerAttached) {
       window.updateTomSelect('editDocType', window.getOptionsHtml('DoctorType', selectTypeText), selectTypeText);
     }
     
-    // 🌟 1. อัปเดตสวิตช์ Status (Active/Inactive) หน้า Edit
     const editToggle = document.getElementById('editDocStatusToggle');
     if (editToggle) {
       window.toggleDoctorStatusText(editToggle);
     }
 
-    // 🌟 2. Re-render รายการ Workplace เพื่อเปลี่ยนปุ่ม Primary / Set Primary ตามภาษาใหม่
     const editWpContainer = document.getElementById('workplaceContainerEdit');
     if (editWpContainer) {
       const editWpData = window.extractWorkplaces('workplaceContainerEdit');
@@ -2436,14 +2452,12 @@ if (!window._isDocLangListenerAttached) {
       }
     }
 
-    // 🌟 3. อัปเดตหน้า Edit ถ้ากำลังเปิดอยู่ และมี DCR ค้าง
     const editView = document.getElementById('doctorEditView');
     const editDocIdEl = document.getElementById('editDocId');
     if (editView && !editView.classList.contains('d-none') && editDocIdEl && editDocIdEl.value) {
       window.checkPendingDCR(editDocIdEl.value);
     }
 
-    // 🌟 4. อัปเดตหน้า Profile
     const profileView = document.getElementById('doctorProfileView');
     if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
       window.openViewDoctorProfile(window.currentTargetDocId);
@@ -2452,25 +2466,6 @@ if (!window._isDocLangListenerAttached) {
   window._isDocLangListenerAttached = true;
 }
 
- 
-
-window.clearDocSearchInput = function() {
-    var inputEl = document.getElementById('smartDocSearchInput');
-    var clearBtn = document.getElementById('btnClearDocSearch');
-    if (inputEl) {
-        inputEl.value = '';
-        if (clearBtn) clearBtn.classList.add('d-none');
-        
-        if (typeof window.filterDoctors === 'function') {
-            window.filterDoctors();
-        }
-        inputEl.focus();
-    }
-};
-
-// ==========================================
-// 🎯 DYNAMIC OPTIONS RENDERER (EN = Value1, TH = Value)
-// ==========================================
 window.getOptionsHtml = function(typeName, defaultText) {
   const typeObj = (window.DocManagerCache.indexTypes || []).find(t => {
     const name = (t.Name || '').toLowerCase().trim();
@@ -2487,10 +2482,8 @@ window.getOptionsHtml = function(typeName, defaultText) {
     const items = (window.DocManagerCache.indexes || []).filter(i => String(i.IndexType_ID) === String(typeObj.IndexType_ID));
     
     items.forEach(i => {
-      // 🌟 ใช้ Index_ID เป็น value สำหรับบันทึกลง DB
       const valDb = i.Index_ID || i.id || i.Value || i.value || '';
       
-      // 🎯 ดึง Text แสดงผลตรงตามสเปก DB: EN = Value1, TH = Value
       let showText = i.Value || i.value || '';
       if (appLang === 'en') {
         showText = i.Value1 || i.value1 || i.Value_EN || i.value_en || i.Value || '';
@@ -2502,72 +2495,4 @@ window.getOptionsHtml = function(typeName, defaultText) {
     });
   }
   return html;
-};
-
-
-// 🎯 Helper สำหรับป้ายไฮไลท์คำค้นหาในตาราง (เหมือนหน้า Visit)
-window.highlightDocSearchText = function(text, query) {
-  if (!text) return '';
-  if (!query || query.trim() === '') return text;
-  
-  const terms = query.trim().split(/\s+/).filter(t => t.length > 0);
-  if (terms.length === 0) return text;
-
-  let highlighted = String(text);
-  terms.forEach(term => {
-    const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    highlighted = highlighted.replace(regex, '<mark class="highlight-search">$1</mark>');
-  });
-
-  return highlighted;
-};
-
-
-// ==========================================
-// 🎯 SMART SEARCH WITH REAL DEBOUNCE (หน่วงเวลาพิมพ์ 400ms เหมือนหน้า Visit)
-// ==========================================
-if (typeof window.docSearchDebounceTimer === 'undefined') {
-  window.docSearchDebounceTimer = null;
-}
-
-window.handleDocSearchInput = function(inputEl) {
-  const btnClear = document.getElementById('btnClearDocSearch');
-  const val = inputEl ? inputEl.value : '';
-
-  // 1. ควบคุมปุ่ม ลบคำค้นหา (X) ให้แสดงทันทีเมื่อมีข้อความ
-  if (btnClear) {
-    if (val.trim().length > 0) {
-      btnClear.classList.remove('d-none');
-    } else {
-      btnClear.classList.add('d-none');
-    }
-  }
-
-  // 2. เคลียร์ Timer เดิมทิ้งทุกครั้งที่มีการพิมพ์เพิ่ม
-  if (window.docSearchDebounceTimer) {
-    clearTimeout(window.docSearchDebounceTimer);
-  }
-
-  // 3. หน่วงเวลา 400ms รอให้ผู้ใช้พิมพ์เสร็จก่อน ค่อยยิงค้นหาไปที่ Server (เหมือนหน้า Visit เป๊ะ)
-  window.docSearchDebounceTimer = setTimeout(() => {
-    window.currentPage = 1;
-    window.loadDoctors(true);
-  }, 400);
-};
-
-// 🎯 ปุ่ม Clear คำค้นหา
-window.clearDocSearchInput = function() {
-  const inputEl = document.getElementById('smartDocSearchInput');
-  const btnClear = document.getElementById('btnClearDocSearch');
-  
-  if (window.docSearchDebounceTimer) {
-    clearTimeout(window.docSearchDebounceTimer);
-  }
-
-  if (inputEl) {
-    inputEl.value = '';
-    if (btnClear) btnClear.classList.add('d-none');
-    window.currentPage = 1;
-    window.loadDoctors(true);
-  }
 };
