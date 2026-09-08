@@ -43,7 +43,7 @@
 
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
 
-      <!-- 🌟 Doctor Filter Zone (CSS ย้ายไป style.css แล้ว) -->
+      <!-- 🌟 Doctor Filter Zone -->
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
@@ -53,7 +53,7 @@
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
                 
                 <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()" title="Clear Search">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
@@ -247,7 +247,7 @@
 
       </div>
 
-      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR (เหมือนหน้า Visit เป๊ะ) -->
+      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn">
@@ -412,7 +412,7 @@
 
       </div>
 
-      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR (เหมือนหน้า Visit เป๊ะ) -->
+      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
@@ -456,12 +456,13 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 Profile View (Tab 1: General Info) -> ใช้พื้นที่คุ้มค่า โครงสร้าง 2 คอลัมน์ ไร้ Scrollbar แนวนอน 100% -->
+        <!-- 🌟 Profile View (Tab 1: General Info) -> แก้ไขใช้ Layout 2 การ์ด ซ้าย-ขวา แบบเชื่อมโซ่ Flex-grow ดันให้ยืดเต็มจอ ไร้ Scrollbar ป่วน -->
         <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
-          <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2 pb-3" style="min-height: 0;">
+          
+          <!-- 🌟 หัวใจหลัก: ให้กล่องแม่เป็น d-flex flex-column แล้วส่งต่อ flex-grow-1 ลงไป -->
+          <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2 pb-3 d-flex flex-column" style="min-height: 0;">
             
-            <!-- 🌟 Premium Header Card (ใช้พื้นที่เต็ม กางชัดเจน) -->
-            <div class="d-flex justify-content-between align-items-center mb-4 mt-2 pb-3 border-bottom border-light-subtle">
+            <div class="d-flex justify-content-between align-items-center mb-4 mt-2 pb-3 border-bottom border-light-subtle flex-shrink-0">
               <div class="d-flex align-items-center gap-3">
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
                   <i class="fa-solid fa-address-card fs-5"></i>
@@ -472,16 +473,16 @@
                 </div>
               </div>
               <button type="button" class="btn btn-premium-primary shadow-sm fw-bold px-4 py-2 rounded-pill" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-                <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor</span>
+                <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
               </button>
             </div>
 
-            <!-- 🌟 ขัง Row ด้วย m-0 เสมอ เพื่อป้องกัน Scrollbar แนวนอน -->
-            <div class="row g-4 m-0">
+            <!-- 🌟 ใส่ flex-grow-1 ให้ Row ยืดเต็มพื้นที่ว่าง และคุม m-0 กันทะลัก -->
+            <div class="row g-4 m-0 flex-grow-1">
               
-              <!-- 🌟 คอลัมน์ซ้าย: ข้อมูลทั่วไป -->
-              <div class="col-lg-6 p-0 pe-lg-3">
-                <div class="p-4 rounded-4 border bg-white shadow-xs h-100">
+              <!-- 🌟 คอลัมน์ซ้าย: ดัน flex-grow-1 ลงไปที่ Card -->
+              <div class="col-lg-6 p-0 pe-lg-3 d-flex flex-column">
+                <div class="p-4 rounded-4 border bg-white shadow-xs flex-grow-1" style="background-color: #f8fafc !important;">
                   
                   <div class="row g-4 mb-4">
                     <div class="col-md-6">
@@ -517,13 +518,13 @@
                 </div>
               </div>
 
-              <!-- 🌟 คอลัมน์ขวา: สถานที่ปฏิบัติงาน -->
-              <div class="col-lg-6 p-0 ps-lg-3 mt-4 mt-lg-0">
-                <div class="p-4 rounded-4 border bg-white shadow-xs h-100">
-                  <label class="text-primary fw-bold mb-3 text-uppercase tracking-wide d-flex align-items-center border-bottom border-light-subtle pb-3" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+              <!-- 🌟 คอลัมน์ขวา: ดัน flex-grow-1 ลงไปที่ Card ด้วย -->
+              <div class="col-lg-6 p-0 ps-lg-3 mt-4 mt-lg-0 d-flex flex-column">
+                <div class="p-4 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="background-color: #f8fafc !important;">
+                  <label class="text-primary fw-bold mb-3 text-uppercase tracking-wide d-flex align-items-center border-bottom border-light-subtle pb-3 flex-shrink-0" style="font-size: 0.8rem; letter-spacing: 0.5px;">
                     <i class="fa-regular fa-hospital me-2 fs-5"></i><span data-i18n="lbl_workplace_history">Workplace History</span>
                   </label>
-                  <div id="viewWorkplaceContainer" class="d-flex flex-column mt-2" style="gap: 12px;"></div>
+                  <div id="viewWorkplaceContainer" class="d-flex flex-column mt-2 overflow-y-auto custom-scrollbar pe-1" style="gap: 12px; min-height: 0;"></div>
                 </div>
               </div>
 
