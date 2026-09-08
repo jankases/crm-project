@@ -20,15 +20,10 @@
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2.5 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
-          <i class="fa-solid fa-user-doctor fs-5"></i>
-        </div>
-        <div class="d-flex flex-column justify-content-center">
-          <h5 class="text-dark fw-bold mb-1" data-i18n="doc_title" style="line-height: 1.1;">Doctor Profiles</h5>
-          <p class="text-muted mb-0 fw-medium" data-i18n="doc_subtitle" style="font-size: 0.75rem; letter-spacing: 0.2px;">View and manage your key contacts and their workplaces</p>
-        </div>
+    <!-- 🌟 เพิ่ม mt-2 เพื่อให้หัวข้อมีพื้นที่หายใจ และลบไอคอน/คำอธิบายทิ้งเพื่อความคลีน -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-3 gap-3 flex-shrink-0">
+      <div class="d-flex align-items-center">
+        <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
       </div>
       
       <div class="d-flex gap-2">
@@ -143,10 +138,11 @@
         </div>
       </div>
       
+      <!-- 🌟 โค้ด Form Grid ที่ถูกเคลียร์ความซ้ำซ้อนออกแล้ว -->
       <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
         <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
           
-          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 พร้อมเพิ่ม margin-bottom สำหรับ iPad -->
+          <!-- General Info Card -->
           <div class="col-12 col-xl-6 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
@@ -184,6 +180,7 @@
                   </div>
                 </div>
 
+                <!-- 🌟 ลบ border-top ออกเพื่อให้คลีนสบายตา -->
                 <div class="mt-3 pt-1">
                   <div class="d-flex align-items-center mb-2">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -226,9 +223,10 @@
             </div>
           </div>
 
-          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 -->
+          <!-- Workplace Card -->
           <div class="col-12 col-xl-6 d-flex flex-column h-100" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important; overflow-x: hidden !important;">
+              <!-- 🌟 ลบ border-bottom ออกเพื่อให้คลีนสบายตา -->
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                   <i class="fa-solid fa-location-dot fs-6"></i>
@@ -279,12 +277,11 @@
         </div>
       </div>
       
-      <!-- 🌟 MAIN CONTENT CONTAINER (โซนการ์ดซ้าย-ขวา) -->
+      <!-- 🌟 MAIN CONTENT CONTAINER -->
       <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
         <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
             
           <!-- Left Side: General Info -->
-          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 พร้อมเพิ่ม margin-bottom สำหรับ iPad -->
           <div class="col-12 col-xl-6 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
@@ -323,6 +320,7 @@
                 </div>
 
                 <!-- Contact & Consent -->
+                <!-- 🌟 ลบ border-top ออกเพื่อให้คลีนสบายตา -->
                 <div class="mt-3 pt-1">
                   <div class="d-flex align-items-center mb-2">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -370,12 +368,12 @@
           </div>
 
           <!-- Right Side: Workplace + Pending DCR Summary -->
-          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 -->
           <div class="col-12 col-xl-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
             
             <!-- Workplace History (กะทัดรัด) -->
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
-              <div class="d-flex align-items-center mb-2 pb-1.5 border-bottom border-light-subtle flex-shrink-0">
+              <!-- 🌟 ลบ border-bottom ออกเพื่อให้คลีนสบายตา -->
+              <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                   <i class="fa-solid fa-location-dot fs-6"></i>
                 </div>
@@ -384,9 +382,10 @@
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
 
-            <!-- 🌟 Pending DCR Summary -->
+            <!-- Pending DCR Summary -->
             <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
-              <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
+              <!-- 🌟 ลบ border-bottom ออกเพื่อให้คลีนสบายตา -->
+              <div class="d-flex align-items-center justify-content-between mb-1.5 flex-shrink-0">
                 <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
                   <i class="fa-solid fa-clock-rotate-left me-2 fs-6"></i>
                   <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
@@ -406,7 +405,7 @@
         </div>
       </div>
 
-      <!-- 🌟 FOOTER ACTION BAR (ถอดแบบมาตรฐานจาก VISIT LOGS) -->
+      <!-- 🌟 FOOTER ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
@@ -505,7 +504,8 @@
 
             <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
               <div class="p-3.5 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column flex-grow-1 shadow-xs" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 0;">
-                <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
+                <!-- 🌟 ลบ border-bottom ออกเพื่อให้คลีนสบายตา -->
+                <div class="d-flex align-items-center mb-3 flex-shrink-0">
                   <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                     <i class="fa-solid fa-location-dot fs-6"></i>
                   </div>
