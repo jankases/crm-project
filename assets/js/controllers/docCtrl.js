@@ -1219,7 +1219,7 @@ window.openAddDoctorView = function() {
   window.switchDoctorView('doctorAddView');
 };
 
-window.checkPendingDCR = async function(docId) {
+ window.checkPendingDCR = async function(docId) {
   try {
     const sb = window.supabaseClient || window.supabase;
     const { data, error } = await sb.from('DCR')
@@ -1229,24 +1229,28 @@ window.checkPendingDCR = async function(docId) {
 
     if (error) throw error;
 
-    const badgeContainer = document.getElementById('editDcrStatusBadge');
-    const summaryCard = document.getElementById('pendingDcrSummaryCard');
+    // แยก ID ของหน้า Edit และ Profile ออกจากกันเด็ดขาด
+    const badgeContainerEdit = document.getElementById('editDcrStatusBadge');
+    const badgeContainerProfile = document.getElementById('profileDcrStatusBadge');
+    
+    const summaryCardEdit = document.getElementById('pendingDcrSummaryCard');
+    const summaryCardProfile = document.getElementById('profilePendingDcrSummaryCard');
+    
     const submitBtn = document.getElementById('updateDoctorBtn');
 
     if (data && data.length > 0) {
       const dcr = data[0];
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const isEN = (appLang === 'en');
+      const badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>${isEN ? 'Pending Approval' : 'รอการอนุมัติ'}</span>`;
 
-      if (badgeContainer) {
-        badgeContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>${isEN ? 'Pending Approval' : 'รอการอนุมัติ'}</span>`;
-      }
+      // ยิงป้ายกำกับให้ทั้งหน้า Edit และ Profile
+      if (badgeContainerEdit) badgeContainerEdit.innerHTML = badgeHtml;
+      if (badgeContainerProfile) badgeContainerProfile.innerHTML = badgeHtml;
 
-      if (summaryCard) {
-        summaryCard.classList.remove('d-none');
-
-        const requesterEl = document.getElementById('pendingDcrRequester');
-        if (requesterEl) {
+      // ฟังก์ชันเติมข้อมูลลงการ์ด (ใช้ซ้ำได้)
+      const populateDcrSummaryFields = (reqEl, dateEl) => {
+        if (reqEl) {
           const rawWho = dcr.Whoupdated || '';
           let showName = rawWho;
           if (rawWho) {
@@ -1256,14 +1260,10 @@ window.checkPendingDCR = async function(docId) {
               String(u.Email || u.email || '').toLowerCase().trim() === searchKey ||
               String(u.Rep_ID || u.User_ID || u.id || '').toLowerCase().trim() === searchKey
             );
-            if (uObj) {
-              showName = uObj.Rep_Name || uObj.Name || uObj.name || rawWho;
-            }
+            if (uObj) showName = uObj.Rep_Name || uObj.Name || uObj.name || rawWho;
           }
-          requesterEl.textContent = showName || '-';
+          reqEl.textContent = showName || '-';
         }
-
-        const dateEl = document.getElementById('pendingDcrDate');
         if (dateEl) {
           if (dcr.Whenupdated) {
             const dt = new Date(dcr.Whenupdated);
@@ -1274,29 +1274,37 @@ window.checkPendingDCR = async function(docId) {
             dateEl.textContent = '-';
           }
         }
+      };
 
-        if (typeof window.renderPendingDcrChanges === 'function') {
-          window.renderPendingDcrChanges(dcr.Requested_Data);
-        }
+      // 1. เติมข้อมูลให้ฝั่ง Edit View
+      if (summaryCardEdit) {
+        summaryCardEdit.classList.remove('d-none');
+        populateDcrSummaryFields(document.getElementById('pendingDcrRequester'), document.getElementById('pendingDcrDate'));
+        if (typeof window.renderPendingDcrChanges === 'function') window.renderPendingDcrChanges(dcr.Requested_Data, 'pendingDcrChangesList', false);
       }
 
-      if (typeof window.setDoctorFormReadOnly === 'function') {
-        window.setDoctorFormReadOnly(true);
+      // 2. เติมข้อมูลให้ฝั่ง Profile View
+      if (summaryCardProfile) {
+        summaryCardProfile.classList.remove('d-none');
+        populateDcrSummaryFields(document.getElementById('profilePendingDcrRequester'), document.getElementById('profilePendingDcrDate'));
+        if (typeof window.renderPendingDcrChanges === 'function') window.renderPendingDcrChanges(dcr.Requested_Data, 'profilePendingDcrChangesList', true);
       }
+
+      if (typeof window.setDoctorFormReadOnly === 'function') window.setDoctorFormReadOnly(true);
 
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.className = 'btn btn-sm btn-secondary opacity-50 px-4 py-2 rounded-3 shadow-none';
         submitBtn.innerHTML = `<i class="fa-solid fa-lock me-1.5"></i><span data-i18n="btn_form_locked">${isEN ? ' Form Locked' : ' ฟอร์มถูกล็อก'}</span>`;
       }
-
     } else {
-      if (badgeContainer) badgeContainer.innerHTML = '';
-      if (summaryCard) summaryCard.classList.add('d-none');
+      // 🌟 ไม่มี Pending DCR ให้เคลียร์ซ่อนการ์ดออกไปจากทั้งคู่
+      if (badgeContainerEdit) badgeContainerEdit.innerHTML = '';
+      if (badgeContainerProfile) badgeContainerProfile.innerHTML = '';
+      if (summaryCardEdit) summaryCardEdit.classList.add('d-none');
+      if (summaryCardProfile) summaryCardProfile.classList.add('d-none');
 
-      if (typeof window.setDoctorFormReadOnly === 'function') {
-        window.setDoctorFormReadOnly(false);
-      }
+      if (typeof window.setDoctorFormReadOnly === 'function') window.setDoctorFormReadOnly(false);
 
       if (submitBtn) {
         const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -1310,32 +1318,35 @@ window.checkPendingDCR = async function(docId) {
   }
 };
 
-window.renderPendingDcrChanges = function(requestedDataJson) {
-  const container = document.getElementById('pendingDcrChangesList');
+ window.renderPendingDcrChanges = function(requestedDataJson, targetContainerId = 'pendingDcrChangesList', isProfileMode = false) {
+  const container = document.getElementById(targetContainerId);
   if (!container) return;
 
-  const form = document.getElementById('editDoctorForm');
-  if (form) {
-    form.querySelectorAll('.dcr-field-highlight').forEach(el => el.classList.remove('dcr-field-highlight', 'border-warning', 'bg-warning-subtle'));
+  // เคลียร์ Highlight เก่า (ทำเฉพาะในหน้า Edit)
+  if (!isProfileMode) {
+    const form = document.getElementById('editDoctorForm');
+    if (form) {
+      form.querySelectorAll('.dcr-field-highlight').forEach(el => el.classList.remove('dcr-field-highlight', 'border-warning', 'bg-warning-subtle'));
+    }
   }
 
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = (appLang === 'en');
+
   if (!requestedDataJson) {
-    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    container.innerHTML = `<div class="text-muted italic tiny">${appLang === 'en' ? '- No details -' : '- ไม่มีรายละเอียด -'}</div>`;
+    container.innerHTML = `<div class="text-muted italic tiny">${isEN ? '- No details -' : '- ไม่มีรายละเอียด -'}</div>`;
     return;
   }
 
   try {
     const data = (typeof requestedDataJson === 'string') ? JSON.parse(requestedDataJson) : requestedDataJson;
-    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    const isEN = (appLang === 'en');
-
     let items = [];
 
     const highlightField = (elementId) => {
-      const el = document.getElementById(elementId);
-      if (el) {
-        el.classList.add('dcr-field-highlight', 'border-warning');
+      // ระบายสีเฉพาะหน้า Edit เท่านั้น ไม่ต้องไปยุ่งกับหน้า Profile
+      if (!isProfileMode) {
+        const el = document.getElementById(elementId);
+        if (el) el.classList.add('dcr-field-highlight', 'border-warning');
       }
     };
 
@@ -1348,23 +1359,17 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
       highlightField('editDocNameTh');
     }
     if (data.Specialty_ID) {
-      const specText = (typeof window.getSpecialtyText === 'function') 
-        ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) 
-        : data.Specialty_ID;
+      const specText = (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) : data.Specialty_ID;
       items.push(`<strong>${isEN ? 'Specialty' : 'ความเชี่ยวชาญ'}:</strong> ${specText}`);
       highlightField('editDocSpecialty');
     }
     if (data.DoctorType_ID) {
-      const typeText = (typeof window.getDoctorTypeText === 'function') 
-        ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) 
-        : data.DoctorType_ID;
+      const typeText = (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) : data.DoctorType_ID;
       items.push(`<strong>${isEN ? 'Type' : 'ประเภท'}:</strong> ${typeText}`);
       highlightField('editDocType');
     }
     if (data.Status) {
-      const statusText = (data.Status === 'Active') 
-        ? (isEN ? 'Active' : 'ใช้งาน') 
-        : (isEN ? 'Inactive' : 'ไม่ใช้งาน');
+      const statusText = (data.Status === 'Active') ? (isEN ? 'Active' : 'ใช้งาน') : (isEN ? 'Inactive' : 'ไม่ใช้งาน');
       items.push(`<strong>${isEN ? 'Status' : 'สถานะ'}:</strong> ${statusText}`);
     }
 
@@ -1576,14 +1581,13 @@ window.openEditDoctorView = function(id) {
   window.switchDoctorView('doctorEditView');
 };
 
-window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
+ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   window.currentTargetDocId = id; 
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
-  const allProdsText = (typeof t === 'function') ? t('opt_all_products') : (appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -');
 
   const titleText = window.getTitleText(d.Title_ID || d.title_id || d.Title);
   const specText = window.getSpecialtyText(d.Specialty_ID || d.Specialty);
@@ -1594,11 +1598,29 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
     titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
   }
 
+  // 🌟 [อัปเดตใหม่] ยัดข้อมูลลง Field ของหน้า Profile แบบใหม่ทั้งหมด
+  if (document.getElementById('viewDocTitle')) document.getElementById('viewDocTitle').value = titleText;
+  if (document.getElementById('viewDocNameEn')) document.getElementById('viewDocNameEn').value = d.Doc_Name || d.nameEn || '-';
+  if (document.getElementById('viewDocNameTh')) document.getElementById('viewDocNameTh').value = d.Doc_Name_TH || '-';
   if (document.getElementById('viewDocSpecialty')) document.getElementById('viewDocSpecialty').value = specText;
   if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = typeText;
-  if (document.getElementById('viewDocStatus')) document.getElementById('viewDocStatus').value = d.Status || d.status || 'Active';
   if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
   if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
+  
+  if (document.getElementById('viewDocPrivacy')) document.getElementById('viewDocPrivacy').innerText = (d.Privacy_Policy === 'Yes') ? 'Yes' : 'No';
+  if (document.getElementById('viewDocTos')) document.getElementById('viewDocTos').innerText = (d.Terms_of_Service === 'Yes') ? 'Yes' : 'No';
+
+  const statusEl = document.getElementById('viewDocStatus');
+  if (statusEl) {
+      const statusVal = d.Status || d.status || 'Active';
+      const isStatusActive = (statusVal === 'Active');
+      statusEl.value = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
+      if (isStatusActive) {
+          statusEl.className = 'form-control bg-success-subtle border-0 shadow-none premium-radius fw-bold text-success';
+      } else {
+          statusEl.className = 'form-control bg-danger-subtle border-0 shadow-none premium-radius fw-bold text-danger';
+      }
+  }
 
   let wpHTML = '';
   let parsedWp = [];
@@ -1609,25 +1631,20 @@ window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
       const isPrimary = wp.isPrimary ? `<span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span>` : '';
       const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
       const hospName = window.getHospitalNameByLang(hospObj);
-      wpHTML += `<div class="py-2 px-3 bg-white border rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> ${isPrimary}</div>`;
+      wpHTML += `<div class="py-2 px-3 bg-light-subtle rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> ${isPrimary}</div>`;
     });
   } else {
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
     const hospName = window.getHospitalNameByLang(hospObj);
-    wpHTML = `<div class="py-2 px-3 bg-white border rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> <span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span></div>`;
+    wpHTML = `<div class="py-2 px-3 bg-light-subtle rounded-3 mb-2 d-flex align-items-center">🏥 <span class="fw-bold text-dark ms-1">${hospName}</span> <span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span></div>`;
   }
 
   if (document.getElementById('viewWorkplaceContainer')) {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  let phtml = `<option value="">${allProdsText}</option>`;
-  const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
-  availableProducts.forEach(p => phtml += `<option value="${p.Product_ID}">${p.Product}</option>`);
-
-  if (document.getElementById('filterProfileVisitProduct')) {
-    document.getElementById('filterProfileVisitProduct').innerHTML = phtml;
-  }
+  // 🌟 [อัปเดตใหม่] สั่งเช็ก DCR สำหรับหน้า Profile ด้วย
+  window.checkPendingDCR(id);
 
   const addProdBtn = document.getElementById('btnAddRatingProduct');
   const lockBanner = document.getElementById('ratingLockBanner');
