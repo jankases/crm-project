@@ -131,7 +131,7 @@
   </div>
 
   <!-- ================= 2. ADD DOCTOR VIEW ================= -->
-  <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3">
+  <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
       
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
@@ -143,7 +143,7 @@
         </div>
       </div>
       
-      <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0;">
+      <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
         <div class="row g-2.5 flex-grow-1 overflow-hidden" style="min-height: 0;">
           <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="border-radius: 18px !important;">
@@ -238,7 +238,7 @@
         </div>
       </div>
 
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2.5" style="border-radius: 18px !important;">
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn">
           <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add Doctor</span>
@@ -249,7 +249,7 @@
   </div>
 
   <!-- ================= 3. EDIT DOCTOR VIEW (🌟 VISIT LOGS REFERENCE MATCHING) ================= -->
-  <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3">
+  <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
@@ -276,7 +276,7 @@
       </div>
       
       <!-- 🌟 MAIN CONTENT CONTAINER (โซนการ์ดซ้าย-ขวา) -->
-      <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0;">
+      <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
         <div class="row g-2.5 flex-grow-1 overflow-hidden" style="min-height: 0;">
             
           <!-- Left Side: General Info -->
@@ -401,7 +401,7 @@
       </div>
 
       <!-- 🌟 FOOTER ACTION BAR (ถอดแบบมาตรฐานจาก VISIT LOGS) -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2.5" style="border-radius: 18px !important;">
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
