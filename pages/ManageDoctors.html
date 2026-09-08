@@ -460,13 +460,13 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 Profile View (Tab 1: General Info) -> ใช้โครงสร้าง Card ยืดความสูงเต็ม 100% เสมอ -->
-        <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
-          <div class="row g-2.5 flex-grow-1 overflow-hidden m-0 h-100">
+        <!-- 🌟 Profile View (Tab 1: General Info) -> แก้ไขโครงสร้าง Flexbox ไร้กล่องซ้อน ปลูกถ่ายความสูงตึง 100% -->
+        <div class="tab-pane fade show active flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
+          <div class="row g-2.5 flex-grow-1 overflow-hidden m-0">
             
-            <!-- Left Side: General Info -->
+            <!-- Left Side: General Info Card -->
             <div class="col-lg-6 d-flex flex-column h-100 p-0 pe-lg-2">
-              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="border-radius: 18px !important;">
+              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100 flex-grow-1" style="border-radius: 18px !important;">
                 
                 <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
                   
@@ -512,9 +512,9 @@
               </div>
             </div>
 
-            <!-- Right Side: Workplace List -->
+            <!-- Right Side: Workplace List Card -->
             <div class="col-lg-6 d-flex flex-column h-100 p-0 ps-lg-2 mt-3 mt-lg-0">
-              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="border-radius: 18px !important; overflow-x: hidden !important;">
+              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100 flex-grow-1" style="border-radius: 18px !important; overflow-x: hidden !important;">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
                   <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                     <i class="fa-regular fa-building fs-6"></i>
