@@ -245,7 +245,7 @@ window.initMultiTomSelect = function(id, placeholder) {
   }
 };
  // ==========================================
-// 🎯 HELPER RENDER FILTER DROPDOWNS (แสดงเฉพาะที่มีในรายชื่อหมอเท่านั้น)
+// 🎯 HELPER RENDER FILTER DROPDOWNS (FIX BADGE DUPLICATE & EMPTY VALUE)
 // ==========================================
 window.renderFilterDropdowns = function(validDocsData) {
   if (!validDocsData || !Array.isArray(validDocsData)) return;
@@ -260,9 +260,13 @@ window.renderFilterDropdowns = function(validDocsData) {
     const el = document.getElementById(elementId);
     if (!el) return;
 
-    let html = `<option value="">${placeholder}</option>`;
+    // 🌟 ไม่ใส่ <option value=""> เข้าไปใน HTML เพื่อป้องกัน TomSelect เอาไปขึ้น Badge ซ้ำ
+    let html = '';
     optionsArray.forEach(item => {
-      html += `<option value="${item.id}">${item.label}</option>`;
+      // ป้องกันกรณีไอดีหรือข้อความว่างเปล่าหลุดเข้ามา
+      if (item.id && String(item.id).trim() !== '' && item.id !== '-') {
+        html += `<option value="${item.id}">${item.label}</option>`;
+      }
     });
 
     if (el.tomselect) {
@@ -271,11 +275,17 @@ window.renderFilterDropdowns = function(validDocsData) {
       el.innerHTML = html;
       
       window.initMultiTomSelect(elementId, placeholder);
-      if (curVal && curVal.length > 0) {
-        const cleanVal = Array.isArray(curVal) ? curVal.filter(v => v && v !== '') : curVal;
-        if (cleanVal.length > 0) {
+      
+      // คืนค่าเฉพาะตัวเลือกที่ผู้ใช้คลิกเลือกจริง (ตัดค่าว่างทิ้ง)
+      if (curVal) {
+        const cleanVal = Array.isArray(curVal) ? curVal.filter(v => v && String(v).trim() !== '') : (curVal !== '' ? curVal : null);
+        if (cleanVal && (Array.isArray(cleanVal) ? cleanVal.length > 0 : true)) {
           el.tomselect.setValue(cleanVal, true);
+        } else {
+          el.tomselect.clear(true);
         }
+      } else {
+        el.tomselect.clear(true);
       }
     } else {
       el.innerHTML = html;
@@ -283,15 +293,25 @@ window.renderFilterDropdowns = function(validDocsData) {
     }
   };
 
-  // 1. ดึงเฉพาะ Specialty_ID ที่มีอยู่ในรายชื่อหมอชุดนี้เท่านั้น
-  const uniqueSpecIds = [...new Set(validDocsData.map(d => d.Specialty_ID || d.Specialty).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  // 1. ดึงเฉพาะ Specialty_ID ที่มีในรายชื่อหมอ (ตัดค่าว่าง/NULL ออก)
+  const uniqueSpecIds = [...new Set(
+    validDocsData
+      .map(d => d.Specialty_ID || d.Specialty)
+      .filter(v => v && String(v).trim() !== '' && v !== '-' && v !== 'null' && v !== 'undefined')
+  )].sort();
+
   const specOptions = uniqueSpecIds.map(id => ({
     id: id,
     label: (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(id, id) : id
   }));
 
-  // 2. ดึงเฉพาะ DoctorType_ID ที่มีอยู่ในรายชื่อหมอชุดนี้เท่านั้น
-  const uniqueTypeIds = [...new Set(validDocsData.map(d => d.DoctorType_ID || d.Type).filter(v => v && String(v).trim() !== '' && v !== '-'))].sort();
+  // 2. ดึงเฉพาะ DoctorType_ID ที่มีในรายชื่อหมอ (ตัดค่าว่าง/NULL ออก)
+  const uniqueTypeIds = [...new Set(
+    validDocsData
+      .map(d => d.DoctorType_ID || d.Type)
+      .filter(v => v && String(v).trim() !== '' && v !== '-' && v !== 'null' && v !== 'undefined')
+  )].sort();
+
   const typeOptions = uniqueTypeIds.map(id => ({
     id: id,
     label: (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(id, id) : id
