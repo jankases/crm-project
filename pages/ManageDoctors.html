@@ -7,7 +7,6 @@
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
-<!-- 📚 Flatpickr Date Picker -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
@@ -15,10 +14,10 @@
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
-<div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column overflow-hidden">
+<div class="container-fluid p-0 doc-module-wrapper d-flex flex-column overflow-hidden" style="height: calc(100vh - 85px) !important;">
       
   <!-- ================= 1. LIST VIEW ================= -->
-  <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
+  <div id="doctorListView" class="w-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-3">
@@ -43,40 +42,28 @@
 
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
 
-      <!-- 🌟 Doctor Filter Zone -->
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
-            
-            <!-- 🔍 Smart Doc Search Input -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
-                
                 <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
-                
                 <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()" title="Clear Search">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
                 </button>
-
                 <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
                   <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
                 </button>
               </div>
             </div>
-
-            <!-- Specialty Dropdown -->
             <div style="min-width: 200px; max-width: 250px;">
               <select id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
-
-            <!-- Doctor Type Dropdown -->
             <div style="min-width: 200px; max-width: 250px;">
               <select id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
-
           </div>
-
           <div class="d-flex ms-auto">
             <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearDoctorFilters()" title="Clear All Filters">
               <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
@@ -104,8 +91,7 @@
                 <th class="py-2.5" style="width: 50px;"></th>
               </tr>
             </thead>
-            <tbody id="doctorTableBody">
-            </tbody>
+            <tbody id="doctorTableBody"></tbody>
           </table>
         </div>
 
@@ -124,17 +110,15 @@
             <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination"></ul>
           </nav>
         </div>
-
       </div>
 
     </div>
   </div>
 
   <!-- ================= 2. ADD DOCTOR VIEW ================= -->
-  <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
-    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between">
+  <div id="doctorAddView" class="d-none w-100 flex-grow-1 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3" style="min-height: 0;">
+    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="d-flex flex-column flex-grow-1" style="min-height: 0;">
       
-      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
@@ -144,13 +128,9 @@
         </div>
       </div>
       
-      <!-- Main Content Grid -->
-      <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important; height: 100% !important; min-height: 0;">
-          
-        <!-- Left Side: General Info -->
-        <div class="col-lg-6 d-flex flex-column" style="height: 100% !important; min-height: 0;">
-          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column" style="border-radius: 18px !important; height: 100% !important; min-height: 0;">
-            
+      <div class="row g-2.5 flex-grow-1 my-1" style="min-height: 0;">
+        <div class="col-lg-6 d-flex flex-column align-items-stretch" style="min-height: 0;">
+          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column flex-grow-1" style="border-radius: 18px !important; min-height: 0;">
             <div class="d-flex align-items-center mb-3 flex-shrink-0">
               <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                 <i class="fa-solid fa-stethoscope fs-6"></i>
@@ -186,7 +166,6 @@
                 </div>
               </div>
 
-              <!-- Contact & Consent -->
               <div class="mt-4 pt-3 border-top border-light-subtle">
                 <div class="d-flex align-items-center mb-3">
                   <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
@@ -194,7 +173,6 @@
                   </div>
                   <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
                 </div>
-                
                 <div class="row g-3 mb-3">
                   <div class="col-sm-6">
                     <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1.5"></i> <span data-i18n="lbl_email">Email</span></label>
@@ -205,7 +183,6 @@
                     <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
                   </div>
                 </div>
-                
                 <div class="row g-3 pt-1">
                   <div class="col-6">
                     <div class="d-flex align-items-center justify-content-between px-1">
@@ -227,14 +204,12 @@
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
 
-        <!-- Right Side: Workplace -->
-        <div class="col-lg-6 d-flex flex-column gap-2.5" style="height: 100% !important; min-height: 0;">
-          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; height: 100% !important; min-height: 0;">
+        <div class="col-lg-6 d-flex flex-column align-items-stretch" style="min-height: 0;">
+          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column flex-grow-1" style="border-radius: 18px !important; min-height: 0;">
             <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
               <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                 <i class="fa-solid fa-location-dot fs-6"></i>
@@ -244,11 +219,9 @@
             <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
           </div>
         </div>
-
       </div>
 
-      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-auto" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn">
           <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_doctor">Add Doctor</span>
@@ -259,11 +232,10 @@
   </div>
 
   <!-- ================= 3. EDIT DOCTOR VIEW ================= -->
-  <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
-    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="h-100 d-flex flex-column justify-content-between">
+  <div id="doctorEditView" class="d-none w-100 flex-grow-1 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3" style="min-height: 0;">
+    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column flex-grow-1" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
-      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
@@ -274,7 +246,6 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <!-- แคปซูล Active/Inactive -->
           <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
             <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
               <input type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)">
@@ -286,13 +257,9 @@
         </div>
       </div>
       
-      <!-- Main Content Grid -->
-      <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important; height: 100% !important; min-height: 0;">
-          
-        <!-- Left Side: General Info -->
-        <div class="col-lg-6 d-flex flex-column" style="height: 100% !important; min-height: 0;">
-          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column" style="border-radius: 18px !important; height: 100% !important; min-height: 0;">
-            
+      <div class="row g-2.5 flex-grow-1 my-1" style="min-height: 0;">
+        <div class="col-lg-6 d-flex flex-column align-items-stretch" style="min-height: 0;">
+          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column flex-grow-1" style="border-radius: 18px !important; min-height: 0;">
             <div class="d-flex align-items-center mb-3 flex-shrink-0">
               <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                 <i class="fa-solid fa-stethoscope fs-6"></i>
@@ -312,7 +279,7 @@
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
                 </div>
                 <div class="col-6">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                  <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                 </div>
               </div>
@@ -328,7 +295,6 @@
                 </div>
               </div>
 
-              <!-- Contact & Consent -->
               <div class="mt-4 pt-3 border-top border-light-subtle">
                 <div class="d-flex align-items-center mb-3">
                   <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
@@ -336,7 +302,6 @@
                   </div>
                   <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
                 </div>
-                
                 <div class="row g-3 mb-3">
                   <div class="col-sm-6">
                     <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1.5"></i> <span data-i18n="lbl_email">Email</span></label>
@@ -347,7 +312,6 @@
                     <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
                   </div>
                 </div>
-
                 <div class="row g-3 pt-1">
                   <div class="col-6">
                     <div class="d-flex align-items-center justify-content-between px-1">
@@ -358,7 +322,6 @@
                     </div>
                     <input type="hidden" id="editDocPrivacy" value="Yes">
                   </div>
-
                   <div class="col-6">
                     <div class="d-flex align-items-center justify-content-between px-1">
                       <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
@@ -370,16 +333,12 @@
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
 
-        <!-- Right Side: Workplace + Pending DCR Summary -->
-        <div class="col-lg-6 d-flex flex-column gap-2.5" style="height: 100% !important; min-height: 0;">
-          
-          <!-- Workplace History -->
-          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 0;">
+        <div class="col-lg-6 d-flex flex-column gap-2.5 align-items-stretch" style="min-height: 0;">
+          <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; min-height: 0;">
             <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
               <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                 <i class="fa-solid fa-location-dot fs-6"></i>
@@ -389,7 +348,6 @@
             <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
           </div>
 
-          <!-- Card สรุป DCR แบบกะทัดรัด สบายตา -->
           <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important;">
             <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
               <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
@@ -397,21 +355,16 @@
                 <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
               </div>
             </div>
-            
             <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2">
               <div><i class="fa-solid fa-user me-1 text-warning"></i><span id="pendingDcrRequester" class="fw-semibold text-dark">-</span></div>
               <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
             </div>
-
             <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 80px;"></div>
           </div>
-
         </div>
-
       </div>
 
-      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-auto" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
@@ -420,7 +373,7 @@
   </div>
 
   <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
-  <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
+  <div id="doctorProfileView" class="d-none w-100 flex-grow-1 d-flex flex-column overflow-hidden p-2 p-md-3" style="min-height: 0;">
     
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center">
@@ -432,7 +385,6 @@
       </div>
     </div>
     
-    <!-- 🌟 Main Profile Card Container -->
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
 
       <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 flex-shrink-0">
@@ -460,14 +412,11 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 Profile View (Tab 1: General Info) -> บังคับยืดการ์ดตึง 100% ด้วย Inline Style -->
         <div class="tab-pane fade show active flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
-          <div class="row g-2.5 flex-grow-1 overflow-hidden m-0" style="height: 100% !important; min-height: 0;">
+          <div class="row g-2.5 flex-grow-1 my-1" style="min-height: 0;">
             
-            <!-- Left Side: General Info Card -->
-            <div class="col-lg-6 d-flex flex-column p-0 pe-lg-2" style="height: 100% !important; min-height: 0;">
-              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column" style="border-radius: 18px !important; height: 100% !important; min-height: 0;">
-                
+            <div class="col-lg-6 d-flex flex-column align-items-stretch" style="min-height: 0;">
+              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column flex-grow-1" style="border-radius: 18px !important; min-height: 0;">
                 <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
                   
                   <div class="row g-3 mb-4 mt-1">
@@ -495,7 +444,6 @@
                       </div>
                       <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
                     </div>
-                    
                     <div class="row g-3 mb-3">
                       <div class="col-sm-6">
                         <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-envelope text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
@@ -512,16 +460,14 @@
               </div>
             </div>
 
-            <!-- Right Side: Workplace List Card -->
-            <div class="col-lg-6 d-flex flex-column p-0 ps-lg-2 mt-3 mt-lg-0" style="height: 100% !important; min-height: 0;">
-              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; height: 100% !important; min-height: 0;">
+            <div class="col-lg-6 d-flex flex-column align-items-stretch" style="min-height: 0;">
+              <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column flex-grow-1" style="border-radius: 18px !important; min-height: 0;">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
                   <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                     <i class="fa-solid fa-location-dot fs-6"></i>
                   </div>
                   <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
                 </div>
-                <!-- 🌟 Internal Scroll Only -->
                 <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 8px; min-height: 0;"></div>
               </div>
             </div>
@@ -529,7 +475,7 @@
           </div>
         </div>
 
-        <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
+        <div class="tab-pane fade flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
             <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
@@ -553,7 +499,7 @@
               </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-                  <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
+              <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
             </div>
           </div>
 
@@ -587,13 +533,12 @@
               <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
             </div>
             <nav aria-label="Page navigation">
-              <ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination">
-              </ul>
+              <ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination"></ul>
             </nav>
           </div>
         </div>
 
-        <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
+        <div class="tab-pane fade flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
