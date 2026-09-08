@@ -49,7 +49,7 @@
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
             
             <!-- 🔍 Smart Doc Search Input -->
-            <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
+            <div class="flex-grow-1" style="min-width: 280px; max-width: 520px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
@@ -66,12 +66,12 @@
             </div>
 
             <!-- Specialty Dropdown -->
-            <div style="min-width: 200px; max-width: 250px;">
+            <div style="min-width: 180px; max-width: 250px;">
               <select id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
 
             <!-- Doctor Type Dropdown -->
-            <div style="min-width: 200px; max-width: 250px;">
+            <div style="min-width: 180px; max-width: 250px;">
               <select id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
 
@@ -248,7 +248,7 @@
     </form>
   </div>
 
-  <!-- ================= 3. EDIT DOCTOR VIEW (🌟 PERFECT HIERARCHY & SPACING) ================= -->
+  <!-- ================= 3. EDIT DOCTOR VIEW (📱 IPAD & COM DUAL-COMPATIBLE) ================= -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
       <input type="hidden" id="editDocId">
@@ -275,7 +275,7 @@
         </div>
       </div>
       
-      <!-- 🌟 MAIN CONTENT CONTAINER (ครอบการ์ดให้อยู่ในโซน แยกเด็ดขาดจาก ACTION BAR) -->
+      <!-- 🌟 MAIN CONTENT CONTAINER (แยกโซน Content ออกจาก Action Bar ป้องกันการทับกัน 100%) -->
       <div class="flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0;">
         <div class="row g-3 flex-grow-1 overflow-hidden" style="min-height: 0;">
             
@@ -378,7 +378,7 @@
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
 
-            <!-- 🌟 Pending DCR Summary (โปร่ง สบายตา ขยายความสูงได้เต็มที่) -->
+            <!-- 🌟 Pending DCR Summary (โปร่ง อพยพขึ้นสูง สกอร์ลดูย้อนหลังได้สบาย) -->
             <div id="pendingDcrSummaryCard" class="card p-3.5 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-warning-subtle">
                 <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
@@ -392,7 +392,7 @@
                 <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
               </div>
 
-              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 140px;"></div>
+              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 120px;"></div>
             </div>
 
           </div>
@@ -400,8 +400,8 @@
         </div>
       </div>
 
-      <!-- 🌟 FOOTER ACTION BAR (วางแยกอยู่นอกก้อน Content ชัดเจน ระยะช่องไฟเป๊ะเหมือนหน้า VISIT) -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2" style="border-radius: 18px !important;">
+      <!-- 🌟 FOOTER ACTION BAR (วางอิสระด้านล่าง เว้นช่องไฟ mt-2.5 ตามมาตรฐานหน้า VISIT LOGS) -->
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2.5" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
