@@ -246,7 +246,7 @@
     </form>
   </div>
 
-  <!-- ================= 3. EDIT DOCTOR VIEW (PERFECTED SPACING & FOOTER) ================= -->
+  <!-- ================= 3. EDIT DOCTOR VIEW (🌟 FOCUS: ADJUSTED SPACING & FOOTER) ================= -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 justify-content-between">
       <input type="hidden" id="editDocId">
@@ -273,8 +273,8 @@
         </div>
       </div>
       
-      <!-- 🌟 MAIN CONTENT GRID (ยืดตึงสมบูรณ์ ไม่ทับ Action Bar) -->
-      <div class="row g-3 flex-grow-1 overflow-hidden my-1" style="min-height: 0;">
+      <!-- 🌟 MAIN CONTENT GRID (เว้น margin-bottom 0.75rem เพื่อเว้นช่องไฟให้ Footer) -->
+      <div class="row g-3 flex-grow-1 overflow-hidden mt-1 mb-2.5" style="min-height: 0;">
           
         <!-- Left Side: General Info -->
         <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
@@ -361,7 +361,7 @@
           </div>
         </div>
 
-        <!-- Right Side: Workplace + Pending DCR Summary -->
+        <!-- Right Side: Workplace + Pending DCR Summary (🌟 เพิ่ม gap-3 เว้นระยะห่าง) -->
         <div class="col-lg-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
           
           <!-- Workplace History -->
@@ -375,7 +375,7 @@
             <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
           </div>
 
-          <!-- Pending DCR Summary Card (ระยะสวยงาม ไม่บีบแน่น) -->
+          <!-- 🌟 Pending DCR Summary (ขยายความสูง p-3.5 และเพิ่ม max-height ให้ดูโปร่ง) -->
           <div id="pendingDcrSummaryCard" class="card p-3.5 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important;">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-warning-subtle">
               <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
@@ -384,20 +384,20 @@
               </div>
             </div>
             
-            <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2.5">
               <div><i class="fa-solid fa-user me-1 text-warning"></i><span id="pendingDcrRequester" class="fw-semibold text-dark">-</span></div>
               <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
             </div>
 
-            <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 100px;"></div>
+            <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 120px;"></div>
           </div>
 
         </div>
 
       </div>
 
-      <!-- 🌟 FOOTER ACTION BAR (ตรงช่องไฟตรงกับหน้า Visit) -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2" style="border-radius: 18px !important;">
+      <!-- 🌟 FOOTER ACTION BAR (เพิ่มระยะห่าง mt-2.5 ให้ลอยห่างจากการ์ดเหมือนหน้า Visit) -->
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2.5" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
@@ -418,7 +418,6 @@
       </div>
     </div>
     
-    <!-- 🌟 PROFILE MAIN CARD (ยืดตึงเต็มความสูง แยกสโคปจาก Edit) -->
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
 
       <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 flex-shrink-0">
@@ -446,11 +445,9 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 Profile View (Tab 1: General Info) -> โครงสร้างเฉพาะ Profile ไม่ใช้การ์ดซ้อนให้ยุบตัว -->
         <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
           <div class="row g-3 flex-grow-1 my-1" style="min-height: 0;">
             
-            <!-- Left Side: General Info -->
             <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
               <div class="p-3.5 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column flex-grow-1 shadow-xs" style="border-radius: 18px !important; min-height: 0;">
                 <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
@@ -496,7 +493,6 @@
               </div>
             </div>
 
-            <!-- Right Side: Workplace List -->
             <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
               <div class="p-3.5 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column flex-grow-1 shadow-xs" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 0;">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
