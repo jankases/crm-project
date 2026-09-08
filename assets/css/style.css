@@ -277,14 +277,13 @@ html, body {
   padding-bottom: 0 !important;
 }
 
-/* 🌟 แก้ไข: เพิ่ม .doctor-filter-group ให้คลุมไปด้วยกันเลย */
 .visit-filter-compact .input-group,
 .doctor-filter-group .input-group,
 #doctorFilterZoneGroup .input-group {
   height: 38px !important;
   min-height: 38px !important;
-  border-radius: 8px !important; /* ปรับเป็น 8px เพื่อความคม */
-  background-color: #ffffff !important; /* ปรับเป็นสีขาวล้วน */
+  border-radius: 8px !important;
+  background-color: #ffffff !important;
   border-color: #dee2e6 !important;
   overflow: hidden !important;
 }
@@ -352,7 +351,6 @@ input:checked + .slider:before { transform: translateX(22px); }
   box-sizing: border-box !important;
 }
 
-/* 🌟 [NEW] บังคับ TomSelect ในหน้า Doctor ให้สูงเป๊ะและขาวเนียนเหมือน Input Search */
 #doctorFilterZoneGroup .ts-control {
   height: 38px !important;
   min-height: 38px !important;
@@ -1327,245 +1325,6 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   📱 RESPONSIVE & IPAD SIDEBAR STYLING
-   ========================================== */
-@media (min-width: 768px) and (max-width: 1199px) {
-  .visit-module-wrapper {
-    height: 100vh !important;
-    max-height: 100vh !important;
-    padding-bottom: 0.5rem !important;
-  }
-
-  .ipad-sidebar-rail,
-  #ipadSidebarRail,
-  div[class*="sidebar-rail"] {
-    width: 70px !important;
-    height: 100vh !important;
-    background: #f8fafc !important;
-    border-right: 1px solid #e2e8f0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0.85rem 0 !important;
-    flex-shrink: 0 !important;
-    z-index: 1040 !important;
-    box-sizing: border-box !important;
-  }
-
-  .ipad-sidebar-rail .app-logo-btn,
-  .ipad-sidebar-rail .brand-icon-btn,
-  .ipad-sidebar-rail > div:first-child button,
-  .ipad-sidebar-rail > button:first-child {
-    background-color: #0d6efd !important;
-    color: #ffffff !important;
-    border-radius: 14px !important;
-    border: none !important;
-    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25) !important;
-  }
-
-  .ipad-sidebar-rail button,
-  .ipad-sidebar-rail a,
-  .ipad-sidebar-rail i {
-    color: #64748b !important;
-    transition: all 0.2s ease !important;
-  }
-
-  .ipad-sidebar-rail button:hover,
-  .ipad-sidebar-rail a:hover {
-    background: #f1f5f9 !important;
-    color: #0d6efd !important;
-  }
-
-  .ipad-sidebar-rail button.active,
-  .ipad-sidebar-rail a.active,
-  .ipad-sidebar-rail .sidebar-icon-btn.active {
-    background-color: #0d6efd !important;
-    color: #ffffff !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-  }
-
-  .ipad-sidebar-rail button.active i,
-  .ipad-sidebar-rail a.active i {
-    color: #ffffff !important;
-  }
-
-  .ipad-lang-wrapper,
-  #ipadLangWrapper {
-    background-color: #e2e8f0 !important;
-    padding: 3px !important;
-    border-radius: 12px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
-    width: 44px !important;
-    box-shadow: none !important;
-    border: none !important;
-    margin-bottom: 0.5rem !important;
-  }
-
-  .ipad-lang-wrapper button,
-  .ipad-lang-btn {
-    width: 38px !important;
-    height: 26px !important;
-    font-size: 0.72rem !important;
-    font-weight: 800 !important;
-    border-radius: 9px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    background: transparent !important;
-    background-color: transparent !important;
-    color: #64748b !important;
-    box-shadow: none !important;
-    outline: none !important;
-    padding: 0 !important;
-  }
-
-  .ipad-lang-wrapper button.active,
-  .ipad-lang-wrapper button.btn-primary,
-  .ipad-lang-btn.active {
-    background: #0d6efd !important;
-    background-color: #0d6efd !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3) !important;
-  }
-
-  .ipad-sidebar-rail .logout-icon-btn,
-  .ipad-sidebar-rail > button:last-child,
-  .ipad-sidebar-rail > a:last-child {
-    color: #94a3b8 !important;
-    margin-top: 0 !important;
-  }
-  
-  .ipad-sidebar-rail .logout-icon-btn:hover,
-  .ipad-sidebar-rail > button:last-child:hover,
-  .ipad-sidebar-rail > a:last-child:hover {
-    color: #dc2626 !important;
-    background: #fef2f2 !important;
-  }
-}
-
-/* 📱 FIX IPAD FLEXBOX SQUEEZE & FULL SCROLLING */
-@media (max-width: 1199.98px) {
-  #visitFormView {
-    display: block !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    padding: 0.5rem 0.75rem 1rem 0.75rem !important;
-  }
-
-  #visitFormView form {
-    height: auto !important;
-    min-height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-  }
-
-  #visitFormView .row,
-  #visitFormView .row.g-3,
-  #visitFormView .row.g-2.5 {
-    flex: 0 0 auto !important;
-    height: auto !important;
-    min-height: auto !important;
-    margin-bottom: 1rem !important;
-  }
-
-  /* 🎯 ปรับให้คอลัมน์หลักขยายเต็ม 100% แต่ยกเว้น .col-6 ให้คงขนาด 50% ไว้เพื่อแบ่งครึ่งหน้าจอ (เช่น Start/End Time) */
-  #visitFormView [class*="col-"]:not(.col-6):not(.col-auto) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    margin-bottom: 0.75rem !important;
-  }
-  
-  #visitFormView .col-6 {
-    flex: 0 0 50% !important;
-    max-width: 50% !important;
-    margin-bottom: 0.75rem !important;
-  }
-
-  #visitFormView .col-12 > .border,
-  #visitFormView .col-12 > div,
-  #visitFormView [class*="col-"] > .border,
-  #visitFormView [class*="col-"] > div {
-    height: auto !important;
-    min-height: auto !important;
-    overflow: visible !important;
-  }
-
-  #visitFormView .field-wrapper-details,
-  #visitFormView .field-wrapper-insight,
-  #visitFormView .field-wrapper-nextaction {
-    flex: 0 0 auto !important;
-    margin-bottom: 0.75rem !important;
-  }
-
-  #visitDetails { 
-    height: 120px !important; 
-    min-height: 120px !important; 
-  }
-
-  #visitInsight, 
-  #visitNextAction { 
-    height: 80px !important; 
-    min-height: 80px !important; 
-  }
-
-  .full-width-action-bar {
-    position: sticky !important;
-    bottom: 0 !important;
-    margin-top: 1rem !important;
-    z-index: 105 !important;
-  }
-
-  .doc-module-wrapper {
-    height: 100% !important;
-    max-height: 100% !important;
-    padding-bottom: 0.5rem !important;
-    box-sizing: border-box !important;
-  }
-
-  #doctorListView,
-  #doctorMainContentContainer,
-  #doctorListZone {
-    height: 100% !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-  }
-
-  #doctorPaginationContainer {
-    margin-top: auto !important;
-    flex-shrink: 0 !important;
-  }
-}
-/* 🌟 FORM CONTROL PLACEHOLDER FIX */
-#visitFormView .form-control:disabled::placeholder,
-#visitFormView .form-control[readonly]:not(#filterStartDate):not(#filterEndDate)::placeholder,
-#visitFormView textarea:disabled::placeholder,
-#visitFormView textarea[readonly]:not(#filterStartDate):not(#filterEndDate)::placeholder,
-#visitFormView input:disabled::placeholder,
-#visitFormView input[readonly]:not(#filterStartDate):not(#filterEndDate)::placeholder {
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
-  opacity: 0 !important;
-}
-
-#visitFormView .form-control::placeholder,
-#visitFormView textarea::placeholder,
-#visitFormView input::placeholder {
-  color: #94a3b8 !important;
-  font-weight: 400 !important;
-  font-style: italic !important;
-  opacity: 0.8 !important;
-}
-
-/* ==========================================
    🔐 LOGIN PAGE STYLING
    ========================================== */
 .login-wrapper {
@@ -1776,7 +1535,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🏥 DOCTOR MANAGEMENT
+   🏥 DOCTOR MANAGEMENT & LIST ENGINE
    ========================================== */
 #doctorListView {
   height: 100% !important;
@@ -1851,9 +1610,8 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🏥 WORKPLACE UNIFIED & PERFECT ALIGNMENT (PREMIUM PILL)
+   🏥 WORKPLACE UNIFIED & PERFECT ALIGNMENT
    ========================================== */
-
 .workplace-row {
   display: flex !important;
   align-items: center !important;
@@ -2005,7 +1763,7 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
-   🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE (FIX VISIBILITY CONFLICTS)
+   🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE
    ========================================== */
 .d-none,
 #visitListView.d-none,
@@ -2045,143 +1803,139 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* 🌳 Premium Tree-View Checkbox Styles (iPad Optimized) */
-  .tree-list { list-style: none; padding-left: 0; margin-bottom: 0; }
-  .tree-list ul { list-style: none; padding-left: 1.5rem; display: none; margin-top: 0.25rem; border-left: 1px dashed #cbd5e1; margin-left: 0.85rem; }
-  .tree-list ul.expanded { display: block; }
-  
-  .tree-item-row { 
-    display: flex; 
-    align-items: center; 
-    padding: 0.45rem 0.5rem; /* 🌟 ขยายพื้นที่ Padding สำหรับนิ้วสัมผัส */
-    border-radius: 8px; 
-    transition: background 0.2s; 
-    min-height: 42px; /* 🌟 บังคับความสูงขั้นต่ำสำหรับ iPad */
-  }
-  .tree-item-row:hover { background-color: #f1f5f9; }
-  
-  .tree-toggle-icon { 
-    width: 32px; /* 🌟 ขยายเป้าหมายการกดลูกศรย่อขยาย */
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer; 
-    color: #64748b; 
-    font-size: 0.95rem; 
-    transition: all 0.2s ease-in-out; 
-    border-radius: 8px;
-  }
-  .tree-toggle-icon:hover { color: #0f172a; background-color: #e2e8f0; }
-  .tree-toggle-icon.empty { cursor: default; color: transparent; background-color: transparent; }
+.tree-list { list-style: none; padding-left: 0; margin-bottom: 0; }
+.tree-list ul { list-style: none; padding-left: 1.5rem; display: none; margin-top: 0.25rem; border-left: 1px dashed #cbd5e1; margin-left: 0.85rem; }
+.tree-list ul.expanded { display: block; }
 
-  /* 🌟 ขยาย Checkbox สำหรับ iPad */
-  .tree-item-row .form-check-input {
-    width: 22px !important;
-    height: 22px !important;
-    min-width: 22px !important;
-    margin-top: 0;
-    cursor: pointer;
-    border-radius: 6px !important;
-    border: 2px solid #cbd5e1;
-  }
-  .tree-item-row .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-  }
+.tree-item-row { 
+  display: flex; 
+  align-items: center; 
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px; 
+  transition: background 0.2s; 
+  min-height: 42px;
+}
+.tree-item-row:hover { background-color: #f1f5f9; }
 
-  .tree-item-row .form-check-label {
-    font-size: 0.95rem; /* 🌟 ตัวหนังสือใหญ่ขึ้นอ่านง่าย */
-    padding-left: 0.6rem;
-    cursor: pointer;
-    font-weight: 500;
-  }
+.tree-toggle-icon { 
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer; 
+  color: #64748b; 
+  font-size: 0.95rem; 
+  transition: all 0.2s ease-in-out; 
+  border-radius: 8px;
+}
+.tree-toggle-icon:hover { color: #0f172a; background-color: #e2e8f0; }
+.tree-toggle-icon.empty { cursor: default; color: transparent; background-color: transparent; }
 
-  /* 🌟 Indeterminate (Minus) State */
-  .form-check-input:indeterminate {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
-  }
+.tree-item-row .form-check-input {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  margin-top: 0;
+  cursor: pointer;
+  border-radius: 6px !important;
+  border: 2px solid #cbd5e1;
+}
+.tree-item-row .form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
 
-/* 🌟 ขยายปุ่มสวิตช์ Coaching และสวิตช์ใน Advanced Filters ให้ใหญ่ขึ้นสำหรับ Touch Screen / iPad */
+.tree-item-row .form-check-label {
+  font-size: 0.95rem;
+  padding-left: 0.6rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.form-check-input:indeterminate {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
+}
+
 .form-switch .form-check-input {
-    width: 3.2em !important;
-    height: 1.7em !important;
-    cursor: pointer;
-    border-radius: 2em !important;
-    transition: background-color 0.2s ease-in-out, background-position 0.2s ease-in-out;
+  width: 3.2em !important;
+  height: 1.7em !important;
+  cursor: pointer;
+  border-radius: 2em !important;
+  transition: background-color 0.2s ease-in-out, background-position 0.2s ease-in-out;
 }
 
 .form-switch .form-check-input:checked {
-    background-color: #0d6efd !important;
-    border-color: #0d6efd !important;
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
 }
 
-/* เพิ่มระยะห่างแถวของสวิตช์ Coaching ให้กดง่าย ไม่ติดตัวอักษรเกินไป */
 .form-switch {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    padding-left: 3.5em !important;
-    min-height: 2.2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding-left: 3.5em !important;
+  min-height: 2.2rem !important;
 }
 
 .form-switch .form-check-label {
-    font-size: 0.95rem !important;
-    font-weight: 600 !important;
-    cursor: pointer;
-    user-select: none;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  user-select: none;
 }
 
 #doctorFilterZoneGroup .input-group,
-        #doctorFilterZoneGroup .ts-control {
-            height: 38px !important;
-            min-height: 38px !important;
-            background-color: #ffffff !important;
-            border: 1px solid #dee2e6 !important; /* 🌟 บังคับเส้นขอบให้คมชัดเท่าหน้า Visit */
-            border-radius: 8px !important; 
-        }
-        #doctorFilterZoneGroup .ts-control {
-            display: flex !important;
-            align-items: center !important;
-            padding: 0 12px !important;
-            box-shadow: none !important;
-        }
-        /* 🌟 บังคับฟอนต์และ "สีข้อความหลัก" ให้เข้มคมชัด ไม่จาง */
-        #doctorFilterZoneGroup .form-control,
-        #doctorFilterZoneGroup .ts-control > input,
-        #doctorFilterZoneGroup .ts-control .item {
-            font-size: 0.9rem !important; 
-            color: #475569 !important; /* 🌟 สีอักษรเทาเข้ม (Slate-600) */
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1.5 !important;
-        }
-        /* 🌟 จัดการสี Placeholder ให้ชัดขึ้นแบบหน้า Visit */
-        #doctorFilterZoneGroup .form-control::placeholder,
-        #doctorFilterZoneGroup .ts-control > input::placeholder,
-        #doctorFilterZoneGroup .ts-control .item[data-value=""] {
-            color: #6c757d !important; /* 🌟 สี Placeholder มาตรฐาน (Gray-600) */
-            font-weight: 400 !important;
-            font-size: 0.9rem !important;
-        }
-        /* 🌟 ปรับสีไอคอนแว่นขยายให้เข้าธีม */
-        #doctorFilterZoneGroup .input-group-text i {
-            color: #6c757d !important;
-        }
-        /* แก้อาการข้อความยาวแล้วโดนตัดใน Dropdown */
-        #doctorFilterZoneGroup .ts-control > input {
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            max-width: 100% !important;
-        }
+#doctorFilterZoneGroup .ts-control {
+  height: 38px !important;
+  min-height: 38px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 8px !important; 
+}
+#doctorFilterZoneGroup .ts-control {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 12px !important;
+  box-shadow: none !important;
+}
 
- /* ==========================================
-   📱 RESPONSIVE & DESKTOP FIT ENGINE FOR DOCTOR EDIT
+#doctorFilterZoneGroup .form-control,
+#doctorFilterZoneGroup .ts-control > input,
+#doctorFilterZoneGroup .ts-control .item {
+  font-size: 0.9rem !important; 
+  color: #475569 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5 !important;
+}
+
+#doctorFilterZoneGroup .form-control::placeholder,
+#doctorFilterZoneGroup .ts-control > input::placeholder,
+#doctorFilterZoneGroup .ts-control .item[data-value=""] {
+  color: #6c757d !important;
+  font-weight: 400 !important;
+  font-size: 0.9rem !important;
+}
+
+#doctorFilterZoneGroup .input-group-text i {
+  color: #6c757d !important;
+}
+
+#doctorFilterZoneGroup .ts-control > input {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* ==========================================
+   📱 RESPONSIVE & DEVICE ENGINE (COMBINED & DEDUPED)
    ========================================== */
 
-/* 🖥️ DESKTOP MODE (หน้าจอสูงกว่า 768px): ล็อกพอดีจอ ไร้ Scrollbar นอก */
+/* 🖥️ DESKTOP MODE (หน้าจอใหญ่กว่า 992px) */
 @media (min-width: 992px) {
   #doctorEditView {
     height: 100% !important;
@@ -2200,27 +1954,219 @@ button.feature-action-btn-lg.has-data-samples i {
   }
 }
 
-/* 📱 IPAD & SMALL SCREEN MODE (หน้าจอต่ำกว่า 991px หรือจอย่อ): เปิด Scrollbar ให้เลื่อนได้ธรรมชาติ */
-@media (max-width: 991.98px) {
+/* 📱 IPAD SIDEBAR RAIL (ช่วงจอ 768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .ipad-sidebar-rail,
+  #ipadSidebarRail,
+  div[class*="sidebar-rail"] {
+    width: 70px !important;
+    height: 100vh !important;
+    background: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.85rem 0 !important;
+    flex-shrink: 0 !important;
+    z-index: 1040 !important;
+    box-sizing: border-box !important;
+  }
+
+  .ipad-sidebar-rail .app-logo-btn,
+  .ipad-sidebar-rail .brand-icon-btn,
+  .ipad-sidebar-rail > div:first-child button,
+  .ipad-sidebar-rail > button:first-child {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    border-radius: 14px !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25) !important;
+  }
+
+  .ipad-sidebar-rail button,
+  .ipad-sidebar-rail a,
+  .ipad-sidebar-rail i {
+    color: #64748b !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .ipad-sidebar-rail button:hover,
+  .ipad-sidebar-rail a:hover {
+    background: #f1f5f9 !important;
+    color: #0d6efd !important;
+  }
+
+  .ipad-sidebar-rail button.active,
+  .ipad-sidebar-rail a.active,
+  .ipad-sidebar-rail .sidebar-icon-btn.active {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+  }
+
+  .ipad-sidebar-rail button.active i,
+  .ipad-sidebar-rail a.active i {
+    color: #ffffff !important;
+  }
+
+  .ipad-lang-wrapper,
+  #ipadLangWrapper {
+    background-color: #e2e8f0 !important;
+    padding: 3px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    width: 44px !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .ipad-lang-wrapper button,
+  .ipad-lang-btn {
+    width: 38px !important;
+    height: 26px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    border-radius: 9px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #64748b !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+  }
+
+  .ipad-lang-wrapper button.active,
+  .ipad-lang-wrapper button.btn-primary,
+  .ipad-lang-btn.active {
+    background: #0d6efd !important;
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3) !important;
+  }
+
+  .ipad-sidebar-rail .logout-icon-btn,
+  .ipad-sidebar-rail > button:last-child,
+  .ipad-sidebar-rail > a:last-child {
+    color: #94a3b8 !important;
+    margin-top: 0 !important;
+  }
+  
+  .ipad-sidebar-rail .logout-icon-btn:hover,
+  .ipad-sidebar-rail > button:last-child:hover,
+  .ipad-sidebar-rail > a:last-child:hover {
+    color: #dc2626 !important;
+    background: #fef2f2 !important;
+  }
+}
+
+/* 📱 IPAD & TABLET RESPONSIVE FORM SCROLLING (จอน้อยกว่า 1199.98px) */
+@media (max-width: 1199.98px) {
   .doc-module-wrapper {
     height: auto !important;
     min-height: 100vh !important;
-    overflow-y: auto !important;
+    padding-bottom: 0.5rem !important;
+    box-sizing: border-box !important;
   }
+
+  #visitFormView,
   #doctorEditView {
+    display: block !important;
     height: auto !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 0.5rem 0.75rem 1rem 0.75rem !important;
   }
+
+  #visitFormView form,
   #doctorEditView form {
     height: auto !important;
+    min-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
   }
+
   #doctorEditView .form-content-grid {
     flex: none !important;
     height: auto !important;
   }
+
+  #visitFormView .row,
+  #visitFormView .row.g-3,
+  #visitFormView .row.g-2.5 {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin-bottom: 1rem !important;
+  }
+
+  #visitFormView [class*="col-"]:not(.col-6):not(.col-auto) {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  #visitFormView .col-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  #visitFormView .col-12 > .border,
+  #visitFormView .col-12 > div,
+  #visitFormView [class*="col-"] > .border,
+  #visitFormView [class*="col-"] > div {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  #visitFormView .field-wrapper-details,
+  #visitFormView .field-wrapper-insight,
+  #visitFormView .field-wrapper-nextaction {
+    flex: 0 0 auto !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  #visitDetails { 
+    height: 120px !important; 
+    min-height: 120px !important; 
+  }
+
+  #visitInsight, 
+  #visitNextAction { 
+    height: 80px !important; 
+    min-height: 80px !important; 
+  }
+
+  .full-width-action-bar,
   #doctorEditView .full-width-action-bar {
     position: sticky !important;
     bottom: 10px !important;
-    z-index: 100 !important;
+    margin-top: 1rem !important;
+    z-index: 105 !important;
+  }
+
+  #doctorListView,
+  #doctorMainContentContainer,
+  #doctorListZone {
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  #doctorPaginationContainer {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
   }
 }
