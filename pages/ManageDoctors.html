@@ -443,16 +443,18 @@
         </button>
       </div>
 
-      <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
+     <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 [REBUILT] GENERAL INFO TAB: เลียนแบบโครงสร้างและ UI ของหน้า Edit 100% -->
-        <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
+        <!-- 🌟 [FIX]: เปลี่ยน h-100 เป็น flex-grow-1 เพื่อรับพลัง Flexbox จากตัวแม่ -->
+        <div class="tab-pane fade show active flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
           <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
             <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
               
               <!-- 🔹 Left Side: General Info (Read-Only) -->
-              <div class="col-12 col-xl-6 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
-                <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
+              <!-- 🌟 [FIX]: ลบ h-100 ออก ปล่อยให้ row จัดการยืดความสูงคอลัมน์อัตโนมัติ -->
+              <div class="col-12 col-xl-6 d-flex flex-column mb-3 mb-xl-0" style="min-height: 0;">
+                <!-- 🌟 [FIX]: เปลี่ยน h-100 เป็น flex-grow-1 ให้การ์ดยืดเต็มคอลัมน์ -->
+                <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; min-height: 0;">
                   <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                       <i class="fa-solid fa-address-card fs-6"></i>
@@ -534,8 +536,9 @@
                 </div>
               </div>
 
-              <!-- 🔹 Right Side: Workplace + Pending DCR Summary (Separate IDs) -->
-              <div class="col-12 col-xl-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
+              <!-- 🔹 Right Side: Workplace + Pending DCR Summary -->
+              <!-- 🌟 [FIX]: ลบ h-100 ออก ปล่อยให้ยืดตามธรรมชาติของ Flex Row -->
+              <div class="col-12 col-xl-6 d-flex flex-column gap-3" style="min-height: 0;">
                 
                 <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
                   <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
@@ -547,7 +550,7 @@
                   <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 8px; min-height: 0;"></div>
                 </div>
 
-                <!-- 🌟 Profile DCR Card (ID ไม่ซ้ำกับหน้า Edit ป้องกันบั๊ก) -->
+                <!-- Profile DCR Card -->
                 <div id="profilePendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
                   <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
                     <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
@@ -570,7 +573,8 @@
           </div>
         </div>
 
-        <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
+        <!-- 🌟 [FIX]: เปลี่ยน h-100 เป็น flex-grow-1 ให้กับ Tab อื่นๆ ด้วยเพื่อป้องกันบั๊กเดียวกัน -->
+        <div class="tab-pane fade flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
             <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
@@ -633,7 +637,7 @@
           </div>
         </div>
 
-        <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
+        <div class="tab-pane fade flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
