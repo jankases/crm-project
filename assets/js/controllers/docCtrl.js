@@ -2437,18 +2437,27 @@ if (!window._isDocLangListenerAttached) {
 // ==========================================
 // 🧹 UI HELPER: SMART SEARCH CLEAR BUTTON
 // ==========================================
+// 🎯 Handle Input พร้อม Debounce & ควบคุมปุ่ม Clear (X)
+let docSearchDebounceTimer = null;
 window.handleDocSearchInput = function(inputEl) {
-    var clearBtn = document.getElementById('btnClearDocSearch');
-    if (clearBtn) {
-        if (inputEl.value.length > 0) {
-            clearBtn.classList.remove('d-none');
-        } else {
-            clearBtn.classList.add('d-none');
-        }
+  const btnClear = document.getElementById('btnClearDocSearch');
+  const val = inputEl ? inputEl.value.trim() : '';
+
+  // แสดง/ซ่อน ปุ่ม Clear
+  if (btnClear) {
+    if (val.length > 0) {
+      btnClear.classList.remove('d-none');
+    } else {
+      btnClear.classList.add('d-none');
     }
-    if (typeof window.debouncedFilterDoctors === 'function') {
-        window.debouncedFilterDoctors();
-    }
+  }
+
+  // หน่วงเวลาพิมพ์เพื่อโหลดข้อมูล
+  clearTimeout(docSearchDebounceTimer);
+  docSearchDebounceTimer = setTimeout(() => {
+    window.currentPage = 1;
+    window.loadDoctors(true);
+  }, 300);
 };
 
 window.clearDocSearchInput = function() {
@@ -2500,3 +2509,33 @@ window.getOptionsHtml = function(typeName, defaultText) {
   }
   return html;
 };
+
+
+// 🎯 Helper สำหรับป้ายไฮไลท์คำค้นหาในตาราง (เหมือนหน้า Visit)
+window.highlightDocSearchText = function(text, query) {
+  if (!text) return '';
+  if (!query || query.trim() === '') return text;
+  
+  const terms = query.trim().split(/\s+/).filter(t => t.length > 0);
+  if (terms.length === 0) return text;
+
+  let highlighted = String(text);
+  terms.forEach(term => {
+    const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    highlighted = highlighted.replace(regex, '<mark class="highlight-search">$1</mark>');
+  });
+
+  return highlighted;
+};
+// 🎯 ปุ่ม Clear คำค้นหา
+window.clearDocSearchInput = function() {
+  const inputEl = document.getElementById('smartDocSearchInput');
+  const btnClear = document.getElementById('btnClearDocSearch');
+  if (inputEl) {
+    inputEl.value = '';
+    if (btnClear) btnClear.classList.add('d-none');
+    window.currentPage = 1;
+    window.loadDoctors(true);
+  }
+};
+
