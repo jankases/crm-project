@@ -15,599 +15,898 @@
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
-<div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column overflow-hidden">
-      
+<div class="container-fluid p-0 visit-module-wrapper">
+  
   <!-- ================= 1. LIST VIEW ================= -->
-  <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
+  <div id="visitListView" class="w-100 h-100 d-flex flex-column">
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
-          <i class="fa-solid fa-user-doctor fs-5"></i>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="kpi-card-elevated kpi-border-blue kpi-card-clickable active-total" id="kpiCardAll" onclick="window.clickStatCard('')">
+          <div class="kpi-icon-square bg-primary-subtle text-primary"><i class="fa-solid fa-calendar-days fs-6"></i></div>
+          <div class="d-flex flex-column justify-content-center overflow-hidden">
+            <span class="kpi-label-text" data-i18n="kpi_total_visits">Total Visits</span>
+            <span class="kpi-value-text text-primary" id="statTotalVisits">-</span>
+          </div>
         </div>
-        <div class="d-flex flex-column justify-content-center">
-          <h5 class="text-dark fw-bold mb-1" data-i18n="doc_title" style="line-height: 1.1;">Doctor Profiles</h5>
-          <p class="text-muted mb-0 fw-medium" data-i18n="doc_subtitle" style="font-size: 0.75rem; letter-spacing: 0.2px;">View and manage your key contacts and their workplaces</p>
+
+        <div class="kpi-card-elevated kpi-border-amber kpi-card-clickable" id="kpiCardPending" onclick="window.clickStatCard('Pending')">
+          <div class="kpi-icon-square bg-warning-subtle text-warning"><i class="fa-solid fa-clock-rotate-left fs-6"></i></div>
+          <div class="d-flex flex-column justify-content-center overflow-hidden">
+            <span class="kpi-label-text" data-i18n="kpi_pending_drafts">Pending Drafts</span>
+            <span class="kpi-value-text text-warning-emphasis" id="statPendingVisits">-</span>
+          </div>
+        </div>
+
+        <div class="kpi-card-elevated kpi-border-emerald kpi-card-clickable" id="kpiCardSubmitted" onclick="window.clickStatCard('Submitted')">
+          <div class="kpi-icon-square bg-success-subtle text-success"><i class="fa-solid fa-circle-check fs-6"></i></div>
+          <div class="d-flex flex-column justify-content-center overflow-hidden">
+            <span class="kpi-label-text" data-i18n="kpi_submitted_logs">Submitted Logs</span>
+            <span class="kpi-value-text text-success" id="statSubmittedVisits">-</span>
+          </div>
         </div>
       </div>
-      
-      <div class="d-flex gap-2">
-        <button type="button" class="btn btn-premium-icon" onclick="window.forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
-          <i class="fa-solid fa-arrows-rotate fs-6"></i>
+
+      <div class="d-flex gap-2 align-items-center flex-wrap ms-auto">
+        <div class="d-flex bg-white p-1 border me-1 premium-radius shadow-xs">
+        <button type="button" class="btn btn-sm btn-premium-primary px-3 py-1.5 fw-bold premium-radius" id="btnToggleList" onclick="window.toggleMainView('list')"><i class="fa-solid fa-list me-2"></i> <span data-i18n="btn_list">List</span></button>
+        <button type="button" class="btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-2"></i> <span data-i18n="btn_calendar">Calendar</span></button>
+      </div>
+
+        
+
+        <!-- เปลี่ยน onclick เป็น window.initVisitPage(true) -->
+    <button type="button" class="btn btn-premium-icon" onclick="window.initVisitPage(true)" id="btnRefreshVisits" title="Refresh Data">
+      <i class="fa-solid fa-arrows-rotate fs-6"></i>
+    </button>
+
+        <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
+          <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
         </button>
-        <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddDoctorView()">
-          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
+
+        <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddVisitView()">
+          <i class="fa-solid fa-plus me-2"></i><span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
 
-    <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
-
-      <!-- 🌟 Doctor Filter Zone -->
-      <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
+    <!-- Card Loading Spinner -->   
+<div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center d-flex">
+  <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+  <h5 class="fw-bold text-dark mb-1" id="visitLoadingTitleText" data-i18n="status_loading">Loading Data...</h5>
+  <p class="text-muted mb-0" id="visitLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
+</div>
+ 
+      <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden">
+ 
+<div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
+          <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
-            <!-- 🔍 Smart Doc Search Input -->
+            <!-- Smart Search Input -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
-                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer" onclick="window.triggerSmartSearch()"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartSearchInput" data-i18n-placeholder="opt_smart_search_ph" placeholder="Search Doctor, Hospital or Products..." onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.triggerSmartSearch(); }" oninput="window.handleSearchInput(this)">
                 
-                <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()" title="Clear Search">
+                <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearSmartSearch" onclick="window.clearSmartSearchInput()">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
                 </button>
 
-                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicDocSearch" onclick="window.toggleSpeechSearch('smartDocSearchInput', 'btnMicDocSearch', 'micDocSearchIcon')" title="Voice Search">
-                  <i class="fa-solid fa-microphone" id="micDocSearchIcon"></i>
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent px-2.5" type="button" id="btnMicSmartSearch" onclick="window.toggleSpeechSearch('smartSearchInput', 'btnMicSmartSearch', 'micSmartSearchIcon')"><i class="fa-solid fa-microphone" id="micSmartSearchIcon"></i></button>
+              </div>
+            </div>
+ 
+          <!-- Date Range Picker Filter -->
+            <div style="width: 280px;"> <!-- 🌟 ปรับความกว้างจาก 260px เป็น 280px เพื่อเผื่อที่ให้ปุ่มกากบาท -->
+              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer position-relative" id="dateFilterRangeWrapper">
+                <span class="text-muted pe-1" onclick="if(window.fpStartInstance) window.fpStartInstance.open();"><i class="fa-regular fa-calendar-days"></i></span>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterStartDate" placeholder="dd/mm/yyyy" readonly>
+                <span class="text-muted small px-1">-</span>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterEndDate" placeholder="dd/mm/yyyy" readonly>
+                
+                <!-- 🌟 เพิ่มปุ่มกากบาท (x) สำหรับเคลียร์วันที่ (ซ่อนไว้ก่อนด้วย d-none) -->
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent p-0 ms-1 d-none" type="button" id="btnClearDateFilter" onclick="window.clearDateFilterExternal(event)">
+                  <i class="fa-solid fa-circle-xmark opacity-50 hover-opacity-100 transition-all"></i>
                 </button>
               </div>
             </div>
 
-            <!-- Specialty Dropdown -->
-            <div style="min-width: 200px; max-width: 250px;">
-              <select id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
-            </div>
-
-            <!-- Doctor Type Dropdown -->
-            <div style="min-width: 200px; max-width: 250px;">
-              <select id="filterDocType" onchange="window.filterDoctors()" multiple></select>
-            </div>
-
           </div>
-
-          <div class="d-flex ms-auto">
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearDoctorFilters()" title="Clear All Filters">
-              <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
+ 
+        <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
+          <div class="d-flex gap-2.5 align-items-center ms-auto">
+            <div class="dropdown position-relative">
+              
+              <!-- ปุ่มเปิดเมนู Advanced Filters -->
+            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+              <i class="fa-solid fa-sliders me-2 text-primary"></i>
+              <!-- 🌟 เปลี่ยน data-i18n เป็น btn_adv_filters -->
+              <span class="fw-semibold" data-i18n="btn_adv_filters">Advanced Filters</span>
             </button>
+
+              <!-- 🌟 แผงกรองแนวกว้าง (Premium Horizontal Panel - ขยายกว้างเป็น 1050px) --> 
+                <div class="dropdown-menu dropdown-menu-end p-0 border shadow-lg mt-2 bg-white" id="visitFilterZoneGroup" style="width: 1050px; max-width: 95vw; z-index: 1050; border-radius: 12px; overflow: hidden;">
+                
+                <!-- 📌 1. Panel Header (ตรึงอยู่ด้านบน) -->
+                <div class="bg-light-subtle px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <h6 class="fw-bold text-dark mb-0 fs-6"><i class="fa-solid fa-filter text-primary me-2"></i><span data-i18n="lbl_adv_filters">Advanced Filters</span></h6>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill small font-normal ms-3" id="lblSelectedCount" data-i18n="lbl_all_data">All Data</span>
+                  </div>
+                  <!-- ปุ่มกากบาทมุมขวาบน สำหรับปิด -->
+                  <button type="button" class="btn-close" onclick="document.getElementById('btnAdvFilterDropdown').click()"></button>
+                </div>
+
+                <!-- 📌 2. Panel Body (มี Scrollbar ถ้ายาวเกินจอ) -->
+                <div class="p-4" style="max-height: 55vh; overflow-y: auto; overflow-x: hidden;">
+                  <div class="row g-4">
+                    
+                    <!-- 🔹 คอลัมน์ที่ 1: Status, Purpose, Coaching -->
+                    <div class="col-12 col-md-4">
+                      
+                      <!-- 1. Status -->
+                      <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-2" data-i18n="lbl_status">Status</label>
+                        <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitStatus">
+                          <option value="" data-i18n="opt_all_status">- All Status -</option>
+                          <option value="Pending" data-i18n="opt_status_pending">⏳ Pending</option>
+                          <option value="Submitted" data-i18n="opt_status_submitted">✅ Submitted</option>
+                        </select>
+                      </div>
+
+                      <!-- 2. Purpose -->
+                      <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small mb-2" data-i18n="lbl_purpose">Purpose</label>
+                        <select class="form-select bg-light-subtle shadow-none fs-6 premium-radius" id="filterVisitPurpose">
+                          <option value="" data-i18n="opt_all_purposes">- All Purposes -</option>
+                          <!-- Options จะถูกวาดโดย TomSelect จาก JS -->
+                        </select>
+                      </div>
+
+                      <!-- 3. Coaching Switch -->
+                      <div class="mt-4 pt-2 border-top border-light">
+                        <div class="form-check form-switch d-flex align-items-center gap-2">
+                          <input class="form-check-input mt-0" type="checkbox" role="switch" id="filterVisitCoaching" style="width: 2.2rem; height: 1.2rem; cursor: pointer;">
+                         <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer d-flex align-items-center" for="filterVisitCoaching">
+                        <span data-i18n="lbl_coaching_only">Show Coaching Only</span>
+                        <span class="badge badge-soft-info ms-2"><i class="fa-solid fa-clipboard-user text-info"></i></span>
+                    </label>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <!-- 🔹 คอลัมน์ที่ 2: Employee / Sales Rep -->
+                    <div class="col-12 col-md-4 border-start border-light" style="border-color: #e2e8f0 !important;">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold text-secondary small mb-0" data-i18n="lbl_filter_rep">Employee / Sales Rep</label>
+                        <div class="small">
+                          <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold me-1" onclick="window.toggleAllCheckboxes('rep', true)" data-i18n="btn_all">All</a>
+                          <span class="text-muted">|</span>
+                          <a href="javascript:void(0)" class="text-muted text-decoration-none ms-1" onclick="window.toggleAllCheckboxes('rep', false)" data-i18n="btn_clear_short">Clear</a>
+                        </div>
+                      </div>
+                      
+                      <div class="border rounded-3 p-2 bg-light-subtle">
+                        <!-- 🌟 ใส่ oninput ให้ค้นหาทันที และใส่ data-i18n-placeholder สำหรับแปลภาษา -->
+                        <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchRepFilter" placeholder="🔍 Search employee..." data-i18n-placeholder="ph_search_emp" oninput="window.filterCheckboxList('rep', this.value)">
+                            <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterRep" style="height: 180px;">
+                          <!-- Checkbox List Render Here -->
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- 🔹 คอลัมน์ที่ 3: Area / Team -->
+                    <div class="col-12 col-md-4 border-start border-light" style="border-color: #e2e8f0 !important;">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold text-secondary small mb-0" data-i18n="lbl_area_team">Area / Team</label>
+                        <div class="small">
+                          <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold me-1" onclick="window.toggleAllCheckboxes('ter', true)" data-i18n="btn_all">All</a>
+                          <span class="text-muted">|</span>
+                          <a href="javascript:void(0)" class="text-muted text-decoration-none ms-1" onclick="window.toggleAllCheckboxes('ter', false)" data-i18n="btn_clear_short">Clear</a>
+                        </div>
+                      </div>
+
+                      <div class="border rounded-3 p-2 bg-light-subtle">
+                        <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchTerFilter" placeholder="🔍 Search area..." data-i18n-placeholder="ph_search_area" oninput="window.filterCheckboxList('ter', this.value)">
+                         <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterTer" style="height: 180px;">
+                          <!-- Checkbox List Render Here -->
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- 📌 3. Panel Footer (ตรึงอยู่ด้านล่างสุดเสมอ) -->
+                <div class="bg-light px-4 py-3 border-top d-flex justify-content-between align-items-center">
+                  <!-- 🌟 แก้ไข: เติมคำว่า event ลงไปในวงเล็บ เพื่อกันหน้าต่างพับ -->
+                  <button type="button" class="btn btn-link text-danger text-decoration-none fw-bold px-0" onclick="window.clearVisitFilters(event)">
+                    <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_all">Clear all</span>
+                  </button>
+                  
+                  <div class="d-flex gap-2">
+                    <!-- ปุ่ม Cancel -->
+                    <button type="button" class="btn btn-white border fw-semibold shadow-sm px-4 text-secondary" onclick="document.getElementById('btnAdvFilterDropdown').click()">
+                      <span data-i18n="btn_cancel">Cancel</span>
+                    </button>
+                    <!-- 🌟 แก้ไข: ลบ onclick ทิ้งไปเลย เพราะใน JS เราดัก Event พร้อมแอนิเมชันปุ่มไว้แล้ว -->
+                    <button type="button" class="btn btn-premium-primary fw-bold shadow-sm px-5" id="btnApplyAdvancedFilters">
+                      <i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_apply_close">Apply & Close</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div id="doctorTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center">
-        <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
-        <h5 class="fw-bold text-dark mb-1" id="docLoadingTitleText" data-i18n="status_loading">Loading Doctors...</h5>
-        <p class="text-muted mb-0" id="docLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
-      </div>
+       <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column position-relative" style="min-height: 0;">
+        
+        <!-- 🌟 สร้าง Overlay Loading ทับตารางให้เต็มพื้นที่ (ซ่อนไว้ก่อนด้วย d-none) -->
+        <div id="tableLoadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center d-none" style="z-index: 10; border-radius: inherit;">
+          <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+          <!-- 🌟 ใช้ data-i18n="status_loading" เพื่อให้ระบบ 2 ภาษาทำงานอัตโนมัติ -->
+          <span class="text-muted fw-bold fs-6" data-i18n="status_loading">Loading Data...</span>
+        </div>
 
-      <div id="doctorListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
-        <div class="table-responsive table-scroll-inside flex-grow-1" style="min-height: 0;">
+        <div class="table-responsive table-scroll-inside flex-grow-1">
           <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.95rem;">
             <thead class="table-custom-header text-center">
               <tr>
-                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Doc_Name')"><span data-i18n="th_doc_name_en">Doctor (EN)</span> <i class="fa-solid fa-sort-up text-primary ms-1" id="icon-sort-doc-Doc_Name"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Doc_Name_TH')"><span data-i18n="th_doc_name_th">Doctor (TH)</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Doc_Name_TH"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Specialty')"><span data-i18n="th_specialty">Specialty</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Specialty"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Hospital_ID')"><span data-i18n="th_primary_hosp">Primary Hospital</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Hospital_ID"></i></th>
-                <th class="py-2.5 sortable-th" onclick="window.sortDoctors('Status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-doc-Status"></i></th>
-                <th class="py-2.5" style="width: 50px;"></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1.5" id="icon-sort-date"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('doctor')"><span data-i18n="th_doctor">Doctor</span> <i class="fa-solid fa-sort text-muted ms-1.5" id="icon-sort-doctor"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('hospital')"><span data-i18n="th_hospital">Hospital</span> <i class="fa-solid fa-sort text-muted ms-1.5" id="icon-sort-hospital"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1.5" id="icon-sort-products"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1.5" id="icon-sort-purpose"></i></th>
+                <th class="py-2.5 sortable-th" onclick="window.sortVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1.5" id="icon-sort-status"></i></th>
               </tr>
             </thead>
-            <tbody id="doctorTableBody">
-            </tbody>
+            <tbody id="visitTableBody"></tbody>
           </table>
         </div>
 
-        <div id="doctorPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
+        <div id="visitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
           <div class="d-flex align-items-center">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-            <select class="form-select form-select-sm shadow-sm premium-radius" id="doctorRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
+            <select class="form-select form-select-sm shadow-sm premium-radius" id="visitRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
-              <option value="100">100</option>
             </select>
-            <span class="text-muted small ms-3" id="doctorPageInfo">Showing 1 to 10 of 50 entries</span>
+            <span class="text-muted small ms-3" id="visitPageInfo">-</span>
           </div>
-          <nav aria-label="Page navigation">
-            <ul class="pagination pagination-sm custom-pagination mb-0" id="doctorPagination"></ul>
-          </nav>
+          <nav><ul class="pagination pagination-sm custom-pagination mb-0" id="visitPagination"></ul></nav>
         </div>
-
       </div>
 
     </div>
+
+    <div id="visitCalendarZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-none">
+      <div id="calendar" class="w-100 h-100"></div>
+    </div>
+
   </div>
 
-  <!-- ================= 2. ADD DOCTOR VIEW ================= -->
-  <div id="doctorAddView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
-    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
-      
-      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
-        <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
-            <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
-          </button>
-          <h5 class="text-dark fw-bold mb-0 fs-6"><i class="fa-solid fa-user-plus text-primary me-2"></i><span data-i18n="title_add_doc">Add New Doctor (DCR)</span></h5>
-        </div>
-      </div>
-      
-      <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
-        <div class="row g-2.5 flex-grow-1 overflow-hidden" style="min-height: 0;">
-          <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-            <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="border-radius: 18px !important;">
-              <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                  <i class="fa-solid fa-stethoscope fs-6"></i>
-                </div>
-                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
-              </div>
-              
-              <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;">
-                <div class="mb-2">
-                  <label class="compact-label mb-1" data-i18n="lbl_doc_title">Title</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
-                </div>
+  <!-- ================= 2. FORM VIEW ================= -->
+  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3 pb-3">
+    <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
+      <input type="hidden" id="visitId">
 
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                  </div>
-                </div>
-
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_specialty">Specialty</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_type">Type</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
-                  </div>
-                </div>
-
-                <div class="mt-3 pt-2.5 border-top border-light-subtle">
-                  <div class="d-flex align-items-center mb-2">
-                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                      <i class="fa-solid fa-shield-halved fs-6"></i>
-                    </div>
-                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                  </div>
-                  <div class="row g-2 mb-2">
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                      <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
-                    </div>
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                      <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
-                    </div>
-                  </div>
-                  <div class="row g-2 pt-1">
-                    <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.5em; height: 1.3em; cursor: pointer;">
-                        </div>
-                      </div>
-                      <input type="hidden" id="docPrivacy" value="Yes">
-                    </div>
-                    <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.5em; height: 1.3em; cursor: pointer;">
-                        </div>
-                      </div>
-                      <input type="hidden" id="docTos" value="Yes">
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-            <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="border-radius: 18px !important; overflow-x: hidden !important;">
-              <div class="d-flex align-items-center mb-2.5 pb-2 border-bottom border-light-subtle flex-shrink-0">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                  <i class="fa-solid fa-location-dot fs-6"></i>
-                </div>
-                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
-              </div>
-              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn">
-          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add Doctor</span>
-        </button>
-      </div>
-
-    </form>
-  </div>
-
-  <!-- ================= 3. EDIT DOCTOR VIEW (🌟 VISIT LOGS REFERENCE MATCHING) ================= -->
-  <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
-    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
-      <input type="hidden" id="editDocId">
-      
       <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-2">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
-            <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
+          <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.cancelVisitForm()">
+            <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i><span data-i18n="btn_back">Back</span>
           </button>
-          <h5 class="text-dark fw-bold mb-0 fs-6" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
-          <div id="editDcrStatusBadge" class="ms-2"></div>
+          <h5 class="text-dark fw-bold mb-0 fs-6" id="formVisitTitle">📝 <span data-i18n="title_edit_visit">Edit Visit</span></h5>
         </div>
 
-        <div class="d-flex align-items-center gap-2 me-1">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- แคปซูล 1: สวิตช์ Coaching -->
           <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
-            <label class="switch mb-0 me-2" style="transform: scale(0.85);">
-              <input type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)">
+            <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
+              <input type="checkbox" id="visitIsCoaching" onchange="const el = document.getElementById('visitCoachWrapper'); if(el) el.classList.toggle('d-none', !this.checked);">
               <span class="slider"></span>
             </label>
-            <span id="lblDocStatusToggle" class="fw-bold text-success small" data-i18n="lbl_active">Active</span>
+            <span id="lblCoachingMainText" class="fw-bold text-dark small" data-i18n="lbl_coaching_main">Joint Visit / Coaching</span>
           </div>
-          <input type="hidden" id="editDocStatus" value="Active">
+
+          <!-- แคปซูล 2: Dropdown เลือก Coach -->
+          <div id="visitCoachWrapper" class="d-none">
+            <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 36px;">
+              <i class="fa-solid fa-user-ninja text-primary me-2 ms-1"></i>
+              <select class="form-select form-select-sm bg-transparent border-0 shadow-none fw-semibold text-primary py-0 pe-4 text-truncate" id="visitCoachRepId" style="max-width: 160px; font-size: 0.8rem; height: 26px;">
+                <option value="">- Select Coach -</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- แคปซูล User -->
+          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
+            <i class="fa-solid fa-user-tie text-primary me-1.5"></i><span data-i18n="lbl_user">User:</span> <span id="dispSalesRepName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
+          </span>
+          
+          <!-- แคปซูล Territory -->
+          <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center fw-normal" style="height: 36px; font-size: 0.8rem;">
+            <i class="fa-solid fa-location-dot text-primary me-1.5"></i><span id="dynamicTerritoryLabel">Territory:</span> <span id="dispTerritoryName" class="text-dark fw-semibold ms-1 me-0.5">-</span>
+          </span>
         </div>
       </div>
-      
-      <!-- 🌟 MAIN CONTENT CONTAINER (โซนการ์ดซ้าย-ขวา) -->
-      <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
-        <div class="row g-2.5 flex-grow-1 overflow-hidden" style="min-height: 0;">
-            
-          <!-- Left Side: General Info -->
-          <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-            <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="border-radius: 18px !important;">
-              <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
+
+      <!-- Main Cards Grid Container -->
+      <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
+        
+        <!-- 🔹 Left Column (Visit Information & Evidences) -->
+        <div class="col-12 col-xl-5 h-100 d-flex flex-column">
+          <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
+            <div>
+              <!-- ไอคอนหัวข้อ -->
+              <div class="d-flex align-items-center mb-2.5">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-solid fa-stethoscope fs-6"></i>
                 </div>
-                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
+                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_visit_info">Visit Information</h6>
               </div>
               
-              <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;">
-                <div class="mb-2">
-                  <label class="compact-label mb-1" data-i18n="lbl_doc_title">Title</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+              <!-- Doctor Selection -->
+              <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="compact-label mb-0"><span data-i18n="lbl_doctor">Doctor Name</span> <span class="text-danger">*</span></label>
+                  <button type="button" class="btn btn-xs btn-link text-decoration-none fw-bold p-0" onclick="document.getElementById('lastVisitHistoryModal') ? new bootstrap.Modal(document.getElementById('lastVisitHistoryModal')).show() : null">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i><span data-i18n="btn_last_history">📜 Visit History</span>
+                  </button>
+                </div>
+                <div class="position-relative d-flex align-items-center">
+                  <select class="form-select bg-white pe-5" id="visitDocId" required style="min-height: 38px !important;"></select>
+                  <button class="btn btn-dictate-select-inside" type="button" id="btnMicDoc" onclick="window.toggleDocDictation()" title="Voice Dictation">
+                    <i class="fa-solid fa-microphone" id="micDocIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Products -->
+              <div class="mb-2">
+                <label class="compact-label mb-1"><span data-i18n="lbl_products">Products</span> <span class="text-danger">*</span></label>
+                <select class="form-select bg-white shadow-xs premium-radius" id="visitProductId" multiple required onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()"></select>
+              </div>
+
+              <!-- Date & Start/End Time -->
+              <div class="row g-2 align-items-end mb-2">
+                <div class="col-5">
+                  <label class="compact-label mb-1"><span data-i18n="lbl_date">Date</span> <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius px-1.5 cursor-pointer" id="visitDate" placeholder="dd/mm/yyyy" required readonly>
                 </div>
 
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
-                  </div>
-                </div>
-
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_specialty">Specialty</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
-                  </div>
-                  <div class="col-6">
-                    <label class="compact-label mb-1" data-i18n="lbl_type">Type</label>
-                    <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
-                  </div>
-                </div>
-
-                <!-- Contact & Consent -->
-                <div class="mt-3 pt-2.5 border-top border-light-subtle">
-                  <div class="d-flex align-items-center mb-2">
-                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                      <i class="fa-solid fa-shield-halved fs-6"></i>
-                    </div>
-                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                  </div>
-                  
-                  <div class="row g-2 mb-2">
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-envelope text-muted me-1"></i> <span data-i18n="lbl_email">Email</span></label>
-                      <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
-                    </div>
-                    <div class="col-sm-6">
-                      <label class="compact-label mb-1"><i class="fa-solid fa-phone text-muted me-1"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                      <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
-                    </div>
-                  </div>
-
-                  <div class="row g-2 pt-1">
+                <div class="col-7">
+                  <div class="row g-1">
+                    <!-- 🌟 Quick Time Buttons -->
                     <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.5em; height: 1.3em; cursor: pointer;">
-                        </div>
+                      <div class="d-flex justify-content-between align-items-center mb-0.5">
+                        <label class="compact-label mb-0" data-i18n="lbl_start_time">Start</label>
+                        <button type="button" class="btn btn-quick-time px-1.5 py-0 d-flex align-items-center justify-content-center" id="btnQuickNow" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('start', 0)">Now</button>
                       </div>
-                      <input type="hidden" id="editDocPrivacy" value="Yes">
+                      <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitStartTime">
                     </div>
 
                     <div class="col-6">
-                      <div class="d-flex align-items-center justify-content-between px-1">
-                        <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
-                        <div class="form-check form-switch m-0">
-                          <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.5em; height: 1.3em; cursor: pointer;">
-                        </div>
+                      <div class="d-flex justify-content-between align-items-center mb-0.5">
+                        <label class="compact-label mb-0" data-i18n="lbl_end_time">End</label>
+                        <button type="button" class="btn btn-quick-time px-1.5 py-0 d-flex align-items-center justify-content-center" id="btnQuick30" onclick="if(typeof window.setQuickTime === 'function') window.setQuickTime('end', 30)">+30m</button>
                       </div>
-                      <input type="hidden" id="editDocTos" value="Yes">
+                      <input type="time" class="form-control bg-white shadow-xs premium-radius text-center px-0.5" id="visitEndTime">
                     </div>
                   </div>
                 </div>
-
               </div>
+
+              <!-- Features & Evidences Section -->
+              <div class="pt-1 pb-1">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                    <i class="fa-solid fa-sliders fs-6"></i>
+                  </div>
+                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_features_evidences">Features & Evidences</h6>
+                </div>
+                
+                <!-- 🌟 2x2 Auto-balanced Grid Layout -->
+                <div class="features-grid-wrapper" id="featuresButtonsWrapper">
+                  <div class="feature-item-col" id="sectionGpsCheckin">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('gpsDrawerModal') ? new bootstrap.Modal(document.getElementById('gpsDrawerModal')).show() : null">
+                      <i class="fa-solid fa-location-dot me-1.5"></i> <span id="btnGpsText" data-i18n="lbl_location">GPS Check-in</span>
+                    </button>
+                  </div>
+
+                  <div class="feature-item-col" id="sectionSignature">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="window.openSignatureModal()">
+                      <i class="fa-solid fa-signature me-1.5"></i> <span id="btnSignatureText" data-i18n="lbl_signature">Signature</span>
+                    </button>
+                  </div>
+
+                  <div class="feature-item-col" id="sectionSamples">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('samplesDrawerModal') ? new bootstrap.Modal(document.getElementById('samplesDrawerModal')).show() : null">
+                      <i class="fa-solid fa-gifts me-1.5"></i> <span id="btnSamplesText" data-i18n="lbl_samples_title">Samples</span>
+                    </button>
+                  </div>
+
+                  <div class="feature-item-col" id="sectionAttachments">
+                    <button type="button" class="feature-action-btn-lg w-100 py-1" onclick="document.getElementById('attachmentsDrawerModal') ? new bootstrap.Modal(document.getElementById('attachmentsDrawerModal')).show() : null">
+                      <i class="fa-solid fa-camera me-1.5"></i> <span id="btnAttachmentsText" data-i18n="lbl_attachments">Attachments</span>
+                    </button>
+                  </div>
+
+                  <div class="w-100 d-none" id="detailingMediaSection">
+                    <button type="button" class="feature-action-btn-lg btn-edetailing-touch w-100 border-danger text-danger fw-bold" onclick="document.getElementById('mediaDrawerModal') ? new bootstrap.Modal(document.getElementById('mediaDrawerModal')).show() : null">
+                      <i class="fa-solid fa-file-powerpoint me-1.5 fs-6"></i> <span id="btnMediaText" data-i18n="sec_edetailing">e-Detailing / Presentation</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
-
-          <!-- Right Side: Workplace + Pending DCR Summary -->
-          <div class="col-lg-6 d-flex flex-column h-100 gap-2.5" style="min-height: 0;">
-            
-            <!-- Workplace History (กะทัดรัด) -->
-            <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
-              <div class="d-flex align-items-center mb-2 pb-1.5 border-bottom border-light-subtle flex-shrink-0">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                  <i class="fa-solid fa-location-dot fs-6"></i>
-                </div>
-                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
-              </div>
-              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
-            </div>
-
-            <!-- 🌟 Pending DCR Summary (ดึงขอบบนขยายขึ้นระนาบเดียวกับ Email ฝั่งซ้าย) -->
-            <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
-              <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
-                <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
-                  <i class="fa-solid fa-clock-rotate-left me-2 fs-6"></i>
-                  <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
-                </div>
-              </div>
-              
-              <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2">
-                <div><i class="fa-solid fa-user me-1 text-warning"></i><span id="pendingDcrRequester" class="fw-semibold text-dark">-</span></div>
-                <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
-              </div>
-
-              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 90px;"></div>
-            </div>
-
-          </div>
-
         </div>
+
+        <!-- 🔹 Right Column (Activity Details) -->
+        <div class="col-12 col-xl-7 h-100 d-flex flex-column">
+          <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
+            <div class="d-flex flex-column h-100" style="min-height: 0;">
+              <!-- ไอคอนหัวข้อ -->
+              <div class="d-flex align-items-center mb-2.5">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                  <i class="fa-solid fa-list-check fs-6"></i>
+                </div>
+                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_activity_details">Activity Details</h6>
+              </div>
+
+              <!-- Purpose -->
+              <div class="mb-2">
+                <label class="compact-label mb-1"><span data-i18n="lbl_purpose">Purpose</span> <span class="text-danger">*</span></label>
+                <select class="form-select bg-white shadow-xs premium-radius" id="visitPurpose" required></select>
+              </div>
+
+              <!-- 🌟 1. Details -->
+              <div class="mb-2 d-flex flex-column field-wrapper-details">
+                <label class="compact-label mb-1 d-flex align-items-center gap-1">
+                  <i class="fa-regular fa-file-lines text-primary" style="font-size: 0.8rem;"></i>
+                  <span data-i18n="lbl_details">Details</span>
+                </label>
+                <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
+                  <button type="button" class="btn btn-dictate-corner" id="btnMicDetails" onclick="window.toggleTextDictation('visitDetails', 'btnMicDetails')" title="Voice Dictation">
+                    <i class="fa-solid fa-microphone"></i>
+                  </button>
+                  <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitDetails" data-i18n-placeholder="ph_visit_details" placeholder="Enter call discussion details..."></textarea>
+                </div>
+              </div>
+
+              <!-- 🌟 2. Insight -->
+              <div class="mb-2 d-flex flex-column field-wrapper-insight">
+                <label class="compact-label mb-1 d-flex align-items-center gap-1">
+                  <i class="fa-regular fa-lightbulb text-warning" style="font-size: 0.8rem;"></i>
+                  <span data-i18n="lbl_insight">Insight</span>
+                </label>
+                <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
+                  <button type="button" class="btn btn-dictate-corner" id="btnMicInsight" onclick="window.toggleTextDictation('visitInsight', 'btnMicInsight')" title="Voice Dictation">
+                    <i class="fa-solid fa-microphone"></i>
+                  </button>
+                  <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitInsight" data-i18n-placeholder="ph_visit_insight" placeholder="Key feedback or doctor insights..."></textarea>
+                </div>
+              </div>
+
+              <!-- 🌟 3. Next Action -->
+              <div class="mb-1 d-flex flex-column field-wrapper-nextaction">
+                <label class="compact-label mb-1 d-flex align-items-center gap-1">
+                  <i class="fa-solid fa-bullseye text-success" style="font-size: 0.8rem;"></i>
+                  <span data-i18n="lbl_next_action">Next Action</span>
+                </label>
+                <div class="textarea-dictate-wrapper flex-grow-1 d-flex flex-column">
+                  <button type="button" class="btn btn-dictate-corner" id="btnMicNextAction" onclick="window.toggleTextDictation('visitNextAction', 'btnMicNextAction')" title="Voice Dictation">
+                    <i class="fa-solid fa-microphone"></i>
+                  </button>
+                  <textarea class="form-control bg-white shadow-xs rounded-3 flex-grow-1" id="visitNextAction" data-i18n-placeholder="ph_visit_next_action" placeholder="Next follow-up plan or action items..."></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- 🌟 FOOTER ACTION BAR (ถอดแบบมาตรฐานจาก VISIT LOGS) -->
+      <!-- 📌 FULL-WIDTH FLOATING STICKY ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
+        <div class="d-flex align-items-center gap-2" style="min-width: 180px;">
+          <label class="compact-label mb-0 text-secondary" data-i18n="lbl_status">Status:</label>
+          <select class="form-select form-select-sm bg-white shadow-xs border-primary fw-bold rounded-3 flex-grow-1" id="visitStatus" onchange="if(typeof window.loadProductMedia === 'function') window.loadProductMedia()">
+            <option value="Pending" id="formOptPending" class="text-warning">⏳ Pending</option>
+            <option value="Submitted" id="formOptSubmitted" class="text-success">✅ Submitted</option>
+          </select>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.cancelVisitForm()" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="saveVisitBtn" data-mode="save">💾 <span data-i18n="btn_save">Save</span></button>
+        </div>
       </div>
 
     </form>
   </div>
+</div>
 
-  <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
-  <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3">
-    
-    <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
-      <div class="d-flex align-items-center">
-        <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-3" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
-          <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
-        </button>
-        <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
-        <div id="profileDcrStatusBadge" class="ms-3"></div>
+<!-- 📜 Modals ทั้งหมด 5 ตัว -->
+<div class="modal fade" id="lastVisitHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg premium-radius">
+      <div class="modal-header bg-light py-2">
+        <h6 class="modal-title fw-bold text-primary mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="btn_last_history">Visit History</span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3" id="lastVisitHistoryBox">
+        <!-- 🌟 Premium Last Visit History Box -->
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff);">
+          <div class="card-body p-4">
+            <!-- Header & Badge -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-3 gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
+                  <i class="fa-solid fa-clock-rotate-left fs-6"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-dark fs-6" data-i18n="title_last_visit">Last Visit History</h6>
+              </div>
+              <div id="lastVisitDateBadge"></div>
+            </div>
+            
+            <!-- Details & Insight -->
+            <div class="mb-3 px-1">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-comment-dots text-secondary fs-6"></i>
+                <span class="fw-bold text-secondary" style="font-size: 0.85rem;" data-i18n="lbl_details_insight">Details & Insight</span>
+              </div>
+              <div id="lastVisitDetails" class="text-dark ms-4 bg-white p-3 rounded-3 border shadow-xs" style="font-size: 0.9rem; line-height: 1.6;">-</div>
+            </div>
+
+            <!-- Next Action -->
+            <div class="px-1">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-bullseye text-danger fs-6"></i>
+                <span class="fw-bold text-danger" style="font-size: 0.85rem;" data-i18n="lbl_next_action">Next Action</span>
+              </div>
+              <div id="lastVisitNextAction" class="text-danger-emphasis ms-4 bg-danger bg-opacity-10 p-3 rounded-3 fw-medium border border-danger-subtle" style="font-size: 0.9rem; line-height: 1.6;">-</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    
-    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
+  </div>
+</div>
 
-      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 flex-shrink-0">
-        <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
-          <li class="nav-item">
-            <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
-              <i class="fa-solid fa-address-card me-1.5"></i> <span data-i18n="tab_general_info">General Info</span>
-            </button>
-          </li>
-          <li class="nav-item">
-            <button type="button" class="nav-link" id="tab-btn-history" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')">
-              <i class="fa-solid fa-calendar-check me-1.5"></i> <span data-i18n="tab_visit_history">Visit History</span>
-            </button>
-          </li>
-          <li class="nav-item">
-            <button type="button" class="nav-link" id="tab-doc-target-btn" onclick="window.switchDoctorProfileTab(this, 'tab-doc-target')">
-              <i class="fa-solid fa-bullseye me-1.5"></i> <span data-i18n="tab_target_call">Target Call</span>
-            </button>
-          </li>
-        </ul>
-        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-          <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
-        </button>
+<!-- 📍 GPS Check-in Modal -->
+<div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"> <!-- 🌟 เอา modal-sm ออก เพื่อให้แผนที่แสดงได้กว้างขึ้น -->
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
+      
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(13, 110, 253, 0.15);">
+             <i class="fa-solid fa-map-location-dot fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_location">GPS Check-in</h5>
+          <p class="text-muted small mb-0">Record your current location</p>
+        </div>
       </div>
 
-      <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
-        
-        <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
-          <div class="row g-2.5 flex-grow-1 my-1" style="min-height: 0;">
-            
-            <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-              <div class="p-3.5 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column flex-grow-1 shadow-xs" style="border-radius: 18px !important; min-height: 0;">
-                <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
-                  
-                  <div class="row g-3 mb-4 mt-1">
-                    <div class="col-6">
-                      <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_specialty">Specialty</label>
-                      <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocSpecialty" readonly>
-                    </div>
-                    <div class="col-6">
-                      <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_type">Type</label>
-                      <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocType" readonly>
-                    </div>
-                  </div>
+      <div class="modal-body px-4 pb-4 pt-4 text-center">
+        <button type="button" class="btn btn-premium-primary w-100 py-3 mb-3 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2" id="btnGpsCheckin" onclick="window.getLocationCheckin()" style="border-radius: 16px;">
+          <i class="fa-solid fa-crosshairs fs-5"></i> <span>Get Current Location</span>
+        </button>
 
-                  <div class="row g-3 mb-4">
-                    <div class="col-6">
-                      <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_status">Status</label>
-                      <input type="text" class="form-control-plaintext fw-bold text-success p-0 m-0 w-100 fs-6" id="viewDocStatus" readonly>
-                    </div>
-                  </div>
-
-                  <div class="mt-3 pt-4 border-top border-light-subtle">
-                    <div class="d-flex align-items-center mb-3">
-                      <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
-                        <i class="fa-solid fa-shield-halved fs-6"></i>
-                      </div>
-                      <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                    </div>
-                    <div class="row g-3 mb-3">
-                      <div class="col-sm-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-envelope text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
-                        <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocEmail" readonly>
-                      </div>
-                      <div class="col-sm-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-phone text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
-                        <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocMobile" readonly>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-              <div class="p-3.5 p-md-4 rounded-4 border bg-white h-100 d-flex flex-column flex-grow-1 shadow-xs" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 0;">
-                <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
-                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
-                    <i class="fa-solid fa-location-dot fs-6"></i>
-                  </div>
-                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
-                </div>
-                <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 8px; min-height: 0;"></div>
-              </div>
-            </div>
-
-          </div>
+        <!-- 🌟 แผนที่ Google Maps Embedded (จะถูกซ่อนไว้จนกว่าจะมีพิกัด) -->
+        <div id="gpsMapContainer" class="w-100 rounded-4 overflow-hidden shadow-xs border d-none mb-3" style="height: 220px; background-color: #f8fafc;">
+           <iframe id="gpsMapIframe" width="100%" height="100%" frameborder="0" style="border:0" allowfullscreen loading="lazy"></iframe>
         </div>
 
-        <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
-            <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
-              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
-            </button>
+        <div class="bg-light border rounded-4 p-3 text-start shadow-xs">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+             <div class="d-flex align-items-center">
+                 <i class="fa-solid fa-satellite-dish text-secondary me-2"></i>
+                 <span class="fw-bold text-secondary small text-uppercase tracking-wide" data-i18n="lbl_location_coords" style="letter-spacing: 0.5px;">Coordinates</span>
+             </div>
+             <!-- 🌟 ปุ่มเปิดพิกัดไปที่เว็บ/แอป Google Maps -->
+             <a href="#" target="_blank" id="btnOpenGoogleMaps" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 d-none" style="font-size: 0.75rem;"><i class="fa-solid fa-map-marked-alt me-1"></i>Open in Maps</a>
           </div>
-
-          <div class="row g-2 mb-3 bg-light p-2 rounded-3 border flex-shrink-0 shadow-xs">
-            <div class="col-md-5">
-              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
-              <div class="input-group input-group-sm shadow-xs premium-radius overflow-hidden">
-                <input type="date" class="form-control border-0" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
-                <span class="input-group-text bg-white border-0 text-muted">-</span>
-                <input type="date" class="form-control border-0" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()">
+          
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="bg-white border rounded-3 p-2 text-center">
+                <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Latitude</div>
+                <input type="text" class="form-control-plaintext bg-transparent p-0 text-dark fw-bold text-center mt-1" id="visitLat" readonly placeholder="--.------" style="font-size: 0.95rem;">
               </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
-              <select class="form-select form-select-sm shadow-xs premium-radius" id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()">
-                <option value="">- All Products -</option>
-              </select>
+            <div class="col-6">
+              <div class="bg-white border rounded-3 p-2 text-center">
+                <div class="text-muted" style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Longitude</div>
+                <input type="text" class="form-control-plaintext bg-transparent p-0 text-dark fw-bold text-center mt-1" id="visitLng" readonly placeholder="--.------" style="font-size: 0.95rem;">
+              </div>
             </div>
-            <div class="col-md-3 d-flex align-items-end">
-              <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
-            </div>
-          </div>
-
-          <div class="table-scroll-inside flex-grow-1" style="min-height: 0;">
-            <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
-              <thead class="table-custom-header text-center" style="position: sticky; top: 0; z-index: 10;">
-                <tr>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
-                </tr>
-              </thead>
-              <tbody id="viewVisitHistoryBody">
-                <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div id="pvisitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
-            <div class="d-flex align-items-center">
-              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-              <select class="form-select form-select-sm shadow-sm premium-radius" id="pvisitRowsPerPage" onchange="window.changePVisitRowsPerPage()" style="width: 80px;">
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-              </select>
-              <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
-            </div>
-            <nav aria-label="Page navigation">
-              <ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination"></ul>
-            </nav>
-          </div>
-        </div>
-
-        <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
-              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">+ Add Product</span>
-            </button>
           </div>
           
-          <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning flex-shrink-0" style="display: none; border-radius: 10px;">
-            <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">Locked:</strong> <span data-i18n="msg_rating_locked">The Target Call evaluation period is currently closed.</span>
-          </div>
-          
-          <div class="table-scroll-inside border rounded-3" style="min-height: 0;">
-            <table class="table table-bordered text-center align-middle mb-0" id="ratingTable">
-              <thead class="table-custom-header bg-light" style="position: sticky; top: 0; z-index: 10;">
-                <tr>
-                  <th style="width: 25%;" data-i18n="th_product">PRODUCT</th>
-                  <th style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
-                  <th style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
-                  <th style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
-                  <th style="width: 15%;" data-i18n="th_target_call">TARGET (CALL)</th>
-                  <th style="width: 15%;" data-i18n="th_action">Action</th>
-                </tr>
-              </thead>
-              <tbody id="ratingTableBody">
-                <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
-              </tbody>
-            </table>
+          <div class="text-center mt-3 d-none" id="locationTimeWrapper">
+            <span class="badge bg-success-subtle text-success px-3 py-2 fw-bold rounded-pill border border-success-subtle" style="font-size: 0.8rem;">
+              <i class="fa-solid fa-circle-check me-1.5"></i>Checked-in at <span id="visitCheckinTimeText"></span>
+            </span>
           </div>
         </div>
 
       </div>
     </div>
   </div>
-
 </div>
+
+<!-- 🎁 Samples Modal -->
+<div class="modal fade" id="samplesDrawerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(245, 158, 11, 0.15);">
+            <i class="fa-solid fa-gifts fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_samples_title">Samples & Promo Items</h5>
+          <p class="text-muted small mb-0">Select items distributed to the doctor</p>
+        </div>
+      </div>
+
+      <div class="modal-body px-4 pb-4 pt-4">
+        <button type="button" class="btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2 mx-auto" style="border-radius: 16px;" onclick="window.addSampleRow()">
+          <i class="fa-solid fa-plus fs-5"></i>
+          <span data-i18n="btn_add_sample">Add Item</span>
+        </button>
+
+        <div class="bg-light border rounded-4 p-3 shadow-xs">
+          <div class="d-flex align-items-center mb-3">
+             <i class="fa-solid fa-box-open text-secondary me-2"></i>
+             <span class="fw-bold text-secondary small text-uppercase tracking-wide" data-i18n="lbl_sample_items_title" style="letter-spacing: 0.5px;">Sample Items List</span>
+          </div>
+
+          <div id="sampleItemsContainer" class="px-1 overflow-auto" style="max-height: 300px; overflow-x: hidden !important;">
+            <div class="text-muted small text-center italic py-4" id="noSampleText" data-i18n="txt_no_sample">No samples issued</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 📸 Attachments Modal -->
+<div class="modal fade" id="attachmentsDrawerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+      
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(13, 110, 253, 0.15);">
+            <i class="fa-solid fa-camera fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_attachments">Attachments</h5>
+          <p class="text-muted small mb-0">Supported formats: JPG, PNG, PDF</p>
+        </div>
+      </div>
+
+      <div class="modal-body px-4 pb-4 pt-4">
+        <label class="btn btn-premium-primary w-100 py-3 mb-4 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2 cursor-pointer mx-auto" style="border-radius: 16px;">
+          <i class="fa-solid fa-cloud-arrow-up fs-5"></i>
+          <span data-i18n="btn_add_file">Attach File / Photo</span>
+          <input type="file" id="visitFileInput" accept="image/*,.pdf" multiple class="d-none" onchange="window.handleFileUpload(event)">
+        </label>
+        
+        <div class="bg-light border rounded-4 p-3 shadow-xs">
+          <div class="d-flex align-items-center mb-3">
+             <i class="fa-solid fa-images text-secondary me-2"></i>
+             <span class="fw-bold text-secondary small text-uppercase tracking-wide" data-i18n="lbl_attachments_title" style="letter-spacing: 0.5px;">Photos / Attachments List</span>
+          </div>
+          
+          <div id="attachmentPreviewContainer" class="row g-3 overflow-auto" style="max-height: 300px; overflow-x: hidden !important;">
+            <div class="col-12 text-center py-4" id="noAttachmentText">
+              <i class="fa-regular fa-images fs-1 text-muted opacity-25 mb-2 d-block"></i>
+              <span class="text-muted small fw-medium" data-i18n="txt_no_attachment">No attachments uploaded yet</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mediaDrawerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+      <div class="modal-header bg-light py-3 px-4">
+        <div class="d-flex align-items-center justify-content-between w-100 me-3" id="detailingMediaHeader">
+          <h6 class="modal-title fw-bold text-dark mb-0 fs-6">
+            <i class="fa-solid fa-file-powerpoint text-danger me-2 fs-5"></i>
+            <span data-i18n="sec_edetailing">e-Detailing / Presentation</span>
+          </h6>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="mediaListContainer" class="d-flex flex-column gap-3 overflow-auto pe-1" style="max-height: 420px; overflow-x: hidden !important;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mediaPresentationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white py-2 px-3">
+        <h6 class="modal-title fw-bold" id="mediaModalTitle"><i class="fa-solid fa-file-powerpoint text-warning me-2"></i>Presentation</h6>
+        <div class="d-flex align-items-center gap-2 mx-auto d-none" id="pdfControls">
+          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.prevPdfPage()"><i class="fa-solid fa-chevron-left me-1"></i> Prev</button>
+          <span class="text-white small fw-bold mx-2">Page <input type="number" id="pdfPageNum" value="1" min="1" style="width: 50px;" class="text-center rounded border-0 bg-secondary text-white" onchange="window.jumpPdfPage()"> / <span id="pdfTotalPages">1</span></span>
+          <button type="button" class="btn btn-sm btn-outline-light premium-radius px-3" onclick="window.nextPdfPage()">Next <i class="fa-solid fa-chevron-right ms-1"></i></button>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-warning text-dark px-3 py-2 premium-radius fw-bold" id="mediaTimerBadge"><i class="fa-solid fa-stopwatch me-1"></i>00:00</span>
+          <button type="button" class="btn-close btn-close-white" onclick="window.closeMediaPresentation()"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0 bg-black" id="mediaModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ⛱️ Premium Re-designed Time Off Territory (TOT) Modal -->
+<div class="modal fade" id="totModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
+      
+      <!-- Premium Modal Header -->
+      <div class="modal-header border-bottom-0 pt-4 pb-1 px-4 position-relative justify-content-center bg-light-subtle">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="text-center">
+          <div class="bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 64px; height: 64px; box-shadow: 0 8px 16px rgba(13, 202, 240, 0.15);">
+            <i class="fa-solid fa-umbrella-beach fs-2"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-0 fs-5" id="totModalTitle">
+            <span data-i18n="title_add_tot">Add TOT</span>
+          </h5>
+          <p class="text-muted small mb-1" style="font-size: 0.8rem;">Time Off Territory & Leave Management</p>
+        </div>
+      </div>
+
+      <!-- Modal Body Form -->
+      <form onsubmit="window.handleSaveTot(event)">
+        <div class="modal-body p-4 pt-2">
+          <input type="hidden" id="totId">
+
+          <!-- TOT Type -->
+          <div class="mb-3">
+            <label class="form-label fw-bold text-secondary small mb-1">
+              <i class="fa-solid fa-list-check me-1 text-primary"></i> TOT Type <span class="text-danger">*</span>
+            </label>
+            <select class="form-select bg-light-subtle border shadow-xs premium-radius fw-medium" id="totType" required style="height: 42px; font-size: 0.9rem;"></select>
+          </div>
+
+          <!-- Date Range -->
+          <div class="row g-2.5 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-bold text-secondary small mb-1">
+                <i class="fa-regular fa-calendar-check me-1 text-primary"></i> Start Date <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control bg-light-subtle border shadow-xs premium-radius fw-medium cursor-pointer" id="totStartDate" placeholder="dd/mm/yyyy" required readonly style="height: 42px; font-size: 0.88rem;">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold text-secondary small mb-1">
+                <i class="fa-regular fa-calendar-xmark me-1 text-secondary"></i> End Date
+              </label>
+              <input type="text" class="form-control bg-light-subtle border shadow-xs premium-radius fw-medium cursor-pointer" id="totEndDate" placeholder="dd/mm/yyyy" readonly style="height: 42px; font-size: 0.88rem;">
+            </div>
+          </div>
+
+          <!-- Time Range -->
+          <div class="row g-2.5 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-bold text-secondary small mb-1">
+                <i class="fa-regular fa-clock me-1 text-primary"></i> Start Time
+              </label>
+              <input type="time" class="form-control bg-light-subtle border shadow-xs premium-radius text-center fw-medium" id="totStartTime" style="height: 42px; font-size: 0.88rem;">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold text-secondary small mb-1">
+                <i class="fa-regular fa-clock me-1 text-secondary"></i> End Time
+              </label>
+              <input type="time" class="form-control bg-light-subtle border shadow-xs premium-radius text-center fw-medium" id="totEndTime" style="height: 42px; font-size: 0.88rem;">
+            </div>
+          </div>
+
+          <!-- Remark -->
+          <div class="mb-3">
+            <label class="form-label fw-bold text-secondary small mb-1">
+              <i class="fa-regular fa-note-sticky me-1 text-primary"></i> Remark / Reason
+            </label>
+            <textarea class="form-control bg-light-subtle border shadow-xs rounded-3 fs-6" id="totRemark" rows="2.5" placeholder="Enter reason or additional notes..." style="resize: none; font-size: 0.88rem;"></textarea>
+          </div>
+
+          <!-- Status -->
+          <div class="mb-1">
+            <label class="form-label fw-bold text-secondary small mb-1">
+              <i class="fa-solid fa-shield-halved me-1 text-primary"></i> Status
+            </label>
+            <select class="form-select bg-light-subtle border shadow-xs fw-bold rounded-3" id="totStatus" style="height: 42px; font-size: 0.9rem;">
+              <option value="Approved" class="text-success fw-bold">✅ Approved</option>
+              <option value="Pending" class="text-warning fw-bold">⏳ Pending</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Footer Action Buttons -->
+        <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-outline-danger border-0 fw-bold rounded-3 px-3 d-none" id="btnDeleteTot" onclick="window.deleteTot()" style="height: 42px;">
+            <i class="fa-solid fa-trash-can me-1.5"></i>Delete
+          </button>
+
+          <div class="d-flex gap-2 ms-auto">
+            <button type="button" class="btn btn-light border text-secondary fw-semibold px-4 rounded-3" data-bs-dismiss="modal" style="height: 42px;" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="btn btn-premium-primary px-4 rounded-3 shadow-sm d-flex align-items-center gap-2" id="saveTotBtn" style="height: 42px;">
+              <span>💾</span> <span data-i18n="btn_save">Save</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- ✍️ Doctor Signature Modal -->
+<div class="modal fade" id="signatureModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+      
+      <div class="modal-header border-bottom-0 pt-4 pb-2 px-4 position-relative justify-content-center">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        <div class="text-center">
+          <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px; box-shadow: 0 8px 16px rgba(25, 135, 84, 0.15);">
+            <i class="fa-solid fa-signature fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-1" data-i18n="lbl_signature">Doctor Signature</h5>
+        </div>
+      </div>
+
+      <div class="modal-body px-4 pb-4 pt-0 text-center">
+        <p class="text-muted small mb-3 fw-medium"><i class="fa-solid fa-hand-pointer me-1.5 text-primary"></i> <span data-i18n="lbl_sign_instruction">Draw doctor signature inside the box using finger or Apple Pencil / Stylus</span></p>
+        
+        <div class="position-relative bg-white border border-2 rounded-4 overflow-hidden mx-auto shadow-xs" style="width: 100%; height: 340px; border-color: #cbd5e1 !important; touch-action: none;">
+          <canvas id="modalSignatureCanvas" class="w-100 h-100 position-relative" style="cursor: crosshair; z-index: 10;"></canvas>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 gap-3">
+          <button type="button" class="btn btn-light text-danger fw-bold shadow-xs px-4 d-flex align-items-center justify-content-center" style="height: 52px; border-radius: 16px;" onclick="window.clearModalCanvas()">
+            <i class="fa-solid fa-eraser me-2 fs-5"></i> <span data-i18n="btn_clear_canvas">Clear Canvas</span>
+          </button>
+          
+          <div class="d-flex gap-2 flex-grow-1 justify-content-end">
+            <button type="button" class="btn btn-light text-secondary fw-bold shadow-xs px-4" style="height: 52px; border-radius: 16px;" data-bs-dismiss="modal" data-i18n="btn_cancel">Cancel</button>
+            
+            <button type="button" class="btn btn-success fw-bold shadow-sm px-5 d-flex align-items-center justify-content-center gap-2" style="height: 52px; border-radius: 16px;" onclick="window.saveSignatureFromModal()">
+              <i class="fa-solid fa-check fs-5"></i> <span data-i18n="btn_save_sig">Save Signature</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/controllers/visitCtrl.js?v=20260819_fast"></script>
