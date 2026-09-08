@@ -143,12 +143,11 @@
         </div>
       </div>
       
-      <!-- 🌟 แก้ไข: ลบ overflow-hidden ออก -->
       <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
-        <!-- 🌟 แก้ไข: ลบ overflow-hidden ออก -->
         <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
-          <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-            <!-- 🌟 แก้ไข: เปลี่ยน border-0 เป็น border และ shadow-sm เป็น shadow-xs -->
+          
+          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 พร้อมเพิ่ม margin-bottom สำหรับ iPad -->
+          <div class="col-12 col-xl-6 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -227,8 +226,8 @@
             </div>
           </div>
 
-          <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-            <!-- 🌟 แก้ไข: เปลี่ยน border-0 เป็น border และ shadow-sm เป็น shadow-xs -->
+          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 -->
+          <div class="col-12 col-xl-6 d-flex flex-column h-100" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important; overflow-x: hidden !important;">
               <div class="d-flex align-items-center mb-2.5 pb-2 border-bottom border-light-subtle flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -239,6 +238,7 @@
               <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -280,14 +280,12 @@
       </div>
       
       <!-- 🌟 MAIN CONTENT CONTAINER (โซนการ์ดซ้าย-ขวา) -->
-      <!-- 🌟 แก้ไข: ลบ overflow-hidden ออก -->
       <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
-        <!-- 🌟 แก้ไข: ลบ overflow-hidden ออก -->
         <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
             
           <!-- Left Side: General Info -->
-          <div class="col-lg-6 d-flex flex-column h-100" style="min-height: 0;">
-            <!-- 🌟 แก้ไข: เปลี่ยน border-0 เป็น border และ shadow-sm เป็น shadow-xs -->
+          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 พร้อมเพิ่ม margin-bottom สำหรับ iPad -->
+          <div class="col-12 col-xl-6 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -372,11 +370,10 @@
           </div>
 
           <!-- Right Side: Workplace + Pending DCR Summary -->
-          <!-- 🌟 เปลี่ยนจาก gap-2.5 เป็น gap-3 เพื่อให้ช่องไฟทำงานอย่างถูกต้อง -->
-          <div class="col-lg-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
+          <!-- 🌟 เปลี่ยนจาก col-lg-6 เป็น col-12 col-xl-6 -->
+          <div class="col-12 col-xl-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
             
             <!-- Workplace History (กะทัดรัด) -->
-            <!-- 🌟 แก้ไข: เปลี่ยน border-0 เป็น border และ shadow-sm เป็น shadow-xs -->
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
               <div class="d-flex align-items-center mb-2 pb-1.5 border-bottom border-light-subtle flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
