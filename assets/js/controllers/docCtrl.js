@@ -1286,7 +1286,7 @@ window.checkPendingDCR = async function(docId) {
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.className = 'btn btn-sm btn-secondary opacity-50 px-4 py-2 rounded-3 shadow-none';
-        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-1.5"></i><span data-i18n="btn_form_locked">${isEN ? 'Form Locked' : 'ฟอร์มถูกล็อก'}</span>`;
+        submitBtn.innerHTML = `<i class="fa-solid fa-lock me-1.5"></i><span data-i18n="btn_form_locked">${isEN ? ' Form Locked' : ' ฟอร์มถูกล็อก'}</span>`;
       }
 
     } else {
