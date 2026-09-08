@@ -802,6 +802,10 @@ window.renderDoctorTableServerSide = function() {
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
+  // 🎯 ดึงคำค้นหาจากช่อง Search เพื่อนำไปทำ Highlight ข้อความ
+  const searchInput = document.getElementById('smartDocSearchInput');
+  const searchVal = searchInput ? searchInput.value.trim() : '';
+
   if (data.length === 0) {
     if (document.getElementById('doctorPaginationContainer')) {
       document.getElementById('doctorPaginationContainer').classList.add('d-none');
@@ -851,14 +855,28 @@ window.renderDoctorTableServerSide = function() {
       pendingBadgeHtml = `<span class="badge badge-soft-warning ms-1" title="${tooltipText}" style="cursor: help;">${badgeText}</span>`;
     }
     
-    const docNameEnShow = d.Doc_Name || d.doc_name || '-';
-    const docNameThShow = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
+    // 🎯 1. ดึงข้อความดิบ
+    const rawDocNameEn = d.Doc_Name || d.doc_name || '-';
+    const rawDocNameTh = (d.Doc_Name_TH && d.Doc_Name_TH.indexOf('???') === -1) ? d.Doc_Name_TH : '-';
     
+    // 🎯 2. สั่ง Highlight คำที่ตรงกับคำค้นหา (เหมือนหน้า Visit)
+    const docNameEnShow = (typeof window.highlightDocSearchText === 'function') 
+      ? window.highlightDocSearchText(rawDocNameEn, searchVal) 
+      : rawDocNameEn;
+
+    const docNameThShow = (typeof window.highlightDocSearchText === 'function') 
+      ? window.highlightDocSearchText(rawDocNameTh, searchVal) 
+      : rawDocNameTh;
+
     // 🎯 แปลง Specialty_ID เป็นภาษาที่เลือก
     const specialtyShow = window.getSpecialtyText(d.Specialty_ID || d.Specialty, d.Specialty);
 
+    // 🎯 3. ดึงชื่อโรงพยาบาลและสั่ง Highlight
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID).toLowerCase());
-    const hospNameShow = window.getHospitalNameByLang(hospObj);
+    const rawHospName = window.getHospitalNameByLang(hospObj);
+    const hospNameShow = (typeof window.highlightDocSearchText === 'function') 
+      ? window.highlightDocSearchText(rawHospName, searchVal) 
+      : rawHospName;
 
     const nameCellLink = `<a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openViewDoctorProfile('${d.Doc_ID}'); return false;"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>${docNameEnShow}</a>`;
 
