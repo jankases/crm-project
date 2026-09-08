@@ -1100,7 +1100,9 @@ window.addWorkplaceRow = function(containerId, radioGroupName, hospId = '', isPr
   const checked = isPrimary ? 'checked' : '';
 
   row.innerHTML = `
-    <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">🏥</div>
+    <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">
+      <i class="fa-regular fa-hospital text-primary"></i>
+    </div>
     
     <div class="flex-grow-1 min-w-0">
       <select class="hospital-select" id="${selectId}" required>
