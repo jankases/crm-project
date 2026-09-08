@@ -2138,7 +2138,7 @@ button.feature-action-btn-lg.has-data-samples i {
             height: 38px !important;
             min-height: 38px !important;
             background-color: #ffffff !important;
-            border-color: #dee2e6 !important;
+            border: 1px solid #dee2e6 !important; /* 🌟 บังคับเส้นขอบให้คมชัดเท่าหน้า Visit */
             border-radius: 8px !important; 
         }
         #doctorFilterZoneGroup .ts-control {
@@ -2147,23 +2147,29 @@ button.feature-action-btn-lg.has-data-samples i {
             padding: 0 12px !important;
             box-shadow: none !important;
         }
-        /* 🌟 บังคับฟอนต์ให้ "เท่ากันเป๊ะ" ทั้งช่อง Search และ Dropdown */
+        /* 🌟 บังคับฟอนต์และ "สีข้อความหลัก" ให้เข้มคมชัด ไม่จาง */
         #doctorFilterZoneGroup .form-control,
         #doctorFilterZoneGroup .ts-control > input,
         #doctorFilterZoneGroup .ts-control .item {
             font-size: 0.9rem !important; 
+            color: #475569 !important; /* 🌟 สีอักษรเทาเข้ม (Slate-600) */
             margin: 0 !important;
             padding: 0 !important;
             line-height: 1.5 !important;
         }
-        /* 🌟 จัดการสี Placeholder ให้กลืนกันเป็นธีมเดียว */
+        /* 🌟 จัดการสี Placeholder ให้ชัดขึ้นแบบหน้า Visit */
         #doctorFilterZoneGroup .form-control::placeholder,
-        #doctorFilterZoneGroup .ts-control > input::placeholder {
-            color: #94a3b8 !important;
+        #doctorFilterZoneGroup .ts-control > input::placeholder,
+        #doctorFilterZoneGroup .ts-control .item[data-value=""] {
+            color: #6c757d !important; /* 🌟 สี Placeholder มาตรฐาน (Gray-600) */
             font-weight: 400 !important;
             font-size: 0.9rem !important;
         }
-        /* 🌟 แก้อาการข้อความยาวแล้วโดนตัดใน Dropdown */
+        /* 🌟 ปรับสีไอคอนแว่นขยายให้เข้าธีม */
+        #doctorFilterZoneGroup .input-group-text i {
+            color: #6c757d !important;
+        }
+        /* แก้อาการข้อความยาวแล้วโดนตัดใน Dropdown */
         #doctorFilterZoneGroup .ts-control > input {
             white-space: nowrap !important;
             overflow: hidden !important;
