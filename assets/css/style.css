@@ -2132,3 +2132,41 @@ button.feature-action-btn-lg.has-data-samples i {
     cursor: pointer;
     user-select: none;
 }
+
+#doctorFilterZoneGroup .input-group,
+        #doctorFilterZoneGroup .ts-control {
+            height: 38px !important;
+            min-height: 38px !important;
+            background-color: #ffffff !important;
+            border-color: #dee2e6 !important;
+            border-radius: 8px !important; 
+        }
+        #doctorFilterZoneGroup .ts-control {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0 12px !important;
+            box-shadow: none !important;
+        }
+        /* 🌟 บังคับฟอนต์ให้ "เท่ากันเป๊ะ" ทั้งช่อง Search และ Dropdown */
+        #doctorFilterZoneGroup .form-control,
+        #doctorFilterZoneGroup .ts-control > input,
+        #doctorFilterZoneGroup .ts-control .item {
+            font-size: 0.9rem !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.5 !important;
+        }
+        /* 🌟 จัดการสี Placeholder ให้กลืนกันเป็นธีมเดียว */
+        #doctorFilterZoneGroup .form-control::placeholder,
+        #doctorFilterZoneGroup .ts-control > input::placeholder {
+            color: #94a3b8 !important;
+            font-weight: 400 !important;
+            font-size: 0.9rem !important;
+        }
+        /* 🌟 แก้อาการข้อความยาวแล้วโดนตัดใน Dropdown */
+        #doctorFilterZoneGroup .ts-control > input {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 100% !important;
+        }
