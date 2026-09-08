@@ -238,9 +238,9 @@
         </div>
       </div>
 
-      <div class="full-width-action-bar rounded-4 border bg-white p-2 px-3 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-2.5 mt-2" style="border-radius: 16px !important;">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-3 py-1.5 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-3.5 py-1.5 rounded-3 shadow-sm" id="submitDoctorBtn">
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2.5" style="border-radius: 18px !important;">
+        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn">
           <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add Doctor</span>
         </button>
       </div>
@@ -248,24 +248,24 @@
     </form>
   </div>
 
-  <!-- ================= 3. EDIT DOCTOR VIEW (🎯 DESKTOP FIT + IPAD FLEXIBLE) ================= -->
+  <!-- ================= 3. EDIT DOCTOR VIEW (🌟 VISIT LOGS REFERENCE MATCHING) ================= -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
       <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-2">
         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 34px;" onclick="window.switchDoctorView('doctorListView')">
+          <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
           </button>
           <h5 class="text-dark fw-bold mb-0 fs-6" id="formDoctorTitle"><i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_edit_doc">Edit Doctor (DCR)</span></h5>
           <div id="editDcrStatusBadge" class="ms-2"></div>
         </div>
 
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <div class="d-inline-flex align-items-center bg-white border px-2.5 py-1 rounded-pill shadow-xs" style="height: 34px;">
-            <label class="switch mb-0 me-2" style="transform: scale(0.8);">
+        <div class="d-flex align-items-center gap-2 me-1">
+          <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
+            <label class="switch mb-0 me-2" style="transform: scale(0.85);">
               <input type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)">
               <span class="slider"></span>
             </label>
@@ -275,7 +275,7 @@
         </div>
       </div>
       
-      <!-- 🌟 FORM CONTENT GRID (บีบระยะแนวตั้งลง เพื่อให้พอดีกับ DESKTOP และไม่โดน ACTION BAR ทับ) -->
+      <!-- 🌟 MAIN CONTENT CONTAINER (โซนการ์ดซ้าย-ขวา) -->
       <div class="form-content-grid flex-grow-1 overflow-hidden my-1 d-flex flex-column" style="min-height: 0;">
         <div class="row g-2.5 flex-grow-1 overflow-hidden" style="min-height: 0;">
             
@@ -365,10 +365,10 @@
           </div>
 
           <!-- Right Side: Workplace + Pending DCR Summary -->
-          <div class="col-lg-6 d-flex flex-column h-100 gap-2" style="min-height: 0;">
+          <div class="col-lg-6 d-flex flex-column h-100 gap-2.5" style="min-height: 0;">
             
-            <!-- Workplace History -->
-            <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 0;">
+            <!-- Workplace History (กะทัดรัด) -->
+            <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
               <div class="d-flex align-items-center mb-2 pb-1.5 border-bottom border-light-subtle flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                   <i class="fa-solid fa-location-dot fs-6"></i>
@@ -378,21 +378,21 @@
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
 
-            <!-- Pending DCR Summary Card -->
-            <div id="pendingDcrSummaryCard" class="card p-2.5 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 16px !important;">
-              <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom border-warning-subtle">
-                <div class="d-flex align-items-center text-warning-emphasis fw-bold tiny">
-                  <i class="fa-solid fa-clock-rotate-left me-1.5"></i>
+            <!-- 🌟 Pending DCR Summary (ดึงขอบบนขยายขึ้นระนาบเดียวกับ Email ฝั่งซ้าย) -->
+            <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
+              <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
+                <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
+                  <i class="fa-solid fa-clock-rotate-left me-2 fs-6"></i>
                   <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
                 </div>
               </div>
               
-              <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-1">
+              <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2">
                 <div><i class="fa-solid fa-user me-1 text-warning"></i><span id="pendingDcrRequester" class="fw-semibold text-dark">-</span></div>
                 <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
               </div>
 
-              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 70px;"></div>
+              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 90px;"></div>
             </div>
 
           </div>
@@ -400,10 +400,10 @@
         </div>
       </div>
 
-      <!-- 🌟 FOOTER ACTION BAR (แยกเด็ดขาด ไม่เบียด/ไม่ทับการ์ดล่างสุด) -->
-      <div class="full-width-action-bar rounded-4 border bg-white p-2 px-3 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-2.5 mt-1.5" style="border-radius: 16px !important;">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-3 py-1.5 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-3.5 py-1.5 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-1.5"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
+      <!-- 🌟 FOOTER ACTION BAR (ถอดแบบมาตรฐานจาก VISIT LOGS) -->
+      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2.5" style="border-radius: 18px !important;">
+        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
 
     </form>
