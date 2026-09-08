@@ -42,7 +42,7 @@
     </div>
 
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
-
+      
       <!-- 🌟 Doctor Filter Zone -->
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -53,7 +53,7 @@
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
                 
                 <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()" title="Clear Search">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
@@ -456,81 +456,64 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 Profile View (Tab 1: General Info) -> แก้ไขใช้ Layout 2 การ์ด ซ้าย-ขวา แบบหน้า Edit -->
+        <!-- 🌟 Profile View (Tab 1: General Info) -> เคลียร์ Margin ลบ Scrollbar และจัด Layout 2 คอลัมน์ที่สวยงาม -->
         <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
-          <div class="flex-grow-1 overflow-y-auto overflow-x-hidden pe-1 my-1 custom-scrollbar" style="min-height: 0;">
-            <div class="row g-3 h-100 m-0 align-items-stretch">
+          
+          <div class="d-flex justify-content-between align-items-center mb-3 mt-1 flex-shrink-0">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="tab_general_info">General Information</span></h6>
+            <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+              <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+            </button>
+          </div>
+
+          <!-- 🌟 ใช้ m-0 ป้องกันการทะลักของ Row -->
+          <div class="flex-grow-1 overflow-y-auto overflow-x-hidden custom-scrollbar pe-2" style="min-height: 0;">
+            <div class="row m-0 h-100">
               
-              <!-- Left Card: General Information -->
-              <div class="col-lg-6 d-flex flex-column h-100 p-0 pe-lg-2">
-                <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-xs h-100 d-flex flex-column">
-                  
-                  <div class="d-flex align-items-center justify-content-between mb-4 flex-shrink-0">
-                    <div class="d-flex align-items-center">
-                      <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px;">
-                        <i class="fa-solid fa-address-card fs-6"></i>
-                      </div>
-                      <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
+              <!-- 🌟 คอลัมน์ซ้าย: ข้อมูลทั่วไป -->
+              <div class="col-lg-6 p-0 pe-lg-4 mb-4 mb-lg-0">
+                <style>
+                  @media (min-width: 992px) { .profile-border-end { border-right: 1px solid #e2e8f0; } }
+                </style>
+                <div class="h-100 profile-border-end pe-lg-3">
+                  <div class="row g-3 mb-3">
+                    <div class="col-6">
+                      <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_specialty">Specialty</label>
+                      <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocSpecialty" readonly>
                     </div>
-                    <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-                      <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor</span>
-                    </button>
+                    <div class="col-6">
+                      <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_type">Type</label>
+                      <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocType" readonly>
+                    </div>
                   </div>
-                  
-                  <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
-                    
-                    <div class="row g-3 mb-3">
-                      <div class="col-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_specialty">Specialty</label>
-                        <input type="text" class="form-control bg-light premium-radius fw-bold text-dark" id="viewDocSpecialty" disabled>
+                  <div class="row g-3 mb-3">
+                    <div class="col-6">
+                      <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_status">Status</label>
+                      <input type="text" class="form-control-plaintext fw-bold text-success p-0 m-0 w-100 fs-6" id="viewDocStatus" readonly>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 pt-3 border-top border-light-subtle">
+                    <div class="row g-3">
+                      <div class="col-sm-6">
+                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-envelope text-muted me-1.5"></i><span data-i18n="lbl_email">Email</span></label>
+                        <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocEmail" readonly>
                       </div>
-                      <div class="col-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_type">Type</label>
-                        <input type="text" class="form-control bg-light premium-radius fw-bold text-dark" id="viewDocType" disabled>
+                      <div class="col-sm-6">
+                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-phone text-muted me-1.5"></i><span data-i18n="lbl_mobile">Mobile</span></label>
+                        <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocMobile" readonly>
                       </div>
                     </div>
-
-                    <div class="row g-3 mb-3">
-                      <div class="col-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_status">Status</label>
-                        <input type="text" class="form-control bg-light premium-radius fw-bold text-success" id="viewDocStatus" disabled>
-                      </div>
-                    </div>
-
-                    <div class="mt-4 pt-3 border-top border-light-subtle">
-                      <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px;">
-                          <i class="fa-solid fa-shield-halved fs-6"></i>
-                        </div>
-                        <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                      </div>
-                      <div class="row g-3">
-                        <div class="col-sm-6">
-                          <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;"><i class="fa-solid fa-envelope text-muted me-1.5"></i><span data-i18n="lbl_email">Email</span></label>
-                          <input type="email" class="form-control bg-light premium-radius text-dark" id="viewDocEmail" disabled>
-                        </div>
-                        <div class="col-sm-6">
-                          <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;"><i class="fa-solid fa-phone text-muted me-1.5"></i><span data-i18n="lbl_mobile">Mobile</span></label>
-                          <input type="text" class="form-control bg-light premium-radius text-dark" id="viewDocMobile" disabled>
-                        </div>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               </div>
 
-              <!-- Right Card: Workplace -->
-              <div class="col-lg-6 d-flex flex-column h-100 p-0 ps-lg-2 mt-3 mt-lg-0">
-                <div class="card p-3.5 p-md-4 rounded-4 border-0 bg-white shadow-xs h-100 d-flex flex-column">
-                  <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
-                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px;">
-                      <i class="fa-regular fa-hospital fs-6"></i>
-                    </div>
-                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
-                  </div>
-                  <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 8px; min-height: 0;"></div>
-                </div>
+              <!-- 🌟 คอลัมน์ขวา: สถานที่ปฏิบัติงาน -->
+              <div class="col-lg-6 p-0 ps-lg-4">
+                <label class="text-muted small fw-bold mb-3 text-uppercase tracking-wide d-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                  <i class="fa-regular fa-hospital me-1.5"></i><span data-i18n="lbl_workplace_history">Workplace History</span>
+                </label>
+                <div id="viewWorkplaceContainer" class="d-flex flex-column" style="gap: 8px;"></div>
               </div>
 
             </div>
