@@ -2177,4 +2177,50 @@ button.feature-action-btn-lg.has-data-samples i {
             max-width: 100% !important;
         }
 
- 
+ /* ==========================================
+   📱 RESPONSIVE & DESKTOP FIT ENGINE FOR DOCTOR EDIT
+   ========================================== */
+
+/* 🖥️ DESKTOP MODE (หน้าจอสูงกว่า 768px): ล็อกพอดีจอ ไร้ Scrollbar นอก */
+@media (min-width: 992px) {
+  #doctorEditView {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  #doctorEditView form {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+  #doctorEditView .form-content-grid {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* 📱 IPAD & SMALL SCREEN MODE (หน้าจอต่ำกว่า 991px หรือจอย่อ): เปิด Scrollbar ให้เลื่อนได้ธรรมชาติ */
+@media (max-width: 991.98px) {
+  .doc-module-wrapper {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+  #doctorEditView {
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+  #doctorEditView form {
+    height: auto !important;
+  }
+  #doctorEditView .form-content-grid {
+    flex: none !important;
+    height: auto !important;
+  }
+  #doctorEditView .full-width-action-bar {
+    position: sticky !important;
+    bottom: 10px !important;
+    z-index: 100 !important;
+  }
+}
