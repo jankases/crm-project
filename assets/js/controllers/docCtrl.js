@@ -863,7 +863,6 @@ window.renderDoctorTableServerSide = function() {
         <td class="text-start ps-3">${nameCellLink}</td>
         <td class="fw-medium text-secondary">${docNameThShow}</td>
         <td><span class="badge badge-soft-product">${specialtyShow}</span></td>
-        <!-- 🌟 เปลี่ยน Icon ตรงนี้เป็น fa-location-dot (หรือ fa-building ก็ได้ครับ) -->
         <td class="text-secondary"><small><i class="fa-solid fa-location-dot me-1 text-primary"></i>${hospNameShow}</small></td>
         <td class="text-center">
           <span class="badge ${badge}">${statusTextShow}</span>
@@ -875,6 +874,7 @@ window.renderDoctorTableServerSide = function() {
           </a>
         </td>
       </tr>`;
+  }); // 👈🌟 พี่ลืมปิดตรงนี้ครับ!! เติมบรรทัดนี้เข้าไป
 
   tbody.innerHTML = htmlBuffer;
 
