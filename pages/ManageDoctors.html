@@ -53,7 +53,7 @@
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
                 
-                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
+                <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1" id="smartDocSearchInput" data-i18n-placeholder="opt_search_doc_hosp_ph" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
                 
                 <button class="btn btn-link text-decoration-none border-0 bg-transparent px-2 d-none" type="button" id="btnClearDocSearch" onclick="window.clearDocSearchInput()" title="Clear Search">
                   <i class="fa-solid fa-circle-xmark text-secondary opacity-50"></i>
@@ -144,106 +144,106 @@
         </div>
       </div>
       
-      <!-- 🌟 Hybrid Responsive Grid (Desktop: Side-by-side / iPad: Stack with Scroll) -->
-      <div class="flex-grow-1 overflow-y-auto custom-scrollbar my-1 pb-2" style="min-height: 0;">
-        <div class="row g-3 g-xl-4 m-0 align-items-stretch">
-            
+      <!-- 🌟 MAIN CONTENT GRID (Restored perfectly working layout) -->
+      <div class="flex-grow-1 overflow-hidden my-1" style="min-height: 0;">
+        <div class="row g-3 h-100 m-0">
+          
           <!-- Left Side: General Info -->
-          <div class="col-12 col-lg-6 d-flex flex-column p-0 pe-lg-2">
-            <div class="p-3.5 p-md-4 rounded-4 border bg-white shadow-xs flex-grow-1" style="border-radius: 18px !important;">
-              
-              <div>
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
-                    <i class="fa-solid fa-stethoscope fs-6"></i>
-                  </div>
-                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
+          <div class="col-lg-6 h-100 p-0 pe-lg-2">
+            <div class="card p-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100">
+              <div class="d-flex align-items-center mb-3 flex-shrink-0">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                  <i class="fa-solid fa-stethoscope fs-6"></i>
                 </div>
-                
+                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
+              </div>
+              
+              <!-- 🌟 Internal Scroll Only -->
+              <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
                 <div class="mb-3">
-                  <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
+                  <label class="compact-label mb-1" data-i18n="lbl_doc_title">Title</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
                 </div>
 
                 <div class="row g-3 mb-3">
                   <div class="col-6">
-                    <label class="compact-label mb-1.5"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
                   </div>
                   <div class="col-6">
-                    <label class="compact-label mb-1.5" data-i18n="lbl_doc_name_th">Name (TH)</label>
+                    <label class="compact-label mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
                     <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                   </div>
                 </div>
 
                 <div class="row g-3 mb-3">
                   <div class="col-6">
-                    <label class="compact-label mb-1.5" data-i18n="lbl_specialty">Specialty</label>
+                    <label class="compact-label mb-1" data-i18n="lbl_specialty">Specialty</label>
                     <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
                   </div>
                   <div class="col-6">
-                    <label class="compact-label mb-1.5" data-i18n="lbl_type">Type</label>
+                    <label class="compact-label mb-1" data-i18n="lbl_type">Type</label>
                     <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
                   </div>
                 </div>
-              </div>
 
-              <!-- Contact & Consent -->
-              <div class="mt-4 pt-3 border-top border-light-subtle">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
-                    <i class="fa-solid fa-shield-halved fs-6"></i>
-                  </div>
-                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                </div>
-                
-                <div class="row g-3 mb-3">
-                  <div class="col-sm-6">
-                    <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1.5"></i> <span data-i18n="lbl_email">Email</span></label>
-                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1.5"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
-                  </div>
-                </div>
-                
-                <div class="row g-3 pt-1">
-                  <div class="col-6">
-                    <div class="d-flex align-items-center justify-content-between px-1">
-                      <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                      <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
-                      </div>
+                <!-- Contact & Consent -->
+                <div class="mt-4 pt-3 border-top border-light-subtle">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                      <i class="fa-solid fa-shield-halved fs-6"></i>
                     </div>
-                    <input type="hidden" id="docPrivacy" value="Yes">
+                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
                   </div>
-                  <div class="col-6">
-                    <div class="d-flex align-items-center justify-content-between px-1">
-                      <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
-                      <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
-                      </div>
+                  
+                  <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                      <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1.5"></i> <span data-i18n="lbl_email">Email</span></label>
+                      <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
                     </div>
-                    <input type="hidden" id="docTos" value="Yes">
+                    <div class="col-sm-6">
+                      <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1.5"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                      <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
+                    </div>
+                  </div>
+                  
+                  <div class="row g-3 pt-1">
+                    <div class="col-6">
+                      <div class="d-flex align-items-center justify-content-between px-1">
+                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
+                        <div class="form-check form-switch m-0">
+                          <input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                        </div>
+                      </div>
+                      <input type="hidden" id="docPrivacy" value="Yes">
+                    </div>
+                    <div class="col-6">
+                      <div class="d-flex align-items-center justify-content-between px-1">
+                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
+                        <div class="form-check form-switch m-0">
+                          <input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                        </div>
+                      </div>
+                      <input type="hidden" id="docTos" value="Yes">
+                    </div>
                   </div>
                 </div>
-              </div>
 
+              </div>
             </div>
           </div>
 
           <!-- Right Side: Workplace -->
-          <div class="col-12 col-lg-6 d-flex flex-column p-0 ps-lg-2 mt-3 mt-lg-0">
-            <div class="p-3.5 p-md-4 rounded-4 border bg-white shadow-xs d-flex flex-column flex-grow-1" style="border-radius: 18px !important;">
+          <div class="col-lg-6 h-100 p-0 ps-lg-2 mt-3 mt-lg-0">
+            <div class="card p-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100">
               <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-regular fa-hospital fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
               </div>
-              <!-- 🌟 ป้องกันไม่ให้แบนแต๊ดแต๋บน iPad ด้วย min-height -->
-              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 250px;"></div>
+              <!-- 🌟 Internal Scroll Only -->
+              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
           </div>
 
@@ -277,7 +277,7 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <!-- แคปซูล Active/Inactive (เลียนแบบปุ่มหน้า Visit) -->
+          <!-- แคปซูล Active/Inactive -->
           <div class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;">
             <label class="switch mb-0 me-2.5" style="transform: scale(0.85);">
               <input type="checkbox" id="editDocStatusToggle" onchange="window.toggleDoctorStatusText(this)">
@@ -289,22 +289,22 @@
         </div>
       </div>
       
-      <!-- 🌟 Hybrid Responsive Grid -->
-      <div class="flex-grow-1 overflow-y-auto custom-scrollbar my-1 pb-2" style="min-height: 0;">
-        <div class="row g-3 g-xl-4 m-0 align-items-stretch">
-            
+      <!-- 🌟 MAIN CONTENT GRID (Restored perfectly working layout) -->
+      <div class="flex-grow-1 overflow-hidden my-1" style="min-height: 0;">
+        <div class="row g-3 h-100 m-0">
+          
           <!-- Left Side: General Info -->
-          <div class="col-12 col-lg-6 d-flex flex-column p-0 pe-lg-2">
-            <div class="p-3.5 p-md-4 rounded-4 border bg-white shadow-xs flex-grow-1" style="border-radius: 18px !important;">
-              
-              <div>
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
-                    <i class="fa-solid fa-stethoscope fs-6"></i>
-                  </div>
-                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
+          <div class="col-lg-6 h-100 p-0 pe-lg-2">
+            <div class="card p-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100">
+              <div class="d-flex align-items-center mb-3 flex-shrink-0">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                  <i class="fa-solid fa-stethoscope fs-6"></i>
                 </div>
-                
+                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
+              </div>
+              
+              <!-- 🌟 Internal Scroll Only -->
+              <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
                 <div class="mb-3">
                   <label class="compact-label mb-1.5" data-i18n="lbl_doc_title">Title</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
@@ -331,86 +331,83 @@
                     <select class="form-select bg-white shadow-xs premium-radius" id="editDocType"></select>
                   </div>
                 </div>
-              </div>
 
-              <!-- Contact & Consent -->
-              <div class="mt-4 pt-3 border-top border-light-subtle">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
-                    <i class="fa-solid fa-shield-halved fs-6"></i>
-                  </div>
-                  <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                </div>
-                
-                <div class="row g-3 mb-3">
-                  <div class="col-sm-6">
-                    <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1.5"></i> <span data-i18n="lbl_email">Email</span></label>
-                    <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1.5"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
-                    <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
-                  </div>
-                </div>
-
-                <div class="row g-3 pt-1">
-                  <div class="col-6">
-                    <div class="d-flex align-items-center justify-content-between px-1">
-                      <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                      <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
-                      </div>
+                <!-- Contact & Consent -->
+                <div class="mt-4 pt-3 border-top border-light-subtle">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                      <i class="fa-solid fa-shield-halved fs-6"></i>
                     </div>
-                    <input type="hidden" id="editDocPrivacy" value="Yes">
+                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
+                  </div>
+                  
+                  <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                      <label class="compact-label mb-1.5"><i class="fa-solid fa-envelope text-muted me-1.5"></i> <span data-i18n="lbl_email">Email</span></label>
+                      <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
+                    </div>
+                    <div class="col-sm-6">
+                      <label class="compact-label mb-1.5"><i class="fa-solid fa-phone text-muted me-1.5"></i> <span data-i18n="lbl_mobile">Mobile</span></label>
+                      <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
+                    </div>
                   </div>
 
-                  <div class="col-6">
-                    <div class="d-flex align-items-center justify-content-between px-1">
-                      <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
-                      <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                  <div class="row g-3 pt-1">
+                    <div class="col-6">
+                      <div class="d-flex align-items-center justify-content-between px-1">
+                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_privacy">Privacy Policy</span>
+                        <div class="form-check form-switch m-0">
+                          <input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                        </div>
                       </div>
+                      <input type="hidden" id="editDocPrivacy" value="Yes">
                     </div>
-                    <input type="hidden" id="editDocTos" value="Yes">
+
+                    <div class="col-6">
+                      <div class="d-flex align-items-center justify-content-between px-1">
+                        <span class="fw-semibold text-secondary" style="font-size: 0.875rem;" data-i18n="lbl_tos">Terms of Service</span>
+                        <div class="form-check form-switch m-0">
+                          <input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.8em; height: 1.5em; cursor: pointer;">
+                        </div>
+                      </div>
+                      <input type="hidden" id="editDocTos" value="Yes">
+                    </div>
                   </div>
                 </div>
-              </div>
 
+              </div>
             </div>
           </div>
 
           <!-- Right Side: Workplace + Pending DCR Summary -->
-          <div class="col-12 col-lg-6 d-flex flex-column p-0 ps-lg-2 mt-3 mt-lg-0 gap-3">
+          <div class="col-lg-6 h-100 p-0 ps-lg-2 mt-3 mt-lg-0 d-flex flex-column gap-3">
             
             <!-- Workplace History -->
-            <div class="p-3.5 p-md-4 rounded-4 border bg-white shadow-xs d-flex flex-column flex-grow-1" style="border-radius: 18px !important;">
+            <div class="card p-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column flex-grow-1" style="min-height: 0;">
               <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
                   <i class="fa-regular fa-hospital fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
               </div>
-              <!-- 🌟 ป้องกันไม่ให้แบนแต๊ดแต๋บน iPad ด้วย min-height -->
-              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 250px;"></div>
+              <!-- 🌟 Internal Scroll Only -->
+              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
 
             <!-- Card สรุป DCR แบบกะทัดรัด สบายตา -->
-            <div id="pendingDcrSummaryCard" class="p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important;">
+            <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
                 <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
                   <i class="fa-solid fa-clock-rotate-left me-2 fs-6"></i>
                   <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
                 </div>
               </div>
-              
-              <!-- Metadata แบบแนวนอน -->
               <div class="d-flex flex-wrap justify-content-between align-items-center tiny text-secondary mb-2">
                 <div><i class="fa-solid fa-user me-1 text-warning"></i><span id="pendingDcrRequester" class="fw-semibold text-dark">-</span></div>
                 <div><i class="fa-regular fa-clock me-1 text-warning"></i><span id="pendingDcrDate">-</span></div>
               </div>
-
-              <!-- List ของการขอเปลี่ยน แสดงแบบกะทัดรัด -->
-              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto pe-1" style="max-height: 80px;"></div>
+              <!-- 🌟 Internal Scroll Only for DCR Items -->
+              <div id="pendingDcrChangesList" class="tiny text-dark overflow-y-auto custom-scrollbar pe-1" style="max-height: 80px;"></div>
             </div>
 
           </div>
@@ -418,7 +415,7 @@
         </div>
       </div>
 
-      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR (เหมือนหน้า Visit เป๊ะ) -->
+      <!-- 🌟 FULL-WIDTH FLOATING STICKY ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3 mt-2" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
@@ -462,73 +459,80 @@
 
       <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 Profile View (Tab 1: General Info) -> แก้ไขใช้ Layout 2 การ์ด ซ้าย-ขวา แบบ Hybrid Responsive ไร้ Scrollbar ซ้อนทับ -->
+        <!-- 🌟 Profile View (Tab 1: General Info) -> แก้ไขใช้ Layout เหมือน Edit View เพื่อขจัด Scrollbar เถื่อน -->
         <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
           
-          <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0 mt-1 pe-1">
+          <div class="d-flex justify-content-between align-items-center mb-3 mt-1 flex-shrink-0 pe-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="tab_general_info">General Information</span></h6>
             <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
               <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
             </button>
           </div>
 
-          <!-- 🌟 Main Content Grid (Desktop: Lock Frame / iPad: Flow with Scroll) -->
-          <div class="flex-grow-1 overflow-y-auto custom-scrollbar my-1 pb-2" style="min-height: 0;">
-            <div class="row g-3 g-xl-4 m-0 align-items-stretch">
+          <!-- 🌟 MAIN CONTENT GRID (Restored perfectly working layout from Edit screen) -->
+          <div class="flex-grow-1 overflow-hidden" style="min-height: 0;">
+            <div class="row g-3 h-100 m-0">
               
-              <!-- Left Side: General Info Typography -->
-              <div class="col-12 col-lg-6 d-flex flex-column p-0 pe-lg-2">
-                <div class="p-3.5 p-md-4 rounded-4 border bg-white shadow-xs flex-grow-1" style="border-radius: 18px !important;">
+              <!-- Left Side: General Info -->
+              <div class="col-lg-6 h-100 p-0 pe-lg-2">
+                <div class="card p-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="background-color: #f8fafc !important;">
                   
-                  <div class="row g-3 mb-4 mt-1">
-                    <div class="col-6">
-                      <label class="compact-label text-muted small fw-bold mb-1 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_specialty">Specialty</label>
-                      <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocSpecialty" readonly>
-                    </div>
-                    <div class="col-6">
-                      <label class="compact-label text-muted small fw-bold mb-1 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_type">Type</label>
-                      <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocType" readonly>
-                    </div>
-                  </div>
-
-                  <div class="row g-3 mb-4">
-                    <div class="col-6">
-                      <label class="compact-label text-muted small fw-bold mb-1 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_status">Status</label>
-                      <input type="text" class="form-control-plaintext fw-bold text-success p-0 m-0 w-100 fs-6" id="viewDocStatus" readonly>
-                    </div>
-                  </div>
-
-                  <div class="mt-2 pt-4 border-top border-light-subtle">
-                    <div class="d-flex align-items-center mb-3">
-                      <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px;">
-                        <i class="fa-solid fa-shield-halved fs-6"></i>
-                      </div>
-                      <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
-                    </div>
+                  <!-- 🌟 Internal Scroll Only -->
+                  <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
                     
-                    <div class="row g-3 mt-1">
-                      <div class="col-sm-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-envelope text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
-                        <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocEmail" readonly>
+                    <div class="row g-3 mb-4">
+                      <div class="col-6">
+                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_specialty">Specialty</label>
+                        <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocSpecialty" readonly>
                       </div>
-                      <div class="col-sm-6">
-                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-phone text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
-                        <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocMobile" readonly>
+                      <div class="col-6">
+                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_type">Type</label>
+                        <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 w-100 fs-6" id="viewDocType" readonly>
                       </div>
                     </div>
-                  </div>
 
+                    <div class="row g-3 mb-4">
+                      <div class="col-6">
+                        <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;" data-i18n="lbl_status">Status</label>
+                        <input type="text" class="form-control-plaintext fw-bold text-success p-0 m-0 w-100 fs-6" id="viewDocStatus" readonly>
+                      </div>
+                    </div>
+
+                    <div class="mt-2 pt-4 border-top border-light-subtle">
+                      <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px;">
+                          <i class="fa-solid fa-shield-halved fs-6"></i>
+                        </div>
+                        <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
+                      </div>
+                      
+                      <div class="row g-3 mt-1">
+                        <div class="col-sm-6">
+                          <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-envelope text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
+                          <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocEmail" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                          <label class="compact-label text-muted small fw-bold mb-1.5 text-uppercase tracking-wide" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-phone text-muted me-1.5 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
+                          <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0 w-100" id="viewDocMobile" readonly>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
               </div>
 
-              <!-- Right Side: Workplace List -->
-              <div class="col-12 col-lg-6 d-flex flex-column p-0 ps-lg-2 mt-3 mt-lg-0">
-                <div class="p-3.5 p-md-4 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important;">
-                  <label class="text-primary fw-bold mb-3 text-uppercase tracking-wide d-flex align-items-center border-bottom border-light-subtle pb-3 flex-shrink-0" style="font-size: 0.8rem; letter-spacing: 0.5px;">
-                    <i class="fa-regular fa-hospital me-2 fs-5"></i><span data-i18n="lbl_workplace_history">Workplace History</span>
-                  </label>
-                  <!-- 🌟 ใส่ min-height เพื่อให้พื้นที่กล่องไม่บี้แบนเมื่อเปิดบน iPad -->
-                  <div id="viewWorkplaceContainer" class="d-flex flex-column mt-2 overflow-y-auto custom-scrollbar pe-1" style="gap: 12px; min-height: 250px;"></div>
+              <!-- Right Side: Workplace -->
+              <div class="col-lg-6 h-100 p-0 ps-lg-2 mt-3 mt-lg-0">
+                <div class="card p-4 rounded-4 border-0 bg-white shadow-sm d-flex flex-column h-100" style="background-color: #f8fafc !important;">
+                  <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-light-subtle flex-shrink-0">
+                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2.5" style="width: 30px; height: 30px; flex-shrink: 0;">
+                      <i class="fa-regular fa-hospital fs-6"></i>
+                    </div>
+                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
+                  </div>
+                  <!-- 🌟 Internal Scroll Only -->
+                  <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 12px; min-height: 0;"></div>
                 </div>
               </div>
 
