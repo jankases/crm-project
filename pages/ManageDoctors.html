@@ -43,36 +43,7 @@
 
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
       
-      <!-- 🌟 ไม้ตาย: บังคับ UI ของ Search และ Dropdown ให้เป๊ะ 100% (แก้ปัญหา TomSelect ดื้อ) -->
-      <style>
-        /* บังคับช่อง Search และ TomSelect ให้สูง 38px, พื้นสีขาว, ขอบมน และขอบสีเดียวกัน */
-        #doctorFilterZoneGroup .input-group,
-        #doctorFilterZoneGroup .ts-control {
-            height: 38px !important;
-            min-height: 38px !important;
-            background-color: #ffffff !important;
-            border-color: #dee2e6 !important;
-            border-radius: 8px !important; /* ปรับความมนให้เท่ากัน */
-            font-size: 0.95rem !important;
-        }
-        /* บังคับข้อความใน TomSelect ให้กึ่งกลางแนวตั้งเป๊ะๆ */
-        #doctorFilterZoneGroup .ts-control {
-            display: flex !important;
-            align-items: center !important;
-            padding: 0 12px !important;
-            box-shadow: none !important;
-        }
-        /* จัดฟอนต์ Placeholder และ Input ให้อยู่ระดับเดียวกัน */
-        #doctorFilterZoneGroup .ts-control > input,
-        #doctorFilterZoneGroup .ts-control .item {
-            font-size: 0.95rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1.2 !important;
-        }
-      </style>
-
-   <!-- 🌟 Doctor Filter Zone (มีช่องไฟ Breathing Room โปร่งสวย สเปกพรีเมียม) -->
+      <!-- 🌟 Doctor Filter Zone (มีช่องไฟ Breathing Room โปร่งสวย สเปกพรีเมียม) -->
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
@@ -95,12 +66,12 @@
             </div>
 
             <!-- Specialty Dropdown -->
-            <div style="min-width: 180px; max-width: 230px;">
+            <div style="min-width: 200px; max-width: 250px;">
               <select id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
 
             <!-- Doctor Type Dropdown -->
-            <div style="min-width: 180px; max-width: 230px;">
+            <div style="min-width: 200px; max-width: 250px;">
               <select id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
 
@@ -164,7 +135,7 @@
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="h-100 d-flex flex-column justify-content-between">
       
       <!-- Top Header Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-1">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
@@ -463,7 +434,7 @@
       </div>
     </div>
     
-    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1" style="min-height: 0; overflow-x: hidden !important;">  
+    <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
 
       <ul class="nav nav-pills doctor-profile-tabs mb-2.5 border-bottom pb-2 flex-shrink-0" id="docProfileTabs">
         <li class="nav-item">
@@ -483,9 +454,11 @@
         </li>
       </ul>
 
-      <div class="tab-content flex-grow-1" style="min-height: 0; overflow-x: hidden !important;">
+      <!-- 🌟 Inner Flex-Grow สำหรับ Tabs -->
+      <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
         <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
+          <!-- 🌟 Internal Scroll Only -->
           <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
             
             <div class="d-flex justify-content-between align-items-center mb-4 mt-1 flex-shrink-0">
@@ -538,7 +511,7 @@
         </div>
 
         <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
             <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
               <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
@@ -565,9 +538,10 @@
             </div>
           </div>
 
-          <div class="table-scroll-inside flex-grow-1" style="min-height: 0;">
+          <!-- 🌟 Internal Scroll Only -->
+          <div class="table-scroll-inside" style="min-height: 0;">
             <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
-              <thead class="table-custom-header text-center">
+              <thead class="table-custom-header text-center" style="position: sticky; top: 0; z-index: 10;">
                 <tr>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
@@ -602,7 +576,7 @@
         </div>
 
         <div class="tab-pane fade h-100 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
               <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">+ Add Product</span>
@@ -613,9 +587,10 @@
             <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">Locked:</strong> <span data-i18n="msg_rating_locked">The Target Call evaluation period is currently closed.</span>
           </div>
           
+          <!-- 🌟 Internal Scroll Only -->
           <div class="table-scroll-inside border rounded-3" style="min-height: 0;">
             <table class="table table-bordered text-center align-middle mb-0" id="ratingTable">
-              <thead class="table-custom-header bg-light">
+              <thead class="table-custom-header bg-light" style="position: sticky; top: 0; z-index: 10;">
                 <tr>
                   <th style="width: 25%;" data-i18n="th_product">PRODUCT</th>
                   <th style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
