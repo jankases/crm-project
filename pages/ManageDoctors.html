@@ -485,26 +485,55 @@
 
       <div class="tab-content flex-grow-1" style="min-height: 0; overflow-x: hidden !important;">
         
-        <div class="tab-pane fade show active px-1 py-0" id="tab-doc-info">
-          
-          <div class="d-flex justify-content-end align-items-center mb-2.5">
-            <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-              <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
-            </button>
-          </div>
+        <div class="tab-pane fade show active h-100 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
+          <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2" style="min-height: 0;">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 mt-1 flex-shrink-0">
+              <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-address-card me-2"></i><span data-i18n="tab_general_info">General Information</span></h6>
+              <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+                <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+              </button>
+            </div>
 
-          <div class="row mb-2.5 g-2.5">
-            <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label><input type="text" class="form-control bg-light premium-radius" id="viewDocSpecialty" disabled></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label><input type="text" class="form-control bg-light premium-radius" id="viewDocType" disabled></div>
-            <div class="col-md-4"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_status">Status</label><input type="text" class="form-control bg-light fw-bold premium-radius" id="viewDocStatus" disabled></div>
-          </div>
-          <div class="row mb-2.5 g-2.5">
-            <div class="col-md-6"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_email">Email</label><input type="text" class="form-control bg-light premium-radius" id="viewDocEmail" disabled></div>
-            <div class="col-md-6"><label class="text-muted small fw-bold mb-1" data-i18n="lbl_mobile">Mobile</label><input type="text" class="form-control bg-light premium-radius" id="viewDocMobile" disabled></div>
-          </div>
-          <div class="border rounded-4 p-3 bg-light mt-2 shadow-xs">
-            <label class="text-primary small fw-bold mb-2 d-block"><i class="fa-regular fa-hospital me-2"></i><span data-i18n="lbl_workplace_history">Workplace History</span></label>
-            <div id="viewWorkplaceContainer"></div>
+            <div class="row mb-4 g-4">
+              <div class="col-md-4">
+                <label class="text-muted small fw-bold mb-0 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_specialty">Specialty</label>
+                <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 fs-6" id="viewDocSpecialty" readonly>
+              </div>
+              <div class="col-md-4">
+                <label class="text-muted small fw-bold mb-0 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_type">Type</label>
+                <input type="text" class="form-control-plaintext fw-bold text-dark p-0 m-0 fs-6" id="viewDocType" readonly>
+              </div>
+              <div class="col-md-4">
+                <label class="text-muted small fw-bold mb-0 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_status">Status</label>
+                <input type="text" class="form-control-plaintext fw-bold text-success p-0 m-0 fs-6" id="viewDocStatus" readonly>
+              </div>
+            </div>
+            
+            <div class="row mb-4 g-4 pb-2 border-bottom border-light-subtle">
+              <div class="col-md-4">
+                <label class="text-muted small fw-bold mb-1 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_email">Email</label>
+                <div class="d-flex align-items-center">
+                  <i class="fa-solid fa-envelope text-muted me-2 opacity-75"></i>
+                  <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0" id="viewDocEmail" readonly>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="text-muted small fw-bold mb-1 text-uppercase tracking-wide" style="font-size: 0.75rem; letter-spacing: 0.5px;" data-i18n="lbl_mobile">Mobile</label>
+                <div class="d-flex align-items-center">
+                  <i class="fa-solid fa-phone text-muted me-2 opacity-75"></i>
+                  <input type="text" class="form-control-plaintext fw-medium text-dark p-0 m-0" id="viewDocMobile" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <label class="text-muted small fw-bold mb-3 text-uppercase d-block" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                <i class="fa-regular fa-hospital me-1.5"></i><span data-i18n="lbl_workplace_history">Workplace History</span>
+              </label>
+              <div id="viewWorkplaceContainer" class="d-flex flex-column" style="gap: 2px;"></div>
+            </div>
+            
           </div>
         </div>
 
