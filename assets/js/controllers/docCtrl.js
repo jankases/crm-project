@@ -2369,42 +2369,45 @@ window.goToQuickAddCall = function() {
   }, 100);
 };
 
-// ==========================================
+ // ==========================================
 // 🚀 INITIALIZATION ENGINE & LISTENERS
 // ==========================================
 window.initDoctorPage = async function(forceReload = false) {
   if (window._isDocInitRunning) return;
 
   const docViewEl = document.getElementById('doctorListView');
-  const hasCache = (window.DocManagerCache && window.DocManagerCache.isLoaded && window.globalDoctors && window.globalDoctors.length > 0);
-  const shouldFetchDB = forceReload === true ? true : !hasCache;
-
+  
   window._isDocInitRunning = true;
   window.isDocInitialLoading = true;
 
-  if (shouldFetchDB && docViewEl) {
+  // 🌟 1. บังคับเปิดหน้าจอ Loading ทันทีที่เข้า Tab Doctor (เพื่อให้ UI สมูทและตรงกับหน้า Visit)
+  if (docViewEl) {
       var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
       const lTitle = document.getElementById('docLoadingTitleText');
       const lDesc = document.getElementById('docLoadingDescText');
       
       if (lTitle) {
-      lTitle.textContent = (typeof t === 'function') ? t('status_loading_doc') : (appLang === 'en' ? 'Loading Doctors...' : 'กำลังโหลดข้อมูลแพทย์...');
-    }
-    if (lDesc) {
-      lDesc.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
-    }
+        lTitle.textContent = (typeof t === 'function') ? t('status_loading_doc') : (appLang === 'en' ? 'Loading Doctors...' : 'กำลังโหลดข้อมูลแพทย์...');
+      }
+      if (lDesc) {
+        lDesc.textContent = (typeof t === 'function') ? t('status_loading_desc') : (appLang === 'en' ? 'Retrieving doctors database and workplaces.' : 'กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ');
+      }
       
       docViewEl.classList.add('is-loading');
   }
 
   try {
-    await window.loadIndexDropdowns(shouldFetchDB); 
-    await window.loadDoctors(shouldFetchDB, false);
+    await window.loadIndexDropdowns(forceReload); 
+    
+    // 🌟 2. บังคับดึงข้อมูลหมอใหม่เสมอ (forceReload = true) เพื่ออัปเดตสถานะล่าสุด
+    await window.loadDoctors(true, false);
+    
   } catch (err) {
     console.error("Init Doctors Failed:", err);
   } finally {
     window.isDocInitialLoading = false;
     window._isDocInitRunning = false;
+    // ปิดหน้าจอ Loading เมื่อโหลดเสร็จ
     if (docViewEl) docViewEl.classList.remove('is-loading');
   }
 };
