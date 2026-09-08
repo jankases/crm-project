@@ -272,11 +272,13 @@
 
         </div>
       </div>
-
-      <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 mt-1 gap-3">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="submitDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
-      </div>
+ 
+<div class="card-footer bg-white border-0 py-3 d-flex justify-content-end align-items-center gap-2">
+  <button type="button" class="btn btn-sm btn-light border shadow-sm px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')">Cancel</button>
+  <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn">
+    <i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span>
+  </button>
+</div>
 
     </form>
   </div>
