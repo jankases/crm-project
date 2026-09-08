@@ -2452,31 +2452,7 @@ if (!window._isDocLangListenerAttached) {
   window._isDocLangListenerAttached = true;
 }
 
-// ==========================================
-// 🧹 UI HELPER: SMART SEARCH CLEAR BUTTON
-// ==========================================
-// 🎯 Handle Input พร้อม Debounce & ควบคุมปุ่ม Clear (X)
-let docSearchDebounceTimer = null;
-window.handleDocSearchInput = function(inputEl) {
-  const btnClear = document.getElementById('btnClearDocSearch');
-  const val = inputEl ? inputEl.value.trim() : '';
-
-  // แสดง/ซ่อน ปุ่ม Clear
-  if (btnClear) {
-    if (val.length > 0) {
-      btnClear.classList.remove('d-none');
-    } else {
-      btnClear.classList.add('d-none');
-    }
-  }
-
-  // หน่วงเวลาพิมพ์เพื่อโหลดข้อมูล
-  clearTimeout(docSearchDebounceTimer);
-  docSearchDebounceTimer = setTimeout(() => {
-    window.currentPage = 1;
-    window.loadDoctors(true);
-  }, 300);
-};
+ 
 
 window.clearDocSearchInput = function() {
     var inputEl = document.getElementById('smartDocSearchInput');
@@ -2545,10 +2521,49 @@ window.highlightDocSearchText = function(text, query) {
 
   return highlighted;
 };
+
+
+// ==========================================
+// 🎯 SMART SEARCH WITH REAL DEBOUNCE (หน่วงเวลาพิมพ์ 400ms เหมือนหน้า Visit)
+// ==========================================
+if (typeof window.docSearchDebounceTimer === 'undefined') {
+  window.docSearchDebounceTimer = null;
+}
+
+window.handleDocSearchInput = function(inputEl) {
+  const btnClear = document.getElementById('btnClearDocSearch');
+  const val = inputEl ? inputEl.value : '';
+
+  // 1. ควบคุมปุ่ม ลบคำค้นหา (X) ให้แสดงทันทีเมื่อมีข้อความ
+  if (btnClear) {
+    if (val.trim().length > 0) {
+      btnClear.classList.remove('d-none');
+    } else {
+      btnClear.classList.add('d-none');
+    }
+  }
+
+  // 2. เคลียร์ Timer เดิมทิ้งทุกครั้งที่มีการพิมพ์เพิ่ม
+  if (window.docSearchDebounceTimer) {
+    clearTimeout(window.docSearchDebounceTimer);
+  }
+
+  // 3. หน่วงเวลา 400ms รอให้ผู้ใช้พิมพ์เสร็จก่อน ค่อยยิงค้นหาไปที่ Server (เหมือนหน้า Visit เป๊ะ)
+  window.docSearchDebounceTimer = setTimeout(() => {
+    window.currentPage = 1;
+    window.loadDoctors(true);
+  }, 400);
+};
+
 // 🎯 ปุ่ม Clear คำค้นหา
 window.clearDocSearchInput = function() {
   const inputEl = document.getElementById('smartDocSearchInput');
   const btnClear = document.getElementById('btnClearDocSearch');
+  
+  if (window.docSearchDebounceTimer) {
+    clearTimeout(window.docSearchDebounceTimer);
+  }
+
   if (inputEl) {
     inputEl.value = '';
     if (btnClear) btnClear.classList.add('d-none');
@@ -2556,4 +2571,3 @@ window.clearDocSearchInput = function() {
     window.loadDoctors(true);
   }
 };
-
