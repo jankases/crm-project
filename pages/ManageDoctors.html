@@ -20,9 +20,14 @@
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-3 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center">
-        <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2.5 gap-3 flex-shrink-0">
+      <div class="d-flex align-items-center gap-3">
+        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
+          <i class="fa-solid fa-user-doctor fs-5"></i>
+        </div>
+        <div class="d-flex flex-column justify-content-center">
+          <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
+        </div>
       </div>
       
       <div class="d-flex gap-2">
@@ -221,9 +226,10 @@
 
           <div class="col-12 col-xl-6 d-flex flex-column h-100" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important; overflow-x: hidden !important;">
-              <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
+              <div class="d-flex align-items-center mb-2.5 pb-2 border-bottom border-light-subtle flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                  <i class="fa-solid fa-location-dot fs-6"></i>
+                  <!-- 🌟 เปลี่ยนไอคอนเป็นตึกโรงพยาบาล -->
+                  <i class="fa-solid fa-hospital fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace</h6>
               </div>
@@ -271,7 +277,7 @@
         </div>
       </div>
       
-      <!-- 🌟 MAIN CONTENT CONTAINER (โซนการ์ดซ้าย-ขวา) -->
+      <!-- 🌟 MAIN CONTENT CONTAINER -->
       <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
         <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
             
@@ -367,7 +373,8 @@
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                  <i class="fa-solid fa-location-dot fs-6"></i>
+                  <!-- 🌟 เปลี่ยนไอคอนเป็นตึกโรงพยาบาล -->
+                  <i class="fa-solid fa-hospital fs-6"></i>
                 </div>
                 <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
               </div>
@@ -416,11 +423,18 @@
         <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-3"></div>
       </div>
+      <!-- 🌟 ย้ายปุ่ม Edit Doctor มาไว้ตรงนี้ ระดับเดียวกับ Header -->
+      <div class="d-flex align-items-center">
+        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+          <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+        </button>
+      </div>
     </div>
     
     <div class="card p-3 p-md-4 border-0 shadow-sm visit-card flex-grow-1 d-flex flex-column my-1 overflow-hidden" style="min-height: 0;">  
 
       <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 flex-shrink-0">
+        <!-- 🌟 แถบเมนู Tab จะไม่มีปุ่มอื่นมารบกวนแล้ว -->
         <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
           <li class="nav-item">
             <button type="button" class="nav-link active" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')">
@@ -438,23 +452,18 @@
             </button>
           </li>
         </ul>
-        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
-          <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
-        </button>
       </div>
 
-     <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
+      <div class="tab-content flex-grow-1 d-flex flex-column overflow-hidden" style="min-height: 0;">
         
-        <!-- 🌟 [FIX]: เปลี่ยน h-100 เป็น flex-grow-1 เพื่อรับพลัง Flexbox จากตัวแม่ -->
+        <!-- 🌟 GENERAL INFO TAB: ยืดเต็มจอด้วย flex-grow-1 -->
         <div class="tab-pane fade show active flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-info" style="min-height: 0;">
           <div class="form-content-grid flex-grow-1 my-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
             <div class="row g-2.5 flex-grow-1" style="min-height: 0;">
               
-              <!-- 🔹 Left Side: General Info (Read-Only) -->
-              <!-- 🌟 [FIX]: ลบ h-100 ออก ปล่อยให้ row จัดการยืดความสูงคอลัมน์อัตโนมัติ -->
-              <div class="col-12 col-xl-6 d-flex flex-column mb-3 mb-xl-0" style="min-height: 0;">
-                <!-- 🌟 [FIX]: เปลี่ยน h-100 เป็น flex-grow-1 ให้การ์ดยืดเต็มคอลัมน์ -->
-                <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; min-height: 0;">
+              <!-- 🔹 Left Side: General Info (Read-Only) คืนค่า h-100 -->
+              <div class="col-12 col-xl-6 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
+                <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
                   <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                       <i class="fa-solid fa-address-card fs-6"></i>
@@ -536,21 +545,21 @@
                 </div>
               </div>
 
-              <!-- 🔹 Right Side: Workplace + Pending DCR Summary -->
-              <!-- 🌟 [FIX]: ลบ h-100 ออก ปล่อยให้ยืดตามธรรมชาติของ Flex Row -->
-              <div class="col-12 col-xl-6 d-flex flex-column gap-3" style="min-height: 0;">
+              <!-- 🔹 Right Side: Workplace + Pending DCR Summary (คืนค่า h-100 ให้การ์ดเด้งเต็มจอ) -->
+              <div class="col-12 col-xl-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
                 
                 <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
                   <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                      <i class="fa-solid fa-location-dot fs-6"></i>
+                      <!-- 🌟 เปลี่ยนไอคอนเป็นตึกโรงพยาบาล -->
+                      <i class="fa-solid fa-hospital fs-6"></i>
                     </div>
                     <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
                   </div>
                   <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 8px; min-height: 0;"></div>
                 </div>
 
-                <!-- Profile DCR Card -->
+                <!-- 🌟 Profile DCR Card (ID ไม่ซ้ำกับหน้า Edit) -->
                 <div id="profilePendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
                   <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
                     <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
@@ -573,7 +582,7 @@
           </div>
         </div>
 
-        <!-- 🌟 [FIX]: เปลี่ยน h-100 เป็น flex-grow-1 ให้กับ Tab อื่นๆ ด้วยเพื่อป้องกันบั๊กเดียวกัน -->
+        <!-- 🌟 คืนค่า flex-grow-1 ให้ Tab History -->
         <div class="tab-pane fade flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-history" style="min-height: 0;">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
@@ -637,6 +646,7 @@
           </div>
         </div>
 
+        <!-- 🌟 คืนค่า flex-grow-1 ให้ Tab Target Call -->
         <div class="tab-pane fade flex-grow-1 d-flex flex-column overflow-hidden" id="tab-doc-target" style="min-height: 0;">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
             <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
