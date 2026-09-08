@@ -2176,3 +2176,51 @@ button.feature-action-btn-lg.has-data-samples i {
             text-overflow: ellipsis !important;
             max-width: 100% !important;
         }
+
+/* ==========================================
+   🏥 DOCTOR MODULE - FLEXBOX & PROFILE FIX
+   ========================================== */
+
+/* 🌟 1. ปลดล็อก Tab Pane ของ Bootstrap ให้สืบทอด Flexbox ได้ 100% */
+#doctorProfileView .tab-content > .tab-pane.active {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* 🌟 2. ล็อกโซ่ Flexbox สำหรับ Edit, Add และ Profile View */
+#doctorAddView,
+#doctorEditView,
+#doctorProfileView {
+  height: 100% !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+#doctorAddView form,
+#doctorEditView form {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* 🌟 3. บังคับ Grid การ์ดซ้าย-ขวา ให้ยืดความสูงเท่ากันเป๊ะ 100% ชิดขอบล่าง */
+#doctorAddView .row.flex-grow-1,
+#doctorEditView .row.flex-grow-1,
+#tab-doc-info .row.flex-grow-1 {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+#doctorAddView .card,
+#doctorEditView .card,
+#tab-doc-info .card {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
