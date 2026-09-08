@@ -15,10 +15,12 @@
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
-<div class="container-fluid p-0 visit-module-wrapper">
+<!-- 🌟 [FIX]: เติม h-100 d-flex flex-column overflow-hidden และ height: 100% !important; สยบช่องโหว่บน iPad -->
+<div class="container-fluid p-0 visit-module-wrapper h-100 d-flex flex-column overflow-hidden" style="height: 100% !important;">
   
   <!-- ================= 1. LIST VIEW ================= -->
-  <div id="visitListView" class="w-100 h-100 d-flex flex-column">
+  <!-- 🌟 [FIX]: เติม flex-grow-1 และ min-height: 0 -->
+  <div id="visitListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2.5 gap-3 flex-shrink-0">
       <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -53,12 +55,9 @@
         <button type="button" class="btn btn-sm text-secondary bg-transparent px-3 py-1.5 fw-bold border-0 premium-radius" id="btnToggleCal" onclick="window.toggleMainView('calendar')"><i class="fa-regular fa-calendar-days me-2"></i> <span data-i18n="btn_calendar">Calendar</span></button>
       </div>
 
-        
-
-        <!-- เปลี่ยน onclick เป็น window.initVisitPage(true) -->
-    <button type="button" class="btn btn-premium-icon" onclick="window.initVisitPage(true)" id="btnRefreshVisits" title="Refresh Data">
-      <i class="fa-solid fa-arrows-rotate fs-6"></i>
-    </button>
+        <button type="button" class="btn btn-premium-icon" onclick="window.initVisitPage(true)" id="btnRefreshVisits" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate fs-6"></i>
+        </button>
 
         <button type="button" class="btn btn-sm btn-premium-secondary py-1.5 px-3" onclick="window.openAddTotModal()">
           <i class="fa-solid fa-umbrella-beach me-2"></i><span data-i18n="btn_add_tot">Add TOT</span>
@@ -71,15 +70,16 @@
     </div>
 
     <!-- Card Loading Spinner -->   
-<div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center d-flex">
-  <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
-  <h5 class="fw-bold text-dark mb-1" id="visitLoadingTitleText" data-i18n="status_loading">Loading Data...</h5>
-  <p class="text-muted mb-0" id="visitLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
-</div>
+    <div id="visitTableLoading" class="card p-5 border-0 shadow-sm visit-card w-100 flex-grow-1 align-items-center justify-content-center d-flex">
+      <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+      <h5 class="fw-bold text-dark mb-1" id="visitLoadingTitleText" data-i18n="status_loading">Loading Data...</h5>
+      <p class="text-muted mb-0" id="visitLoadingDescText" data-i18n="status_loading_desc" style="font-size: 0.9rem;">Processing your access rights and retrieving records.</p>
+    </div>
  
-      <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden">
+    <!-- 🌟 [FIX]: เติม style="min-height: 0;" เพื่อป้องกันการถูกดันทะลุ -->
+    <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
  
-<div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0">
+      <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
           <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
             
@@ -98,8 +98,8 @@
               </div>
             </div>
  
-          <!-- Date Range Picker Filter -->
-            <div style="width: 280px;"> <!-- 🌟 ปรับความกว้างจาก 260px เป็น 280px เพื่อเผื่อที่ให้ปุ่มกากบาท -->
+            <!-- Date Range Picker Filter -->
+            <div style="width: 280px;"> 
               <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer position-relative" id="dateFilterRangeWrapper">
                 <span class="text-muted pe-1" onclick="if(window.fpStartInstance) window.fpStartInstance.open();"><i class="fa-regular fa-calendar-days"></i></span>
                 <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterStartDate" placeholder="dd/mm/yyyy" readonly>
@@ -115,19 +115,18 @@
 
           </div>
  
-        <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
+          <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
           <div class="d-flex gap-2.5 align-items-center ms-auto">
             <div class="dropdown position-relative">
               
               <!-- ปุ่มเปิดเมนู Advanced Filters -->
-            <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-              <i class="fa-solid fa-sliders me-2 text-primary"></i>
-              <!-- 🌟 เปลี่ยน data-i18n เป็น btn_adv_filters -->
-              <span class="fw-semibold" data-i18n="btn_adv_filters">Advanced Filters</span>
-            </button>
+              <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                <i class="fa-solid fa-sliders me-2 text-primary"></i>
+                <span class="fw-semibold" data-i18n="btn_adv_filters">Advanced Filters</span>
+              </button>
 
               <!-- 🌟 แผงกรองแนวกว้าง (Premium Horizontal Panel - ขยายกว้างเป็น 1050px) --> 
-                <div class="dropdown-menu dropdown-menu-end p-0 border shadow-lg mt-2 bg-white" id="visitFilterZoneGroup" style="width: 1050px; max-width: 95vw; z-index: 1050; border-radius: 12px; overflow: hidden;">
+              <div class="dropdown-menu dropdown-menu-end p-0 border shadow-lg mt-2 bg-white" id="visitFilterZoneGroup" style="width: 1050px; max-width: 95vw; z-index: 1050; border-radius: 12px; overflow: hidden;">
                 
                 <!-- 📌 1. Panel Header (ตรึงอยู่ด้านบน) -->
                 <div class="bg-light-subtle px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
@@ -169,10 +168,10 @@
                       <div class="mt-4 pt-2 border-top border-light">
                         <div class="form-check form-switch d-flex align-items-center gap-2">
                           <input class="form-check-input mt-0" type="checkbox" role="switch" id="filterVisitCoaching" style="width: 2.2rem; height: 1.2rem; cursor: pointer;">
-                         <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer d-flex align-items-center" for="filterVisitCoaching">
-                        <span data-i18n="lbl_coaching_only">Show Coaching Only</span>
-                        <span class="badge badge-soft-info ms-2"><i class="fa-solid fa-clipboard-user text-info"></i></span>
-                    </label>
+                          <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer d-flex align-items-center" for="filterVisitCoaching">
+                            <span data-i18n="lbl_coaching_only">Show Coaching Only</span>
+                            <span class="badge badge-soft-info ms-2"><i class="fa-solid fa-clipboard-user text-info"></i></span>
+                          </label>
                         </div>
                       </div>
 
@@ -190,9 +189,8 @@
                       </div>
                       
                       <div class="border rounded-3 p-2 bg-light-subtle">
-                        <!-- 🌟 ใส่ oninput ให้ค้นหาทันที และใส่ data-i18n-placeholder สำหรับแปลภาษา -->
                         <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchRepFilter" placeholder="🔍 Search employee..." data-i18n-placeholder="ph_search_emp" oninput="window.filterCheckboxList('rep', this.value)">
-                            <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterRep" style="height: 180px;">
+                        <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterRep" style="height: 180px;">
                           <!-- Checkbox List Render Here -->
                         </div>
                       </div>
@@ -211,7 +209,7 @@
 
                       <div class="border rounded-3 p-2 bg-light-subtle">
                         <input type="text" class="form-control form-control-sm mb-2 border-0 bg-white shadow-xs rounded-2" id="searchTerFilter" placeholder="🔍 Search area..." data-i18n-placeholder="ph_search_area" oninput="window.filterCheckboxList('ter', this.value)">
-                         <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterTer" style="height: 180px;">
+                        <div class="checkbox-scroll-zone overflow-auto pe-1" id="containerFilterTer" style="height: 180px;">
                           <!-- Checkbox List Render Here -->
                         </div>
                       </div>
@@ -222,17 +220,14 @@
 
                 <!-- 📌 3. Panel Footer (ตรึงอยู่ด้านล่างสุดเสมอ) -->
                 <div class="bg-light px-4 py-3 border-top d-flex justify-content-between align-items-center">
-                  <!-- 🌟 แก้ไข: เติมคำว่า event ลงไปในวงเล็บ เพื่อกันหน้าต่างพับ -->
                   <button type="button" class="btn btn-link text-danger text-decoration-none fw-bold px-0" onclick="window.clearVisitFilters(event)">
                     <i class="fa-solid fa-eraser me-1"></i> <span data-i18n="btn_clear_all">Clear all</span>
                   </button>
                   
                   <div class="d-flex gap-2">
-                    <!-- ปุ่ม Cancel -->
                     <button type="button" class="btn btn-white border fw-semibold shadow-sm px-4 text-secondary" onclick="document.getElementById('btnAdvFilterDropdown').click()">
                       <span data-i18n="btn_cancel">Cancel</span>
                     </button>
-                    <!-- 🌟 แก้ไข: ลบ onclick ทิ้งไปเลย เพราะใน JS เราดัก Event พร้อมแอนิเมชันปุ่มไว้แล้ว -->
                     <button type="button" class="btn btn-premium-primary fw-bold shadow-sm px-5" id="btnApplyAdvancedFilters">
                       <i class="fa-solid fa-check me-1"></i> <span data-i18n="btn_apply_close">Apply & Close</span>
                     </button>
@@ -245,12 +240,11 @@
         </div>
       </div>
 
-       <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column position-relative" style="min-height: 0;">
+      <div id="visitListZone" class="card p-3 border-0 shadow-sm visit-card w-100 flex-grow-1 d-flex flex-column position-relative" style="min-height: 0;">
         
         <!-- 🌟 สร้าง Overlay Loading ทับตารางให้เต็มพื้นที่ (ซ่อนไว้ก่อนด้วย d-none) -->
         <div id="tableLoadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-white d-flex flex-column align-items-center justify-content-center d-none" style="z-index: 10; border-radius: inherit;">
           <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
-          <!-- 🌟 ใช้ data-i18n="status_loading" เพื่อให้ระบบ 2 ภาษาทำงานอัตโนมัติ -->
           <span class="text-muted fw-bold fs-6" data-i18n="status_loading">Loading Data...</span>
         </div>
 
@@ -293,7 +287,8 @@
   </div>
 
   <!-- ================= 2. FORM VIEW ================= -->
-  <div id="visitFormView" class="d-none w-100 visit-form-wrapper p-2 p-md-3 pb-3">
+  <!-- 🌟 [FIX]: ปรับฟอร์มให้ยืดเต็มจอและ Flex ตามมาตรฐานสากล -->
+  <div id="visitFormView" class="d-none w-100 h-100 d-flex flex-column visit-form-wrapper p-2 p-md-3 pb-3" style="min-height: 0;">
     <form id="visitForm" onsubmit="window.handleSaveVisit(event)" novalidate class="h-100 d-flex flex-column justify-content-between">
       <input type="hidden" id="visitId">
 
@@ -339,10 +334,12 @@
       </div>
 
       <!-- Main Cards Grid Container -->
-      <div class="row g-2.5 flex-grow-1 overflow-hidden my-1" style="margin-bottom: 0.85rem !important;">
+      <!-- 🌟 [FIX]: เอา overflow-hidden ออกเพื่อป้องกันเงาการ์ดหาย และเติม min-height: 0 -->
+      <div class="row g-2.5 flex-grow-1 my-1" style="min-height: 0; margin-bottom: 0.85rem !important;">
         
         <!-- 🔹 Left Column (Visit Information & Evidences) -->
-        <div class="col-12 col-xl-5 h-100 d-flex flex-column">
+        <!-- 🌟 [FIX]: อัปเกรดจุดพับหน้าจอจาก lg เป็น xl เพื่อให้ iPad แนวนอนจัดเป็นคอลัมน์เดียวเหมือนหน้า Doctor -->
+        <div class="col-12 col-xl-5 d-flex flex-column h-100 mb-3 mb-xl-0" style="min-height: 0;">
           <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div>
               <!-- ไอคอนหัวข้อ -->
@@ -452,7 +449,8 @@
         </div>
 
         <!-- 🔹 Right Column (Activity Details) -->
-        <div class="col-12 col-xl-7 h-100 d-flex flex-column">
+        <!-- 🌟 [FIX]: อัปเกรดจุดพับหน้าจอจาก lg เป็น xl -->
+        <div class="col-12 col-xl-7 d-flex flex-column h-100" style="min-height: 0;">
           <div class="p-3 rounded-4 border bg-white h-100 d-flex flex-column justify-content-between shadow-xs" style="border-radius: 18px !important;">
             <div class="d-flex flex-column h-100" style="min-height: 0;">
               <!-- ไอคอนหัวข้อ -->
@@ -585,7 +583,7 @@
 
 <!-- 📍 GPS Check-in Modal -->
 <div class="modal fade" id="gpsDrawerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered"> <!-- 🌟 เอา modal-sm ออก เพื่อให้แผนที่แสดงได้กว้างขึ้น -->
+  <div class="modal-dialog modal-dialog-centered"> 
     <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
       
       <div class="modal-header border-bottom-0 pt-4 pb-0 px-4 position-relative justify-content-center">
@@ -604,7 +602,6 @@
           <i class="fa-solid fa-crosshairs fs-5"></i> <span>Get Current Location</span>
         </button>
 
-        <!-- 🌟 แผนที่ Google Maps Embedded (จะถูกซ่อนไว้จนกว่าจะมีพิกัด) -->
         <div id="gpsMapContainer" class="w-100 rounded-4 overflow-hidden shadow-xs border d-none mb-3" style="height: 220px; background-color: #f8fafc;">
            <iframe id="gpsMapIframe" width="100%" height="100%" frameborder="0" style="border:0" allowfullscreen loading="lazy"></iframe>
         </div>
@@ -615,7 +612,6 @@
                  <i class="fa-solid fa-satellite-dish text-secondary me-2"></i>
                  <span class="fw-bold text-secondary small text-uppercase tracking-wide" data-i18n="lbl_location_coords" style="letter-spacing: 0.5px;">Coordinates</span>
              </div>
-             <!-- 🌟 ปุ่มเปิดพิกัดไปที่เว็บ/แอป Google Maps -->
              <a href="#" target="_blank" id="btnOpenGoogleMaps" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 d-none" style="font-size: 0.75rem;"><i class="fa-solid fa-map-marked-alt me-1"></i>Open in Maps</a>
           </div>
           
