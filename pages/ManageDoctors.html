@@ -230,7 +230,7 @@
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                   <i class="fa-solid fa-location-dot fs-6"></i>
                 </div>
-                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
+                <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace</h6>
               </div>
               <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
@@ -365,7 +365,8 @@
           </div>
 
           <!-- Right Side: Workplace + Pending DCR Summary -->
-          <div class="col-lg-6 d-flex flex-column h-100 gap-2.5" style="min-height: 0;">
+          <!-- 🌟 เปลี่ยนจาก gap-2.5 เป็น gap-3 เพื่อให้ช่องไฟทำงานอย่างถูกต้อง -->
+          <div class="col-lg-6 d-flex flex-column h-100 gap-3" style="min-height: 0;">
             
             <!-- Workplace History (กะทัดรัด) -->
             <div class="card p-3 p-md-3.5 rounded-4 border-0 bg-white shadow-sm flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
@@ -378,7 +379,7 @@
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
 
-            <!-- 🌟 Pending DCR Summary (ดึงขอบบนขยายขึ้นระนาบเดียวกับ Email ฝั่งซ้าย) -->
+            <!-- 🌟 Pending DCR Summary -->
             <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
               <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
                 <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
