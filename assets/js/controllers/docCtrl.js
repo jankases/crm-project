@@ -1386,10 +1386,11 @@ window.renderPendingDcrChanges = function(requestedDataJson) {
   }
 };
 
-window.setDoctorFormReadOnly = function(isReadOnly) {
+ window.setDoctorFormReadOnly = function(isReadOnly) {
   const form = document.getElementById('editDoctorForm');
   if (!form) return;
 
+  // 1. ล็อก Input / Select / Textarea ทั่วไป
   const inputs = form.querySelectorAll('input:not([type="checkbox"]), select, textarea');
   inputs.forEach(el => {
     if (el.id !== 'editDocId') {
@@ -1397,17 +1398,26 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
     }
   });
 
-  const switches = form.querySelectorAll('.form-check-input[type="checkbox"]');
-  switches.forEach(sw => {
-    if (isReadOnly) {
-      sw.style.pointerEvents = 'none';
-      sw.style.opacity = '0.7';
-    } else {
-      sw.style.pointerEvents = 'auto';
-      sw.style.opacity = '1';
+  // 🌟 [FIX]: 2. เปลี่ยนให้กวาด Checkbox และ Switch "ทุกตัว" ในฟอร์ม (รวมตัว Active ด้วย)
+  const allCheckboxes = form.querySelectorAll('input[type="checkbox"]');
+  allCheckboxes.forEach(sw => {
+    // ล็อกระดับ Native ป้องกันการคลิก
+    sw.disabled = isReadOnly; 
+
+    // หรี่แสงและปิด Event ที่กรอบตัวแม่ (เช่นคลาส .switch มุมขวาบน)
+    const parentSwitch = sw.closest('.switch, .form-switch');
+    if (parentSwitch) {
+      if (isReadOnly) {
+        parentSwitch.style.pointerEvents = 'none';
+        parentSwitch.style.opacity = '0.6';
+      } else {
+        parentSwitch.style.pointerEvents = 'auto';
+        parentSwitch.style.opacity = '1';
+      }
     }
   });
 
+  // 3. ล็อก TomSelect
   ['editDocTitle', 'editDocSpecialty', 'editDocType'].forEach(id => {
     const el = document.getElementById(id);
     if (el && el.tomselect) {
@@ -1416,6 +1426,7 @@ window.setDoctorFormReadOnly = function(isReadOnly) {
     }
   });
 
+  // 4. ล็อก Workplace
   const container = document.getElementById('workplaceContainerEdit');
   if (container) {
     const deleteBtns = container.querySelectorAll('.btn-wp-delete-icon');
