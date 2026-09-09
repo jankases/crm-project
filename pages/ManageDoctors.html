@@ -411,14 +411,18 @@
 
     </form>
   </div>
- <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
+
+
+
+   <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
   
-  <!-- 🌟 [FIX 1]: เปลี่ยนสปริงให้สมบูรณ์แบบด้วย flex: 1 1 auto -->
+  <!-- 🌟 [FIX 1]: ใส่พลังสปริงให้ Tab แบบ 100% -->
   <style>
     .spa-tab-pane.active {
       display: flex !important;
       flex-direction: column !important;
-      flex: 1 1 auto !important;
+      flex: 1 1 auto !important; /* 👈 สปริงตัวสำคัญที่ดันให้การ์ดยืด */
+      height: 100% !important;
       min-height: 0 !important;
       width: 100% !important;
     }
@@ -426,7 +430,6 @@
 
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3">
     
-    <!-- 🌟 [FIX 2]: ย้ายปุ่ม Edit Doctor มาไว้ระดับ Page-Level (มุมขวาบน) -->
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-3" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
@@ -435,6 +438,8 @@
         <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-3"></div>
       </div>
+      
+      <!-- 🌟 [FIX 2]: ย้ายปุ่ม Edit Doctor มาไว้มุมขวาบนสุด (Page-Level Action) -->
       <div class="d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
           <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
@@ -469,10 +474,10 @@
         <div class="tab-pane fade show active spa-tab-pane" id="tab-doc-info">
           
           <div class="form-content-grid flex-grow-1 d-flex flex-column" style="min-height: 0;">
-            <!-- 🌟 [FIX 3]: เติม m-0 เข้าไปที่ .row เพื่อล้างขอบ Margin ติดลบที่ดันจนทะลุจอออก -->
+            <!-- 🌟 [FIX 3]: เติม m-0 เพื่อล้าง Margin ติดลบของ Bootstrap Row -->
             <div class="row g-3 flex-grow-1 m-0" style="min-height: 0;">
               
-              <!-- 🌟 [FIX 4]: รีเซ็ต Padding ของ Col ซ้าย-ขวา ให้พอดีเป๊ะ -->
+              <!-- 🌟 [FIX 4]: จัดการ Padding คอลัมน์ซ้าย (px-0 pe-xl-2) -->
               <div class="col-12 col-xl-6 d-flex flex-column mb-3 mb-xl-0 px-0 pe-xl-2" style="min-height: 0;">
                 <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; min-height: 0;">
                   <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
@@ -557,7 +562,7 @@
               </div>
 
               <!-- Right Side -->
-              <!-- 🌟 [FIX 4]: รีเซ็ต Padding ของ Col ซ้าย-ขวา ให้พอดีเป๊ะ -->
+              <!-- 🌟 [FIX 5]: จัดการ Padding คอลัมน์ขวา (px-0 ps-xl-2) -->
               <div class="col-12 col-xl-6 d-flex flex-column gap-3 px-0 ps-xl-2" style="min-height: 0;">
                 
                 <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
@@ -601,7 +606,7 @@
           </div>
 
           <div class="row g-2 mb-3 bg-light p-2 rounded-3 border flex-shrink-0 shadow-xs m-0">
-            <div class="col-md-5">
+            <div class="col-md-5 px-1">
               <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
               <div class="input-group input-group-sm shadow-xs premium-radius overflow-hidden">
                 <input type="date" class="form-control border-0" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
@@ -609,13 +614,13 @@
                 <input type="date" class="form-control border-0" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()">
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 px-1">
               <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
               <select class="form-select form-select-sm shadow-xs premium-radius" id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()">
                 <option value="">- All Products -</option>
               </select>
             </div>
-            <div class="col-md-3 d-flex align-items-end">
+            <div class="col-md-3 d-flex align-items-end px-1">
               <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
             </div>
           </div>
