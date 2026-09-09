@@ -1537,7 +1537,7 @@ window.openEditDoctorView = async function(id) {
   }
 };
 
-  window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
+   window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   window.currentTargetDocId = id; 
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
@@ -1575,23 +1575,21 @@ window.openEditDoctorView = async function(id) {
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
-  // 🌟 SORT: จับเอา Primary ขึ้นเป็น Index 0 เสมอ
   parsedWp.sort((a, b) => (b.isPrimary === true) - (a.isPrimary === true));
   
-  // 🌟 ไฮไลท์ดีไซน์ Primary สำหรับหน้า Profile (สีฟ้า ขอบซ้าย)
+  // 🌟 อัปไซส์ป้าย Primary ให้ใหญ่เท่าปุ่มในหน้า Edit (px-3 py-1.5, fs-0.85rem)
   const premiumWpTemplate = (hospName, isPrimary) => {
-    const bgClass = isPrimary ? 'bg-primary-subtle border-start border-primary border-3' : 'bg-light-subtle border-0';
+    const bgClass = isPrimary ? 'bg-primary-subtle border border-primary-subtle' : 'bg-light-subtle border border-light-subtle';
     const iconColor = isPrimary ? 'opacity-100 text-primary' : 'opacity-50 text-primary';
-    const shadow = isPrimary ? 'box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);' : '';
     
     return `
     <div class="d-flex align-items-center mb-2.5 w-100">
       <div class="fs-5 ${iconColor} ps-2 pe-3 flex-shrink-0" style="transition: all 0.2s;">
         <i class="fa-solid fa-hospital"></i>
       </div>
-      <div class="flex-grow-1 min-w-0 ${bgClass} rounded-3 px-3 py-2 d-flex align-items-center justify-content-between" style="transition: all 0.2s; ${shadow}">
+      <div class="flex-grow-1 min-w-0 ${bgClass} rounded-3 px-3 py-2 d-flex align-items-center justify-content-between" style="transition: all 0.2s;">
         <span class="fw-bold ${isPrimary ? 'text-primary-emphasis' : 'text-dark'} text-truncate" style="font-size: 0.95rem;">${hospName}</span>
-        ${isPrimary ? `<span class="badge bg-white text-primary shadow-sm rounded-pill px-3 py-1 fw-bold ms-2" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check me-1.5"></i>${primaryBadgeText}</span>` : ''}
+        ${isPrimary ? `<span class="badge bg-white text-primary border border-primary-subtle shadow-sm rounded-pill px-3 py-1.5 fw-bold ms-2" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-check me-1.5"></i>${primaryBadgeText}</span>` : ''}
       </div>
     </div>
     `;
@@ -2661,15 +2659,16 @@ window.updatePrimaryWorkplaceHighlight = function(containerId) {
     const icon = row.querySelector('.wp-icon');
     
     if(radio && radio.checked) {
-      // 🌟 ดีไซน์ใหม่คลีนๆ: พื้นขาว, เงาเบาๆ, เน้นแถบสีฟ้าที่ขอบซ้าย (ไม่ทำพื้นหลังฟ้าแล้วเพื่อลดความเลอะ)
-      box.className = 'flex-grow-1 min-w-0 bg-white rounded-3 p-1.5 border border-light-subtle d-flex gap-2 align-items-center wp-box-container shadow-sm';
-      box.style.borderLeft = '4px solid #0d6efd';
+      // 🌟 ดีไซน์ใหม่: ใช้สีฟ้าอ่อนกลืนไปกับกล่อง ไม่มีเส้นขอบแข็งๆ (สะอาดตา 100%)
+      box.className = 'flex-grow-1 min-w-0 bg-primary-subtle rounded-3 p-1.5 border border-primary-subtle d-flex gap-2 align-items-center wp-box-container';
+      box.style.borderLeft = ''; 
+      box.style.boxShadow = 'none';
       icon.classList.remove('opacity-50');
       icon.classList.add('opacity-100');
     } else {
-      // 🌟 ดีไซน์ปกติ: พื้นเทาอ่อน ไม่มีขอบ
-      box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border-0 d-flex gap-2 align-items-center wp-box-container';
-      box.style.borderLeft = '4px solid transparent';
+      // 🌟 ดีไซน์ปกติ: สีเทาอ่อนกลืนไปกับพื้น
+      box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border border-light-subtle d-flex gap-2 align-items-center wp-box-container';
+      box.style.borderLeft = '';
       box.style.boxShadow = 'none';
       icon.classList.remove('opacity-100');
       icon.classList.add('opacity-50');
