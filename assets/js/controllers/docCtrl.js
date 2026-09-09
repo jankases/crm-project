@@ -2643,8 +2643,7 @@ window.getOptionsHtml = function(typeName, defaultText) {
     });
   }
   return html;
-};
-
+}; 
 // ==========================================
 // 🌟 1. ฟังก์ชันจัดการไฮไลท์กล่อง Primary (ใช้ร่วมกัน Add/Edit)
 // ==========================================
@@ -2658,18 +2657,16 @@ window.updatePrimaryWorkplaceHighlight = function(containerId) {
     const box = row.querySelector('.wp-box-container');
     const icon = row.querySelector('.wp-icon');
     
+    // 🌟 ดีไซน์คลีน: บังคับกล่องพื้นหลังเป็นสีเทาอ่อนล้วน ตัดสีฟ้าออกไม่ให้ตีกันกับปุ่ม
+    box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border border-light-subtle d-flex gap-2 align-items-center wp-box-container';
+    box.style.borderLeft = '';
+    box.style.boxShadow = 'none';
+    
     if(radio && radio.checked) {
-      // 🌟 ดีไซน์ใหม่: ใช้สีฟ้าอ่อนกลืนไปกับกล่อง ไม่มีเส้นขอบแข็งๆ (สะอาดตา 100%)
-      box.className = 'flex-grow-1 min-w-0 bg-primary-subtle rounded-3 p-1.5 border border-primary-subtle d-flex gap-2 align-items-center wp-box-container';
-      box.style.borderLeft = ''; 
-      box.style.boxShadow = 'none';
+      // ถ้าเป็น Primary ให้ไอคอนโรงพยาบาลด้านหน้าสีเข้มขึ้นนิดนึง (ลูกเล่นเล็กๆ ให้ดูมีมิติ)
       icon.classList.remove('opacity-50');
       icon.classList.add('opacity-100');
     } else {
-      // 🌟 ดีไซน์ปกติ: สีเทาอ่อนกลืนไปกับพื้น
-      box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border border-light-subtle d-flex gap-2 align-items-center wp-box-container';
-      box.style.borderLeft = '';
-      box.style.boxShadow = 'none';
       icon.classList.remove('opacity-100');
       icon.classList.add('opacity-50');
     }
