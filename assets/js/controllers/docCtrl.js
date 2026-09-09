@@ -1471,24 +1471,88 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
 
  const originalOpenEditDoctorView = window.openEditDoctorView;
 window.openEditDoctorView = async function(id) {
-  // เรียกใช้ฟังก์ชันเดิมก่อน
-  await originalOpenEditDoctorView(id);
+  window.currentTargetDocId = id; 
+  const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
+  if(!d) return;
+
+  // 1. กำหนด ID ลงฟอร์ม
+  const editDocIdEl = document.getElementById('editDocId');
+  if (editDocIdEl) editDocIdEl.value = id;
+
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
-  // จากนั้นเรียงลำดับกล่องในหน้า Edit ใหม่ให้ Primary อยู่บนสุด
-  setTimeout(() => {
-    const container = document.getElementById('workplaceContainerEdit');
-    if (!container) return;
-    const rows = Array.from(container.querySelectorAll('.workplace-row'));
-    rows.sort((a, b) => {
-      const aChecked = a.querySelector('.primary-radio').checked;
-      const bChecked = b.querySelector('.primary-radio').checked;
-      return (bChecked === true) - (aChecked === true);
+  // 2. เติมข้อมูลลง Text Input ทั่วไป
+  const setVal = (elementId, val) => {
+    const el = document.getElementById(elementId);
+    if (el) el.value = val || '';
+  };
+  setVal('editDocNameEn', d.Doc_Name || d.nameEn);
+  setVal('editDocNameTh', d.Doc_Name_TH);
+  setVal('editDocEmail', d.Email || d.email);
+  setVal('editDocMobile', d.Mobile || d.mobile);
+
+  // 3. เติมข้อมูลลง TomSelect (Dropdown)
+  const setTs = (elementId, val) => {
+    const el = document.getElementById(elementId);
+    if (el && el.tomselect && val) el.tomselect.setValue(val, true);
+  };
+  setTs('editDocTitle', d.Title_ID || d.Title);
+  setTs('editDocSpecialty', d.Specialty_ID || d.Specialty);
+  setTs('editDocType', d.DoctorType_ID || d.Type);
+
+  // 4. เติมข้อมูลลง Toggle Switch (Privacy / TOS)
+  const setToggle = (toggleId, inputId, isYes) => {
+    const toggle = document.getElementById(toggleId);
+    if (toggle) {
+      toggle.checked = isYes;
+      if (typeof window.updateConsentHiddenInput === 'function') {
+        window.updateConsentHiddenInput(inputId, isYes);
+      }
+    }
+  };
+  setToggle('editDocPrivacyToggle', 'editDocPrivacy', (d.Privacy_Policy === 'Yes'));
+  setToggle('editDocTosToggle', 'editDocTos', (d.Terms_of_Service === 'Yes'));
+
+  // 5. อัปเดตสถานะ Active/Inactive
+  if (typeof window.toggleDoctorStatusText === 'function') {
+    window.toggleDoctorStatusText(d.Status || d.status || 'Active');
+  }
+
+  // 6. 🌟 จัดการ Workplace (ดึงข้อมูล -> Sort -> สร้างกล่อง)
+  if (typeof window.clearWorkplaceContainer === 'function') {
+    window.clearWorkplaceContainer('workplaceContainerEdit');
+  }
+  
+  let parsedWp = [];
+  try { 
+    if (d.Workplaces_JSON || d.workplacesJson) {
+      parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); 
+    }
+  } catch(e) {}
+
+  // 🎯 THE MAGIC: Sort เอา Primary ขึ้นเป็น Index 0 เสมอ
+  parsedWp.sort((a, b) => (b.isPrimary === true) - (a.isPrimary === true));
+
+  if(parsedWp.length > 0) {
+    parsedWp.forEach(wp => {
+      if (typeof window.addWorkplaceRow === 'function') {
+        window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', wp.hospitalId, wp.isPrimary);
+      }
     });
-    // เรียงกล่องใหม่ใน DOM
-    rows.forEach(row => container.insertBefore(row, container.querySelector('.dashed-add-wp-tile')));
-    // รันอัปเดตสี
-    window.updatePrimaryWorkplaceHighlight('workplaceContainerEdit');
-  }, 100);
+  } else {
+    if (typeof window.addWorkplaceRow === 'function') {
+      const fallbackHospId = d.Hospital_ID || d.hospitalId || '';
+      window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', fallbackHospId, true);
+    }
+  }
+
+  // 7. เช็ค DCR (สถานะรออนุมัติ) และสลับหน้าจอ
+  if (typeof window.checkPendingDCR === 'function') {
+    window.checkPendingDCR(id);
+  }
+  if (typeof window.switchDoctorView === 'function') {
+    window.switchDoctorView('doctorEditView');
+  }
 };
 
   window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
