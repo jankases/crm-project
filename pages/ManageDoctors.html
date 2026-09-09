@@ -12,12 +12,12 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<!-- 🌟 [PRECISION ENTERPRISE CSS]: ปรับตาม Checklist 4 ข้อเป๊ะๆ 🌟 -->
+<!-- 🌟 [VISIT-MATCHED FOOTER ARCHITECTURE] 🌟 -->
 <style>
   .doc-module-wrapper { height: 100% !important; overflow: hidden !important; }
   .doc-view-container { display: flex !important; flex-direction: column !important; height: 100% !important; overflow: hidden !important; }
   
-  /* 🌟 ข้อ 1 & 4: ปรับ Footer ให้บาง สัดส่วนเท่าหน้า Visit เป๊ะ (สูงประมาณ 50-52px) */
+  /* 🌟 Footer & Buttons เท่าหน้า Visit เป๊ะ */
   .doc-footer-slim { 
     padding: 0.5rem 1.25rem !important; 
     border-radius: 14px !important; 
@@ -29,11 +29,23 @@
     z-index: 100;
   }
 
+  /* มาตรฐานปุ่ม Cancel / Submit ให้ได้มาตรฐานเดียวกับหน้า Visit */
+  .doc-footer-btn {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    padding: 0.375rem 1rem !important;
+    min-height: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0.5rem !important;
+  }
+
   .doc-content { flex-grow: 1; min-height: 0; display: flex; flex-direction: column; }
   .spa-tab-pane { display: none !important; height: 100%; flex-direction: column; min-height: 0; }
   .spa-tab-pane.active { display: flex !important; }
 
-  /* 💻 Desktop Mode (>= 1200px): ล็อก 100vh ซ้ายนิ่ง-ขวาไถเฉพาะ รพ. */
+  /* 💻 Desktop Mode (>= 1200px) */
   @media (min-width: 1200px) {
     .doc-content-form { overflow: hidden !important; }
     .doc-content-table { overflow-y: auto !important; overflow-x: hidden !important; }
@@ -47,7 +59,6 @@
 
   /* 📱 iPad / Mobile Mode (< 1200px) */
   @media (max-width: 1199.98px) {
-    /* 🌟 ข้อ 2: หน้า General / Content ตรงกลาง บน iPad ต้องไถ Scrollbar ได้สมูท */
     .doc-content-form, .doc-content-table, #tab-doc-info { 
       overflow-y: auto !important; 
       overflow-x: hidden !important; 
@@ -59,17 +70,17 @@
     .doc-card { height: auto; display: flex; flex-direction: column; border-radius: 18px !important; }
     .workplace-scroll-area { height: auto !important; overflow-y: visible !important; flex: none; }
     
-    /* 🌟 ข้อ 3: Footer หน้า Edit/Add ตรึงติดขอบล่างของหน้าจอ iPad เสมอ */
+    /* 🌟 ให้ Footer ทั้งหน้า Edit และ Add ยึดติดล่างสุดของหน้าจอ iPad เสมอ */
     .doc-view-container form {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
+      display: flex !important;
+      flex-direction: column !important;
+      height: 100% !important;
+      overflow: hidden !important;
     }
     .doc-footer-slim {
-      position: sticky;
-      bottom: 0;
-      margin-top: auto;
+      position: sticky !important;
+      bottom: 0 !important;
+      margin-top: auto !important;
     }
   }
 </style>
@@ -269,10 +280,10 @@
         </div>
       </div>
 
-      <!-- 📌 FOOTER (สลิมเท่าหน้า Visit) -->
-      <div class="doc-footer-slim d-flex align-items-center justify-content-end gap-2.5">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-3.5 py-1.5 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-3.5 py-1.5 rounded-3 shadow-sm" id="submitDoctorBtn">
+      <!-- 📌 FOOTER (ปุ่มสูงสมดุลสไตล์ Visit Module) -->
+      <div class="doc-footer-slim d-flex align-items-center justify-content-end gap-2">
+        <button type="button" class="btn btn-light border text-secondary doc-footer-btn" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+        <button type="submit" class="btn btn-premium-primary shadow-sm doc-footer-btn" id="submitDoctorBtn">
           <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add Doctor</span>
         </button>
       </div>
@@ -415,10 +426,10 @@
         </div>
       </div>
 
-      <!-- 📌 FOOTER (สลิมเท่าหน้า Visit) -->
-      <div class="doc-footer-slim d-flex align-items-center justify-content-end gap-2.5">
-        <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-3.5 py-1.5 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
-        <button type="submit" class="btn btn-sm btn-premium-primary px-3.5 py-1.5 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
+      <!-- 📌 FOOTER (ปุ่มสูงสมดุลสไตล์ Visit Module) -->
+      <div class="doc-footer-slim d-flex align-items-center justify-content-end gap-2">
+        <button type="button" class="btn btn-light border text-secondary doc-footer-btn" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
+        <button type="submit" class="btn btn-premium-primary shadow-sm doc-footer-btn" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
 
     </form>
