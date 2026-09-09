@@ -18,7 +18,6 @@
     height: 100% !important; 
   }
   
-  /* ให้ฟอร์มและการ์ดเลื่อนได้อย่างอิสระ ไม่ต้องยัดเยียดให้เต็มจอ */
   .form-scroll-area {
     overflow-y: auto;
     overflow-x: hidden;
@@ -243,8 +242,7 @@
                 </div>
                 <h6 class="text-primary fw-bold mb-0" data-i18n="lbl_workplace">Workplace</h6>
               </div>
-              <!-- ปล่อยให้ไหลธรรมชาติ ไม่ล็อกความสูง -->
-              <div id="workplaceContainerAdd" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 12px; max-height: 280px; overflow-x: hidden !important;"></div>
+              <div id="workplaceContainerAdd" class="d-flex flex-column gap-2 overflow-y-auto custom-scrollbar pe-1" style="max-height: 280px; overflow-x: hidden !important;"></div>
             </div>
           </div>
 
@@ -383,11 +381,12 @@
                 </div>
                 <h6 class="text-primary fw-bold mb-0" data-i18n="lbl_workplace">Workplace History</h6>
               </div>
-              <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 12px; max-height: 280px; overflow-x: hidden !important;"></div>
+              <div id="workplaceContainerEdit" class="d-flex flex-column gap-2 overflow-y-auto custom-scrollbar pe-1" style="max-height: 280px; overflow-x: hidden !important;"></div>
             </div>
 
             <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none" style="border-radius: 18px !important;">
-              <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-warning-subtle">
+              <!-- 🌟 ลบเส้นตรง Pending ออก (เอา border-bottom และ pb ออก) -->
+              <div class="d-flex align-items-center justify-content-between mb-2">
                 <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
                   <i class="fa-solid fa-clock-rotate-left me-2 fs-6"></i>
                   <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
@@ -543,11 +542,12 @@
                   </div>
                   <h6 class="text-primary fw-bold mb-0" data-i18n="lbl_workplace">Workplace</h6>
                 </div>
-                <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 12px; max-height: 280px; overflow-x: hidden !important;"></div>
+                <div id="viewWorkplaceContainer" class="d-flex flex-column gap-2 overflow-y-auto custom-scrollbar pe-1" style="max-height: 280px; overflow-x: hidden !important;"></div>
               </div>
 
               <div id="profilePendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none" style="border-radius: 18px !important;">
-                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-warning-subtle">
+                <!-- 🌟 ลบเส้นตรง Pending ออก (เอา border-bottom และ pb ออก) -->
+                <div class="d-flex align-items-center justify-content-between mb-2">
                   <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
                     <i class="fa-solid fa-clock-rotate-left me-2 fs-6"></i>
                     <span data-i18n="title_pending_dcr_summary">Pending DCR Summary</span>
