@@ -1599,7 +1599,19 @@ window.openEditDoctorView = function(id) {
     titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
   }
 
-  // 🌟 [อัปเดตใหม่] ยัดข้อมูลลง Field ของหน้า Profile
+  // 🌟 [อัปเดตใหม่ 1]: ยิง Status Badge ไปที่ Header บนสุดเลย
+  const statusBadgeEl = document.getElementById('profileDocStatusBadge');
+  if (statusBadgeEl) {
+    const statusVal = d.Status || d.status || 'Active';
+    const isStatusActive = (statusVal === 'Active');
+    const statusText = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
+    
+    // ดีไซน์ปุ่ม Pill หรูๆ มีขอบ
+    statusBadgeEl.innerHTML = isStatusActive 
+      ? `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-bold shadow-xs"><i class="fa-solid fa-circle-check me-1.5"></i>${statusText}</span>`
+      : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-bold shadow-xs"><i class="fa-solid fa-circle-xmark me-1.5"></i>${statusText}</span>`;
+  }
+
   if (document.getElementById('viewDocTitle')) document.getElementById('viewDocTitle').value = titleText;
   if (document.getElementById('viewDocNameEn')) document.getElementById('viewDocNameEn').value = d.Doc_Name || d.nameEn || '-';
   if (document.getElementById('viewDocNameTh')) document.getElementById('viewDocNameTh').value = d.Doc_Name_TH || '-';
@@ -1611,47 +1623,43 @@ window.openEditDoctorView = function(id) {
   if (document.getElementById('viewDocPrivacy')) document.getElementById('viewDocPrivacy').innerText = (d.Privacy_Policy === 'Yes') ? 'Yes' : 'No';
   if (document.getElementById('viewDocTos')) document.getElementById('viewDocTos').innerText = (d.Terms_of_Service === 'Yes') ? 'Yes' : 'No';
 
-  const statusEl = document.getElementById('viewDocStatus');
-  if (statusEl) {
-      const statusVal = d.Status || d.status || 'Active';
-      const isStatusActive = (statusVal === 'Active');
-      statusEl.value = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
-      if (isStatusActive) {
-          statusEl.className = 'form-control bg-success-subtle border-0 shadow-none premium-radius fw-bold text-success';
-      } else {
-          statusEl.className = 'form-control bg-danger-subtle border-0 shadow-none premium-radius fw-bold text-danger';
-      }
-  }
-
   let wpHTML = '';
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
+  // 🌟 [อัปเดตใหม่ 2]: ดีไซน์ Workplace ใหม่แบบ Premium List Item
+  const premiumWpTemplate = (hospName, isPrimary) => `
+    <div class="d-flex align-items-center p-2.5 mb-2.5 rounded-4 border bg-white shadow-xs" style="transition: transform 0.2s, box-shadow 0.2s;">
+      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+        <i class="fa-solid fa-hospital fs-6"></i>
+      </div>
+      <div class="ms-3 flex-grow-1 min-w-0">
+        <div class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">${hospName}</div>
+      </div>
+      ${isPrimary ? `<div class="flex-shrink-0 ms-2"><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 shadow-2xs" style="font-size: 0.72rem;"><i class="fa-solid fa-star me-1 text-warning"></i>${primaryBadgeText}</span></div>` : ''}
+    </div>
+  `;
+
   if(parsedWp.length > 0) {
     parsedWp.forEach(wp => {
-      const isPrimary = wp.isPrimary ? `<span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span>` : '';
       const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
       const hospName = window.getHospitalNameByLang(hospObj);
-      // 🌟 เปลี่ยนอีโมจิเป็นไอคอนโรงพยาบาลให้สอดคล้องกัน
-      wpHTML += `<div class="py-2 px-3 bg-light-subtle rounded-3 mb-2 d-flex align-items-center"><i class="fa-solid fa-hospital text-primary me-2 fs-6"></i> <span class="fw-bold text-dark">${hospName}</span> ${isPrimary}</div>`;
+      wpHTML += premiumWpTemplate(hospName, wp.isPrimary);
     });
   } else {
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
     const hospName = window.getHospitalNameByLang(hospObj);
-    // 🌟 เปลี่ยนอีโมจิเป็นไอคอนโรงพยาบาลให้สอดคล้องกัน
-    wpHTML = `<div class="py-2 px-3 bg-light-subtle rounded-3 mb-2 d-flex align-items-center"><i class="fa-solid fa-hospital text-primary me-2 fs-6"></i> <span class="fw-bold text-dark">${hospName}</span> <span class="badge bg-success-subtle text-success fw-bold ms-2 px-2.5 py-1" style="border: 1px solid #a3cfbb;">${primaryBadgeText}</span></div>`;
+    wpHTML = premiumWpTemplate(hospName, true);
   }
 
   if (document.getElementById('viewWorkplaceContainer')) {
     document.getElementById('viewWorkplaceContainer').innerHTML = wpHTML;
   }
 
-  // 🌟 สั่งเช็ก DCR สำหรับหน้า Profile
   window.checkPendingDCR(id);
 
   const addProdBtn = document.getElementById('btnAddRatingProduct');
   const lockBanner = document.getElementById('ratingLockBanner');
-  
   var uRole = (window.globalCurrentUserRole || '').toUpperCase();
   var isPowerUser = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN'].indexOf(uRole) !== -1;
 
