@@ -1,6 +1,20 @@
-<!-- 🌟 [ULTIMATE FIX]: ฝัง CSS อัจฉริยะเพื่อสยบบั๊กเลย์เอาต์ทุกหน้าจอ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+<!-- 📚 Flatpickr Date Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+
+<!-- 🌟 [ULTIMATE FIX]: ฝัง CSS แก้บั๊ก Layout (Desktop & iPad) ไว้ด้านบนสุด -->
 <style>
-  /* 1. บังคับ Wrapper หลักให้เต็มจอ 100% แก้บั๊กจอเทาด้านล่างบน iPad */
+  /* 1. บังคับ Wrapper หลักให้เต็มจอ 100% */
   .doc-module-wrapper {
     height: 100% !important; 
   }
@@ -23,7 +37,7 @@
       overflow-x: hidden !important;
     }
     #doctorProfileView .visit-card {
-      min-height: calc(100vh - 80px) !important; /* ดันให้เต็มจอ iPad พอดี */
+      min-height: calc(100vh - 80px) !important; 
       height: auto !important;
       overflow: visible !important;
     }
@@ -42,41 +56,22 @@
       overflow: visible !important;
     }
     .custom-scrollbar {
-      overflow-y: visible !important; /* ปิด Scrollbar ในการ์ดเล็ก ให้ไถที่จอหลักแทน */
+      overflow-y: visible !important; 
     }
   }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  if (typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-</script>
-
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-
-<!-- 📚 Flatpickr Date Picker -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
-
 <div id="draftToastContainer"></div>
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 99999;"></div>
 
-<div class="container-fluid p-0 doc-module-wrapper h-100 d-flex flex-column overflow-hidden">
+<div class="container-fluid p-0 doc-module-wrapper d-flex flex-column overflow-hidden">
       
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 h-100 d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
     
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-2.5 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
-          <i class="fa-solid fa-user-doctor fs-5"></i>
-        </div>
-        <div class="d-flex flex-column justify-content-center">
-          <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
-        </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-3 gap-3 flex-shrink-0">
+      <div class="d-flex align-items-center">
+        <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
       </div>
       
       <div class="d-flex gap-2">
@@ -91,7 +86,6 @@
 
     <div id="doctorMainContentContainer" class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
 
-      <!-- 🌟 Doctor Filter Zone -->
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
@@ -295,12 +289,11 @@
     </form>
   </div>
 
-  <!-- ================= 3. EDIT DOCTOR VIEW (🌟 VISIT LOGS REFERENCE MATCHING) ================= -->
+  <!-- ================= 3. EDIT DOCTOR VIEW ================= -->
   <div id="doctorEditView" class="d-none w-100 h-100 d-flex flex-column doc-form-wrapper p-2 p-md-3 pb-3">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 justify-content-between" style="min-height: 0;">
       <input type="hidden" id="editDocId">
       
-      <!-- Top Header Bar -->
       <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-2">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
@@ -322,11 +315,9 @@
         </div>
       </div>
       
-      <!-- 🌟 MAIN CONTENT CONTAINER -->
       <div class="form-content-grid flex-grow-1 d-flex flex-column" style="min-height: 0; margin-bottom: 0.85rem !important;">
         <div class="row g-2.5 flex-grow-1 m-0" style="min-height: 0;">
             
-          <!-- Left Side: General Info -->
           <div class="col-12 col-xl-6 d-flex flex-column mb-3 mb-xl-0 px-0 pe-xl-2 profile-col" style="min-height: 0;">
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs d-flex flex-column h-100" style="border-radius: 18px !important;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
@@ -364,7 +355,6 @@
                   </div>
                 </div>
 
-                <!-- Contact & Consent -->
                 <div class="mt-3 pt-1">
                   <div class="d-flex align-items-center mb-2">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -411,10 +401,8 @@
             </div>
           </div>
 
-          <!-- Right Side -->
           <div class="col-12 col-xl-6 d-flex flex-column gap-3 px-0 ps-xl-2 profile-col" style="min-height: 0;">
             
-            <!-- Workplace History -->
             <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
               <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
@@ -425,7 +413,6 @@
               <div id="workplaceContainerEdit" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;"></div>
             </div>
 
-            <!-- Pending DCR Summary -->
             <div id="pendingDcrSummaryCard" class="card p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none flex-shrink-0" style="border-radius: 18px !important; min-height: 140px;">
               <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1.5 border-bottom border-warning-subtle">
                 <div class="d-flex align-items-center text-warning-emphasis fw-bold small">
@@ -447,7 +434,6 @@
         </div>
       </div>
 
-      <!-- 🌟 FOOTER ACTION BAR -->
       <div class="full-width-action-bar rounded-4 border bg-white p-2.5 px-4 shadow-sm d-flex align-items-center justify-content-end flex-shrink-0 gap-3" style="border-radius: 18px !important;">
         <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-4 py-2 rounded-3" onclick="window.switchDoctorView('doctorListView')" data-i18n="btn_cancel">Cancel</button>
         <button type="submit" class="btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
@@ -460,12 +446,14 @@
   <div id="doctorProfileView" class="d-none w-100 h-100 d-flex flex-column overflow-hidden p-2 p-md-3">
     
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
-      <div class="d-flex align-items-center">
-        <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-3" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
+      <div class="d-flex align-items-center flex-wrap gap-2">
+        <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
           <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <h5 class="text-dark fw-bold mb-0" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
-        <div id="profileDcrStatusBadge" class="ms-3"></div>
+        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
+        
+        <div id="profileDocStatusBadge" class="ms-2"></div>
+        <div id="profileDcrStatusBadge" class="ms-1"></div>
       </div>
       <div class="d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
@@ -503,23 +491,17 @@
           <div class="form-content-grid flex-grow-1 d-flex flex-column" style="min-height: 0;">
             <div class="row g-3 flex-grow-1 m-0" style="min-height: 0;">
               
-              <!-- 🔹 Left Side: General Info (Read-Only) -->
               <div class="col-12 col-xl-6 d-flex flex-column mb-3 mb-xl-0 px-0 pe-xl-2 profile-col" style="min-height: 0;">
                 <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; min-height: 0;">
-                  <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
-                    <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                      <i class="fa-solid fa-address-card fs-6"></i>
-                    </div>
-                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_gen_info">General Information</h6>
-                  </div>
                   
-                  <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1" style="min-height: 0;">
-                    <div class="mb-2">
+                  <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 mt-1" style="min-height: 0;">
+                    
+                    <div class="mb-2.5">
                       <label class="compact-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
                       <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocTitle" readonly>
                     </div>
 
-                    <div class="row g-2 mb-2">
+                    <div class="row g-2 mb-2.5">
                       <div class="col-6">
                         <label class="compact-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span></label>
                         <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameEn" readonly>
@@ -530,7 +512,7 @@
                       </div>
                     </div>
 
-                    <div class="row g-2 mb-2">
+                    <div class="row g-2 mb-3">
                       <div class="col-6">
                         <label class="compact-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
                         <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocSpecialty" readonly>
@@ -541,17 +523,10 @@
                       </div>
                     </div>
 
-                    <div class="row g-2 mb-2">
-                      <div class="col-6">
-                        <label class="compact-label text-muted small fw-bold mb-1" data-i18n="lbl_status">Status</label>
-                        <input type="text" class="form-control bg-success-subtle border-0 shadow-none premium-radius fw-bold text-success" id="viewDocStatus" readonly>
-                      </div>
-                    </div>
-
-                    <div class="mt-3 pt-1">
+                    <div class="pt-3 border-top border-light-subtle">
                       <div class="d-flex align-items-center mb-2">
-                        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
-                          <i class="fa-solid fa-shield-halved fs-6"></i>
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 26px; height: 26px; flex-shrink: 0;">
+                          <i class="fa-solid fa-shield-halved fs-7"></i>
                         </div>
                         <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
                       </div>
@@ -569,13 +544,13 @@
 
                       <div class="row g-2 pt-1">
                         <div class="col-6">
-                          <div class="d-flex align-items-center justify-content-between px-1 bg-light-subtle rounded-3 p-2 border-0">
+                          <div class="d-flex align-items-center justify-content-between px-2 bg-light-subtle rounded-3 py-2 border-0">
                             <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
                             <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocPrivacy">Yes</span>
                           </div>
                         </div>
                         <div class="col-6">
-                          <div class="d-flex align-items-center justify-content-between px-1 bg-light-subtle rounded-3 p-2 border-0">
+                          <div class="d-flex align-items-center justify-content-between px-2 bg-light-subtle rounded-3 py-2 border-0">
                             <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
                             <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocTos">Yes</span>
                           </div>
@@ -587,15 +562,14 @@
                 </div>
               </div>
 
-              <!-- 🔹 Right Side -->
               <div class="col-12 col-xl-6 d-flex flex-column gap-3 px-0 ps-xl-2 profile-col" style="min-height: 0;">
                 
                 <div class="card p-3 p-md-3.5 rounded-4 border bg-white shadow-xs flex-grow-1 d-flex flex-column" style="border-radius: 18px !important; overflow-x: hidden !important; min-height: 120px;">
-                  <div class="d-flex align-items-center mb-2.5 flex-shrink-0">
+                  <div class="d-flex align-items-center mb-2.5 pb-2 border-bottom border-light-subtle flex-shrink-0">
                     <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; flex-shrink: 0;">
                       <i class="fa-solid fa-hospital fs-6"></i>
                     </div>
-                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace History</h6>
+                    <h6 class="form-section-title text-primary fw-bold mb-0 fs-6" data-i18n="lbl_workplace">Workplace</h6>
                   </div>
                   <div id="viewWorkplaceContainer" class="flex-grow-1 overflow-y-auto custom-scrollbar pe-1 d-flex flex-column" style="gap: 8px; min-height: 0;"></div>
                 </div>
