@@ -22,7 +22,6 @@
     display: flex !important; 
     flex-direction: column !important; 
     height: 100% !important; 
-    overflow: hidden !important; 
   }
   
   /* 🌟 Footer สเปกโปร่ง สัดส่วนและปุ่มเท่า Visit Module */
@@ -33,7 +32,7 @@
     margin-top: 0.5rem;
     border: 1px solid var(--bs-border-color); 
     background-color: #fff; 
-    box-shadow: 0 -0.125rem 0.375rem rgba(0,0,0,.05);
+    box-shadow: 0 -0.125rem 0.375rem rgba(0,0,0,.08);
     z-index: 100;
   }
 
@@ -53,7 +52,7 @@
   .spa-tab-pane.active { display: flex !important; }
 
   /* ========================================================= */
-  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - ห้ามแตะ (สมบูรณ์แล้ว) */
+  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - สมบูรณ์แบบแล้ว */
   /* ========================================================= */
   @media (min-width: 1200px) {
     .doc-content-form { overflow: hidden !important; }
@@ -67,31 +66,26 @@
   }
 
   /* ========================================================= */
-  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - Clean 3-Tier Flexbox */
+  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - แก้ล็อก Scrollbar & Docked Footer */
   /* ========================================================= */
   @media (max-width: 1199.98px) {
-    /* ล็อก Viewport จอให้พอดี 100% ไม่ไถทะลุ */
+    /* ปลดล็อกให้ View สามารถใช้นิ้วไถ Scrollbar ได้ปกติ */
     #doctorAddView, #doctorEditView, #doctorProfileView {
       height: 100% !important;
-      overflow: hidden !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
     }
 
-    /* บังคับ Form เป็น Flexbox 3 ชั้นแท้ */
     #addDoctorForm, #editDoctorForm {
       display: flex !important;
       flex-direction: column !important;
-      height: 100% !important;
-      min-height: 0 !important;
-      overflow: hidden !important;
+      min-height: 100% !important;
     }
 
-    /* ชั้นที่ 2 (กลาง): เป็นจุดเดียวที่ Scroll ได้ */
     .doc-content-form, .doc-content-table, #tab-doc-info { 
-      flex: 1 1 auto !important;
-      overflow-y: auto !important; 
-      overflow-x: hidden !important; 
+      flex: 1 0 auto !important;
+      overflow: visible !important; 
       padding-bottom: 0.75rem; 
-      min-height: 0 !important;
     }
 
     .doc-row { height: auto; margin: 0; }
@@ -99,11 +93,12 @@
     .doc-card { height: auto; display: flex; flex-direction: column; border-radius: 18px !important; }
     .workplace-scroll-area { height: auto !important; overflow-y: visible !important; flex: none; }
     
-    /* ชั้นที่ 3 (ล่างสุด): ดันเกาะขอบล่างจอด้วย Flexbox ธรรมชาติ (ไม่พึ่ง sticky) */
+    /* 🌟 ตรึง Footer เกาะติดขอบล่างหน้าจอ iPad เสมอ */
     .doc-footer-slim {
-      position: relative !important;
+      position: sticky !important;
+      bottom: 0 !important;
       margin-top: auto !important;
-      flex-shrink: 0 !important;
+      z-index: 1000 !important;
       width: 100% !important;
     }
   }
