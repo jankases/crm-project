@@ -1081,7 +1081,8 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   const selectPlaceholder = isEN ? '🔍 Search workplace or hospital...' : '🔍 ค้นหาหรือเลือกสถานที่ปฏิบัติงาน...';
 
   const row = document.createElement('div');
-  row.className = 'workplace-row d-flex align-items-center gap-2 mb-2.5 w-100';
+  // 🌟 [อัปเดต]: จัด Flex Layout ให้ไอคอนเปล่าๆ อยู่ซ้าย กล่องอยู่ขวา
+  row.className = 'workplace-row d-flex align-items-center mb-2.5 w-100';
   const selectId = 'hosp_sel_' + Math.random().toString(36).substr(2, 9);
 
   const usedHospIds = window.getSelectedHospitalIds(containerId, selectId);
@@ -1101,30 +1102,32 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   const checked = isPrimary ? 'checked' : '';
 
   row.innerHTML = `
-    <div class="text-primary fs-5 opacity-75 ps-1 flex-shrink-0">
-      <!-- 🌟 เปลี่ยนจาก fa-building เป็น fa-hospital -->
-      <i class="fa-solid fa-hospital text-primary"></i> 
+    <!-- 🌟 [อัปเดต]: ไอคอนเปล่าๆ สีฟ้าหม่น ไม่มีพื้นหลังกระแทกตา -->
+    <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0 mt-1">
+      <i class="fa-solid fa-hospital"></i> 
     </div>
     
-    <div class="flex-grow-1 min-w-0">
-      <select class="hospital-select" id="${selectId}" required>
-        ${optionsHtml}
-      </select>
-    </div>
-    
-    <div class="flex-shrink-0">
-      <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
-      <label class="btn btn-wp-primary-toggle cursor-pointer" for="radio_${selectId}">
-        <i class="fa-solid fa-circle-check check-icon me-1"></i>
-        <span class="lbl-text-primary" data-i18n="lbl_primary">${primaryText}</span>
-        <span class="lbl-text-set" data-i18n="lbl_set_primary">${setPrimaryText}</span>
-      </label>
-    </div>
+    <div class="flex-grow-1 min-w-0 d-flex gap-2">
+      <div class="flex-grow-1 min-w-0">
+        <select class="hospital-select" id="${selectId}" required>
+          ${optionsHtml}
+        </select>
+      </div>
+      
+      <div class="flex-shrink-0">
+        <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
+        <label class="btn btn-wp-primary-toggle cursor-pointer" for="radio_${selectId}">
+          <i class="fa-solid fa-circle-check check-icon me-1"></i>
+          <span class="lbl-text-primary" data-i18n="lbl_primary">${primaryText}</span>
+          <span class="lbl-text-set" data-i18n="lbl_set_primary">${setPrimaryText}</span>
+        </label>
+      </div>
 
-    <div class="flex-shrink-0">
-      <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
-        <i class="fa-solid fa-trash-can"></i>
-      </button>
+      <div class="flex-shrink-0">
+        <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
     </div>
   `;
   container.appendChild(row);
@@ -1626,17 +1629,28 @@ window.openEditDoctorView = function(id) {
   let wpHTML = '';
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
-  
-  // 🌟 [อัปเดตใหม่ 2]: ดีไซน์ Workplace ใหม่แบบ Premium List Item
+   
+ // 🌟 [อัปเดต]: เปลี่ยนดีไซน์ Profile ให้ตรงกับ Add/Edit (ไอคอนเปล่า + กล่องข้อความเทา)
   const premiumWpTemplate = (hospName, isPrimary) => `
-    <div class="d-flex align-items-center p-2.5 mb-2.5 rounded-4 border bg-white shadow-xs" style="transition: transform 0.2s, box-shadow 0.2s;">
-      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-        <i class="fa-solid fa-hospital fs-6"></i>
+    <div class="d-flex align-items-center mb-2.5 w-100">
+      
+      <!-- ไอคอนเปล่าๆ สีฟ้าหม่น -->
+      <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0">
+        <i class="fa-solid fa-hospital"></i>
       </div>
-      <div class="ms-3 flex-grow-1 min-w-0">
-        <div class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">${hospName}</div>
+      
+      <!-- กล่องข้อความเทาอ่อน เลียนแบบรูปทรง Dropdown ในหน้า Edit -->
+      <div class="flex-grow-1 min-w-0 bg-light-subtle rounded-3 px-3 py-2.5 border-0 d-flex align-items-center justify-content-between">
+        <span class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">${hospName}</span>
+        
+        ${isPrimary ? `
+        <!-- ป้าย Primary วางชิดขวาสุด -->
+        <span class="badge bg-white text-primary shadow-sm border-0 rounded-pill px-3 py-1 fw-bold ms-2" style="font-size: 0.75rem;">
+          <i class="fa-solid fa-star text-warning me-1.5" style="font-size: 0.8rem;"></i>${primaryBadgeText}
+        </span>
+        ` : ''}
       </div>
-      ${isPrimary ? `<div class="flex-shrink-0 ms-2"><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 shadow-2xs" style="font-size: 0.72rem;"><i class="fa-solid fa-star me-1 text-warning"></i>${primaryBadgeText}</span></div>` : ''}
+      
     </div>
   `;
 
