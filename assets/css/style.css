@@ -2170,3 +2170,15 @@ button.feature-action-btn-lg.has-data-samples i {
     flex-shrink: 0 !important;
   }
 }
+
+/* ==========================================
+   🌟 SPA TAB FIX: แก้นิสัย Bootstrap Tabs 
+   บังคับให้ Tab ที่ Active เป็น Flexbox 100% เสมอ
+   ========================================== */
+.tab-content > .tab-pane.active {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
