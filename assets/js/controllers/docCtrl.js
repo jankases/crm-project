@@ -1096,14 +1096,13 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
     }
   });
 
-  const checked = isPrimary ? 'checked' : '';
-
-  // 🌟 เพิ่ม onchange เพื่อดักจับตอนกดปุ่ม Primary ให้กล่องเปลี่ยนสีทันที
+  const checked = isPrimary ? 'checked' : ''; 
+ // 🌟 ปรับโครงสร้าง HTML เริ่มต้นให้ไร้กรอบ ไร้พื้นหลัง
   row.innerHTML = `
     <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0 mt-1 wp-icon" style="transition: all 0.2s;">
       <i class="fa-solid fa-hospital"></i> 
     </div>
-    <div class="flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border-0 d-flex gap-2 align-items-center wp-box-container" style="transition: all 0.2s;">
+    <div class="flex-grow-1 min-w-0 bg-transparent border-0 d-flex gap-2 align-items-center wp-box-container" style="transition: all 0.2s;">
       <div class="flex-grow-1 min-w-0">
         <select class="hospital-select" id="${selectId}" required>${optionsHtml}</select>
       </div>
@@ -2657,13 +2656,12 @@ window.updatePrimaryWorkplaceHighlight = function(containerId) {
     const box = row.querySelector('.wp-box-container');
     const icon = row.querySelector('.wp-icon');
     
-    // 🌟 ดีไซน์คลีน: บังคับกล่องพื้นหลังเป็นสีเทาอ่อนล้วน ตัดสีฟ้าออกไม่ให้ตีกันกับปุ่ม
-    box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border border-light-subtle d-flex gap-2 align-items-center wp-box-container';
+    // 🌟 ถอดเส้นขอบ (border-0) และพื้นหลัง (bg-transparent) ออกทั้งหมด ให้ลอยคลีนๆ
+    box.className = 'flex-grow-1 min-w-0 bg-transparent border-0 d-flex gap-2 align-items-center wp-box-container';
     box.style.borderLeft = '';
     box.style.boxShadow = 'none';
     
     if(radio && radio.checked) {
-      // ถ้าเป็น Primary ให้ไอคอนโรงพยาบาลด้านหน้าสีเข้มขึ้นนิดนึง (ลูกเล่นเล็กๆ ให้ดูมีมิติ)
       icon.classList.remove('opacity-50');
       icon.classList.add('opacity-100');
     } else {
