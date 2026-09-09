@@ -1586,17 +1586,16 @@ window.openEditDoctorView = function(id) {
     titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
   }
 
-  // 🌟 [อัปเดตใหม่ 1]: ยิง Status Badge ไปที่ Header บนสุดเลย
+  // 🌟 [แก้ไขแล้ว]: ประกาศตัวแปร statusBadgeEl แค่ครั้งเดียว ป้องกัน Error
   const statusBadgeEl = document.getElementById('profileDocStatusBadge');
   if (statusBadgeEl) {
     const statusVal = d.Status || d.status || 'Active';
     const isStatusActive = (statusVal === 'Active');
     const statusText = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
     
-    // ดีไซน์ปุ่ม Pill หรูๆ มีขอบ
     statusBadgeEl.innerHTML = isStatusActive 
-      ? `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-bold shadow-xs"><i class="fa-solid fa-circle-check me-1.5"></i>${statusText}</span>`
-      : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-bold shadow-xs"><i class="fa-solid fa-circle-xmark me-1.5"></i>${statusText}</span>`;
+      ? `<i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">${statusText}</span>`
+      : `<i class="fa-solid fa-circle-xmark text-danger me-2"></i><span class="fw-bold text-danger small">${statusText}</span>`;
   }
 
   if (document.getElementById('viewDocTitle')) document.getElementById('viewDocTitle').value = titleText;
@@ -1613,19 +1612,7 @@ window.openEditDoctorView = function(id) {
   let wpHTML = '';
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
-   
- // 🌟 [อัปเดตใหม่]: ดีไซน์ Active ขอบเทาพื้นขาว แบบเดียวกับในหน้า Edit (Consistency 100%)
-  const statusBadgeEl = document.getElementById('profileDocStatusBadge');
-  if (statusBadgeEl) {
-    const statusVal = d.Status || d.status || 'Active';
-    const isStatusActive = (statusVal === 'Active');
-    const statusText = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
-    
-    statusBadgeEl.innerHTML = isStatusActive 
-      ? `<i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">${statusText}</span>`
-      : `<i class="fa-solid fa-circle-xmark text-danger me-2"></i><span class="fw-bold text-danger small">${statusText}</span>`;
-  }
-
+  
   // 🌟 [อัปเดตใหม่]: ดีไซน์ Workplace ใหม่แบบ Premium ใช้เครื่องหมายถูก fa-circle-check
   const premiumWpTemplate = (hospName, isPrimary) => `
     <div class="d-flex align-items-center mb-2.5 w-100">
