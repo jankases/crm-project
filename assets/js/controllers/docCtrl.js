@@ -1090,39 +1090,33 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   (window.DocManagerCache.hospitals || []).forEach(h => {
     const hIdStr = String(h.Hospital_ID).toLowerCase();
     const isSelectedSelf = (h.Hospital_ID && hospId && String(h.Hospital_ID) === String(hospId));
-    
     if (isSelectedSelf || !usedHospIds.includes(hIdStr)) {
       const selectedAttr = isSelectedSelf ? 'selected' : '';
-      const showName = window.getHospitalNameByLang(h);
-      optionsHtml += `<option value="${h.Hospital_ID}" ${selectedAttr}>${showName}</option>`;
+      optionsHtml += `<option value="${h.Hospital_ID}" ${selectedAttr}>${window.getHospitalNameByLang(h)}</option>`;
     }
   });
 
   const checked = isPrimary ? 'checked' : '';
 
+  // 🌟 เพิ่ม onchange เพื่อดักจับตอนกดปุ่ม Primary ให้กล่องเปลี่ยนสีทันที
   row.innerHTML = `
-    <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0 mt-1">
+    <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0 mt-1 wp-icon" style="transition: all 0.2s;">
       <i class="fa-solid fa-hospital"></i> 
     </div>
-    
-    <div class="flex-grow-1 min-w-0 d-flex gap-2">
+    <div class="flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border-0 d-flex gap-2 align-items-center wp-box-container" style="transition: all 0.2s;">
       <div class="flex-grow-1 min-w-0">
-        <select class="hospital-select" id="${selectId}" required>
-          ${optionsHtml}
-        </select>
+        <select class="hospital-select" id="${selectId}" required>${optionsHtml}</select>
       </div>
-      
       <div class="flex-shrink-0">
-        <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off">
+        <input type="radio" class="btn-check primary-radio" name="${radioGroupName}" id="radio_${selectId}" value="true" ${checked} required autocomplete="off" onchange="window.updatePrimaryWorkplaceHighlight('${containerId}')">
         <label class="btn btn-wp-primary-toggle cursor-pointer" for="radio_${selectId}">
           <i class="fa-solid fa-circle-check check-icon me-1"></i>
           <span class="lbl-text-primary" data-i18n="lbl_primary">${primaryText}</span>
           <span class="lbl-text-set" data-i18n="lbl_set_primary">${setPrimaryText}</span>
         </label>
       </div>
-
       <div class="flex-shrink-0">
-        <button type="button" class="btn-wp-delete-icon" onclick="window.removeWorkplaceRow(this)" title="Remove Workplace">
+        <button type="button" class="btn-wp-delete-icon ms-1" onclick="window.removeWorkplaceRow(this); setTimeout(() => window.updatePrimaryWorkplaceHighlight('${containerId}'), 50);" title="Remove Workplace">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </div>
@@ -1132,35 +1126,14 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
 
   if (typeof TomSelect !== 'undefined') {
     const ts = new TomSelect(`#${selectId}`, {
-      create: false, 
-      searchField: ["text"], 
-      sortField: { field: "text", direction: "asc" },
-      placeholder: selectPlaceholder, 
-      allowEmptyOption: true, 
-      dropdownParent: 'body'
+      create: false, searchField: ["text"], sortField: { field: "text", direction: "asc" },
+      placeholder: selectPlaceholder, allowEmptyOption: true, dropdownParent: 'body'
     });
-
-    if (!hospId) {
-      ts.clear(true);
-    }
-
-    ts.on('change', function(val) {
-      if (!val) return;
-      const currentUsed = window.getSelectedHospitalIds(containerId, selectId);
-      if (currentUsed.includes(String(val).toLowerCase())) {
-        const msgDup = isEN 
-          ? '❌ Duplicate Workplace! This workplace has already been added.' 
-          : '❌ สถานที่ปฏิบัติงานซ้ำ! คุณได้เลือกสถานที่นี้ไปแล้ว';
-        
-        if (window.showToast) window.showToast(msgDup, "error");
-        else alert(msgDup);
-
-        ts.clear(true);
-      }
-    });
+    if (!hospId) ts.clear(true);
   }
 
   window.renderDashedAddWorkplaceTile(containerId);
+  window.updatePrimaryWorkplaceHighlight(containerId); // อัปเดตสีตอนโหลดครั้งแรก
 };
 
 window.renderDashedAddWorkplaceTile = function(containerId) {
@@ -1496,91 +1469,26 @@ window.updateConsentHiddenInput = function(inputId, isChecked) {
   }
 };
 
-window.openEditDoctorView = function(id) {
-  const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
-  if(!d) return;
+ const originalOpenEditDoctorView = window.openEditDoctorView;
+window.openEditDoctorView = async function(id) {
+  // เรียกใช้ฟังก์ชันเดิมก่อน
+  await originalOpenEditDoctorView(id);
   
-  document.getElementById('editDocId').value = d.Doc_ID || d.id; 
-  
-  const setTsVal = (elId, rawVal) => { 
-    const el = document.getElementById(elId); 
-    if (!el || !rawVal) {
-      if (el && el.tomselect) el.tomselect.clear();
-      return;
-    }
-
-    if (el.tomselect) {
-      let targetVal = String(rawVal).trim();
-      let exists = false;
-      
-      Object.keys(el.tomselect.options).forEach(optKey => {
-        if (optKey.toLowerCase() === targetVal.toLowerCase()) {
-          targetVal = optKey;
-          exists = true;
-        }
-      });
-
-      if (!exists) {
-        Object.values(el.tomselect.options).forEach(optObj => {
-          if (optObj.text && optObj.text.toLowerCase() === targetVal.toLowerCase()) {
-            targetVal = optObj.value;
-            exists = true;
-          }
-        });
-      }
-
-      if (!exists) {
-        el.tomselect.addOption({ value: targetVal, text: targetVal });
-      }
-      el.tomselect.setValue(targetVal, true);
-    } else {
-      el.value = rawVal || ''; 
-    }
-  };
-
-  setTsVal('editDocTitle', d.Title_ID || d.title_id || d.Title || '');
-  setTsVal('editDocSpecialty', d.Specialty_ID || d.specialty_id || d.Specialty || '');
-  setTsVal('editDocType', d.DoctorType_ID || d.doctortype_id || d.Type || '');
-  
-  document.getElementById('editDocNameEn').value = d.Doc_Name || d.nameEn || ''; 
-  document.getElementById('editDocNameTh').value = d.Doc_Name_TH || d.nameTh || ''; 
-  document.getElementById('editDocEmail').value = d.Email || d.email || '';
-  document.getElementById('editDocMobile').value = d.Mobile || d.mobile || '';
-
-  const privacyVal = d.Privacy_Policy || d.privacy || 'Yes';
-  const tosVal = d.Terms_of_Service || d.tos || 'Yes';
-  
-  document.getElementById('editDocPrivacy').value = privacyVal;
-  document.getElementById('editDocTos').value = tosVal;
-  
-  if (document.getElementById('editDocPrivacyToggle')) {
-    document.getElementById('editDocPrivacyToggle').checked = (privacyVal === 'Yes');
-  }
-  if (document.getElementById('editDocTosToggle')) {
-    document.getElementById('editDocTosToggle').checked = (tosVal === 'Yes');
-  }
-
-  const currentStatus = d.Status || d.status || 'Active';
-  const isStatusActive = (currentStatus === 'Active');
-  
-  const statusToggleEl = document.getElementById('editDocStatusToggle');
-  if (statusToggleEl) {
-    statusToggleEl.checked = isStatusActive;
-  }
-  window.toggleDoctorStatusText(isStatusActive);
-
-  window.clearWorkplaceContainer('workplaceContainerEdit');
-  let parsedWp = [];
-  try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
-  
-  if (parsedWp.length > 0) {
-    parsedWp.forEach(wp => window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', wp.hospitalId, wp.isPrimary));
-  } else {
-    window.addWorkplaceRow('workplaceContainerEdit', 'primaryWpEdit', d.Hospital_ID || d.hospitalId, true);
-  }
-
-  window.checkPendingDCR(d.Doc_ID || d.id); 
-  window.switchDoctorView('doctorEditView');
+  // จากนั้นเรียงลำดับกล่องในหน้า Edit ใหม่ให้ Primary อยู่บนสุด
+  setTimeout(() => {
+    const container = document.getElementById('workplaceContainerEdit');
+    if (!container) return;
+    const rows = Array.from(container.querySelectorAll('.workplace-row'));
+    rows.sort((a, b) => {
+      const aChecked = a.querySelector('.primary-radio').checked;
+      const bChecked = b.querySelector('.primary-radio').checked;
+      return (bChecked === true) - (aChecked === true);
+    });
+    // เรียงกล่องใหม่ใน DOM
+    rows.forEach(row => container.insertBefore(row, container.querySelector('.dashed-add-wp-tile')));
+    // รันอัปเดตสี
+    window.updatePrimaryWorkplaceHighlight('workplaceContainerEdit');
+  }, 100);
 };
 
   window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
@@ -1596,17 +1504,12 @@ window.openEditDoctorView = function(id) {
   const typeText = window.getDoctorTypeText(d.DoctorType_ID || d.Type);
 
   const titleEl = document.getElementById('viewDocTitleName');
-  if (titleEl) {
-    titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
-  }
+  if (titleEl) titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
 
-  // 🌟 [อัปเดต]: จัดการสถานะ Active ให้เป็นป้ายพื้นขาว ขอบเทา ติ๊กถูกสีเขียว (เหมือนหน้า Edit)
   const statusBadgeEl = document.getElementById('profileDocStatusBadge');
   if (statusBadgeEl) {
-    const statusVal = d.Status || d.status || 'Active';
-    const isStatusActive = (statusVal === 'Active');
+    const isStatusActive = ((d.Status || d.status || 'Active') === 'Active');
     const statusText = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
-    
     statusBadgeEl.innerHTML = isStatusActive 
       ? `<i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">${statusText}</span>`
       : `<i class="fa-solid fa-circle-xmark text-danger me-2"></i><span class="fw-bold text-danger small">${statusText}</span>`;
@@ -1619,7 +1522,6 @@ window.openEditDoctorView = function(id) {
   if (document.getElementById('viewDocType')) document.getElementById('viewDocType').value = typeText;
   if (document.getElementById('viewDocEmail')) document.getElementById('viewDocEmail').value = d.Email || d.email || '-';
   if (document.getElementById('viewDocMobile')) document.getElementById('viewDocMobile').value = d.Mobile || d.mobile || '-';
-  
   if (document.getElementById('viewDocPrivacy')) document.getElementById('viewDocPrivacy').innerText = (d.Privacy_Policy === 'Yes') ? 'Yes' : 'No';
   if (document.getElementById('viewDocTos')) document.getElementById('viewDocTos').innerText = (d.Terms_of_Service === 'Yes') ? 'Yes' : 'No';
 
@@ -1627,33 +1529,36 @@ window.openEditDoctorView = function(id) {
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
-  // 🌟 [อัปเดต]: จัดการ Workplace หน้า Profile ให้เป็นกล่องเทา ไอคอนโปร่ง เครื่องหมายถูก
-  const premiumWpTemplate = (hospName, isPrimary) => `
+  // 🌟 SORT: จับเอา Primary ขึ้นเป็น Index 0 เสมอ
+  parsedWp.sort((a, b) => (b.isPrimary === true) - (a.isPrimary === true));
+  
+  // 🌟 ไฮไลท์ดีไซน์ Primary สำหรับหน้า Profile (สีฟ้า ขอบซ้าย)
+  const premiumWpTemplate = (hospName, isPrimary) => {
+    const bgClass = isPrimary ? 'bg-primary-subtle border-start border-primary border-3' : 'bg-light-subtle border-0';
+    const iconColor = isPrimary ? 'opacity-100 text-primary' : 'opacity-50 text-primary';
+    const shadow = isPrimary ? 'box-shadow: 0 2px 4px rgba(13, 110, 253, 0.1);' : '';
+    
+    return `
     <div class="d-flex align-items-center mb-2.5 w-100">
-      <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0">
+      <div class="fs-5 ${iconColor} ps-2 pe-3 flex-shrink-0" style="transition: all 0.2s;">
         <i class="fa-solid fa-hospital"></i>
       </div>
-      <div class="flex-grow-1 min-w-0 bg-light-subtle rounded-3 px-3 py-2 border-0 d-flex align-items-center justify-content-between">
-        <span class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">${hospName}</span>
-        ${isPrimary ? `
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold ms-2" style="font-size: 0.75rem;">
-          <i class="fa-solid fa-circle-check me-1.5"></i>${primaryBadgeText}
-        </span>
-        ` : ''}
+      <div class="flex-grow-1 min-w-0 ${bgClass} rounded-3 px-3 py-2 d-flex align-items-center justify-content-between" style="transition: all 0.2s; ${shadow}">
+        <span class="fw-bold ${isPrimary ? 'text-primary-emphasis' : 'text-dark'} text-truncate" style="font-size: 0.95rem;">${hospName}</span>
+        ${isPrimary ? `<span class="badge bg-white text-primary shadow-sm rounded-pill px-3 py-1 fw-bold ms-2" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-check me-1.5"></i>${primaryBadgeText}</span>` : ''}
       </div>
     </div>
-  `;
+    `;
+  };
 
   if(parsedWp.length > 0) {
     parsedWp.forEach(wp => {
       const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(wp.hospitalId).toLowerCase());
-      const hospName = window.getHospitalNameByLang(hospObj);
-      wpHTML += premiumWpTemplate(hospName, wp.isPrimary);
+      wpHTML += premiumWpTemplate(window.getHospitalNameByLang(hospObj), wp.isPrimary);
     });
   } else {
     const hospObj = (window.DocManagerCache.hospitals || []).find(h => String(h.Hospital_ID).toLowerCase() === String(d.Hospital_ID || d.hospitalId).toLowerCase());
-    const hospName = window.getHospitalNameByLang(hospObj);
-    wpHTML = premiumWpTemplate(hospName, true);
+    wpHTML = premiumWpTemplate(window.getHospitalNameByLang(hospObj), true);
   }
 
   if (document.getElementById('viewWorkplaceContainer')) {
@@ -1661,28 +1566,10 @@ window.openEditDoctorView = function(id) {
   }
 
   window.checkPendingDCR(id);
-
-  const addProdBtn = document.getElementById('btnAddRatingProduct');
-  const lockBanner = document.getElementById('ratingLockBanner');
-  var uRole = (window.globalCurrentUserRole || '').toUpperCase();
-  var isPowerUser = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN'].indexOf(uRole) !== -1;
-
-  if (window.globalRatingIsLocked && !isPowerUser) {
-    if (addProdBtn) addProdBtn.style.display = 'none';
-    if (lockBanner) lockBanner.style.display = 'block';
-  } else {
-    if (addProdBtn) addProdBtn.style.display = 'inline-block';
-    if (lockBanner) lockBanner.style.display = 'none';
-  }
-
   window.loadDoctorVisitHistory(id);
   window.loadDoctorRatings(id);
-
   window.switchDoctorView('doctorProfileView');
-  
-  if (typeof window.switchDoctorProfileTab === 'function') {
-    window.switchDoctorProfileTab(targetTab);
-  }
+  if (typeof window.switchDoctorProfileTab === 'function') window.switchDoctorProfileTab(targetTab);
 };
 
 window.checkPendingDCR = async function(docId) {
@@ -2712,4 +2599,33 @@ window.getOptionsHtml = function(typeName, defaultText) {
     });
   }
   return html;
+};
+
+// ==========================================
+// 🌟 1. ฟังก์ชันจัดการไฮไลท์กล่อง Primary (ใช้ร่วมกัน Add/Edit)
+// ==========================================
+window.updatePrimaryWorkplaceHighlight = function(containerId) {
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  
+  const rows = container.querySelectorAll('.workplace-row');
+  rows.forEach(row => {
+    const radio = row.querySelector('.primary-radio');
+    const box = row.querySelector('.wp-box-container');
+    const icon = row.querySelector('.wp-icon');
+    
+    if(radio && radio.checked) {
+      // 🌟 สไตล์กล่อง Primary (สีฟ้าอ่อน มีเส้นขอบซ้าย ไอคอนเข้ม)
+      box.className = 'flex-grow-1 min-w-0 bg-primary-subtle rounded-3 p-1.5 border-start border-primary border-3 d-flex gap-2 align-items-center wp-box-container';
+      box.style.boxShadow = '0 2px 4px rgba(13, 110, 253, 0.1)';
+      icon.classList.remove('opacity-50');
+      icon.classList.add('opacity-100');
+    } else {
+      // 🌟 สไตล์กล่องปกติ (สีเทาอ่อน ไม่มีขอบ ไอคอนจาง)
+      box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border-0 d-flex gap-2 align-items-center wp-box-container';
+      box.style.boxShadow = 'none';
+      icon.classList.remove('opacity-100');
+      icon.classList.add('opacity-50');
+    }
+  });
 };
