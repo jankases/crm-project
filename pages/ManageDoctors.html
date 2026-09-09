@@ -12,12 +12,20 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<!-- 🌟 [FIXED IPAD EDIT FOOTER STICKY ARCHITECTURE] 🌟 -->
+<!-- 🌟 [SAFE DUAL-ARCHITECTURE CSS] 🌟 -->
 <style>
-  .doc-module-wrapper { height: 100% !important; overflow: hidden !important; }
-  .doc-view-container { display: flex !important; flex-direction: column !important; height: 100% !important; overflow: hidden !important; }
+  .doc-module-wrapper { 
+    height: 100% !important; 
+    overflow: hidden !important; 
+  }
+  .doc-view-container { 
+    display: flex !important; 
+    flex-direction: column !important; 
+    height: 100% !important; 
+    overflow: hidden !important; 
+  }
   
-  /* 🌟 Footer & Buttons เท่าหน้า Visit เป๊ะ */
+  /* 🌟 Footer สเปกโปร่ง สัดส่วนและปุ่มเท่า Visit Module */
   .doc-footer-slim { 
     padding: 0.5rem 1.25rem !important; 
     border-radius: 14px !important; 
@@ -25,11 +33,10 @@
     margin-top: 0.5rem;
     border: 1px solid var(--bs-border-color); 
     background-color: #fff; 
-    box-shadow: 0 -0.125rem 0.375rem rgba(0,0,0,.08);
-    z-index: 1000 !important;
+    box-shadow: 0 -0.125rem 0.375rem rgba(0,0,0,.05);
+    z-index: 100;
   }
 
-  /* มาตรฐานปุ่ม Cancel / Submit ให้ได้มาตรฐานเดียวกับหน้า Visit */
   .doc-footer-btn {
     font-size: 0.875rem !important;
     font-weight: 500 !important;
@@ -45,7 +52,9 @@
   .spa-tab-pane { display: none !important; height: 100%; flex-direction: column; min-height: 0; }
   .spa-tab-pane.active { display: flex !important; }
 
-  /* 💻 Desktop Mode (>= 1200px) */
+  /* ========================================================= */
+  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - ห้ามแตะ (สมบูรณ์แล้ว) */
+  /* ========================================================= */
   @media (min-width: 1200px) {
     .doc-content-form { overflow: hidden !important; }
     .doc-content-table { overflow-y: auto !important; overflow-x: hidden !important; }
@@ -57,28 +66,31 @@
     .workplace-scroll-area { flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding-right: 4px; }
   }
 
-  /* 📱 iPad / Mobile Mode (< 1200px) */
+  /* ========================================================= */
+  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - Clean 3-Tier Flexbox */
+  /* ========================================================= */
   @media (max-width: 1199.98px) {
-    /* บังคับ View Container ของ Add/Edit บน iPad ให้ล็อกความสูงพอดีจอ */
-    #doctorAddView, #doctorEditView {
+    /* ล็อก Viewport จอให้พอดี 100% ไม่ไถทะลุ */
+    #doctorAddView, #doctorEditView, #doctorProfileView {
       height: 100% !important;
       overflow: hidden !important;
     }
 
+    /* บังคับ Form เป็น Flexbox 3 ชั้นแท้ */
     #addDoctorForm, #editDoctorForm {
       display: flex !important;
       flex-direction: column !important;
       height: 100% !important;
-      max-height: 100% !important;
+      min-height: 0 !important;
       overflow: hidden !important;
     }
 
-    /* พื้นที่เนื้อหาตรงกลางรับหน้าที่ Scroll จุดเดียว */
+    /* ชั้นที่ 2 (กลาง): เป็นจุดเดียวที่ Scroll ได้ */
     .doc-content-form, .doc-content-table, #tab-doc-info { 
       flex: 1 1 auto !important;
       overflow-y: auto !important; 
       overflow-x: hidden !important; 
-      padding-bottom: 0.5rem; 
+      padding-bottom: 0.75rem; 
       min-height: 0 !important;
     }
 
@@ -87,10 +99,9 @@
     .doc-card { height: auto; display: flex; flex-direction: column; border-radius: 18px !important; }
     .workplace-scroll-area { height: auto !important; overflow-y: visible !important; flex: none; }
     
-    /* 🌟 FIX HIGHLIGHT: บังคับ Footer ทั้งหน้า Edit และ Add ยึดติดล่างสุดของหน้าจอ iPad ตลอดเวลา */
+    /* ชั้นที่ 3 (ล่างสุด): ดันเกาะขอบล่างจอด้วย Flexbox ธรรมชาติ (ไม่พึ่ง sticky) */
     .doc-footer-slim {
-      position: sticky !important;
-      bottom: 0 !important;
+      position: relative !important;
       margin-top: auto !important;
       flex-shrink: 0 !important;
       width: 100% !important;
@@ -186,7 +197,7 @@
 
   <!-- ================= 2. ADD DOCTOR VIEW ================= -->
   <div id="doctorAddView" class="d-none w-100 p-2 p-md-3 doc-view-container">
-    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="d-flex flex-column h-100 m-0 p-0">
+    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="m-0 p-0">
       
       <!-- 📌 HEADER -->
       <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
@@ -306,7 +317,7 @@
 
   <!-- ================= 3. EDIT DOCTOR VIEW ================= -->
   <div id="doctorEditView" class="d-none w-100 p-2 p-md-3 doc-view-container">
-    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="d-flex flex-column h-100 m-0 p-0">
+    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="m-0 p-0">
       <input type="hidden" id="editDocId">
       
       <!-- 📌 HEADER -->
