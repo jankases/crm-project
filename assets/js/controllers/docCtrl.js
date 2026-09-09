@@ -1101,7 +1101,6 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
   const checked = isPrimary ? 'checked' : '';
 
   row.innerHTML = `
-    <!-- ไอคอนเปล่าๆ สีฟ้าหม่น -->
     <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0 mt-1">
       <i class="fa-solid fa-hospital"></i> 
     </div>
@@ -1144,6 +1143,21 @@ window.getSelectedHospitalIds = function(containerId, currentSelectId) {
     if (!hospId) {
       ts.clear(true);
     }
+
+    ts.on('change', function(val) {
+      if (!val) return;
+      const currentUsed = window.getSelectedHospitalIds(containerId, selectId);
+      if (currentUsed.includes(String(val).toLowerCase())) {
+        const msgDup = isEN 
+          ? '❌ Duplicate Workplace! This workplace has already been added.' 
+          : '❌ สถานที่ปฏิบัติงานซ้ำ! คุณได้เลือกสถานที่นี้ไปแล้ว';
+        
+        if (window.showToast) window.showToast(msgDup, "error");
+        else alert(msgDup);
+
+        ts.clear(true);
+      }
+    });
   }
 
   window.renderDashedAddWorkplaceTile(containerId);
@@ -1569,7 +1583,7 @@ window.openEditDoctorView = function(id) {
   window.switchDoctorView('doctorEditView');
 };
 
- window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
+  window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   window.currentTargetDocId = id; 
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
@@ -1586,7 +1600,7 @@ window.openEditDoctorView = function(id) {
     titleEl.innerText = `👨‍⚕️ ${titleText} ${d.Doc_Name || d.nameEn || ''} ${d.Doc_Name_TH ? `(${d.Doc_Name_TH})` : ''}`.trim();
   }
 
-  // 🌟 [แก้ไขแล้ว]: ประกาศตัวแปร statusBadgeEl แค่ครั้งเดียว ป้องกัน Error
+  // 🌟 [อัปเดต]: จัดการสถานะ Active ให้เป็นป้ายพื้นขาว ขอบเทา ติ๊กถูกสีเขียว (เหมือนหน้า Edit)
   const statusBadgeEl = document.getElementById('profileDocStatusBadge');
   if (statusBadgeEl) {
     const statusVal = d.Status || d.status || 'Active';
@@ -1613,24 +1627,20 @@ window.openEditDoctorView = function(id) {
   let parsedWp = [];
   try { if (d.Workplaces_JSON || d.workplacesJson) parsedWp = JSON.parse(d.Workplaces_JSON || d.workplacesJson); } catch(e) {}
   
-  // 🌟 [อัปเดตใหม่]: ดีไซน์ Workplace ใหม่แบบ Premium ใช้เครื่องหมายถูก fa-circle-check
+  // 🌟 [อัปเดต]: จัดการ Workplace หน้า Profile ให้เป็นกล่องเทา ไอคอนโปร่ง เครื่องหมายถูก
   const premiumWpTemplate = (hospName, isPrimary) => `
     <div class="d-flex align-items-center mb-2.5 w-100">
-      
       <div class="text-primary fs-5 opacity-50 ps-2 pe-3 flex-shrink-0">
         <i class="fa-solid fa-hospital"></i>
       </div>
-      
       <div class="flex-grow-1 min-w-0 bg-light-subtle rounded-3 px-3 py-2 border-0 d-flex align-items-center justify-content-between">
         <span class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">${hospName}</span>
-        
         ${isPrimary ? `
         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold ms-2" style="font-size: 0.75rem;">
           <i class="fa-solid fa-circle-check me-1.5"></i>${primaryBadgeText}
         </span>
         ` : ''}
       </div>
-      
     </div>
   `;
 
