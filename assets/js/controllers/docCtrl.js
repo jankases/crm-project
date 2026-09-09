@@ -1293,17 +1293,9 @@ window.openAddDoctorView = function() {
   }
 };
 
- window.renderPendingDcrChanges = function(requestedDataJson, targetContainerId = 'pendingDcrChangesList', isProfileMode = false) {
+window.renderPendingDcrChanges = function(requestedDataJson, targetContainerId = 'pendingDcrChangesList', isProfileMode = false) {
   const container = document.getElementById(targetContainerId);
   if (!container) return;
-
-  // เคลียร์ Highlight เก่า (ทำเฉพาะในหน้า Edit)
-  if (!isProfileMode) {
-    const form = document.getElementById('editDoctorForm');
-    if (form) {
-      form.querySelectorAll('.dcr-field-highlight').forEach(el => el.classList.remove('dcr-field-highlight', 'border-warning', 'bg-warning-subtle'));
-    }
-  }
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const isEN = (appLang === 'en');
@@ -1317,31 +1309,20 @@ window.openAddDoctorView = function() {
     const data = (typeof requestedDataJson === 'string') ? JSON.parse(requestedDataJson) : requestedDataJson;
     let items = [];
 
-    const highlightField = (elementId) => {
-      // ระบายสีเฉพาะหน้า Edit เท่านั้น ไม่ต้องไปยุ่งกับหน้า Profile
-      if (!isProfileMode) {
-        const el = document.getElementById(elementId);
-        if (el) el.classList.add('dcr-field-highlight', 'border-warning');
-      }
-    };
-
+    // 🌟 ถอดโค้ด highlightField (กรอบเหลือง) ออกทั้งหมด ให้ฟอร์มคลีนเป็นสีเทาปกติ
     if (data.Doc_Name) {
       items.push(`<strong>${isEN ? 'Name (EN)' : 'ชื่อ (EN)'}:</strong> ${data.Doc_Name}`);
-      highlightField('editDocNameEn');
     }
     if (data.Doc_Name_TH) {
       items.push(`<strong>${isEN ? 'Name (TH)' : 'ชื่อ (TH)'}:</strong> ${data.Doc_Name_TH}`);
-      highlightField('editDocNameTh');
     }
     if (data.Specialty_ID) {
       const specText = (typeof window.getSpecialtyText === 'function') ? window.getSpecialtyText(data.Specialty_ID, data.Specialty_ID) : data.Specialty_ID;
       items.push(`<strong>${isEN ? 'Specialty' : 'ความเชี่ยวชาญ'}:</strong> ${specText}`);
-      highlightField('editDocSpecialty');
     }
     if (data.DoctorType_ID) {
       const typeText = (typeof window.getDoctorTypeText === 'function') ? window.getDoctorTypeText(data.DoctorType_ID, data.DoctorType_ID) : data.DoctorType_ID;
       items.push(`<strong>${isEN ? 'Type' : 'ประเภท'}:</strong> ${typeText}`);
-      highlightField('editDocType');
     }
     if (data.Status) {
       const statusText = (data.Status === 'Active') ? (isEN ? 'Active' : 'ใช้งาน') : (isEN ? 'Inactive' : 'ไม่ใช้งาน');
@@ -1353,6 +1334,7 @@ window.openAddDoctorView = function() {
       return;
     }
 
+    // สร้างป้ายกำกับในการ์ดสีเหลืองให้อ่านง่ายๆ แทน
     let html = '<div class="d-flex flex-wrap gap-1 pt-0.5">';
     items.forEach(it => {
       html += `<span class="badge bg-white text-dark border border-warning-subtle fw-normal tiny px-2 py-1 shadow-2xs">${it}</span>`;
@@ -2679,14 +2661,15 @@ window.updatePrimaryWorkplaceHighlight = function(containerId) {
     const icon = row.querySelector('.wp-icon');
     
     if(radio && radio.checked) {
-      // 🌟 สไตล์กล่อง Primary (สีฟ้าอ่อน มีเส้นขอบซ้าย ไอคอนเข้ม)
-      box.className = 'flex-grow-1 min-w-0 bg-primary-subtle rounded-3 p-1.5 border-start border-primary border-3 d-flex gap-2 align-items-center wp-box-container';
-      box.style.boxShadow = '0 2px 4px rgba(13, 110, 253, 0.1)';
+      // 🌟 ดีไซน์ใหม่คลีนๆ: พื้นขาว, เงาเบาๆ, เน้นแถบสีฟ้าที่ขอบซ้าย (ไม่ทำพื้นหลังฟ้าแล้วเพื่อลดความเลอะ)
+      box.className = 'flex-grow-1 min-w-0 bg-white rounded-3 p-1.5 border border-light-subtle d-flex gap-2 align-items-center wp-box-container shadow-sm';
+      box.style.borderLeft = '4px solid #0d6efd';
       icon.classList.remove('opacity-50');
       icon.classList.add('opacity-100');
     } else {
-      // 🌟 สไตล์กล่องปกติ (สีเทาอ่อน ไม่มีขอบ ไอคอนจาง)
+      // 🌟 ดีไซน์ปกติ: พื้นเทาอ่อน ไม่มีขอบ
       box.className = 'flex-grow-1 min-w-0 bg-light-subtle rounded-3 p-1.5 border-0 d-flex gap-2 align-items-center wp-box-container';
+      box.style.borderLeft = '4px solid transparent';
       box.style.boxShadow = 'none';
       icon.classList.remove('opacity-100');
       icon.classList.add('opacity-50');
