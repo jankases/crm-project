@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer 🌟 -->
+<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer + Evidence Badges 🌟 -->
 <style>
   .doc-module-wrapper { 
     height: 100% !important; 
@@ -51,6 +51,28 @@
   .spa-tab-pane { display: none !important; height: 100%; flex-direction: column; min-height: 0; }
   .spa-tab-pane.active { display: flex !important; }
 
+  /* 🌟 Evidence Soft Badges (สเปกแมตช์ Visit Module) */
+  .evidence-badge-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .evidence-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+  }
+  .evidence-badge-coaching { background-color: #e0f2fe; color: #0284c7; }
+  .evidence-badge-attachment { background-color: #f1f5f9; color: #64748b; }
+  .evidence-badge-signature { background-color: #dcfce7; color: #16a34a; }
+  .evidence-badge-sample { background-color: #fef3c7; color: #d97706; }
+
   /* ========================================================= */
   /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - สมบูรณ์แบบ 100% */
   /* ========================================================= */
@@ -69,7 +91,6 @@
   /* 📱 2. IPAD ARCHITECTURE (< 1200px) - ไถได้สมูท + Footer ตรึงล่าง */
   /* ========================================================= */
   @media (max-width: 1199.98px) {
-    /* ปลดล็อกให้หน้าจอสามารถใช้นิ้วไถดูฟอร์มได้ปกติบน iPad */
     #doctorAddView, #doctorEditView, #doctorProfileView {
       height: 100% !important;
       overflow-y: auto !important;
@@ -93,7 +114,6 @@
     .doc-card { height: auto; display: flex; flex-direction: column; border-radius: 18px !important; }
     .workplace-scroll-area { height: auto !important; overflow-y: visible !important; flex: none; }
     
-    /* 🌟 บังคับ Footer ตรึงเกาะติดขอบล่างหน้าจอ iPad เสมอ */
     .doc-footer-slim {
       position: sticky !important;
       bottom: 0 !important;
@@ -447,7 +467,7 @@
 
       <!-- 📌 FOOTER -->
       <div class="doc-footer-slim d-flex align-items-center justify-content-end gap-2">  
-       <button type="button" class="btn btn-light border text-secondary doc-footer-btn" onclick="window.cancelDoctorForm()" data-i18n="btn_cancel">Cancel</button> 
+        <button type="button" class="btn btn-light border text-secondary doc-footer-btn" onclick="window.cancelDoctorForm()" data-i18n="btn_cancel">Cancel</button> 
         <button type="submit" class="btn btn-premium-primary shadow-sm doc-footer-btn" id="updateDoctorBtn"><i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">Submit DCR</span></button>
       </div>
 
@@ -591,41 +611,51 @@
           </div>
         </div>
 
-        <!-- 🌟 TAB 2: History -->
+        <!-- 🌟 TAB 2: History (ปรับปรุงตามสเปก Visit Module แบบไม่ตัดโค้ด) -->
         <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
-            <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
-            <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
-              <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
-            </button>
-          </div>
+          
+          <!-- 📌 FILTER ZONE (สไตล์มาตรฐานVisit Module) -->
+          <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0" id="profileVisitFilterZone">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
+              <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
+                
+                <!-- Date Range Picker (กรอบเดี่ยว พร้อมซ่อน Fallback Inputs สำหรับรองรับ JS ดั้งเดิม) -->
+                <div style="min-width: 260px; max-width: 320px;">
+                  <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2 py-1" style="height: 38px;">
+                    <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days"></i></span>
+                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitDateRange" placeholder="dd/mm/yyyy  -  dd/mm/yyyy" readonly>
+                    <button class="btn btn-link text-decoration-none border-0 bg-transparent p-0 text-muted d-none" type="button" id="btnClearProfileVisitDate" onclick="window.clearProfileVisitDateRange()">
+                      <i class="fa-solid fa-circle-xmark opacity-50"></i>
+                    </button>
+                  </div>
+                  <!-- Hidden Fallback Inputs สำหรับซัพพอร์ตระบบดั้งเดิม -->
+                  <input type="hidden" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
+                  <input type="hidden" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()">
+                </div>
 
-          <div class="row g-2 mb-3 bg-light p-2 rounded-3 border shadow-xs m-0 flex-shrink-0">
-            <div class="col-md-5 px-1">
-              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_date_range">Date Range</label>
-              <div class="input-group input-group-sm shadow-xs premium-radius overflow-hidden">
-                <input type="date" class="form-control border-0" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
-                <span class="input-group-text bg-white border-0 text-muted">-</span>
-                <input type="date" class="form-control border-0" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()">
+                <!-- Product Filter Multi-Select -->
+                <div style="min-width: 220px; max-width: 280px;">
+                  <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
+                </div>
+
+              </div>
+
+              <!-- Clear Filter Button (พร้อมยางลบแดงมาตรฐาน) -->
+              <div class="d-flex ms-auto">
+                <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters">
+                  <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
+                </button>
               </div>
             </div>
-            <div class="col-md-4 px-1">
-              <label class="form-label text-secondary small fw-bold mb-1" data-i18n="filter_product">Product</label>
-              <select class="form-select form-select-sm shadow-xs premium-radius" id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()">
-                <option value="">- All Products -</option>
-              </select>
-            </div>
-            <div class="col-md-3 d-flex align-items-end px-1">
-              <button class="btn btn-sm btn-premium-secondary w-100 premium-radius" onclick="window.clearProfileVisitFilters()" data-i18n="btn_clear_filters">Clear Filters</button>
-            </div>
           </div>
 
+          <!-- 📌 TABLE CONTAINER -->
           <div class="table-responsive bg-white rounded-3 border shadow-xs flex-grow-1 overflow-y-auto" style="min-height: 0;">
             <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
               <thead class="table-custom-header text-center" style="position: sticky; top: 0; z-index: 10;">
                 <tr>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
-                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">User</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">USER</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
                   <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
@@ -638,7 +668,8 @@
             </table>
           </div>
 
-          <div id="pvisitPaginationContainer" class="d-flex justify-content-between align-items-center mt-3 flex-shrink-0 d-none">
+          <!-- 📌 PAGINATION -->
+          <div id="pvisitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2.5 flex-shrink-0 d-none">
             <div class="d-flex align-items-center">
               <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
               <select class="form-select form-select-sm shadow-sm premium-radius" id="pvisitRowsPerPage" onchange="window.changePVisitRowsPerPage()" style="width: 80px;">
