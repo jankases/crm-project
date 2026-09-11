@@ -213,13 +213,14 @@ window.switchDoctorView = function(viewId) {
   window.scrollTo(0, 0); 
 };
 
-// 4. ฟังก์ชันสำหรับปุ่ม Cancel (นำไปใส่ที่ onclickของปุ่ม Cancel)
+// 1. ฟังก์ชันหลักสำหรับย้อนกลับไปยังหน้าที่จำไว้
+window.cancelDoctorForm = function() {
+  window.switchDoctorView(window.previousDoctorView || 'doctorListView');
+};
+
+// 2. Alias สำหรับปุ่ม Cancel ใน HTML ที่เรียก cancelEditDoctor()
 window.cancelEditDoctor = function() {
-  if (typeof window.cancelDoctorForm === 'function') {
-    window.cancelDoctorForm();
-  } else {
-    window.switchDoctorView(window.previousDoctorView || 'doctorListView');
-  }
+  window.cancelDoctorForm();
 };
 
 window.goBackFromDoctorProfile = function() {
