@@ -179,12 +179,44 @@ window.getHospitalNameByLang = function(hospObj) {
   }
 };
 
+// ตัวแปรสำหรับจำหน้าก่อนหน้า (Default เป็นหน้า List)
+window.previousDoctorView = 'doctorListView';
+
 window.switchDoctorView = function(viewId) {
-  ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
-    const el = document.getElementById(v); if (el) el.classList.add('d-none'); 
+  // 1. ถ้ากำลังจะเปลี่ยนไปหน้า Add หรือ Edit ให้แอบจำหน้าปัจจุบันไว้ก่อน (ถ้าไม่ใช่หน้า Add/Edit เอง)
+  const currentView = ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].find(v => {
+    const el = document.getElementById(v);
+    return el && !el.classList.contains('d-none');
   });
-  const target = document.getElementById(viewId); if(target) target.classList.remove('d-none');
+
+  if (currentView && (viewId === 'doctorAddView' || viewId === 'doctorEditView')) {
+    window.previousDoctorView = currentView;
+  }
+
+  // 2. สลับ View ตามเดิม
+  ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
+    const el = document.getElementById(v); 
+    if (el) el.classList.add('d-none'); 
+  });
+
+  const target = document.getElementById(viewId); 
+  if (target) target.classList.remove('d-none');
+
+  // 3. ถ้าสั่งย้อนกลับไปหน้า Profile (เช่น ตอนกด Cancel) บังคับให้เปิดแท็บ General Info เสมอ
+  if (viewId === 'doctorProfileView') {
+    const infoTabBtn = document.getElementById('tab-btn-info');
+    if (infoTabBtn && typeof window.switchDoctorProfileTab === 'function') {
+      window.switchDoctorProfileTab(infoTabBtn, 'tab-doc-info');
+    }
+  }
+
   window.scrollTo(0, 0); 
+};
+
+// 4. ฟังก์ชันสำหรับปุ่ม Cancel (นำไปใส่ที่ onclickของปุ่ม Cancel)
+window.cancelDoctorForm = function() {
+  // สั่งย้อนกลับไปหน้าที่จำไว้ (ถ้ามาจาก Profile ก็กลับ Profile / ถ้ามาจาก List ก็กลับ List)
+  window.switchDoctorView(window.previousDoctorView || 'doctorListView');
 };
 
 window.goBackFromDoctorProfile = function() {
