@@ -1979,12 +1979,42 @@ window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
-  const startDateTerm = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
-  const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
-  const prodTerm = document.getElementById('filterProfileVisitProduct') ? document.getElementById('filterProfileVisitProduct').value : '';
-
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
+  // 1. ดึงช่วงวันที่จาก Flatpickr Range Input (หรือ Fallback Inputs)
+  const dateRangeInput = document.getElementById('filterProfileVisitDateRange');
+  const dateRangeVal = dateRangeInput ? dateRangeInput.value : '';
+  let startDateObj = null, endDateObj = null;
+
+  if (dateRangeVal && dateRangeVal.includes(' - ')) {
+    const parts = dateRangeVal.split(' - ');
+    if (parts[0]) {
+      const s = parts[0].split('/');
+      if (s.length === 3) startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
+    }
+    if (parts[1]) {
+      const e = parts[1].split('/');
+      if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
+    }
+  } else {
+    // Fallback รองรับแบบแยก Input Start/End เดิม
+    const startDateTerm = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
+    const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
+    if (startDateTerm) { startDateObj = new Date(startDateTerm); startDateObj.setHours(0, 0, 0, 0); }
+    if (endDateTerm) { endDateObj = new Date(endDateTerm); endDateObj.setHours(23, 59, 59, 999); }
+  }
+
+  // 2. ดึง Product Filter (รองรับทั้ง TomSelect Multi-Select และ Single Select)
+  const prodSelect = document.getElementById('filterProfileVisitProduct');
+  let selectedProdIds = [];
+  if (prodSelect && prodSelect.tomselect) {
+    selectedProdIds = prodSelect.tomselect.getValue();
+    if (!Array.isArray(selectedProdIds)) selectedProdIds = selectedProdIds ? [selectedProdIds] : [];
+  } else if (prodSelect) {
+    selectedProdIds = prodSelect.value ? [prodSelect.value] : [];
+  }
+
+  // 3. ตรวจสอบสิทธิ์การมองเห็น ( Permission & Role Check จากโค้ดเดิม )
   let crmUser = null;
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   
@@ -1993,21 +2023,20 @@ window.filterAndRenderDoctorVisits = function() {
   const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').toUpperCase().trim() : '';
 
   const adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
-  
   const isGlobalAdmin = (window.DocManagerCache && window.DocManagerCache.isGlobalViewer !== undefined)
     ? window.DocManagerCache.isGlobalViewer
     : (window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL');
 
   const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
-  
   const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds && window.DocManagerCache.myAllowedTerIds.length > 0)
     ? window.DocManagerCache.myAllowedTerIds
     : (window.myAllowedRepIds || []);
 
+  // 4. กรองข้อมูล (Filter Pipeline)
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
+    // 4.1 เช็คสิทธิ์การเข้าถึงข้อมูล
     const vRepId = String(v.Rep_ID || v.rep_id || '').trim();
     let hasAccess = false;
-
     if (isGlobalAdmin) {
       hasAccess = true;
     } else if (isSales) {
@@ -2015,35 +2044,28 @@ window.filterAndRenderDoctorVisits = function() {
     } else {
       hasAccess = allowedReps.includes(vRepId) || (vRepId === myRepId);
     }
-
     if (!hasAccess) return false;
 
-    let matchDate = true;
-    if (startDateTerm || endDateTerm) {
+    // 4.2 กรอง Date Range
+    if (startDateObj || endDateObj) {
       const vDate = new Date(v.Visit_Date);
-      vDate.setHours(0, 0, 0, 0); 
-      
-      if (startDateTerm) {
-        const sDate = new Date(startDateTerm);
-        sDate.setHours(0, 0, 0, 0);
-        if (vDate < sDate) matchDate = false;
-      }
-      if (endDateTerm) {
-        const eDate = new Date(endDateTerm);
-        eDate.setHours(23, 59, 59, 999);
-        if (vDate > eDate) matchDate = false;
-      }
+      if (startDateObj && vDate < startDateObj) return false;
+      if (endDateObj && vDate > endDateObj) return false;
     }
 
-    const visitProds = (window.globalCurrentDoctorVisitProducts || [])
-      .filter(vp => String(vp.Visit_ID) === String(v.Visit_ID))
-      .map(vp => String(vp.Product_ID));
+    // 4.3 กรอง Product
+    if (selectedProdIds.length > 0) {
+      const visitProds = (window.globalCurrentDoctorVisitProducts || [])
+        .filter(vp => String(vp.Visit_ID) === String(v.Visit_ID))
+        .map(vp => String(vp.Product_ID));
+      const hasProd = selectedProdIds.some(pId => pId && visitProds.includes(String(pId)));
+      if (!hasProd) return false;
+    }
 
-    const matchProd = (prodTerm === "") || visitProds.includes(String(prodTerm));
-
-    return matchDate && matchProd;
+    return true;
   });
 
+  // 5. เรียงลำดับข้อมูล (Sorting Engine)
   const sortCol = window.currentPVisitSortCol || 'date';
   const sortAsc = window.currentPVisitSortAsc || false;
 
@@ -2053,14 +2075,14 @@ window.filterAndRenderDoctorVisits = function() {
       valA = new Date(a.Visit_Date || 0).getTime();
       valB = new Date(b.Visit_Date || 0).getTime();
     } else if (sortCol === 'user') {
-      valA = (a.Whoupdated || '').toLowerCase();
-      valB = (a.Whoupdated || '').toLowerCase();
+      valA = (a.Whoupdated || a.Rep_ID || '').toLowerCase();
+      valB = (b.Whoupdated || b.Rep_ID || '').toLowerCase();
     } else if (sortCol === 'territory') {
       valA = (a.Territory_ID || '').toLowerCase();
-      valB = (a.Territory_ID || '').toLowerCase();
+      valB = (b.Territory_ID || '').toLowerCase();
     } else if (sortCol === 'status') {
       valA = (a.Status || '').toLowerCase();
-      valB = (a.Status || '').toLowerCase();
+      valB = (b.Status || '').toLowerCase();
     } else {
       valA = (a.Purpose_ID || a.Purpose || a.Objective || '').toLowerCase();
       valB = (b.Purpose_ID || b.Purpose || b.Objective || '').toLowerCase();
@@ -2071,6 +2093,7 @@ window.filterAndRenderDoctorVisits = function() {
     return 0;
   });
 
+  // 6. คำนวณการแบ่งหน้า (Pagination)
   const totalItems = filtered.length;
   const rows = parseInt(window.pvisitRowsPerPage) || 10;
   const totalPages = Math.ceil(totalItems / rows);
@@ -2099,15 +2122,26 @@ window.filterAndRenderDoctorVisits = function() {
       : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
+  // 7. ดึง Master Lookup Tables สำหรับแปลง ID เป็นชื่อ
   const usersList = window.globalUsersList || window.globalUsers || (window.VisitManagerCache && window.VisitManagerCache.users) || (window.DocManagerCache && window.DocManagerCache.users) || [];
   const terList = window.globalTerritoryList || window.globalTerritories || (window.VisitManagerCache && window.VisitManagerCache.territories) || (window.DocManagerCache && window.DocManagerCache.territories) || [];
   const teamList = window.globalTeamList || window.globalTeams || (window.VisitManagerCache && window.VisitManagerCache.teams) || (window.DocManagerCache && window.DocManagerCache.teams) || [];
   const buList = (window.VisitManagerCache && window.VisitManagerCache.bus) || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || [];
-  
+  const prodList = (window.DocManagerCache && window.DocManagerCache.products) || window.globalProducts || window.globalTeamProducts || [];
+
   let htmlBuffer = '';
   pageData.forEach(v => {
-    const dateStr = v.Visit_Date ? new Date(v.Visit_Date).toLocaleDateString(appLang === 'en' ? 'en-US' : 'th-TH') : '-';
+    // 🌟 7.1 แปลง Format วันที่เป็น dd/mm/yyyy
+    let dateStr = '-';
+    if (v.Visit_Date) {
+      const dt = new Date(v.Visit_Date);
+      const dd = String(dt.getDate()).padStart(2, '0');
+      const mm = String(dt.getMonth() + 1).padStart(2, '0');
+      const yyyy = dt.getFullYear();
+      dateStr = `${dd}/${mm}/${yyyy}`;
+    }
 
+    // 7.2 แปลง Rep / User Name
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
     if (rawWho) {
@@ -2122,13 +2156,28 @@ window.filterAndRenderDoctorVisits = function() {
       }
     }
 
+    // 🌟 7.3 Evidence Soft Badges (Coaching 🪪, Attachment 📎, Signature ✍️, Sample 🎁)
+    let evidenceBadgesHtml = '<span class="evidence-badge-group">';
+    if (v.Is_Joint_Visit || v.Joint_Visit || v.Coaching || v.Is_Coaching) {
+      evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`;
+    }
+    if (v.Has_Attachment || v.Attachments || (v.Attachment_Count && v.Attachment_Count > 0)) {
+      evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-attachment" title="Attachment"><i class="fa-solid fa-paperclip"></i></span>`;
+    }
+    if (v.Has_Signature || v.Signature || v.Signature_URL) {
+      evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-signature" title="Signature"><i class="fa-solid fa-signature"></i></span>`;
+    }
+    if (v.Has_Sample || v.Samples || (v.Sample_Count && v.Sample_Count > 0)) {
+      evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`;
+    }
+    evidenceBadgesHtml += '</span>';
+
+    // 7.4 Territory Badge
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
-
     if (rawTerrId) {
       const targetId = String(rawTerrId).trim();
       const terObj = terList.find(t => String(t.Territory_ID || t.id) === targetId || String(t.Territory) === targetId);
-      
       if (terObj) {
         terrNameShow = terObj.Territory || terObj.Territory_Name || targetId;
       } else {
@@ -2137,19 +2186,27 @@ window.filterAndRenderDoctorVisits = function() {
           terrNameShow = tmObj.Team || tmObj.Team_Name || targetId;
         } else {
           const buObj = buList.find(b => String(b.BU_ID || b.bu_id || b.id) === targetId || String(b.BU) === targetId);
-          if (buObj) {
-            terrNameShow = buObj.BU || buObj.BU_Name || buObj.Name_EN || targetId;
-          } else if (!targetId.includes('-')) {
-            terrNameShow = targetId;
-          }
+          if (buObj) terrNameShow = buObj.BU || buObj.BU_Name || targetId;
+          else if (!targetId.includes('-')) terrNameShow = targetId;
         }
       }
     }
-
     const terrBadgeHtml = (terrNameShow !== '-') 
       ? `<span class="badge bg-primary-subtle text-primary fw-bold" style="border: 1px solid #b6d4fe;">${terrNameShow}</span>` 
       : '-';
 
+    // 🌟 7.5 Mapping Product UUID -> ชื่อ Product จริง
+    const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
+    let prodBadges = '-';
+    if (matchedVps.length > 0) {
+      prodBadges = matchedVps.map(vp => {
+        const pObj = prodList.find(p => String(p.Product_ID || p.id).toLowerCase().trim() === String(vp.Product_ID).toLowerCase().trim());
+        const pName = pObj ? (pObj.Product || pObj.Product_Name || pObj.name) : vp.Product_ID;
+        return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
+      }).join('');
+    }
+
+    // 7.6 Purpose Text
     let purposeShow = '-';
     if (typeof window.getPurposeText === 'function') {
       purposeShow = window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective);
@@ -2157,10 +2214,23 @@ window.filterAndRenderDoctorVisits = function() {
       purposeShow = v.Purpose || v.Objective || v.Purpose_ID || '-';
     }
 
+    // 🌟 7.7 GPS Check-in Pin เปลี่ยนสีตามสถานะจริง
+    let gpsPinHtml = '';
+    if (v.GPS_Checkin || v.Latitude || v.GPS_Status) {
+      const gpsStatus = String(v.GPS_Status || v.GPS_Checkin_Status || '').toLowerCase();
+      if (gpsStatus === 'verified' || gpsStatus === 'within_range' || v.Is_GPS_Valid === true) {
+        gpsPinHtml = `<i class="fa-solid fa-location-dot text-success ms-1" title="GPS Verified (In Range)"></i>`;
+      } else if (gpsStatus === 'out_of_range' || v.Is_GPS_Valid === false) {
+        gpsPinHtml = `<i class="fa-solid fa-location-dot text-danger ms-1" title="GPS Verified (Out of Range)"></i>`;
+      } else {
+        gpsPinHtml = `<i class="fa-solid fa-location-dot text-info ms-1" title="GPS Checked"></i>`;
+      }
+    }
+
+    // 7.8 Status Badge
     const rawStatus = String(v.Status || 'Pending').trim();
     let statusBadgeClass = 'badge-soft-pending';
     let statusShow = appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง';
-
     if (rawStatus === 'Submitted') {
       statusBadgeClass = 'badge-soft-success';
       statusShow = appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว';
@@ -2169,19 +2239,10 @@ window.filterAndRenderDoctorVisits = function() {
       statusShow = appLang === 'en' ? '📝 Draft' : '📝 ฉบับร่าง';
     }
 
-    const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
-    let prodBadges = '-';
-    if (matchedVps.length > 0) {
-      prodBadges = matchedVps.map(vp => {
-        const pObj = (window.globalTeamProducts || window.globalProducts || window.globalProductsList || []).find(p => String(p.Product_ID) === String(vp.Product_ID));
-        const pName = pObj ? pObj.Product : vp.Product_ID;
-        return `<span class="badge badge-soft-product me-1 mb-1">${pName}</span>`;
-      }).join('');
-    }
-
     const currentDocId = window.currentTargetDocId || v.Doc_ID || '';
     const rawPurposeId = v.Purpose_ID || v.Purpose || v.Objective || '';
 
+    // 8. ประกอบ HTML Row
     htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">
@@ -2189,10 +2250,13 @@ window.filterAndRenderDoctorVisits = function() {
             ${dateStr}
           </a>
         </td>
-        <td class="fw-bold text-dark">${repNameShow}</td>
+        <td class="fw-bold text-dark">
+          ${repNameShow}
+          ${evidenceBadgesHtml}
+        </td>
         <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
-        <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
+        <td><small class="text-secondary fw-medium">${purposeShow} ${gpsPinHtml}</small></td>
         <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
       </tr>`;
   });
