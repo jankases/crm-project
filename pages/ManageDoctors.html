@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<!-- 🌟 [SAFE DUAL-ARCHITECTURE CSS] 🌟 -->
+<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer 🌟 -->
 <style>
   .doc-module-wrapper { 
     height: 100% !important; 
@@ -52,7 +52,7 @@
   .spa-tab-pane.active { display: flex !important; }
 
   /* ========================================================= */
-  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - สมบูรณ์แบบแล้ว */
+  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - สมบูรณ์แบบ 100% */
   /* ========================================================= */
   @media (min-width: 1200px) {
     .doc-content-form { overflow: hidden !important; }
@@ -66,10 +66,10 @@
   }
 
   /* ========================================================= */
-  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - แก้ล็อก Scrollbar & Docked Footer */
+  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - ไถได้สมูท + Footer ตรึงล่าง */
   /* ========================================================= */
   @media (max-width: 1199.98px) {
-    /* ปลดล็อกให้ View สามารถใช้นิ้วไถ Scrollbar ได้ปกติ */
+    /* ปลดล็อกให้หน้าจอสามารถใช้นิ้วไถดูฟอร์มได้ปกติบน iPad */
     #doctorAddView, #doctorEditView, #doctorProfileView {
       height: 100% !important;
       overflow-y: auto !important;
@@ -93,7 +93,7 @@
     .doc-card { height: auto; display: flex; flex-direction: column; border-radius: 18px !important; }
     .workplace-scroll-area { height: auto !important; overflow-y: visible !important; flex: none; }
     
-    /* 🌟 ตรึง Footer เกาะติดขอบล่างหน้าจอ iPad เสมอ */
+    /* 🌟 บังคับ Footer ตรึงเกาะติดขอบล่างหน้าจอ iPad เสมอ */
     .doc-footer-slim {
       position: sticky !important;
       bottom: 0 !important;
