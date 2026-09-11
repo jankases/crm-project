@@ -214,9 +214,12 @@ window.switchDoctorView = function(viewId) {
 };
 
 // 4. ฟังก์ชันสำหรับปุ่ม Cancel (นำไปใส่ที่ onclickของปุ่ม Cancel)
-window.cancelDoctorForm = function() {
-  // สั่งย้อนกลับไปหน้าที่จำไว้ (ถ้ามาจาก Profile ก็กลับ Profile / ถ้ามาจาก List ก็กลับ List)
-  window.switchDoctorView(window.previousDoctorView || 'doctorListView');
+window.cancelEditDoctor = function() {
+  if (typeof window.cancelDoctorForm === 'function') {
+    window.cancelDoctorForm();
+  } else {
+    window.switchDoctorView(window.previousDoctorView || 'doctorListView');
+  }
 };
 
 window.goBackFromDoctorProfile = function() {
