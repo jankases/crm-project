@@ -1936,29 +1936,35 @@ window.sortDoctorVisits = function(col) {
   window.filterAndRenderDoctorVisits();
 };
 
-window.loadDoctorVisitHistory = async function(docId) {
+ window.loadDoctorVisitHistory = async function(docId) {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading history... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>';
   
   try {
     const sb = window.supabaseClient || window.supabase;
-    const [visitRes, vpRes, dcrRes] = await Promise.all([
+    
+    // ดึง Visit Logs ทั้งหมดที่เป็นของ Doctor ID คนนี้โดยตรง
+    const [visitRes, vpRes] = await Promise.all([
       sb.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false }),
-      sb.from('Visit_Products').select('*'),
-      sb.from('DCR').select('Ref_ID').eq('Action', 'Unlock Visit').eq('Status', 'Pending')
+      sb.from('Visit_Products').select('*')
     ]);
 
     if (visitRes.error) throw visitRes.error;
     
     window.globalCurrentDoctorVisits = visitRes.data || [];
     window.globalCurrentDoctorVisitProducts = vpRes.data || [];
-    window.globalPendingUnlockVisits = (dcrRes.data || []).map(d => d.Ref_ID);
 
+    // เรียก Render Dropdown Product + Render Table
+    if (typeof window.renderProfileVisitProductDropdown === 'function') {
+      window.renderProfileVisitProductDropdown();
+    }
+    
     window.currentPVisitPage = 1;
     window.filterAndRenderDoctorVisits();
 
   } catch(err) {
+    console.error("Error load visit history:", err);
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Load failed: ${err.message}</td></tr>`;
   }
 };
