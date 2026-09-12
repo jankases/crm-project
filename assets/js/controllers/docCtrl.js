@@ -1983,26 +1983,30 @@ window.sortDoctorVisits = function(col) {
   }
 };
 
-window.changePVisitRowsPerPage = function() {
-  const selectEl = document.getElementById('pvisitRowsPerPage');
-  window.pvisitRowsPerPage = parseInt(selectEl.value) || 10;
-  window.currentPVisitPage = 1;
-  window.filterAndRenderDoctorVisits();
-};
-
-window.goToPVisitPage = function(page) {
+ 
+ 
+ // 🌟 1. ฟังก์ชันเปลี่ยนหน้าสำหรับ Visit History (เพิ่มใหม่)
+window.changePVisitPage = function(page) {
   window.currentPVisitPage = page;
   window.filterAndRenderDoctorVisits();
 };
 
-   window.filterAndRenderDoctorVisits = function() {
+// 🌟 2. ฟังก์ชันเปลี่ยนจำนวน Rows สำหรับ Visit History (เพิ่มใหม่)
+window.changePVisitRowsPerPage = function() {
+  const sel = document.getElementById('pvisitRowsPerPage');
+  window.pvisitRowsPerPage = sel ? parseInt(sel.value) : 10;
+  window.currentPVisitPage = 1;
+  window.filterAndRenderDoctorVisits();
+};
+
+// 🌟 3. อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก BU และเพิ่มตัววาด Pagination)
+window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const targetDocId = window.currentTargetDocId || (document.getElementById('editDocId') ? document.getElementById('editDocId').value : '');
 
-  // 1. อ่านค่าแยกจาก 2 ช่อง (Start & End)
   const startStr = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
   const endStr = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
   let startDateObj = null, endDateObj = null;
@@ -2016,7 +2020,6 @@ window.goToPVisitPage = function(page) {
     if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
   }
 
-  // 2. อ่านค่า Product Filter
   const prodSelect = document.getElementById('filterProfileVisitProduct');
   let selectedProdIds = [];
   if (prodSelect && prodSelect.tomselect) {
@@ -2026,7 +2029,6 @@ window.goToPVisitPage = function(page) {
     selectedProdIds = prodSelect.value ? [prodSelect.value] : [];
   }
 
-  // 3. ลอจิกสิทธิ์
   let crmUser = null;
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   
@@ -2038,7 +2040,6 @@ window.goToPVisitPage = function(page) {
   const isGlobalAdmin = window.myIsGlobalViewer === true || powerRoles.some(r => myRole.includes(r)) || rawScope === 'ALL';
   const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) ? window.DocManagerCache.myAllowedTerIds : [];
 
-  // 4. กรองข้อมูล
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
     if (String(v.Doc_ID) !== String(targetDocId)) return false;
 
@@ -2066,7 +2067,6 @@ window.goToPVisitPage = function(page) {
     return true;
   });
 
-  // 5. เรียงข้อมูล
   const sortCol = window.currentPVisitSortCol || 'date';
   const sortAsc = window.currentPVisitSortAsc || false;
 
@@ -2093,10 +2093,9 @@ window.goToPVisitPage = function(page) {
     return 0;
   });
 
-  // 6. Pagination
   const totalItems = filtered.length;
   const rows = parseInt(window.pvisitRowsPerPage) || 10;
-  const totalPages = Math.ceil(totalItems / rows);
+  const totalPages = Math.max(1, Math.ceil(totalItems / rows));
 
   if (totalItems === 0) {
     if (document.getElementById('pvisitPaginationContainer')) document.getElementById('pvisitPaginationContainer').classList.add('d-none');
@@ -2107,7 +2106,9 @@ window.goToPVisitPage = function(page) {
 
   if (document.getElementById('pvisitPaginationContainer')) document.getElementById('pvisitPaginationContainer').classList.remove('d-none');
 
-  const currentPage = window.currentPVisitPage || 1;
+  let currentPage = window.currentPVisitPage || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+
   const startIndex = (currentPage - 1) * rows;
   const endIndex = Math.min(startIndex + rows, totalItems);
   const pageData = filtered.slice(startIndex, endIndex);
@@ -2116,7 +2117,6 @@ window.goToPVisitPage = function(page) {
     document.getElementById('pvisitPageInfo').innerText = appLang === 'en' ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries` : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // Master Data Lookups
   const usersList = window.globalUsersList || window.globalUsers || window.DocManagerCache.users || [];
   const terList = window.globalTerritoryList || window.globalTerritories || window.DocManagerCache.territories || [];
   const teamList = window.globalTeamList || window.globalTeams || window.DocManagerCache.teams || [];
@@ -2131,7 +2131,6 @@ window.goToPVisitPage = function(page) {
       dateStr = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
     }
 
-    // 🌟 ดึงข้อมูล User
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
     let uObj = null;
@@ -2142,7 +2141,6 @@ window.goToPVisitPage = function(page) {
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
-    // 🌟 Evidence Badges (แก้เช็คค่า True ให้รัดกุม)
     let badges = [];
     if (v.Is_Joint_Visit === true || v.Is_Joint_Visit === 'true' || v.Joint_Visit === true || v.Coaching === true || v.Is_Coaching === true) {
       badges.push(`<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`);
@@ -2158,7 +2156,6 @@ window.goToPVisitPage = function(page) {
     }
     let evidenceBadgesHtml = badges.length > 0 ? `<span class="evidence-badge-group ms-2">${badges.join('')}</span>` : '';
 
-    // 🌟 ค้นหา Territory (Fallback BU_ID ให้แม่นยำขึ้น)
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
     
@@ -2172,22 +2169,25 @@ window.goToPVisitPage = function(page) {
       }
     }
 
+    // 🌟 ค้นหา BU (กวาดหาจากทุก Field แบบรัดกุม)
     if ((terrNameShow === '-' || !terrNameShow) && uObj) {
       const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
-      let actualBuName = String(uObj.BU || uObj.BU_Name || '').trim();
-      if (!actualBuName) {
-        const uBuId = String(uObj.BU_ID || uObj.Business_Unit_ID || '').trim();
-        if (uBuId) {
-          const foundBu = buList.find(b => String(b.BU_ID || b.id) === uBuId || String(b.BU) === uBuId);
-          if (foundBu) actualBuName = foundBu.BU || foundBu.BU_Name;
-          else if (!uBuId.includes('-')) actualBuName = uBuId;
+      const uBuId = String(uObj.BU_ID || uObj.bu_id || uObj.Business_Unit_ID || uObj.BU || v.BU_ID || v.bu_id || v.BU || '').trim();
+
+      let actualBuName = '';
+      if (uBuId) {
+        const foundBu = buList.find(b => String(b.BU_ID || b.id).toLowerCase() === uBuId.toLowerCase() || String(b.BU).toLowerCase() === uBuId.toLowerCase());
+        if (foundBu) {
+          actualBuName = foundBu.BU || foundBu.BU_Name;
+        } else if (!uBuId.includes('-')) {
+          actualBuName = uBuId; // Fallback text e.g. "LUNG"
         }
       }
 
       if (actualBuName && (uRole.includes('BU') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR') || uRole.includes('ADMIN'))) {
-        terrNameShow = actualBuName; // แสดง LUNG / HEME
+        terrNameShow = actualBuName;
       } else if (uRole) {
-        terrNameShow = uRole; // แสดง Role ทั่วไป (เช่น ADMIN, SALES)
+        terrNameShow = uRole;
       } else if (actualBuName) {
         terrNameShow = actualBuName;
       }
@@ -2206,18 +2206,16 @@ window.goToPVisitPage = function(page) {
 
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
     
-    // 🌟 GPS Icon Logic (สีเทาเป็น Default ถ้ามีพิกัด, เขียว=ผ่าน, แดง=ตก)
     let gpsPinHtml = '';
     if (v.Latitude || v.Longitude || v.GPS_Checkin || v.GPS_Status) {
       const gpsStatus = String(v.GPS_Status || v.GPS_Checkin_Status || '').toLowerCase();
-      let gpsColor = 'text-secondary'; // สีเทา (เหมือนหน้า Visit)
+      let gpsColor = 'text-secondary'; 
       
       if (gpsStatus === 'verified' || gpsStatus === 'within_range' || v.Is_GPS_Valid === true) {
-        gpsColor = 'text-success'; // สีเขียว
+        gpsColor = 'text-success'; 
       } else if (gpsStatus === 'out_of_range' || v.Is_GPS_Valid === false) {
-        gpsColor = 'text-danger'; // สีแดง
+        gpsColor = 'text-danger'; 
       }
-      
       gpsPinHtml = `<i class="fa-solid fa-location-dot ${gpsColor} ms-2" title="GPS Location"></i>`;
     }
 
@@ -2239,7 +2237,39 @@ window.goToPVisitPage = function(page) {
   });
 
   tbody.innerHTML = htmlBuffer;
-  if (typeof window.renderDoctorPaginationControls === 'function') window.renderDoctorPaginationControls(totalPages);
+
+  // 🌟 สร้าง HTML Pagination ลงไปใน #pvisitPagination โดยตรง
+  const paginationUl = document.getElementById('pvisitPagination');
+  if (paginationUl) {
+    let pageHtml = '';
+    
+    // ปุ่ม Prev
+    pageHtml += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+      <a class="page-link cursor-pointer" onclick="window.changePVisitPage(${currentPage - 1})">&laquo; ${appLang === 'en' ? 'Prev' : 'ก่อนหน้า'}</a>
+    </li>`;
+
+    // คุมตัวเลขไม่ให้แสดงยาวเกินไป (แสดงหน้าใกล้เคียง)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, Math.max(1, currentPage + 2));
+    
+    if (endPage - startPage < 4 && totalPages >= 5) {
+      if (startPage === 1) endPage = 5;
+      else if (endPage === totalPages) startPage = totalPages - 4;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+        <a class="page-link cursor-pointer" onclick="window.changePVisitPage(${i})">${i}</a>
+      </li>`;
+    }
+
+    // ปุ่ม Next
+    pageHtml += `<li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+      <a class="page-link cursor-pointer" onclick="window.changePVisitPage(${currentPage + 1})">${appLang === 'en' ? 'Next' : 'ถัดไป'} &raquo;</a>
+    </li>`;
+
+    paginationUl.innerHTML = pageHtml;
+  }
 };
 
  window.initProfileVisitDatePicker = function() {
