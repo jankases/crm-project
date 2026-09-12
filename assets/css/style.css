@@ -2182,3 +2182,29 @@ button.feature-action-btn-lg.has-data-samples i {
     min-height: 0 !important;
     overflow: hidden !important;
 }
+
+/* 🌟 ปรับเส้นแบ่งตาราง Visit History ให้บางละมุนเท่าหน้า Visit Log */
+.doc-visit-table-clean tbody td {
+  border-bottom: 1px solid #f1f5f9 !important; /* เส้นบางอ่อนสีเดียวกับ Visit Module */
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+}
+
+.doc-visit-table-clean tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* 🌟 คุม TomSelect ไม่ให้ยืดบรรทัดล้น */
+.ts-compact-wrapper .ts-control {
+  max-height: 38px !important;
+  min-height: 38px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+}
+
+.ts-compact-wrapper .ts-control .item {
+  font-size: 0.78rem !important;
+  padding: 1px 6px !important;
+}
