@@ -614,40 +614,37 @@
         <!-- 🌟 TAB 2: History (ปรับปรุงตามสเปก Visit Module แบบไม่ตัดโค้ด) -->
         <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
           
-          <!-- 📌 FILTER ZONE (สไตล์มาตรฐานVisit Module) -->
-          <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0" id="profileVisitFilterZone">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
-              <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
-                
-                <!-- Date Range Picker (กรอบเดี่ยว พร้อมซ่อน Fallback Inputs สำหรับรองรับ JS ดั้งเดิม) -->
-                <div style="min-width: 260px; max-width: 320px;">
-                  <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2 py-1" style="height: 38px;">
-                    <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days"></i></span>
-                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitDateRange" placeholder="dd/mm/yyyy  -  dd/mm/yyyy" readonly>
-                    <button class="btn btn-link text-decoration-none border-0 bg-transparent p-0 text-muted d-none" type="button" id="btnClearProfileVisitDate" onclick="window.clearProfileVisitDateRange()">
-                      <i class="fa-solid fa-circle-xmark opacity-50"></i>
-                    </button>
-                  </div>
-                  <!-- Hidden Fallback Inputs สำหรับซัพพอร์ตระบบดั้งเดิม -->
-                  <input type="hidden" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
-                  <input type="hidden" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()">
-                </div>
+         <!-- 📌 FILTER ZONE (ปรับแก้ไขการจัดวางใหม่ ไม่เบียด ไม่บีบ) -->
+<div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0" id="profileVisitFilterZone">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+    
+    <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
+      <!-- Date Range (ขยายพื้นที่ให้พอดี ไม่เกิด Scrollbar) -->
+      <div style="min-width: 280px; flex: 1 1 280px; max-width: 380px;">
+        <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
+          <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days"></i></span>
+          <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitDateRange" placeholder="dd/mm/yyyy  -  dd/mm/yyyy" readonly>
+          <button class="btn btn-link text-decoration-none border-0 bg-transparent p-0 text-muted d-none" type="button" id="btnClearProfileVisitDate" onclick="window.clearProfileVisitDateRange()">
+            <i class="fa-solid fa-circle-xmark opacity-50"></i>
+          </button>
+        </div>
+      </div>
 
-                <!-- Product Filter Multi-Select -->
-                <div style="min-width: 220px; max-width: 280px;">
-                  <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
-                </div>
+      <!-- Product Filter (แสดงชัดเจน ไม่หาย) -->
+      <div style="min-width: 240px; flex: 1 1 240px; max-width: 320px;">
+        <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
+      </div>
+    </div>
 
-              </div>
+    <!-- Clear Filter Button -->
+    <div class="d-flex ms-auto flex-shrink-0">
+      <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters">
+        <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
+      </button>
+    </div>
 
-              <!-- Clear Filter Button (พร้อมยางลบแดงมาตรฐาน) -->
-              <div class="d-flex ms-auto">
-                <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters">
-                  <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
-                </button>
-              </div>
-            </div>
-          </div>
+  </div>
+</div>
 
           <!-- 📌 TABLE CONTAINER -->
           <div class="table-responsive bg-white rounded-3 border shadow-xs flex-grow-1 overflow-y-auto" style="min-height: 0;">
