@@ -2759,79 +2759,74 @@ window.debouncedFilterVisits = function() {
     }, 400);
 };
  // ==========================================
-// 📄 PAGINATION & TABLE RENDER ENGINE (CORE FIX)
+// 📄 PAGINATION & TABLE RENDER ENGINE (FINAL FIX)
 // ==========================================
 
-// 1. ฟังก์ชันเปลี่ยนจำนวนแถว (รับค่าจาก Element ที่ถูกคลิกโดยตรง)
+// 🎯 1. ฟังก์ชันเปลี่ยนจำนวนแถว (ทำงานเหมือน Filter ตัวนึงเป๊ะๆ)
 window.changeRowsPerPage = function(el) {
-    // 🌟 รับค่าที่แน่นอนจาก Dropdown ที่ถูกเปลี่ยนค่า
-    var newRowsPerPage = parseInt(el.value);
-    
-    if (newRowsPerPage) {
-        window.rowsPerPage = newRowsPerPage;
+    // 🌟 รับค่าจาก Dropdown ที่ถูกคลิก (el) โดยตรง! ไม่ต้องงมหา ID แล้ว
+    var selectVal = null;
+    if (el && el.value) {
+        selectVal = el.value;
+    } else if (window.event && window.event.target && window.event.target.value) {
+        selectVal = window.event.target.value;
     } else {
-        window.rowsPerPage = 20; // Fallback ปลอดภัย
+        var selectEl = document.getElementById('visitRowsPerPage');
+        if (selectEl) selectVal = selectEl.value;
     }
 
-    // 🌟 อัปเดต Dropdown ทุกตัวบนหน้าจอให้ตรงกัน ป้องกันความสับสน
-    document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(select) {
-        if (select.value != window.rowsPerPage) {
-            select.value = window.rowsPerPage;
-        }
-    });
-
-    window.currentPage = 1; // เปลี่ยนจำนวนแถว ต้องกลับไปหน้า 1 เสมอ
-    
-    var overlay = document.getElementById('tableLoadingOverlay');
-    if (overlay) overlay.classList.remove('d-none');
-    
-    // 🌟 สั่งวาดตารางใหม่โดยไม่ต้องโหลดจาก DB (เพราะข้อมูลมีอยู่แล้วใน Cache)
-    if (typeof window.renderVisitTableServerSide === 'function') {
-        window.renderVisitTableServerSide();
+    if (selectVal) {
+        window.rowsPerPage = parseInt(selectVal) || 20;
     }
     
-    // 🌟 ซ่อน Loading Overlay หลังจากวาดเสร็จ
-    setTimeout(function() {
-        if (overlay) overlay.classList.add('d-none');
-    }, 100);
+    // 🌟 สั่งกรองข้อมูลเหมือน Advanced Filter ทุกประการ!
+    if (typeof window.filterVisits === 'function') {
+        window.filterVisits();
+    } else if (typeof window.loadVisits === 'function') {
+        window.currentPage = 1;
+        window.loadVisits(true, true);
+    }
 };
 
-// 2. ฟังก์ชันเปลี่ยนหน้า (บล็อก URL ดักทางตั้งแต่ต้นลม)
+// 🎯 2. ฟังก์ชันเปลี่ยนหน้า (ฆ่า URL # ดักทางตั้งแต่ต้นลม)
 window.goToPage = function(page, event) {
-    // สกัดกั้น Event ลิงก์ # อัตโนมัติ
-    if (event && typeof event.preventDefault === 'function') {
-        event.preventDefault(); 
+    // 🛑 สกัดกั้น Event ลิงก์ # อัตโนมัติ ไม่ให้ขึ้นไปโชว์บน Address Bar
+    var e = event || window.event;
+    if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        e.returnValue = false; 
     }
     
     var rows = parseInt(window.rowsPerPage) || 20;
     var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
-    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+    if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
     
     window.currentPage = page;
     
     var overlay = document.getElementById('tableLoadingOverlay');
     if (overlay) overlay.classList.remove('d-none');
     
-    // 🌟 สั่งวาดตารางใหม่โดยไม่ต้องโหลดจาก DB 
-    if (typeof window.renderVisitTableServerSide === 'function') {
-        window.renderVisitTableServerSide();
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true, true);
     }
     
-    setTimeout(function() {
-        if (overlay) overlay.classList.add('d-none');
-    }, 100);
+    return false; // ดักอีกชั้นกันเหนียว
 };
 
-// 3. ฟังก์ชันวาดตาราง (หั่นข้อมูล + ใส่เกราะป้องกัน URL ขั้นสุดยอด)
+// 🎯 3. ฟังก์ชันวาดตาราง 
 window.renderVisitTableServerSide = function() {
     var tbody = document.getElementById('visitTableBody');
     if (!tbody) return;
 
+    // บังคับอัปเดต Dropdown ให้ตรงกับค่าในระบบเสมอ
+    document.querySelectorAll('select[id*="visitRowsPerPage"], select[onchange*="changeRowsPerPage"]').forEach(function(sel) {
+        if (sel.value != window.rowsPerPage) sel.value = window.rowsPerPage;
+    });
+
     var data = window.globalVisits || [];
     var totalItems = window.totalVisitsCount || 0;
-    
     var rows = parseInt(window.rowsPerPage) || 20;
-    if (rows <= 0) rows = 20;
+    if (rows <= 0) rows = 20; 
     var totalPages = Math.ceil(totalItems / rows);
     
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -2845,18 +2840,17 @@ window.renderVisitTableServerSide = function() {
 
     if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
-    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้
-    var startIndex = ((window.currentPage - 1) * rows);
-    var endIndex = Math.min(startIndex + rows, totalItems);
-    
-    // 🌟 หั่น (Slice) ข้อมูลเฉพาะหน้าที่ต้องการจะแสดง
-    var pageData = data.slice(startIndex, endIndex);
+    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้ (แก้บั๊กแสดงล้นกรณีอ่านจาก Cache)
+    var pageData = data.length > rows ? data.slice(0, rows) : data;
 
+    var startIndex = ((window.currentPage - 1) * rows) + 1;
+    var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
+    
     var infoEl = document.getElementById('visitPageInfo');
     if (infoEl) {
         infoEl.innerText = appLang === 'en' 
-            ? 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries'
-            : 'แสดง ' + (startIndex + 1) + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
+            ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
+            : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
     }
 
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
@@ -2884,12 +2878,16 @@ window.renderVisitTableServerSide = function() {
             if (hospLat && hospLng) {
                 var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
                 if (distKm !== null && distKm <= 0.5) {
-                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Check-in verified' : 'พิกัดถูกต้อง') + '"><i class="fa-solid fa-circle-check"></i></span>';
+                    var ttCheckOk = appLang === 'en' ? 'Check-in verified (<500m)' : 'พิกัดถูกต้อง (<500ม.)';
+                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + ttCheckOk + '"><i class="fa-solid fa-circle-check"></i></span>';
                 } else {
-                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Off-site' : 'ห่างจากจุดหมาย') + '"><i class="fa-solid fa-location-dot"></i></span>';
+                    var distShow = distKm < 1 ? Math.round(distKm * 1000) + 'm' : distKm.toFixed(1) + 'km';
+                    var ttCheckFar = appLang === 'en' ? 'Off-site: ' : 'ห่างจากจุดหมาย: ';
+                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + ttCheckFar + distShow + '"><i class="fa-solid fa-location-dot"></i></span>';
                 }
             } else {
-                distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer"><i class="fa-solid fa-location-dot"></i></span>';
+                var ttMap = appLang === 'en' ? 'View Location' : 'ดูพิกัด';
+                distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer" title="' + ttMap + '"><i class="fa-solid fa-location-dot"></i></span>';
             }
         }
 
@@ -2910,38 +2908,55 @@ window.renderVisitTableServerSide = function() {
 
         var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
         var rawVid = String(v.Visit_ID || v.visit_id || '').trim();
-        var visitProds = (window._visitProdIndex) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || []) : [];
+        var visitProds = (window._visitProdIndex) 
+                            ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || (v.Products_List ? v.Products_List.split(',') : [])) 
+                            : [];
 
         var prodBadges = '';
         if (visitProds.length > 0) {
-            visitProds.forEach(function(vp) {
-                var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
-                var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
-                var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
-                prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
-            });
+          visitProds.forEach(function(vp) {
+              var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
+              var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
+              var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
+              prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
+          });
         } else {
             prodBadges = '<span class="text-muted small">-</span>';
         }
      
         var evidenceBadges = '';
-        if (v.Is_Coaching) evidenceBadges += ' <span class="badge badge-soft-info ms-1"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
-        if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') evidenceBadges += ' <span class="badge badge-soft-secondary ms-1"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
-        if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) evidenceBadges += ' <span class="badge badge-soft-success ms-1"><i class="fa-solid fa-signature text-success"></i></span>';
+        if (v.Is_Coaching) {
+          var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
+          evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
+        }
 
-        var sampleItems = (window._visitSampleIndex) ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid] || []) : [];
+        if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
+          var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
+          evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
+        }
+
+        if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) {
+          var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
+          evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
+        }
+
+        var sampleItems = (window._visitSampleIndex && (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid])) 
+                          ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid]) 
+                          : (v.Visit_Samples || []);
+                          
         if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
-            evidenceBadges += ' <span class="badge badge-soft-warning ms-1"><i class="fa-solid fa-gifts text-warning"></i></span>';
+          var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
+          evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
         }
 
         htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
-            '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-            '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-            '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
-            '<td>' + prodBadges + '</td>' +
-            '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-            '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-            '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
+          '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+          '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+          '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
+          '<td>' + prodBadges + '</td>' +
+          '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+          '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+          '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
         '</tr>';
     });
 
@@ -2949,18 +2964,6 @@ window.renderVisitTableServerSide = function() {
     
     if (typeof window.renderPaginationControls === 'function') {
         window.renderPaginationControls(totalPages);
-    }
-
-    // 🛑 ใส่เกราะป้องกัน URL ขั้นสุดยอด
-    var pagContainer = document.getElementById('visitPagination');
-    if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
-        pagContainer.addEventListener('click', function(e) {
-            var targetA = e.target.closest('a');
-            if (targetA && targetA.getAttribute('href') === '#') {
-                e.preventDefault(); 
-            }
-        });
-        pagContainer.setAttribute('data-url-fixed', 'true');
     }
 
     var searchInput = document.getElementById('smartSearchInput');
@@ -2972,6 +2975,17 @@ window.renderVisitTableServerSide = function() {
         }
     }
 };
+
+// 🛑 ไม้ตายสุดท้าย: ซุ่มดักจับทุกลิงก์ <a> ในหน้าตารางไม่ให้สร้าง URL # โดยเด็ดขาด!
+if (!window._paginationGlobalFix) {
+    document.addEventListener('click', function(e) {
+        var targetA = e.target.closest('a');
+        if (targetA && targetA.getAttribute('href') === '#' && targetA.closest('#visitListZone')) {
+            e.preventDefault(); 
+        }
+    });
+    window._paginationGlobalFix = true;
+}
   
 
 window.sortVisits = function(col) {
