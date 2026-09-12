@@ -2026,7 +2026,7 @@ window.goToPVisitPage = function(page) {
     selectedProdIds = prodSelect.value ? [prodSelect.value] : [];
   }
 
-  // 🌟 3. ลอจิกสิทธิ์แบบหน้า Visit เป๊ะ (ปลดล็อกให้ BU)
+  // 3. ลอจิกสิทธิ์
   let crmUser = null;
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   
@@ -2038,29 +2038,25 @@ window.goToPVisitPage = function(page) {
   const isGlobalAdmin = window.myIsGlobalViewer === true || powerRoles.some(r => myRole.includes(r)) || rawScope === 'ALL';
   const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) ? window.DocManagerCache.myAllowedTerIds : [];
 
-  // 4. กรองข้อมูล (Filter Pipeline)
+  // 4. กรองข้อมูล
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
-    // 🛑 4.1 บังคับเอาแค่หมอคนนี้
     if (String(v.Doc_ID) !== String(targetDocId)) return false;
 
-    // 🛑 4.2 เช็คสิทธิ์
     const vRepId = String(v.Rep_ID || v.rep_id || v.Whoupdated || '').trim();
     let hasAccess = false;
     
     if (isGlobalAdmin) {
-      hasAccess = true; // BU Head / Manager เห็นครบทุกคนที่มาเยี่ยมหมอคนนี้
+      hasAccess = true;
     } else {
       hasAccess = (vRepId === myRepId) || (allowedReps.length > 0 && allowedReps.includes(vRepId));
     }
     
     if (!hasAccess) return false;
 
-    // 🛑 4.3 กรอง Date (แยกเช็ค Start และ End อิสระ)
     const vDate = new Date(v.Visit_Date);
     if (startDateObj && vDate < startDateObj) return false;
     if (endDateObj && vDate > endDateObj) return false;
 
-    // 🛑 4.4 กรอง Product
     if (selectedProdIds.length > 0) {
       const visitProds = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       const hasProd = selectedProdIds.some(pId => pId && visitProds.includes(String(pId)));
@@ -2070,7 +2066,7 @@ window.goToPVisitPage = function(page) {
     return true;
   });
 
-  // 5. เรียงข้อมูล (Sorting)
+  // 5. เรียงข้อมูล
   const sortCol = window.currentPVisitSortCol || 'date';
   const sortAsc = window.currentPVisitSortAsc || false;
 
@@ -2097,7 +2093,7 @@ window.goToPVisitPage = function(page) {
     return 0;
   });
 
-  // 6. Pagination & Rendering
+  // 6. Pagination
   const totalItems = filtered.length;
   const rows = parseInt(window.pvisitRowsPerPage) || 10;
   const totalPages = Math.ceil(totalItems / rows);
@@ -2120,7 +2116,7 @@ window.goToPVisitPage = function(page) {
     document.getElementById('pvisitPageInfo').innerText = appLang === 'en' ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries` : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // Master Data Loop (เหมือนเดิม)
+  // Master Data
   const usersList = window.globalUsersList || window.globalUsers || window.DocManagerCache.users || [];
   const terList = window.globalTerritoryList || window.globalTerritories || window.DocManagerCache.territories || [];
   const teamList = window.globalTeamList || window.globalTeams || window.DocManagerCache.teams || [];
@@ -2135,11 +2131,14 @@ window.goToPVisitPage = function(page) {
       dateStr = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
     }
 
+    // 🌟 ดึงข้อมูล User (uObj) ไว้ใช้งาน
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
+    let uObj = null;
+    
     if (rawWho) {
       const uSearch = String(rawWho).toLowerCase().trim();
-      const uObj = usersList.find(u => String(u.Rep_ID || u.User_ID || u.Email).toLowerCase().trim() === uSearch);
+      uObj = usersList.find(u => String(u.Rep_ID || u.User_ID || u.Email).toLowerCase().trim() === uSearch);
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
@@ -2150,6 +2149,7 @@ window.goToPVisitPage = function(page) {
     if (v.Has_Sample || v.Samples || v.Sample_Count > 0) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`;
     evidenceBadgesHtml += '</span>';
 
+    // 🌟 ค้นหา Territory ปกติ
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
     if (rawTerrId) {
@@ -2167,6 +2167,21 @@ window.goToPVisitPage = function(page) {
         }
       }
     }
+
+    // 🌟 ลอจิก Fallback: ถ้า Territory เป็น '-' ให้ดึง BU หรือ Role มาโชว์แทน
+    if ((terrNameShow === '-' || !terrNameShow) && uObj) {
+      const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
+      const uBu = uObj.BU || uObj.BU_Name || uObj.Business_Unit_ID || '';
+
+      if (uRole.includes('BU') && uBu) {
+        terrNameShow = uBu; // ถ้าเป็นระดับ BU ให้โชว์ชื่อ BU
+      } else if (uRole) {
+        terrNameShow = uRole; // Role อื่นๆ เอาชื่อ Role มาโชว์
+      } else if (uBu) {
+        terrNameShow = uBu;
+      }
+    }
+
     const terrBadgeHtml = (terrNameShow !== '-') ? `<span class="badge bg-primary-subtle text-primary fw-bold border border-primary-subtle">${terrNameShow}</span>` : '-';
 
     const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
