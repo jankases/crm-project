@@ -610,79 +610,81 @@
 
           </div>
         </div>
-<!-- 📌 FILTER ZONE & ACTION BAR (รวมปุ่ม Add Call ไว้ตรงนี้) -->
-<div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0 mt-1" id="profileVisitFilterZone">
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-    
-    <!-- โซนตัวกรอง -->
-    <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
-      
-      <!-- 🌟 1. Date Picker (ดีไซน์มาตรฐานเดียวกับหน้า Visit Logs) -->
-      <div style="width: 280px; flex-shrink: 0;">
-        <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
-          <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
-          <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
-          <span class="text-muted px-1">-</span>
-          <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+  
+        <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
+        <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
+          
+          <!-- 📌 FILTER ZONE & ACTION BAR (รวมปุ่ม Add Call ไว้ตรงนี้) -->
+          <div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0 mt-1" id="profileVisitFilterZone">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+              
+              <!-- โซนตัวกรอง -->
+              <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
+                
+                <!-- 🌟 1. Date Picker (ดีไซน์มาตรฐานเดียวกับหน้า Visit Logs) -->
+                <div style="width: 280px; flex-shrink: 0;">
+                  <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
+                    <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
+                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                    <span class="text-muted px-1">-</span>
+                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                  </div>
+                </div>
+
+                <!-- 🌟 2. Product Multi-Select (คืนค่า ID และใส่ multiple ให้ JS กลับมาดึงข้อมูลตามสิทธิ์ได้) -->
+                <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;" class="ts-compact-wrapper">
+                  <!-- 🚨 ปล่อยให้ว่างไว้แบบนี้ JS จะเป็นคนวาด Option และแปลงร่างเป็น TomSelect ให้เองครับ -->
+                  <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
+                </div>
+              </div>
+
+              <!-- โซนปุ่ม Action (ดีไซน์มาตรฐานเดียวกับปุ่ม Clear ของหน้า Doctors) -->
+              <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+                <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
+                  <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
+                </button>
+                <button type="button" class="btn btn-premium-primary premium-radius px-3 shadow-sm d-flex align-items-center" onclick="window.goToQuickAddCall()" style="height: 38px;">
+                  <i class="fa-solid fa-plus me-1.5"></i> <span class="fw-bold fs-6" data-i18n="btn_add_call">Add Call</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+          
+          <!-- 📌 TABLE CONTAINER -->
+          <div class="table-responsive bg-white rounded-3 border shadow-xs flex-grow-1 overflow-y-auto" style="min-height: 0;">
+            <table class="table table-hover align-middle border-0 mb-0 doc-visit-table-clean" style="font-size: 0.9rem;">
+              <thead class="table-custom-header text-center" style="position: sticky; top: 0; z-index: 10;">
+                <tr>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">USER</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
+                  <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
+                </tr>
+              </thead>
+              <tbody id="viewVisitHistoryBody">
+                <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 📌 PAGINATION -->
+          <div id="pvisitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2.5 flex-shrink-0 d-none">
+            <div class="d-flex align-items-center">
+              <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
+              <select class="form-select form-select-sm shadow-sm premium-radius" id="pvisitRowsPerPage" onchange="window.changePVisitRowsPerPage()" style="width: 80px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
+            </div>
+            <nav aria-label="Page navigation"><ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination"></ul></nav>
+          </div>
         </div>
-      </div>
-
-      <!-- 🌟 2. Product Multi-Select (คืนค่า ID และใส่ multiple ให้ JS กลับมาดึงข้อมูลตามสิทธิ์ได้) -->
-      <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;" class="ts-compact-wrapper">
-        <!-- 🚨 ปล่อยให้ว่างไว้แบบนี้ JS จะเป็นคนวาด Option และแปลงร่างเป็น TomSelect ให้เองครับ -->
-        <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
-      </div>
-    </div>
-
-    <!-- โซนปุ่ม Action (ดีไซน์มาตรฐานเดียวกับปุ่ม Clear ของหน้า Doctors) -->
-    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
-      <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
-        <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
-      </button>
-      <button type="button" class="btn btn-premium-primary premium-radius px-3 shadow-sm d-flex align-items-center" onclick="window.goToQuickAddCall()" style="height: 38px;">
-        <i class="fa-solid fa-plus me-1.5"></i> <span class="fw-bold fs-6" data-i18n="btn_add_call">Add Call</span>
-      </button>
-    </div>
-
-  </div>
-</div>
-
-
-      
-  <!-- 📌 TABLE CONTAINER -->
-  <div class="table-responsive bg-white rounded-3 border shadow-xs flex-grow-1 overflow-y-auto" style="min-height: 0;">
-    <table class="table table-hover align-middle border-0 mb-0 doc-visit-table-clean" style="font-size: 0.9rem;">
-      <thead class="table-custom-header text-center" style="position: sticky; top: 0; z-index: 10;">
-        <tr>
-          <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
-          <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('user')"><span data-i18n="filter_user">USER</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-user"></i></th>
-          <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('territory')"><span data-i18n="filter_territory">Territory</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-territory"></i></th>
-          <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('products')"><span data-i18n="th_products">Products</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-products"></i></th>
-          <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('purpose')"><span data-i18n="th_purpose">Purpose</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-purpose"></i></th>
-          <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('status')"><span data-i18n="th_status">Status</span> <i class="fa-solid fa-sort text-muted ms-1" id="icon-sort-pvisit-status"></i></th>
-        </tr>
-      </thead>
-      <tbody id="viewVisitHistoryBody">
-        <tr><td colspan="6" class="text-center py-4 text-muted">Loading history...</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 📌 PAGINATION -->
-  <div id="pvisitPaginationContainer" class="d-flex justify-content-between align-items-center mt-2.5 flex-shrink-0 d-none">
-    <div class="d-flex align-items-center">
-      <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-      <select class="form-select form-select-sm shadow-sm premium-radius" id="pvisitRowsPerPage" onchange="window.changePVisitRowsPerPage()" style="width: 80px;">
-        <option value="5">5</option>
-        <option value="10" selected>10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-      </select>
-      <span class="text-muted small ms-3" id="pvisitPageInfo">Showing 1 to 10 entries</span>
-    </div>
-    <nav aria-label="Page navigation"><ul class="pagination pagination-sm custom-pagination mb-0" id="pvisitPagination"></ul></nav>
-  </div>
-</div>
 
         <!-- 🌟 TAB 3: Target -->
         <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-target">
@@ -815,4 +817,4 @@
             }, true);
         }
     }, 1000); // หน่วงเวลา 1 วินาที ให้แน่ใจว่าไปทับไฟล์เก่ามิดชัวร์ๆ
-    </script> ลองเช็คดูหน่อยได้ไหมครับ เผื่อมีข้อผิดพลาดน่ะเอาละเอียดน่ะครับ
+</script>
