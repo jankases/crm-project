@@ -2768,21 +2768,22 @@ window.goToPage = function(page) {
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
 };
 
-// 🌟 1. แก้ไขฟังก์ชันเปลี่ยนจำนวนแถวให้หา Element อัตโนมัติ
-window.changeRowsPerPage = function(el) {
-    var selectEl = (el && el.value !== undefined) ? el : (document.getElementById('visitRowsPerPage') || document.querySelector('select[onchange*="changeRowsPerPage"]'));
+window.changeRowsPerPage = function(e) {
+    // ป้องกัน Event งอแงดึง URL
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     
+    // บังคับอ่านค่าจาก Dropdown โดยตรง
+    var selectEl = document.getElementById('visitRowsPerPage');
     if (selectEl) {
         window.rowsPerPage = parseInt(selectEl.value) || 20;
-    } else {
-        window.rowsPerPage = 20; 
     }
     
-    window.currentPage = 1; 
+    window.currentPage = 1; // เปลี่ยนจำนวนแถว ต้องกลับไปหน้า 1 เสมอ
     
     var overlay = document.getElementById('tableLoadingOverlay');
     if (overlay) overlay.classList.remove('d-none');
     
+    // สั่งโหลดตารางใหม่แบบลื่นๆ
     if (typeof window.loadVisits === 'function') {
         window.loadVisits(true, true);
     }
@@ -2851,9 +2852,15 @@ function matchedTerAndUnique(arr) {
     });
 }
 
-window.renderVisitTableServerSide = function() {
+ window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
+
+  // 🌟 [FIX 1] บังคับดึงค่า Limit จาก Dropdown ป้องกันตารางลืมค่า
+  var selectEl = document.getElementById('visitRowsPerPage');
+  if (selectEl && selectEl.value) {
+      window.rowsPerPage = parseInt(selectEl.value);
+  }
 
   var data = window.globalVisits || [];
   var totalItems = window.totalVisitsCount || 0;
@@ -2872,7 +2879,7 @@ window.renderVisitTableServerSide = function() {
 
   if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
-  // 🌟 [FIX] สร้างตัวแปรใหม่มารับข้อมูลที่จะวาด และทำการหั่น (Slice) ตามจำนวน rows ที่ผู้ใช้เลือก
+  // 🌟 [FIX 2] หั่นข้อมูล (Slice) เพื่อป้องกันตารางล้น
   var pageData = data;
   if (pageData.length > rows) {
       pageData = pageData.slice(0, rows);
@@ -2889,7 +2896,7 @@ window.renderVisitTableServerSide = function() {
   var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
   var htmlBuffer = '';
 
-  // 🌟 [FIX] เปลี่ยนจาก data.forEach เป็น pageData.forEach เพื่อให้ลูปวาดแค่ตามจำนวนที่เราหั่นไว้
+  // ใช้ pageData แทน data เพื่อวาดตาราง
   pageData.forEach(function(v) {
     var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
     var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
@@ -2915,14 +2922,12 @@ window.renderVisitTableServerSide = function() {
 
     var distanceBadge = '';
     if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
-      // 🌟 สร้างคำสั่งเรียก Modal ตัวใหม่ พร้อมส่งพิกัดไปให้ (ใช้ stopPropagation เพื่อไม่ให้ฟอร์ม Edit เด้งขึ้นมาซ้อน)
       var onClickAction = "event.stopPropagation(); window.openViewOnlyGpsModal(" + v.CheckIn_Lat + ", " + v.CheckIn_Long + ", '" + (v.CheckIn_Time || '') + "');";
 
       if (hospLat && hospLng) {
         var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
         if (distKm !== null && distKm <= 0.5) {
           var ttCheckOk = appLang === 'en' ? 'Check-in verified (<500m)' : 'พิกัดถูกต้อง (<500ม.)';
-          // เปลี่ยนจาก <a href> เป็น <span onclick> เพื่อไม่ให้เด้งไปหน้าอื่น
           distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + ttCheckOk + '"><i class="fa-solid fa-circle-check"></i></span>';
         } else {
           var distShow = distKm < 1 ? Math.round(distKm * 1000) + 'm' : distKm.toFixed(1) + 'km';
@@ -2993,7 +2998,7 @@ window.renderVisitTableServerSide = function() {
       evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-      htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
+    htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
       '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
       '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
       '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
@@ -3007,6 +3012,19 @@ window.renderVisitTableServerSide = function() {
   tbody.innerHTML = htmlBuffer;
   if (typeof window.renderPaginationControls === 'function') {
     window.renderPaginationControls(totalPages);
+  }
+
+  // 🌟 [FIX 3] บล็อก URL (#) ไม่ให้โผล่บน Address Bar ตอนกดเปลี่ยนหน้า Pagination
+  var pagContainer = document.getElementById('visitPagination');
+  if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
+      pagContainer.addEventListener('click', function(e) {
+          var link = e.target.closest('a');
+          // ถ้ากดโดนแท็ก <a> ที่เป็น href="#" หรือ href="" ให้สั่งหยุดทันที
+          if (link && (link.getAttribute('href') === '#' || link.getAttribute('href') === '')) {
+              e.preventDefault(); 
+          }
+      });
+      pagContainer.setAttribute('data-url-fixed', 'true');
   }
 
   var searchInput = document.getElementById('smartSearchInput');
