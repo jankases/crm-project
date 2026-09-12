@@ -2170,7 +2170,7 @@ button.feature-action-btn-lg.has-data-samples i {
     flex-shrink: 0 !important;
   }
 }
-
+ 
 /* ==========================================
    🌟 SPA TAB FIX: แก้นิสัย Bootstrap Tabs 
    บังคับให้ Tab ที่ Active เป็น Flexbox 100% เสมอ
@@ -2183,21 +2183,6 @@ button.feature-action-btn-lg.has-data-samples i {
     overflow: hidden !important;
 }
 
-/* 🌟 คุม TomSelect ให้สวยงาม ไม่เกิด Scrollbar แนวนอน */
-.profile-product-select-wrapper .ts-control {
-  min-height: 38px !important;
-  max-height: 38px !important;
-  overflow-y: hidden !important; 
-  overflow-x: hidden !important; /* ห้ามมี Scrollbar แนวนอนเด็ดขาด */
-  border-radius: 8px !important;
-}
-
-.profile-product-select-wrapper .ts-control .item {
-  font-size: 0.8rem !important;
-  padding: 2px 6px !important;
-  margin-bottom: 2px !important;
-}
-
 /* 🌟 เส้นแบ่งตาราง */
 .doc-visit-table-clean tbody td {
   border-bottom: 1px solid #e2e8f0 !important; /* สีเทาชัดเจนแบบหน้า Visit */
@@ -2206,4 +2191,26 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 .doc-visit-table-clean tbody tr:last-child td {
   border-bottom: none !important;
+}
+
+/* 🌟 คุม TomSelect ให้สูง 38px และห้ามยืดบรรทัด (Scroll แนวนอนแทนถ้าเลือกเยอะ) */
+.ts-compact-wrapper .ts-control {
+  min-height: 38px !important;
+  max-height: 38px !important;
+  height: 38px !important;
+  overflow-y: hidden !important; 
+  overflow-x: auto !important; 
+  display: flex !important;
+  flex-wrap: nowrap !important; /* ห้ามตัดขึ้นบรรทัดใหม่ */
+  align-items: center !important;
+  border-radius: 8px !important;
+}
+
+.ts-compact-wrapper .ts-control .item {
+  display: inline-block !important;
+  font-size: 0.8rem !important;
+  padding: 2px 6px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  white-space: nowrap !important;
 }
