@@ -610,31 +610,38 @@
 
           </div>
         </div>
- 
-        <!-- 🌟 TAB 2: History (ปรับสไตล์โซน Filter ใหม่ ไม่เกิด Scrollbar ซ้อน และไม่บีบช่อง Product) -->
+  
+         <!-- 🌟 TAB 2: History (ปรับสมบูรณ์เป๊ะตามสเปกหน้า Visit) -->
 <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
   
-  <!-- 📌 FILTER ZONE (จัดกว้างเต็มพื้นที่ตามสเปก Visit Module) -->
-  <div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0" id="profileVisitFilterZone">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+  <!-- 📌 HEADER (นำปุ่ม + Add Call กลับมาวางมุมขวาบนเหมือนเดิม) -->
+  <div class="d-flex justify-content-between align-items-center mb-2.5 flex-shrink-0 mt-1">
+    <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-clock-rotate-left me-2"></i><span data-i18n="tab_visit_history">Visit History</span></h6>
+    <button type="button" class="btn btn-sm btn-premium-primary rounded-pill px-3 shadow-xs" onclick="window.goToQuickAddCall()">
+      <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_call">Add Call</span>
+    </button>
+  </div>
+
+  <!-- 📌 FILTER ZONE (กระชับความกว้าง ไม่ล้น ไม่ดัน Scrollbar) -->
+  <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0" id="profileVisitFilterZone">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
       
-      <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
-        <!-- Date Range Picker (ขยายเป็น 300px+ ไม่ซ้อน ไม่ดัน Scrollbar) -->
-        <div style="min-width: 290px; flex: 1 1 290px; max-width: 380px;">
+      <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
+        <!-- Date Range Picker (กระชับพอดีข้อความ dd/mm/yyyy - dd/mm/yyyy) -->
+        <div style="width: 230px; flex-shrink: 0;">
           <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
-            <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitDateRange" placeholder="dd/mm/yyyy  -  dd/mm/yyyy" readonly>
+            <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
+            <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitDateRange" placeholder="dd/mm/yyyy  -  dd/mm/yyyy" readonly style="font-size: 0.85rem !important;">
             <button class="btn btn-link text-decoration-none border-0 bg-transparent p-0 text-muted d-none" type="button" id="btnClearProfileVisitDate" onclick="window.clearProfileVisitDateRange()">
               <i class="fa-solid fa-circle-xmark opacity-50"></i>
             </button>
           </div>
-          <!-- Hidden Fallbacks -->
           <input type="hidden" id="filterProfileVisitStart" onchange="window.filterAndRenderDoctorVisits()">
           <input type="hidden" id="filterProfileVisitEnd" onchange="window.filterAndRenderDoctorVisits()">
         </div>
 
-        <!-- Product Multi-Select (เห็นชัดเจน ไม่โดนเบียดหาย) -->
-        <div style="min-width: 240px; flex: 1 1 240px; max-width: 320px;">
+        <!-- Product Multi-Select (ล็อกความสูงไม่ให้ล้นดันกล่อง) -->
+        <div style="width: 260px; flex-shrink: 0;" class="ts-compact-wrapper">
           <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
         </div>
       </div>
@@ -649,9 +656,9 @@
     </div>
   </div>
 
-  <!-- 📌 TABLE CONTAINER -->
+  <!-- 📌 TABLE CONTAINER (เส้นแบ่งบางสวยเนียนเหมือน Visit Log) -->
   <div class="table-responsive bg-white rounded-3 border shadow-xs flex-grow-1 overflow-y-auto" style="min-height: 0;">
-    <table class="table table-hover align-middle border-0 mb-0" style="font-size: 0.9rem;">
+    <table class="table table-hover align-middle border-0 mb-0 doc-visit-table-clean" style="font-size: 0.9rem;">
       <thead class="table-custom-header text-center" style="position: sticky; top: 0; z-index: 10;">
         <tr>
           <th class="py-2.5 sortable-th" onclick="window.sortDoctorVisits('date')"><span data-i18n="th_date">Date</span> <i class="fa-solid fa-sort-down text-primary ms-1" id="icon-sort-pvisit-date"></i></th>
