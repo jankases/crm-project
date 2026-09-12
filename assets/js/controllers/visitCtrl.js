@@ -2391,8 +2391,14 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
 
-      // 🎯 [เพิ่มบรรทัดนี้] สำรองข้อมูลลง sessionStorage ทันทีที่โหลดเสร็จ
-      sessionStorage.setItem('crm_visits_cache', JSON.stringify(window.globalVisits));
+      // 🎯 [แก้ไข] สำรองข้อมูลตาราง + ยอด KPI + จำนวนหน้า ลง sessionStorage มัดรวมกัน
+      var cachePayload = {
+          data: window.globalVisits,
+          total: totalC,
+          pending: pendingC,
+          submitted: submittedC
+      };
+      sessionStorage.setItem('crm_visits_cache', JSON.stringify(cachePayload));
 
       window._visitProductIndex = {};
       window._visitSampleIndex = {};
@@ -3706,7 +3712,25 @@ window.requestUnlockVisit = async function(visitId) {
   }
 };
 
-window.cancelVisitForm = async function() {
+ window.cancelVisitForm = async function() {
+  // 🌟 1. เช็คสถานะฟอร์มก่อน ว่าเป็น Read-Only (Submitted) หรือไม่
+  const statusEl = document.getElementById('visitStatus');
+  const currentStatus = statusEl ? statusEl.value : '';
+  const isReadOnly = (currentStatus === 'Submitted');
+
+  // 🌟 2. ดักแจ้งเตือน 2 ภาษา (เตือนเฉพาะตอนมีการแก้ไข และต้องไม่ใช่ฟอร์ม Read-Only)
+  if (window.isVisitFormChanged && !isReadOnly) {
+    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    const confirmMsg = appLang === 'en' 
+      ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
+      : "คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการออกหรือไม่?";
+      
+    if (!confirm(confirmMsg)) {
+      return; // ถ้าผู้ใช้กดยกเลิก (Cancel) ให้อยู่หน้าฟอร์มเดิมต่อไป
+    }
+  }
+
+  // 🌟 3. เคลียร์ข้อมูลขยะและ LocalStorage
   localStorage.removeItem('crm_visit_autosave');
   if (typeof window.clearFormDraft === 'function') {
     var vInput = document.getElementById('visitId');
@@ -3714,6 +3738,7 @@ window.cancelVisitForm = async function() {
     window.clearFormDraft(draftKey);
   }
 
+  // 🌟 4. ลบไฟล์แนบที่เพิ่งอัปโหลดใหม่ (กรณีไม่ได้กด Save)
   if (window.newlyUploadedFiles && window.newlyUploadedFiles.length > 0) {
     var sbClient = null;
     if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
@@ -3727,8 +3752,15 @@ window.cancelVisitForm = async function() {
     }
   }
 
-  window.currentAttachments = []; window.newlyUploadedFiles = []; window.pendingDeleteFiles = []; window.pendingDetailingLogs = [];
+  window.currentAttachments = []; 
+  window.newlyUploadedFiles = []; 
+  window.pendingDeleteFiles = []; 
+  window.pendingDetailingLogs = [];
+  
+  // 🌟 5. รีเซ็ตสถานะการเตือน
+  window.isVisitFormChanged = false;
 
+  // 🌟 6. พาผู้ใช้กลับไปหน้าก่อนหน้า
   var returnDocId = sessionStorage.getItem('returnToDocId');
   if (returnDocId) {
     sessionStorage.removeItem('returnToDocId');
@@ -4942,10 +4974,28 @@ window.renderVisitFilters = function() {
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
 
-    // 🎯 1. ฟื้นความจำตารางจาก sessionStorage (กุญแจสำคัญที่ทำให้รอดจากการโดนล้างตอนสลับเมนู)
+   // 🎯 1. ฟื้นความจำตาราง + ยอดต่างๆ จาก sessionStorage
     var cachedData = sessionStorage.getItem('crm_visits_cache');
     if (cachedData) {
-        try { window.globalVisits = JSON.parse(cachedData); } catch(e) { window.globalVisits = []; }
+        try { 
+            var parsed = JSON.parse(cachedData); 
+            // เช็กเผื่อเป็น Cache แบบเก่าที่เป็น Array
+            if (Array.isArray(parsed)) {
+                window.globalVisits = parsed; 
+            } else {
+                // 🌟 ดึงข้อมูลมัดรวมกลับคืนมาให้ครบ!
+                window.globalVisits = parsed.data || [];
+                window.totalVisitsCount = parsed.total || 0; // คืนค่าจำนวนทั้งหมดให้ Pagination
+                
+                // 🌟 คืนค่าให้กล่อง KPI ทันที
+                if (typeof window.updateStatCards === 'function') {
+                    window.updateStatCards(parsed.total, parsed.pending, parsed.submitted);
+                }
+            }
+        } catch(e) { 
+            window.globalVisits = []; 
+            window.totalVisitsCount = 0; 
+        }
     } else {
         window.globalVisits = window.globalVisits || [];
     }
