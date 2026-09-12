@@ -2162,3 +2162,55 @@ button.feature-action-btn-lg.has-data-samples i {
     color: transparent !important;
     opacity: 0 !important;
 }
+
+/* ==========================================
+   🌟 PREMIUM SUBTLE BADGES FOR EVIDENCES
+========================================== */
+
+/* 1. GPS Check-in (สีเขียวพาสเทล - ทำสำเร็จแล้ว/พิกัดถูกต้อง) */
+.has-data-gps {
+    background-color: #d1fae5 !important; /* Soft Green */
+    border-color: #a7f3d0 !important;
+    color: #065f46 !important;            /* Dark Green Text */
+}
+.has-data-gps i {
+    color: #059669 !important;            /* Green Icon */
+}
+
+/* 2. Signature (สีฟ้าพาสเทล - ได้รับการยืนยัน/เซ็นแล้ว) */
+.has-data-sig {
+    background-color: #dbeafe !important; /* Soft Blue */
+    border-color: #bfdbfe !important;
+    color: #1e3a8a !important;            /* Dark Blue Text */
+}
+.has-data-sig i {
+    color: #2563eb !important;            /* Blue Icon */
+}
+
+/* 3. Samples (สีส้ม/เหลืองพาสเทล - ของแจก/ข้อควรระวังว่ามีการเบิกจ่าย) */
+.has-data-samples {
+    background-color: #fef3c7 !important; /* Soft Amber */
+    border-color: #fde68a !important;
+    color: #92400e !important;            /* Dark Amber Text */
+}
+.has-data-samples i {
+    color: #d97706 !important;            /* Amber Icon */
+}
+
+/* 4. Attachments (สีม่วงพาสเทล - ไฟล์แนบเอกสารเพิ่มเติม) */
+.has-data-attach {
+    background-color: #f3e8ff !important; /* Soft Purple */
+    border-color: #e9d5ff !important;
+    color: #581c87 !important;            /* Dark Purple Text */
+}
+.has-data-attach i {
+    color: #9333ea !important;            /* Purple Icon */
+}
+
+/* 🌟 ทำให้ Transition ตอนสีเปลี่ยนดูนุ่มนวล สมูทขึ้น (Premium Feel) */
+#sectionGpsCheckin, 
+#sectionSignature, 
+#sectionSamples, 
+#sectionAttachments {
+    transition: all 0.3s ease-in-out;
+}
