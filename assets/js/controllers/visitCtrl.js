@@ -2375,7 +2375,7 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
       if (typeof window.updateStatCards === 'function') window.updateStatCards(totalC, pendingC, submittedC);
 
-      // 📊 6. Server-Side Range (ดึงแค่ 20 แถว)
+     // 📊 6. Server-Side Range (ดึงแค่ 20 แถว)
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
       var from = (page - 1) * limit;
@@ -2391,14 +2391,7 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.globalVisits = res.data || [];
       window.totalVisitsCount = res.count || 0;
 
-      // 🎯 [แก้ไข] สำรองข้อมูลตาราง + ยอด KPI + จำนวนหน้า ลง sessionStorage มัดรวมกัน
-      var cachePayload = {
-          data: window.globalVisits,
-          total: totalC,
-          pending: pendingC,
-          submitted: submittedC
-      };
-      sessionStorage.setItem('crm_visits_cache', JSON.stringify(cachePayload));
+      // 🛑 ลบการเซฟ Cache ตรงนี้ออกไปแล้ว เพื่อไปรอเซฟพร้อมข้อมูลย่อยด้านล่าง
 
       window._visitProductIndex = {};
       window._visitSampleIndex = {};
@@ -2442,6 +2435,17 @@ window.loadVisits = async function(forceReload, isBackground) {
       }
 
       if (typeof window.buildDataIndexes === 'function') window.buildDataIndexes();
+
+      // 🎯 [FIX 3] ย้ายการเซฟ Cache มาไว้ตรงนี้! (รอให้ดึง Product/Sample และทำ Index เสร็จก่อน ค่อยเซฟมัดรวมทีเดียว)
+      var cachePayload = {
+          data: window.globalVisits,
+          total: totalC,
+          pending: pendingC,
+          submitted: submittedC,
+          prodIndex: window._visitProductIndex || {},
+          sampleIndex: window._visitSampleIndex || {}
+      };
+      sessionStorage.setItem('crm_visits_cache', JSON.stringify(cachePayload));
 
       window.renderVisitTableServerSide();
       
@@ -5060,16 +5064,30 @@ window.renderVisitFilters = function() {
         // กู้ความจำ Checkbox คืนมา
         if (typeof window.restoreVisitFilterState === 'function') window.restoreVisitFilterState();
 
-        if (shouldFetchDB) {
-            // กรณีไม่มี Cache หรือกด Refresh
-            var subTasks = [];
-            if (typeof window.loadVisits === 'function') subTasks.push(window.loadVisits(true));
-            if (typeof window.loadMasterSamplesList === 'function') subTasks.push(window.loadMasterSamplesList());
-            if (typeof window.fetchVisitFeaturesConfig === 'function') subTasks.push(window.fetchVisitFeaturesConfig());
-            if (typeof window.fetchDetailingMedia === 'function') subTasks.push(window.fetchDetailingMedia());
-            await Promise.all(subTasks);
-        } else {
-            // 🎯 กรณีมี Cache: วาดตารางทันที "ไม่แตะ Database"
+        // 🌟 [FIX 1] THE FIX: ดึง Master Data เสมอ! (ป้องกัน F5 แล้ว Dropdown ของ Samples และ Media หาย)
+        var mainTasks = [];
+        if (shouldFetchDB && typeof window.loadVisits === 'function') {
+            mainTasks.push(window.loadVisits(true));
+        }
+        
+        // 📌 ถึงแม้จะอ่านจาก Cache ก็ต้องเช็กว่ามี Master Data พวกนี้โหลดไว้หรือยัง ถ้ายังให้โหลดมาด้วย
+        if ((!window.globalMasterSamples || window.globalMasterSamples.length === 0) && typeof window.loadMasterSamplesList === 'function') {
+            mainTasks.push(window.loadMasterSamplesList());
+        }
+        if (typeof window.fetchVisitFeaturesConfig === 'function') {
+            mainTasks.push(window.fetchVisitFeaturesConfig());
+        }
+        if ((!window.globalAllMediaList || window.globalAllMediaList.length === 0) && typeof window.fetchDetailingMedia === 'function') {
+            mainTasks.push(window.fetchDetailingMedia());
+        }
+        
+        // สั่งโหลดสิ่งที่จำเป็นพร้อมกัน
+        if (mainTasks.length > 0) {
+            await Promise.all(mainTasks);
+        }
+
+        if (!shouldFetchDB) {
+            // 🎯 กรณีมี Cache: วาดตารางทันที "ไม่แตะ Database สำหรับตารางหลัก"
             if (typeof window.renderVisitTableServerSide === 'function') window.renderVisitTableServerSide();
         }
 
