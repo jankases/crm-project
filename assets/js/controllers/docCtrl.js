@@ -1975,7 +1975,7 @@ window.goToPVisitPage = function(page) {
   window.filterAndRenderDoctorVisits();
 };
 
-window.filterAndRenderDoctorVisits = function() {
+ window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -2264,6 +2264,84 @@ window.filterAndRenderDoctorVisits = function() {
   if (typeof window.renderDoctorPaginationControls === 'function') {
     window.renderDoctorPaginationControls(totalPages);
   }
+};
+
+window.initProfileVisitDatePicker = function() {
+  const dateInput = document.getElementById('filterProfileVisitDateRange');
+  if (!dateInput) return;
+
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const phText = (appLang === 'en') ? 'dd/mm/yyyy  -  dd/mm/yyyy' : 'วว/ดด/ปปปป  -  วว/ดด/ปปปป';
+  
+  dateInput.placeholder = phText;
+
+  if (dateInput._flatpickr) {
+    dateInput._flatpickr.destroy();
+  }
+
+  if (typeof flatpickr !== 'undefined') {
+    flatpickr(dateInput, {
+      mode: "range",
+      dateFormat: "d/m/Y",
+      locale: (appLang === 'th' && flatpickr.l10ns && flatpickr.l10ns.th) ? flatpickr.l10ns.th : "default",
+      onChange: function(selectedDates, dateStr) {
+        const btnClear = document.getElementById('btnClearProfileVisitDate');
+        if (btnClear) {
+          if (dateStr) btnClear.classList.remove('d-none');
+          else btnClear.classList.add('d-none');
+        }
+        window.filterAndRenderDoctorVisits();
+      }
+    });
+  }
+};
+
+window.renderProfileVisitProductDropdown = function() {
+  const selectEl = document.getElementById('filterProfileVisitProduct');
+  if (!selectEl) return;
+
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const placeholderText = (appLang === 'en') ? '💊 - All Products -' : '💊 - ผลิตภัณฑ์ทั้งหมด -';
+
+  // ดึง List สินค้าตามสิทธิ์จาก Cache กลาง
+  const prodList = (window.DocManagerCache && window.DocManagerCache.products) || window.globalProducts || window.globalTeamProducts || [];
+
+  let html = '';
+  prodList.forEach(p => {
+    const pId = p.Product_ID || p.id;
+    const pName = p.Product || p.Product_Name || p.name || pId;
+    if (pId) {
+      html += `<option value="${pId}">${pName}</option>`;
+    }
+  });
+
+  if (selectEl.tomselect) {
+    const curVal = selectEl.tomselect.getValue();
+    selectEl.tomselect.destroy();
+    selectEl.innerHTML = html;
+    
+    window.initMultiTomSelect('filterProfileVisitProduct', placeholderText);
+    if (curVal && curVal.length > 0) {
+      selectEl.tomselect.setValue(curVal, true);
+    } else {
+      selectEl.tomselect.clear(true);
+    }
+  } else {
+    selectEl.innerHTML = html;
+    window.initMultiTomSelect('filterProfileVisitProduct', placeholderText);
+  }
+};
+
+window.clearProfileVisitDateRange = function() {
+  const dateInput = document.getElementById('filterProfileVisitDateRange');
+  const btnClear = document.getElementById('btnClearProfileVisitDate');
+  if (dateInput && dateInput._flatpickr) {
+    dateInput._flatpickr.clear();
+  } else if (dateInput) {
+    dateInput.value = '';
+  }
+  if (btnClear) btnClear.classList.add('d-none');
+  window.filterAndRenderDoctorVisits();
 };
 
 window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overridePurposeId) {
@@ -2655,7 +2733,7 @@ window.initDoctorPage = async function(forceReload = false) {
 };
 
 // ⚡ Listener สลับภาษา EN / TH 
-if (!window._isDocLangListenerAttached) {
+ if (!window._isDocLangListenerAttached) {
   window.addEventListener('appLanguageChanged', function() {
     window.buildDocIndexes();
 
@@ -2706,6 +2784,17 @@ if (!window._isDocLangListenerAttached) {
     const profileView = document.getElementById('doctorProfileView');
     if (profileView && !profileView.classList.contains('d-none') && window.currentTargetDocId) {
       window.openViewDoctorProfile(window.currentTargetDocId);
+    }
+
+    // 🌟 [เพิ่มใหม่]: อัปเดตส่วน Visit History ให้รองรับ 2 ภาษา Real-time
+    if (typeof window.initProfileVisitDatePicker === 'function') {
+      window.initProfileVisitDatePicker();
+    }
+    if (typeof window.renderProfileVisitProductDropdown === 'function') {
+      window.renderProfileVisitProductDropdown();
+    }
+    if (typeof window.filterAndRenderDoctorVisits === 'function') {
+      window.filterAndRenderDoctorVisits();
     }
   });
   window._isDocLangListenerAttached = true;
