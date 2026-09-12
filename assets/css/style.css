@@ -2211,3 +2211,24 @@ button.feature-action-btn-lg.has-data-samples i {
   margin: 2px !important; /* เพิ่มช่องไฟให้แท็กเวลาซ้อนกันหลายบรรทัด */
   white-space: nowrap !important;
 }
+/* 🌟 Evidence Soft Badges (ไอคอนพยานหลักฐาน สีพาสเทล) */
+.evidence-badge-group { 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 0.35rem; 
+  margin-left: 0.5rem; 
+  vertical-align: middle; 
+}
+.evidence-badge { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 26px; 
+  height: 26px; 
+  border-radius: 8px; 
+  font-size: 0.85rem; 
+}
+.evidence-badge-coaching { background-color: #e0f2fe; color: #0ea5e9; border: 1px solid #bae6fd; }
+.evidence-badge-attachment { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+.evidence-badge-signature { background-color: #dcfce7; color: #10b981; border: 1px solid #bbf7d0; }
+.evidence-badge-sample { background-color: #fef3c7; color: #f59e0b; border: 1px solid #fde68a; }
