@@ -2442,7 +2442,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           total: totalC,
           pending: pendingC,
           submitted: submittedC,
-          prodIndex: window._visitProductIndex || {},
+          visitProducts: window.globalVisitProducts || [],
           sampleIndex: window._visitSampleIndex || {}
       };
       sessionStorage.setItem('crm_visits_cache', JSON.stringify(cachePayload));
@@ -4977,22 +4977,19 @@ window.renderVisitFilters = function() {
 
     window._isInitRunning = true; 
     window.isInitialLoading = true; 
-
-   // 🎯 1. ฟื้นความจำตาราง + ยอดต่างๆ จาก sessionStorage
+ // 🎯 1. ฟื้นความจำตาราง + ยอดต่างๆ จาก sessionStorage
     var cachedData = sessionStorage.getItem('crm_visits_cache');
     if (cachedData) {
         try { 
             var parsed = JSON.parse(cachedData); 
-            // เช็กเผื่อเป็น Cache แบบเก่าที่เป็น Array
             if (Array.isArray(parsed)) {
                 window.globalVisits = parsed; 
             } else {
-                // 🌟 ดึงข้อมูลมัดรวมกลับคืนมาให้ครบ!
                 window.globalVisits = parsed.data || [];
                 window.totalVisitsCount = parsed.total || 0; 
                 
-                // 🚨🚨 ขาด 2 บรรทัดนี้ครับ! กู้คืนข้อมูล Product และ Sample กลับมาด้วย
-                window._visitProductIndex = parsed.prodIndex || {};
+                // 🚨🚨 [FIX LATEST] ดึง Array ตัวต้นฉบับกลับมา เพื่อให้ระบบเอาไปสร้าง Index ต่อได้!
+                window.globalVisitProducts = parsed.visitProducts || [];
                 window._visitSampleIndex = parsed.sampleIndex || {};
                 // 🚨🚨 ==========================================
 
@@ -5004,9 +5001,11 @@ window.renderVisitFilters = function() {
         } catch(e) { 
             window.globalVisits = []; 
             window.totalVisitsCount = 0; 
+            window.globalVisitProducts = [];
         }
     } else {
         window.globalVisits = window.globalVisits || [];
+        window.globalVisitProducts = [];
     }
 
     var visitViewEl = document.getElementById('visitListView');
