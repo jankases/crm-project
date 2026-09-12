@@ -2156,3 +2156,9 @@ button.feature-action-btn-lg.has-data-samples i {
 .evidence-badge-attachment { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 .evidence-badge-signature { background-color: #dcfce7; color: #10b981; border: 1px solid #bbf7d0; }
 .evidence-badge-sample { background-color: #fef3c7; color: #f59e0b; border: 1px solid #fde68a; }
+
+/* ซ่อน Placeholder ทันทีเมื่อมีรายการถูกเลือกในช่อง Multi-select */
+.ts-wrapper.multi.has-items .ts-control input::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
+}
