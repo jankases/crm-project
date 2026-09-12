@@ -906,3 +906,98 @@
 </div>
 
 <script src="assets/js/controllers/visitCtrl.js?v=20260819_fast_v2"></script>
+
+<!-- 🚀 วางโค้ดชุดนี้ไว้ล่างสุดของหน้า HTML เพื่อล้างอาถรรพ์ Cache และปิดจบปัญหา 100% -->
+<script>
+setTimeout(function() {
+    console.log("🚀 Applying Ultimate Pagination Override...");
+
+    // 1. ทับฟังก์ชันวาดปุ่มใน utils.js ทิ้ง (ถอนรากถอนโคนลิงก์ #)
+    window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
+        var ul = document.getElementById(ulId);
+        if (!ul) return;
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
+        var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
+        var html = '';
+
+        // 🌟 เปลี่ยน href="#" เป็น javascript:void(0); และส่ง event ไปดักจับ
+        html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+                '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + ', event);">' + prevText + '</a></li>';
+
+        var startPage = Math.max(1, currentPage - 2);
+        var endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(1, event);">1</a></li>';
+            if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
+                    '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + i + ', event);">' + i + '</a></li>';
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+            html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + totalPages + ', event);">' + totalPages + '</a></li>';
+        }
+
+        html += '<li class="page-item ' + (currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '">' +
+                '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + ', event);">' + nextText + '</a></li>';
+
+        ul.innerHTML = html;
+    };
+
+    // 2. ทับฟังก์ชันเปลี่ยนแถวใน visitCtrl.js (บังคับอัปเดต Database ตรงๆ)
+    window.changeRowsPerPage = function(el) {
+        var selectEl = el || document.getElementById('visitRowsPerPage');
+        if (selectEl && selectEl.value) {
+            window.rowsPerPage = parseInt(selectEl.value, 10);
+        }
+        
+        // บังคับเปลี่ยนเลขโชว์ทุกกล่องให้ตรงกัน
+        document.querySelectorAll('select[id*="visitRowsPerPage"]').forEach(function(sel) {
+            sel.value = window.rowsPerPage;
+        });
+
+        window.currentPage = 1; 
+        var overlay = document.getElementById('tableLoadingOverlay');
+        if (overlay) overlay.classList.remove('d-none');
+
+        // สั่งวิ่งไปกวาดข้อมูลจาก Supabase ชุดใหม่มาให้ตรงกับจำนวนที่เลือก
+        if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+    };
+
+    // 3. ทับฟังก์ชันเปลี่ยนหน้า (ฆ่า URL ขยะทิ้ง)
+    window.goToPage = function(page, event) {
+        var ev = event || window.event;
+        if (ev) {
+            if (typeof ev.preventDefault === 'function') ev.preventDefault();
+            ev.returnValue = false; 
+        }
+        
+        var rows = parseInt(window.rowsPerPage) || 20;
+        var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
+        if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
+        
+        window.currentPage = page;
+        var overlay = document.getElementById('tableLoadingOverlay');
+        if (overlay) overlay.classList.remove('d-none');
+        
+        if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+        return false;
+    };
+
+    // 4. สกัดกั้นไม้ตายสุดท้าย (Capture Phase)
+    var container = document.getElementById('visitPaginationContainer');
+    if (container) {
+        container.addEventListener('click', function(e) {
+            var a = e.target.closest('a');
+            if (a && (a.getAttribute('href') === '#' || a.getAttribute('href') === '')) {
+                e.preventDefault();
+            }
+        }, true);
+    }
+}, 1000); // หน่วงเวลา 1 วินาที ให้แน่ใจว่าไปทับไฟล์เก่ามิดชัวร์ๆ
+</script>
