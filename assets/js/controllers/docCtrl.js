@@ -1988,23 +1988,33 @@ window.goToPVisitPage = function(page) {
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const targetDocId = window.currentTargetDocId; // ล็อกเป้าเฉพาะหมอที่เลือก
 
-  // 1. จัดการ Date Range
+  // 1. จัดการ Date Range (รองรับทั้งช่วงเวลา และการเลือกวันเดียว)
   const dateRangeInput = document.getElementById('filterProfileVisitDateRange');
   const dateRangeVal = dateRangeInput ? dateRangeInput.value : '';
   let startDateObj = null, endDateObj = null;
 
-  if (dateRangeVal && dateRangeVal.includes(' - ')) {
-    const parts = dateRangeVal.split(' - ');
-    if (parts[0]) {
-      const s = parts[0].trim().split('/');
-      if (s.length === 3) startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
-    }
-    if (parts[1]) {
-      const e = parts[1].trim().split('/');
-      if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
+  if (dateRangeVal) {
+    if (dateRangeVal.includes(' - ')) {
+      // 🌟 กรณีเลือกเป็นช่วง (Start - End)
+      const parts = dateRangeVal.split(' - ');
+      if (parts[0] && parts[0].trim()) {
+        const s = parts[0].trim().split('/');
+        if (s.length === 3) startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
+      }
+      if (parts[1] && parts[1].trim()) {
+        const e = parts[1].trim().split('/');
+        if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
+      }
+    } else {
+      // 🌟 กรณีคลิกเลือกแค่วันเดียว (Single Day)
+      const s = dateRangeVal.trim().split('/');
+      if (s.length === 3) {
+        startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
+        endDateObj = new Date(s[2], s[1] - 1, s[0], 23, 59, 59, 999);
+      }
     }
   } else {
-    // Fallback รองรับแบบเก่า
+    // รองรับ Fallback (ถ้ามี)
     const startDateTerm = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
     const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
     if (startDateTerm) { startDateObj = new Date(startDateTerm); startDateObj.setHours(0, 0, 0, 0); }
@@ -2225,13 +2235,12 @@ window.goToPVisitPage = function(page) {
   if (typeof window.renderDoctorPaginationControls === 'function') window.renderDoctorPaginationControls(totalPages);
 };
 
-window.initProfileVisitDatePicker = function() {
+ window.initProfileVisitDatePicker = function() {
   const dateInput = document.getElementById('filterProfileVisitDateRange');
   if (!dateInput) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const phText = (appLang === 'en') ? 'dd/mm/yyyy  -  dd/mm/yyyy' : 'วว/ดด/ปปปป  -  วว/ดด/ปปปป';
-  
+  const phText = (appLang === 'en') ? 'dd/mm/yyyy - dd/mm/yyyy' : 'วว/ดด/ปปปป - วว/ดด/ปปปป';
   dateInput.placeholder = phText;
 
   if (dateInput._flatpickr) {
@@ -2239,16 +2248,21 @@ window.initProfileVisitDatePicker = function() {
   }
 
   if (typeof flatpickr !== 'undefined') {
+    // 🌟 ดึง Locale และบังคับตัวคั่นให้เป็น " - " เหมือนหน้า Visit
+    let locConfig = (appLang === 'th' && flatpickr.l10ns && flatpickr.l10ns.th) ? { ...flatpickr.l10ns.th } : {};
+    locConfig.rangeSeparator = ' - ';
+
     flatpickr(dateInput, {
       mode: "range",
       dateFormat: "d/m/Y",
-      locale: (appLang === 'th' && flatpickr.l10ns && flatpickr.l10ns.th) ? flatpickr.l10ns.th : "default",
+      locale: locConfig,
       onChange: function(selectedDates, dateStr) {
         const btnClear = document.getElementById('btnClearProfileVisitDate');
         if (btnClear) {
           if (dateStr) btnClear.classList.remove('d-none');
           else btnClear.classList.add('d-none');
         }
+        // เมื่อเลือกวันที่ (ทั้งวันเดียวและช่วงเวลา) ให้สั่งกรองข้อมูลทันที
         window.filterAndRenderDoctorVisits();
       }
     });
