@@ -4989,8 +4989,13 @@ window.renderVisitFilters = function() {
             } else {
                 // 🌟 ดึงข้อมูลมัดรวมกลับคืนมาให้ครบ!
                 window.globalVisits = parsed.data || [];
-                window.totalVisitsCount = parsed.total || 0; // คืนค่าจำนวนทั้งหมดให้ Pagination
+                window.totalVisitsCount = parsed.total || 0; 
                 
+                // 🚨🚨 ขาด 2 บรรทัดนี้ครับ! กู้คืนข้อมูล Product และ Sample กลับมาด้วย
+                window._visitProductIndex = parsed.prodIndex || {};
+                window._visitSampleIndex = parsed.sampleIndex || {};
+                // 🚨🚨 ==========================================
+
                 // 🌟 คืนค่าให้กล่อง KPI ทันที
                 if (typeof window.updateStatCards === 'function') {
                     window.updateStatCards(parsed.total, parsed.pending, parsed.submitted);
