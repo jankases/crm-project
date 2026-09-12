@@ -3185,9 +3185,10 @@ window.toggleVisitFormEditable = function(isEditable) {
       if (typeof window.renderFormProductDropdown === 'function') {
           await window.renderFormProductDropdown();
           
+       
           var validVisitId = (visitId && String(visitId).toUpperCase() !== 'NEW') ? String(visitId).trim().toLowerCase() : null;
-          var visitProdsObj = (validVisitId && window._visitProductIndex && window._visitProductIndex[validVisitId]) 
-                                ? window._visitProductIndex[validVisitId] 
+          var visitProdsObj = (validVisitId && window._visitProdIndex && window._visitProdIndex[validVisitId]) 
+                                ? window._visitProdIndex[validVisitId] 
                                 : [];
           
           var mappedVisitProds = visitProdsObj.map(function(vp) { return String(vp.Product_ID || vp.product_id); });
