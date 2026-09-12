@@ -101,6 +101,7 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     return allData;
 };
 
+ // ⚡ 7. ฟังก์ชันวาดปุ่มแบ่งหน้า (Pagination)
 window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
   var ul = document.getElementById(ulId);
   if (!ul) return;
@@ -112,31 +113,33 @@ window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChan
 
   var html = '';
 
+  // 🌟 THE FIX: เปลี่ยนจาก href="#" เป็น href="javascript:void(0);" 
+  // และส่งคำว่า 'event' เข้าไปในวงเล็บ เพื่อให้ฟังก์ชัน goToPage ดักจับได้สมบูรณ์แบบ
   html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
-            '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + '); return false;">' + prevText + '</a>' +
+            '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + ', event);">' + prevText + '</a>' +
           '</li>';
 
   var startPage = Math.max(1, currentPage - 2);
   var endPage = Math.min(totalPages, currentPage + 2);
 
   if (startPage > 1) {
-    html += '<li class="page-item"><a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(1); return false;">1</a></li>';
+    html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(1, event);">1</a></li>';
     if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
   }
 
   for (var i = startPage; i <= endPage; i++) {
     html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
-              '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + i + '); return false;">' + i + '</a>' +
+              '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + i + ', event);">' + i + '</a>' +
             '</li>';
   }
 
   if (endPage < totalPages) {
     if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-    html += '<li class="page-item"><a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + totalPages + '); return false;">' + totalPages + '</a></li>';
+    html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + totalPages + ', event);">' + totalPages + '</a></li>';
   }
 
   html += '<li class="page-item ' + (currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '">' +
-            '<a class="page-link shadow-xs" href="#" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + '); return false;">' + nextText + '</a>' +
+            '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + ', event);">' + nextText + '</a>' +
           '</li>';
 
   ul.innerHTML = html;
