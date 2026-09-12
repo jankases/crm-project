@@ -1998,8 +1998,8 @@ window.changePVisitRowsPerPage = function() {
   window.currentPVisitPage = 1;
   window.filterAndRenderDoctorVisits();
 };
-
-// 🌟 3. อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก BU และเพิ่มตัววาด Pagination)
+ 
+ // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Icon หลักฐาน และ GPS ไม่แสดง)
 window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
@@ -2123,6 +2123,16 @@ window.filterAndRenderDoctorVisits = function() {
   const buList = window.globalBUs || window.DocManagerCache.bus || [];
   const prodList = window.globalProducts || window.DocManagerCache.products || [];
 
+  // 🌟 ฟังก์ชันตัวช่วยสแกนค่าความจริงทุกรูปแบบ (true, 1, 'Yes', 'true')
+  const isTrueVal = (val) => {
+    if (val === true || val === 1) return true;
+    if (typeof val === 'string') {
+      const s = val.trim().toLowerCase();
+      return s === 'true' || s === 'yes' || s === '1' || s === 'y';
+    }
+    return false;
+  };
+
   let htmlBuffer = '';
   pageData.forEach(v => {
     let dateStr = '-';
@@ -2141,19 +2151,30 @@ window.filterAndRenderDoctorVisits = function() {
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
+    // 🌟 Evidence Badges (กวาดหาเงื่อนไขแบบครอบจักรวาล)
     let badges = [];
-    if (v.Is_Joint_Visit === true || v.Is_Joint_Visit === 'true' || v.Joint_Visit === true || v.Coaching === true || v.Is_Coaching === true) {
+    
+    // 1. Coaching
+    if (isTrueVal(v.Is_Joint_Visit) || isTrueVal(v.Joint_Visit) || isTrueVal(v.Coaching) || isTrueVal(v.Is_Coaching)) {
       badges.push(`<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`);
     }
-    if (v.Has_Attachment === true || v.Has_Attachment === 'true' || (v.Attachments && v.Attachments.length > 0) || Number(v.Attachment_Count) > 0) {
+    // 2. Attachment
+    const hasAttData = v.Attachments && String(v.Attachments).trim() !== 'null' && String(v.Attachments).trim() !== '[]' && String(v.Attachments).trim() !== '';
+    if (isTrueVal(v.Has_Attachment) || parseInt(v.Attachment_Count) > 0 || hasAttData) {
       badges.push(`<span class="evidence-badge evidence-badge-attachment" title="Attachment"><i class="fa-solid fa-paperclip"></i></span>`);
     }
-    if (v.Has_Signature === true || v.Has_Signature === 'true' || v.Signature || v.Signature_URL) {
+    // 3. Signature
+    const hasSigData = v.Signature && String(v.Signature).trim() !== 'null' && String(v.Signature).trim() !== '';
+    const hasSigUrl = v.Signature_URL && String(v.Signature_URL).trim() !== 'null' && String(v.Signature_URL).trim() !== '';
+    if (isTrueVal(v.Has_Signature) || isTrueVal(v.Is_Signed) || hasSigData || hasSigUrl) {
       badges.push(`<span class="evidence-badge evidence-badge-signature" title="Signature"><i class="fa-solid fa-signature"></i></span>`);
     }
-    if (v.Has_Sample === true || v.Has_Sample === 'true' || (v.Samples && v.Samples.length > 0) || Number(v.Sample_Count) > 0) {
+    // 4. Sample
+    const hasSamData = v.Samples && String(v.Samples).trim() !== 'null' && String(v.Samples).trim() !== '[]' && String(v.Samples).trim() !== '';
+    if (isTrueVal(v.Has_Sample) || isTrueVal(v.Is_Sample) || parseInt(v.Sample_Count) > 0 || hasSamData) {
       badges.push(`<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`);
     }
+    
     let evidenceBadgesHtml = badges.length > 0 ? `<span class="evidence-badge-group ms-2">${badges.join('')}</span>` : '';
 
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
@@ -2169,7 +2190,6 @@ window.filterAndRenderDoctorVisits = function() {
       }
     }
 
-    // 🌟 ค้นหา BU (กวาดหาจากทุก Field แบบรัดกุม)
     if ((terrNameShow === '-' || !terrNameShow) && uObj) {
       const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
       const uBuId = String(uObj.BU_ID || uObj.bu_id || uObj.Business_Unit_ID || uObj.BU || v.BU_ID || v.bu_id || v.BU || '').trim();
@@ -2180,7 +2200,7 @@ window.filterAndRenderDoctorVisits = function() {
         if (foundBu) {
           actualBuName = foundBu.BU || foundBu.BU_Name;
         } else if (!uBuId.includes('-')) {
-          actualBuName = uBuId; // Fallback text e.g. "LUNG"
+          actualBuName = uBuId; 
         }
       }
 
@@ -2206,14 +2226,19 @@ window.filterAndRenderDoctorVisits = function() {
 
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
     
+    // 🌟 GPS Icon (กวาดหาเงื่อนไขแบบครอบจักรวาล)
     let gpsPinHtml = '';
-    if (v.Latitude || v.Longitude || v.GPS_Checkin || v.GPS_Status) {
-      const gpsStatus = String(v.GPS_Status || v.GPS_Checkin_Status || '').toLowerCase();
+    const gpsStatusRaw = v.GPS_Status || v.GPS_Checkin_Status || v.gps_status || '';
+    const hasLatLong = (v.Latitude && String(v.Latitude).trim() !== '') || (v.Longitude && String(v.Longitude).trim() !== '');
+    const hasValidFlag = (v.Is_GPS_Valid !== undefined && v.Is_GPS_Valid !== null);
+
+    if (hasLatLong || gpsStatusRaw || hasValidFlag || v.GPS_Checkin || isTrueVal(v.GPS_Checkin)) {
       let gpsColor = 'text-secondary'; 
+      const gStatLower = String(gpsStatusRaw).toLowerCase().trim();
       
-      if (gpsStatus === 'verified' || gpsStatus === 'within_range' || v.Is_GPS_Valid === true) {
+      if (gStatLower === 'verified' || gStatLower === 'within_range' || isTrueVal(v.Is_GPS_Valid)) {
         gpsColor = 'text-success'; 
-      } else if (gpsStatus === 'out_of_range' || v.Is_GPS_Valid === false) {
+      } else if (gStatLower === 'out_of_range' || (hasValidFlag && !isTrueVal(v.Is_GPS_Valid))) {
         gpsColor = 'text-danger'; 
       }
       gpsPinHtml = `<i class="fa-solid fa-location-dot ${gpsColor} ms-2" title="GPS Location"></i>`;
@@ -2238,17 +2263,14 @@ window.filterAndRenderDoctorVisits = function() {
 
   tbody.innerHTML = htmlBuffer;
 
-  // 🌟 สร้าง HTML Pagination ลงไปใน #pvisitPagination โดยตรง
   const paginationUl = document.getElementById('pvisitPagination');
   if (paginationUl) {
     let pageHtml = '';
     
-    // ปุ่ม Prev
     pageHtml += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
       <a class="page-link cursor-pointer" onclick="window.changePVisitPage(${currentPage - 1})">&laquo; ${appLang === 'en' ? 'Prev' : 'ก่อนหน้า'}</a>
     </li>`;
 
-    // คุมตัวเลขไม่ให้แสดงยาวเกินไป (แสดงหน้าใกล้เคียง)
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, Math.max(1, currentPage + 2));
     
@@ -2263,7 +2285,6 @@ window.filterAndRenderDoctorVisits = function() {
       </li>`;
     }
 
-    // ปุ่ม Next
     pageHtml += `<li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
       <a class="page-link cursor-pointer" onclick="window.changePVisitPage(${currentPage + 1})">${appLang === 'en' ? 'Next' : 'ถัดไป'} &raquo;</a>
     </li>`;
