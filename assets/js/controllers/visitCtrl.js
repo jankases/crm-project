@@ -2758,16 +2758,26 @@ window.debouncedFilterVisits = function() {
         if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
     }, 400);
 };
-// ==========================================
+ // ==========================================
 // 📄 PAGINATION & TABLE RENDER ENGINE (CORE FIX)
 // ==========================================
 
-// 1. ฟังก์ชันเปลี่ยนจำนวนแถว (อัปเกรดให้อ่านค่าได้แม่นยำ)
-window.changeRowsPerPage = function() {
-    var selectEl = document.getElementById('visitRowsPerPage');
-    if (selectEl) {
-        window.rowsPerPage = parseInt(selectEl.value) || 20;
+// 🎯 1. ฟังก์ชันเปลี่ยนจำนวนแถว (ล็อกเป้าหมาย อ่านค่าตรงจุดเป๊ะๆ)
+window.changeRowsPerPage = function(el) {
+    // ดึงค่าจากกล่องที่ผู้ใช้คลิกจริงๆ (event.target) ไม่ใช่ไปงมหาจาก ID แอบซ่อน
+    var targetEl = el || (window.event ? window.event.target : null) || document.getElementById('visitRowsPerPage');
+    
+    if (targetEl && targetEl.value) {
+        window.rowsPerPage = parseInt(targetEl.value);
+    } else {
+        window.rowsPerPage = 20; // Fallback ปลอดภัย
     }
+    
+    // ซิงค์ทุก Dropdown บนหน้าจอให้เลขตรงกัน (แก้ปัญหา Desktop/Mobile ตีกัน)
+    document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(select) {
+        select.value = window.rowsPerPage;
+    });
+
     window.currentPage = 1; 
     
     var overlay = document.getElementById('tableLoadingOverlay');
@@ -2778,11 +2788,12 @@ window.changeRowsPerPage = function() {
     }
 };
 
-// 2. ฟังก์ชันเปลี่ยนหน้า 
+// 🎯 2. ฟังก์ชันเปลี่ยนหน้า (บล็อก URL ดักทางตั้งแต่ต้นลม)
 window.goToPage = function(page, event) {
-    // บล็อก # ทันทีถ้ามีการส่ง Event มา
-    if (event && typeof event.preventDefault === 'function') {
-        event.preventDefault(); 
+    // สกัดกั้น Event ลิงก์ # อัตโนมัติ (ฆ่า URL ขยะทิ้งทันที)
+    var e = event || window.event;
+    if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault(); 
     }
     
     var rows = parseInt(window.rowsPerPage) || 20;
@@ -2799,7 +2810,7 @@ window.goToPage = function(page, event) {
     }
 };
 
-// 3. ฟังก์ชันวาดตาราง (หั่นข้อมูล + ดัก URL อัตโนมัติ)
+// 🎯 3. ฟังก์ชันวาดตาราง (หั่นข้อมูล + ใส่เกราะป้องกัน URL ขั้นสุดยอด)
 window.renderVisitTableServerSide = function() {
     var tbody = document.getElementById('visitTableBody');
     if (!tbody) return;
@@ -2807,15 +2818,14 @@ window.renderVisitTableServerSide = function() {
     var data = window.globalVisits || [];
     var totalItems = window.totalVisitsCount || 0;
     
-    // บังคับอัปเดต UI ของ Dropdown ให้ตรงกับตัวแปรเสมอ ป้องกันตารางลืมค่า
-    var selectEl = document.getElementById('visitRowsPerPage');
-    if (selectEl && selectEl.value != window.rowsPerPage) {
-        selectEl.value = window.rowsPerPage || 20;
-    }
-    
     var rows = parseInt(window.rowsPerPage) || 20;
     if (rows <= 0) rows = 20;
     var totalPages = Math.ceil(totalItems / rows);
+    
+    // บังคับอัปเดต UI ของ Dropdown ทุกตัวบนหน้าจอให้ตรงกับระบบ
+    document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(selectEl) {
+        if (selectEl.value != window.rowsPerPage) selectEl.value = window.rowsPerPage;
+    });
     
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
@@ -2828,7 +2838,7 @@ window.renderVisitTableServerSide = function() {
 
     if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
-    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้ (แก้บั๊กแสดงล้น)
+    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้ (แก้บั๊กแสดงล้นกรณีอ่านจาก Cache)
     var pageData = data.length > rows ? data.slice(0, rows) : data;
 
     var startIndex = ((window.currentPage - 1) * rows) + 1;
@@ -2882,7 +2892,7 @@ window.renderVisitTableServerSide = function() {
             if (terms.length === 0) return text;
             var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
             var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
-            return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important;">$1</mark>');
+            return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important; color: inherit;">$1</mark>');
         };
 
         var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
@@ -2932,14 +2942,14 @@ window.renderVisitTableServerSide = function() {
         window.renderPaginationControls(totalPages);
     }
 
-    // 🛑 [THE FIX] สกัดกั้น Event คลิกเปลี่ยนหน้าทั้งหมด ไม่ให้เบราว์เซอร์ไปเปิด URL '#' เด็ดขาด
+    // 🛑 [THE FIX] ใส่เกราะ Event Delegation ทับกล่อง Pagination ทั้งก้อน 
+    // ถ้าผู้ใช้เผลอกดโดนลิงก์ <a> ที่มี href="#" ให้ทำลาย Event ทิ้งทันที!
     var pagContainer = document.getElementById('visitPagination');
     if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
         pagContainer.addEventListener('click', function(e) {
-            var link = e.target.closest('a');
-            // ถ้ากดโดนแท็ก <a> ที่เป็น href="#"
-            if (link && link.getAttribute('href') === '#') {
-                e.preventDefault(); // บล็อกการทำงานของ URL 100%
+            var targetA = e.target.closest('a');
+            if (targetA && targetA.getAttribute('href') === '#') {
+                e.preventDefault(); 
             }
         });
         pagContainer.setAttribute('data-url-fixed', 'true');
