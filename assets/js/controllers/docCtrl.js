@@ -2168,17 +2168,28 @@ window.goToPVisitPage = function(page) {
       }
     }
 
-    // 🌟 ลอจิก Fallback: ถ้า Territory เป็น '-' ให้ดึง BU หรือ Role มาโชว์แทน
+    // 🌟 ลอจิก Fallback: ดึงค่า BU จริงจาก buList มาแสดง
     if ((terrNameShow === '-' || !terrNameShow) && uObj) {
       const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
-      const uBu = uObj.BU || uObj.BU_Name || uObj.Business_Unit_ID || '';
+      const uBuId = String(uObj.BU_ID || uObj.Business_Unit_ID || uObj.BU || '').trim();
 
-      if (uRole.includes('BU') && uBu) {
-        terrNameShow = uBu; // ถ้าเป็นระดับ BU ให้โชว์ชื่อ BU
+      // แมปหาชื่อ BU (LUNG, HEME, ฯลฯ)
+      let actualBuName = '';
+      if (uBuId) {
+        const foundBu = buList.find(b => String(b.BU_ID || b.id) === uBuId || String(b.BU) === uBuId);
+        if (foundBu) {
+          actualBuName = foundBu.BU || foundBu.BU_Name;
+        } else if (!uBuId.includes('-')) {
+          actualBuName = uBuId; // กรณีไม่ได้เป็น UUID
+        }
+      }
+
+      if ((uRole.includes('BU') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR')) && actualBuName) {
+        terrNameShow = actualBuName; // โชว์ชื่อ LUNG หรือ HEME
       } else if (uRole) {
-        terrNameShow = uRole; // Role อื่นๆ เอาชื่อ Role มาโชว์
-      } else if (uBu) {
-        terrNameShow = uBu;
+        terrNameShow = uRole; // โชว์ ADMIN, SALES ฯลฯ
+      } else if (actualBuName) {
+        terrNameShow = actualBuName;
       }
     }
 
