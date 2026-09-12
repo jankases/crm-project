@@ -2768,11 +2768,24 @@ window.goToPage = function(page) {
     if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
 };
 
-window.changeRowsPerPage = function() {
-    var selectEl = document.getElementById('visitRowsPerPage');
-    window.rowsPerPage = parseInt(selectEl.value) || 20;
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
+// 🌟 1. แก้ไขฟังก์ชันเปลี่ยนจำนวนแถวให้หา Element อัตโนมัติ
+window.changeRowsPerPage = function(el) {
+    var selectEl = (el && el.value !== undefined) ? el : (document.getElementById('visitRowsPerPage') || document.querySelector('select[onchange*="changeRowsPerPage"]'));
+    
+    if (selectEl) {
+        window.rowsPerPage = parseInt(selectEl.value) || 20;
+    } else {
+        window.rowsPerPage = 20; 
+    }
+    
+    window.currentPage = 1; 
+    
+    var overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) overlay.classList.remove('d-none');
+    
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true, true);
+    }
 };
 
 window.sortVisits = function(col) {
@@ -2838,7 +2851,7 @@ function matchedTerAndUnique(arr) {
     });
 }
 
- window.renderVisitTableServerSide = function() {
+window.renderVisitTableServerSide = function() {
   var tbody = document.getElementById('visitTableBody');
   if (!tbody) return;
 
@@ -2859,8 +2872,14 @@ function matchedTerAndUnique(arr) {
 
   if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
+  // 🌟 [FIX] สร้างตัวแปรใหม่มารับข้อมูลที่จะวาด และทำการหั่น (Slice) ตามจำนวน rows ที่ผู้ใช้เลือก
+  var pageData = data;
+  if (pageData.length > rows) {
+      pageData = pageData.slice(0, rows);
+  }
+
   var startIndex = ((window.currentPage - 1) * rows) + 1;
-  var endIndex = Math.min(startIndex + data.length - 1, totalItems);
+  var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
   if (document.getElementById('visitPageInfo')) {
       document.getElementById('visitPageInfo').innerText = appLang === 'en' 
           ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
@@ -2870,7 +2889,8 @@ function matchedTerAndUnique(arr) {
   var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
   var htmlBuffer = '';
 
-  data.forEach(function(v) {
+  // 🌟 [FIX] เปลี่ยนจาก data.forEach เป็น pageData.forEach เพื่อให้ลูปวาดแค่ตามจำนวนที่เราหั่นไว้
+  pageData.forEach(function(v) {
     var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
     var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
     
