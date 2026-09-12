@@ -2762,38 +2762,45 @@ window.debouncedFilterVisits = function() {
 // 📄 PAGINATION & TABLE RENDER ENGINE (CORE FIX)
 // ==========================================
 
-// 🎯 1. ฟังก์ชันเปลี่ยนจำนวนแถว (ล็อกเป้าหมาย อ่านค่าตรงจุดเป๊ะๆ)
+// 1. ฟังก์ชันเปลี่ยนจำนวนแถว (รับค่าจาก Element ที่ถูกคลิกโดยตรง)
 window.changeRowsPerPage = function(el) {
-    // ดึงค่าจากกล่องที่ผู้ใช้คลิกจริงๆ (event.target) ไม่ใช่ไปงมหาจาก ID แอบซ่อน
-    var targetEl = el || (window.event ? window.event.target : null) || document.getElementById('visitRowsPerPage');
+    // 🌟 รับค่าที่แน่นอนจาก Dropdown ที่ถูกเปลี่ยนค่า
+    var newRowsPerPage = parseInt(el.value);
     
-    if (targetEl && targetEl.value) {
-        window.rowsPerPage = parseInt(targetEl.value);
+    if (newRowsPerPage) {
+        window.rowsPerPage = newRowsPerPage;
     } else {
         window.rowsPerPage = 20; // Fallback ปลอดภัย
     }
-    
-    // ซิงค์ทุก Dropdown บนหน้าจอให้เลขตรงกัน (แก้ปัญหา Desktop/Mobile ตีกัน)
+
+    // 🌟 อัปเดต Dropdown ทุกตัวบนหน้าจอให้ตรงกัน ป้องกันความสับสน
     document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(select) {
-        select.value = window.rowsPerPage;
+        if (select.value != window.rowsPerPage) {
+            select.value = window.rowsPerPage;
+        }
     });
 
-    window.currentPage = 1; 
+    window.currentPage = 1; // เปลี่ยนจำนวนแถว ต้องกลับไปหน้า 1 เสมอ
     
     var overlay = document.getElementById('tableLoadingOverlay');
     if (overlay) overlay.classList.remove('d-none');
     
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true, true);
+    // 🌟 สั่งวาดตารางใหม่โดยไม่ต้องโหลดจาก DB (เพราะข้อมูลมีอยู่แล้วใน Cache)
+    if (typeof window.renderVisitTableServerSide === 'function') {
+        window.renderVisitTableServerSide();
     }
+    
+    // 🌟 ซ่อน Loading Overlay หลังจากวาดเสร็จ
+    setTimeout(function() {
+        if (overlay) overlay.classList.add('d-none');
+    }, 100);
 };
 
-// 🎯 2. ฟังก์ชันเปลี่ยนหน้า (บล็อก URL ดักทางตั้งแต่ต้นลม)
+// 2. ฟังก์ชันเปลี่ยนหน้า (บล็อก URL ดักทางตั้งแต่ต้นลม)
 window.goToPage = function(page, event) {
-    // สกัดกั้น Event ลิงก์ # อัตโนมัติ (ฆ่า URL ขยะทิ้งทันที)
-    var e = event || window.event;
-    if (e && typeof e.preventDefault === 'function') {
-        e.preventDefault(); 
+    // สกัดกั้น Event ลิงก์ # อัตโนมัติ
+    if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault(); 
     }
     
     var rows = parseInt(window.rowsPerPage) || 20;
@@ -2805,12 +2812,17 @@ window.goToPage = function(page, event) {
     var overlay = document.getElementById('tableLoadingOverlay');
     if (overlay) overlay.classList.remove('d-none');
     
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true, true);
+    // 🌟 สั่งวาดตารางใหม่โดยไม่ต้องโหลดจาก DB 
+    if (typeof window.renderVisitTableServerSide === 'function') {
+        window.renderVisitTableServerSide();
     }
+    
+    setTimeout(function() {
+        if (overlay) overlay.classList.add('d-none');
+    }, 100);
 };
 
-// 🎯 3. ฟังก์ชันวาดตาราง (หั่นข้อมูล + ใส่เกราะป้องกัน URL ขั้นสุดยอด)
+// 3. ฟังก์ชันวาดตาราง (หั่นข้อมูล + ใส่เกราะป้องกัน URL ขั้นสุดยอด)
 window.renderVisitTableServerSide = function() {
     var tbody = document.getElementById('visitTableBody');
     if (!tbody) return;
@@ -2821,11 +2833,6 @@ window.renderVisitTableServerSide = function() {
     var rows = parseInt(window.rowsPerPage) || 20;
     if (rows <= 0) rows = 20;
     var totalPages = Math.ceil(totalItems / rows);
-    
-    // บังคับอัปเดต UI ของ Dropdown ทุกตัวบนหน้าจอให้ตรงกับระบบ
-    document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(selectEl) {
-        if (selectEl.value != window.rowsPerPage) selectEl.value = window.rowsPerPage;
-    });
     
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
 
@@ -2838,16 +2845,18 @@ window.renderVisitTableServerSide = function() {
 
     if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
 
-    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้ (แก้บั๊กแสดงล้นกรณีอ่านจาก Cache)
-    var pageData = data.length > rows ? data.slice(0, rows) : data;
+    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้
+    var startIndex = ((window.currentPage - 1) * rows);
+    var endIndex = Math.min(startIndex + rows, totalItems);
+    
+    // 🌟 หั่น (Slice) ข้อมูลเฉพาะหน้าที่ต้องการจะแสดง
+    var pageData = data.slice(startIndex, endIndex);
 
-    var startIndex = ((window.currentPage - 1) * rows) + 1;
-    var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
     var infoEl = document.getElementById('visitPageInfo');
     if (infoEl) {
         infoEl.innerText = appLang === 'en' 
-            ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
-            : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
+            ? 'Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + totalItems + ' entries'
+            : 'แสดง ' + (startIndex + 1) + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
     }
 
     var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
@@ -2942,8 +2951,7 @@ window.renderVisitTableServerSide = function() {
         window.renderPaginationControls(totalPages);
     }
 
-    // 🛑 [THE FIX] ใส่เกราะ Event Delegation ทับกล่อง Pagination ทั้งก้อน 
-    // ถ้าผู้ใช้เผลอกดโดนลิงก์ <a> ที่มี href="#" ให้ทำลาย Event ทิ้งทันที!
+    // 🛑 ใส่เกราะป้องกัน URL ขั้นสุดยอด
     var pagContainer = document.getElementById('visitPagination');
     if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
         pagContainer.addEventListener('click', function(e) {
