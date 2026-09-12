@@ -2758,271 +2758,6 @@ window.debouncedFilterVisits = function() {
         if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
     }, 400);
 };
-// ==========================================
-// 📄 PAGINATION & TABLE RENDER ENGINE (CORE FIX)
-// ==========================================
-
-// 🎯 1. ฟังก์ชันเปลี่ยนจำนวนแถว
-window.changeRowsPerPage = function() {
-    // บังคับอ่านค่าจาก ID โดยตรง ชัวร์ที่สุด ไม่ต้องส่ง parameter this ให้วุ่นวาย
-    var selectEl = document.getElementById('visitRowsPerPage');
-    
-    if (selectEl && selectEl.value) {
-        window.rowsPerPage = parseInt(selectEl.value, 10);
-    } else {
-        window.rowsPerPage = 20; // ค่าเริ่มต้นถ้าหาไม่เจอ
-    }
-    
-    window.currentPage = 1; 
-    
-    var overlay = document.getElementById('tableLoadingOverlay');
-    if (overlay) overlay.classList.remove('d-none');
-    
-    // โหลดตารางใหม่
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true, true);
-    }
-};
-
-// 🎯 2. ฟังก์ชันเปลี่ยนหน้า
-window.goToPage = function(page, event) {
-    if (event && typeof event.preventDefault === 'function') {
-        event.preventDefault(); 
-    }
-    
-    var rows = parseInt(window.rowsPerPage) || 20;
-    var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
-    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
-    
-    window.currentPage = page;
-    
-    var overlay = document.getElementById('tableLoadingOverlay');
-    if (overlay) overlay.classList.remove('d-none');
-    
-    if (typeof window.loadVisits === 'function') {
-        window.loadVisits(true, true);
-    }
-};
-
-// 🎯 3. ฟังก์ชันวาดตาราง (หั่นข้อมูลให้พอดีกับแถว)
-window.renderVisitTableServerSide = function() {
-    var tbody = document.getElementById('visitTableBody');
-    if (!tbody) return;
-
-    var data = window.globalVisits || [];
-    var totalItems = window.totalVisitsCount || 0;
-    
-    var rows = parseInt(window.rowsPerPage) || 20;
-    if (rows <= 0) rows = 20;
-    var totalPages = Math.ceil(totalItems / rows);
-    
-    // บังคับอัปเดต UI ของ Dropdown ให้ตรงกับค่าในระบบ
-    var selectEl = document.getElementById('visitRowsPerPage');
-    if (selectEl && selectEl.value != window.rowsPerPage) {
-        selectEl.value = window.rowsPerPage;
-    }
-    
-    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-
-    if (data.length === 0) {
-        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
-        var msgNoData = appLang === 'en' ? 'No visit records found.' : 'ไม่พบข้อมูลบันทึกเยี่ยม';
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
-        return;
-    }
-
-    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
-
-    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้ (แก้บั๊กแสดงล้น)
-    var pageData = data.length > rows ? data.slice(0, rows) : data;
-
-    var startIndex = ((window.currentPage - 1) * rows) + 1;
-    var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
-    var infoEl = document.getElementById('visitPageInfo');
-    if (infoEl) {
-        infoEl.innerText = appLang === 'en' 
-            ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
-            : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
-    }
-
-    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
-    var htmlBuffer = '';
-
-    pageData.forEach(function(v) {
-        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
-        var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
-        var statusShow = (v.Status === 'Submitted') ? (appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว') : (appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง');
-        if (isPendingUnlock) { badgeClass = 'badge-soft-secondary'; statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; }
-
-        var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : (v.Visit_Date || '-');
-        
-        var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
-        var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
-        var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
-        
-        var hospNameShow = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
-        var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
-        var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
-
-        var distanceBadge = '';
-        if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
-            var onClickAction = "event.stopPropagation(); window.openViewOnlyGpsModal(" + v.CheckIn_Lat + ", " + v.CheckIn_Long + ", '" + (v.CheckIn_Time || '') + "');";
-            if (hospLat && hospLng) {
-                var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
-                if (distKm !== null && distKm <= 0.5) {
-                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Check-in verified' : 'พิกัดถูกต้อง') + '"><i class="fa-solid fa-circle-check"></i></span>';
-                } else {
-                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Off-site' : 'ห่างจากจุดหมาย') + '"><i class="fa-solid fa-location-dot"></i></span>';
-                }
-            } else {
-                distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer"><i class="fa-solid fa-location-dot"></i></span>';
-            }
-        }
-
-        var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
-        
-        var applySafeHighlight = function(text, searchStr) {
-            if (!text || !searchStr) return text;
-            var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
-            if (terms.length === 0) return text;
-            var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
-            var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
-            return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important; color: inherit;">$1</mark>');
-        };
-
-        var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
-        var highlightedHosp = applySafeHighlight(hospNameShow, smartSearchVal);
-        var highlightedPurpose = purposeShow; 
-
-        var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
-        var rawVid = String(v.Visit_ID || v.visit_id || '').trim();
-        var visitProds = (window._visitProdIndex) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || []) : [];
-
-        var prodBadges = '';
-        if (visitProds.length > 0) {
-            visitProds.forEach(function(vp) {
-                var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
-                var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
-                var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
-                prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
-            });
-        } else {
-            prodBadges = '<span class="text-muted small">-</span>';
-        }
-     
-        var evidenceBadges = '';
-        if (v.Is_Coaching) evidenceBadges += ' <span class="badge badge-soft-info ms-1"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
-        if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') evidenceBadges += ' <span class="badge badge-soft-secondary ms-1"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
-        if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) evidenceBadges += ' <span class="badge badge-soft-success ms-1"><i class="fa-solid fa-signature text-success"></i></span>';
-
-        var sampleItems = (window._visitSampleIndex) ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid] || []) : [];
-        if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
-            evidenceBadges += ' <span class="badge badge-soft-warning ms-1"><i class="fa-solid fa-gifts text-warning"></i></span>';
-        }
-
-        htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
-            '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-            '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-            '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
-            '<td>' + prodBadges + '</td>' +
-            '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-            '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-            '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
-        '</tr>';
-    });
-
-    tbody.innerHTML = htmlBuffer;
-    
-    if (typeof window.renderPaginationControls === 'function') {
-        window.renderPaginationControls(totalPages);
-    }
-
-    // 🛑 สกัดกั้น Event คลิกเปลี่ยนหน้าทั้งหมด ไม่ให้เบราว์เซอร์เปิด URL '#'
-    var pagContainer = document.getElementById('visitPagination');
-    if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
-        pagContainer.addEventListener('click', function(e) {
-            var targetA = e.target.closest('a');
-            if (targetA && targetA.getAttribute('href') === '#') {
-                e.preventDefault(); 
-            }
-        });
-        pagContainer.setAttribute('data-url-fixed', 'true');
-    }
-
-    var searchInput = document.getElementById('smartSearchInput');
-    if (searchInput && document.activeElement !== searchInput) {
-        var cursorDocPos = searchInput.value.length;
-        if (searchInput.value.trim() !== '') {
-            searchInput.focus();
-            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
-        }
-    }
-};
-  
-
-window.sortVisits = function(col) {
-    if (window.currentSortCol === col) window.currentSortAsc = !window.currentSortAsc; 
-    else { window.currentSortCol = col; window.currentSortAsc = true; }
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
-};
-
-// 🎯 3. กลุ่ม Smart Search (ไอคอนแว่นขยาย)
-window.triggerSmartSearch = function() {
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
-};
-
-window.clearSmartSearchInput = function() {
-    var searchInput = document.getElementById('smartSearchInput');
-    var clearBtn = document.getElementById('btnClearSmartSearch');
-    if (searchInput) { searchInput.value = ''; searchInput.focus(); }
-    if (clearBtn) clearBtn.classList.add('d-none');
-
-    window.currentPage = 1;
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
-};
-  
-// 🎯 ฟังก์ชันล้างค่าตัวกรองเฉพาะในหน้าต่าง Advanced Filters (Local Clear)
-window.clearVisitFilters = function(e) {
-    // 🛑 ดักจับ Event เพื่อสั่งเบรก! ห้ามหน้าต่าง Filter พับปิดเองเด็ดขาด
-    var evt = e || window.event;
-    if (evt) {
-        evt.preventDefault();
-        evt.stopPropagation(); 
-    }
-
-    // 🌟 ล้างเฉพาะค่าที่อยู่ "ด้านใน" หน้าต่าง Advanced Filters เท่านั้น
-    if (typeof window.toggleAllCheckboxes === 'function') {
-        window.toggleAllCheckboxes('rep', false);
-        window.toggleAllCheckboxes('ter', false);
-        window.toggleAllCheckboxes('purpose', false); 
-    }
-
-    var searchRep = document.getElementById('searchRepFilter');
-    var searchTer = document.getElementById('searchTerFilter');
-    if (searchRep) { searchRep.value = ''; window.filterCheckboxList('rep', ''); }
-    if (searchTer) { searchTer.value = ''; window.filterCheckboxList('ter', ''); }
-
-    if (window.tomSelectStatusInstance) {
-        window.tomSelectStatusInstance.setValue('', true);
-    } else {
-        var stEl = document.getElementById('filterVisitStatus');
-        if (stEl) stEl.value = '';
-    }
-
-    var chkCoaching = document.getElementById('filterVisitCoaching');
-    if (chkCoaching) chkCoaching.checked = false;
-
-    // 🛑 ตัดโค้ดส่วนที่ไปล้างค่า Date Picker และ Smart Search ด้านนอกออกทั้งหมด
-    // เพื่อให้ระบบทำงานแยกกันอย่างชัดเจนตามมาตรฐานสากล
-};
-
-function matchedTerAndUnique(arr) {
-    return arr.filter(function(item, pos) {
-        return item && item !== 'null' && item !== 'undefined' && arr.indexOf(item) === pos;
-    });
-}
-
  
 
 // ==========================================
@@ -6446,3 +6181,236 @@ window.renderCalendarUserDropdown = function(selectElementId) {
         $(selectEl).trigger('change.select2');
     }
 };
+
+// ==========================================
+// 📄 PAGINATION & TABLE RENDER ENGINE (ULTIMATE FIX)
+// ==========================================
+
+// 🎯 1. ฟังก์ชันเปลี่ยนจำนวนแถว (ควานหาค่าเอง ทะลวง ID ซ้ำซ้อน)
+window.changeRowsPerPage = function(el) {
+    var newRows = 20;
+    
+    // 1. ลองดึงจาก Element ที่คลิกโดยตรง
+    if (el && el.value) {
+        newRows = parseInt(el.value, 10);
+    } 
+    // 2. ลองดึงจาก Event ปัจจุบัน
+    else if (window.event && window.event.target && window.event.target.value) {
+        newRows = parseInt(window.event.target.value, 10);
+    } 
+    // 3. ไม้ตาย: ควานหา Select ทุกกล่องบนหน้าจอ ถ้ากล่องไหนเลขเปลี่ยนไปจากเดิม ให้ยึดค่านั้น!
+    else {
+        var allSelects = document.querySelectorAll('select[onchange*="changeRowsPerPage"]');
+        for (var i = 0; i < allSelects.length; i++) {
+            var v = parseInt(allSelects[i].value, 10);
+            if (v && v !== window.rowsPerPage) {
+                newRows = v;
+                break;
+            }
+        }
+    }
+
+    // อัปเดตค่าให้ระบบ
+    window.rowsPerPage = newRows || 20;
+
+    // บังคับซิงค์กลับให้ Select ทุกกล่องมีเลขตรงกัน
+    document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(sel) {
+        sel.value = window.rowsPerPage;
+    });
+
+    window.currentPage = 1; 
+    
+    var overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) overlay.classList.remove('d-none');
+
+    // สั่งโหลดตาราง
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true, true);
+    }
+};
+
+// 🎯 2. ฟังก์ชันเปลี่ยนหน้า
+window.goToPage = function(page, event) {
+    // ดักจับ Event ทันทีถ้ามีการส่งมา
+    var ev = event || window.event;
+    if (ev) {
+        if (typeof ev.preventDefault === 'function') ev.preventDefault();
+        ev.returnValue = false; 
+    }
+    
+    var rows = parseInt(window.rowsPerPage) || 20;
+    var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
+    if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
+    
+    window.currentPage = page;
+    
+    var overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) overlay.classList.remove('d-none');
+    
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true, true);
+    }
+    
+    return false;
+};
+
+// 🎯 3. ฟังก์ชันวาดตาราง
+window.renderVisitTableServerSide = function() {
+    var tbody = document.getElementById('visitTableBody');
+    if (!tbody) return;
+
+    document.querySelectorAll('select[onchange*="changeRowsPerPage"]').forEach(function(sel) {
+        if (sel.value != window.rowsPerPage) sel.value = window.rowsPerPage || 20;
+    });
+
+    var data = window.globalVisits || [];
+    var totalItems = window.totalVisitsCount || 0;
+    var rows = parseInt(window.rowsPerPage) || 20;
+    if (rows <= 0) rows = 20; 
+    var totalPages = Math.ceil(totalItems / rows);
+    
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
+    if (data.length === 0) {
+        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
+        var msgNoData = appLang === 'en' ? 'No visit records found.' : 'ไม่พบข้อมูลบันทึกเยี่ยม';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
+        return;
+    }
+
+    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
+
+    var pageData = data.length > rows ? data.slice(0, rows) : data;
+
+    var startIndex = ((window.currentPage - 1) * rows) + 1;
+    var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
+    
+    var infoEl = document.getElementById('visitPageInfo');
+    if (infoEl) {
+        infoEl.innerText = appLang === 'en' 
+            ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
+            : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
+    }
+
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    var htmlBuffer = '';
+
+    pageData.forEach(function(v) {
+        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+        var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
+        var statusShow = (v.Status === 'Submitted') ? (appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว') : (appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง');
+        if (isPendingUnlock) { badgeClass = 'badge-soft-secondary'; statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; }
+
+        var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : (v.Visit_Date || '-');
+        
+        var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
+        var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
+        var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
+        
+        var hospNameShow = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
+        var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
+        var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
+
+        var distanceBadge = '';
+        if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
+            var onClickAction = "event.stopPropagation(); window.openViewOnlyGpsModal(" + v.CheckIn_Lat + ", " + v.CheckIn_Long + ", '" + (v.CheckIn_Time || '') + "');";
+            if (hospLat && hospLng) {
+                var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
+                if (distKm !== null && distKm <= 0.5) {
+                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Check-in verified' : 'พิกัดถูกต้อง') + '"><i class="fa-solid fa-circle-check"></i></span>';
+                } else {
+                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Off-site' : 'ห่างจากจุดหมาย') + '"><i class="fa-solid fa-location-dot"></i></span>';
+                }
+            } else {
+                distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer"><i class="fa-solid fa-location-dot"></i></span>';
+            }
+        }
+
+        var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
+        
+        var applySafeHighlight = function(text, searchStr) {
+            if (!text || !searchStr) return text;
+            var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
+            if (terms.length === 0) return text;
+            var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+            var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
+            return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important; color: inherit;">$1</mark>');
+        };
+
+        var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
+        var highlightedHosp = applySafeHighlight(hospNameShow, smartSearchVal);
+        var highlightedPurpose = purposeShow; 
+
+        var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
+        var rawVid = String(v.Visit_ID || v.visit_id || '').trim();
+        var visitProds = (window._visitProdIndex) 
+                            ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || (v.Products_List ? v.Products_List.split(',') : [])) 
+                            : [];
+
+        var prodBadges = '';
+        if (visitProds.length > 0) {
+          visitProds.forEach(function(vp) {
+              var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
+              var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
+              var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
+              prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
+          });
+        } else {
+            prodBadges = '<span class="text-muted small">-</span>';
+        }
+     
+        var evidenceBadges = '';
+        if (v.Is_Coaching) {
+          evidenceBadges += ' <span class="badge badge-soft-info ms-1"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
+        }
+
+        if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
+          evidenceBadges += ' <span class="badge badge-soft-secondary ms-1"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
+        }
+
+        if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) {
+          evidenceBadges += ' <span class="badge badge-soft-success ms-1"><i class="fa-solid fa-signature text-success"></i></span>';
+        }
+
+        var sampleItems = (window._visitSampleIndex) ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid] || []) : [];
+        if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
+          evidenceBadges += ' <span class="badge badge-soft-warning ms-1"><i class="fa-solid fa-gifts text-warning"></i></span>';
+        }
+
+        htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
+          '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+          '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+          '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
+          '<td>' + prodBadges + '</td>' +
+          '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+          '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+          '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = htmlBuffer;
+    
+    if (typeof window.renderPaginationControls === 'function') {
+        window.renderPaginationControls(totalPages);
+    }
+
+    var searchInput = document.getElementById('smartSearchInput');
+    if (searchInput && document.activeElement !== searchInput) {
+        var cursorDocPos = searchInput.value.length;
+        if (searchInput.value.trim() !== '') {
+            searchInput.focus();
+            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
+        }
+    }
+};
+
+// 🛑 ไม้ตายสุดท้าย: สกัดกั้น URL # ด้วย Capture Phase (ดักทางก่อนที่ Browser จะขยับตัว)
+if (!window._urlHashKillerAttached) {
+    window.addEventListener('click', function(e) {
+        var targetA = e.target.closest('a');
+        if (targetA && targetA.getAttribute('href') === '#') {
+            e.preventDefault(); 
+        }
+    }, true); // <- ใช้ Capture Phase สั่งการก่อน Browser
+    window._urlHashKillerAttached = true;
+}
