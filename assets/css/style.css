@@ -776,60 +776,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   ✨ PREMIUM PAGINATION
-   ========================================== */
-#visitPaginationContainer,
-#doctorPaginationContainer {
-  margin-top: auto !important;
-  flex-shrink: 0 !important;
-}
-
-#visitRowsPerPage,
-#doctorRowsPerPage {
-  width: 70px !important;
-  min-width: 70px !important;
-  height: 32px !important;
-  min-height: 32px !important;
-  font-size: 0.85rem !important;
-  font-weight: 600 !important;
-  padding: 2px 20px 2px 8px !important;
-}
-
-.pagination {
-  gap: 5px;
-}
-.pagination .page-link {
-  border-radius: 8px !important;
-  border: 1px solid #dee2e6;
-  color: #475569;
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-  transition: all 0.2s ease;
-  min-width: 36px;
-  text-align: center;
-}
-.pagination .page-link:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.04);
-}
-.pagination .page-item.active .page-link {
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%) !important;
-  border-color: transparent !important;
-  color: white !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
-}
-.pagination .page-item.disabled .page-link {
-  background-color: #f1f5f9;
-  color: #94a3b8;
-  border-color: #e2e8f0;
-  box-shadow: none;
-  transform: none;
-}
-
-/* ==========================================
    ✨ PREMIUM SOFT BADGES
    ========================================== */
 .badge-soft-info {
@@ -1537,14 +1483,6 @@ button.feature-action-btn-lg.has-data-samples i {
 /* ==========================================
    🏥 DOCTOR MANAGEMENT & LIST ENGINE
    ========================================== */
-#doctorListView {
-  height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-}
-
 #doctorListView.is-loading #doctorMainContentContainer {
   display: none !important;
 }
@@ -1555,16 +1493,6 @@ button.feature-action-btn-lg.has-data-samples i {
 
 #doctorListView:not(.is-loading) #doctorTableLoading {
   display: none !important;
-}
-
-#doctorFilterZoneGroup,
-#visitFilterZoneGroup,
-.doctor-filter-group,
-.visit-filter-group {
-  flex: 0 0 auto !important;
-  height: auto !important;
-  min-height: min-content !important;
-  background-color: #ffffff !important;
 }
 
 #doctorListZone {
@@ -1591,11 +1519,6 @@ button.feature-action-btn-lg.has-data-samples i {
   height: 100% !important;
   min-height: 0 !important;
   overflow-y: auto !important;
-}
-
-#doctorPaginationContainer {
-  margin-top: auto !important;
-  flex-shrink: 0 !important;
 }
 
 .spa-page-view {
@@ -2211,6 +2134,7 @@ button.feature-action-btn-lg.has-data-samples i {
   margin: 2px !important; /* เพิ่มช่องไฟให้แท็กเวลาซ้อนกันหลายบรรทัด */
   white-space: nowrap !important;
 }
+
 /* 🌟 Evidence Soft Badges (ไอคอนพยานหลักฐาน สีพาสเทล) */
 .evidence-badge-group { 
   display: inline-flex; 
