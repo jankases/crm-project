@@ -1995,7 +1995,7 @@ window.goToPVisitPage = function(page) {
   window.filterAndRenderDoctorVisits();
 };
 
-  window.filterAndRenderDoctorVisits = function() {
+   window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -2116,7 +2116,7 @@ window.goToPVisitPage = function(page) {
     document.getElementById('pvisitPageInfo').innerText = appLang === 'en' ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries` : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // Master Data
+  // Master Data Lookups
   const usersList = window.globalUsersList || window.globalUsers || window.DocManagerCache.users || [];
   const terList = window.globalTerritoryList || window.globalTerritories || window.DocManagerCache.territories || [];
   const teamList = window.globalTeamList || window.globalTeams || window.DocManagerCache.teams || [];
@@ -2131,7 +2131,7 @@ window.goToPVisitPage = function(page) {
       dateStr = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
     }
 
-    // 🌟 ดึงข้อมูล User (uObj) ไว้ใช้งาน
+    // 🌟 ดึงข้อมูล User
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
     let uObj = null;
@@ -2142,52 +2142,52 @@ window.goToPVisitPage = function(page) {
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
-    let evidenceBadgesHtml = '<span class="evidence-badge-group">';
-    if (v.Is_Joint_Visit || v.Joint_Visit || v.Coaching) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`;
-    if (v.Has_Attachment || v.Attachments || v.Attachment_Count > 0) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-attachment" title="Attachment"><i class="fa-solid fa-paperclip"></i></span>`;
-    if (v.Has_Signature || v.Signature || v.Signature_URL) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-signature" title="Signature"><i class="fa-solid fa-signature"></i></span>`;
-    if (v.Has_Sample || v.Samples || v.Sample_Count > 0) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`;
-    evidenceBadgesHtml += '</span>';
+    // 🌟 Evidence Badges (แก้เช็คค่า True ให้รัดกุม)
+    let badges = [];
+    if (v.Is_Joint_Visit === true || v.Is_Joint_Visit === 'true' || v.Joint_Visit === true || v.Coaching === true || v.Is_Coaching === true) {
+      badges.push(`<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`);
+    }
+    if (v.Has_Attachment === true || v.Has_Attachment === 'true' || (v.Attachments && v.Attachments.length > 0) || Number(v.Attachment_Count) > 0) {
+      badges.push(`<span class="evidence-badge evidence-badge-attachment" title="Attachment"><i class="fa-solid fa-paperclip"></i></span>`);
+    }
+    if (v.Has_Signature === true || v.Has_Signature === 'true' || v.Signature || v.Signature_URL) {
+      badges.push(`<span class="evidence-badge evidence-badge-signature" title="Signature"><i class="fa-solid fa-signature"></i></span>`);
+    }
+    if (v.Has_Sample === true || v.Has_Sample === 'true' || (v.Samples && v.Samples.length > 0) || Number(v.Sample_Count) > 0) {
+      badges.push(`<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`);
+    }
+    let evidenceBadgesHtml = badges.length > 0 ? `<span class="evidence-badge-group ms-2">${badges.join('')}</span>` : '';
 
-    // 🌟 ค้นหา Territory ปกติ
+    // 🌟 ค้นหา Territory (Fallback BU_ID ให้แม่นยำขึ้น)
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
+    
     if (rawTerrId) {
       const targetId = String(rawTerrId).trim();
       const tObj = terList.find(t => String(t.Territory_ID || t.id) === targetId || String(t.Territory) === targetId);
-      if (tObj) {
-        terrNameShow = tObj.Territory || tObj.Territory_Name || targetId;
-      } else {
+      if (tObj) terrNameShow = tObj.Territory || tObj.Territory_Name || targetId;
+      else {
         const tmObj = teamList.find(t => String(t.Team_ID || t.id) === targetId || String(t.Team) === targetId);
         if (tmObj) terrNameShow = tmObj.Team || tmObj.Team_Name || targetId;
-        else {
-          const buObj = buList.find(b => String(b.BU_ID || b.bu_id || b.id) === targetId || String(b.BU) === targetId);
-          if (buObj) terrNameShow = buObj.BU || buObj.BU_Name || targetId;
-          else if (!targetId.includes('-')) terrNameShow = targetId;
-        }
       }
     }
 
-    // 🌟 ลอจิก Fallback: ดึงค่า BU จริงจาก buList มาแสดง
     if ((terrNameShow === '-' || !terrNameShow) && uObj) {
       const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
-      const uBuId = String(uObj.BU_ID || uObj.Business_Unit_ID || uObj.BU || '').trim();
-
-      // แมปหาชื่อ BU (LUNG, HEME, ฯลฯ)
-      let actualBuName = '';
-      if (uBuId) {
-        const foundBu = buList.find(b => String(b.BU_ID || b.id) === uBuId || String(b.BU) === uBuId);
-        if (foundBu) {
-          actualBuName = foundBu.BU || foundBu.BU_Name;
-        } else if (!uBuId.includes('-')) {
-          actualBuName = uBuId; // กรณีไม่ได้เป็น UUID
+      let actualBuName = String(uObj.BU || uObj.BU_Name || '').trim();
+      if (!actualBuName) {
+        const uBuId = String(uObj.BU_ID || uObj.Business_Unit_ID || '').trim();
+        if (uBuId) {
+          const foundBu = buList.find(b => String(b.BU_ID || b.id) === uBuId || String(b.BU) === uBuId);
+          if (foundBu) actualBuName = foundBu.BU || foundBu.BU_Name;
+          else if (!uBuId.includes('-')) actualBuName = uBuId;
         }
       }
 
-      if ((uRole.includes('BU') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR')) && actualBuName) {
-        terrNameShow = actualBuName; // โชว์ชื่อ LUNG หรือ HEME
+      if (actualBuName && (uRole.includes('BU') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR') || uRole.includes('ADMIN'))) {
+        terrNameShow = actualBuName; // แสดง LUNG / HEME
       } else if (uRole) {
-        terrNameShow = uRole; // โชว์ ADMIN, SALES ฯลฯ
+        terrNameShow = uRole; // แสดง Role ทั่วไป (เช่น ADMIN, SALES)
       } else if (actualBuName) {
         terrNameShow = actualBuName;
       }
@@ -2205,12 +2205,20 @@ window.goToPVisitPage = function(page) {
     }
 
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
+    
+    // 🌟 GPS Icon Logic (สีเทาเป็น Default ถ้ามีพิกัด, เขียว=ผ่าน, แดง=ตก)
     let gpsPinHtml = '';
-    if (v.GPS_Checkin || v.Latitude || v.GPS_Status) {
+    if (v.Latitude || v.Longitude || v.GPS_Checkin || v.GPS_Status) {
       const gpsStatus = String(v.GPS_Status || v.GPS_Checkin_Status || '').toLowerCase();
-      if (gpsStatus === 'verified' || gpsStatus === 'within_range' || v.Is_GPS_Valid) gpsPinHtml = `<i class="fa-solid fa-location-dot text-success ms-1"></i>`;
-      else if (gpsStatus === 'out_of_range' || v.Is_GPS_Valid === false) gpsPinHtml = `<i class="fa-solid fa-location-dot text-danger ms-1"></i>`;
-      else gpsPinHtml = `<i class="fa-solid fa-location-dot text-info ms-1"></i>`;
+      let gpsColor = 'text-secondary'; // สีเทา (เหมือนหน้า Visit)
+      
+      if (gpsStatus === 'verified' || gpsStatus === 'within_range' || v.Is_GPS_Valid === true) {
+        gpsColor = 'text-success'; // สีเขียว
+      } else if (gpsStatus === 'out_of_range' || v.Is_GPS_Valid === false) {
+        gpsColor = 'text-danger'; // สีแดง
+      }
+      
+      gpsPinHtml = `<i class="fa-solid fa-location-dot ${gpsColor} ms-2" title="GPS Location"></i>`;
     }
 
     const rawStatus = String(v.Status || 'Pending').trim();
@@ -2225,7 +2233,7 @@ window.goToPVisitPage = function(page) {
         <td class="fw-bold text-dark">${repNameShow} ${evidenceBadgesHtml}</td>
         <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
-        <td><small class="text-secondary fw-medium">${purposeShow} ${gpsPinHtml}</small></td>
+        <td><small class="text-secondary fw-medium">${purposeShow}</small> ${gpsPinHtml}</td>
         <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
       </tr>`;
   });
