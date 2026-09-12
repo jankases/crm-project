@@ -2193,15 +2193,13 @@ button.feature-action-btn-lg.has-data-samples i {
   border-bottom: none !important;
 }
 
-/* 🌟 คุม TomSelect ให้สูง 38px และห้ามยืดบรรทัด (Scroll แนวนอนแทนถ้าเลือกเยอะ) */
+/* 🌟 คุม TomSelect ให้ปล่อยยืดความสูงอัตโนมัติ (Auto-expand) ตามจำนวน Product ที่เลือก */
 .ts-compact-wrapper .ts-control {
   min-height: 38px !important;
-  max-height: 38px !important;
-  height: 38px !important;
-  overflow-y: hidden !important; 
-  overflow-x: auto !important; 
+  height: auto !important; /* ปล่อยให้ความสูงยืดตามเนื้อหา */
+  padding: 4px 6px !important;
   display: flex !important;
-  flex-wrap: nowrap !important; /* ห้ามตัดขึ้นบรรทัดใหม่ */
+  flex-wrap: wrap !important; /* ยอมให้แท็กปัดขึ้นบรรทัดใหม่ได้ */
   align-items: center !important;
   border-radius: 8px !important;
 }
@@ -2209,8 +2207,7 @@ button.feature-action-btn-lg.has-data-samples i {
 .ts-compact-wrapper .ts-control .item {
   display: inline-block !important;
   font-size: 0.8rem !important;
-  padding: 2px 6px !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  padding: 2px 8px !important;
+  margin: 2px !important; /* เพิ่มช่องไฟให้แท็กเวลาซ้อนกันหลายบรรทัด */
   white-space: nowrap !important;
 }
