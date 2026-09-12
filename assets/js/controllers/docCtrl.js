@@ -1919,10 +1919,24 @@ window.handleUpdateDoctor = async function(e) {
 // ==========================================
 // 📅 8. DOCTOR PROFILE VISIT HISTORY & TARGET CALL
 // ==========================================
-window.clearProfileVisitFilters = function() {
-  if (document.getElementById('filterProfileVisitStart')) document.getElementById('filterProfileVisitStart').value = '';
-  if (document.getElementById('filterProfileVisitEnd')) document.getElementById('filterProfileVisitEnd').value = '';
-  if (document.getElementById('filterProfileVisitProduct')) document.getElementById('filterProfileVisitProduct').value = '';
+ window.clearProfileVisitFilters = function() {
+  // 🌟 ล้างค่าปฏิทินแยกทั้ง 2 ช่องให้เกลี้ยง
+  const startInput = document.getElementById('filterProfileVisitStart');
+  const endInput = document.getElementById('filterProfileVisitEnd');
+
+  if (startInput && startInput._flatpickr) startInput._flatpickr.clear();
+  else if (startInput) startInput.value = '';
+
+  if (endInput && endInput._flatpickr) endInput._flatpickr.clear();
+  else if (endInput) endInput.value = '';
+
+  // ล้าง Product TomSelect
+  const prodSelect = document.getElementById('filterProfileVisitProduct');
+  if (prodSelect && prodSelect.tomselect) {
+    prodSelect.tomselect.clear(true); // true = ไม่ trigger onchange อัตโนมัติ
+  }
+
+  // โหลดตารางใหม่
   window.filterAndRenderDoctorVisits();
 };
 
@@ -1981,47 +1995,28 @@ window.goToPVisitPage = function(page) {
   window.filterAndRenderDoctorVisits();
 };
 
- window.filterAndRenderDoctorVisits = function() {
+  window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const targetDocId = window.currentTargetDocId; // ล็อกเป้าเฉพาะหมอที่เลือก
+  const targetDocId = window.currentTargetDocId || (document.getElementById('editDocId') ? document.getElementById('editDocId').value : '');
 
-  // 1. จัดการ Date Range (รองรับทั้งช่วงเวลา และการเลือกวันเดียว)
-  const dateRangeInput = document.getElementById('filterProfileVisitDateRange');
-  const dateRangeVal = dateRangeInput ? dateRangeInput.value : '';
+  // 1. อ่านค่าแยกจาก 2 ช่อง (Start & End)
+  const startStr = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
+  const endStr = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
   let startDateObj = null, endDateObj = null;
 
-  if (dateRangeVal) {
-    if (dateRangeVal.includes(' - ')) {
-      // 🌟 กรณีเลือกเป็นช่วง (Start - End)
-      const parts = dateRangeVal.split(' - ');
-      if (parts[0] && parts[0].trim()) {
-        const s = parts[0].trim().split('/');
-        if (s.length === 3) startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
-      }
-      if (parts[1] && parts[1].trim()) {
-        const e = parts[1].trim().split('/');
-        if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
-      }
-    } else {
-      // 🌟 กรณีคลิกเลือกแค่วันเดียว (Single Day)
-      const s = dateRangeVal.trim().split('/');
-      if (s.length === 3) {
-        startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
-        endDateObj = new Date(s[2], s[1] - 1, s[0], 23, 59, 59, 999);
-      }
-    }
-  } else {
-    // รองรับ Fallback (ถ้ามี)
-    const startDateTerm = document.getElementById('filterProfileVisitStart') ? document.getElementById('filterProfileVisitStart').value : '';
-    const endDateTerm = document.getElementById('filterProfileVisitEnd') ? document.getElementById('filterProfileVisitEnd').value : '';
-    if (startDateTerm) { startDateObj = new Date(startDateTerm); startDateObj.setHours(0, 0, 0, 0); }
-    if (endDateTerm) { endDateObj = new Date(endDateTerm); endDateObj.setHours(23, 59, 59, 999); }
+  if (startStr) {
+    const s = startStr.trim().split('/');
+    if (s.length === 3) startDateObj = new Date(s[2], s[1] - 1, s[0], 0, 0, 0);
+  }
+  if (endStr) {
+    const e = endStr.trim().split('/');
+    if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
   }
 
-  // 2. จัดการ Product Filter
+  // 2. อ่านค่า Product Filter
   const prodSelect = document.getElementById('filterProfileVisitProduct');
   let selectedProdIds = [];
   if (prodSelect && prodSelect.tomselect) {
@@ -2031,57 +2026,43 @@ window.goToPVisitPage = function(page) {
     selectedProdIds = prodSelect.value ? [prodSelect.value] : [];
   }
 
-  // 🌟 3. ลอจิกเช็คสิทธิ์ (ดึงมาจากโค้ดดั้งเดิมของคุณเป๊ะๆ)
+  // 🌟 3. ลอจิกสิทธิ์แบบหน้า Visit เป๊ะ (ปลดล็อกให้ BU)
   let crmUser = null;
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
   
   const myRepId = crmUser ? String(crmUser.Rep_ID || crmUser.id || crmUser.User_ID || '').trim() : '';
   const myRole = crmUser ? String(crmUser.Role || crmUser.role || '').toUpperCase().trim() : '';
-  const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.team_id || crmUser.Team || crmUser.Territory_ID || crmUser.territory_id || crmUser.Territory || '').toUpperCase().trim() : '';
+  const rawScope = crmUser ? String(crmUser.BU_ID || crmUser.Business_Unit_ID || crmUser.Team_ID || crmUser.Territory_ID || '').toUpperCase().trim() : '';
 
-  const adminRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'STAFF', 'DIRECTOR', 'PRODUCT MANAGER'];
-  
-  const isGlobalAdmin = (window.DocManagerCache && window.DocManagerCache.isGlobalViewer !== undefined)
-    ? window.DocManagerCache.isGlobalViewer
-    : (window.myIsGlobalViewer === true || adminRoles.includes(myRole) || rawScope === 'ALL');
-
-  const isSales = myRole === 'SALES' || myRole === 'REP' || myRole === 'SALES REP';
-  
-  const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds && window.DocManagerCache.myAllowedTerIds.length > 0)
-    ? window.DocManagerCache.myAllowedTerIds
-    : (window.myAllowedRepIds || []);
+  const powerRoles = ['ADMIN', 'EXECUTIVE', 'SYSTEM ADMIN', 'DIRECTOR', 'PRODUCT MANAGER', 'BU', 'BU HEAD', 'MANAGER'];
+  const isGlobalAdmin = window.myIsGlobalViewer === true || powerRoles.some(r => myRole.includes(r)) || rawScope === 'ALL';
+  const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) ? window.DocManagerCache.myAllowedTerIds : [];
 
   // 4. กรองข้อมูล (Filter Pipeline)
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
-    // 🛑 4.1 ข้อมูลต้องเป็นของหมอที่กำลังเปิดดูอยู่เท่านั้น!
+    // 🛑 4.1 บังคับเอาแค่หมอคนนี้
     if (String(v.Doc_ID) !== String(targetDocId)) return false;
 
-    // 🛑 4.2 เช็คสิทธิ์มองเห็น (อิงหน้า Visit เดิม 100%)
-    const vRepId = String(v.Rep_ID || v.rep_id || '').trim();
+    // 🛑 4.2 เช็คสิทธิ์
+    const vRepId = String(v.Rep_ID || v.rep_id || v.Whoupdated || '').trim();
     let hasAccess = false;
-
+    
     if (isGlobalAdmin) {
-      hasAccess = true;
-    } else if (isSales) {
-      hasAccess = (vRepId === myRepId);
+      hasAccess = true; // BU Head / Manager เห็นครบทุกคนที่มาเยี่ยมหมอคนนี้
     } else {
-      hasAccess = allowedReps.includes(vRepId) || (vRepId === myRepId);
+      hasAccess = (vRepId === myRepId) || (allowedReps.length > 0 && allowedReps.includes(vRepId));
     }
     
     if (!hasAccess) return false;
 
-    // 🛑 4.3 กรอง Date Range
-    if (startDateObj || endDateObj) {
-      const vDate = new Date(v.Visit_Date);
-      if (startDateObj && vDate < startDateObj) return false;
-      if (endDateObj && vDate > endDateObj) return false;
-    }
+    // 🛑 4.3 กรอง Date (แยกเช็ค Start และ End อิสระ)
+    const vDate = new Date(v.Visit_Date);
+    if (startDateObj && vDate < startDateObj) return false;
+    if (endDateObj && vDate > endDateObj) return false;
 
     // 🛑 4.4 กรอง Product
     if (selectedProdIds.length > 0) {
-      const visitProds = (window.globalCurrentDoctorVisitProducts || [])
-        .filter(vp => String(vp.Visit_ID) === String(v.Visit_ID))
-        .map(vp => String(vp.Product_ID));
+      const visitProds = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
       const hasProd = selectedProdIds.some(pId => pId && visitProds.includes(String(pId)));
       if (!hasProd) return false;
     }
@@ -2139,23 +2120,21 @@ window.goToPVisitPage = function(page) {
     document.getElementById('pvisitPageInfo').innerText = appLang === 'en' ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries` : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  // Master Data
-  const usersList = window.globalUsersList || window.globalUsers || (window.DocManagerCache && window.DocManagerCache.users) || [];
-  const terList = window.globalTerritoryList || window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
-  const teamList = window.globalTeamList || window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
-  const buList = window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || [];
-  const prodList = window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || window.globalTeamProducts || [];
+  // Master Data Loop (เหมือนเดิม)
+  const usersList = window.globalUsersList || window.globalUsers || window.DocManagerCache.users || [];
+  const terList = window.globalTerritoryList || window.globalTerritories || window.DocManagerCache.territories || [];
+  const teamList = window.globalTeamList || window.globalTeams || window.DocManagerCache.teams || [];
+  const buList = window.globalBUs || window.DocManagerCache.bus || [];
+  const prodList = window.globalProducts || window.DocManagerCache.products || [];
 
   let htmlBuffer = '';
   pageData.forEach(v => {
-    // Format วันที่
     let dateStr = '-';
     if (v.Visit_Date) {
       const dt = new Date(v.Visit_Date);
       dateStr = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
     }
 
-    // Rep Name
     const rawWho = v.Rep_ID || v.Whoupdated || v.whoupdated || '';
     let repNameShow = rawWho || '-';
     if (rawWho) {
@@ -2164,15 +2143,13 @@ window.goToPVisitPage = function(page) {
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
-    // Evidence Badges (Coaching, Attachment, Signature, Sample)
     let evidenceBadgesHtml = '<span class="evidence-badge-group">';
-    if (v.Is_Joint_Visit || v.Joint_Visit || v.Coaching || v.Is_Coaching) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`;
+    if (v.Is_Joint_Visit || v.Joint_Visit || v.Coaching) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`;
     if (v.Has_Attachment || v.Attachments || v.Attachment_Count > 0) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-attachment" title="Attachment"><i class="fa-solid fa-paperclip"></i></span>`;
     if (v.Has_Signature || v.Signature || v.Signature_URL) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-signature" title="Signature"><i class="fa-solid fa-signature"></i></span>`;
     if (v.Has_Sample || v.Samples || v.Sample_Count > 0) evidenceBadgesHtml += `<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`;
     evidenceBadgesHtml += '</span>';
 
-    // Territory
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
     if (rawTerrId) {
@@ -2192,7 +2169,6 @@ window.goToPVisitPage = function(page) {
     }
     const terrBadgeHtml = (terrNameShow !== '-') ? `<span class="badge bg-primary-subtle text-primary fw-bold border border-primary-subtle">${terrNameShow}</span>` : '-';
 
-    // Products
     const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID));
     let prodBadges = '-';
     if (matchedVps.length > 0) {
@@ -2202,7 +2178,6 @@ window.goToPVisitPage = function(page) {
       }).join('');
     }
 
-    // Purpose & GPS
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
     let gpsPinHtml = '';
     if (v.GPS_Checkin || v.Latitude || v.GPS_Status) {
@@ -2212,12 +2187,10 @@ window.goToPVisitPage = function(page) {
       else gpsPinHtml = `<i class="fa-solid fa-location-dot text-info ms-1"></i>`;
     }
 
-    // Status
     const rawStatus = String(v.Status || 'Pending').trim();
     let statusBadgeClass = rawStatus === 'Submitted' ? 'badge-soft-success' : (rawStatus === 'Draft' ? 'badge-soft-secondary' : 'badge-soft-pending');
     let statusShow = appLang === 'en' ? (rawStatus === 'Submitted' ? '✅ Submitted' : (rawStatus === 'Draft' ? '📝 Draft' : '⏳ Pending')) : (rawStatus === 'Submitted' ? '✅ ส่งแล้ว' : (rawStatus === 'Draft' ? '📝 ฉบับร่าง' : '⏳ รอส่ง'));
 
-    // HTML ROW
     htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">
@@ -2236,35 +2209,31 @@ window.goToPVisitPage = function(page) {
 };
 
  window.initProfileVisitDatePicker = function() {
-  const dateInput = document.getElementById('filterProfileVisitDateRange');
-  if (!dateInput) return;
+  const startInput = document.getElementById('filterProfileVisitStart');
+  const endInput = document.getElementById('filterProfileVisitEnd');
+  if (!startInput || !endInput) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const phText = (appLang === 'en') ? 'dd/mm/yyyy - dd/mm/yyyy' : 'วว/ดด/ปปปป - วว/ดด/ปปปป';
-  dateInput.placeholder = phText;
-
-  if (dateInput._flatpickr) {
-    dateInput._flatpickr.destroy();
+  let locConfig = "default";
+  if (appLang === 'th' && typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.th) {
+    locConfig = { ...flatpickr.l10ns.th };
   }
 
-  if (typeof flatpickr !== 'undefined') {
-    // 🌟 ดึง Locale และบังคับตัวคั่นให้เป็น " - " เหมือนหน้า Visit
-    let locConfig = (appLang === 'th' && flatpickr.l10ns && flatpickr.l10ns.th) ? { ...flatpickr.l10ns.th } : {};
-    locConfig.rangeSeparator = ' - ';
+  // เคลียร์ของเก่าทิ้งก่อน (ถ้ามี)
+  if (startInput._flatpickr) startInput._flatpickr.destroy();
+  if (endInput._flatpickr) endInput._flatpickr.destroy();
 
-    flatpickr(dateInput, {
-      mode: "range",
+  // สร้าง Flatpickr ให้ช่อง Start และ End แยกกัน
+  if (typeof flatpickr !== 'undefined') {
+    flatpickr(startInput, {
       dateFormat: "d/m/Y",
       locale: locConfig,
-      onChange: function(selectedDates, dateStr) {
-        const btnClear = document.getElementById('btnClearProfileVisitDate');
-        if (btnClear) {
-          if (dateStr) btnClear.classList.remove('d-none');
-          else btnClear.classList.add('d-none');
-        }
-        // เมื่อเลือกวันที่ (ทั้งวันเดียวและช่วงเวลา) ให้สั่งกรองข้อมูลทันที
-        window.filterAndRenderDoctorVisits();
-      }
+      onChange: function() { window.filterAndRenderDoctorVisits(); }
+    });
+    flatpickr(endInput, {
+      dateFormat: "d/m/Y",
+      locale: locConfig,
+      onChange: function() { window.filterAndRenderDoctorVisits(); }
     });
   }
 };
