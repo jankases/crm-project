@@ -2758,36 +2758,203 @@ window.debouncedFilterVisits = function() {
         if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
     }, 400);
 };
+// ==========================================
+// 📄 PAGINATION & TABLE RENDER ENGINE (CORE FIX)
+// ==========================================
 
-// 🎯 2. กลุ่มฟังก์ชันเปลี่ยนหน้าและจัดเรียงตาราง (ทำงานเบื้องหลังเช่นกัน)
-window.goToPage = function(page) {
-    var rows = parseInt(window.rowsPerPage) || 20;
-    var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
-    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
-    window.currentPage = page;
-    if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
-};
-
-window.changeRowsPerPage = function(e) {
-    // ป้องกัน Event งอแงดึง URL
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    
-    // บังคับอ่านค่าจาก Dropdown โดยตรง
+// 1. ฟังก์ชันเปลี่ยนจำนวนแถว (อัปเกรดให้อ่านค่าได้แม่นยำ)
+window.changeRowsPerPage = function() {
     var selectEl = document.getElementById('visitRowsPerPage');
     if (selectEl) {
         window.rowsPerPage = parseInt(selectEl.value) || 20;
     }
-    
-    window.currentPage = 1; // เปลี่ยนจำนวนแถว ต้องกลับไปหน้า 1 เสมอ
+    window.currentPage = 1; 
     
     var overlay = document.getElementById('tableLoadingOverlay');
     if (overlay) overlay.classList.remove('d-none');
     
-    // สั่งโหลดตารางใหม่แบบลื่นๆ
     if (typeof window.loadVisits === 'function') {
         window.loadVisits(true, true);
     }
 };
+
+// 2. ฟังก์ชันเปลี่ยนหน้า 
+window.goToPage = function(page, event) {
+    // บล็อก # ทันทีถ้ามีการส่ง Event มา
+    if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault(); 
+    }
+    
+    var rows = parseInt(window.rowsPerPage) || 20;
+    var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
+    if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+    
+    window.currentPage = page;
+    
+    var overlay = document.getElementById('tableLoadingOverlay');
+    if (overlay) overlay.classList.remove('d-none');
+    
+    if (typeof window.loadVisits === 'function') {
+        window.loadVisits(true, true);
+    }
+};
+
+// 3. ฟังก์ชันวาดตาราง (หั่นข้อมูล + ดัก URL อัตโนมัติ)
+window.renderVisitTableServerSide = function() {
+    var tbody = document.getElementById('visitTableBody');
+    if (!tbody) return;
+
+    var data = window.globalVisits || [];
+    var totalItems = window.totalVisitsCount || 0;
+    
+    // บังคับอัปเดต UI ของ Dropdown ให้ตรงกับตัวแปรเสมอ ป้องกันตารางลืมค่า
+    var selectEl = document.getElementById('visitRowsPerPage');
+    if (selectEl && selectEl.value != window.rowsPerPage) {
+        selectEl.value = window.rowsPerPage || 20;
+    }
+    
+    var rows = parseInt(window.rowsPerPage) || 20;
+    if (rows <= 0) rows = 20;
+    var totalPages = Math.ceil(totalItems / rows);
+    
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+
+    if (data.length === 0) {
+        if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
+        var msgNoData = appLang === 'en' ? 'No visit records found.' : 'ไม่พบข้อมูลบันทึกเยี่ยม';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
+        return;
+    }
+
+    if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
+
+    // 🌟 สกัดข้อมูลให้พอดีกับจำนวน Rows ที่ตั้งไว้ (แก้บั๊กแสดงล้น)
+    var pageData = data.length > rows ? data.slice(0, rows) : data;
+
+    var startIndex = ((window.currentPage - 1) * rows) + 1;
+    var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
+    var infoEl = document.getElementById('visitPageInfo');
+    if (infoEl) {
+        infoEl.innerText = appLang === 'en' 
+            ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
+            : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
+    }
+
+    var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
+    var htmlBuffer = '';
+
+    pageData.forEach(function(v) {
+        var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
+        var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
+        var statusShow = (v.Status === 'Submitted') ? (appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว') : (appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง');
+        if (isPendingUnlock) { badgeClass = 'badge-soft-secondary'; statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; }
+
+        var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : (v.Visit_Date || '-');
+        
+        var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
+        var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
+        var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
+        
+        var hospNameShow = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
+        var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
+        var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
+
+        var distanceBadge = '';
+        if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
+            var onClickAction = "event.stopPropagation(); window.openViewOnlyGpsModal(" + v.CheckIn_Lat + ", " + v.CheckIn_Long + ", '" + (v.CheckIn_Time || '') + "');";
+            if (hospLat && hospLng) {
+                var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
+                if (distKm !== null && distKm <= 0.5) {
+                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Check-in verified' : 'พิกัดถูกต้อง') + '"><i class="fa-solid fa-circle-check"></i></span>';
+                } else {
+                    distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + (appLang === 'en' ? 'Off-site' : 'ห่างจากจุดหมาย') + '"><i class="fa-solid fa-location-dot"></i></span>';
+                }
+            } else {
+                distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer"><i class="fa-solid fa-location-dot"></i></span>';
+            }
+        }
+
+        var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
+        
+        var applySafeHighlight = function(text, searchStr) {
+            if (!text || !searchStr) return text;
+            var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
+            if (terms.length === 0) return text;
+            var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+            var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
+            return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important;">$1</mark>');
+        };
+
+        var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
+        var highlightedHosp = applySafeHighlight(hospNameShow, smartSearchVal);
+        var highlightedPurpose = purposeShow; 
+
+        var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
+        var rawVid = String(v.Visit_ID || v.visit_id || '').trim();
+        var visitProds = (window._visitProdIndex) ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || []) : [];
+
+        var prodBadges = '';
+        if (visitProds.length > 0) {
+            visitProds.forEach(function(vp) {
+                var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
+                var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
+                var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
+                prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
+            });
+        } else {
+            prodBadges = '<span class="text-muted small">-</span>';
+        }
+     
+        var evidenceBadges = '';
+        if (v.Is_Coaching) evidenceBadges += ' <span class="badge badge-soft-info ms-1"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
+        if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') evidenceBadges += ' <span class="badge badge-soft-secondary ms-1"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
+        if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) evidenceBadges += ' <span class="badge badge-soft-success ms-1"><i class="fa-solid fa-signature text-success"></i></span>';
+
+        var sampleItems = (window._visitSampleIndex) ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid] || []) : [];
+        if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
+            evidenceBadges += ' <span class="badge badge-soft-warning ms-1"><i class="fa-solid fa-gifts text-warning"></i></span>';
+        }
+
+        htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
+            '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
+            '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
+            '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
+            '<td>' + prodBadges + '</td>' +
+            '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
+            '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
+            '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = htmlBuffer;
+    
+    if (typeof window.renderPaginationControls === 'function') {
+        window.renderPaginationControls(totalPages);
+    }
+
+    // 🛑 [THE FIX] สกัดกั้น Event คลิกเปลี่ยนหน้าทั้งหมด ไม่ให้เบราว์เซอร์ไปเปิด URL '#' เด็ดขาด
+    var pagContainer = document.getElementById('visitPagination');
+    if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
+        pagContainer.addEventListener('click', function(e) {
+            var link = e.target.closest('a');
+            // ถ้ากดโดนแท็ก <a> ที่เป็น href="#"
+            if (link && link.getAttribute('href') === '#') {
+                e.preventDefault(); // บล็อกการทำงานของ URL 100%
+            }
+        });
+        pagContainer.setAttribute('data-url-fixed', 'true');
+    }
+
+    var searchInput = document.getElementById('smartSearchInput');
+    if (searchInput && document.activeElement !== searchInput) {
+        var cursorDocPos = searchInput.value.length;
+        if (searchInput.value.trim() !== '') {
+            searchInput.focus();
+            searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
+        }
+    }
+};
+  
 
 window.sortVisits = function(col) {
     if (window.currentSortCol === col) window.currentSortAsc = !window.currentSortAsc; 
@@ -2852,190 +3019,7 @@ function matchedTerAndUnique(arr) {
     });
 }
 
- window.renderVisitTableServerSide = function() {
-  var tbody = document.getElementById('visitTableBody');
-  if (!tbody) return;
-
-  // 🌟 [FIX 1] บังคับดึงค่า Limit จาก Dropdown ป้องกันตารางลืมค่า
-  var selectEl = document.getElementById('visitRowsPerPage');
-  if (selectEl && selectEl.value) {
-      window.rowsPerPage = parseInt(selectEl.value);
-  }
-
-  var data = window.globalVisits || [];
-  var totalItems = window.totalVisitsCount || 0;
-  var rows = parseInt(window.rowsPerPage) || 20;
-  if (rows <= 0) rows = 20; 
-  var totalPages = Math.ceil(totalItems / rows);
-  
-  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-
-  if (data.length === 0) {
-      if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.add('d-none');
-      var msgNoData = appLang === 'en' ? 'No visit records found.' : 'ไม่พบข้อมูลบันทึกเยี่ยม';
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fs-3 mb-2 d-block text-muted"></i>' + msgNoData + '</td></tr>';
-      return;
-  }
-
-  if (document.getElementById('visitPaginationContainer')) document.getElementById('visitPaginationContainer').classList.remove('d-none');
-
-  // 🌟 [FIX 2] หั่นข้อมูล (Slice) เพื่อป้องกันตารางล้น
-  var pageData = data;
-  if (pageData.length > rows) {
-      pageData = pageData.slice(0, rows);
-  }
-
-  var startIndex = ((window.currentPage - 1) * rows) + 1;
-  var endIndex = Math.min(startIndex + pageData.length - 1, totalItems);
-  if (document.getElementById('visitPageInfo')) {
-      document.getElementById('visitPageInfo').innerText = appLang === 'en' 
-          ? 'Showing ' + startIndex + ' to ' + endIndex + ' of ' + totalItems + ' entries'
-          : 'แสดง ' + startIndex + ' ถึง ' + endIndex + ' จาก ' + totalItems + ' รายการ';
-  }
-
-  var smartSearchVal = document.getElementById('smartSearchInput') ? document.getElementById('smartSearchInput').value : '';
-  var htmlBuffer = '';
-
-  // ใช้ pageData แทน data เพื่อวาดตาราง
-  pageData.forEach(function(v) {
-    var isPendingUnlock = (window.globalPendingUnlockVisits || []).indexOf(v.Visit_ID) !== -1;
-    var badgeClass = (v.Status === 'Submitted') ? 'badge-soft-success' : 'badge-soft-pending';
-    
-    var statusShow = (v.Status === 'Submitted') 
-        ? (appLang === 'en' ? '✅ Submitted' : '✅ ส่งแล้ว') 
-        : (appLang === 'en' ? '⏳ Pending' : '⏳ รอส่ง');
-        
-    if (isPendingUnlock) { 
-        badgeClass = 'badge-soft-secondary'; 
-        statusShow = appLang === 'en' ? '⏳ Pending Unlock' : '⏳ รอปลดล็อก'; 
-    }
-
-    var dateShow = (typeof formatToDDMMYYYY === 'function') ? formatToDDMMYYYY(v.Visit_Date) : v.Visit_Date;
-    
-    var rawDocId = String(v.Doc_ID || v.doc_id || v.Doctor_ID || v.id || '').trim();
-    var docObj = v.Doctors || ((window._docIndex && rawDocId) ? (window._docIndex[rawDocId.toLowerCase()] || window._docIndex[rawDocId]) : null);
-    var docNameShow = (typeof window.getDoctorNameByLang === 'function') ? window.getDoctorNameByLang(docObj, rawDocId) : rawDocId;
-    
-    var hospNameShow = (typeof window.getHospitalNameFromDocOrVisit === 'function') ? window.getHospitalNameFromDocOrVisit(docObj, v) : '-';
-    var hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
-    var hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
-
-    var distanceBadge = '';
-    if (window.globalVisitConfigs && window.globalVisitConfigs.gps !== false && v.CheckIn_Lat && v.CheckIn_Long) {
-      var onClickAction = "event.stopPropagation(); window.openViewOnlyGpsModal(" + v.CheckIn_Lat + ", " + v.CheckIn_Long + ", '" + (v.CheckIn_Time || '') + "');";
-
-      if (hospLat && hospLng) {
-        var distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
-        if (distKm !== null && distKm <= 0.5) {
-          var ttCheckOk = appLang === 'en' ? 'Check-in verified (<500m)' : 'พิกัดถูกต้อง (<500ม.)';
-          distanceBadge = ' <span onclick="' + onClickAction + '" class="text-success ms-1 cursor-pointer" title="' + ttCheckOk + '"><i class="fa-solid fa-circle-check"></i></span>';
-        } else {
-          var distShow = distKm < 1 ? Math.round(distKm * 1000) + 'm' : distKm.toFixed(1) + 'km';
-          var ttCheckFar = appLang === 'en' ? 'Off-site: ' : 'ห่างจากจุดหมาย: ';
-          distanceBadge = ' <span onclick="' + onClickAction + '" class="text-danger ms-1 cursor-pointer" title="' + ttCheckFar + distShow + '"><i class="fa-solid fa-location-dot"></i></span>';
-        }
-      } else {
-        var ttMap = appLang === 'en' ? 'View Location' : 'ดูพิกัด';
-        distanceBadge = ' <span onclick="' + onClickAction + '" class="text-secondary opacity-75 ms-1 cursor-pointer" title="' + ttMap + '"><i class="fa-solid fa-location-dot"></i></span>';
-      }
-    }
-
-    var purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID || v.Purpose, v.Purpose) : (v.Purpose || '-'); 
-    
-    var applySafeHighlight = function(text, searchStr) {
-        if (!text || !searchStr) return text;
-        var terms = searchStr.trim().split(/\s+/).filter(function(t) { return t.length > 0; });
-        if (terms.length === 0) return text;
-        var escapedTerms = terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
-        var regex = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
-        return String(text).replace(regex, '<mark class="highlight-search p-0" style="background-color: #fef08a; padding: 0 !important; color: inherit;">$1</mark>');
-    };
-
-    var highlightedDoc = applySafeHighlight(docNameShow, smartSearchVal); 
-    var highlightedHosp = applySafeHighlight(hospNameShow, smartSearchVal);
-    var highlightedPurpose = purposeShow; 
-
-    var cleanVid = String(v.Visit_ID || v.visit_id || '').trim().toLowerCase();
-    var rawVid = String(v.Visit_ID || v.visit_id || '').trim();
-    var visitProds = (window._visitProdIndex) 
-                        ? (window._visitProdIndex[cleanVid] || window._visitProdIndex[rawVid] || (v.Products_List ? v.Products_List.split(',') : [])) 
-                        : [];
-
-    var prodBadges = '';
-    if (visitProds.length > 0) {
-      visitProds.forEach(function(vp) {
-          var rawPId = typeof vp === 'object' ? String(vp.Product_ID || vp.product_id || '').trim() : String(vp).trim();
-          var pObj = (window._prodIndex && rawPId) ? (window._prodIndex[rawPId.toLowerCase()] || window._prodIndex[rawPId]) : null;
-          var pName = pObj ? (pObj.Product || pObj.Product_TH) : rawPId;
-          prodBadges += '<span class="badge badge-soft-product me-1 mb-1">' + applySafeHighlight(pName, smartSearchVal) + '</span>';
-      });
-    } else {
-        prodBadges = '<span class="text-muted small">-</span>';
-    }
  
-    var evidenceBadges = '';
-    if (v.Is_Coaching) {
-      var coachingTooltip = appLang === 'en' ? 'Joint Visit / Coaching' : 'มีผู้จัดการออกเยี่ยมร่วม (Coaching)';
-      evidenceBadges += ' <span class="badge badge-soft-info ms-1" title="' + coachingTooltip + '"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
-    }
-
-    if (window.globalVisitConfigs && window.globalVisitConfigs.att !== false && v.Attachments && v.Attachments !== '[]' && v.Attachments !== '') {
-      var ttAttach = appLang === 'en' ? 'Has Attachments' : 'มีไฟล์แนบ';
-      evidenceBadges += ' <span class="badge badge-soft-secondary ms-1" title="' + ttAttach + '"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
-    }
-
-    if (window.globalVisitConfigs && window.globalVisitConfigs.sig !== false && v.Doctor_Signature) {
-      var ttSig = appLang === 'en' ? 'Doctor Signed' : 'แพทย์เซ็นชื่อแล้ว';
-      evidenceBadges += ' <span class="badge badge-soft-success ms-1" title="' + ttSig + '"><i class="fa-solid fa-signature text-success"></i></span>';
-    }
-
-    var sampleItems = (window._visitSampleIndex && (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid])) 
-                      ? (window._visitSampleIndex[cleanVid] || window._visitSampleIndex[rawVid]) 
-                      : (v.Visit_Samples || []);
-                      
-    if (window.globalVisitConfigs && window.globalVisitConfigs.samples !== false && sampleItems && sampleItems.length > 0) {
-      var ttSample = appLang === 'en' ? 'Has Samples / Promo Items' : 'มีการจ่ายสินค้าตัวอย่าง/ของแจก';
-      evidenceBadges += ' <span class="badge badge-soft-warning ms-1" title="' + ttSample + '"><i class="fa-solid fa-gifts text-warning"></i></span>';
-    }
-
-    htmlBuffer += '<tr onclick="window.openEditVisitView(\'' + v.Visit_ID + '\')" style="cursor: pointer;">' +
-      '<td class="text-center fw-bold"><a href="#" class="table-visit-link" onclick="event.stopPropagation(); window.openEditVisitView(\'' + v.Visit_ID + '\'); return false;">' + dateShow + '</a></td>' +
-      '<td class="text-start ps-3"><span class="table-doc-name">' + highlightedDoc + '</span>' + evidenceBadges + '</td>' +
-      '<td><span class="table-hosp-text"><i class="fa-solid fa-hospital me-1"></i><span>' + highlightedHosp + '</span></span>' + distanceBadge + '</td>' +
-      '<td>' + prodBadges + '</td>' +
-      '<td><small class="text-secondary">' + highlightedPurpose + '</small></td>' +
-      '<td class="text-center"><span class="badge ' + badgeClass + '">' + statusShow + '</span></td>' +
-      '<td class="text-center text-muted opacity-50 pe-3"><i class="fa-solid fa-chevron-right fs-6"></i></td>' +
-    '</tr>';
-  });
-
-  tbody.innerHTML = htmlBuffer;
-  if (typeof window.renderPaginationControls === 'function') {
-    window.renderPaginationControls(totalPages);
-  }
-
-  // 🌟 [FIX 3] บล็อก URL (#) ไม่ให้โผล่บน Address Bar ตอนกดเปลี่ยนหน้า Pagination
-  var pagContainer = document.getElementById('visitPagination');
-  if (pagContainer && !pagContainer.hasAttribute('data-url-fixed')) {
-      pagContainer.addEventListener('click', function(e) {
-          var link = e.target.closest('a');
-          // ถ้ากดโดนแท็ก <a> ที่เป็น href="#" หรือ href="" ให้สั่งหยุดทันที
-          if (link && (link.getAttribute('href') === '#' || link.getAttribute('href') === '')) {
-              e.preventDefault(); 
-          }
-      });
-      pagContainer.setAttribute('data-url-fixed', 'true');
-  }
-
-  var searchInput = document.getElementById('smartSearchInput');
-  if (searchInput && document.activeElement !== searchInput) {
-      var cursorDocPos = searchInput.value.length;
-      if (searchInput.value.trim() !== '') {
-          searchInput.focus();
-          searchInput.setSelectionRange(cursorDocPos, cursorDocPos);
-      }
-  }
-};
 
 // ==========================================
 // 📝 10. FORM ACTIONS
