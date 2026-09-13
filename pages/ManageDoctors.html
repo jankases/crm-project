@@ -614,41 +614,99 @@
         <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
         <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
           
-          <!-- 📌 FILTER ZONE & ACTION BAR (รวมปุ่ม Add Call ไว้ตรงนี้) -->
+          <!-- 📌 FILTER ZONE & ACTION BAR -->
           <div class="card p-2.5 px-3 border-0 shadow-sm visit-card mb-2.5 w-100 flex-shrink-0 mt-1" id="profileVisitFilterZone">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
               
               <!-- โซนตัวกรอง -->
               <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
                 
-                <!-- 🌟 1. Date Picker (ดีไซน์มาตรฐานเดียวกับหน้า Visit Logs) -->
+                <!-- 🌟 1. Date Picker (สี bg-light-subtle ไร้ขอบอึดอัด) -->
                 <div style="width: 280px; flex-shrink: 0;">
                   <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
                     <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
-                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium" id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                     <span class="text-muted px-1">-</span>
-                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center" id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                    <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium" id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                   </div>
                 </div>
 
-                <!-- 🌟 2. Product Multi-Select (คืนค่า ID และใส่ multiple ให้ JS กลับมาดึงข้อมูลตามสิทธิ์ได้) -->
-                <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;" class="ts-compact-wrapper">
-                  <!-- 🚨 ปล่อยให้ว่างไว้แบบนี้ JS จะเป็นคนวาด Option และแปลงร่างเป็น TomSelect ให้เองครับ -->
-                  <select id="filterProfileVisitProduct" onchange="window.filterAndRenderDoctorVisits()" multiple></select>
+                <!-- 🌟 2. Product Multi-Select (พร้อม CSS เวทมนตร์ ซ่อน Scrollbar) -->
+                <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;">
+                  <style>
+                    /* 🎯 บังคับแท็กเรียงแถวเดียว และซ่อน Scrollbar ทิ้ง 100% */
+                    #profileVisitFilterZone .ts-control {
+                        height: 38px !important;
+                        min-height: 38px !important;
+                        display: flex;
+                        align-items: center;
+                        flex-wrap: nowrap !important;
+                        overflow-x: auto !important; 
+                        overflow-y: hidden !important;
+                        -ms-overflow-style: none;  /* IE/Edge */
+                        scrollbar-width: none;  /* Firefox */
+                    }
+                    /* ซ่อน Scrollbar สำหรับ Chrome/Safari */
+                    #profileVisitFilterZone .ts-control::-webkit-scrollbar {
+                        display: none; 
+                    }
+                    #profileVisitFilterZone .ts-control > .item {
+                        white-space: nowrap;
+                        margin: 0 4px 0 0 !important;
+                    }
+                  </style>
+                  <select id="filterProfileVisitProduct" multiple></select>
                 </div>
               </div>
 
-              <!-- โซนปุ่ม Action (ดีไซน์มาตรฐานเดียวกับปุ่ม Clear ของหน้า Doctors) -->
+              <!-- โซนปุ่ม Action -->
               <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
-                <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
+                <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
                   <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
                 </button>
+                <!-- 🌟 3. ปุ่ม Add New Visit (เปลี่ยนชื่อและขนาดให้เท่ามาตรฐาน) -->
                 <button type="button" class="btn btn-premium-primary premium-radius px-3 shadow-sm d-flex align-items-center" onclick="window.goToQuickAddCall()" style="height: 38px;">
-                  <i class="fa-solid fa-plus me-1.5"></i> <span class="fw-bold fs-6" data-i18n="btn_add_call">Add Call</span>
+                  <i class="fa-solid fa-plus me-1.5"></i> <span class="fw-bold fs-6" data-i18n="btn_add_visit">Add New Visit</span>
                 </button>
               </div>
 
             </div>
+          </div>
+
+          <!-- 🚀 SCRIPT: ปลุกเสก TomSelect ดึงข้อมูลสินค้าตามสิทธิ์ -->
+          <script>
+            setTimeout(function() {
+                var prodSelect = document.getElementById('filterProfileVisitProduct');
+                if (prodSelect && window.globalProductsList) {
+                    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+                    var phText = appLang === 'en' ? '- All Products -' : '- ผลิตภัณฑ์ทั้งหมด -';
+                    
+                    // สร้างตัวเลือกตามสิทธิ์ (Data Permission)
+                    var html = '';
+                    window.globalProductsList.forEach(function(p) {
+                        var pName = p.Product || p.Product_TH || p.Product_ID;
+                        html += '<option value="' + p.Product_ID + '">' + pName + '</option>';
+                    });
+                    prodSelect.innerHTML = html;
+
+                    // แปลงร่างเป็น TomSelect
+                    if (typeof TomSelect !== 'undefined') {
+                        if (window.tomSelectProfileVisitProd) window.tomSelectProfileVisitProd.destroy();
+                        window.tomSelectProfileVisitProd = new TomSelect('#filterProfileVisitProduct', {
+                            plugins: ['remove_button'],
+                            create: false,
+                            placeholder: phText,
+                            dropdownParent: 'body',
+                            onChange: function() {
+                                if (typeof window.filterAndRenderDoctorVisits === 'function') {
+                                    window.filterAndRenderDoctorVisits();
+                                }
+                            }
+                        });
+                    }
+                }
+            }, 1000); // รอให้ระบบโหลด Master Data เสร็จก่อน 1 วินาทีแล้วค่อยวาด
+          </script>
           </div>
           
           <!-- 📌 TABLE CONTAINER -->
