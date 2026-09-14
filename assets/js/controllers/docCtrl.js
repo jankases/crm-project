@@ -2117,13 +2117,12 @@ window.filterAndRenderDoctorVisits = function() {
     document.getElementById('pvisitPageInfo').innerText = appLang === 'en' ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries` : `แสดง ${startIndex + 1} ถึง ${endIndex} จาก ${totalItems} รายการ`;
   }
 
-  const usersList = window.globalUsersList || window.globalUsers || window.DocManagerCache.users || [];
-  const terList = window.globalTerritoryList || window.globalTerritories || window.DocManagerCache.territories || [];
-  const teamList = window.globalTeamList || window.globalTeams || window.DocManagerCache.teams || [];
-  const buList = window.globalBUs || window.DocManagerCache.bus || [];
-  const prodList = window.globalProducts || window.DocManagerCache.products || [];
+  const usersList = window.globalUsersList || window.globalUsers || (window.DocManagerCache && window.DocManagerCache.users) || [];
+  const terList = window.globalTerritoryList || window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
+  const teamList = window.globalTeamList || window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
+  const buList = window.globalBuList || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || []; // Use globalBuList from visit as fallback
+  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || []; // Support globalProductsList
 
-  // 🌟 ฟังก์ชันตัวช่วยสแกนค่าความจริงทุกรูปแบบ (true, 1, 'Yes', 'true')
   const isTrueVal = (val) => {
     if (val === true || val === 1) return true;
     if (typeof val === 'string') {
@@ -2151,63 +2150,73 @@ window.filterAndRenderDoctorVisits = function() {
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
-    // 🌟 Evidence Badges (กวาดหาเงื่อนไขแบบครอบจักรวาล)
-    let badges = [];
+    // 🌟 FIX 2: Evidence Badges (โคลนนิ่ง UI ให้เหมือนหน้า Visit Logs แบบ 100%)
+    let evidenceBadgesHtml = '';
     
-    // 1. Coaching
-    if (isTrueVal(v.Is_Joint_Visit) || isTrueVal(v.Joint_Visit) || isTrueVal(v.Coaching) || isTrueVal(v.Is_Coaching)) {
-      badges.push(`<span class="evidence-badge evidence-badge-coaching" title="Joint Visit / Coaching"><i class="fa-solid fa-id-badge"></i></span>`);
+    if (v.Is_Coaching || isTrueVal(v.Is_Joint_Visit) || isTrueVal(v.Joint_Visit) || isTrueVal(v.Coaching)) {
+      evidenceBadgesHtml += ' <span class="badge badge-soft-info ms-1" title="Coaching / Joint Visit"><i class="fa-solid fa-clipboard-user text-info"></i></span>';
     }
-    // 2. Attachment
+    
     const hasAttData = v.Attachments && String(v.Attachments).trim() !== 'null' && String(v.Attachments).trim() !== '[]' && String(v.Attachments).trim() !== '';
     if (isTrueVal(v.Has_Attachment) || parseInt(v.Attachment_Count) > 0 || hasAttData) {
-      badges.push(`<span class="evidence-badge evidence-badge-attachment" title="Attachment"><i class="fa-solid fa-paperclip"></i></span>`);
-    }
-    // 3. Signature
-    const hasSigData = v.Signature && String(v.Signature).trim() !== 'null' && String(v.Signature).trim() !== '';
-    const hasSigUrl = v.Signature_URL && String(v.Signature_URL).trim() !== 'null' && String(v.Signature_URL).trim() !== '';
-    if (isTrueVal(v.Has_Signature) || isTrueVal(v.Is_Signed) || hasSigData || hasSigUrl) {
-      badges.push(`<span class="evidence-badge evidence-badge-signature" title="Signature"><i class="fa-solid fa-signature"></i></span>`);
-    }
-    // 4. Sample
-    const hasSamData = v.Samples && String(v.Samples).trim() !== 'null' && String(v.Samples).trim() !== '[]' && String(v.Samples).trim() !== '';
-    if (isTrueVal(v.Has_Sample) || isTrueVal(v.Is_Sample) || parseInt(v.Sample_Count) > 0 || hasSamData) {
-      badges.push(`<span class="evidence-badge evidence-badge-sample" title="Sample Given"><i class="fa-solid fa-gift"></i></span>`);
+      evidenceBadgesHtml += ' <span class="badge badge-soft-secondary ms-1" title="Attachment"><i class="fa-solid fa-paperclip text-secondary"></i></span>';
     }
     
-    let evidenceBadgesHtml = badges.length > 0 ? `<span class="evidence-badge-group ms-2">${badges.join('')}</span>` : '';
+    const hasSigData = (v.Signature || v.Doctor_Signature) && String(v.Signature || v.Doctor_Signature).trim() !== 'null' && String(v.Signature || v.Doctor_Signature).trim() !== '';
+    const hasSigUrl = v.Signature_URL && String(v.Signature_URL).trim() !== 'null' && String(v.Signature_URL).trim() !== '';
+    if (isTrueVal(v.Has_Signature) || isTrueVal(v.Is_Signed) || hasSigData || hasSigUrl) {
+      evidenceBadgesHtml += ' <span class="badge badge-soft-success ms-1" title="Signature"><i class="fa-solid fa-signature text-success"></i></span>';
+    }
+    
+    const hasSamData = v.Samples && String(v.Samples).trim() !== 'null' && String(v.Samples).trim() !== '[]' && String(v.Samples).trim() !== '';
+    const cleanVid = String(v.Visit_ID || '').trim().toLowerCase();
+    const sampleItems = (window._visitSampleIndex) ? window._visitSampleIndex[cleanVid] : [];
+    if (isTrueVal(v.Has_Sample) || isTrueVal(v.Is_Sample) || parseInt(v.Sample_Count) > 0 || hasSamData || (sampleItems && sampleItems.length > 0)) {
+      evidenceBadgesHtml += ' <span class="badge badge-soft-warning ms-1" title="Sample Given"><i class="fa-solid fa-gifts text-warning"></i></span>';
+    }
 
+    // 🌟 FIX 1: Territory Resolution (ไล่หาจาก Territory -> Team -> BU ให้ครบเหมือนหน้าหลัก)
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
     
     if (rawTerrId) {
       const targetId = String(rawTerrId).trim();
-      const tObj = terList.find(t => String(t.Territory_ID || t.id) === targetId || String(t.Territory) === targetId);
-      if (tObj) terrNameShow = tObj.Territory || tObj.Territory_Name || targetId;
-      else {
+      terrNameShow = targetId;
+      if (terList && terList.length > 0) {
+        const tObj = terList.find(t => String(t.Territory_ID || t.id) === targetId || String(t.Territory) === targetId);
+        if (tObj) terrNameShow = tObj.Territory || tObj.Territory_Name || targetId;
+      }
+      if (terrNameShow === targetId && teamList && teamList.length > 0) {
         const tmObj = teamList.find(t => String(t.Team_ID || t.id) === targetId || String(t.Team) === targetId);
         if (tmObj) terrNameShow = tmObj.Team || tmObj.Team_Name || targetId;
       }
+      if (terrNameShow === targetId && buList && buList.length > 0) {
+        const buObj = buList.find(b => String(b.BU_ID || b.id) === targetId || String(b.BU) === targetId);
+        // 🎯 บังคับดึงค่าจากคอลัมน์ BU มาแสดงเป๊ะๆ (เช่น LUNG)
+        if (buObj) terrNameShow = buObj.BU; 
+      }
     }
 
-    if ((terrNameShow === '-' || !terrNameShow) && uObj) {
+    // Fallback หากค้นหาไม่เจอ ให้ดึงตำแหน่งหรือ BU จาก Profile คนกดมาแสดง
+    if ((terrNameShow === '-' || !terrNameShow || terrNameShow === rawTerrId) && uObj) {
       const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
-      const uBuId = String(uObj.BU_ID || uObj.bu_id || uObj.Business_Unit_ID || uObj.BU || v.BU_ID || v.bu_id || v.BU || '').trim();
+      const uBuId = String(uObj.BU_ID || uObj.bu_id || uObj.Business_Unit_ID || uObj.BU || '').trim();
 
       let actualBuName = '';
       if (uBuId) {
         const foundBu = buList.find(b => String(b.BU_ID || b.id).toLowerCase() === uBuId.toLowerCase() || String(b.BU).toLowerCase() === uBuId.toLowerCase());
         if (foundBu) {
-          actualBuName = foundBu.BU || foundBu.BU_Name;
+          actualBuName = foundBu.BU; // 🎯 บังคับดึงคอลัมน์ BU
         } else if (!uBuId.includes('-')) {
           actualBuName = uBuId; 
         }
       }
 
-      if (actualBuName && (uRole.includes('BU') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR') || uRole.includes('ADMIN'))) {
+      // 🎯 ถ้าเป็นระดับบริหาร ให้แสดงชื่อ BU ไปเลย (เช่น LUNG) แทนที่จะโชว์ชื่อ Role (BU HEAD)
+      if (actualBuName && (uRole.includes('BU') || uRole.includes('HEAD') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR') || uRole.includes('ADMIN'))) {
         terrNameShow = actualBuName;
       } else if (uRole) {
-        terrNameShow = uRole;
+        terrNameShow = uRole; // ค่อยโชว์ Role เป็นตัวเลือกสุดท้าย
       } else if (actualBuName) {
         terrNameShow = actualBuName;
       }
@@ -2220,28 +2229,31 @@ window.filterAndRenderDoctorVisits = function() {
     if (matchedVps.length > 0) {
       prodBadges = matchedVps.map(vp => {
         const pObj = prodList.find(p => String(p.Product_ID || p.id).toLowerCase() === String(vp.Product_ID).toLowerCase());
-        return `<span class="badge badge-soft-product me-1 mb-1">${pObj ? (pObj.Product || pObj.Product_Name) : vp.Product_ID}</span>`;
+        return `<span class="badge badge-soft-product me-1 mb-1">${pObj ? (pObj.Product || pObj.Product_Name || pObj.Product_TH) : vp.Product_ID}</span>`;
       }).join('');
     }
 
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
     
-    // 🌟 GPS Icon (กวาดหาเงื่อนไขแบบครอบจักรวาล)
-    let gpsPinHtml = '';
-    const gpsStatusRaw = v.GPS_Status || v.GPS_Checkin_Status || v.gps_status || '';
-    const hasLatLong = (v.Latitude && String(v.Latitude).trim() !== '') || (v.Longitude && String(v.Longitude).trim() !== '');
-    const hasValidFlag = (v.Is_GPS_Valid !== undefined && v.Is_GPS_Valid !== null);
-
-    if (hasLatLong || gpsStatusRaw || hasValidFlag || v.GPS_Checkin || isTrueVal(v.GPS_Checkin)) {
-      let gpsColor = 'text-secondary'; 
-      const gStatLower = String(gpsStatusRaw).toLowerCase().trim();
-      
-      if (gStatLower === 'verified' || gStatLower === 'within_range' || isTrueVal(v.Is_GPS_Valid)) {
-        gpsColor = 'text-success'; 
-      } else if (gStatLower === 'out_of_range' || (hasValidFlag && !isTrueVal(v.Is_GPS_Valid))) {
-        gpsColor = 'text-danger'; 
-      }
-      gpsPinHtml = `<i class="fa-solid fa-location-dot ${gpsColor} ms-2" title="GPS Location"></i>`;
+    // 🌟 FIX 3: GPS Icon & Clickable Modal (คำนวณระยะทางเทียบกับพิกัดโรงพยาบาลหมอ)
+    let distanceBadge = '';
+    if (v.CheckIn_Lat && v.CheckIn_Long) {
+        const onClickAction = `event.stopPropagation(); if(typeof window.openViewOnlyGpsModal === 'function') window.openViewOnlyGpsModal(${v.CheckIn_Lat}, ${v.CheckIn_Long}, '${v.CheckIn_Time || ''}');`;
+        
+        const docObj = v.Doctors || ((window._docIndex && targetDocId) ? (window._docIndex[targetDocId.toLowerCase()] || window._docIndex[targetDocId]) : null);
+        const hospLat = docObj ? (docObj.Hospital_Lat || docObj.Lat || docObj.latitude) : null;
+        const hospLng = docObj ? (docObj.Hospital_Long || docObj.Lng || docObj.longitude) : null;
+        
+        if (hospLat && hospLng && typeof window.calculateDistanceKm === 'function') {
+            const distKm = window.calculateDistanceKm(parseFloat(hospLat), parseFloat(hospLng), parseFloat(v.CheckIn_Lat), parseFloat(v.CheckIn_Long));
+            if (distKm !== null && distKm <= 0.5) {
+                distanceBadge = ` <span onclick="${onClickAction}" class="text-success ms-1 cursor-pointer" title="${appLang === 'en' ? 'Check-in verified' : 'พิกัดถูกต้อง'}"><i class="fa-solid fa-circle-check"></i></span>`;
+            } else {
+                distanceBadge = ` <span onclick="${onClickAction}" class="text-danger ms-1 cursor-pointer" title="${appLang === 'en' ? 'Off-site' : 'ห่างจากจุดหมาย'}"><i class="fa-solid fa-location-dot"></i></span>`;
+            }
+        } else {
+            distanceBadge = ` <span onclick="${onClickAction}" class="text-secondary opacity-75 ms-1 cursor-pointer" title="Location Saved"><i class="fa-solid fa-location-dot"></i></span>`;
+        }
     }
 
     const rawStatus = String(v.Status || 'Pending').trim();
@@ -2253,10 +2265,11 @@ window.filterAndRenderDoctorVisits = function() {
         <td class="text-center fw-bold">
           <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
         </td>
-        <td class="fw-bold text-dark">${repNameShow} ${evidenceBadgesHtml}</td>
+        <!-- 🌟 จัดให้ชื่อ User ชิดซ้าย พร้อม Badges ต่อท้ายสวยงาม -->
+        <td class="fw-bold text-dark text-start ps-3">${repNameShow}${evidenceBadgesHtml}</td>
         <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
-        <td><small class="text-secondary fw-medium">${purposeShow}</small> ${gpsPinHtml}</td>
+        <td><small class="text-secondary fw-medium">${purposeShow}</small>${distanceBadge}</td>
         <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
       </tr>`;
   });
