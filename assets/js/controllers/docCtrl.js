@@ -76,7 +76,6 @@ window.safeTranslate = function(key, fallbackText) {
   return fallbackText;
 };
 
-// 🌟 Lookup Tables สำหรับ Title, Specialty และ DoctorType
 window._titleIndex = window._titleIndex || {};
 window._specialtyIndex = window._specialtyIndex || {};
 window._docTypeIndex = window._docTypeIndex || {};
@@ -120,7 +119,6 @@ window.getTitleText = function(titleId, fallbackText) {
   return (appLang === 'en') ? (tObj.Value1 || tObj.Value || '-') : (tObj.Value || tObj.Value1 || '-');
 };
 
-// 🌟 ดึงข้อความ Specialty ตามภาษา (EN = Value1, TH = Value)
 window.getSpecialtyText = function(specId, fallbackText) {
   if (!specId) return fallbackText || '-';
   if (Object.keys(window._specialtyIndex || {}).length === 0) window.buildDocIndexes();
@@ -140,7 +138,6 @@ window.getSpecialtyText = function(specId, fallbackText) {
   return (appLang === 'en') ? (obj.Value1 || obj.Value || '-') : (obj.Value || obj.Value1 || '-');
 };
 
-// 🌟 ดึงข้อความ DoctorType ตามภาษา (EN = Value1, TH = Value)
 window.getDoctorTypeText = function(typeId, fallbackText) {
   if (!typeId) return fallbackText || '-';
   if (Object.keys(window._docTypeIndex || {}).length === 0) window.buildDocIndexes();
@@ -179,11 +176,9 @@ window.getHospitalNameByLang = function(hospObj) {
   }
 };
 
-// ตัวแปรสำหรับจำหน้าก่อนหน้า (Default เป็นหน้า List)
 window.previousDoctorView = 'doctorListView';
 
 window.switchDoctorView = function(viewId) {
-  // 1. ถ้ากำลังจะเปลี่ยนไปหน้า Add หรือ Edit ให้แอบจำหน้าปัจจุบันไว้ก่อน (ถ้าไม่ใช่หน้า Add/Edit เอง)
   const currentView = ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].find(v => {
     const el = document.getElementById(v);
     return el && !el.classList.contains('d-none');
@@ -193,7 +188,6 @@ window.switchDoctorView = function(viewId) {
     window.previousDoctorView = currentView;
   }
 
-  // 2. สลับ View ตามเดิม
   ['doctorListView', 'doctorAddView', 'doctorEditView', 'doctorProfileView'].forEach(v => { 
     const el = document.getElementById(v); 
     if (el) el.classList.add('d-none'); 
@@ -202,7 +196,6 @@ window.switchDoctorView = function(viewId) {
   const target = document.getElementById(viewId); 
   if (target) target.classList.remove('d-none');
 
-  // 3. ถ้าสั่งย้อนกลับไปหน้า Profile (เช่น ตอนกด Cancel) บังคับให้เปิดแท็บ General Info เสมอ
   if (viewId === 'doctorProfileView') {
     const infoTabBtn = document.getElementById('tab-btn-info');
     if (infoTabBtn && typeof window.switchDoctorProfileTab === 'function') {
@@ -213,12 +206,10 @@ window.switchDoctorView = function(viewId) {
   window.scrollTo(0, 0); 
 };
 
-// 1. ฟังก์ชันหลักสำหรับย้อนกลับไปยังหน้าที่จำไว้
 window.cancelDoctorForm = function() {
   window.switchDoctorView(window.previousDoctorView || 'doctorListView');
 };
 
-// 2. Alias สำหรับปุ่ม Cancel ใน HTML ที่เรียก cancelEditDoctor()
 window.cancelEditDoctor = function() {
   window.cancelDoctorForm();
 };
@@ -1781,15 +1772,25 @@ window.sortDoctorVisits = function(col) {
   try {
     const sb = window.supabaseClient || window.supabase;
     
-    const [visitRes, vpRes] = await Promise.all([
-      sb.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false }),
-      sb.from('Visit_Products').select('*')
-    ]);
-
+    // 🌟 FIX: โหลดประวัติของหมอคนนี้มาก่อน
+    const visitRes = await sb.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false });
     if (visitRes.error) throw visitRes.error;
     
-    window.globalCurrentDoctorVisits = visitRes.data || [];
-    window.globalCurrentDoctorVisitProducts = vpRes.data || [];
+    const visits = visitRes.data || [];
+    const vIds = visits.map(v => v.Visit_ID).filter(id => id);
+
+    // 🌟 FIX: เอา Visit_ID ไปดึง Product ให้ตรงเป๊ะๆ เพื่อแก้ปัญหาทะลุ Limit ของ Database
+    let vpData = [];
+    if (vIds.length > 0) {
+        for(let i = 0; i < vIds.length; i += 100) {
+            const chunk = vIds.slice(i, i + 100);
+            const vpRes = await sb.from('Visit_Products').select('*').in('Visit_ID', chunk);
+            if (vpRes.data) vpData = vpData.concat(vpRes.data);
+        }
+    }
+    
+    window.globalCurrentDoctorVisits = visits;
+    window.globalCurrentDoctorVisitProducts = vpData;
 
     if (typeof window.renderProfileVisitProductDropdown === 'function') {
       window.renderProfileVisitProductDropdown();
@@ -1816,7 +1817,6 @@ window.changePVisitRowsPerPage = function() {
   window.filterAndRenderDoctorVisits();
 };
  
-// 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Filter Product ถอนรากถอนโคน)
 window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
@@ -1837,7 +1837,6 @@ window.filterAndRenderDoctorVisits = function() {
     if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
   }
 
-  // 🌟 LOGIC ใหม่: ดึงค่า Product ให้เป็น Array เสมอและรับประกันความถูกต้อง
   let selectedProdIds = [];
   const prodSelect = document.getElementById('filterProfileVisitProduct');
   
@@ -1869,8 +1868,6 @@ window.filterAndRenderDoctorVisits = function() {
   const isGlobalAdmin = window.myIsGlobalViewer === true || powerRoles.some(r => myRole.includes(r)) || rawScope === 'ALL';
   const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) ? window.DocManagerCache.myAllowedTerIds : [];
 
-  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || [];
-
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
     if (String(v.Doc_ID).toLowerCase() !== String(targetDocId).toLowerCase()) return false;
 
@@ -1889,13 +1886,15 @@ window.filterAndRenderDoctorVisits = function() {
     if (startDateObj && vDate < startDateObj) return false;
     if (endDateObj && vDate > endDateObj) return false;
 
-    // 🌟 LOGIC ใหม่: กรอง Product แบบ Strict Match ชน UUID เป๊ะๆ ตัดการค้นหาชื่อเผื่อทิ้ง
     if (selectedProdIds.length > 0) {
       const cleanVid = String(v.Visit_ID || '').trim().toLowerCase();
+      
       const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID).trim().toLowerCase() === cleanVid);
       const visitProdIds = matchedVps.map(vp => String(vp.Product_ID).trim().toLowerCase());
       
+      // 🌟 FIX: จับชน UUID แบบตรงๆ ห้ามเดาเอาจากชื่อเด็ดขาด
       const hasProd = selectedProdIds.some(pId => visitProdIds.includes(pId));
+
       if (!hasProd) return false;
     }
 
@@ -1956,6 +1955,7 @@ window.filterAndRenderDoctorVisits = function() {
   const terList = window.globalTerritoryList || window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
   const teamList = window.globalTeamList || window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
   const buList = window.globalBuList || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || [];
+  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || [];
 
   const isTrueVal = (val) => {
     if (val === true || val === 1) return true;
@@ -2161,6 +2161,7 @@ window.filterAndRenderDoctorVisits = function() {
   }
 };
 
+// 🌟 FIX: ผูก Event onChange กลับเข้าไปใน TomSelect ทุกครั้งที่มีการสร้างใหม่
 window.renderProfileVisitProductDropdown = function() {
   const selectEl = document.getElementById('filterProfileVisitProduct');
   if (!selectEl) return;
@@ -2180,19 +2181,25 @@ window.renderProfileVisitProductDropdown = function() {
   });
 
   if (selectEl.tomselect) {
-    const curVal = selectEl.tomselect.getValue();
     selectEl.tomselect.destroy();
-    selectEl.innerHTML = html;
-    
-    window.initMultiTomSelect('filterProfileVisitProduct', placeholderText);
-    if (curVal && curVal.length > 0) {
-      selectEl.tomselect.setValue(curVal, true);
-    } else {
-      selectEl.tomselect.clear(true);
-    }
-  } else {
-    selectEl.innerHTML = html;
-    window.initMultiTomSelect('filterProfileVisitProduct', placeholderText);
+  }
+  selectEl.innerHTML = html;
+  
+  if (typeof TomSelect !== 'undefined') {
+    window.tomSelectProfileVisitProd = new TomSelect('#filterProfileVisitProduct', { 
+        plugins: ['remove_button'],
+        create: false, 
+        searchField: ["text"],
+        sortField: { field: "text", direction: "asc" }, 
+        placeholder: placeholderText, 
+        allowEmptyOption: true,
+        controlClass: 'ts-control form-control bg-white premium-radius border shadow-none d-flex align-items-center',
+        onChange: function() {
+            if (typeof window.filterAndRenderDoctorVisits === 'function') {
+                window.filterAndRenderDoctorVisits();
+            }
+        }
+    });
   }
 };
 
