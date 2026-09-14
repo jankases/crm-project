@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer + Evidence Badges + Table Borders 🌟 -->
+<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer + Evidence Badges 🌟 -->
 <style>
   .doc-module-wrapper {
     height: 100% !important;
@@ -22,14 +22,6 @@
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
-  }
-
-  /* 🌟 ปรับเส้นขอบตาราง (Row Border) ให้บางและสีอ่อนเหมือนหน้า Visit Logs หลัก */
-  .doc-module-wrapper .table > tbody > tr > td {
-      border-bottom: 1px solid #f1f5f9 !important;
-  }
-  .doc-module-wrapper .table > thead > tr > th {
-      border-bottom: 2px solid #e2e8f0 !important;
   }
 
   /* 🌟 Footer สเปกโปร่ง สัดส่วนและปุ่มเท่า Visit Module */
@@ -81,8 +73,16 @@
   .evidence-badge-signature { background-color: #dcfce7; color: #16a34a; }
   .evidence-badge-sample { background-color: #fef3c7; color: #d97706; }
 
+  /* 🌟 ปรับเส้นขอบตาราง (Row Border) ให้บางและสีอ่อนเหมือนหน้า Visit Logs หลัก */
+  .doc-module-wrapper .table > tbody > tr > td {
+      border-bottom: 1px solid #f1f5f9 !important;
+  }
+  .doc-module-wrapper .table > thead > tr > th {
+      border-bottom: 2px solid #e2e8f0 !important;
+  }
+
   /* ========================================================= */
-  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) */
+  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - สมบูรณ์แบบ 100% */
   /* ========================================================= */
   @media (min-width: 1200px) {
     .doc-content-form { overflow: hidden !important; }
@@ -96,7 +96,7 @@
   }
 
   /* ========================================================= */
-  /* 📱 2. IPAD ARCHITECTURE (< 1200px) */
+  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - ไถได้สมูท + Footer ตรึงล่าง */
   /* ========================================================= */
   @media (max-width: 1199.98px) {
     #doctorAddView, #doctorEditView, #doctorProfileView {
@@ -140,30 +140,17 @@
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 doc-view-container">
 
-   <!-- 📌 HEADER -->
-    <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
-      <div class="d-flex align-items-center flex-wrap gap-2">
-        <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
-          <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
-        </button>
-        <!-- 🌟 FIX 1: ถอด data-i18n ออก เพื่อป้องกันสคริปต์แปลภาษามาทับชื่อหมอจนหายไป -->
-        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h5>
-        <div id="profileDcrStatusBadge" class="ms-1"></div>
+    <!-- HEADER (มีแค่ปุ่ม Add New Doctor กับ Refresh เท่านั้น) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-3 gap-3 flex-shrink-0">
+      <div class="d-flex align-items-center">
+        <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
       </div>
-      
-      <!-- 🌟 โซนปุ่มมุมขวาบน (ล็อกความสูง 36px เท่ากันหมดทุกปุ่ม) -->
-      <div class="d-flex align-items-center gap-2">
-        <!-- 🌟 FIX 2: ใส่ Fallback content ให้อยู่ทรงตั้งแต่ยังไม่โหลด ป้องกันการหดตัวเป็นวงกลมเปล่า -->
-        <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 rounded-pill shadow-xs" style="height: 36px;">
-          <i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">Active</span>
-        </div>
-        
-        <button type="button" class="btn btn-sm btn-outline-primary bg-white shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)" style="height: 36px;">
-          <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-premium-icon" onclick="window.forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
+          <i class="fa-solid fa-arrows-rotate fs-6"></i>
         </button>
-        
-        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" onclick="window.goToQuickAddCall()" style="height: 36px;">
-          <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
+        <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddDoctorView()">
+          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
         </button>
       </div>
     </div>
@@ -498,28 +485,34 @@
   <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
   <div id="doctorProfileView" class="d-none w-100 p-2 p-md-3 doc-view-container">
 
-    <!-- 📌 HEADER -->
+    <!-- 📌 HEADER ของหน้า Profile หมอ (ปุ่มทั้งหมดต้องมาอยู่ตรงนี้เท่านั้น!) -->
     <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
       <div class="d-flex align-items-center flex-wrap gap-2">
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
           <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
+        <!-- 🌟 FIX: ถอด data-i18n ออก เพื่อป้องกันสคริปต์แปลภาษาทับชื่อหมอ -->
+        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-1"></div>
       </div>
+      
       <div class="d-flex align-items-center gap-2">
-        <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;"></div>
-        <button type="button" class="btn btn-sm btn-outline-primary bg-white shadow-sm fw-bold px-3 py-1.5 rounded-3" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+        <!-- 🌟 FIX: ใส่ค่า Fallback เป็น Active เสมอกันการหดตัวเป็นวงกลมเปล่า -->
+        <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 rounded-pill shadow-xs" style="height: 36px;">
+          <i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">Active</span>
+        </div>
+        
+        <button type="button" class="btn btn-sm btn-outline-primary bg-white shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)" style="height: 36px;">
           <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
         </button>
-        <!-- 🌟 ย้ายปุ่ม Add New Visit มาไว้ตรงมุมขวาบนสุด (Global Action) -->
-        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3" onclick="window.goToQuickAddCall()">
+        
+        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" onclick="window.goToQuickAddCall()" style="height: 36px;">
           <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
 
-    <!-- 📌 TABS HEADER -->
+    <!-- 📌 TABS HEADER (ลด Margin ลงเพื่อให้ชิดกับ Filter ด้านล่าง) -->
     <div class="card p-2 px-3 mb-2 border-0 shadow-sm rounded-4 flex-shrink-0">
       <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
         <li class="nav-item"><button type="button" class="nav-link active py-2" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')"><i class="fa-solid fa-address-card me-1.5"></i> <span data-i18n="tab_general_info">General Info</span></button></li>
@@ -635,7 +628,7 @@
         </div>
       </div>
 
-      <!-- 🌟 TAB 2: History -->
+      <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
 
         <!-- 📌 FILTER ZONE & ACTION BAR -->
@@ -644,7 +637,7 @@
           <!-- โซนตัวกรองฝั่งซ้าย -->
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
 
-            <!-- 🌟 1. Date Picker -->
+            <!-- 🌟 1. Date Picker (สี bg-light-subtle ไร้ขอบอึดอัด) -->
             <div style="width: 280px; flex-shrink: 0;">
               <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
                 <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
@@ -657,7 +650,9 @@
             <!-- 🌟 2. Product Multi-Select -->
             <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;">
               <style>
-                #profileVisitFilterZone .ts-wrapper { height: 38px !important; }
+                #profileVisitFilterZone .ts-wrapper {
+                    height: 38px !important;
+                }
                 #profileVisitFilterZone .ts-control {
                     height: 38px !important;
                     min-height: 38px !important;
@@ -670,11 +665,16 @@
                     flex-wrap: nowrap !important;
                     overflow-x: auto !important; 
                     overflow-y: hidden !important;
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
+                    -ms-overflow-style: none;  /* IE/Edge */
+                    scrollbar-width: none;  /* Firefox */
                 }
-                #profileVisitFilterZone .ts-control::-webkit-scrollbar { display: none; }
-                #profileVisitFilterZone .ts-control > .item { white-space: nowrap; margin: 0 4px 0 0 !important; }
+                #profileVisitFilterZone .ts-control::-webkit-scrollbar {
+                    display: none; 
+                }
+                #profileVisitFilterZone .ts-control > .item {
+                    white-space: nowrap;
+                    margin: 0 4px 0 0 !important;
+                }
               </style>
               <select id="filterProfileVisitProduct" multiple></select>
             </div>
@@ -685,12 +685,12 @@
             <button class="btn btn-sm btn-light border shadow-sm text-secondary fw-semibold px-3 py-1.5 rounded-3 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
               <i class="fa-solid fa-eraser me-1.5 text-danger"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
             </button>
-            <!-- 🌟 ปุ่ม Add New Visit ถูกย้ายไปอยู่ข้างบนแล้ว -->
+            <!-- 🌟 ปุ่ม Add New Visit ถูกย้ายไปอยู่ข้างบนแล้ว จึงไม่ต้องมีตรงนี้อีก -->
           </div>
 
         </div>
 
-        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect -->
+        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect ดึงข้อมูลสินค้าตามสิทธิ์แบบรอโหลดเสร็จชัวร์ๆ -->
         <script>
           function initProfileProductFilter() {
               var prodSelect = document.getElementById('filterProfileVisitProduct');
