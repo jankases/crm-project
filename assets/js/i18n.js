@@ -234,7 +234,13 @@ const i18nDictionary = {
     ph_visit_insight: "Key feedback or doctor insights...",
     ph_visit_next_action: "Next follow-up plan or action items...",
     status_loading: "Loading Data...",
-    status_loading_desc: "Processing your access rights and retrieving records."
+    status_loading_desc: "Processing your access rights and retrieving records.",
+
+    lbl_target_frequency: "Target Call Frequency",
+    opt_freq_month: "Per Month",
+    opt_freq_quarter: "Per Quarter",
+    opt_freq_cycle: "Per Cycle",
+    opt_freq_year: "Per Year"
   },
 
   th: {
@@ -468,7 +474,13 @@ const i18nDictionary = {
     ph_visit_insight: "ระบุข้อคิดเห็นเพิ่มเติมหรือข้อมูลเชิงลึกจากแพทย์...",
     ph_visit_next_action: "ระบุแผนการติดตามผลหรือการดำเนินการถัดไป...",
     status_loading: "กำลังโหลดข้อมูล...",
-    status_loading_desc: "กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ"
+    status_loading_desc: "กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ",
+
+    lbl_target_frequency: "ความถี่ของ Target Call",
+    opt_freq_month: "ต่อเดือน",
+    opt_freq_quarter: "ต่อไตรมาส",
+    opt_freq_cycle: "ต่อรอบการทำงาน",
+    opt_freq_year: "ต่อปี"
   }
 };
 
