@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 
-<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer + Evidence Badges 🌟 -->
+<!-- 🌟 [FINAL PERFECT CSS]: ปลดล็อก Scrollbar iPad + Docked Footer + Evidence Badges + Table Borders 🌟 -->
 <style>
   .doc-module-wrapper {
     height: 100% !important;
@@ -22,6 +22,14 @@
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
+  }
+
+  /* 🌟 ปรับเส้นขอบตาราง (Row Border) ให้บางและสีอ่อนเหมือนหน้า Visit Logs หลัก */
+  .doc-module-wrapper .table > tbody > tr > td {
+      border-bottom: 1px solid #f1f5f9 !important;
+  }
+  .doc-module-wrapper .table > thead > tr > th {
+      border-bottom: 2px solid #e2e8f0 !important;
   }
 
   /* 🌟 Footer สเปกโปร่ง สัดส่วนและปุ่มเท่า Visit Module */
@@ -74,7 +82,7 @@
   .evidence-badge-sample { background-color: #fef3c7; color: #d97706; }
 
   /* ========================================================= */
-  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) - สมบูรณ์แบบ 100% */
+  /* 💻 1. DESKTOP ARCHITECTURE (>= 1200px) */
   /* ========================================================= */
   @media (min-width: 1200px) {
     .doc-content-form { overflow: hidden !important; }
@@ -88,7 +96,7 @@
   }
 
   /* ========================================================= */
-  /* 📱 2. IPAD ARCHITECTURE (< 1200px) - ไถได้สมูท + Footer ตรึงล่าง */
+  /* 📱 2. IPAD ARCHITECTURE (< 1200px) */
   /* ========================================================= */
   @media (max-width: 1199.98px) {
     #doctorAddView, #doctorEditView, #doctorProfileView {
@@ -121,14 +129,6 @@
       z-index: 1000 !important;
       width: 100% !important;
     }
-  }
-
-  /* 🌟 ปรับเส้นขอบตาราง (Row Border) ให้บางและสีอ่อนเหมือนหน้า Visit Logs หลัก */
-  .doc-module-wrapper .table > tbody > tr > td {
-      border-bottom: 1px solid #f1f5f9 !important; /* สีเทาอ่อนจางๆ (SaaS standard) */
-  }
-  .doc-module-wrapper .table > thead > tr > th {
-      border-bottom: 2px solid #e2e8f0 !important; /* เส้นใต้ Header ให้ชัดขึ้นนิดนึง */
   }
 </style>
 
@@ -496,13 +496,17 @@
       </div>
       <div class="d-flex align-items-center gap-2">
         <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-xs" style="height: 36px;"></div>
-        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
+        <button type="button" class="btn btn-sm btn-outline-primary bg-white shadow-sm fw-bold px-3 py-1.5 rounded-3" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)">
           <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+        </button>
+        <!-- 🌟 ย้ายปุ่ม Add New Visit มาไว้ตรงมุมขวาบนสุด (Global Action) -->
+        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3" onclick="window.goToQuickAddCall()">
+          <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
 
-    <!-- 📌 TABS HEADER (ลด Margin ลงเพื่อให้ชิดกับ Filter ด้านล่าง) -->
+    <!-- 📌 TABS HEADER -->
     <div class="card p-2 px-3 mb-2 border-0 shadow-sm rounded-4 flex-shrink-0">
       <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
         <li class="nav-item"><button type="button" class="nav-link active py-2" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')"><i class="fa-solid fa-address-card me-1.5"></i> <span data-i18n="tab_general_info">General Info</span></button></li>
@@ -618,7 +622,7 @@
         </div>
       </div>
 
-      <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
+      <!-- 🌟 TAB 2: History -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
 
         <!-- 📌 FILTER ZONE & ACTION BAR -->
@@ -627,7 +631,7 @@
           <!-- โซนตัวกรองฝั่งซ้าย -->
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
 
-            <!-- 🌟 1. Date Picker (สี bg-light-subtle ไร้ขอบอึดอัด) -->
+            <!-- 🌟 1. Date Picker -->
             <div style="width: 280px; flex-shrink: 0;">
               <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
                 <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
@@ -637,13 +641,10 @@
               </div>
             </div>
 
-            <!-- 🌟 2. Product Multi-Select (แก้ไอคอนซ้อน & โหลดตามสิทธิ์ชัวร์ 100%) -->
+            <!-- 🌟 2. Product Multi-Select -->
             <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;">
               <style>
-                /* 🎯 บังคับให้พื้นหลัง TomSelect โปร่งใส กลืนไปกับ bg-light-subtle และซ่อน Scrollbar */
-                #profileVisitFilterZone .ts-wrapper {
-                    height: 38px !important;
-                }
+                #profileVisitFilterZone .ts-wrapper { height: 38px !important; }
                 #profileVisitFilterZone .ts-control {
                     height: 38px !important;
                     min-height: 38px !important;
@@ -656,19 +657,12 @@
                     flex-wrap: nowrap !important;
                     overflow-x: auto !important; 
                     overflow-y: hidden !important;
-                    -ms-overflow-style: none;  /* IE/Edge */
-                    scrollbar-width: none;  /* Firefox */
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
                 }
-                /* ซ่อน Scrollbar สำหรับ Chrome/Safari */
-                #profileVisitFilterZone .ts-control::-webkit-scrollbar {
-                    display: none; 
-                }
-                #profileVisitFilterZone .ts-control > .item {
-                    white-space: nowrap;
-                    margin: 0 4px 0 0 !important;
-                }
+                #profileVisitFilterZone .ts-control::-webkit-scrollbar { display: none; }
+                #profileVisitFilterZone .ts-control > .item { white-space: nowrap; margin: 0 4px 0 0 !important; }
               </style>
-              <!-- เอา input-group และไอคอน fa-capsules ออก เพื่อไม่ให้ซ้อนกับ TomSelect -->
               <select id="filterProfileVisitProduct" multiple></select>
             </div>
           </div>
@@ -678,22 +672,17 @@
             <button class="btn btn-sm btn-light border shadow-sm text-secondary fw-semibold px-3 py-1.5 rounded-3 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
               <i class="fa-solid fa-eraser me-1.5 text-danger"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
             </button>
-            <!-- 🌟 3. ปุ่ม Add New Visit (เปลี่ยนชื่อและลดขนาดให้เท่ามาตรฐาน) -->
-            <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 py-1.5 rounded-3 d-flex align-items-center" onclick="window.goToQuickAddCall()" style="height: 38px;">
-              <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
-            </button>
+            <!-- 🌟 ปุ่ม Add New Visit ถูกย้ายไปอยู่ข้างบนแล้ว -->
           </div>
 
         </div>
 
-        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect ดึงข้อมูลสินค้าตามสิทธิ์แบบรอโหลดเสร็จชัวร์ๆ -->
+        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect -->
         <script>
           function initProfileProductFilter() {
               var prodSelect = document.getElementById('filterProfileVisitProduct');
-              // เช็คว่าโหลด Products ตามสิทธิ์เสร็จหรือยัง
               if (prodSelect && window.globalProductsList && window.globalProductsList.length > 0) {
                   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-                  // เติมไอคอนแคปซูลเข้าไปใน Placeholder แทน เพื่อไม่ให้ซ้อน
                   var phText = appLang === 'en' ? '💊 - All Products -' : '💊 - ผลิตภัณฑ์ทั้งหมด -';
                   
                   var html = '';
@@ -718,11 +707,9 @@
                       });
                   }
               } else {
-                  // ถ้าข้อมูลสิทธิ์ยังมาไม่ถึง ให้วนลูปเช็คใหม่ทุก 0.5 วินาที
                   setTimeout(initProfileProductFilter, 500);
               }
           }
-          // สั่งเริ่มทำงานทันที
           initProfileProductFilter();
         </script>
 
@@ -890,5 +877,5 @@
                 }
             }, true);
         }
-    }, 1000); // หน่วงเวลา 1 วินาที ให้แน่ใจว่าไปทับไฟล์เก่ามิดชัวร์ๆ
+    }, 1000); 
 </script>
