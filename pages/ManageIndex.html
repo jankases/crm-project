@@ -255,7 +255,7 @@
     <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
       <div class="d-flex flex-column gap-3">
         
-        <!-- Target Call Access --> 
+        <!-- Target Call Access -->
         <div class="drawer-setting-box" style="border-left: 3.5px solid #f59e0b !important;">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-2 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
@@ -264,31 +264,31 @@
               <span class="slider-modern"></span>
             </label>
           </div>
-          <small class="text-secondary fw-semibold d-block mb-2.5" id="ratingStatusLabel" style="font-size: 0.72rem;">Status: Loading...</small>
+          <small class="text-secondary fw-semibold d-block mb-3" id="ratingStatusLabel" style="font-size: 0.72rem;">Status: Loading...</small>
           
-          <!-- 🌟 เพิ่ม Dropdown เลือกความถี่ Target Call -->
-          <div class="mb-2.5">
-            <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">Target Call Frequency</label>
-            <select class="form-select form-select-sm px-2 text-secondary fw-bold border-warning-subtle" id="ratingFrequency" style="height: 30px; font-size: 0.75rem;">
-              <option value="Per Month">Per Month (ต่อเดือน)</option>
-              <option value="Per Quarter">Per Quarter (ต่อไตรมาส)</option>
-              <option value="Per Cycle" selected>Per Cycle (ต่อรอบการทำงาน)</option>
-              <option value="Per Year">Per Year (ต่อปี)</option>
+          <!-- 🌟 เพิ่ม Dropdown เลือกความถี่ Target Call (ปรับช่องไฟและเพิ่ม i18n) -->
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_target_frequency">Target Call Frequency</label>
+            <select class="form-select form-select-sm px-2 text-secondary fw-bold border-warning-subtle shadow-xs" id="ratingFrequency" style="height: 32px; font-size: 0.75rem;">
+              <option value="Per Month" data-i18n="opt_freq_month">Per Month (ต่อเดือน)</option>
+              <option value="Per Quarter" data-i18n="opt_freq_quarter">Per Quarter (ต่อไตรมาส)</option>
+              <option value="Per Cycle" selected data-i18n="opt_freq_cycle">Per Cycle (ต่อรอบการทำงาน)</option>
+              <option value="Per Year" data-i18n="opt_freq_year">Per Year (ต่อปี)</option>
             </select>
           </div>
 
-          <div class="row g-2 mb-2.5">
+          <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_start_date">Start Date</label>
-              <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingStartDate" style="height: 30px; font-size: 0.75rem;">
+              <input type="date" class="form-control form-control-sm px-2 text-secondary shadow-xs" id="ratingStartDate" style="height: 32px; font-size: 0.75rem;">
             </div>
             <div class="col-6">
               <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_end_date">End Date</label>
-              <input type="date" class="form-control form-control-sm px-2 text-secondary" id="ratingEndDate" style="height: 30px; font-size: 0.75rem;">
+              <input type="date" class="form-control form-control-sm px-2 text-secondary shadow-xs" id="ratingEndDate" style="height: 32px; font-size: 0.75rem;">
             </div>
           </div>
 
-          <button class="btn btn-premium-primary w-100 fw-bold py-1.5" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="font-size: 0.8rem;">
+          <button class="btn btn-premium-primary w-100 fw-bold py-1.5 mt-1" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="font-size: 0.8rem;">
             <i class="fa-solid fa-save me-1.5"></i><span data-i18n="btn_save_target_call">Save Target Call Config</span>
           </button>
         </div>
