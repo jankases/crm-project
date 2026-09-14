@@ -16,11 +16,51 @@ window.indexTypeModalInstance = null;
 window.indexModalInstance = null;
 window.globalSystemSettings = [];
 
+// 🌟 1. ตัวแปรเก็บ Instance ของ Flatpickr
+window.ratingStartPicker = null;
+window.ratingEndPicker = null;
+
+// 🌟 2. ฟังก์ชันปลุกเสก Flatpickr (รูปแบบ dd/mm/yyyy)
+window.initSettingsDatePickers = function() {
+    var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
+    var locConfig = "default";
+    if (appLang === 'th' && typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.th) {
+        locConfig = { ...flatpickr.l10ns.th };
+    }
+
+    if (typeof flatpickr !== 'undefined') {
+        window.ratingStartPicker = flatpickr("#ratingStartDate", {
+            dateFormat: "Y-m-d", 
+            altInput: true,
+            altFormat: "d/m/Y", 
+            locale: locConfig,
+            onChange: function() { window.toggleRatingSystem(); }
+        });
+        window.ratingEndPicker = flatpickr("#ratingEndDate", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            locale: locConfig,
+            onChange: function() { window.toggleRatingSystem(); }
+        });
+    }
+};
+
+// 🌟 3. ฟังก์ชันปุ่มล้างวันที่ (Reset)
+window.clearRatingDates = function() {
+    if (window.ratingStartPicker) window.ratingStartPicker.clear();
+    if (window.ratingEndPicker) window.ratingEndPicker.clear();
+    window.toggleRatingSystem();
+};
+
 window.initIndexPage = function() {
     var typeModalEl = document.getElementById('indexTypeModal');
     var indexModalEl = document.getElementById('indexModal');
     if (typeModalEl && typeof bootstrap !== 'undefined') window.indexTypeModalInstance = new bootstrap.Modal(typeModalEl);
     if (indexModalEl && typeof bootstrap !== 'undefined') window.indexModalInstance = new bootstrap.Modal(indexModalEl);
+
+    // 🌟 4. เรียกปลุกเสกปฏิทิน
+    if (typeof window.initSettingsDatePickers === 'function') window.initSettingsDatePickers();
 
     if (typeof window.loadSystemSettings === 'function') window.loadSystemSettings(); 
     if (typeof window.loadAllIndexData === 'function') window.loadAllIndexData();
@@ -57,20 +97,30 @@ window.loadSystemSettings = async function() {
     
     window.globalSystemSettings = data || [];
     const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
-    const freqConfig = window.globalSystemSettings.find(s => s.Type === 'Target_Frequency'); // 🌟 ดึงค่า Frequency
+    const freqConfig = window.globalSystemSettings.find(s => s.Type === 'Target_Frequency'); 
     
     const switchEl = document.getElementById('ratingToggleSwitch');
     const startEl = document.getElementById('ratingStartDate');
     const endEl = document.getElementById('ratingEndDate');
-    const freqEl = document.getElementById('ratingFrequency'); // 🌟 กล่อง Dropdown
+    const freqEl = document.getElementById('ratingFrequency'); 
     
     if (freqEl && freqConfig && freqConfig.Value) {
         freqEl.value = freqConfig.Value;
     }
 
     if (ratingConfig) {
-      if (startEl) startEl.value = ratingConfig.Start || '';
-      if (endEl) endEl.value = ratingConfig.End || '';
+      // 🌟 5. ใช้ setDate ของ Flatpickr เพื่อให้ปฏิทินแสดงค่าจาก Database
+      if (window.ratingStartPicker && ratingConfig.Start) {
+          window.ratingStartPicker.setDate(ratingConfig.Start);
+      } else if (startEl) {
+          startEl.value = ratingConfig.Start || '';
+      }
+      
+      if (window.ratingEndPicker && ratingConfig.End) {
+          window.ratingEndPicker.setDate(ratingConfig.End);
+      } else if (endEl) {
+          endEl.value = ratingConfig.End || '';
+      }
       
       if (ratingConfig.Status === false) {
           if (switchEl) switchEl.checked = false;
@@ -146,7 +196,7 @@ window.toggleRatingSystem = function() {
   }
 };
 
- window.saveSystemSettings = async function() {
+window.saveSystemSettings = async function() {
   const btn = document.getElementById('btnSaveSysSettings');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
@@ -154,7 +204,7 @@ window.toggleRatingSystem = function() {
   const startVal = document.getElementById('ratingStartDate') ? document.getElementById('ratingStartDate').value : '';
   const endVal = document.getElementById('ratingEndDate') ? document.getElementById('ratingEndDate').value : '';
   const isStatusActive = document.getElementById('ratingToggleSwitch') ? document.getElementById('ratingToggleSwitch').checked : false; 
-  const freqVal = document.getElementById('ratingFrequency') ? document.getElementById('ratingFrequency').value : 'Per Cycle'; // 🌟 ดึงค่าจากหน้าจอ
+  const freqVal = document.getElementById('ratingFrequency') ? document.getElementById('ratingFrequency').value : 'Per Cycle'; 
   
   let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
   const updaterEmail = crmUser ? crmUser.Email : "Unknown";
@@ -164,7 +214,6 @@ window.toggleRatingSystem = function() {
       Whoupdated: updaterEmail, Whenupdated: new Date().toISOString()
   };
 
-  // 🌟 Payload แยกสำหรับบันทึก Frequency
   const payloadFreq = {
       Type: 'Target_Frequency', Value: freqVal,
       Whoupdated: updaterEmail, Whenupdated: new Date().toISOString()
@@ -173,7 +222,6 @@ window.toggleRatingSystem = function() {
   try {
       if (!navigator.onLine) throw new Error("OFFLINE_MODE");
 
-      // 1. บันทึก Rating (เปิด/ปิด, วันที่)
       const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
       if (ratingConfig) {
           const { error } = await supabaseClient.from('System_Settings').update(payloadRating).eq('Type', 'Rating');
@@ -183,7 +231,6 @@ window.toggleRatingSystem = function() {
           if (error) throw error;
       }
 
-      // 2. 🌟 บันทึก Target_Frequency (Per Cycle, Per Month, ฯลฯ)
       const freqConfig = window.globalSystemSettings.find(s => s.Type === 'Target_Frequency');
       if (freqConfig) {
           const { error } = await supabaseClient.from('System_Settings').update(payloadFreq).eq('Type', 'Target_Frequency');
@@ -205,7 +252,6 @@ window.toggleRatingSystem = function() {
           window.checkCurrentRatingStatus(startVal, endVal);
       }
 
-      // 🌟 อัปเดต Cache ของระบบ
       const { data } = await supabaseClient.from('System_Settings').select('*');
       if (data) window.globalSystemSettings = data;
 
@@ -225,7 +271,7 @@ window.toggleRatingSystem = function() {
       if (isNetworkError) {
           var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
           queue.push({ table: 'System_Settings', type: 'Rating', payload: payloadRating, timestamp: Date.now() });
-          queue.push({ table: 'System_Settings', type: 'Target_Frequency', payload: payloadFreq, timestamp: Date.now() }); // 🌟 เก็บ Offline ด้วย
+          queue.push({ table: 'System_Settings', type: 'Target_Frequency', payload: payloadFreq, timestamp: Date.now() }); 
           localStorage.setItem('crmOfflineIndexQueue', JSON.stringify(queue));
           
           var msgOfflineSave = appLang === 'en' 
