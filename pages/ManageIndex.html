@@ -128,7 +128,7 @@
 
 <div class="index-module-wrapper">
   
-  <!-- 📌 1. Header Bar (คืนบล็อกไอคอน + เพิ่มระยะ me-3 / gap-3) -->
+  <!-- 📌 1. Header Bar -->
   <div class="d-flex justify-content-between align-items-center flex-shrink-0">
     <div class="d-flex align-items-center gap-3">
       <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center me-2" style="width: 42px; height: 42px;">
@@ -276,7 +276,6 @@
             </select>
           </div>
 
-          <!-- 🌟 ปรับปรุง Group วันที่ + ใส่ Flatpickr (dd/mm/yyyy) + ปุ่ม Reset -->
           <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <label class="form-label text-muted small fw-bold mb-0" style="font-size: 0.7rem;" data-i18n="lbl_evaluation_period">Evaluation Period</label>
@@ -292,7 +291,6 @@
             </div>
           </div>
 
-          <!-- 🌟 แยกไอคอนและข้อความให้มีช่องไฟ (me-2) -->
           <button class="btn btn-premium-primary w-100 fw-bold py-1.5 mt-1" id="btnSaveSysSettings" onclick="window.saveSystemSettings()" style="font-size: 0.8rem;">
             <i class="fa-solid fa-floppy-disk me-2"></i> <span data-i18n="btn_save_target_call">Save Target Call Config</span>
           </button>
@@ -308,62 +306,31 @@
               <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-location-dot text-primary me-2"></i><span data-i18n="lbl_enable_gps">GPS Check-in</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleGps" checked><span class="slider-modern"></span></label>
             </div>
-            <!-- ... (สวิตช์อื่นๆ เหมือนเดิม) ... -->
+
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
               <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-paperclip text-primary me-2"></i><span data-i18n="lbl_enable_attachment">Attachments</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleAttachment" checked><span class="slider-modern"></span></label>
             </div>
+
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
               <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-signature text-primary me-2"></i><span data-i18n="lbl_enable_signature">Signature</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleSignature" checked><span class="slider-modern"></span></label>
             </div>
+
             <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
               <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-vial text-primary me-2"></i><span data-i18n="lbl_enable_samples">Samples & Promo Items</span></span>
               <label class="switch-modern mb-0"><input type="checkbox" id="toggleSamples" checked><span class="slider-modern"></span></label>
             </div>
           </div>
 
-          <!-- 🌟 แยกไอคอนและข้อความให้มีช่องไฟ (me-2) -->
           <button class="btn btn-premium-primary w-100 fw-bold py-1.5 mt-1" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="font-size: 0.8rem;">
             <i class="fa-solid fa-floppy-disk me-2"></i> <span data-i18n="btn_save_visit_features">Save Visit Features</span>
           </button>
         </div>
 
-        <!-- Visit Features -->
-        <div class="drawer-setting-box" style="border-left: 3.5px solid #0d6efd !important;">
-          <h6 class="fw-bold text-dark mb-1" style="font-size: 0.875rem;"><i class="fa-solid fa-sliders me-2 text-primary"></i><span data-i18n="title_visit_features">Visit Form Features</span></h6>
-          <small class="text-muted d-block mb-2.5" style="font-size: 0.72rem;" data-i18n="desc_visit_features">Enable or disable specific sections in Visit Form.</small>
-
-          <div class="d-flex flex-column gap-2 mb-2.5">
-            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-location-dot text-primary me-2"></i><span data-i18n="lbl_enable_gps">GPS Check-in</span></span>
-              <label class="switch-modern mb-0"><input type="checkbox" id="toggleGps" checked><span class="slider-modern"></span></label>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-paperclip text-primary me-2"></i><span data-i18n="lbl_enable_attachment">Attachments</span></span>
-              <label class="switch-modern mb-0"><input type="checkbox" id="toggleAttachment" checked><span class="slider-modern"></span></label>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-signature text-primary me-2"></i><span data-i18n="lbl_enable_signature">Signature</span></span>
-              <label class="switch-modern mb-0"><input type="checkbox" id="toggleSignature" checked><span class="slider-modern"></span></label>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 border">
-              <span class="fw-bold text-secondary" style="font-size: 0.78rem;"><i class="fa-solid fa-vial text-primary me-2"></i><span data-i18n="lbl_enable_samples">Samples & Promo Items</span></span>
-              <label class="switch-modern mb-0"><input type="checkbox" id="toggleSamples" checked><span class="slider-modern"></span></label>
-            </div>
-          </div>
-
-          <button class="btn btn-premium-primary w-100 fw-bold py-1.5" id="btnSaveVisitFeatures" onclick="window.saveVisitFeatures()" style="font-size: 0.8rem;">
-            <i class="fa-solid fa-save me-1.5"></i><span data-i18n="btn_save_visit_features">Save Visit Features</span>
-          </button>
-        </div>
-
       </div>
 
-      <div class="text-center pt-2 border-top">
+      <div class="text-center pt-2 border-top mt-3">
         <small class="text-muted" style="font-size: 0.7rem;">Master System Configuration Panel</small>
       </div>
     </div>
