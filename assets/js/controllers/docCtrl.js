@@ -2000,7 +2000,7 @@ window.changePVisitRowsPerPage = function() {
 };
  
  // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Icon หลักฐาน และ GPS ไม่แสดง)
-window.filterAndRenderDoctorVisits = function() {
+ window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -2120,8 +2120,8 @@ window.filterAndRenderDoctorVisits = function() {
   const usersList = window.globalUsersList || window.globalUsers || (window.DocManagerCache && window.DocManagerCache.users) || [];
   const terList = window.globalTerritoryList || window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
   const teamList = window.globalTeamList || window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
-  const buList = window.globalBuList || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || []; // Use globalBuList from visit as fallback
-  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || []; // Support globalProductsList
+  const buList = window.globalBuList || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || [];
+  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || [];
 
   const isTrueVal = (val) => {
     if (val === true || val === 1) return true;
@@ -2150,7 +2150,6 @@ window.filterAndRenderDoctorVisits = function() {
       if (uObj) repNameShow = uObj.Rep_Name || uObj.Name || uObj.Email || rawWho;
     }
 
-    // 🌟 FIX 2: Evidence Badges (โคลนนิ่ง UI ให้เหมือนหน้า Visit Logs แบบ 100%)
     let evidenceBadgesHtml = '';
     
     if (v.Is_Coaching || isTrueVal(v.Is_Joint_Visit) || isTrueVal(v.Joint_Visit) || isTrueVal(v.Coaching)) {
@@ -2175,7 +2174,6 @@ window.filterAndRenderDoctorVisits = function() {
       evidenceBadgesHtml += ' <span class="badge badge-soft-warning ms-1" title="Sample Given"><i class="fa-solid fa-gifts text-warning"></i></span>';
     }
 
-    // 🌟 FIX 1: Territory Resolution (ไล่หาจาก Territory -> Team -> BU ให้ครบเหมือนหน้าหลัก)
     const rawTerrId = v.Territory_ID || v.territory_id || v.Territory || '';
     let terrNameShow = '-';
     
@@ -2192,12 +2190,10 @@ window.filterAndRenderDoctorVisits = function() {
       }
       if (terrNameShow === targetId && buList && buList.length > 0) {
         const buObj = buList.find(b => String(b.BU_ID || b.id) === targetId || String(b.BU) === targetId);
-        // 🎯 บังคับดึงค่าจากคอลัมน์ BU มาแสดงเป๊ะๆ (เช่น LUNG)
         if (buObj) terrNameShow = buObj.BU; 
       }
     }
 
-    // Fallback หากค้นหาไม่เจอ ให้ดึงตำแหน่งหรือ BU จาก Profile คนกดมาแสดง
     if ((terrNameShow === '-' || !terrNameShow || terrNameShow === rawTerrId) && uObj) {
       const uRole = String(uObj.Role || uObj.role || '').toUpperCase().trim();
       const uBuId = String(uObj.BU_ID || uObj.bu_id || uObj.Business_Unit_ID || uObj.BU || '').trim();
@@ -2206,17 +2202,16 @@ window.filterAndRenderDoctorVisits = function() {
       if (uBuId) {
         const foundBu = buList.find(b => String(b.BU_ID || b.id).toLowerCase() === uBuId.toLowerCase() || String(b.BU).toLowerCase() === uBuId.toLowerCase());
         if (foundBu) {
-          actualBuName = foundBu.BU; // 🎯 บังคับดึงคอลัมน์ BU
+          actualBuName = foundBu.BU; 
         } else if (!uBuId.includes('-')) {
           actualBuName = uBuId; 
         }
       }
 
-      // 🎯 ถ้าเป็นระดับบริหาร ให้แสดงชื่อ BU ไปเลย (เช่น LUNG) แทนที่จะโชว์ชื่อ Role (BU HEAD)
       if (actualBuName && (uRole.includes('BU') || uRole.includes('HEAD') || uRole.includes('MANAGER') || uRole.includes('DIRECTOR') || uRole.includes('ADMIN'))) {
         terrNameShow = actualBuName;
       } else if (uRole) {
-        terrNameShow = uRole; // ค่อยโชว์ Role เป็นตัวเลือกสุดท้าย
+        terrNameShow = uRole; 
       } else if (actualBuName) {
         terrNameShow = actualBuName;
       }
@@ -2235,7 +2230,7 @@ window.filterAndRenderDoctorVisits = function() {
 
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
     
-    // 🌟 FIX 3: GPS Icon & Clickable Modal (คำนวณระยะทางเทียบกับพิกัดโรงพยาบาลหมอ)
+    // GPS Icon
     let distanceBadge = '';
     if (v.CheckIn_Lat && v.CheckIn_Long) {
         const onClickAction = `event.stopPropagation(); if(typeof window.openViewOnlyGpsModal === 'function') window.openViewOnlyGpsModal(${v.CheckIn_Lat}, ${v.CheckIn_Long}, '${v.CheckIn_Time || ''}');`;
@@ -2265,11 +2260,11 @@ window.filterAndRenderDoctorVisits = function() {
         <td class="text-center fw-bold">
           <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
         </td>
-        <!-- 🌟 จัดให้ชื่อ User ชิดซ้าย พร้อม Badges ต่อท้ายสวยงาม -->
-        <td class="fw-bold text-dark text-start ps-3">${repNameShow}${evidenceBadgesHtml}</td>
+        <!-- 🌟 ย้าย GPS Badge มาต่อท้าย Evidence ตรงช่อง User -->
+        <td class="fw-bold text-dark text-start ps-3">${repNameShow}${evidenceBadgesHtml}${distanceBadge}</td>
         <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
-        <td><small class="text-secondary fw-medium">${purposeShow}</small>${distanceBadge}</td>
+        <td><small class="text-secondary fw-medium">${purposeShow}</small></td>
         <td class="text-center"><span class="badge ${statusBadgeClass}">${statusShow}</span></td>
       </tr>`;
   });
