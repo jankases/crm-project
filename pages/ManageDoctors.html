@@ -140,19 +140,23 @@
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 doc-view-container">
 
-    <!-- 📌 HEADER -->
+   <!-- 📌 HEADER -->
     <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
       <div class="d-flex align-items-center flex-wrap gap-2">
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
-          <i class="fa-solid fa-arrow-left me-1 text-primary"></i> <span data-i18n="btn_back">Back</span>
+          <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
+        <!-- 🌟 FIX 1: ถอด data-i18n ออก เพื่อป้องกันสคริปต์แปลภาษามาทับชื่อหมอจนหายไป -->
+        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-1"></div>
       </div>
       
       <!-- 🌟 โซนปุ่มมุมขวาบน (ล็อกความสูง 36px เท่ากันหมดทุกปุ่ม) -->
       <div class="d-flex align-items-center gap-2">
-        <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 rounded-pill shadow-xs" style="height: 36px;"></div>
+        <!-- 🌟 FIX 2: ใส่ Fallback content ให้อยู่ทรงตั้งแต่ยังไม่โหลด ป้องกันการหดตัวเป็นวงกลมเปล่า -->
+        <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 rounded-pill shadow-xs" style="height: 36px;">
+          <i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">Active</span>
+        </div>
         
         <button type="button" class="btn btn-sm btn-outline-primary bg-white shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)" style="height: 36px;">
           <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
