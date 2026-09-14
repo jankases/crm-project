@@ -2214,3 +2214,82 @@ button.feature-action-btn-lg.has-data-samples i {
 #sectionAttachments {
     transition: all 0.3s ease-in-out;
 }
+
+/* manageMatrix.css */
+.matrix-box { 
+    transition: all 0.2s ease-in-out; 
+    cursor: pointer; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+    min-height: 70px;
+}
+.matrix-box:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
+    filter: brightness(1.05); 
+}
+.matrix-top { 
+    padding: 12px; 
+    border-radius: 8px 8px 0 0; 
+    text-align: center; 
+    flex-grow: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+}
+.matrix-bottom { 
+    background-color: #f1f3f5; 
+    color: #6c757d; 
+    font-size: 0.75rem; 
+    padding: 4px 8px; 
+    border-radius: 0 0 8px 8px; 
+    border: 1px solid #dee2e6; 
+    border-top: none; 
+    text-align: center; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+.matrix-axis-label { 
+    border: 2px solid #ced4da; 
+    border-radius: 8px; 
+    padding: 10px 15px; 
+    background: white; 
+    font-weight: bold; 
+    color: #555; 
+    text-align: center; 
+    min-width: 120px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.matrix-empty-box { 
+    border: 2px dashed #ced4da; 
+    border-radius: 8px; 
+    min-height: 70px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    color: #adb5bd; 
+    background-color: #f8f9fa; 
+    transition: all 0.2s ease;
+}
+.matrix-empty-box:hover { 
+    background-color: #e9ecef; 
+    color: #495057; 
+    border-color: #adb5bd; 
+}
+.target-input { 
+    text-align: center; 
+    font-weight: bold; 
+    font-size: 1.1rem; 
+    color: #0d6efd; 
+    border: 2px solid #dee2e6; 
+    border-radius: 8px;
+}
+.target-input:focus { 
+    border-color: #0d6efd; 
+    box-shadow: none; 
+}
