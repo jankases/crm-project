@@ -2000,7 +2000,8 @@ window.changePVisitRowsPerPage = function() {
 };
  
  // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Icon หลักฐาน และ GPS ไม่แสดง)
-  window.filterAndRenderDoctorVisits = function() {
+  // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Filter Product ถอนรากถอนโคน)
+window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -2020,20 +2021,28 @@ window.changePVisitRowsPerPage = function() {
     if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
   }
 
-  // 🌟 FIX 1: ดึงค่า Product ให้เป็น Array เสมอและรับประกันความถูกต้อง 100%
+  // 🌟 FIX: ดึงค่า Product ให้เป็น Array เสมอและรับประกันความถูกต้อง 100%
   let selectedProdIds = [];
   const prodSelect = document.getElementById('filterProfileVisitProduct');
-  if (prodSelect && prodSelect.tomselect) {
-    let val = prodSelect.tomselect.getValue();
-    if (typeof val === 'string') {
-        selectedProdIds = val.split(',');
-    } else if (Array.isArray(val)) {
-        selectedProdIds = val;
+  
+  // ทะลวงดึงค่าจาก HTML Select โดยตรง (ชัวร์ที่สุด ไม่สนว่า TomSelect จะรวนไหม)
+  if (prodSelect && prodSelect.options) {
+    for (let i = 0; i < prodSelect.options.length; i++) {
+        if (prodSelect.options[i].selected && prodSelect.options[i].value) {
+            selectedProdIds.push(prodSelect.options[i].value);
+        }
     }
-  } else if (prodSelect) {
-    selectedProdIds = Array.from(prodSelect.selectedOptions).map(o => o.value);
   }
-  // คลีนค่าว่างและแปลงเป็นพิมพ์เล็กเพื่อเตรียมเทียบ
+  
+  // ถ้าดึงจาก HTML ไม่ได้ ค่อยดึงจาก TomSelect (Fallback)
+  if (selectedProdIds.length === 0 && window.tomSelectProfileVisitProd) {
+    let val = window.tomSelectProfileVisitProd.getValue();
+    if (val) {
+        selectedProdIds = Array.isArray(val) ? val : String(val).split(',');
+    }
+  }
+  
+  // คลีนค่าว่างและแปลงเป็นพิมพ์เล็กเพื่อเตรียมเทียบแบบ Case-Insensitive
   selectedProdIds = selectedProdIds.map(id => String(id).trim().toLowerCase()).filter(id => id !== '');
 
   let crmUser = null;
@@ -2067,18 +2076,26 @@ window.changePVisitRowsPerPage = function() {
     if (startDateObj && vDate < startDateObj) return false;
     if (endDateObj && vDate > endDateObj) return false;
 
-    // 🌟 FIX 2: กรอง Product แบบชัวร์ที่สุด (Direct Match) ตัดการเทียบชื่อทิ้งเพื่อกันบั๊ก
+    // 🌟 FIX: กรอง Product แบบชัวร์ๆ ทั้งจาก ID และจากชื่อ (กันข้อมูลเบี้ยว)
     if (selectedProdIds.length > 0) {
       const cleanVid = String(v.Visit_ID || '').trim().toLowerCase();
       
-      // 1. กวาดหาสินค้าของ Visit นี้จากตัวแปร Array หลักโดยตรง
       const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID).trim().toLowerCase() === cleanVid);
       const visitProdIds = matchedVps.map(vp => String(vp.Product_ID).trim().toLowerCase());
-
-      // 2. เช็คว่าใน Visit นี้ มี UUID ตรงกับที่เลือกในกล่อง Filter อย่างน้อย 1 ตัวหรือไม่
-      const hasProd = selectedProdIds.some(pId => visitProdIds.includes(pId));
       
-      // 3. ถ้าไม่มีตัวไหนตรงเลย ให้ตีตก (ซ่อนบรรทัดนี้ไปเลย)
+      const rawProductsStr = String(v.Products || v.Products_List || v.products || '').toLowerCase();
+
+      const hasProd = selectedProdIds.some(pId => {
+          if (visitProdIds.includes(pId)) return true;
+          
+          const pObj = prodList.find(p => String(p.Product_ID || p.id).trim().toLowerCase() === pId);
+          if (pObj && pObj.Product) {
+              const pName = String(pObj.Product).trim().toLowerCase();
+              if (pName && rawProductsStr.includes(pName)) return true;
+          }
+          return false;
+      });
+
       if (!hasProd) return false;
     }
 
