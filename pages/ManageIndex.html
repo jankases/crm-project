@@ -255,7 +255,7 @@
     <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
       <div class="d-flex flex-column gap-3">
         
-        <!-- Target Call Access -->
+        <!-- Target Call Access --> 
         <div class="drawer-setting-box" style="border-left: 3.5px solid #f59e0b !important;">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.875rem;"><i class="fa-solid fa-bullseye me-2 text-warning"></i><span data-i18n="title_target_call">Target Call Access</span></h6>
@@ -266,6 +266,17 @@
           </div>
           <small class="text-secondary fw-semibold d-block mb-2.5" id="ratingStatusLabel" style="font-size: 0.72rem;">Status: Loading...</small>
           
+          <!-- 🌟 เพิ่ม Dropdown เลือกความถี่ Target Call -->
+          <div class="mb-2.5">
+            <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;">Target Call Frequency</label>
+            <select class="form-select form-select-sm px-2 text-secondary fw-bold border-warning-subtle" id="ratingFrequency" style="height: 30px; font-size: 0.75rem;">
+              <option value="Per Month">Per Month (ต่อเดือน)</option>
+              <option value="Per Quarter">Per Quarter (ต่อไตรมาส)</option>
+              <option value="Per Cycle" selected>Per Cycle (ต่อรอบการทำงาน)</option>
+              <option value="Per Year">Per Year (ต่อปี)</option>
+            </select>
+          </div>
+
           <div class="row g-2 mb-2.5">
             <div class="col-6">
               <label class="form-label text-muted small fw-bold mb-1" style="font-size: 0.7rem;" data-i18n="lbl_start_date">Start Date</label>
