@@ -57,11 +57,17 @@ window.loadSystemSettings = async function() {
     
     window.globalSystemSettings = data || [];
     const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
+    const freqConfig = window.globalSystemSettings.find(s => s.Type === 'Target_Frequency'); // 🌟 ดึงค่า Frequency
     
     const switchEl = document.getElementById('ratingToggleSwitch');
     const startEl = document.getElementById('ratingStartDate');
     const endEl = document.getElementById('ratingEndDate');
+    const freqEl = document.getElementById('ratingFrequency'); // 🌟 กล่อง Dropdown
     
+    if (freqEl && freqConfig && freqConfig.Value) {
+        freqEl.value = freqConfig.Value;
+    }
+
     if (ratingConfig) {
       if (startEl) startEl.value = ratingConfig.Start || '';
       if (endEl) endEl.value = ratingConfig.End || '';
@@ -140,7 +146,7 @@ window.toggleRatingSystem = function() {
   }
 };
 
-window.saveSystemSettings = async function() {
+ window.saveSystemSettings = async function() {
   const btn = document.getElementById('btnSaveSysSettings');
   var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
@@ -148,23 +154,42 @@ window.saveSystemSettings = async function() {
   const startVal = document.getElementById('ratingStartDate') ? document.getElementById('ratingStartDate').value : '';
   const endVal = document.getElementById('ratingEndDate') ? document.getElementById('ratingEndDate').value : '';
   const isStatusActive = document.getElementById('ratingToggleSwitch') ? document.getElementById('ratingToggleSwitch').checked : false; 
+  const freqVal = document.getElementById('ratingFrequency') ? document.getElementById('ratingFrequency').value : 'Per Cycle'; // 🌟 ดึงค่าจากหน้าจอ
   
   let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+  const updaterEmail = crmUser ? crmUser.Email : "Unknown";
 
-  const payload = {
+  const payloadRating = {
       Type: 'Rating', Start: startVal || null, End: endVal || null, Status: isStatusActive,
-      Whoupdated: crmUser ? crmUser.Email : "Unknown", Whenupdated: new Date().toISOString()
+      Whoupdated: updaterEmail, Whenupdated: new Date().toISOString()
+  };
+
+  // 🌟 Payload แยกสำหรับบันทึก Frequency
+  const payloadFreq = {
+      Type: 'Target_Frequency', Value: freqVal,
+      Whoupdated: updaterEmail, Whenupdated: new Date().toISOString()
   };
 
   try {
       if (!navigator.onLine) throw new Error("OFFLINE_MODE");
 
+      // 1. บันทึก Rating (เปิด/ปิด, วันที่)
       const ratingConfig = window.globalSystemSettings.find(s => s.Type === 'Rating');
       if (ratingConfig) {
-          const { error } = await supabaseClient.from('System_Settings').update(payload).eq('Type', 'Rating');
+          const { error } = await supabaseClient.from('System_Settings').update(payloadRating).eq('Type', 'Rating');
           if (error) throw error;
       } else {
-          const { error } = await supabaseClient.from('System_Settings').insert([payload]);
+          const { error } = await supabaseClient.from('System_Settings').insert([payloadRating]);
+          if (error) throw error;
+      }
+
+      // 2. 🌟 บันทึก Target_Frequency (Per Cycle, Per Month, ฯลฯ)
+      const freqConfig = window.globalSystemSettings.find(s => s.Type === 'Target_Frequency');
+      if (freqConfig) {
+          const { error } = await supabaseClient.from('System_Settings').update(payloadFreq).eq('Type', 'Target_Frequency');
+          if (error) throw error;
+      } else {
+          const { error } = await supabaseClient.from('System_Settings').insert([payloadFreq]);
           if (error) throw error;
       }
 
@@ -179,6 +204,10 @@ window.saveSystemSettings = async function() {
       } else {
           window.checkCurrentRatingStatus(startVal, endVal);
       }
+
+      // 🌟 อัปเดต Cache ของระบบ
+      const { data } = await supabaseClient.from('System_Settings').select('*');
+      if (data) window.globalSystemSettings = data;
 
       var saveText = appLang === 'en' ? 'Save Target Call Config' : 'บันทึกการตั้งค่า Target Call';
       setTimeout(() => { 
@@ -195,7 +224,8 @@ window.saveSystemSettings = async function() {
       var isNetworkError = err.message === "OFFLINE_MODE" || err.message.indexOf('Failed to fetch') !== -1 || err.message.indexOf('NetworkError') !== -1;
       if (isNetworkError) {
           var queue = JSON.parse(localStorage.getItem('crmOfflineIndexQueue') || '[]');
-          queue.push({ table: 'System_Settings', type: 'Rating', payload: payload, timestamp: Date.now() });
+          queue.push({ table: 'System_Settings', type: 'Rating', payload: payloadRating, timestamp: Date.now() });
+          queue.push({ table: 'System_Settings', type: 'Target_Frequency', payload: payloadFreq, timestamp: Date.now() }); // 🌟 เก็บ Offline ด้วย
           localStorage.setItem('crmOfflineIndexQueue', JSON.stringify(queue));
           
           var msgOfflineSave = appLang === 'en' 
