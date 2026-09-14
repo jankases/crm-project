@@ -140,17 +140,26 @@
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 doc-view-container">
 
-    <!-- HEADER -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-3 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center">
-        <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="button" class="btn btn-premium-icon" onclick="window.forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
-          <i class="fa-solid fa-arrows-rotate fs-6"></i>
+    <!-- 📌 HEADER -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
+      <div class="d-flex align-items-center flex-wrap gap-2">
+        <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
+          <i class="fa-solid fa-arrow-left me-1 text-primary"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddDoctorView()">
-          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
+        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName" data-i18n="doc_profile_title">👨‍⚕️ Doctor Profile</h5>
+        <div id="profileDcrStatusBadge" class="ms-1"></div>
+      </div>
+      
+      <!-- 🌟 โซนปุ่มมุมขวาบน (ล็อกความสูง 36px เท่ากันหมดทุกปุ่ม) -->
+      <div class="d-flex align-items-center gap-2">
+        <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 rounded-pill shadow-xs" style="height: 36px;"></div>
+        
+        <button type="button" class="btn btn-sm btn-outline-primary bg-white shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" id="profileEditBtn" onclick="window.openEditDoctorView(window.currentTargetDocId)" style="height: 36px;">
+          <i class="fa-solid fa-pen-to-square me-1.5"></i> <span data-i18n="btn_edit_doc_dcr">Edit Doctor (DCR)</span>
+        </button>
+        
+        <button type="button" class="btn btn-sm btn-premium-primary shadow-sm fw-bold px-3 rounded-3 d-inline-flex align-items-center justify-content-center m-0" onclick="window.goToQuickAddCall()" style="height: 36px;">
+          <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_visit">Add New Visit</span>
         </button>
       </div>
     </div>
