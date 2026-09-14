@@ -2000,8 +2000,7 @@ window.changePVisitRowsPerPage = function() {
 };
  
  // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Icon หลักฐาน และ GPS ไม่แสดง)
-  // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Filter Product ถอนรากถอนโคน)
-window.filterAndRenderDoctorVisits = function() {
+ window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -2021,11 +2020,10 @@ window.filterAndRenderDoctorVisits = function() {
     if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
   }
 
-  // 🌟 FIX: ดึงค่า Product ให้เป็น Array เสมอและรับประกันความถูกต้อง 100%
+  // 🌟 LOGIC ใหม่: ดึงค่า Product ให้เป็น Array เสมอและรับประกันความถูกต้อง
   let selectedProdIds = [];
   const prodSelect = document.getElementById('filterProfileVisitProduct');
   
-  // ทะลวงดึงค่าจาก HTML Select โดยตรง (ชัวร์ที่สุด ไม่สนว่า TomSelect จะรวนไหม)
   if (prodSelect && prodSelect.options) {
     for (let i = 0; i < prodSelect.options.length; i++) {
         if (prodSelect.options[i].selected && prodSelect.options[i].value) {
@@ -2034,7 +2032,6 @@ window.filterAndRenderDoctorVisits = function() {
     }
   }
   
-  // ถ้าดึงจาก HTML ไม่ได้ ค่อยดึงจาก TomSelect (Fallback)
   if (selectedProdIds.length === 0 && window.tomSelectProfileVisitProd) {
     let val = window.tomSelectProfileVisitProd.getValue();
     if (val) {
@@ -2042,7 +2039,6 @@ window.filterAndRenderDoctorVisits = function() {
     }
   }
   
-  // คลีนค่าว่างและแปลงเป็นพิมพ์เล็กเพื่อเตรียมเทียบแบบ Case-Insensitive
   selectedProdIds = selectedProdIds.map(id => String(id).trim().toLowerCase()).filter(id => id !== '');
 
   let crmUser = null;
@@ -2076,7 +2072,7 @@ window.filterAndRenderDoctorVisits = function() {
     if (startDateObj && vDate < startDateObj) return false;
     if (endDateObj && vDate > endDateObj) return false;
 
-    // 🌟 FIX: กรอง Product แบบชัวร์ๆ ทั้งจาก ID และจากชื่อ (กันข้อมูลเบี้ยว)
+    // 🌟 LOGIC ใหม่: กรอง Product แบบ Strict Match
     if (selectedProdIds.length > 0) {
       const cleanVid = String(v.Visit_ID || '').trim().toLowerCase();
       
@@ -2086,8 +2082,10 @@ window.filterAndRenderDoctorVisits = function() {
       const rawProductsStr = String(v.Products || v.Products_List || v.products || '').toLowerCase();
 
       const hasProd = selectedProdIds.some(pId => {
+          // 1. เทียบ UUID แบบ 1 ต่อ 1
           if (visitProdIds.includes(pId)) return true;
           
+          // 2. ถ้าหลุดมาจริงๆ ให้เทียบชื่อแบบจับคำเป๊ะๆ ไม่เอาแบบคลุมเครือ
           const pObj = prodList.find(p => String(p.Product_ID || p.id).trim().toLowerCase() === pId);
           if (pObj && pObj.Product) {
               const pName = String(pObj.Product).trim().toLowerCase();
