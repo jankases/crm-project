@@ -2000,7 +2000,8 @@ window.changePVisitRowsPerPage = function() {
 };
  
  // 🌟 อัปเดตฟังก์ชัน Render ตาราง (แก้บั๊ก Icon หลักฐาน และ GPS ไม่แสดง)
- window.filterAndRenderDoctorVisits = function() {
+ // 🌟 อัปเดตฟังก์ชัน Render ตาราง (รวมการแก้บั๊ก Filter Product + BU + GPS ครบจบ)
+window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -2020,14 +2021,21 @@ window.changePVisitRowsPerPage = function() {
     if (e.length === 3) endDateObj = new Date(e[2], e[1] - 1, e[0], 23, 59, 59, 999);
   }
 
-  const prodSelect = document.getElementById('filterProfileVisitProduct');
+  // 🌟 FIX 1: ดึงค่า Product แบบตรงไปตรงมา ป้องกันการหลุดจาก TomSelect
   let selectedProdIds = [];
-  if (prodSelect && prodSelect.tomselect) {
-    selectedProdIds = prodSelect.tomselect.getValue();
-    if (!Array.isArray(selectedProdIds)) selectedProdIds = selectedProdIds ? [selectedProdIds] : [];
-  } else if (prodSelect) {
-    selectedProdIds = prodSelect.value ? [prodSelect.value] : [];
+  if (window.tomSelectProfileVisitProd) {
+    let val = window.tomSelectProfileVisitProd.getValue();
+    selectedProdIds = Array.isArray(val) ? val : (val ? [val] : []);
+  } else {
+    const prodSelect = document.getElementById('filterProfileVisitProduct');
+    if (prodSelect && prodSelect.tomselect) {
+      let val = prodSelect.tomselect.getValue();
+      selectedProdIds = Array.isArray(val) ? val : (val ? [val] : []);
+    } else if (prodSelect) {
+      selectedProdIds = Array.from(prodSelect.selectedOptions).map(o => o.value);
+    }
   }
+  selectedProdIds = selectedProdIds.filter(id => id && id.trim() !== '');
 
   let crmUser = null;
   try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(e){}
@@ -2040,8 +2048,10 @@ window.changePVisitRowsPerPage = function() {
   const isGlobalAdmin = window.myIsGlobalViewer === true || powerRoles.some(r => myRole.includes(r)) || rawScope === 'ALL';
   const allowedReps = (window.DocManagerCache && window.DocManagerCache.myAllowedTerIds) ? window.DocManagerCache.myAllowedTerIds : [];
 
+  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || [];
+
   let filtered = (window.globalCurrentDoctorVisits || []).filter(v => {
-    if (String(v.Doc_ID) !== String(targetDocId)) return false;
+    if (String(v.Doc_ID).toLowerCase() !== String(targetDocId).toLowerCase()) return false;
 
     const vRepId = String(v.Rep_ID || v.rep_id || v.Whoupdated || '').trim();
     let hasAccess = false;
@@ -2049,7 +2059,7 @@ window.changePVisitRowsPerPage = function() {
     if (isGlobalAdmin) {
       hasAccess = true;
     } else {
-      hasAccess = (vRepId === myRepId) || (allowedReps.length > 0 && allowedReps.includes(vRepId));
+      hasAccess = (vRepId.toLowerCase() === myRepId.toLowerCase()) || (allowedReps.length > 0 && allowedReps.includes(vRepId));
     }
     
     if (!hasAccess) return false;
@@ -2058,9 +2068,31 @@ window.changePVisitRowsPerPage = function() {
     if (startDateObj && vDate < startDateObj) return false;
     if (endDateObj && vDate > endDateObj) return false;
 
+    // 🌟 FIX 2: กรอง Product แบบ Case-Insensitive ไม่มีหลุดแม้เป็น UUID พิมพ์เล็ก/ใหญ่
     if (selectedProdIds.length > 0) {
-      const visitProds = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID) === String(v.Visit_ID)).map(vp => String(vp.Product_ID));
-      const hasProd = selectedProdIds.some(pId => pId && visitProds.includes(String(pId)));
+      const cleanVid = String(v.Visit_ID || '').trim().toLowerCase();
+      let visitProdIds = [];
+      
+      if (window.globalCurrentDoctorVisitProducts) {
+        window.globalCurrentDoctorVisitProducts.forEach(vp => {
+          if (String(vp.Visit_ID).trim().toLowerCase() === cleanVid) {
+            visitProdIds.push(String(vp.Product_ID).trim().toLowerCase());
+          }
+        });
+      }
+
+      let prodListStr = String(v.Products_List || '').toLowerCase();
+
+      const hasProd = selectedProdIds.some(pId => {
+        let searchId = String(pId).trim().toLowerCase();
+        if (visitProdIds.includes(searchId)) return true;
+        
+        let pObj = prodList.find(p => String(p.Product_ID || p.id).trim().toLowerCase() === searchId);
+        if (pObj && pObj.Product && prodListStr.includes(pObj.Product.toLowerCase())) return true;
+        
+        return false;
+      });
+
       if (!hasProd) return false;
     }
 
@@ -2121,7 +2153,6 @@ window.changePVisitRowsPerPage = function() {
   const terList = window.globalTerritoryList || window.globalTerritories || (window.DocManagerCache && window.DocManagerCache.territories) || [];
   const teamList = window.globalTeamList || window.globalTeams || (window.DocManagerCache && window.DocManagerCache.teams) || [];
   const buList = window.globalBuList || window.globalBUs || (window.DocManagerCache && window.DocManagerCache.bus) || [];
-  const prodList = window.globalProductsList || window.globalProducts || (window.DocManagerCache && window.DocManagerCache.products) || [];
 
   const isTrueVal = (val) => {
     if (val === true || val === 1) return true;
@@ -2230,7 +2261,6 @@ window.changePVisitRowsPerPage = function() {
 
     let purposeShow = (typeof window.getPurposeText === 'function') ? window.getPurposeText(v.Purpose_ID, v.Purpose || v.Objective) : (v.Purpose || v.Objective || v.Purpose_ID || '-');
     
-    // GPS Icon
     let distanceBadge = '';
     if (v.CheckIn_Lat && v.CheckIn_Long) {
         const onClickAction = `event.stopPropagation(); if(typeof window.openViewOnlyGpsModal === 'function') window.openViewOnlyGpsModal(${v.CheckIn_Lat}, ${v.CheckIn_Long}, '${v.CheckIn_Time || ''}');`;
@@ -2260,7 +2290,6 @@ window.changePVisitRowsPerPage = function() {
         <td class="text-center fw-bold">
           <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
         </td>
-        <!-- 🌟 ย้าย GPS Badge มาต่อท้าย Evidence ตรงช่อง User -->
         <td class="fw-bold text-dark text-start ps-3">${repNameShow}${evidenceBadgesHtml}${distanceBadge}</td>
         <td class="text-center">${terrBadgeHtml}</td>
         <td>${prodBadges}</td>
