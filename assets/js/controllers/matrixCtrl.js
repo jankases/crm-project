@@ -216,8 +216,8 @@ window.loadMatrixRulesForProduct = async function(productId) {
     });
   }
   window.matrixState.targetCalls = targetMap;
-}; 
-// 🌟 3. วาด Grid ซ้าย (ปรับ Badge ตัวอักษร A, B, C, D ให้ใหญ่ขึ้นและอยู่กึ่งกลางสวยๆ)
+};  
+ // 🌟 3. วาด Grid ซ้าย (ดีไซน์สากลพรีเมียม ไม่มี Scrollbar + Micro-interaction)
 window.render2DMatrixGrid = function() {
   const canvas = document.getElementById('matrixGridCanvas');
   if (!canvas) return;
@@ -235,48 +235,86 @@ window.render2DMatrixGrid = function() {
 
   let html = `
     <style>
-      .matrix-cell-hover { transition: all 0.2s ease; cursor: pointer; position: relative; }
-      .matrix-cell-hover:hover { background-color: #f8fafc !important; box-shadow: inset 0 0 0 2px #cbd5e1; }
-      .edit-hint { opacity: 0; transform: translateY(4px); transition: all 0.2s ease; font-size: 0.75rem; }
-      .matrix-cell-hover:hover .edit-hint { opacity: 1; transform: translateY(0); color: #0d6efd !important; }
+      /* บังคับตารางกางเต็ม 100% เพื่อไม่ให้เกิด Scrollbar */
+      .matrix-table { height: 100%; table-layout: fixed; width: 100%; margin: 0; border-collapse: collapse; }
+      
+      /* โซนเซลล์ที่คลิกได้ (ทำเป็น Container หลัก) */
+      .matrix-cell-hover { 
+        transition: all 0.2s ease; cursor: pointer; height: 100%; width: 100%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        position: relative; overflow: hidden;
+      }
+      .matrix-cell-hover:hover { background-color: #f8fafc !important; box-shadow: inset 0 0 0 1px #cbd5e1; }
+      
+      /* ดีไซน์กล่องเกรด Premium Box */
+      .premium-box {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 65px; height: 40px; border-radius: 8px; transition: all 0.2s ease;
+      }
+      
+      /* เอฟเฟกต์ตอนชี้เมาส์: กล่องลอยขึ้นนิดๆ มีเงา */
+      .matrix-cell-hover:hover .premium-box {
+        background-color: #ffffff !important; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        transform: translateY(-4px); border: 1px solid #e2e8f0;
+      }
+
+      /* ข้อความ Edit จางๆ สไลด์ขึ้นมาจากข้างล่าง */
+      .edit-hint {
+        font-size: 0.7rem; font-weight: 700; opacity: 0; color: #3b82f6;
+        position: absolute; bottom: 4px; /* ซ่อนไว้ล่างสุด */
+        transform: translateY(10px); transition: all 0.2s ease;
+      }
+      .matrix-cell-hover:hover .edit-hint {
+        opacity: 1; transform: translateY(0); /* สไลด์ขึ้นมา */
+      }
     </style>
-    <table class="table table-bordered text-center align-middle mb-0 bg-white h-100" style="table-layout: fixed; width: 100%;">
+    
+    <table class="table table-bordered text-center align-middle matrix-table bg-white">
       <thead class="table-light">
         <tr>
-          <th class="bg-light-subtle text-secondary p-0" style="width: 18%; min-width: 100px;">
+          <!-- กำหนดความสูงหัวตารางแบบตายตัวนิดนึง เพื่อให้แถวข้อมูลมีพื้นที่ยืดหยุ่น -->
+          <th class="bg-light-subtle text-secondary p-0" style="width: 18%; min-width: 100px; height: 45px;">
             <div class="d-flex flex-column justify-content-between h-100 p-2">
-              <div class="text-end fw-bold" style="font-size: 0.8rem;">Potential <i class="fa-solid fa-arrow-right ms-1"></i></div>
-              <div class="text-start fw-bold" style="font-size: 0.8rem;"><i class="fa-solid fa-arrow-down me-1"></i> Adoption</div>
+              <div class="text-end fw-bold" style="font-size: 0.75rem;">Potential <i class="fa-solid fa-arrow-right ms-1"></i></div>
+              <div class="text-start fw-bold" style="font-size: 0.75rem;"><i class="fa-solid fa-arrow-down me-1"></i> Adoption</div>
             </div>
           </th>`;
   
-  pots.forEach(p => html += `<th class="fw-bold text-dark py-2 fs-6">${p.Value}</th>`);
+  pots.forEach(p => html += `<th class="fw-bold text-dark fs-6" style="height: 45px;">${p.Value}</th>`);
   html += `</tr></thead><tbody>`;
 
   adopts.forEach(a => {
-    html += `<tr><td class="fw-bold bg-light-subtle text-secondary text-start ps-3 py-2 fs-6">${a.Value}</td>`;
+    // ลบ padding แนวตั้งออก (ไม่มี py-2 แล้ว) ปล่อยให้มันเฉลี่ยความสูงเอง
+    html += `<tr><td class="fw-bold bg-light-subtle text-secondary text-start ps-3 fs-6">${a.Value}</td>`;
+    
     pots.forEach(p => {
       const rule = window.matrixState.matrixRules.find(r => r.Adoption === a.Value && r.Potential === p.Value);
       const cls = rule ? rule.Classification : '-';
       
-      let bClass = 'bg-secondary-subtle text-secondary border-secondary-subtle';
-      if (cls === 'A') bClass = 'bg-danger-subtle text-danger border-danger-subtle';
-      else if (cls === 'B') bClass = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
-      else if (cls === 'C') bClass = 'bg-primary-subtle text-primary border-primary-subtle';
-      else if (cls === 'D') bClass = 'bg-success-subtle text-success border-success-subtle';
+      let bClass = 'bg-secondary-subtle text-secondary';
+      if (cls === 'A') bClass = 'bg-danger-subtle text-danger';
+      else if (cls === 'B') bClass = 'bg-warning-subtle text-warning-emphasis';
+      else if (cls === 'C') bClass = 'bg-primary-subtle text-primary';
+      else if (cls === 'D') bClass = 'bg-success-subtle text-success';
 
       html += `
-        <td class="p-1 matrix-cell-hover" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${cls}')">
-          <div class="d-flex flex-column align-items-center justify-content-center py-2 h-100">
-            <!-- 🌟 ปรับขนาด Badge ให้ใหญ่ขึ้น (font-size: 1.3rem) และจัดให้อยู่กึ่งกลางเป๊ะๆ ด้วย d-inline-flex -->
-            <span class="badge ${bClass} fw-bolder rounded-2 mb-1 border shadow-xs d-inline-flex align-items-center justify-content-center" style="font-size: 1.3rem; min-width: 70px; height: 38px;">${cls}</span>
-            <span class="edit-hint text-muted fw-bold"><i class="fa-solid fa-pen"></i> ${lang === 'en' ? 'Edit' : 'แก้ไข'}</span>
+        <td class="p-0" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${cls}')">
+          <div class="matrix-cell-hover">
+            <!-- 🌟 Premium Box กึ่งกลาง พร้อมตัวอักษรใหญ่ (1.4rem) -->
+            <div class="premium-box ${bClass}">
+              <span class="fw-bolder" style="font-size: 1.4rem; line-height: 1;">${cls}</span>
+            </div>
+            <!-- 🌟 ข้อความ Edit ที่ซ่อนอยู่ -->
+            <span class="edit-hint"><i class="fa-solid fa-pen me-1"></i>${lang === 'en' ? 'Edit' : 'แก้ไข'}</span>
           </div>
         </td>`;
     });
     html += `</tr>`;
   });
   html += `</tbody></table>`;
+  
+  // ลบ padding ของ canvas ออก เพื่อให้ตารางชนขอบสวยๆ
+  canvas.classList.remove('p-2', 'p-3'); 
   canvas.innerHTML = html;
 };
 
