@@ -1,98 +1,152 @@
 <!-- ManageMatrix.html -->
 <div class="index-module-wrapper">
 
-  <!-- 📌 1. Header Bar (Breadcrumb Engine - Pixel Perfect) -->
-  <div class="d-flex justify-content-between align-items-center flex-shrink-0 mt-1 mb-2">
-    <div class="d-flex align-items-center gap-2">
-      <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 30px; height: 30px;">
-        <i class="fa-solid fa-table-cells-large" style="font-size: 0.9rem;"></i>
-      </div>
-      <div class="d-flex align-items-center flex-wrap gap-2">
-        <h6 class="text-dark fw-bold mb-0" data-i18n="title_manage_matrix" style="font-size: 1.05rem;">Manage Matrix</h6>
-        <i class="fa-solid fa-chevron-right text-muted opacity-50" style="font-size: 0.7rem;"></i> 
-        <span class="text-muted fw-medium" data-i18n="desc_manage_matrix" style="font-size: 0.85rem;">Product Rating & Target Allocation</span>
-      </div>
-    </div>
-
-    <!-- ปุ่ม Action หลัก -->
-    <div class="d-flex gap-2">
-      
-      <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddMatrixModal()">
-  <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_matrix_rule">Add Matrix Rule</span>
-</button>
-    </div>
-  </div>
-
-  <!-- 📌 2. Main Module Card Container ( white card ยืดเต็มความสูง ) -->
-  <div class="sys-card-container flex-grow-1 d-flex flex-column overflow-hidden">
+  <!-- ================= 1. LIST & MATRIX GRID VIEW ================= -->
+  <div id="matrixListView" class="h-100 d-flex flex-column overflow-hidden">
     
-    <!-- 🔹 Toolbars & Product Selector Zone -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-2 flex-shrink-0">
-      <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 450px;">
-        <label class="form-label text-secondary fw-bold small mb-0 text-nowrap" data-i18n="lbl_select_product">Product:</label>
-        <select id="matrixProductSelect" class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" style="height: 36px; border-radius: 8px;">
-          <option value="" data-i18n="opt_select_product_prompt">- Select Product to View Matrix -</option>
-        </select>
+    <!-- 📌 1. Header Bar (Breadcrumb Engine - Pixel Perfect) -->
+    <div class="d-flex justify-content-between align-items-center flex-shrink-0 mt-1 mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 30px; height: 30px;">
+          <i class="fa-solid fa-table-cells-large" style="font-size: 0.9rem;"></i>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <h6 class="text-dark fw-bold mb-0" data-i18n="title_manage_matrix" style="font-size: 1.05rem;">Manage Matrix</h6>
+          <i class="fa-solid fa-chevron-right text-muted opacity-50" style="font-size: 0.7rem;"></i> 
+          <span class="text-muted fw-medium" data-i18n="desc_manage_matrix" style="font-size: 0.85rem;">Product Rating & Target Allocation</span>
+        </div>
       </div>
 
-      <!-- Badge สรุปความถี่ที่ดึงมาจาก System Settings -->
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="font-size: 0.88rem;">
-          <i class="fa-solid fa-bullseye me-1.5"></i>
-          <span data-i18n="lbl_target_freq_prefix">Target Frequency:</span> 
-          <span id="matrixTargetFreqText" class="ms-1 text-decoration-underline">Per Cycle</span>
-        </span>
+      <!-- ปุ่ม Action หลัก -->
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-premium-primary py-1.5 px-3" onclick="window.openAddMatrixModal()">
+          <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_matrix_rule">Add Matrix Rule</span>
+        </button>
       </div>
     </div>
 
-    <!-- 🔹 Dynamic Matrix Workspace ( Scroll ได้เฉพาะโซนนี้ ) -->
-    <div class="table-scroll-area flex-grow-1 p-2 custom-scrollbar" id="matrixMainWorkspace">
+    <!-- 📌 2. Main Module Card Container -->
+    <div class="sys-card-container flex-grow-1 d-flex flex-column overflow-hidden">
       
-      <!-- State 1: ตอนยังไม่ได้เลือกสินค้า (Empty State) -->
-      <div class="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center" id="matrixEmptyState">
-        <div class="bg-light-subtle rounded-circle p-4 mb-3 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-          <i class="fa-solid fa-layer-group fs-1 text-muted opacity-50"></i>
+      <!-- 🔹 Toolbars & Product Selector Zone -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom gap-2 flex-shrink-0">
+        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 450px;">
+          <label class="form-label text-secondary fw-bold small mb-0 text-nowrap" data-i18n="lbl_select_product">Product:</label>
+          <select id="matrixProductSelect" class="form-select form-select-sm shadow-none border-primary fw-bold text-primary" style="height: 36px; border-radius: 8px;">
+            <option value="" data-i18n="opt_select_product_prompt">- Select Product to View Matrix -</option>
+          </select>
         </div>
-        <h6 class="fw-bold text-dark mb-1" data-i18n="msg_matrix_empty_title">No Product Selected</h6>
-        <p class="text-muted small mb-0" style="max-width: 360px;" data-i18n="msg_matrix_empty_desc">Please select a product from the dropdown above to manage its classification grid and call targets.</p>
+
+        <!-- Badge สรุปความถี่ที่ดึงมาจาก System Settings -->
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="font-size: 0.88rem;">
+            <i class="fa-solid fa-bullseye me-1.5"></i>
+            <span data-i18n="lbl_target_freq_prefix">Target Frequency:</span> 
+            <span id="matrixTargetFreqText" class="ms-1 text-decoration-underline">Per Cycle</span>
+          </span>
+        </div>
       </div>
 
-      <!-- State 2: โซนแสดง 2D Matrix & Target Form (จะถูกเปิดเมื่อเลือกสินค้า) -->
-      <div id="matrixActiveContent" class="d-none">
+      <!-- 🔹 Dynamic Matrix Workspace -->
+      <div class="table-scroll-area flex-grow-1 p-2 custom-scrollbar" id="matrixMainWorkspace">
         
-        <!-- โซนที่ 1: แผนผัง Matrix Grid (Potential vs Adoption) -->
-        <div class="mb-4">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h6 class="fw-bold text-primary mb-0">
-              <i class="fa-solid fa-border-all me-2"></i><span data-i18n="sec_matrix_grid_title">1. Customer Rating Matrix (Grid View)</span>
-            </h6>
+        <!-- State 1: ตอนยังไม่ได้เลือกสินค้า (Empty State) -->
+        <div class="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center" id="matrixEmptyState">
+          <div class="bg-light-subtle rounded-circle p-4 mb-3 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+            <i class="fa-solid fa-layer-group fs-1 text-muted opacity-50"></i>
           </div>
-          <div id="matrixGridCanvas" class="p-3 bg-light-subtle border rounded-3 overflow-x-auto">
-            <!-- JS จะวาดแผ่น Matrix แบบ 2 มิติตรงนี้ -->
-          </div>
+          <h6 class="fw-bold text-dark mb-1" data-i18n="msg_matrix_empty_title">No Product Selected</h6>
+          <p class="text-muted small mb-0" style="max-width: 360px;" data-i18n="msg_matrix_empty_desc">Please select a product from the dropdown above to manage its classification grid and call targets.</p>
         </div>
 
-        <hr class="my-4 opacity-25">
-
-        <!-- โซนที่ 2: ตั้งค่า Target Call แยกตาม Classification (A, B, C, D) -->
-        <div class="mb-2">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold text-success mb-0">
-              <i class="fa-solid fa-bullseye me-2"></i><span data-i18n="sec_target_call_title">2. Target Call Allocation</span>
-            </h6>
-            <button class="btn btn-sm btn-success fw-bold px-3 shadow-xs rounded-pill" onclick="window.saveMatrixTargetCalls()">
-              <i class="fa-solid fa-floppy-disk me-1.5"></i><span data-i18n="btn_save_targets">Save Targets</span>
-            </button>
+        <!-- State 2: โซนแสดง 2D Matrix & Target Form (เปิดเมื่อเลือกสินค้า) -->
+        <div id="matrixActiveContent" class="d-none">
+          
+          <!-- โซนที่ 1: แผนผัง Matrix Grid (Potential vs Adoption) -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h6 class="fw-bold text-primary mb-0">
+                <i class="fa-solid fa-border-all me-2"></i><span data-i18n="sec_matrix_grid_title">1. Customer Rating Matrix (Grid View)</span>
+              </h6>
+            </div>
+            <div id="matrixGridCanvas" class="p-3 bg-light-subtle border rounded-3 overflow-x-auto">
+              <!-- JS จะวาดแผ่น Matrix แบบ 2 มิติตรงนี้ -->
+            </div>
           </div>
 
-          <div class="row g-3" id="matrixTargetInputsContainer">
-            <!-- JS จะสร้างช่องกรอก Target ของแต่ละ Class ตรงนี้ -->
+          <hr class="my-4 opacity-25">
+
+          <!-- โซนที่ 2: ตั้งค่า Target Call แยกตาม Classification (A, B, C, D) -->
+          <div class="mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold text-success mb-0">
+                <i class="fa-solid fa-bullseye me-2"></i><span data-i18n="sec_target_call_title">2. Target Call Allocation</span>
+              </h6>
+              <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-xs rounded-pill" onclick="window.saveMatrixTargetCalls()">
+                <i class="fa-solid fa-floppy-disk me-1.5"></i><span data-i18n="btn_save_targets">Save Targets</span>
+              </button>
+            </div>
+
+            <div class="row g-3" id="matrixTargetInputsContainer">
+              <!-- JS จะสร้างช่องกรอก Target ของแต่ละ Class ตรงนี้ -->
+            </div>
           </div>
+
         </div>
 
       </div>
 
+    </div>
+  </div>
+
+  <!-- ================= 2. FORM VIEW (ADD / EDIT MATRIX RULE) ================= -->
+  <div id="matrixFormView" class="d-none h-100 d-flex flex-column overflow-hidden">
+    
+    <!-- Form Header Bar -->
+    <div class="d-flex align-items-center mb-3 flex-shrink-0 mt-1">
+      <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-3" style="height: 36px;" onclick="window.switchMatrixView('matrixListView')">
+        <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
+      </button>
+      <h5 class="text-dark fw-bold mb-0 fs-6" id="matrixFormTitle">
+        <i class="fa-solid fa-pen-to-square text-primary me-2"></i><span data-i18n="title_add_matrix_rule">Add Matrix Rule</span>
+      </h5>
+    </div>
+
+    <!-- Form Input Body -->
+    <div class="sys-card-container flex-grow-1 p-4 overflow-y-auto">
+      <form id="matrixForm" onsubmit="window.handleSaveMatrix(event)">
+        
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label fw-bold text-secondary small" data-i18n="lbl_product">Product</label>
+            <select class="form-select bg-white shadow-xs" id="matrixProduct" required style="border-radius: 8px;"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold text-secondary small" data-i18n="lbl_adoption_axis">Adoption (Y-Axis)</label>
+            <select class="form-select bg-white shadow-xs" id="matrixAdopt" required style="border-radius: 8px;"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold text-secondary small" data-i18n="lbl_potential_axis">Potential (X-Axis)</label>
+            <select class="form-select bg-white shadow-xs" id="matrixPot" required style="border-radius: 8px;"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold text-primary small" data-i18n="lbl_result_classification">Result = Classification</label>
+            <select class="form-select border-primary fw-bold text-primary shadow-xs" id="matrixClass" required style="border-radius: 8px;"></select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+          <button type="button" class="btn btn-light border fw-bold rounded-pill px-4 shadow-xs" onclick="window.switchMatrixView('matrixListView')" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn btn-premium-primary fw-bold rounded-pill px-4 shadow-sm" id="submitMatrixBtn">
+            <i class="fa-solid fa-floppy-disk me-1.5"></i><span data-i18n="btn_save_rule">Save Rule</span>
+          </button>
+        </div>
+      </form>
     </div>
 
   </div>
+
 </div>
+
+<!-- เชื่อมโยง Controller แบบล้างแคช -->
+<script src="assets/js/controllers/matrixCtrl.js?v=9.9.9"></script>
