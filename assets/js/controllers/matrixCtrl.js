@@ -1,6 +1,6 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Exact Match Table Names from Supabase Schema
+   Bulletproof Version: Exact Schema Matching & Safe Queries
    ========================================================================== */
 
 // 🌟 Global State
@@ -84,20 +84,20 @@ window.initManageMatrixPage = async function() {
   }
 };
 
-// 📌 1. ดึงความถี่จาก System_Settings
+// 📌 1. ดึงความถี่จาก System_Settings (แบบปลอดภัยใช้ select * ป้องกันคอลัมน์ผิด)
 window.fetchMatrixTargetFrequency = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
 
   try {
-    const { data } = await sb
-      .from('System_Settings')
-      .select('value, Value, key, Key')
-      .or('key.eq.rating_frequency,Key.eq.rating_frequency')
-      .maybeSingle();
-
-    if (data) {
-      window.matrixState.targetFrequency = data.value || data.Value || 'Per Cycle';
+    const { data, error } = await sb.from('System_Settings').select('*');
+    
+    if (!error && data) {
+      // ค้นหาแถวที่เก็บค่า rating_frequency ไม่ว่าจะเขียนตัวพิมพ์เล็กหรือใหญ่
+      const freqRow = data.find(r => (r.key || r.Key || '').toLowerCase() === 'rating_frequency');
+      if (freqRow) {
+        window.matrixState.targetFrequency = freqRow.value || freqRow.Value || 'Per Cycle';
+      }
     }
   } catch (e) {
     console.warn("⚠️ Frequency fetch warning:", e);
@@ -124,13 +124,12 @@ window.updateMatrixFrequencyBadge = function() {
   freqTextEl.textContent = freqDict[freq] ? freqDict[freq][appLang] : freq;
 };
 
-// 📌 3. ดึงหมวดหมู่แกน X/Y จาก IndexType และ Index (ตรงตามรูปภาพ)
+// 📌 3. ดึงหมวดหมู่แกน X/Y จาก IndexType และ Index
 window.fetchMatrixCategories = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
   
   try {
-    // 🌟 ดึงจาก IndexType และ Index
     const { data: indexTypes } = await sb.from('IndexType').select('*');
     const { data: indexValues } = await sb.from('Index').select('*');
 
@@ -150,29 +149,41 @@ window.fetchMatrixCategories = async function() {
   }
 };
 
-// 📌 4. ดึงรายชื่อสินค้าจาก Products (ตรงตามรูปภาพ)
+// 📌 4. ดึงรายชื่อสินค้าจากตาราง Products (แก้ไขไม่เรียก Product_TH เพื่อป้องกัน Error)
 window.fetchMatrixProductList = async function() {
   const selectEl = document.getElementById('matrixProductSelect');
   if (!selectEl) return;
 
   let products = [];
   const sb = getMatrixSupabase();
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   
   if (sb) {
-    // 🌟 ดึงจาก Products
-    const { data, error } = await sb
-      .from('Products')
-      .select('Product_ID, Product, Product_TH')
-      .order('Product', { ascending: true });
+    try {
+      // 🌟 ใช้ .select('*') และกรองเฉพาะ Status = 'Active' (ถ้ามี)
+      const { data, error } = await sb
+        .from('Products')
+        .select('*')
+        .order('Product', { ascending: true });
+        
+      if (error) throw error;
       
-    if (!error && data) products = data;
+      if (data) {
+        // กรองเอาเฉพาะรายการที่ Active หรือไม่มีคอลัมน์ Status เลย
+        products = data.filter(p => !p.Status || String(p.Status).toLowerCase() === 'active');
+      }
+    } catch (err) {
+      console.error("❌ Error fetching products:", err);
+      selectEl.innerHTML = `<option value="">⚠️ Failed to load products</option>`;
+      return;
+    }
   }
 
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   let html = `<option value="">${appLang === 'en' ? '-- Select Product to View Matrix --' : '-- เลือกสินค้าเพื่อดู Matrix --'}</option>`;
 
   products.forEach(p => {
-    const pName = (appLang === 'th' && p.Product_TH) ? p.Product_TH : (p.Product || p.Product_ID);
+    // ใช้ p.Product เป็นชื่อหลัก
+    const pName = p.Product || p.Product_ID;
     html += `<option value="${p.Product_ID}">${pName}</option>`;
   });
 
@@ -208,12 +219,11 @@ window.onMatrixProductChange = async function(productId) {
   }
 };
 
-// 📌 6. โหลดข้อมูล Rating และ Target (ตรงตามรูปภาพ)
+// 📌 6. โหลดข้อมูล Rating และ Target
 window.loadMatrixRulesForProduct = async function(productId) {
   const sb = getMatrixSupabase();
   if (!sb) return;
 
-  // 🌟 ดึงจาก Rating
   const { data: rules } = await sb
     .from('Rating')
     .select('*')
@@ -221,7 +231,6 @@ window.loadMatrixRulesForProduct = async function(productId) {
 
   window.matrixState.matrixRules = rules || [];
 
-  // 🌟 ดึงจาก Target
   const { data: targets } = await sb
     .from('Target')
     .select('*')
@@ -324,12 +333,12 @@ window.renderTargetInputs = function() {
   container.innerHTML = html;
 };
 
-// 📌 9. บันทึก Target Calls ลงตาราง Target
+// 📌 9. บันทึก Target Calls ลงตาราง Target (แมปข้อมูลตรงตาม image_090481)
 window.saveMatrixTargetCalls = async function() {
   const productId = window.matrixState.selectedProduct;
   if (!productId) return;
 
-  const currentUserEmail = window.currentUser?.email || 'system';
+  const currentUserEmail = window.currentUser?.email || window.currentUser?.Email || 'system';
   const classes = ['A', 'B', 'C', 'D'];
   const updates = [];
 
@@ -431,7 +440,7 @@ window.handleSaveMatrix = async function(event) {
           Adoption: adoption,
           Potential: potential,
           Classification: classification,
-          Whoupdated: window.currentUser?.email || 'system',
+          Whoupdated: window.currentUser?.email || window.currentUser?.Email || 'system',
           Whenupdated: new Date().toISOString()
         }], { onConflict: 'Product_ID, Adoption, Potential' });
 
