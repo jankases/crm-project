@@ -3,7 +3,7 @@
      ========================================================= -->
 <div class="index-module-wrapper h-100 d-flex flex-column overflow-hidden">
 
-  <!-- 📌 1. Header Bar (เอาปุ่ม Add Rule ออกแล้ว ให้เน้นคลิกที่ตาราง) -->
+  <!-- 📌 1. Header Bar (ไม่มีปุ่ม Add Rule แล้ว เพื่อให้โฟกัสที่ตาราง) -->
   <div class="d-flex justify-content-between align-items-center flex-shrink-0 mt-1 mb-2">
     <div class="d-flex align-items-center gap-2">
       <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 30px; height: 30px;">
@@ -31,9 +31,10 @@
 
       <div class="d-flex align-items-center gap-2">
         <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill shadow-xs d-inline-flex align-items-center" style="font-size: 0.88rem;">
-          <i class="fa-solid fa-bullseye me-1.5"></i>
+          <!-- 🌟 แก้ไข me-1.5 เป็น me-2 และ ms-1 เป็น ms-2 เรียบร้อยแล้ว -->
+          <i class="fa-solid fa-bullseye me-2"></i>
           <span data-i18n="lbl_target_freq_prefix">Target Frequency:</span> 
-          <span id="matrixTargetFreqText" class="ms-1 text-decoration-underline">Per Cycle</span>
+          <span id="matrixTargetFreqText" class="ms-2 text-decoration-underline">Per Cycle</span>
         </span>
       </div>
     </div>
@@ -41,8 +42,9 @@
     <!-- 🔹 Dynamic Matrix Workspace -->
     <div class="flex-grow-1 p-1 overflow-hidden" id="matrixMainWorkspace">
       
-      <!-- State 1: Empty State (Premium Onboarding Style) -->
+      <!-- State 1: Empty State (Premium Onboarding Style - รองรับ 2 ภาษา) -->
       <div class="d-flex flex-column align-items-center justify-content-center h-100 py-5 w-100" id="matrixEmptyState">
+        
         <!-- ไอคอนหลัก -->
         <div class="mb-4 position-relative">
           <div class="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 90px; height: 90px;">
@@ -51,7 +53,7 @@
         </div>
 
         <h5 class="fw-bolder text-dark mb-2" data-i18n="msg_matrix_empty_title">Manage Matrix & Target Allocation</h5>
-        <p class="text-muted mb-4 text-center" style="max-width: 500px; font-size: 0.95rem;">
+        <p class="text-muted mb-4 text-center" style="max-width: 500px; font-size: 0.95rem;" id="matrixEmptyDesc">
           Configure customer classification grids and define call frequency targets based on product adoption and potential.
         </p>
 
@@ -62,9 +64,9 @@
             <div class="p-3 bg-white rounded-3 border border-secondary-subtle shadow-sm h-100 transition-all">
               <div class="d-flex align-items-center mb-2">
                 <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 26px; height: 26px; font-size: 12px;">1</div>
-                <h6 class="fw-bold mb-0 text-dark">Select Product</h6>
+                <h6 class="fw-bold mb-0 text-dark" id="step1Title">Select Product</h6>
               </div>
-              <p class="small text-muted mb-0">Choose a product from the top-left dropdown menu to begin.</p>
+              <p class="small text-muted mb-0" id="step1Desc">Choose a product from the top-left dropdown menu to begin.</p>
             </div>
           </div>
           <!-- Step 2 -->
@@ -72,9 +74,9 @@
             <div class="p-3 bg-white rounded-3 border border-secondary-subtle shadow-sm h-100 transition-all">
               <div class="d-flex align-items-center mb-2">
                 <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 26px; height: 26px; font-size: 12px;">2</div>
-                <h6 class="fw-bold mb-0 text-dark">Map Grid Class</h6>
+                <h6 class="fw-bold mb-0 text-dark" id="step2Title">Map Grid Class</h6>
               </div>
-              <p class="small text-muted mb-0">Click on any matrix cell to assign class A, B, C, or D.</p>
+              <p class="small text-muted mb-0" id="step2Desc">Click on any matrix cell to assign class A, B, C, or D.</p>
             </div>
           </div>
           <!-- Step 3 -->
@@ -82,16 +84,16 @@
             <div class="p-3 bg-white rounded-3 border border-secondary-subtle shadow-sm h-100 transition-all">
               <div class="d-flex align-items-center mb-2">
                 <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 26px; height: 26px; font-size: 12px;">3</div>
-                <h6 class="fw-bold mb-0 text-dark">Set Call Targets</h6>
+                <h6 class="fw-bold mb-0 text-dark" id="step3Title">Set Call Targets</h6>
               </div>
-              <p class="small text-muted mb-0">Define the required number of calls per cycle for each class.</p>
+              <p class="small text-muted mb-0" id="step3Desc">Define the required number of calls per cycle for each class.</p>
             </div>
           </div>
         </div>
 
-        <!-- 🌟 ลูกศรชี้ขึ้น + แอนิเมชันเด้งดึ๋ง -->
+        <!-- ลูกศรชี้ขึ้น + แอนิเมชันเด้งดึ๋ง -->
         <div class="text-primary animate-bounce bg-primary-subtle px-4 py-2 rounded-pill fw-bold shadow-xs">
-           <i class="fa-solid fa-arrow-up me-2"></i><span>Select a product above to start</span>
+           <i class="fa-solid fa-arrow-up me-2"></i><span id="arrowText">Select a product above to start</span>
         </div>
 
         <style>
@@ -115,7 +117,7 @@
                 <i class="fa-solid fa-border-all me-2"></i><span data-i18n="sec_matrix_grid_title">1. Customer Rating Matrix (Grid View)</span>
               </h6>
             </div>
-            <!-- ตารางจะกางเต็มพื้นที่ตรงนี้ -->
+            <!-- ตารางจะกางเต็มพื้นที่ตรงนี้ (เอา padding ออก) -->
             <div id="matrixGridCanvas" class="flex-grow-1 overflow-hidden sys-card-container border" style="padding: 0;"></div>
           </div>
 
@@ -136,7 +138,7 @@
                     <i class="fa-solid fa-pen me-2"></i><span data-i18n="btn_edit_targets">Edit</span>
                   </button>
                   
-                  <!-- ชุดปุ่ม Save / Cancel (ซ่อนไว้ก่อน) -->
+                  <!-- ชุดปุ่ม Save / Cancel -->
                   <div id="targetEditControls" class="d-none gap-2">
                     <button type="button" class="btn btn-sm btn-light fw-bold px-3 shadow-xs rounded-pill border" onclick="window.cancelTargetEdit()">
                       Cancel
