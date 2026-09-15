@@ -1,45 +1,76 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Standard: Premium SaaS / Server-Side Ready / Bilingual i18n (FULL VERSION)
+   Standard: Premium SaaS / Server-Side Ready / Bilingual i18n / Clean Scope
    ========================================================================== */
 
+// 🌟 Global Matrix State
+window.matrixState = {
+  selectedProduct: '',
+  targetFrequency: 'Per Cycle',
+  matrixRules: [],
+  targetCalls: {},
+  categories: {
+    adoption: [],
+    potential: [],
+    classification: []
+  }
+};
+
+// 🌟 Global UI Action Handlers (ไม่อยู่ใน IIFE เพื่อให้ HTML เรียกได้แน่นอน 100%)
+window.openAddMatrixModal = function() {
+  console.log("📌 Opening Add Matrix Form...");
+  if (typeof window.populateMatrixFormDropdowns === 'function') {
+    window.populateMatrixFormDropdowns();
+  }
+  const selectedProd = window.matrixState ? window.matrixState.selectedProduct : '';
+  const pSel = document.getElementById('matrixProduct');
+  if (pSel && selectedProd) pSel.value = selectedProd;
+
+  window.switchMatrixView('matrixFormView');
+};
+
+window.switchMatrixView = function(viewName) {
+  const listView = document.getElementById('matrixListView');
+  const formView = document.getElementById('matrixFormView');
+
+  if (viewName === 'matrixListView') {
+    if (formView) formView.classList.add('d-none');
+    if (listView) listView.classList.remove('d-none');
+  } else if (viewName === 'matrixFormView') {
+    if (listView) listView.classList.add('d-none');
+    if (formView) formView.classList.remove('d-none');
+  }
+};
+
+window.editMatrixCell = function(adoption, potential, currentClass) {
+  window.openAddMatrixModal();
+  
+  setTimeout(() => {
+    const adoptEl = document.getElementById('matrixAdopt');
+    const potEl = document.getElementById('matrixPot');
+    const classEl = document.getElementById('matrixClass');
+
+    if (adoptEl) adoptEl.value = adoption;
+    if (potEl) potEl.value = potential;
+    if (classEl) classEl.value = currentClass !== '-' ? currentClass : 'A';
+  }, 50);
+};
+
+// 🚀 Core Logic Module
 (function() {
   'use strict';
 
-  // Global States ของหน้านี้
-  window.matrixState = {
-    selectedProduct: '',
-    targetFrequency: 'Per Cycle',
-    matrixRules: [],
-    targetCalls: {},
-    categories: {
-      adoption: [],
-      potential: [],
-      classification: []
-    }
-  };
-
-  // 🚀 1. Initialize Page Function
+  // 1. Initialize Page Function
   window.initManageMatrixPage = async function() {
     console.log("🚀 Initializing Manage Matrix Module...");
     window.showMatrixLoading(true);
 
     try {
-      // 1.1 ดึงความถี่ Target Call จาก System Settings ก่อน
       await window.fetchMatrixTargetFrequency();
-
-      // 1.2 ดึงหมวดหมู่สำหรับแกน X / Y (Adoption, Potential, Classification)
       await window.fetchMatrixCategories();
-
-      // 1.3 โหลดเฉพาะรายชื่อสินค้า (Server-side List)
       await window.fetchMatrixProductList();
-
-      // 1.4 ปลูกเสก TomSelect สำหรับเลือกสินค้า
       window.initMatrixProductSelect();
-
-      // 1.5 เตรียม Dropdowns ใน Form View
       window.populateMatrixFormDropdowns();
-
     } catch (err) {
       console.error("❌ Error initializing Manage Matrix:", err);
       window.showMatrixToast(
@@ -51,12 +82,11 @@
     }
   };
 
-  // 📌 2. ดึงค่า Target Call Frequency จาก Supabase Settings
+  // 2. Fetch Frequency
   window.fetchMatrixTargetFrequency = async function() {
     try {
       if (typeof supabase === 'undefined') return;
-      
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('system_settings')
         .select('value')
         .eq('key', 'rating_frequency')
@@ -72,7 +102,7 @@
     }
   };
 
-  // 📌 3. อัปเดต Badge แสดงความถี่เป้าหมาย (TH/EN)
+  // 3. Update Badge
   window.updateMatrixFrequencyBadge = function() {
     const freqTextEl = document.getElementById('matrixTargetFreqText');
     if (!freqTextEl) return;
@@ -87,11 +117,10 @@
       'Per Year': { en: 'Per Year', th: 'ต่อปี' }
     };
 
-    const label = freqDict[freq] ? freqDict[freq][appLang] : freq;
-    freqTextEl.textContent = label;
+    freqTextEl.textContent = freqDict[freq] ? freqDict[freq][appLang] : freq;
   };
 
-  // 📌 4. ดึงหมวดหมู่แกน X/Y
+  // 4. Fetch Categories
   window.fetchMatrixCategories = async function() {
     if (typeof supabase === 'undefined') return;
     
@@ -110,7 +139,7 @@
     }
   };
 
-  // 📌 5. ดึงรายชื่อสินค้าเฉพาะของ Sales/Admin (Lazy List)
+  // 5. Fetch Products
   window.fetchMatrixProductList = async function() {
     const selectEl = document.getElementById('matrixProductSelect');
     if (!selectEl) return;
@@ -137,7 +166,7 @@
     selectEl.innerHTML = html;
   };
 
-  // 📌 6. ปลูกเสก TomSelect ให้สินค้า
+  // 6. Init TomSelect
   window.initMatrixProductSelect = function() {
     const el = document.getElementById('matrixProductSelect');
     if (!el || typeof TomSelect === 'undefined') return;
@@ -153,7 +182,7 @@
     });
   };
 
-  // 📌 7. Event เมื่อเปลี่ยนสินค้าที่เลือก (Server-Side Lazy Loading)
+  // 7. Product Change Event
   window.onMatrixProductChange = async function(productId) {
     window.matrixState.selectedProduct = productId;
     
@@ -182,38 +211,32 @@
     }
   };
 
-  // 📌 8. โหลดข้อมูล Matrix เฉพาะสินค้าตัวที่เลือกจาก Supabase 
+  // 8. Load Rating & Target Tables
   window.loadMatrixRulesForProduct = async function(productId) {
     if (typeof supabase === 'undefined') return;
 
-    // 🌟 1. ดึงข้อมูล Matrix จากตาราง `Rating` (แทน product_matrix)
-    const { data: rules, error: ruleErr } = await supabase
+    const { data: rules } = await supabase
       .from('Rating')
       .select('*')
       .eq('Product_ID', productId);
 
-    if (ruleErr) console.error("❌ Error fetching Rating:", ruleErr);
     window.matrixState.matrixRules = rules || [];
 
-    // 🌟 2. ดึงข้อมูล Target จากตาราง `Target` (แทน target_calls)
-    const { data: targets, error: targetErr } = await supabase
+    const { data: targets } = await supabase
       .from('Target')
       .select('*')
       .eq('Product_ID', productId);
 
-    if (targetErr) console.error("❌ Error fetching Target:", targetErr);
-
     const targetMap = {};
     if (targets) {
       targets.forEach(t => {
-        // 🌟 อ่านค่าจากคอลัมน์ `Target` (ไม่ใช่ Target_Call)
         targetMap[t.Classification] = t.Target !== null ? t.Target : 0;
       });
     }
     window.matrixState.targetCalls = targetMap;
   };
 
-  // 📌 9. วาด 2D Rating Matrix Canvas (Grid View)
+  // 9. Render 2D Grid
   window.render2DMatrixGrid = function() {
     const canvas = document.getElementById('matrixGridCanvas');
     if (!canvas) return;
@@ -228,7 +251,6 @@
     }
 
     let html = `<table class="table table-bordered text-center align-middle mb-0 bg-white shadow-xs rounded-3 overflow-hidden">`;
-    
     html += `<thead class="table-light"><tr><th class="bg-light-subtle text-secondary" style="width: 150px;">Adoption \\ Potential</th>`;
     pots.forEach(p => {
       html += `<th class="fw-bold text-dark">${p.Value}</th>`;
@@ -266,7 +288,7 @@
     canvas.innerHTML = html;
   };
 
-  // 📌 10. วาดช่องกรอก Target Allocation (A, B, C, D)
+  // 10. Render Target Inputs
   window.renderTargetInputs = function() {
     const container = document.getElementById('matrixTargetInputsContainer');
     if (!container) return;
@@ -302,13 +324,12 @@
 
     container.innerHTML = html;
   };
- 
-  // 📌 11. บันทึก Target Calls ลง Supabase
+
+  // 11. Save Target Calls
   window.saveMatrixTargetCalls = async function() {
     const productId = window.matrixState.selectedProduct;
     if (!productId) return;
 
-    // ดึงอีเมลผู้ใช้งานปัจจุบันสำหรับใส่ Whoupdated
     const currentUserEmail = window.currentUser?.email || 'system';
     const classes = ['A', 'B', 'C', 'D'];
     const updates = [];
@@ -319,9 +340,9 @@
         updates.push({
           Product_ID: productId,
           Classification: c,
-          Target: parseInt(input.value, 10) || 0, // 🌟 ใช้ชื่อคอลัมน์ `Target`
-          Whoupdated: currentUserEmail,            // 🌟 ใส่ Whoupdated
-          Whenupdated: new Date().toISOString()   // 🌟 ใส่ Whenupdated
+          Target: parseInt(input.value, 10) || 0,
+          Whoupdated: currentUserEmail,
+          Whenupdated: new Date().toISOString()
         });
       }
     });
@@ -330,7 +351,6 @@
 
     try {
       if (typeof supabase !== 'undefined') {
-        // 🌟 บันทึกลงตาราง `Target`
         const { error } = await supabase
           .from('Target')
           .upsert(updates, { onConflict: 'Product_ID, Classification' });
@@ -353,7 +373,7 @@
     }
   };
 
-  // 📌 12. ใส่ตัวเลือกใน Form View Dropdowns
+  // 12. Populate Form Dropdowns
   window.populateMatrixFormDropdowns = function() {
     const pSel = document.getElementById('matrixProduct');
     const aSel = document.getElementById('matrixAdopt');
@@ -398,49 +418,7 @@
     }
   };
 
-  // 📌 13. เปิด Form View เพิ่ม Matrix Rule
-  window.openAddMatrixModal = function() {
-  console.log("📌 Opening Add Matrix Form...");
-  if (typeof window.populateMatrixFormDropdowns === 'function') {
-    window.populateMatrixFormDropdowns();
-  }
-  const selectedProd = window.matrixState ? window.matrixState.selectedProduct : '';
-  const pSel = document.getElementById('matrixProduct');
-  if (pSel && selectedProd) pSel.value = selectedProd;
-
-  window.switchMatrixView('matrixFormView');
-};
-
-  // 📌 14. สลับ View ระหว่าง List และ Form
-window.switchMatrixView = function(viewName) {
-  const listView = document.getElementById('matrixListView');
-  const formView = document.getElementById('matrixFormView');
-
-  if (viewName === 'matrixListView') {
-    if (formView) formView.classList.add('d-none');
-    if (listView) listView.classList.remove('d-none');
-  } else if (viewName === 'matrixFormView') {
-    if (listView) listView.classList.add('d-none');
-    if (formView) formView.classList.remove('d-none');
-  }
-};
-
-  // 📌 15. แก้ไข Cell บน Grid 2 มิติ
-  window.editMatrixCell = function(adoption, potential, currentClass) {
-    window.openAddMatrixModal();
-    
-    setTimeout(() => {
-      const adoptEl = document.getElementById('matrixAdopt');
-      const potEl = document.getElementById('matrixPot');
-      const classEl = document.getElementById('matrixClass');
-
-      if (adoptEl) adoptEl.value = adoption;
-      if (potEl) potEl.value = potential;
-      if (classEl) classEl.value = currentClass !== '-' ? currentClass : 'A';
-    }, 50);
-  };
-
-  // 📌 16. บันทึก Matrix Rule (Form Submit)
+  // 13. Save Matrix Rule
   window.handleSaveMatrix = async function(event) {
     if (event) event.preventDefault();
     
@@ -461,7 +439,6 @@ window.switchMatrixView = function(viewName) {
 
     try {
       if (typeof supabase !== 'undefined') {
-        // 🌟 บันทึกลงตาราง `Rating`
         const { error } = await supabase
           .from('Rating')
           .upsert([{
@@ -514,9 +491,11 @@ window.switchMatrixView = function(viewName) {
     }
   };
 
-  // Auto Init
-  document.addEventListener('DOMContentLoaded', function() {
+  // Auto Execution
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
     window.initManageMatrixPage();
-  });
+  } else {
+    document.addEventListener('DOMContentLoaded', window.initManageMatrixPage);
+  }
 
 })();
