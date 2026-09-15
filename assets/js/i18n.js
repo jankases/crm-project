@@ -172,6 +172,7 @@ const i18nDictionary = {
     // --- Doctors Management Module ---
     doc_title: "Doctor Profiles",
     doc_subtitle: "View and manage your key contacts and their workplaces",
+    desc_doc_profiles: "Directory & Profile Management",
     btn_add_doctor: "Add New Doctor",
     btn_refresh: "Refresh",
     btn_clear_filters: "Clear Filters",
@@ -225,22 +226,41 @@ const i18nDictionary = {
     lbl_sample_items_title: "Sample & Promo Items List",
     lbl_attachments_title: "Photos / Attachments",
     btn_clear_canvas: "Clear Canvas",
-    btn_add_sample: "+ Add Item",
-    btn_add_file: "+ Attach File/Photo",
     btn_present: "Present",
     txt_no_attachment: "No attachments yet",
     sec_features_evidences: "Features & Evidences",
     ph_visit_details: "Enter call discussion details...",
     ph_visit_insight: "Key feedback or doctor insights...",
     ph_visit_next_action: "Next follow-up plan or action items...",
-    status_loading: "Loading Data...",
     status_loading_desc: "Processing your access rights and retrieving records.",
 
     lbl_target_frequency: "Target Call Frequency",
     opt_freq_month: "Per Month",
     opt_freq_quarter: "Per Quarter",
     opt_freq_cycle: "Per Cycle",
-    opt_freq_year: "Per Year"
+    opt_freq_year: "Per Year",
+
+    // --- Manage Matrix Module ---
+    title_manage_matrix: "Manage Matrix",
+    desc_manage_matrix: "Product Rating & Target Allocation",
+    sec_matrix_grid_title: "1. Customer Rating Matrix (Grid View)",
+    sec_target_call_title: "2. Target Call Allocation",
+    title_matrix_overview: "All Matrix Rules Overview",
+    title_add_matrix_rule: "Add Matrix Rule",
+    lbl_select_product: "Select Product:",
+    opt_select_product_prompt: "- Select Product to View Matrix -",
+    lbl_target_freq_prefix: "Target Frequency:",
+    lbl_product: "Product",
+    lbl_adoption_axis: "Adoption (Y-Axis)",
+    lbl_potential_axis: "Potential (X-Axis)",
+    lbl_result_classification: "Result = Classification",
+    btn_add_matrix_rule: "Add Matrix Rule",
+    btn_save_targets: "Save Targets",
+    btn_save_rule: "Save Rule",
+    msg_matrix_empty_title: "No Product Selected",
+    msg_matrix_empty_desc: "Please select a product from the dropdown above to manage its classification grid and call targets.",
+    msg_select_product_loading: "Please select a product or loading data...",
+    th_product_name: "Product Name"
   },
 
   th: {
@@ -412,6 +432,7 @@ const i18nDictionary = {
     // --- Doctors Management Module ---
     doc_title: "ฐานข้อมูลแพทย์",
     doc_subtitle: "รายชื่อแพทย์และสถานที่ปฏิบัติงานในเขตดูแล",
+    desc_doc_profiles: "การจัดการรายชื่อและโปรไฟล์แพทย์",
     btn_add_doctor: "เพิ่มแพทย์ใหม่",
     btn_refresh: "รีเฟรช",
     btn_clear_filters: "ล้างตัวกรอง",
@@ -465,22 +486,41 @@ const i18nDictionary = {
     lbl_sample_items_title: "รายการของแจก / สินค้าตัวอย่าง",
     lbl_attachments_title: "รูปถ่าย / ไฟล์แนบ",
     btn_clear_canvas: "ล้างกระดาน",
-    btn_add_sample: "+ เพิ่มรายการ",
-    btn_add_file: "+ แนบไฟล์/ถ่ายรูป",
     btn_present: "นำเสนอ",
     txt_no_attachment: "ยังไม่มีไฟล์แนบ",
     sec_features_evidences: "คุณสมบัติและหลักฐาน",
     ph_visit_details: "ระบุรายละเอียดการพูดคุยหรือการเยี่ยม...",
     ph_visit_insight: "ระบุข้อคิดเห็นเพิ่มเติมหรือข้อมูลเชิงลึกจากแพทย์...",
     ph_visit_next_action: "ระบุแผนการติดตามผลหรือการดำเนินการถัดไป...",
-    status_loading: "กำลังโหลดข้อมูล...",
     status_loading_desc: "กำลังตรวจสอบสิทธิ์การใช้งานและดึงข้อมูลระบบ",
 
     lbl_target_frequency: "ความถี่ของ Target Call",
     opt_freq_month: "ต่อเดือน",
     opt_freq_quarter: "ต่อไตรมาส",
     opt_freq_cycle: "ต่อรอบการทำงาน",
-    opt_freq_year: "ต่อปี"
+    opt_freq_year: "ต่อปี",
+
+    // --- Manage Matrix Module ---
+    title_manage_matrix: "จัดการเกรดและเป้าหมาย",
+    desc_manage_matrix: "การจัดเกรดลูกค้าและการกำหนดเป้าหมายเข้าพบรายสินค้า",
+    sec_matrix_grid_title: "1. โครงสร้างตารางเกรดลูกค้า (Rating Matrix)",
+    sec_target_call_title: "2. กำหนดเป้าหมายการเข้าพบ (Target Call)",
+    title_matrix_overview: "ภาพรวมเงื่อนไข Matrix ทั้งหมด",
+    title_add_matrix_rule: "เพิ่มเงื่อนไข Matrix",
+    lbl_select_product: "เลือกสินค้า:",
+    opt_select_product_prompt: "- เลือกสินค้าเพื่อดูตาราง Matrix -",
+    lbl_target_freq_prefix: "ความถี่เป้าหมาย:",
+    lbl_product: "สินค้า",
+    lbl_adoption_axis: "Adoption (แกน Y)",
+    lbl_potential_axis: "Potential (แกน X)",
+    lbl_result_classification: "ผลลัพธ์ = เกรดลูกค้า (Classification)",
+    btn_add_matrix_rule: "เพิ่มเงื่อนไข Matrix",
+    btn_save_targets: "บันทึกเป้าหมาย",
+    btn_save_rule: "บันทึกเงื่อนไข",
+    msg_matrix_empty_title: "ยังไม่ได้เลือกสินค้า",
+    msg_matrix_empty_desc: "กรุณาเลือกสินค้าจากช่องเลือกด้านบน เพื่อตั้งค่าเกรดลูกค้าและกำหนดจำนวนครั้งการเข้าพบ",
+    msg_select_product_loading: "กรุณาเลือกสินค้า หรือ กำลังโหลดข้อมูล...",
+    th_product_name: "ชื่อสินค้า"
   }
 };
 
