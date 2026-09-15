@@ -456,6 +456,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important;
   padding-top: 8px;
   padding-bottom: 8px;
+  /* 🌟 ล็อกขอบซ้าย-ขวาให้ตรงเป๊ะกับ Content (1.25rem) */
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+}
+
+/* 🌟 เคลียร์ Padding ซ่อนเร้นของ Bootstrap Container ด้านใน */
+.navbar > .container-fluid,
+.navbar > .container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 #mainNavbar .border-top,
@@ -576,7 +586,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #334155 !important;
   background-color: rgba(0,0,0,0.04) !important;
 }
-
 /* ==========================================
    ✨ HIGH-END PREMIUM BUTTON STYLES
    ========================================== */
