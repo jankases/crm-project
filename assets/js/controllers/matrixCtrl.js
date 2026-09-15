@@ -182,26 +182,32 @@
     }
   };
 
-  // 📌 8. โหลดข้อมูล Matrix เฉพาะสินค้าตัวที่เลือกจาก Supabase
+  // 📌 8. โหลดข้อมูล Matrix เฉพาะสินค้าตัวที่เลือกจาก Supabase 
   window.loadMatrixRulesForProduct = async function(productId) {
     if (typeof supabase === 'undefined') return;
 
-    const { data: rules } = await supabase
-      .from('product_matrix')
+    // 🌟 1. ดึงข้อมูล Matrix จากตาราง `Rating` (แทน product_matrix)
+    const { data: rules, error: ruleErr } = await supabase
+      .from('Rating')
       .select('*')
       .eq('Product_ID', productId);
 
+    if (ruleErr) console.error("❌ Error fetching Rating:", ruleErr);
     window.matrixState.matrixRules = rules || [];
 
-    const { data: targets } = await supabase
-      .from('target_calls')
+    // 🌟 2. ดึงข้อมูล Target จากตาราง `Target` (แทน target_calls)
+    const { data: targets, error: targetErr } = await supabase
+      .from('Target')
       .select('*')
       .eq('Product_ID', productId);
+
+    if (targetErr) console.error("❌ Error fetching Target:", targetErr);
 
     const targetMap = {};
     if (targets) {
       targets.forEach(t => {
-        targetMap[t.Classification] = t.Target_Call || 0;
+        // 🌟 อ่านค่าจากคอลัมน์ `Target` (ไม่ใช่ Target_Call)
+        targetMap[t.Classification] = t.Target !== null ? t.Target : 0;
       });
     }
     window.matrixState.targetCalls = targetMap;
@@ -296,12 +302,14 @@
 
     container.innerHTML = html;
   };
-
+ 
   // 📌 11. บันทึก Target Calls ลง Supabase
   window.saveMatrixTargetCalls = async function() {
     const productId = window.matrixState.selectedProduct;
     if (!productId) return;
 
+    // ดึงอีเมลผู้ใช้งานปัจจุบันสำหรับใส่ Whoupdated
+    const currentUserEmail = window.currentUser?.email || 'system';
     const classes = ['A', 'B', 'C', 'D'];
     const updates = [];
 
@@ -311,8 +319,9 @@
         updates.push({
           Product_ID: productId,
           Classification: c,
-          Target_Call: parseInt(input.value, 10) || 0,
-          Frequency: window.matrixState.targetFrequency
+          Target: parseInt(input.value, 10) || 0, // 🌟 ใช้ชื่อคอลัมน์ `Target`
+          Whoupdated: currentUserEmail,            // 🌟 ใส่ Whoupdated
+          Whenupdated: new Date().toISOString()   // 🌟 ใส่ Whenupdated
         });
       }
     });
@@ -321,8 +330,9 @@
 
     try {
       if (typeof supabase !== 'undefined') {
+        // 🌟 บันทึกลงตาราง `Target`
         const { error } = await supabase
-          .from('target_calls')
+          .from('Target')
           .upsert(updates, { onConflict: 'Product_ID, Classification' });
 
         if (error) throw error;
@@ -449,13 +459,16 @@
 
     try {
       if (typeof supabase !== 'undefined') {
+        // 🌟 บันทึกลงตาราง `Rating`
         const { error } = await supabase
-          .from('product_matrix')
+          .from('Rating')
           .upsert([{
             Product_ID: productId,
             Adoption: adoption,
             Potential: potential,
-            Classification: classification
+            Classification: classification,
+            Whoupdated: window.currentUser?.email || 'system',
+            Whenupdated: new Date().toISOString()
           }], { onConflict: 'Product_ID, Adoption, Potential' });
 
         if (error) throw error;
@@ -468,7 +481,6 @@
 
       window.switchMatrixView('matrixListView');
       
-      // อัปเดตข้อมูลบนหน้าเดิม
       if (productId === window.matrixState.selectedProduct) {
         await window.onMatrixProductChange(productId);
       }
