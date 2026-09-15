@@ -1,4 +1,6 @@
-<!-- ManageMatrix.html -->
+<!-- =========================================================
+     ManageMatrix.html - Product Rating & Target Allocation
+     ========================================================= -->
 <div class="index-module-wrapper h-100 d-flex flex-column overflow-hidden">
 
   <!-- 📌 1. Header Bar -->
@@ -70,20 +72,37 @@
             <div id="matrixGridCanvas" class="flex-grow-1 overflow-x-auto sys-card-container p-0 border"></div>
           </div>
 
-          <!-- 🌟 ฝั่งขวา: ตั้งค่า Target Call (แบ่ง 4 คอลัมน์) -->
+          <!-- 🌟 ฝั่งขวา: ตั้งค่า Target Call (Read-Only / Edit Mode) -->
           <div class="col-xl-4 col-lg-5 d-flex flex-column h-100">
             <div class="sys-card-container h-100 p-3 d-flex flex-column bg-light-subtle">
-              <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-shrink-0">
+              
+              <!-- Header & Action Buttons -->
+              <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-shrink-0" style="min-height: 42px;">
                 <h6 class="fw-bold text-success mb-0" style="font-size: 0.95rem;">
                   <i class="fa-solid fa-bullseye me-2"></i><span data-i18n="sec_target_call_title">2. Target Allocation</span>
                 </h6>
-                <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-xs rounded-pill" onclick="window.saveMatrixTargetCalls()">
-                  <i class="fa-solid fa-floppy-disk me-2"></i><span data-i18n="btn_save_targets">Save</span>
-                </button>
+                
+                <!-- 🎛️ ปุ่มสลับโหมด (Edit <-> Save/Cancel) -->
+                <div id="targetActionButtons">
+                  <!-- ปุ่มกดเพื่อเข้าโหมด Edit -->
+                  <button type="button" class="btn btn-sm btn-outline-secondary fw-bold px-3 shadow-xs rounded-pill bg-white" id="btnEditTargets" onclick="window.toggleTargetEditMode(true)">
+                    <i class="fa-solid fa-pen me-1.5"></i><span data-i18n="btn_edit_targets">Edit</span>
+                  </button>
+                  
+                  <!-- ชุดปุ่ม Save / Cancel (ซ่อนไว้ก่อน) -->
+                  <div id="targetEditControls" class="d-none gap-2">
+                    <button type="button" class="btn btn-sm btn-light fw-bold px-3 shadow-xs rounded-pill border" onclick="window.cancelTargetEdit()">
+                      Cancel
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-xs rounded-pill" onclick="window.saveMatrixTargetCalls()">
+                      <i class="fa-solid fa-floppy-disk me-1.5"></i>Save
+                    </button>
+                  </div>
+                </div>
               </div>
               
               <!-- ช่องกรอกเป้าหมาย เรียงแนวตั้ง -->
-              <div class="row g-2 align-content-start overflow-y-auto custom-scrollbar flex-grow-1" id="matrixTargetInputsContainer">
+              <div class="row g-3 align-content-start overflow-y-auto custom-scrollbar flex-grow-1 px-1 pb-2" id="matrixTargetInputsContainer">
                 <!-- JS จะสร้างช่องกรอก Target ของแต่ละ Class ตรงนี้ -->
               </div>
             </div>
@@ -126,7 +145,13 @@
 
             <div class="mb-2">
               <label class="form-label fw-bold text-primary small" data-i18n="lbl_result_classification">Result = Classification</label>
-              <select class="form-select border-primary fw-bold text-primary shadow-xs" id="matrixClass" required style="border-radius: 8px;"></select>
+              <select class="form-select border-primary fw-bold text-primary shadow-xs" id="matrixClass" required style="border-radius: 8px;">
+                <option value="" disabled selected>-- Select Class --</option>
+                <option value="A">Class A</option>
+                <option value="B">Class B</option>
+                <option value="C">Class C</option>
+                <option value="D">Class D</option>
+              </select>
             </div>
 
           </div>
