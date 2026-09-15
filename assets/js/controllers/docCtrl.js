@@ -2722,3 +2722,56 @@ window.updatePrimaryWorkplaceHighlight = function(containerId) {
     }
   });
 };
+
+// =========================================================
+// 🌟 ฟังก์ชันจัดการ Inline Clear Button สำหรับตัวกรองวันที่
+// =========================================================
+
+// 1. ฟังก์ชันเมื่อกดปุ่ม (✖) ในช่อง
+window.clearVisitDateInline = function() {
+  const dateInput = document.getElementById('visitHistoryDateFilter');
+  const clearBtn = document.getElementById('clearDateFilterBtn');
+  
+  if (dateInput) {
+    dateInput.value = ''; // เคลียร์ค่าตัวหนังสือ
+    
+    // 💡 ถ้าคุณใช้ปลั๊กอินอย่าง Flatpickr หรือ Daterangepicker ให้เคลียร์ผ่าน Instance ด้วย เช่น:
+    if (dateInput._flatpickr) {
+      dateInput._flatpickr.clear();
+    }
+  }
+  
+  // ซ่อนปุ่มกลับไป
+  if (clearBtn) clearBtn.classList.add('d-none');
+  
+  // 🔄 สั่งให้ตารางอัปเดตข้อมูลใหม่ (เปลี่ยนชื่อฟังก์ชันให้ตรงกับที่คุณใช้ดึงข้อมูล Visit)
+  if (typeof window.filterVisitHistory === 'function') {
+    window.filterVisitHistory();
+  }
+};
+
+// 2. ตัวดักจับเวลาผู้ใช้เลือกวันที่ (เพื่อให้ปุ่ม ✖ โผล่ขึ้นมา)
+document.addEventListener('DOMContentLoaded', function() {
+  const dateInput = document.getElementById('visitHistoryDateFilter');
+  const clearBtn = document.getElementById('clearDateFilterBtn');
+  
+  if (dateInput && clearBtn) {
+    // ดักตอนมีการเปลี่ยนค่า
+    dateInput.addEventListener('change', function() {
+      if (this.value.trim() !== '') {
+        clearBtn.classList.remove('d-none'); // โชว์ปุ่ม
+      } else {
+        clearBtn.classList.add('d-none'); // ซ่อนปุ่ม
+      }
+    });
+
+    // ดักตอนพิมพ์ (เผื่อผู้ใช้พิมพ์วันที่เอง)
+    dateInput.addEventListener('input', function() {
+      if (this.value.trim() !== '') {
+        clearBtn.classList.remove('d-none');
+      } else {
+        clearBtn.classList.add('d-none');
+      }
+    });
+  }
+});
