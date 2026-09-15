@@ -130,8 +130,11 @@
     height: calc(100vh - 85px) !important;
     width: 100% !important;
     overflow: hidden !important;
-    /* 🌟 ปรับ padding ด้านซ้ายให้เป็น 0 เพื่อให้ขอบตรงกับ Logo ด้านบน */
-    padding: 0.5rem 1rem 0.5rem 0 !important; 
+    
+    /* 🌟 ปรับ Padding: บน 0.5rem | ขวา 1rem | ล่าง 0.5rem | ซ้าย 0.5rem */
+    /* (ดึงขอบซ้ายเข้ามาให้ตรงกับโลโก้ ถ้ายังไม่ตรงสามารถแก้ 0.5rem ตัวสุดท้าย เป็น 0.25rem หรือ 0.75rem ได้เลยครับ) */
+    padding: 0.5rem 1rem 0.5rem 0.5rem !important; 
+    
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
