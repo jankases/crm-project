@@ -244,29 +244,61 @@ window.loadMatrixRulesForProduct = async function(productId) {
   }
   window.matrixState.targetCalls = targetMap;
 };
-
-// 📌 7. วาด Grid 2 มิติ
+ 
+ // 📌 7. วาด Grid 2 มิติ (ดีไซน์ใหม่ กางเต็มพื้นที่ + เรียงลำดับถูกต้อง)
 window.render2DMatrixGrid = function() {
   const canvas = document.getElementById('matrixGridCanvas');
   if (!canvas) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-  let adopts = window.matrixState.categories.adoption;
-  let pots = window.matrixState.categories.potential;
+  
+  // Clone Array มาเพื่อไม่ให้กระทบ State หลัก
+  let adopts = [...window.matrixState.categories.adoption];
+  let pots = [...window.matrixState.categories.potential];
 
   if (adopts.length === 0) adopts = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
   if (pots.length === 0) pots = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
 
-  let html = `<table class="table table-bordered text-center align-middle mb-0 bg-white shadow-xs rounded-3 overflow-hidden">`;
-  html += `<thead class="table-light"><tr><th class="bg-light-subtle text-secondary" style="width: 160px;">Adoption \\ Potential</th>`;
+  // 🌟 1. ระบบบังคับเรียงลำดับ (Sorting Logic)
+  // แกน Y (Adoption): เรียงจาก มาก -> น้อย (Top to Bottom)
+  const yOrder = { 'high': 1, 'medium-high': 2, 'medium': 3, 'medium-low': 4, 'low': 5, 'no': 6 };
+  // แกน X (Potential): เรียงจาก น้อย -> มาก (Left to Right) ตามลูกศรสีแดง
+  const xOrder = { 'no': 1, 'low': 2, 'medium-low': 3, 'medium': 4, 'medium-high': 5, 'high': 6 };
+
+  adopts.sort((a, b) => (yOrder[(a.Value || '').toLowerCase()] || 99) - (yOrder[(b.Value || '').toLowerCase()] || 99));
+  pots.sort((a, b) => (xOrder[(a.Value || '').toLowerCase()] || 99) - (xOrder[(b.Value || '').toLowerCase()] || 99));
+
+  // 🌟 2. เริ่มวาดตาราง (ใช้ table-layout: fixed ให้ช่องกว้างเท่ากัน และ min-height ให้ตารางดูเต็ม)
+  let html = `
+    <style>
+      .matrix-cell-hover { transition: all 0.2s ease; }
+      .matrix-cell-hover:hover { background-color: #f8fafc !important; box-shadow: inset 0 0 0 2px #e2e8f0; }
+      .matrix-cell-hover:hover .btn-link { color: #0d6efd !important; }
+    </style>
+    <table class="table table-bordered text-center align-middle mb-0 bg-white shadow-sm rounded-3 overflow-hidden" style="table-layout: fixed; width: 100%; min-height: 480px;">`;
   
+  // หัวตาราง (Header)
+  html += `
+    <thead class="table-light">
+      <tr>
+        <th class="bg-light-subtle text-secondary align-middle position-relative p-0" style="width: 18%;">
+          <!-- ดีไซน์ช่องมุมซ้ายบนแบบไขว้ -->
+          <div class="d-flex flex-column justify-content-between h-100 p-2" style="min-height: 60px;">
+            <div class="text-end fw-bold text-dark small" style="font-size: 0.8rem;">Potential <i class="fa-solid fa-arrow-right ms-1 text-muted"></i></div>
+            <div class="text-start fw-bold text-dark small" style="font-size: 0.8rem;"><i class="fa-solid fa-arrow-down me-1 text-muted"></i> Adoption</div>
+          </div>
+        </th>`;
+  
+  // วาดหัวคอลัมน์ (Potential)
   pots.forEach(p => {
-    html += `<th class="fw-bold text-dark">${p.Value}</th>`;
+    html += `<th class="fw-bold text-dark py-3" style="font-size: 0.95rem;">${p.Value}</th>`;
   });
   html += `</tr></thead><tbody>`;
 
+  // วาดแถว (Adoption)
   adopts.forEach(a => {
-    html += `<tr><td class="fw-bold bg-light-subtle text-secondary text-start ps-3">${a.Value}</td>`;
+    html += `<tr><td class="fw-bold bg-light-subtle text-secondary text-start ps-3 py-3" style="font-size: 0.95rem;">${a.Value}</td>`;
+    
     pots.forEach(p => {
       const rule = window.matrixState.matrixRules.find(r => r.Adoption === a.Value && r.Potential === p.Value);
       const classification = rule ? rule.Classification : '-';
@@ -277,13 +309,14 @@ window.render2DMatrixGrid = function() {
       else if (classification === 'C') badgeClass = 'bg-primary-subtle text-primary border border-primary-subtle';
       else if (classification === 'D') badgeClass = 'bg-success-subtle text-success border border-success-subtle';
 
+      // เซลล์ข้อมูล (Matrix Cells) ปรับให้ดูเต็มและกดง่ายขึ้น
       html += `
-        <td class="p-3">
-          <div class="d-flex flex-column align-items-center gap-1">
-            <span class="badge ${badgeClass} fs-6 fw-bold px-3 py-1.5 rounded-3 shadow-xs" style="min-width: 45px;">
+        <td class="p-0 matrix-cell-hover" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${classification}')" style="cursor: pointer; height: 85px;">
+          <div class="d-flex flex-column align-items-center justify-content-center h-100 w-100 py-2">
+            <span class="badge ${badgeClass} fs-5 fw-bold px-4 py-2 rounded-3 shadow-xs mb-1" style="min-width: 65px;">
               ${classification}
             </span>
-            <button type="button" class="btn btn-link btn-sm p-0 text-muted tiny text-decoration-none" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${classification}')">
+            <button type="button" class="btn btn-link btn-sm p-0 text-muted small text-decoration-none" style="font-size: 0.75rem;">
               <i class="fa-solid fa-pen-to-square me-1"></i>${appLang === 'en' ? 'Edit' : 'แก้ไข'}
             </button>
           </div>
@@ -293,6 +326,10 @@ window.render2DMatrixGrid = function() {
   });
 
   html += `</tbody></table>`;
+  
+  // ลบ Padding ของ Canvas ออกเพื่อให้ตารางดันจนชิดขอบสวยงาม
+  canvas.classList.remove('p-3');
+  canvas.classList.add('p-0');
   canvas.innerHTML = html;
 };
 
