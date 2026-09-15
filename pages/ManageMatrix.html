@@ -84,9 +84,9 @@
                 
                 <!-- 🎛️ ปุ่มสลับโหมด (Edit <-> Save/Cancel) -->
                 <div id="targetActionButtons">
-                  <!-- ปุ่มกดเพื่อเข้าโหมด Edit -->
+                  <!-- ปุ่มกดเพื่อเข้าโหมด Edit (แก้ me-2) -->
                   <button type="button" class="btn btn-sm btn-outline-secondary fw-bold px-3 shadow-xs rounded-pill bg-white" id="btnEditTargets" onclick="window.toggleTargetEditMode(true)">
-                    <i class="fa-solid fa-pen me-1.5"></i><span data-i18n="btn_edit_targets">Edit</span>
+                    <i class="fa-solid fa-pen me-2"></i><span data-i18n="btn_edit_targets">Edit</span>
                   </button>
                   
                   <!-- ชุดปุ่ม Save / Cancel (ซ่อนไว้ก่อน) -->
@@ -94,8 +94,9 @@
                     <button type="button" class="btn btn-sm btn-light fw-bold px-3 shadow-xs rounded-pill border" onclick="window.cancelTargetEdit()">
                       Cancel
                     </button>
+                    <!-- ปุ่ม Save (แก้ me-2) -->
                     <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-xs rounded-pill" onclick="window.saveMatrixTargetCalls()">
-                      <i class="fa-solid fa-floppy-disk me-1.5"></i>Save
+                      <i class="fa-solid fa-floppy-disk me-2"></i>Save
                     </button>
                   </div>
                 </div>
