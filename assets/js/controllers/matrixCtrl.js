@@ -1,7 +1,12 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Clean Implementation - Fixed Dropdown & Supabase Fetching
+   Fixed Supabase Client Reference (window.supabaseClient / window.supabase)
    ========================================================================== */
+
+// Helper สำหรับดึง Supabase Client ตัวจริงของระบบ
+function getSbClient() {
+  return window.supabaseClient || window.supabase || null;
+}
 
 // 🌟 Global State
 window.matrixState = {
@@ -83,8 +88,10 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
   // 2. Fetch Target Frequency from system_settings
   window.fetchMatrixTargetFrequency = async function() {
     try {
-      if (typeof supabase === 'undefined') return;
-      const { data } = await supabase
+      const sb = getSbClient();
+      if (!sb || typeof sb.from !== 'function') return;
+
+      const { data } = await sb
         .from('system_settings')
         .select('value')
         .eq('key', 'rating_frequency')
@@ -120,15 +127,14 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
 
   // 4. Fetch Adoption & Potential Master Values
   window.fetchMatrixCategories = async function() {
-    if (typeof supabase === 'undefined') return;
+    const sb = getSbClient();
+    if (!sb || typeof sb.from !== 'function') return;
     
     try {
-      // ดึงประเภทดัชนีทั้งหมด
-      const { data: indexTypes } = await supabase.from('index_types').select('*');
-      const { data: indexValues } = await supabase.from('index_values').select('*');
+      const { data: indexTypes } = await sb.from('index_types').select('*');
+      const { data: indexValues } = await sb.from('index_values').select('*');
 
       if (indexTypes && indexValues) {
-        // หา ID ของ Adoption และ Potential (ไม่เคสเซนซิทีฟ)
         const adoptType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('adopt'));
         const potType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('poten'));
 
@@ -150,8 +156,10 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     if (!selectEl) return;
 
     let products = [];
-    if (typeof supabase !== 'undefined') {
-      const { data, error } = await supabase
+    const sb = getSbClient();
+    
+    if (sb && typeof sb.from === 'function') {
+      const { data, error } = await sb
         .from('products')
         .select('Product_ID, Product, Product_TH')
         .order('Product', { ascending: true });
@@ -201,10 +209,11 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
 
   // 7. Load Matrix & Target Data from Supabase
   window.loadMatrixRulesForProduct = async function(productId) {
-    if (typeof supabase === 'undefined') return;
+    const sb = getSbClient();
+    if (!sb || typeof sb.from !== 'function') return;
 
     // โหลดตาราง Rating
-    const { data: rules } = await supabase
+    const { data: rules } = await sb
       .from('Rating')
       .select('*')
       .eq('Product_ID', productId);
@@ -212,7 +221,7 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     window.matrixState.matrixRules = rules || [];
 
     // โหลดตาราง Target
-    const { data: targets } = await supabase
+    const { data: targets } = await sb
       .from('Target')
       .select('*')
       .eq('Product_ID', productId);
@@ -235,7 +244,6 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     let adopts = window.matrixState.categories.adoption;
     let pots = window.matrixState.categories.potential;
 
-    // Fallback กรณีไม่มีข้อมูลใน Master Table ให้ใช้ค่ามาตรฐาน (High, Medium, Low)
     if (adopts.length === 0) adopts = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
     if (pots.length === 0) pots = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
 
@@ -340,8 +348,9 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     window.showMatrixLoading(true);
 
     try {
-      if (typeof supabase !== 'undefined') {
-        const { error } = await supabase
+      const sb = getSbClient();
+      if (sb && typeof sb.from === 'function') {
+        const { error } = await sb
           .from('Target')
           .upsert(updates, { onConflict: 'Product_ID, Classification' });
 
@@ -367,8 +376,6 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     const aSel = document.getElementById('matrixAdopt');
     const potSel = document.getElementById('matrixPot');
     const cSel = document.getElementById('matrixClass');
-
-    const appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
 
     if (pSel) {
       const masterSel = document.getElementById('matrixProductSelect');
@@ -414,8 +421,9 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     window.showMatrixLoading(true);
 
     try {
-      if (typeof supabase !== 'undefined') {
-        const { error } = await supabase
+      const sb = getSbClient();
+      if (sb && typeof sb.from === 'function') {
+        const { error } = await sb
           .from('Rating')
           .upsert([{
             Product_ID: productId,
