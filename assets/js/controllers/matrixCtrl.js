@@ -1,9 +1,9 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Standard: Premium SaaS / Server-Side Ready / Bilingual i18n / Clean Scope
+   Clean Implementation - Fixed Dropdown & Supabase Fetching
    ========================================================================== */
 
-// 🌟 Global Matrix State
+// 🌟 Global State
 window.matrixState = {
   selectedProduct: '',
   targetFrequency: 'Per Cycle',
@@ -11,20 +11,24 @@ window.matrixState = {
   targetCalls: {},
   categories: {
     adoption: [],
-    potential: [],
-    classification: []
+    potential: []
   }
 };
 
-// 🌟 Global UI Action Handlers (ไม่อยู่ใน IIFE เพื่อให้ HTML เรียกได้แน่นอน 100%)
+// 🌟 Global View Handlers
 window.openAddMatrixModal = function() {
-  console.log("📌 Opening Add Matrix Form...");
-  if (typeof window.populateMatrixFormDropdowns === 'function') {
-    window.populateMatrixFormDropdowns();
-  }
   const selectedProd = window.matrixState ? window.matrixState.selectedProduct : '';
+  
+  if (!selectedProd) {
+    if (window.showToast) window.showToast('Please select a product first', 'warning');
+    else alert('Please select a product first / กรุณาเลือกสินค้าก่อน');
+    return;
+  }
+
+  window.populateMatrixFormDropdowns();
+  
   const pSel = document.getElementById('matrixProduct');
-  if (pSel && selectedProd) pSel.value = selectedProd;
+  if (pSel) pSel.value = selectedProd;
 
   window.switchMatrixView('matrixFormView');
 };
@@ -53,14 +57,14 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     if (adoptEl) adoptEl.value = adoption;
     if (potEl) potEl.value = potential;
     if (classEl) classEl.value = currentClass !== '-' ? currentClass : 'A';
-  }, 50);
+  }, 100);
 };
 
-// 🚀 Core Logic Module
+// 🚀 Core Engine
 (function() {
   'use strict';
 
-  // 1. Initialize Page Function
+  // 1. Initialize Page
   window.initManageMatrixPage = async function() {
     console.log("🚀 Initializing Manage Matrix Module...");
     window.showMatrixLoading(true);
@@ -69,20 +73,14 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
       await window.fetchMatrixTargetFrequency();
       await window.fetchMatrixCategories();
       await window.fetchMatrixProductList();
-      window.initMatrixProductSelect();
-      window.populateMatrixFormDropdowns();
     } catch (err) {
       console.error("❌ Error initializing Manage Matrix:", err);
-      window.showMatrixToast(
-        window.getCurrentAppLang() === 'en' ? 'Failed to load Matrix data' : 'เกิดข้อผิดพลาดในการโหลดข้อมูล Matrix',
-        'danger'
-      );
     } finally {
       window.showMatrixLoading(false);
     }
   };
 
-  // 2. Fetch Frequency
+  // 2. Fetch Target Frequency from system_settings
   window.fetchMatrixTargetFrequency = async function() {
     try {
       if (typeof supabase === 'undefined') return;
@@ -90,19 +88,19 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
         .from('system_settings')
         .select('value')
         .eq('key', 'rating_frequency')
-        .single();
+        .maybeSingle();
 
       if (data && data.value) {
         window.matrixState.targetFrequency = data.value;
       }
     } catch (e) {
-      console.warn("⚠️ Using default target frequency:", window.matrixState.targetFrequency);
+      console.warn("⚠️ Target frequency fetch error:", e);
     } finally {
       window.updateMatrixFrequencyBadge();
     }
   };
 
-  // 3. Update Badge
+  // 3. Update Frequency Badge Text
   window.updateMatrixFrequencyBadge = function() {
     const freqTextEl = document.getElementById('matrixTargetFreqText');
     if (!freqTextEl) return;
@@ -120,69 +118,59 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     freqTextEl.textContent = freqDict[freq] ? freqDict[freq][appLang] : freq;
   };
 
-  // 4. Fetch Categories
+  // 4. Fetch Adoption & Potential Master Values
   window.fetchMatrixCategories = async function() {
     if (typeof supabase === 'undefined') return;
     
-    const { data: indexTypes } = await supabase.from('index_types').select('*');
-    if (indexTypes) {
-      const adoptType = indexTypes.find(t => t.Name.toLowerCase() === 'adoption');
-      const potType = indexTypes.find(t => t.Name.toLowerCase() === 'potential');
-      const classType = indexTypes.find(t => t.Name.toLowerCase() === 'classification');
-
+    try {
+      // ดึงประเภทดัชนีทั้งหมด
+      const { data: indexTypes } = await supabase.from('index_types').select('*');
       const { data: indexValues } = await supabase.from('index_values').select('*');
-      if (indexValues) {
-        if (adoptType) window.matrixState.categories.adoption = indexValues.filter(v => v.IndexType_ID === adoptType.IndexType_ID);
-        if (potType) window.matrixState.categories.potential = indexValues.filter(v => v.IndexType_ID === potType.IndexType_ID);
-        if (classType) window.matrixState.categories.classification = indexValues.filter(v => v.IndexType_ID === classType.IndexType_ID);
+
+      if (indexTypes && indexValues) {
+        // หา ID ของ Adoption และ Potential (ไม่เคสเซนซิทีฟ)
+        const adoptType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('adopt'));
+        const potType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('poten'));
+
+        if (adoptType) {
+          window.matrixState.categories.adoption = indexValues.filter(v => v.IndexType_ID === adoptType.IndexType_ID || v.IndexType_ID === adoptType.id);
+        }
+        if (potType) {
+          window.matrixState.categories.potential = indexValues.filter(v => v.IndexType_ID === potType.IndexType_ID || v.IndexType_ID === potType.id);
+        }
       }
+    } catch (err) {
+      console.error("❌ Error fetching categories:", err);
     }
   };
 
-  // 5. Fetch Products
+  // 5. Fetch Product List Direct from Supabase Table
   window.fetchMatrixProductList = async function() {
     const selectEl = document.getElementById('matrixProductSelect');
     if (!selectEl) return;
 
-    let products = window.globalProductsList || [];
-
-    if (products.length === 0 && typeof supabase !== 'undefined') {
-      const { data } = await supabase
+    let products = [];
+    if (typeof supabase !== 'undefined') {
+      const { data, error } = await supabase
         .from('products')
         .select('Product_ID, Product, Product_TH')
-        .eq('Status', 'Active')
         .order('Product', { ascending: true });
-      products = data || [];
+        
+      if (!error && data) products = data;
     }
 
     const appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-    let html = `<option value="">${appLang === 'en' ? '- Select Product to View Matrix -' : '- เลือกสินค้าเพื่อดู Matrix -'}</option>`;
+    let html = `<option value="">${appLang === 'en' ? '-- Select Product to View Matrix --' : '-- เลือกสินค้าเพื่อดู Matrix --'}</option>`;
 
     products.forEach(p => {
-      const pName = (appLang === 'th' && p.Product_TH) ? p.Product_TH : p.Product;
+      const pName = (appLang === 'th' && p.Product_TH) ? p.Product_TH : (p.Product || p.Product_ID);
       html += `<option value="${p.Product_ID}">${pName}</option>`;
     });
 
     selectEl.innerHTML = html;
   };
 
-  // 6. Init TomSelect
-  window.initMatrixProductSelect = function() {
-    const el = document.getElementById('matrixProductSelect');
-    if (!el || typeof TomSelect === 'undefined') return;
-
-    if (window.matrixTomSelect) window.matrixTomSelect.destroy();
-
-    window.matrixTomSelect = new TomSelect('#matrixProductSelect', {
-      create: false,
-      sortField: { field: "text", direction: "asc" },
-      onChange: function(val) {
-        window.onMatrixProductChange(val);
-      }
-    });
-  };
-
-  // 7. Product Change Event
+  // 6. Handle Product Selector Change
   window.onMatrixProductChange = async function(productId) {
     window.matrixState.selectedProduct = productId;
     
@@ -211,10 +199,11 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     }
   };
 
-  // 8. Load Rating & Target Tables
+  // 7. Load Matrix & Target Data from Supabase
   window.loadMatrixRulesForProduct = async function(productId) {
     if (typeof supabase === 'undefined') return;
 
+    // โหลดตาราง Rating
     const { data: rules } = await supabase
       .from('Rating')
       .select('*')
@@ -222,6 +211,7 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
 
     window.matrixState.matrixRules = rules || [];
 
+    // โหลดตาราง Target
     const { data: targets } = await supabase
       .from('Target')
       .select('*')
@@ -236,22 +226,22 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     window.matrixState.targetCalls = targetMap;
   };
 
-  // 9. Render 2D Grid
+  // 8. Render 2D Visual Grid
   window.render2DMatrixGrid = function() {
     const canvas = document.getElementById('matrixGridCanvas');
     if (!canvas) return;
 
     const appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-    const adopts = window.matrixState.categories.adoption;
-    const pots = window.matrixState.categories.potential;
+    let adopts = window.matrixState.categories.adoption;
+    let pots = window.matrixState.categories.potential;
 
-    if (adopts.length === 0 || pots.length === 0) {
-      canvas.innerHTML = `<div class="text-center py-4 text-muted">${appLang === 'en' ? 'No Adoption / Potential Master Data setup yet.' : 'ยังไม่มีข้อมูล Master ของ Adoption / Potential'}</div>`;
-      return;
-    }
+    // Fallback กรณีไม่มีข้อมูลใน Master Table ให้ใช้ค่ามาตรฐาน (High, Medium, Low)
+    if (adopts.length === 0) adopts = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
+    if (pots.length === 0) pots = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
 
     let html = `<table class="table table-bordered text-center align-middle mb-0 bg-white shadow-xs rounded-3 overflow-hidden">`;
-    html += `<thead class="table-light"><tr><th class="bg-light-subtle text-secondary" style="width: 150px;">Adoption \\ Potential</th>`;
+    html += `<thead class="table-light"><tr><th class="bg-light-subtle text-secondary" style="width: 160px;">Adoption \\ Potential</th>`;
+    
     pots.forEach(p => {
       html += `<th class="fw-bold text-dark">${p.Value}</th>`;
     });
@@ -288,7 +278,7 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     canvas.innerHTML = html;
   };
 
-  // 10. Render Target Inputs
+  // 9. Render Target Call Inputs
   window.renderTargetInputs = function() {
     const container = document.getElementById('matrixTargetInputsContainer');
     if (!container) return;
@@ -325,7 +315,7 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     container.innerHTML = html;
   };
 
-  // 11. Save Target Calls
+  // 10. Save Target Calls to Supabase (Target Table)
   window.saveMatrixTargetCalls = async function() {
     const productId = window.matrixState.selectedProduct;
     if (!productId) return;
@@ -358,22 +348,20 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
         if (error) throw error;
       }
 
-      window.showMatrixToast(
-        window.getCurrentAppLang() === 'en' ? 'Target calls updated successfully!' : 'บันทึกเป้าหมายการเข้าพบเรียบร้อยแล้ว!',
-        'success'
-      );
+      if (window.showToast) {
+        window.showToast(window.getCurrentAppLang() === 'en' ? 'Target calls updated!' : 'บันทึกเป้าหมายสำเร็จ!', 'success');
+      } else {
+        alert('Saved Target Calls successfully!');
+      }
     } catch (err) {
       console.error("❌ Error saving target calls:", err);
-      window.showMatrixToast(
-        window.getCurrentAppLang() === 'en' ? 'Failed to save targets' : 'บันทึกข้อมูลไม่สำเร็จ',
-        'danger'
-      );
+      alert('Failed to save targets');
     } finally {
       window.showMatrixLoading(false);
     }
   };
 
-  // 12. Populate Form Dropdowns
+  // 11. Populate Form View Dropdowns
   window.populateMatrixFormDropdowns = function() {
     const pSel = document.getElementById('matrixProduct');
     const aSel = document.getElementById('matrixAdopt');
@@ -381,31 +369,22 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     const cSel = document.getElementById('matrixClass');
 
     const appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-    const products = window.globalProductsList || [];
 
     if (pSel) {
-      let html = `<option value="">- ${appLang === 'en' ? 'Select Product' : 'เลือกสินค้า'} -</option>`;
-      products.forEach(p => {
-        const pName = (appLang === 'th' && p.Product_TH) ? p.Product_TH : p.Product;
-        html += `<option value="${p.Product_ID}">${pName}</option>`;
-      });
-      pSel.innerHTML = html;
+      const masterSel = document.getElementById('matrixProductSelect');
+      pSel.innerHTML = masterSel ? masterSel.innerHTML : '';
     }
 
     if (aSel) {
-      let html = '';
-      window.matrixState.categories.adoption.forEach(v => {
-        html += `<option value="${v.Value}">${v.Value}</option>`;
-      });
-      aSel.innerHTML = html;
+      let adopts = window.matrixState.categories.adoption;
+      if (adopts.length === 0) adopts = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
+      aSel.innerHTML = adopts.map(v => `<option value="${v.Value}">${v.Value}</option>`).join('');
     }
 
     if (potSel) {
-      let html = '';
-      window.matrixState.categories.potential.forEach(v => {
-        html += `<option value="${v.Value}">${v.Value}</option>`;
-      });
-      potSel.innerHTML = html;
+      let pots = window.matrixState.categories.potential;
+      if (pots.length === 0) pots = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
+      potSel.innerHTML = pots.map(v => `<option value="${v.Value}">${v.Value}</option>`).join('');
     }
 
     if (cSel) {
@@ -418,7 +397,7 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     }
   };
 
-  // 13. Save Matrix Rule
+  // 12. Save Matrix Rule Form Submit (Rating Table)
   window.handleSaveMatrix = async function(event) {
     if (event) event.preventDefault();
     
@@ -428,10 +407,7 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
     const classification = document.getElementById('matrixClass')?.value;
 
     if (!productId || !adoption || !potential || !classification) {
-      window.showMatrixToast(
-        window.getCurrentAppLang() === 'en' ? 'Please fill all required fields' : 'กรุณากรอกข้อมูลให้ครบถ้วน',
-        'warning'
-      );
+      alert('Please fill all fields');
       return;
     }
 
@@ -453,49 +429,31 @@ window.editMatrixCell = function(adoption, potential, currentClass) {
         if (error) throw error;
       }
 
-      window.showMatrixToast(
-        window.getCurrentAppLang() === 'en' ? 'Matrix rule saved successfully!' : 'บันทึกเงื่อนไข Matrix เรียบร้อยแล้ว!',
-        'success'
-      );
+      if (window.showToast) {
+        window.showToast('Matrix rule saved!', 'success');
+      } else {
+        alert('Matrix rule saved successfully!');
+      }
 
       window.switchMatrixView('matrixListView');
-      
-      if (productId === window.matrixState.selectedProduct) {
-        await window.onMatrixProductChange(productId);
-      }
+      await window.onMatrixProductChange(productId);
 
     } catch (err) {
       console.error("❌ Error saving matrix rule:", err);
-      window.showMatrixToast(
-        window.getCurrentAppLang() === 'en' ? 'Failed to save rule' : 'บันทึกข้อมูลไม่สำเร็จ',
-        'danger'
-      );
+      alert('Failed to save rule');
     } finally {
       window.showMatrixLoading(false);
     }
   };
 
-  // Helper Functions
   window.showMatrixLoading = function(show) {
     const mainWorkspace = document.getElementById('matrixMainWorkspace');
     if (mainWorkspace) {
-      mainWorkspace.style.opacity = show ? '0.5' : '1';
+      mainWorkspace.style.opacity = show ? '0.4' : '1';
     }
   };
 
-  window.showMatrixToast = function(msg, type = 'info') {
-    if (window.showToast) {
-      window.showToast(msg, type);
-    } else {
-      alert(msg);
-    }
-  };
-
-  // Auto Execution
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    window.initManageMatrixPage();
-  } else {
-    document.addEventListener('DOMContentLoaded', window.initManageMatrixPage);
-  }
+  // Execution Trigger
+  setTimeout(window.initManageMatrixPage, 100);
 
 })();
