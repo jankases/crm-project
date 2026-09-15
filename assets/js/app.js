@@ -12,11 +12,11 @@ function checkAuthSession() {
     
     if (loginComponent) {
       loginComponent.classList.remove('d-none');
-      loginComponent.style.display = 'block'; // 🌟 กู้คืน: เพื่อให้หน้า Login โชว์
+      loginComponent.style.display = 'block';
     }
     if (appContainer) {
       appContainer.classList.add('d-none');
-      appContainer.style.display = 'none'; // 🌟 กู้คืน: เพื่อซ่อนฉากหลัง
+      appContainer.style.display = 'none';
     }
     return false;
   }
@@ -34,7 +34,6 @@ function handleLogout() {
   sessionStorage.clear();
   localStorage.clear();
   
-  // เคลียร์ Cache ระบบ
   if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
   if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
   if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
@@ -89,7 +88,7 @@ async function loadLoginComponent() {
     }
 }
 
-// 🛡️ ฟังก์ชันเช็กเตือนเฉพาะกรณี "กดสร้างใหม่ แล้วมีการพิมพ์ค้างไว้" เท่านั้น
+// 🛡️ ฟังก์ชันเช็กเตือนกรณีมีข้อมูลค้าง
 function hasUnsavedChanges() {
     const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     const isVisible = (el) => el && (!el.classList.contains('d-none') && el.style.display !== 'none');
@@ -97,7 +96,6 @@ function hasUnsavedChanges() {
     const visitPageView = document.getElementById('view_page_visit');
     const visitFormView = document.getElementById('visitFormView');
 
-    // 🌟 เอาเงื่อนไขที่กันหน้า Edit ออก ให้เตือนทุกสภาวะที่มีการเปิดฟอร์มค้างไว้
     if (isVisible(visitPageView) && isVisible(visitFormView)) {
         const details = document.getElementById('visitDetails')?.value.trim();
         const insight = document.getElementById('visitInsight')?.value.trim();
@@ -125,7 +123,27 @@ function hasUnsavedChanges() {
 
     return null;
 } 
- /* =========================================
+
+// 🌟 Helper: บังคับโหลด Controller JS สำหรับแต่ละหน้าแบบ Dynamic
+async function ensureControllerLoaded(page) {
+    if (page === 'matrix') {
+        if (typeof window.initManageMatrixPage !== 'function') {
+            await new Promise((resolve) => {
+                const oldScript = document.getElementById('script_ctrl_matrix');
+                if (oldScript) oldScript.remove();
+
+                const script = document.createElement('script');
+                script.id = 'script_ctrl_matrix';
+                script.src = `assets/js/controllers/matrixCtrl.js?v=${Date.now()}`;
+                script.onload = resolve;
+                script.onerror = resolve;
+                document.head.appendChild(script);
+            });
+        }
+    }
+}
+
+/* =========================================
    CRM System - Main Router Engine (app.js)
    ========================================= */
 
@@ -174,7 +192,6 @@ async function loadComponent(page) {
 
     let pageView = document.getElementById(`view_page_${page}`);
 
-    // ====== 🌟 ฟังก์ชันพระเอก: บังคับหน้า Loading แบบสายฟ้าแลบ ======
     const enforceLoadingState = () => {
         if (page === 'visit') {
             const vList = document.getElementById('visitListView');
@@ -186,17 +203,23 @@ async function loadComponent(page) {
         }
     };
 
+    // 🌟 โหลด Controller Script ล่วงหน้าก่อนรัน Logic หน้าจอ
+    await ensureControllerLoaded(page);
+
     if (pageView) {
         pageView.classList.remove('d-none');
-        enforceLoadingState(); // 🎯 ดักทุบตารางลงใต้ดินทันทีที่เปิดหน้าเดิม
+        enforceLoadingState();
 
         if (page === 'doctor') {
             if (typeof window.switchDoctorView === 'function') window.switchDoctorView('doctorListView');
             if (typeof window.initDoctorPage === 'function') await window.initDoctorPage(false);
         } else if (page === 'visit') {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
-            enforceLoadingState(); // 🎯 ดักทุบอีกครั้ง เผื่อ switchVisitView แอบปลดล็อกตาราง
+            enforceLoadingState();
             if (typeof window.initVisitPage === 'function') await window.initVisitPage(false);
+        } else if (page === 'matrix') { // 🌟 เรียก Init หน้า Manage Matrix เมื่อเข้าหน้าเดิมซ้ำ!
+            if (typeof window.switchMatrixView === 'function') window.switchMatrixView('matrixListView');
+            if (typeof window.initManageMatrixPage === 'function') await window.initManageMatrixPage();
         }
 
         const navbarCollapse = document.getElementById('navbarNav');
@@ -219,7 +242,6 @@ async function loadComponent(page) {
 
         mainContent.appendChild(pageView);
         
-        // 🎯 ดักทุบตารางลงใต้ดิน "ทันที" ที่ฉีด HTML ลง DOM (ปิดช่องโหว่ FOUC แว๊บแรกสุด!)
         enforceLoadingState(); 
 
         const scriptElements = pageView.querySelectorAll('script');
@@ -232,13 +254,17 @@ async function loadComponent(page) {
             document.head.appendChild(newScript).parentNode.removeChild(newScript);
         });
 
+        // 🌟 Exec Lifecycle สำหรับหน้าที่เพิ่งฉีด HTML ครั้งแรก
         if (page === 'doctor') {
             if (typeof window.switchDoctorView === 'function') window.switchDoctorView('doctorListView');
             if (typeof window.initDoctorPage === 'function') await window.initDoctorPage(false);
         } else if (page === 'visit') {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
-            enforceLoadingState(); // 🎯 ย้ำอีกครั้งเผื่อเหนียว!
+            enforceLoadingState();
             if (typeof window.initVisitPage === 'function') await window.initVisitPage(false);
+        } else if (page === 'matrix') { // 🌟 เรียก Init หน้า Manage Matrix ครั้งแรก!
+            if (typeof window.switchMatrixView === 'function') window.switchMatrixView('matrixListView');
+            if (typeof window.initManageMatrixPage === 'function') await window.initManageMatrixPage();
         }
         
         const navbarCollapse = document.getElementById('navbarNav');
@@ -258,7 +284,7 @@ async function loadComponent(page) {
     }
 }
   
-// 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้า (Rep, Territory, Doctor)
+// 🛡️ ฟังก์ชันตรวจสอบ Session และคำนวณ ID สิทธิ์ล่วงหน้า
 async function checkSession() {
     const userStr = sessionStorage.getItem('crmUser');
     const loginScreen = document.getElementById('loginScreen') || document.getElementById('loginComponent'); 
@@ -269,11 +295,11 @@ async function checkSession() {
         
         if (loginScreen) {
             loginScreen.classList.add('d-none');
-            loginScreen.style.display = 'none'; // 🌟 กู้คืน: ซ่อนหน้า Login
+            loginScreen.style.display = 'none';
         }
         if (appContainer) {
             appContainer.classList.remove('d-none');
-            appContainer.style.display = 'block'; // 🌟 กู้คืน: โชว์หน้าแอปหลัก
+            appContainer.style.display = 'block';
         }
         
         const nameDisplay = document.getElementById('displayUserName');
@@ -287,9 +313,6 @@ async function checkSession() {
         const roleUpper = String(uRole).toUpperCase().trim();
         const sb = window.supabaseClient || window.supabase;
         
-        // 🌟 ========================================================
-        // 🔐 DATA PERMISSION ARCHITECTURE FLAGS
-        // 🌟 ========================================================
         window.myUserRole = roleUpper;
         window.myUserBuId = user.BU_ID || user.bu_id || null;
         window.myUserTeamId = user.Team_ID || user.team_id || null;
@@ -304,7 +327,6 @@ async function checkSession() {
                              (roleUpper.indexOf('MANAGER') !== -1 || roleUpper.indexOf('LEAD') !== -1);
         window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && !window.myIsManager;
 
-        // 🌟 [PRE-CALCULATE PERMISSION IDS]: คำนวณ Rep, Territory และ Doctor IDs ล่วงหน้า
         var myAllowedRepIds = [String(user.Rep_ID || user.id || '').trim()];
         var myAllowedTerIds = [];
         var myAllowedDocIds = [];
@@ -334,7 +356,6 @@ async function checkSession() {
                         const { data: terrs } = await sb.from('Territory').select('Territory_ID').in('Team_ID', teamIds);
                         myAllowedTerIds = (terrs || []).map(t => String(t.Territory_ID));
                         
-                        // 🔐 กรองเฉพาะ Sales Rep ภายใต้ BU ตัวเอง (ไม่ดึง Admin/Staff)
                         const { data: users } = await sb.from('Rep_Users').select('Rep_ID, Role').in('BU_ID', [window.myUserBuId]);
                         (users || []).forEach(u => {
                             var uid = String(u.Rep_ID).trim();
@@ -347,7 +368,6 @@ async function checkSession() {
                     const { data: terrs } = await sb.from('Territory').select('Territory_ID').eq('Team_ID', window.myUserTeamId);
                     myAllowedTerIds = (terrs || []).map(t => String(t.Territory_ID));
 
-                    // 🔐 [FIXED]: ดึง Role มากรอง เพื่อตัดบัญชี Admin / Executive ที่สังกัด Team_ID เดียวกันออก
                     const { data: users } = await sb.from('Rep_Users').select('Rep_ID, Role').eq('Team_ID', window.myUserTeamId);
                     (users || []).forEach(u => {
                         var uid = String(u.Rep_ID).trim();
@@ -361,7 +381,6 @@ async function checkSession() {
                     myAllowedTerIds = [String(window.myUserTerritoryId)];
                 }
 
-                // 🏥 คำนวณ Doctor IDs ผ่าน Assignment ตารางพื้นที่สำหรับ BU Head / Manager / Sales Rep
                 if (!window.myIsProductManager && myAllowedTerIds.length > 0) {
                     const { data: assignRes } = await sb.from('Assignment').select('Account_ID, Type, Territory_ID').in('Territory_ID', myAllowedTerIds);
                     (assignRes || []).forEach(a => {
@@ -382,7 +401,6 @@ async function checkSession() {
         window.myAllowedTerIds = myAllowedTerIds;
         window.myAllowedDocIds = myAllowedDocIds;
 
-        // 🔒 แสดง Admin Tools เฉพาะ ADMIN / GLOBAL ตัวจริงเท่านั้น
         const adminItems = document.querySelectorAll('.admin-only');
         adminItems.forEach(el => {
             if (window.myIsGlobalViewer) {
@@ -390,7 +408,7 @@ async function checkSession() {
             } else {
                 el.classList.add('d-none');
             }
-            el.style.display = ''; // 🌟 ล้าง Inline style เก่าทิ้ง ป้องกัน Flexbox แตก
+            el.style.display = '';
         });
 
         await loadComponent('visit');
@@ -399,7 +417,7 @@ async function checkSession() {
         if (loginScreen) {
             loginScreen.classList.remove('d-none');
             loginScreen.classList.add('d-flex');
-            loginScreen.style.display = 'block'; // 🌟 กู้คืน: เพื่อให้หน้า Login โชว์
+            loginScreen.style.display = 'block';
             
             const expireReason = sessionStorage.getItem('session_expired_reason');
             const alertBanner = document.getElementById('loginAlertBanner');
@@ -420,7 +438,7 @@ async function checkSession() {
         }
         if (appContainer) {
             appContainer.classList.add('d-none');
-            appContainer.style.display = 'none'; // 🌟 กู้คืน: เพื่อซ่อนแอปหลัก
+            appContainer.style.display = 'none';
         }
     }
 }
@@ -433,7 +451,6 @@ async function logout() {
         sessionStorage.clear();
         localStorage.clear();
 
-        // เคลียร์ Cache ของผู้ใช้ในทุก Controller
         if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
         if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
         if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
