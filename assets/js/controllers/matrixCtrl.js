@@ -400,28 +400,30 @@
 
   // 📌 13. เปิด Form View เพิ่ม Matrix Rule
   window.openAddMatrixModal = function() {
+  console.log("📌 Opening Add Matrix Form...");
+  if (typeof window.populateMatrixFormDropdowns === 'function') {
     window.populateMatrixFormDropdowns();
+  }
+  const selectedProd = window.matrixState ? window.matrixState.selectedProduct : '';
+  const pSel = document.getElementById('matrixProduct');
+  if (pSel && selectedProd) pSel.value = selectedProd;
 
-    const selectedProd = window.matrixState.selectedProduct;
-    const pSel = document.getElementById('matrixProduct');
-    if (pSel && selectedProd) pSel.value = selectedProd;
-
-    window.switchMatrixView('matrixFormView');
-  };
+  window.switchMatrixView('matrixFormView');
+};
 
   // 📌 14. สลับ View ระหว่าง List และ Form
-  window.switchMatrixView = function(viewName) {
-    const listView = document.getElementById('matrixListView');
-    const formView = document.getElementById('matrixFormView');
+window.switchMatrixView = function(viewName) {
+  const listView = document.getElementById('matrixListView');
+  const formView = document.getElementById('matrixFormView');
 
-    if (viewName === 'matrixListView') {
-      if (formView) formView.classList.add('d-none');
-      if (listView) listView.classList.remove('d-none');
-    } else if (viewName === 'matrixFormView') {
-      if (listView) listView.classList.add('d-none');
-      if (formView) formView.classList.remove('d-none');
-    }
-  };
+  if (viewName === 'matrixListView') {
+    if (formView) formView.classList.add('d-none');
+    if (listView) listView.classList.remove('d-none');
+  } else if (viewName === 'matrixFormView') {
+    if (listView) listView.classList.add('d-none');
+    if (formView) formView.classList.remove('d-none');
+  }
+};
 
   // 📌 15. แก้ไข Cell บน Grid 2 มิติ
   window.editMatrixCell = function(adoption, potential, currentClass) {
