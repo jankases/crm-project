@@ -139,12 +139,23 @@
 
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 doc-view-container">
-
-    <!-- HEADER (มีแค่ปุ่ม Add New Doctor กับ Refresh เท่านั้น) -->
+ 
+    <!-- HEADER (ปรับสไตล์ให้เป็น Breadcrumb + Icon พรีเมียมเหมือนหน้า System Settings) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 mb-3 gap-3 flex-shrink-0">
-      <div class="d-flex align-items-center">
-        <h5 class="text-dark fw-bolder mb-0 fs-5" data-i18n="doc_title" style="letter-spacing: -0.3px;">Doctor Profiles</h5>
+      
+      <!-- 🌟 โซนซ้าย: Icon & Breadcrumb -->
+      <div class="d-flex align-items-center gap-2">
+        <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 30px; height: 30px;">
+          <i class="fa-solid fa-user-doctor" style="font-size: 0.9rem;"></i>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <h6 class="text-dark fw-bold mb-0" data-i18n="doc_title" style="font-size: 1.05rem;">Doctor Profiles</h6>
+          <i class="fa-solid fa-chevron-right text-muted opacity-50" style="font-size: 0.7rem;"></i> 
+          <span class="text-muted fw-medium" data-i18n="desc_doc_profiles" style="font-size: 0.85rem;">Directory & Profile Management</span>
+        </div>
       </div>
+
+      <!-- โซนขวา: Action Buttons (เหมือนเดิม) -->
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-premium-icon" onclick="window.forceReloadDoctors()" id="btnRefreshDoctors" title="Refresh Data">
           <i class="fa-solid fa-arrows-rotate fs-6"></i>
@@ -153,6 +164,7 @@
           <i class="fa-solid fa-plus me-1.5"></i><span data-i18n="btn_add_doctor">Add New Doctor</span>
         </button>
       </div>
+      
     </div>
 
     <!-- MIDDLE CONTENT (Table) -->
