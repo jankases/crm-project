@@ -148,8 +148,8 @@ window.fetchMatrixCategories = async function() {
     console.error("❌ Error fetching categories:", err);
   }
 };
-
-// 📌 4. ดึงรายชื่อสินค้าจากตาราง Products (แก้ไขไม่เรียก Product_TH เพื่อป้องกัน Error)
+ 
+ // 📌 4. ดึงรายชื่อสินค้าจากตาราง Products (อ้างอิง Schema จริง 100% ไม่มี Product_TH)
 window.fetchMatrixProductList = async function() {
   const selectEl = document.getElementById('matrixProductSelect');
   if (!selectEl) return;
@@ -160,16 +160,16 @@ window.fetchMatrixProductList = async function() {
   
   if (sb) {
     try {
-      // 🌟 ใช้ .select('*') และกรองเฉพาะ Status = 'Active' (ถ้ามี)
+      // 🌟 ดึงแค่คอลัมน์ที่มีอยู่จริงเท่านั้น (Product_ID, Product, Status)
       const { data, error } = await sb
         .from('Products')
-        .select('*')
+        .select('Product_ID, Product, Status')
         .order('Product', { ascending: true });
         
       if (error) throw error;
       
       if (data) {
-        // กรองเอาเฉพาะรายการที่ Active หรือไม่มีคอลัมน์ Status เลย
+        // กรองเอาเฉพาะรายการที่ Active 
         products = data.filter(p => !p.Status || String(p.Status).toLowerCase() === 'active');
       }
     } catch (err) {
@@ -182,7 +182,7 @@ window.fetchMatrixProductList = async function() {
   let html = `<option value="">${appLang === 'en' ? '-- Select Product to View Matrix --' : '-- เลือกสินค้าเพื่อดู Matrix --'}</option>`;
 
   products.forEach(p => {
-    // ใช้ p.Product เป็นชื่อหลัก
+    // 🌟 ใช้ p.Product เป็นชื่อหลักตรงๆ ตาม Database 
     const pName = p.Product || p.Product_ID;
     html += `<option value="${p.Product_ID}">${pName}</option>`;
   });
