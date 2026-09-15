@@ -200,12 +200,14 @@ window.onMatrixProductChange = async function(productId) {
   }
 };
 
-// 📌 โหลดข้อมูล Rating และ Target
+ 
+// 📌 โหลดข้อมูล Rating_Matrix และ Target
 window.loadMatrixRulesForProduct = async function(productId) {
   const sb = getMatrixSupabase();
   if (!sb) return;
 
-  const { data: rules } = await sb.from('Rating').select('*').eq('Product_ID', productId);
+  // 🚨 แก้ชื่อตารางเป็น Rating_Matrix
+  const { data: rules } = await sb.from('Rating_Matrix').select('*').eq('Product_ID', productId);
   window.matrixState.matrixRules = rules || [];
 
   const { data: targets } = await sb.from('Target').select('*').eq('Product_ID', productId);
@@ -216,7 +218,7 @@ window.loadMatrixRulesForProduct = async function(productId) {
     });
   }
   window.matrixState.targetCalls = targetMap;
-};  
+};
  // 🌟 3. วาด Grid ซ้าย (ดีไซน์สากลพรีเมียม ไม่มี Scrollbar + Micro-interaction)
 window.render2DMatrixGrid = function() {
   const canvas = document.getElementById('matrixGridCanvas');
@@ -394,7 +396,7 @@ window.cancelTargetEdit = function() {
   window.renderTargetInputs();
 };
 
-// 🌟 7. บันทึก Matrix Rule (ฟอร์ม Modal)
+// 🌟 7. บันทึก Matrix Rule (ฟอร์ม Modal) - กลับมาใช้ Upsert คลีนๆ
 window.handleSaveMatrix = async function(event) {
   if (event) event.preventDefault();
   
@@ -413,8 +415,9 @@ window.handleSaveMatrix = async function(event) {
   try {
     const sb = getMatrixSupabase();
     if (sb) {
+      // 🚨 แก้ชื่อตารางเป็น Rating_Matrix และใช้ upsert ได้เลยเพราะคุณทำ Primary Key ไว้แล้ว
       const { error } = await sb
-        .from('Rating')
+        .from('Rating_Matrix')
         .upsert([{
           Product_ID: productId,
           Adoption: adoption,
@@ -440,6 +443,7 @@ window.handleSaveMatrix = async function(event) {
       if (modal) modal.hide();
     }
 
+    // โหลดตารางใหม่เพื่อให้ข้อมูลอัปเดตบนหน้าจอ
     await window.onMatrixProductChange(productId);
 
   } catch (err) {
@@ -449,6 +453,7 @@ window.handleSaveMatrix = async function(event) {
     window.showMatrixLoading(false);
   }
 };
+ 
 
 // 🌟 8. บันทึก Target Calls แล้วล็อกหน้าจอ
 window.saveMatrixTargetCalls = async function() {
