@@ -1,486 +1,231 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Bulletproof Version: Exact Schema Matching & Safe Queries
+   Modal-based Edit & 2-Pane UI (Consistent Theme)
    ========================================================================== */
 
-// 🌟 Global State
 window.matrixState = {
-  selectedProduct: '',
-  targetFrequency: 'Per Cycle',
-  matrixRules: [],
-  targetCalls: {},
-  categories: {
-    adoption: [],
-    potential: []
-  }
+  selectedProduct: '', targetFrequency: 'Per Cycle', matrixRules: [], targetCalls: {}, categories: { adoption: [], potential: [] }
 };
 
-// 🌟 Helper ดึง Supabase Client
-function getMatrixSupabase() {
-  return window.supabaseClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
-}
+function getMatrixSupabase() { return window.supabaseClient || window.supabase || null; }
 
-// 🌟 Global Navigation & View Handlers
-window.openAddMatrixModal = function() {
-  const selectedProd = window.matrixState ? window.matrixState.selectedProduct : '';
-  
+// 🌟 1. เปิด Modal แจ้งเตือน + โหลดค่า
+window.openAddMatrixModal = function(adopt = '', pot = '', cls = 'A') {
+  const selectedProd = window.matrixState.selectedProduct;
   if (!selectedProd) {
-    if (typeof window.showToast === 'function') {
-      window.showToast(window.getCurrentAppLang() === 'en' ? 'Please select a product first' : 'กรุณาเลือกสินค้าก่อน', 'warning');
-    } else {
-      alert('Please select a product first / กรุณาเลือกสินค้าก่อน');
-    }
+    if (typeof window.showToast === 'function') window.showToast(window.getCurrentAppLang() === 'en' ? 'Please select a product first' : 'กรุณาเลือกสินค้าก่อน', 'warning');
+    else alert('Please select a product first');
     return;
   }
 
   window.populateMatrixFormDropdowns();
   
-  const pSel = document.getElementById('matrixProduct');
-  if (pSel) pSel.value = selectedProd;
+  // Set ค่าในฟอร์ม Modal
+  document.getElementById('matrixProduct').value = selectedProd;
+  if (adopt) document.getElementById('matrixAdopt').value = adopt;
+  if (pot) document.getElementById('matrixPot').value = pot;
+  document.getElementById('matrixClass').value = cls !== '-' ? cls : 'A';
 
-  window.switchMatrixView('matrixFormView');
-};
-
-window.switchMatrixView = function(viewName) {
-  const listView = document.getElementById('matrixListView');
-  const formView = document.getElementById('matrixFormView');
-
-  if (viewName === 'matrixListView') {
-    if (formView) formView.classList.add('d-none');
-    if (listView) listView.classList.remove('d-none');
-  } else if (viewName === 'matrixFormView') {
-    if (listView) listView.classList.add('d-none');
-    if (formView) formView.classList.remove('d-none');
+  // เรียกเปิด Bootstrap Modal
+  const modalEl = document.getElementById('matrixRuleModal');
+  if (modalEl) {
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
   }
 };
 
+// 🌟 2. กดที่ตารางแล้วเด้ง Modal
 window.editMatrixCell = function(adoption, potential, currentClass) {
-  window.openAddMatrixModal();
-  
-  setTimeout(() => {
-    const adoptEl = document.getElementById('matrixAdopt');
-    const potEl = document.getElementById('matrixPot');
-    const classEl = document.getElementById('matrixClass');
-
-    if (adoptEl) adoptEl.value = adoption;
-    if (potEl) potEl.value = potential;
-    if (classEl) classEl.value = currentClass !== '-' ? currentClass : 'A';
-  }, 100);
+  window.openAddMatrixModal(adoption, potential, currentClass);
 };
 
-// 🚀 Main Lifecycle Page Init
 window.initManageMatrixPage = async function() {
-  console.log("🚀 Initializing Manage Matrix Module...");
   window.showMatrixLoading(true);
-
   try {
     await window.fetchMatrixTargetFrequency();
     await window.fetchMatrixCategories();
     await window.fetchMatrixProductList();
-  } catch (err) {
-    console.error("❌ Error initializing Manage Matrix:", err);
-  } finally {
-    window.showMatrixLoading(false);
-  }
+  } catch (err) { console.error(err); } finally { window.showMatrixLoading(false); }
 };
 
-// 📌 1. ดึงความถี่จาก System_Settings (แบบปลอดภัยใช้ select * ป้องกันคอลัมน์ผิด)
 window.fetchMatrixTargetFrequency = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
-
   try {
-    const { data, error } = await sb.from('System_Settings').select('*');
-    
-    if (!error && data) {
-      // ค้นหาแถวที่เก็บค่า rating_frequency ไม่ว่าจะเขียนตัวพิมพ์เล็กหรือใหญ่
+    const { data } = await sb.from('System_Settings').select('*');
+    if (data) {
       const freqRow = data.find(r => (r.key || r.Key || '').toLowerCase() === 'rating_frequency');
-      if (freqRow) {
-        window.matrixState.targetFrequency = freqRow.value || freqRow.Value || 'Per Cycle';
-      }
+      if (freqRow) window.matrixState.targetFrequency = freqRow.value || freqRow.Value || 'Per Cycle';
     }
-  } catch (e) {
-    console.warn("⚠️ Frequency fetch warning:", e);
-  } finally {
-    window.updateMatrixFrequencyBadge();
-  }
+  } catch (e) {} finally { window.updateMatrixFrequencyBadge(); }
 };
 
-// 📌 2. อัปเดต Badge ภาษา
 window.updateMatrixFrequencyBadge = function() {
-  const freqTextEl = document.getElementById('matrixTargetFreqText');
-  if (!freqTextEl) return;
-
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  const el = document.getElementById('matrixTargetFreqText');
+  if (!el) return;
+  const lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   const freq = window.matrixState.targetFrequency || 'Per Cycle';
-  
-  const freqDict = {
-    'Per Month': { en: 'Per Month', th: 'ต่อเดือน' },
-    'Per Quarter': { en: 'Per Quarter', th: 'ต่อไตรมาส' },
-    'Per Cycle': { en: 'Per Cycle', th: 'ต่อรอบการทำงาน' },
-    'Per Year': { en: 'Per Year', th: 'ต่อปี' }
-  };
-
-  freqTextEl.textContent = freqDict[freq] ? freqDict[freq][appLang] : freq;
+  const dict = { 'Per Month': {en:'Per Month', th:'ต่อเดือน'}, 'Per Quarter': {en:'Per Quarter', th:'ต่อไตรมาส'}, 'Per Cycle': {en:'Per Cycle', th:'ต่อรอบการทำงาน'}, 'Per Year': {en:'Per Year', th:'ต่อปี'} };
+  el.textContent = dict[freq] ? dict[freq][lang] : freq;
 };
 
-// 📌 3. ดึงหมวดหมู่แกน X/Y จาก IndexType และ Index
 window.fetchMatrixCategories = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
-  
   try {
-    const { data: indexTypes } = await sb.from('IndexType').select('*');
-    const { data: indexValues } = await sb.from('Index').select('*');
-
-    if (indexTypes && indexValues) {
-      const adoptType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('adopt'));
-      const potType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('poten'));
-
-      if (adoptType) {
-        window.matrixState.categories.adoption = indexValues.filter(v => v.IndexType_ID === adoptType.IndexType_ID || v.IndexType_ID === adoptType.id);
-      }
-      if (potType) {
-        window.matrixState.categories.potential = indexValues.filter(v => v.IndexType_ID === potType.IndexType_ID || v.IndexType_ID === potType.id);
-      }
+    const { data: iTypes } = await sb.from('IndexType').select('*');
+    const { data: iVals } = await sb.from('Index').select('*');
+    if (iTypes && iVals) {
+      const aType = iTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('adopt'));
+      const pType = iTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('poten'));
+      if (aType) window.matrixState.categories.adoption = iVals.filter(v => v.IndexType_ID === aType.IndexType_ID || v.IndexType_ID === aType.id);
+      if (pType) window.matrixState.categories.potential = iVals.filter(v => v.IndexType_ID === pType.IndexType_ID || v.IndexType_ID === pType.id);
     }
-  } catch (err) {
-    console.error("❌ Error fetching categories:", err);
-  }
+  } catch (e) {}
 };
- 
- // 📌 4. ดึงรายชื่อสินค้าจากตาราง Products (อ้างอิง Schema จริง 100% ไม่มี Product_TH)
-window.fetchMatrixProductList = async function() {
-  const selectEl = document.getElementById('matrixProductSelect');
-  if (!selectEl) return;
 
-  let products = [];
+window.fetchMatrixProductList = async function() {
+  const el = document.getElementById('matrixProductSelect');
+  if (!el) return;
   const sb = getMatrixSupabase();
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-  
+  let products = [];
   if (sb) {
     try {
-      // 🌟 ดึงแค่คอลัมน์ที่มีอยู่จริงเท่านั้น (Product_ID, Product, Status)
-      const { data, error } = await sb
-        .from('Products')
-        .select('Product_ID, Product, Status')
-        .order('Product', { ascending: true });
-        
-      if (error) throw error;
-      
-      if (data) {
-        // กรองเอาเฉพาะรายการที่ Active 
-        products = data.filter(p => !p.Status || String(p.Status).toLowerCase() === 'active');
-      }
-    } catch (err) {
-      console.error("❌ Error fetching products:", err);
-      selectEl.innerHTML = `<option value="">⚠️ Failed to load products</option>`;
-      return;
-    }
+      const { data, error } = await sb.from('Products').select('Product_ID, Product, Status').order('Product', { ascending: true });
+      if (!error && data) products = data.filter(p => !p.Status || String(p.Status).toLowerCase() === 'active');
+    } catch (err) {}
   }
-
-  let html = `<option value="">${appLang === 'en' ? '-- Select Product to View Matrix --' : '-- เลือกสินค้าเพื่อดู Matrix --'}</option>`;
-
-  products.forEach(p => {
-    // 🌟 ใช้ p.Product เป็นชื่อหลักตรงๆ ตาม Database 
-    const pName = p.Product || p.Product_ID;
-    html += `<option value="${p.Product_ID}">${pName}</option>`;
-  });
-
-  selectEl.innerHTML = html;
+  const lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  let html = `<option value="">${lang === 'en' ? '-- Select Product to View Matrix --' : '-- เลือกสินค้าเพื่อดู Matrix --'}</option>`;
+  products.forEach(p => html += `<option value="${p.Product_ID}">${p.Product || p.Product_ID}</option>`);
+  el.innerHTML = html;
 };
 
-// 📌 5. เมื่อเปลี่ยนสินค้า
 window.onMatrixProductChange = async function(productId) {
   window.matrixState.selectedProduct = productId;
-  
-  const emptyStateEl = document.getElementById('matrixEmptyState');
-  const activeContentEl = document.getElementById('matrixActiveContent');
-
+  const emptyEl = document.getElementById('matrixEmptyState');
+  const activeEl = document.getElementById('matrixActiveContent');
   if (!productId) {
-    if (emptyStateEl) emptyStateEl.classList.remove('d-none');
-    if (activeContentEl) activeContentEl.classList.add('d-none');
+    emptyEl.classList.remove('d-none'); activeEl.classList.add('d-none');
     return;
   }
-
-  if (emptyStateEl) emptyStateEl.classList.add('d-none');
-  if (activeContentEl) activeContentEl.classList.remove('d-none');
-
+  emptyEl.classList.add('d-none'); activeEl.classList.remove('d-none');
   window.showMatrixLoading(true);
-
   try {
     await window.loadMatrixRulesForProduct(productId);
     window.render2DMatrixGrid();
     window.renderTargetInputs();
-  } catch (err) {
-    console.error("❌ Error loading product matrix rules:", err);
-  } finally {
-    window.showMatrixLoading(false);
-  }
+  } catch (e) {} finally { window.showMatrixLoading(false); }
 };
 
-// 📌 6. โหลดข้อมูล Rating และ Target
 window.loadMatrixRulesForProduct = async function(productId) {
   const sb = getMatrixSupabase();
   if (!sb) return;
-
-  const { data: rules } = await sb
-    .from('Rating')
-    .select('*')
-    .eq('Product_ID', productId);
-
+  const { data: rules } = await sb.from('Rating').select('*').eq('Product_ID', productId);
   window.matrixState.matrixRules = rules || [];
-
-  const { data: targets } = await sb
-    .from('Target')
-    .select('*')
-    .eq('Product_ID', productId);
-
-  const targetMap = {};
-  if (targets) {
-    targets.forEach(t => {
-      targetMap[t.Classification] = t.Target !== null ? t.Target : 0;
-    });
-  }
-  window.matrixState.targetCalls = targetMap;
+  const { data: targets } = await sb.from('Target').select('*').eq('Product_ID', productId);
+  const tMap = {};
+  if (targets) targets.forEach(t => tMap[t.Classification] = t.Target !== null ? t.Target : 0);
+  window.matrixState.targetCalls = tMap;
 };
- 
 
-// 📌 7. วาด Grid 2 มิติ (ปรับดีไซน์ให้กระชับ สมส่วน และแก้ปัญหา Scrollbar)
+// 🌟 3. วาด Grid คุม Theme มาตรฐานของระบบ (table-bordered) + เรียงลำดับถูกต้อง
 window.render2DMatrixGrid = function() {
   const canvas = document.getElementById('matrixGridCanvas');
   if (!canvas) return;
-
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  const lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   
   let adopts = [...window.matrixState.categories.adoption];
   let pots = [...window.matrixState.categories.potential];
-
   if (adopts.length === 0) adopts = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
   if (pots.length === 0) pots = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
 
   const yOrder = { 'high': 1, 'medium-high': 2, 'medium': 3, 'medium-low': 4, 'low': 5, 'no': 6 };
   const xOrder = { 'no': 1, 'low': 2, 'medium-low': 3, 'medium': 4, 'medium-high': 5, 'high': 6 };
-
   adopts.sort((a, b) => (yOrder[(a.Value || '').toLowerCase()] || 99) - (yOrder[(b.Value || '').toLowerCase()] || 99));
   pots.sort((a, b) => (xOrder[(a.Value || '').toLowerCase()] || 99) - (xOrder[(b.Value || '').toLowerCase()] || 99));
 
   let html = `
     <style>
-      .matrix-cell-hover { transition: all 0.2s ease; }
+      .matrix-cell-hover { transition: all 0.15s ease; cursor: pointer; }
       .matrix-cell-hover:hover { background-color: #f8fafc !important; box-shadow: inset 0 0 0 1.5px #cbd5e1; }
       .matrix-cell-hover:hover .edit-hint { color: #0d6efd !important; opacity: 1 !important; }
-      /* 🌟 บังคับให้กล่องหลักมี Scrollbar เสมอ ทำให้เลื่อนลงไปดู Target ได้ */
-      #matrixMainWorkspace { overflow-y: auto !important; flex: 1; min-height: 0; }
     </style>
-    <div class="table-responsive border rounded-3 shadow-sm">
-      <table class="table table-bordered text-center align-middle mb-0 bg-white" style="table-layout: fixed; width: 100%;">
-        <thead class="table-light">
-          <tr>
-            <th class="bg-light-subtle text-secondary align-middle position-relative p-0" style="width: 15%; min-width: 120px;">
-              <div class="d-flex flex-column justify-content-between h-100 p-2">
-                <div class="text-end fw-bold text-dark" style="font-size: 0.75rem;">Potential <i class="fa-solid fa-arrow-right ms-1 text-muted"></i></div>
-                <div class="text-start fw-bold text-dark" style="font-size: 0.75rem;"><i class="fa-solid fa-arrow-down me-1 text-muted"></i> Adoption</div>
-              </div>
-            </th>`;
+    <table class="table table-bordered text-center align-middle mb-0 bg-white h-100" style="table-layout: fixed; width: 100%;">
+      <thead class="table-light">
+        <tr>
+          <th class="bg-light-subtle text-secondary p-0" style="width: 18%; min-width: 100px;">
+            <div class="d-flex flex-column justify-content-between h-100 p-2">
+              <div class="text-end fw-bold" style="font-size: 0.75rem;">Potential <i class="fa-solid fa-arrow-right ms-1"></i></div>
+              <div class="text-start fw-bold" style="font-size: 0.75rem;"><i class="fa-solid fa-arrow-down me-1"></i> Adoption</div>
+            </div>
+          </th>`;
   
-  pots.forEach(p => {
-    html += `<th class="fw-bold text-dark py-2" style="font-size: 0.85rem;">${p.Value}</th>`;
-  });
+  pots.forEach(p => html += `<th class="fw-bold text-dark py-2" style="font-size: 0.85rem;">${p.Value}</th>`);
   html += `</tr></thead><tbody>`;
 
   adopts.forEach(a => {
     html += `<tr><td class="fw-bold bg-light-subtle text-secondary text-start ps-3 py-2" style="font-size: 0.85rem;">${a.Value}</td>`;
-    
     pots.forEach(p => {
       const rule = window.matrixState.matrixRules.find(r => r.Adoption === a.Value && r.Potential === p.Value);
-      const classification = rule ? rule.Classification : '-';
+      const cls = rule ? rule.Classification : '-';
       
-      let badgeClass = 'bg-secondary-subtle text-secondary';
-      if (classification === 'A') badgeClass = 'bg-danger-subtle text-danger border border-danger-subtle';
-      else if (classification === 'B') badgeClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
-      else if (classification === 'C') badgeClass = 'bg-primary-subtle text-primary border border-primary-subtle';
-      else if (classification === 'D') badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+      let bClass = 'bg-secondary-subtle text-secondary';
+      if (cls === 'A') bClass = 'bg-danger-subtle text-danger border border-danger-subtle';
+      else if (cls === 'B') bClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+      else if (cls === 'C') bClass = 'bg-primary-subtle text-primary border border-primary-subtle';
+      else if (cls === 'D') bClass = 'bg-success-subtle text-success border border-success-subtle';
 
       html += `
-        <td class="p-1 matrix-cell-hover" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${classification}')" style="cursor: pointer;">
-          <div class="d-flex flex-column align-items-center justify-content-center py-1">
-            <span class="badge ${badgeClass} fw-bold rounded-2 mb-1 shadow-none" style="font-size: 0.85rem; min-width: 40px;">
-              ${classification}
-            </span>
-            <span class="edit-hint text-muted small opacity-50" style="font-size: 0.65rem; transition: 0.2s;">
-              <i class="fa-solid fa-pen"></i> ${appLang === 'en' ? 'Edit' : 'แก้ไข'}
-            </span>
+        <td class="p-1 matrix-cell-hover" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${cls}')">
+          <div class="d-flex flex-column align-items-center justify-content-center py-2 h-100">
+            <span class="badge ${bClass} fw-bold rounded-2 mb-1 shadow-none" style="font-size: 0.9rem; min-width: 45px;">${cls}</span>
+            <span class="edit-hint text-muted small opacity-50" style="font-size: 0.7rem;"><i class="fa-solid fa-pen"></i> ${lang === 'en' ? 'Edit' : 'แก้ไข'}</span>
           </div>
         </td>`;
     });
     html += `</tr>`;
   });
-
-  html += `</tbody></table></div>`;
-  
-  // ลบ style กรอบเก่าที่ทำให้ดูบวมทิ้งไป
-  canvas.classList.remove('p-3', 'bg-light-subtle', 'border', 'rounded-3');
+  html += `</tbody></table>`;
   canvas.innerHTML = html;
 };
 
-// 📌 8. วาดช่องกรอก Target Call (ดีไซน์กระชับให้เข้ากับตารางด้านบน)
+// 🌟 4. วาดช่อง Target Call (จัด Layout เป็นแนวตั้งสำหรับ Sidebar ฝั่งขวา)
 window.renderTargetInputs = function() {
   const container = document.getElementById('matrixTargetInputsContainer');
   if (!container) return;
-
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  const lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   const classes = ['A', 'B', 'C', 'D'];
   const freqLabel = window.matrixState.targetFrequency || 'Per Cycle';
 
   let html = '';
   classes.forEach(c => {
-    const targetVal = window.matrixState.targetCalls[c] !== undefined ? window.matrixState.targetCalls[c] : 0;
-    
-    let borderStyle = 'border-primary-subtle';
-    let titleColor = 'text-primary';
-    if (c === 'A') { borderStyle = 'border-danger-subtle'; titleColor = 'text-danger'; }
-    if (c === 'B') { borderStyle = 'border-warning-subtle'; titleColor = 'text-warning-emphasis'; }
-    if (c === 'C') { borderStyle = 'border-primary-subtle'; titleColor = 'text-primary'; }
-    if (c === 'D') { borderStyle = 'border-success-subtle'; titleColor = 'text-success'; }
+    const val = window.matrixState.targetCalls[c] !== undefined ? window.matrixState.targetCalls[c] : 0;
+    let bStyle = 'border-primary-subtle';
+    let tColor = 'text-primary';
+    if (c === 'A') { bStyle = 'border-danger-subtle'; tColor = 'text-danger'; }
+    if (c === 'B') { bStyle = 'border-warning-subtle'; tColor = 'text-warning-emphasis'; }
+    if (c === 'C') { bStyle = 'border-primary-subtle'; tColor = 'text-primary'; }
+    if (c === 'D') { bStyle = 'border-success-subtle'; tColor = 'text-success'; }
 
     html += `
-      <div class="col-6 col-md-3">
-        <div class="card p-2 bg-white border ${borderStyle} shadow-sm rounded-3">
+      <div class="col-12">
+        <div class="card p-2 bg-white border ${bStyle} shadow-sm rounded-3">
           <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-            <span class="fw-bold fs-6 ${titleColor}">Class ${c}</span>
+            <span class="fw-bold fs-6 ${tColor}">Class ${c}</span>
             <span class="badge bg-light text-muted" style="font-size: 0.65rem;">${freqLabel}</span>
           </div>
           <div class="input-group input-group-sm">
-            <input type="number" min="0" class="form-control text-center fw-bold text-dark border-secondary-subtle" id="targetInput_${c}" value="${targetVal}">
-            <span class="input-group-text bg-light text-muted fw-bold" style="font-size: 0.75rem;">${appLang === 'en' ? 'Calls' : 'ครั้ง'}</span>
+            <input type="number" min="0" class="form-control text-center fw-bold text-dark border-secondary-subtle" id="targetInput_${c}" value="${val}">
+            <span class="input-group-text bg-light text-muted fw-bold" style="font-size: 0.75rem;">${lang === 'en' ? 'Calls' : 'ครั้ง'}</span>
           </div>
         </div>
       </div>`;
   });
-
   container.innerHTML = html;
 };
 
-// 📌 8. วาดช่องกรอก Target Call
-window.renderTargetInputs = function() {
-  const container = document.getElementById('matrixTargetInputsContainer');
-  if (!container) return;
-
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-  const classes = ['A', 'B', 'C', 'D'];
-  const freqLabel = window.matrixState.targetFrequency || 'Per Cycle';
-
-  let html = '';
-  classes.forEach(c => {
-    const targetVal = window.matrixState.targetCalls[c] !== undefined ? window.matrixState.targetCalls[c] : 0;
-    
-    let borderStyle = 'border-primary-subtle';
-    if (c === 'A') borderStyle = 'border-danger-subtle';
-    if (c === 'B') borderStyle = 'border-warning-subtle';
-    if (c === 'C') borderStyle = 'border-info-subtle';
-    if (c === 'D') borderStyle = 'border-success-subtle';
-
-    html += `
-      <div class="col-6 col-md-3">
-        <div class="card p-3 bg-white border ${borderStyle} shadow-xs rounded-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold fs-5 text-dark">Class ${c}</span>
-            <span class="badge bg-light text-muted small fw-normal">${freqLabel}</span>
-          </div>
-          <div class="input-group input-group-sm">
-            <input type="number" min="0" class="form-control text-center fw-bold fs-6 text-primary border-primary" id="targetInput_${c}" value="${targetVal}">
-            <span class="input-group-text bg-light text-muted fw-bold">${appLang === 'en' ? 'Calls' : 'ครั้ง'}</span>
-          </div>
-        </div>
-      </div>`;
-  });
-
-  container.innerHTML = html;
-};
-
-// 📌 9. บันทึก Target Calls ลงตาราง Target (แมปข้อมูลตรงตาม image_090481)
-window.saveMatrixTargetCalls = async function() {
-  const productId = window.matrixState.selectedProduct;
-  if (!productId) return;
-
-  const currentUserEmail = window.currentUser?.email || window.currentUser?.Email || 'system';
-  const classes = ['A', 'B', 'C', 'D'];
-  const updates = [];
-
-  classes.forEach(c => {
-    const input = document.getElementById(`targetInput_${c}`);
-    if (input) {
-      updates.push({
-        Product_ID: productId,
-        Classification: c,
-        Target: parseInt(input.value, 10) || 0,
-        Whoupdated: currentUserEmail,
-        Whenupdated: new Date().toISOString()
-      });
-    }
-  });
-
-  window.showMatrixLoading(true);
-
-  try {
-    const sb = getMatrixSupabase();
-    if (sb) {
-      const { error } = await sb
-        .from('Target')
-        .upsert(updates, { onConflict: 'Product_ID, Classification' });
-
-      if (error) throw error;
-    }
-
-    if (typeof window.showToast === 'function') {
-      window.showToast((typeof window.getCurrentAppLang === 'function' && window.getCurrentAppLang() === 'en') ? 'Target calls updated!' : 'บันทึกเป้าหมายสำเร็จ!', 'success');
-    } else {
-      alert('Saved Target Calls successfully!');
-    }
-  } catch (err) {
-    console.error("❌ Error saving target calls:", err);
-    alert('Failed to save targets');
-  } finally {
-    window.showMatrixLoading(false);
-  }
-};
-
-// 📌 10. ใส่ข้อมูลใน Form View
-window.populateMatrixFormDropdowns = function() {
-  const pSel = document.getElementById('matrixProduct');
-  const aSel = document.getElementById('matrixAdopt');
-  const potSel = document.getElementById('matrixPot');
-  const cSel = document.getElementById('matrixClass');
-
-  if (pSel) {
-    const masterSel = document.getElementById('matrixProductSelect');
-    pSel.innerHTML = masterSel ? masterSel.innerHTML : '';
-  }
-
-  if (aSel) {
-    let adopts = window.matrixState.categories.adoption;
-    if (adopts.length === 0) adopts = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
-    aSel.innerHTML = adopts.map(v => `<option value="${v.Value}">${v.Value}</option>`).join('');
-  }
-
-  if (potSel) {
-    let pots = window.matrixState.categories.potential;
-    if (pots.length === 0) pots = [{ Value: 'High' }, { Value: 'Medium' }, { Value: 'Low' }];
-    potSel.innerHTML = pots.map(v => `<option value="${v.Value}">${v.Value}</option>`).join('');
-  }
-
-  if (cSel) {
-    cSel.innerHTML = `
-      <option value="A">Class A</option>
-      <option value="B">Class B</option>
-      <option value="C">Class C</option>
-      <option value="D">Class D</option>
-    `;
-  }
-};
-
-// 📌 11. บันทึก Matrix Rule ลงตาราง Rating
+// 🌟 5. บันทึก Modal (เสร็จแล้วปิด Modal ทันที)
 window.handleSaveMatrix = async function(event) {
   if (event) event.preventDefault();
   
@@ -495,44 +240,70 @@ window.handleSaveMatrix = async function(event) {
   }
 
   window.showMatrixLoading(true);
-
   try {
     const sb = getMatrixSupabase();
     if (sb) {
-      const { error } = await sb
-        .from('Rating')
-        .upsert([{
-          Product_ID: productId,
-          Adoption: adoption,
-          Potential: potential,
-          Classification: classification,
-          Whoupdated: window.currentUser?.email || window.currentUser?.Email || 'system',
-          Whenupdated: new Date().toISOString()
-        }], { onConflict: 'Product_ID, Adoption, Potential' });
-
+      const { error } = await sb.from('Rating').upsert([{
+        Product_ID: productId, Adoption: adoption, Potential: potential, Classification: classification,
+        Whoupdated: window.currentUser?.email || window.currentUser?.Email || 'system',
+        Whenupdated: new Date().toISOString()
+      }], { onConflict: 'Product_ID, Adoption, Potential' });
       if (error) throw error;
     }
 
-    if (typeof window.showToast === 'function') {
-      window.showToast('Matrix rule saved!', 'success');
-    } else {
-      alert('Matrix rule saved successfully!');
+    if (typeof window.showToast === 'function') window.showToast('Matrix rule saved!', 'success');
+    
+    // 🌟 ปิด Modal ด้วย Bootstrap Instance
+    const modalEl = document.getElementById('matrixRuleModal');
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
     }
-
-    window.switchMatrixView('matrixListView');
+    
+    // โหลดตารางใหม่
     await window.onMatrixProductChange(productId);
 
   } catch (err) {
-    console.error("❌ Error saving matrix rule:", err);
+    console.error("❌ Error saving rule:", err);
     alert('Failed to save rule');
   } finally {
     window.showMatrixLoading(false);
   }
 };
 
+window.saveMatrixTargetCalls = async function() {
+  const productId = window.matrixState.selectedProduct;
+  if (!productId) return;
+  const currentUserEmail = window.currentUser?.email || window.currentUser?.Email || 'system';
+  const updates = [];
+  ['A', 'B', 'C', 'D'].forEach(c => {
+    const input = document.getElementById(`targetInput_${c}`);
+    if (input) updates.push({ Product_ID: productId, Classification: c, Target: parseInt(input.value, 10) || 0, Whoupdated: currentUserEmail, Whenupdated: new Date().toISOString() });
+  });
+
+  window.showMatrixLoading(true);
+  try {
+    const sb = getMatrixSupabase();
+    if (sb) {
+      const { error } = await sb.from('Target').upsert(updates, { onConflict: 'Product_ID, Classification' });
+      if (error) throw error;
+    }
+    if (typeof window.showToast === 'function') window.showToast('Target calls updated!', 'success');
+  } catch (err) {} finally { window.showMatrixLoading(false); }
+};
+
+window.populateMatrixFormDropdowns = function() {
+  const pSel = document.getElementById('matrixProduct');
+  const aSel = document.getElementById('matrixAdopt');
+  const potSel = document.getElementById('matrixPot');
+  const cSel = document.getElementById('matrixClass');
+  if (pSel) { const m = document.getElementById('matrixProductSelect'); pSel.innerHTML = m ? m.innerHTML : ''; }
+  if (aSel) { let a = window.matrixState.categories.adoption; if(!a.length) a = [{Value:'High'},{Value:'Medium'},{Value:'Low'}]; aSel.innerHTML = a.map(v => `<option value="${v.Value}">${v.Value}</option>`).join(''); }
+  if (potSel) { let p = window.matrixState.categories.potential; if(!p.length) p = [{Value:'High'},{Value:'Medium'},{Value:'Low'}]; potSel.innerHTML = p.map(v => `<option value="${v.Value}">${v.Value}</option>`).join(''); }
+  if (cSel) cSel.innerHTML = `<option value="A">Class A</option><option value="B">Class B</option><option value="C">Class C</option><option value="D">Class D</option>`;
+};
+
 window.showMatrixLoading = function(show) {
-  const mainWorkspace = document.getElementById('matrixMainWorkspace');
-  if (mainWorkspace) {
-    mainWorkspace.style.opacity = show ? '0.4' : '1';
-  }
+  const ws = document.getElementById('matrixMainWorkspace');
+  if (ws) ws.style.opacity = show ? '0.4' : '1';
 };
