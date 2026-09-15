@@ -640,7 +640,7 @@
         </div>
       </div>
 
-      <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
+ <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
 
         <!-- 📌 FILTER ZONE & ACTION BAR -->
@@ -649,13 +649,28 @@
           <!-- โซนตัวกรองฝั่งซ้าย -->
           <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
 
-            <!-- 🌟 1. Date Picker (สี bg-light-subtle ไร้ขอบอึดอัด) -->
-            <div style="width: 280px; flex-shrink: 0;">
-              <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2" style="height: 38px;">
+            <!-- 🌟 1. Date Picker (สี bg-light-subtle + ปุ่ม ✖ ซ่อนรูป) -->
+            <div style="width: 280px; flex-shrink: 0;" class="position-relative">
+              <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2 position-relative" style="height: 38px;">
                 <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
-                <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium" id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                
+                <!-- ช่อง Input (เพิ่ม pe-4 เพื่อเว้นที่ให้ปุ่มกากบาทด้านขวา) -->
+                <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
+                       id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                
                 <span class="text-muted px-1">-</span>
-                <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium" id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                
+                <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
+                       id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
+                
+                <!-- 🌟 ปุ่ม ✖ (Inline Clear) จะโชว์เมื่อมีวันที่ถูกเลือก -->
+                <i class="fa-solid fa-circle-xmark position-absolute text-muted d-none" 
+                   id="clearProfileDateInlineBtn" 
+                   onclick="window.clearProfileVisitDateInline()"
+                   style="right: 8px; top: 50%; transform: translateY(-50%); z-index: 10; cursor: pointer; font-size: 0.9rem; transition: color 0.2s;"
+                   onmouseover="this.classList.replace('text-muted', 'text-danger')"
+                   onmouseout="this.classList.replace('text-danger', 'text-muted')"
+                   title="Clear Date"></i>
               </div>
             </div>
 
@@ -697,13 +712,13 @@
             <button class="btn btn-sm btn-light border shadow-sm text-secondary fw-semibold px-3 py-1.5 rounded-3 d-flex align-items-center" type="button" onclick="window.clearProfileVisitFilters()" title="Clear All Filters" style="height: 38px;">
               <i class="fa-solid fa-eraser me-1.5 text-danger"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
             </button>
-            <!-- 🌟 ปุ่ม Add New Visit ถูกย้ายไปอยู่ข้างบนแล้ว จึงไม่ต้องมีตรงนี้อีก -->
           </div>
 
         </div>
 
-        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect ดึงข้อมูลสินค้าตามสิทธิ์แบบรอโหลดเสร็จชัวร์ๆ -->
+        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect + ตัวจัดการปุ่มกากบาทวันที่ -->
         <script>
+          // 1. ฟังก์ชัน TomSelect ของเดิม
           function initProfileProductFilter() {
               var prodSelect = document.getElementById('filterProfileVisitProduct');
               if (prodSelect && window.globalProductsList && window.globalProductsList.length > 0) {
@@ -736,6 +751,60 @@
               }
           }
           initProfileProductFilter();
+
+          // ==========================================================
+          // 🌟 2. ตัวจัดการปุ่ม ✖ ในช่องวันที่ (Inline Clear Button)
+          // ==========================================================
+          
+          // ฟังก์ชันเมื่อกดปุ่ม X
+          window.clearProfileVisitDateInline = function() {
+            const startInput = document.getElementById('filterProfileVisitStart');
+            const endInput = document.getElementById('filterProfileVisitEnd');
+            const clearBtn = document.getElementById('clearProfileDateInlineBtn');
+            
+            // ล้างค่าวันที่
+            if (startInput) {
+              startInput.value = '';
+              if (startInput._flatpickr) startInput._flatpickr.clear();
+            }
+            if (endInput) {
+              endInput.value = '';
+              if (endInput._flatpickr) endInput._flatpickr.clear();
+            }
+            
+            // ซ่อนปุ่ม X กลับไป
+            if (clearBtn) clearBtn.classList.add('d-none');
+            
+            // รีเฟรชตาราง
+            if (typeof window.filterAndRenderDoctorVisits === 'function') {
+                window.filterAndRenderDoctorVisits();
+            }
+          };
+
+          // ดักจับเวลาผู้ใช้เลือกวันที่ ให้โชว์ปุ่ม X
+          document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+              const startInput = document.getElementById('filterProfileVisitStart');
+              const endInput = document.getElementById('filterProfileVisitEnd');
+              const clearBtn = document.getElementById('clearProfileDateInlineBtn');
+              
+              if (!startInput || !endInput || !clearBtn) return;
+
+              function checkDateValue() {
+                if (startInput.value.trim() !== '' || endInput.value.trim() !== '') {
+                  clearBtn.classList.remove('d-none');
+                } else {
+                  clearBtn.classList.add('d-none');
+                }
+              }
+
+              // ตรวจจับเมื่อค่าเปลี่ยน (กรณีใช้ Flatpickr หรือพิมพ์เอง)
+              startInput.addEventListener('change', checkDateValue);
+              endInput.addEventListener('change', checkDateValue);
+              startInput.addEventListener('input', checkDateValue);
+              endInput.addEventListener('input', checkDateValue);
+            }, 1000); // ดีเลย์นิดนึงรอ Flatpickr Render เสร็จ
+          });
         </script>
 
         <!-- 📌 TABLE CONTAINER -->
