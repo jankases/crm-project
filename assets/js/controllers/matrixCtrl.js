@@ -1,6 +1,6 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Full Version: 2-Pane UI, Read-Only Targets, Exact DB Schema
+   Full Version: Premium UI, Live Translation, Upsert DB Schema
    ========================================================================== */
 
 // 🌟 Global State
@@ -20,7 +20,7 @@ function getMatrixSupabase() {
   return window.supabaseClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
 }
 
-// 🌟 1. เปิด Modal แจ้งเตือน + โหลดค่า (ไม่บังคับ Class A)
+// 🌟 1. เปิด Modal แจ้งเตือน + โหลดค่า
 window.openAddMatrixModal = function(adopt = '', pot = '', cls = '-') {
   const selectedProd = window.matrixState.selectedProduct;
   
@@ -35,12 +35,10 @@ window.openAddMatrixModal = function(adopt = '', pot = '', cls = '-') {
 
   window.populateMatrixFormDropdowns();
   
-  // Set ค่าในฟอร์ม Modal
   document.getElementById('matrixProduct').value = selectedProd;
   if (adopt) document.getElementById('matrixAdopt').value = adopt;
   if (pot) document.getElementById('matrixPot').value = pot;
   
-  // ถ้าเป็นค่าว่าง (-) ให้เลือกช่อง default (value="")
   const classDropdown = document.getElementById('matrixClass');
   if (cls === '-' || !cls) {
     classDropdown.value = "";
@@ -48,7 +46,6 @@ window.openAddMatrixModal = function(adopt = '', pot = '', cls = '-') {
     classDropdown.value = cls;
   }
 
-  // เรียกเปิด Bootstrap Modal
   const modalEl = document.getElementById('matrixRuleModal');
   if (modalEl) {
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -70,6 +67,10 @@ window.initManageMatrixPage = async function() {
     await window.fetchMatrixTargetFrequency();
     await window.fetchMatrixCategories();
     await window.fetchMatrixProductList();
+    
+    // 🌟 เรียกใช้การแปลภาษาตอนเริ่มต้น
+    window.applyMatrixLocalTranslations();
+    
   } catch (err) {
     console.error("❌ Error initializing Manage Matrix:", err);
   } finally {
@@ -97,25 +98,32 @@ window.fetchMatrixTargetFrequency = async function() {
   }
 };
 
-// 📌 อัปเดต Badge ภาษา
+// 📌 อัปเดต Badge ภาษาสำหรับ Frequency
 window.updateMatrixFrequencyBadge = function() {
   const freqTextEl = document.getElementById('matrixTargetFreqText');
-  if (!freqTextEl) return;
-
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
-  const freq = window.matrixState.targetFrequency || 'Per Cycle';
+  
+  const rawFreq = window.matrixState.targetFrequency || 'Per Cycle';
+  const freqKey = String(rawFreq).toLowerCase().trim(); // ป้องกันบั๊กตัวพิมพ์เล็ก/ใหญ่
   
   const freqDict = {
-    'Per Month': { en: 'Per Month', th: 'ต่อเดือน' },
-    'Per Quarter': { en: 'Per Quarter', th: 'ต่อไตรมาส' },
-    'Per Cycle': { en: 'Per Cycle', th: 'ต่อรอบการทำงาน' },
-    'Per Year': { en: 'Per Year', th: 'ต่อปี' }
+    'per month': { en: 'Per Month', th: 'ต่อเดือน' },
+    'per quarter': { en: 'Per Quarter', th: 'ต่อไตรมาส' },
+    'per cycle': { en: 'Per Cycle', th: 'ต่อรอบการทำงาน' },
+    'per year': { en: 'Per Year', th: 'ต่อปี' }
   };
 
-  freqTextEl.textContent = freqDict[freq] ? freqDict[freq][appLang] : freq;
+  const translatedFreq = freqDict[freqKey] ? freqDict[freqKey][appLang] : rawFreq;
+
+  if (freqTextEl) freqTextEl.textContent = translatedFreq;
+  
+  // อัปเดต Badge ฝั่งขวาทั้ง 4 กล่อง
+  document.querySelectorAll('.target-freq-badge').forEach(badge => {
+      badge.textContent = translatedFreq;
+  });
 };
 
-// 📌 ดึงหมวดหมู่แกน X/Y จาก IndexType และ Index
+// 📌 ดึงหมวดหมู่แกน X/Y
 window.fetchMatrixCategories = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
@@ -140,7 +148,7 @@ window.fetchMatrixCategories = async function() {
   }
 };
 
-// 📌 ดึงรายชื่อสินค้าจาก Products
+// 📌 ดึงรายชื่อสินค้า
 window.fetchMatrixProductList = async function() {
   const selectEl = document.getElementById('matrixProductSelect');
   if (!selectEl) return;
@@ -156,7 +164,6 @@ window.fetchMatrixProductList = async function() {
         products = data.filter(p => !p.Status || String(p.Status).toLowerCase() === 'active');
       }
     } catch (err) {
-      console.error("❌ Error fetching products:", err);
       selectEl.innerHTML = `<option value="">⚠️ Failed to load products</option>`;
       return;
     }
@@ -200,13 +207,11 @@ window.onMatrixProductChange = async function(productId) {
   }
 };
 
- 
 // 📌 โหลดข้อมูล Rating_Matrix และ Target
 window.loadMatrixRulesForProduct = async function(productId) {
   const sb = getMatrixSupabase();
   if (!sb) return;
 
-  // 🚨 แก้ชื่อตารางเป็น Rating_Matrix
   const { data: rules } = await sb.from('Rating_Matrix').select('*').eq('Product_ID', productId);
   window.matrixState.matrixRules = rules || [];
 
@@ -219,7 +224,8 @@ window.loadMatrixRulesForProduct = async function(productId) {
   }
   window.matrixState.targetCalls = targetMap;
 };
- // 🌟 3. วาด Grid ซ้าย (ดีไซน์สากลพรีเมียม ไม่มี Scrollbar + Micro-interaction)
+
+// 🌟 3. วาด Grid ซ้าย (ดีไซน์สากลพรีเมียม ไม่มี Scrollbar + Micro-interaction)
 window.render2DMatrixGrid = function() {
   const canvas = document.getElementById('matrixGridCanvas');
   if (!canvas) return;
@@ -237,44 +243,34 @@ window.render2DMatrixGrid = function() {
 
   let html = `
     <style>
-      /* บังคับตารางกางเต็ม 100% เพื่อไม่ให้เกิด Scrollbar */
       .matrix-table { height: 100%; table-layout: fixed; width: 100%; margin: 0; border-collapse: collapse; }
-      
-      /* โซนเซลล์ที่คลิกได้ (ทำเป็น Container หลัก) */
       .matrix-cell-hover { 
         transition: all 0.2s ease; cursor: pointer; height: 100%; width: 100%;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         position: relative; overflow: hidden;
       }
       .matrix-cell-hover:hover { background-color: #f8fafc !important; box-shadow: inset 0 0 0 1px #cbd5e1; }
-      
-      /* ดีไซน์กล่องเกรด Premium Box */
       .premium-box {
         display: inline-flex; align-items: center; justify-content: center;
         min-width: 65px; height: 40px; border-radius: 8px; transition: all 0.2s ease;
       }
-      
-      /* เอฟเฟกต์ตอนชี้เมาส์: กล่องลอยขึ้นนิดๆ มีเงา */
       .matrix-cell-hover:hover .premium-box {
         background-color: #ffffff !important; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         transform: translateY(-4px); border: 1px solid #e2e8f0;
       }
-
-      /* ข้อความ Edit จางๆ สไลด์ขึ้นมาจากข้างล่าง */
       .edit-hint {
         font-size: 0.7rem; font-weight: 700; opacity: 0; color: #3b82f6;
-        position: absolute; bottom: 4px; /* ซ่อนไว้ล่างสุด */
+        position: absolute; bottom: 4px; 
         transform: translateY(10px); transition: all 0.2s ease;
       }
       .matrix-cell-hover:hover .edit-hint {
-        opacity: 1; transform: translateY(0); /* สไลด์ขึ้นมา */
+        opacity: 1; transform: translateY(0); 
       }
     </style>
     
     <table class="table table-bordered text-center align-middle matrix-table bg-white">
       <thead class="table-light">
         <tr>
-          <!-- กำหนดความสูงหัวตารางแบบตายตัวนิดนึง เพื่อให้แถวข้อมูลมีพื้นที่ยืดหยุ่น -->
           <th class="bg-light-subtle text-secondary p-0" style="width: 18%; min-width: 100px; height: 45px;">
             <div class="d-flex flex-column justify-content-between h-100 p-2">
               <div class="text-end fw-bold" style="font-size: 0.75rem;">Potential <i class="fa-solid fa-arrow-right ms-1"></i></div>
@@ -286,9 +282,7 @@ window.render2DMatrixGrid = function() {
   html += `</tr></thead><tbody>`;
 
   adopts.forEach(a => {
-    // ลบ padding แนวตั้งออก (ไม่มี py-2 แล้ว) ปล่อยให้มันเฉลี่ยความสูงเอง
     html += `<tr><td class="fw-bold bg-light-subtle text-secondary text-start ps-3 fs-6">${a.Value}</td>`;
-    
     pots.forEach(p => {
       const rule = window.matrixState.matrixRules.find(r => r.Adoption === a.Value && r.Potential === p.Value);
       const cls = rule ? rule.Classification : '-';
@@ -302,11 +296,9 @@ window.render2DMatrixGrid = function() {
       html += `
         <td class="p-0" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${cls}')">
           <div class="matrix-cell-hover">
-            <!-- 🌟 Premium Box กึ่งกลาง พร้อมตัวอักษรใหญ่ (1.4rem) -->
             <div class="premium-box ${bClass}">
               <span class="fw-bolder" style="font-size: 1.4rem; line-height: 1;">${cls}</span>
             </div>
-            <!-- 🌟 ข้อความ Edit ที่ซ่อนอยู่ -->
             <span class="edit-hint"><i class="fa-solid fa-pen me-1"></i>${lang === 'en' ? 'Edit' : 'แก้ไข'}</span>
           </div>
         </td>`;
@@ -315,18 +307,21 @@ window.render2DMatrixGrid = function() {
   });
   html += `</tbody></table>`;
   
-  // ลบ padding ของ canvas ออก เพื่อให้ตารางชนขอบสวยๆ
   canvas.classList.remove('p-2', 'p-3'); 
   canvas.innerHTML = html;
 };
 
-// 🌟 4. วาดช่อง Target Call ฝั่งขวา (คืนค่าขนาดเดิม เพื่อไม่ให้เกิด Scrollbar)
+// 🌟 4. วาดช่อง Target Call ฝั่งขวา (รองรับการแปลภาษาอัตโนมัติ)
 window.renderTargetInputs = function() {
   const container = document.getElementById('matrixTargetInputsContainer');
   if (!container) return;
   const lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
   const classes = ['A', 'B', 'C', 'D'];
-  const freqLabel = window.matrixState.targetFrequency || 'Per Cycle';
+  
+  const rawFreq = window.matrixState.targetFrequency || 'Per Cycle';
+  const freqKey = String(rawFreq).toLowerCase().trim();
+  const freqDict = { 'per month': {en:'Per Month', th:'ต่อเดือน'}, 'per quarter': {en:'Per Quarter', th:'ต่อไตรมาส'}, 'per cycle': {en:'Per Cycle', th:'ต่อรอบการทำงาน'}, 'per year': {en:'Per Year', th:'ต่อปี'} };
+  const freqLabel = freqDict[freqKey] ? freqDict[freqKey][lang] : rawFreq;
 
   let html = '';
   classes.forEach(c => {
@@ -346,10 +341,9 @@ window.renderTargetInputs = function() {
         <div class="card bg-white border ${bStyle} shadow-sm rounded-3 overflow-hidden">
           <div class="d-flex justify-content-between align-items-center px-3 py-2 ${headerBg} border-bottom ${bStyle}">
             <span class="fw-bolder fs-6 ${tColor}">Class ${c}</span>
-            <span class="badge bg-white text-muted shadow-xs border" style="font-size: 0.65rem;">${freqLabel}</span>
+            <span class="badge bg-white text-muted shadow-xs border target-freq-badge" style="font-size: 0.65rem;">${freqLabel}</span>
           </div>
           <div class="p-2">
-            <!-- 🌟 คืนค่าความสูงเป็น 40px ไม่ให้ล้นจอ -->
             <div class="input-group">
               <input type="number" min="0" class="form-control text-center fw-bolder text-dark border-secondary-subtle target-input-field" 
                      id="targetInput_${c}" value="${val}" disabled style="font-size: 1.15rem; height: 40px;">
@@ -362,10 +356,9 @@ window.renderTargetInputs = function() {
   container.innerHTML = html;
   
   window.toggleTargetEditMode(false);
-}; 
- 
+};
 
-// 🌟 5. ฟังก์ชันเปิด/ปิดโหมด Edit ฝั่งขวา (ล็อก/ปลดล็อก)
+// 🌟 5. ฟังก์ชันเปิด/ปิดโหมด Edit ฝั่งขวา
 window.toggleTargetEditMode = function(isEditing) {
   const btnEdit = document.getElementById('btnEditTargets');
   const controls = document.getElementById('targetEditControls');
@@ -391,12 +384,12 @@ window.toggleTargetEditMode = function(isEditing) {
   }
 };
 
-// 🌟 6. ยกเลิกการแก้ไข Target (ดึงข้อมูลเดิมกลับมา)
+// 🌟 6. ยกเลิกการแก้ไข Target
 window.cancelTargetEdit = function() {
   window.renderTargetInputs();
 };
 
-// 🌟 7. บันทึก Matrix Rule (ฟอร์ม Modal) - กลับมาใช้ Upsert คลีนๆ
+// 🌟 7. บันทึก Matrix Rule (ตาราง Rating_Matrix)
 window.handleSaveMatrix = async function(event) {
   if (event) event.preventDefault();
   
@@ -415,7 +408,6 @@ window.handleSaveMatrix = async function(event) {
   try {
     const sb = getMatrixSupabase();
     if (sb) {
-      // 🚨 แก้ชื่อตารางเป็น Rating_Matrix และใช้ upsert ได้เลยเพราะคุณทำ Primary Key ไว้แล้ว
       const { error } = await sb
         .from('Rating_Matrix')
         .upsert([{
@@ -436,14 +428,12 @@ window.handleSaveMatrix = async function(event) {
       alert('Matrix rule saved successfully!');
     }
     
-    // ปิด Modal ทันทีที่เซฟสำเร็จ
     const modalEl = document.getElementById('matrixRuleModal');
     if (modalEl) {
       const modal = bootstrap.Modal.getInstance(modalEl);
       if (modal) modal.hide();
     }
 
-    // โหลดตารางใหม่เพื่อให้ข้อมูลอัปเดตบนหน้าจอ
     await window.onMatrixProductChange(productId);
 
   } catch (err) {
@@ -453,9 +443,8 @@ window.handleSaveMatrix = async function(event) {
     window.showMatrixLoading(false);
   }
 };
- 
 
-// 🌟 8. บันทึก Target Calls แล้วล็อกหน้าจอ
+// 🌟 8. บันทึก Target Calls
 window.saveMatrixTargetCalls = async function() {
   const productId = window.matrixState.selectedProduct;
   if (!productId) return;
@@ -496,7 +485,6 @@ window.saveMatrixTargetCalls = async function() {
       alert('Saved Target Calls successfully!');
     }
     
-    // 🔒 เซฟเสร็จ ล็อกหน้าจอทันที!
     window.toggleTargetEditMode(false);
 
   } catch (err) {
@@ -507,7 +495,7 @@ window.saveMatrixTargetCalls = async function() {
   }
 };
 
-// 📌 ใส่ข้อมูลใน Form View (Modal Dropdowns)
+// 📌 9. ใส่ข้อมูลใน Form View (Modal Dropdowns)
 window.populateMatrixFormDropdowns = function() {
   const pSel = document.getElementById('matrixProduct');
   const aSel = document.getElementById('matrixAdopt');
@@ -531,12 +519,61 @@ window.populateMatrixFormDropdowns = function() {
   }
 };
 
+// 📌 10. ระบบโหลดหน้าจอ
 window.showMatrixLoading = function(show) {
   const mainWorkspace = document.getElementById('matrixMainWorkspace');
   if (mainWorkspace) {
     mainWorkspace.style.opacity = show ? '0.4' : '1';
   }
 };
+
+// =====================================================================
+// 🌍 ระบบแปลภาษา 2 ภาษา (EN/TH) เฉพาะหน้า Matrix
+// =====================================================================
+window.applyMatrixLocalTranslations = function() {
+  const lang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'en';
+  
+  const selectOpt = document.querySelector('#matrixProductSelect option[value=""]');
+  if (selectOpt) {
+    selectOpt.textContent = lang === 'en' ? '-- Select Product to View Matrix --' : '-- เลือกสินค้าเพื่อดู Matrix --';
+  }
+
+  const eDesc = document.getElementById('matrixEmptyDesc');
+  if (eDesc) eDesc.textContent = lang === 'en' ? 'Configure customer classification grids and define call frequency targets based on product adoption and potential.' : 'ตั้งค่าเกณฑ์จัดกลุ่มลูกค้าและกำหนดเป้าหมายความถี่ในการเข้าพบ';
+
+  const s1t = document.getElementById('step1Title');
+  if (s1t) s1t.textContent = lang === 'en' ? 'Select Product' : 'เลือกสินค้า';
+  const s1d = document.getElementById('step1Desc');
+  if (s1d) s1d.textContent = lang === 'en' ? 'Choose a product from the top-left dropdown menu to begin.' : 'เลือกสินค้าจากเมนูด้านซ้ายบนเพื่อเริ่มต้น';
+
+  const s2t = document.getElementById('step2Title');
+  if (s2t) s2t.textContent = lang === 'en' ? 'Map Grid Class' : 'จัดกลุ่มเกรดลูกค้า';
+  const s2d = document.getElementById('step2Desc');
+  if (s2d) s2d.textContent = lang === 'en' ? 'Click on any matrix cell to assign class A, B, C, or D.' : 'คลิกที่ช่องตารางเพื่อกำหนดคลาส A, B, C หรือ D';
+
+  const s3t = document.getElementById('step3Title');
+  if (s3t) s3t.textContent = lang === 'en' ? 'Set Call Targets' : 'กำหนดเป้าหมาย';
+  const s3d = document.getElementById('step3Desc');
+  if (s3d) s3d.textContent = lang === 'en' ? 'Define the required number of calls per cycle for each class.' : 'กำหนดจำนวนครั้งที่ต้องเข้าพบต่อรอบของแต่ละคลาส';
+
+  const arr = document.getElementById('arrowText');
+  if (arr) arr.textContent = lang === 'en' ? 'Select a product above to start' : 'กรุณาเลือกสินค้าด้านบนเพื่อเริ่มต้นใช้งาน';
+
+  window.updateMatrixFrequencyBadge();
+};
+
+// 🌟 ตัวดักจับเวลาผู้ใช้กดเปลี่ยนภาษาที่ปุ่ม (บน Navbar) ให้มันแปลหน้าจอนี้ทันที
+document.addEventListener('click', function(e) {
+  if (e.target.closest('button') || e.target.closest('a')) {
+    setTimeout(() => {
+      window.applyMatrixLocalTranslations();
+      if (window.matrixState.selectedProduct) {
+        window.render2DMatrixGrid();
+        window.renderTargetInputs();
+      }
+    }, 200); 
+  }
+});
 
 // Execution Trigger
 setTimeout(window.initManageMatrixPage, 100);
