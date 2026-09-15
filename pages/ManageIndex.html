@@ -1,6 +1,4 @@
 <style>
- 
-
   .index-main-row {
     flex: 1 1 0% !important;
     min-height: 0 !important;
@@ -113,12 +111,11 @@
     border-radius: 12px;
     padding: 0.85rem;
   }
- 
 </style>
 
 <div class="index-module-wrapper">
    
-  <!-- 📌 1. Header Bar (ปรับระยะให้เป๊ะเท่ากับหน้า Doctors และ Visit) -->
+  <!-- 📌 1. Header Bar -->
   <div class="d-flex justify-content-between align-items-center flex-shrink-0 mt-1 mb-2">
     <div class="d-flex align-items-center gap-2">
       <!-- Icon Box 30px --> 
@@ -343,7 +340,8 @@
             <input type="hidden" id="modalIndexTypeId">
             <div class="mb-2">
               <label class="form-label fw-bold text-secondary small"><span data-i18n="lbl_category_name">Category Name</span> <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-light" id="modalIndexTypeName" required data-i18n="ph_category_name" placeholder="e.g. Zone, Specialty">
+              <!-- 🌟 แก้ไขจาก data-i18n เป็น data-i18n-placeholder -->
+              <input type="text" class="form-control bg-light" id="modalIndexTypeName" required data-i18n-placeholder="ph_category_name" placeholder="e.g. Zone, Specialty">
             </div>
           </div>
           <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
