@@ -326,7 +326,8 @@ window.renderIndexTypeTable = function() {
     tbody.innerHTML += `
       <tr class="category-item-row ${isActive}" onclick="window.selectCategoryFromLeft('${t.IndexType_ID}')">
         <td class="text-dark fw-bold text-start ps-3 py-2.5">
-           <i class="fa-solid fa-folder-open text-primary opacity-50 me-2.5"></i>${t.Name}
+           <!-- 🌟 เปลี่ยน me-2.5 เป็น me-2 และเคาะวรรค 1 ที -->
+           <i class="fa-solid fa-folder-open text-primary opacity-50 me-2"></i> ${t.Name}
         </td>
         <td class="text-end pe-2">
           <button class="btn btn-sm btn-light border fw-bold rounded-pill px-2.5 shadow-xs text-primary" onclick="event.stopPropagation(); window.openEditIndexTypeModal('${t.IndexType_ID}', '${t.Name}')"><i class="fa-solid fa-pen"></i></button>
