@@ -216,9 +216,8 @@ window.loadMatrixRulesForProduct = async function(productId) {
     });
   }
   window.matrixState.targetCalls = targetMap;
-};
-
-// 🌟 3. วาด Grid คุม Theme + ตัวอักษรใหญ่ขึ้น + สีตาม Priority
+}; 
+// 🌟 3. วาด Grid ซ้าย (ปรับ Badge ตัวอักษร A, B, C, D ให้ใหญ่ขึ้นและอยู่กึ่งกลางสวยๆ)
 window.render2DMatrixGrid = function() {
   const canvas = document.getElementById('matrixGridCanvas');
   if (!canvas) return;
@@ -269,7 +268,8 @@ window.render2DMatrixGrid = function() {
       html += `
         <td class="p-1 matrix-cell-hover" onclick="window.editMatrixCell('${a.Value}', '${p.Value}', '${cls}')">
           <div class="d-flex flex-column align-items-center justify-content-center py-2 h-100">
-            <span class="badge ${bClass} fw-bolder rounded-2 mb-1 border shadow-xs" style="font-size: 1rem; min-width: 55px; padding: 0.4rem 0.6rem;">${cls}</span>
+            <!-- 🌟 ปรับขนาด Badge ให้ใหญ่ขึ้น (font-size: 1.3rem) และจัดให้อยู่กึ่งกลางเป๊ะๆ ด้วย d-inline-flex -->
+            <span class="badge ${bClass} fw-bolder rounded-2 mb-1 border shadow-xs d-inline-flex align-items-center justify-content-center" style="font-size: 1.3rem; min-width: 70px; height: 38px;">${cls}</span>
             <span class="edit-hint text-muted fw-bold"><i class="fa-solid fa-pen"></i> ${lang === 'en' ? 'Edit' : 'แก้ไข'}</span>
           </div>
         </td>`;
@@ -279,8 +279,8 @@ window.render2DMatrixGrid = function() {
   html += `</tbody></table>`;
   canvas.innerHTML = html;
 };
- 
- // 🌟 4. วาดช่อง Target Call (ล็อกค่า Default + ดึงสีตาม Priority + อักษรใหญ่เต็มตา)
+
+// 🌟 4. วาดช่อง Target Call ฝั่งขวา (คืนค่าขนาดเดิม เพื่อไม่ให้เกิด Scrollbar)
 window.renderTargetInputs = function() {
   const container = document.getElementById('matrixTargetInputsContainer');
   if (!container) return;
@@ -292,7 +292,6 @@ window.renderTargetInputs = function() {
   classes.forEach(c => {
     const val = window.matrixState.targetCalls[c] !== undefined ? window.matrixState.targetCalls[c] : 0;
     
-    // 🎨 ดึงสีให้เข้าชุดกับ Grid ด้านซ้าย
     let bStyle = 'border-secondary-subtle';
     let tColor = 'text-secondary';
     let headerBg = 'bg-light';
@@ -307,15 +306,14 @@ window.renderTargetInputs = function() {
         <div class="card bg-white border ${bStyle} shadow-sm rounded-3 overflow-hidden">
           <div class="d-flex justify-content-between align-items-center px-3 py-2 ${headerBg} border-bottom ${bStyle}">
             <span class="fw-bolder fs-6 ${tColor}">Class ${c}</span>
-            <span class="badge bg-white text-muted shadow-xs border" style="font-size: 0.7rem;">${freqLabel}</span>
+            <span class="badge bg-white text-muted shadow-xs border" style="font-size: 0.65rem;">${freqLabel}</span>
           </div>
-          <!-- 🌟 เพิ่ม padding (p-3) ให้ดูมีพื้นที่หายใจ -->
-          <div class="p-3">
-            <!-- 🌟 ใส่ input-group-lg และขยาย font-size เป็น 1.75rem ให้ตัวเลขใหญ่สะใจและอยู่ตรงกลาง -->
-            <div class="input-group input-group-lg shadow-xs rounded-2 overflow-hidden">
+          <div class="p-2">
+            <!-- 🌟 คืนค่าความสูงเป็น 40px ไม่ให้ล้นจอ -->
+            <div class="input-group">
               <input type="number" min="0" class="form-control text-center fw-bolder text-dark border-secondary-subtle target-input-field" 
-                     id="targetInput_${c}" value="${val}" disabled style="font-size: 1.75rem; height: 55px;">
-              <span class="input-group-text bg-light text-muted fw-bold border-secondary-subtle d-flex justify-content-center" style="font-size: 0.9rem; min-width: 65px;">${lang === 'en' ? 'Calls' : 'ครั้ง'}</span>
+                     id="targetInput_${c}" value="${val}" disabled style="font-size: 1.15rem; height: 40px;">
+              <span class="input-group-text bg-light text-muted fw-bold" style="font-size: 0.85rem;">${lang === 'en' ? 'Calls' : 'ครั้ง'}</span>
             </div>
           </div>
         </div>
@@ -323,9 +321,9 @@ window.renderTargetInputs = function() {
   });
   container.innerHTML = html;
   
-  // ตรวจสอบว่าหลังจาก Render ให้ปุ่มกลับเป็นโหมด Default เสมอ
   window.toggleTargetEditMode(false);
-};
+}; 
+ 
 
 // 🌟 5. ฟังก์ชันเปิด/ปิดโหมด Edit ฝั่งขวา (ล็อก/ปลดล็อก)
 window.toggleTargetEditMode = function(isEditing) {
