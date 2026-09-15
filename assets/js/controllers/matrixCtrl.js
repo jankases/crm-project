@@ -1,6 +1,6 @@
 /* ==========================================================================
    CRM System - Manage Matrix Controller (matrixCtrl.js)
-   Standardized based on Visit Logs Architecture
+   Exact Match Table Names from Supabase Schema
    ========================================================================== */
 
 // 🌟 Global State
@@ -15,7 +15,7 @@ window.matrixState = {
   }
 };
 
-// 🌟 Helper ดึง Supabase Client แบบเดียวกับ Visit Logs
+// 🌟 Helper ดึง Supabase Client
 function getMatrixSupabase() {
   return window.supabaseClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
 }
@@ -84,20 +84,20 @@ window.initManageMatrixPage = async function() {
   }
 };
 
-// 📌 1. ดึงความถี่จาก System Settings
+// 📌 1. ดึงความถี่จาก System_Settings
 window.fetchMatrixTargetFrequency = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
 
   try {
     const { data } = await sb
-      .from('system_settings')
-      .select('value')
-      .eq('key', 'rating_frequency')
+      .from('System_Settings')
+      .select('value, Value, key, Key')
+      .or('key.eq.rating_frequency,Key.eq.rating_frequency')
       .maybeSingle();
 
-    if (data && data.value) {
-      window.matrixState.targetFrequency = data.value;
+    if (data) {
+      window.matrixState.targetFrequency = data.value || data.Value || 'Per Cycle';
     }
   } catch (e) {
     console.warn("⚠️ Frequency fetch warning:", e);
@@ -124,14 +124,15 @@ window.updateMatrixFrequencyBadge = function() {
   freqTextEl.textContent = freqDict[freq] ? freqDict[freq][appLang] : freq;
 };
 
-// 📌 3. ดึงหมวดหมู่แกน X/Y
+// 📌 3. ดึงหมวดหมู่แกน X/Y จาก IndexType และ Index (ตรงตามรูปภาพ)
 window.fetchMatrixCategories = async function() {
   const sb = getMatrixSupabase();
   if (!sb) return;
   
   try {
-    const { data: indexTypes } = await sb.from('index_types').select('*');
-    const { data: indexValues } = await sb.from('index_values').select('*');
+    // 🌟 ดึงจาก IndexType และ Index
+    const { data: indexTypes } = await sb.from('IndexType').select('*');
+    const { data: indexValues } = await sb.from('Index').select('*');
 
     if (indexTypes && indexValues) {
       const adoptType = indexTypes.find(t => (t.Name || t.IndexType || '').toLowerCase().includes('adopt'));
@@ -149,7 +150,7 @@ window.fetchMatrixCategories = async function() {
   }
 };
 
-// 📌 4. ดึงรายชื่อสินค้าใส่ Dropdown
+// 📌 4. ดึงรายชื่อสินค้าจาก Products (ตรงตามรูปภาพ)
 window.fetchMatrixProductList = async function() {
   const selectEl = document.getElementById('matrixProductSelect');
   if (!selectEl) return;
@@ -158,8 +159,9 @@ window.fetchMatrixProductList = async function() {
   const sb = getMatrixSupabase();
   
   if (sb) {
+    // 🌟 ดึงจาก Products
     const { data, error } = await sb
-      .from('products')
+      .from('Products')
       .select('Product_ID, Product, Product_TH')
       .order('Product', { ascending: true });
       
@@ -206,11 +208,12 @@ window.onMatrixProductChange = async function(productId) {
   }
 };
 
-// 📌 6. โหลดข้อมูล Rating และ Target
+// 📌 6. โหลดข้อมูล Rating และ Target (ตรงตามรูปภาพ)
 window.loadMatrixRulesForProduct = async function(productId) {
   const sb = getMatrixSupabase();
   if (!sb) return;
 
+  // 🌟 ดึงจาก Rating
   const { data: rules } = await sb
     .from('Rating')
     .select('*')
@@ -218,6 +221,7 @@ window.loadMatrixRulesForProduct = async function(productId) {
 
   window.matrixState.matrixRules = rules || [];
 
+  // 🌟 ดึงจาก Target
   const { data: targets } = await sb
     .from('Target')
     .select('*')
@@ -320,7 +324,7 @@ window.renderTargetInputs = function() {
   container.innerHTML = html;
 };
 
-// 📌 9. บันทึก Target Calls
+// 📌 9. บันทึก Target Calls ลงตาราง Target
 window.saveMatrixTargetCalls = async function() {
   const productId = window.matrixState.selectedProduct;
   if (!productId) return;
@@ -401,7 +405,7 @@ window.populateMatrixFormDropdowns = function() {
   }
 };
 
-// 📌 11. บันทึก Matrix Rule
+// 📌 11. บันทึก Matrix Rule ลงตาราง Rating
 window.handleSaveMatrix = async function(event) {
   if (event) event.preventDefault();
   
