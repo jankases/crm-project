@@ -2284,17 +2284,22 @@ window.loadDoctorRatings = async function(docId) {
   const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
   const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE') : 'CYCLE';
   
-  const freqWordEN = freqValue.toUpperCase();
+  // 🌟 FIX: แยกตัวพิมพ์ใหญ่/เล็กให้ถูกต้อง
+  // 1. แบบพิมพ์ใหญ่ทั้งหมด สำหรับหัวตาราง (CYCLE, MONTH, YEAR)
+  const freqWordHeaderEN = freqValue.toUpperCase();
+  // 2. แบบพิมพ์ใหญ่แค่ตัวแรก สำหรับข้อความย่อย (Cycle, Month, Year)
+  const freqWordSubEN = freqValue.charAt(0).toUpperCase() + freqValue.slice(1).toLowerCase();
+  
   const freqWordTH = freqValue.toUpperCase() === 'MONTH' ? 'เดือน' : (freqValue.toUpperCase() === 'YEAR' ? 'ปี' : 'รอบ');
   
-  // แปลงคำตามภาษา
-  const subText = isEN ? `Visits / ${freqWordEN}` : `ครั้ง / ${freqWordTH}`;
+  // แปลงคำตามภาษา (ใช้ freqWordSubEN)
+  const subText = isEN ? `Visits / ${freqWordSubEN}` : `ครั้ง / ${freqWordTH}`;
   const editBtnText = isEN ? 'Edit' : 'แก้ไข';
 
-  // อัปเดตหัวตารางแบบไดนามิก
+  // อัปเดตหัวตารางแบบไดนามิก (ใช้ freqWordHeaderEN)
   const unitSpan = document.getElementById('dynamicTargetUnitText');
   if (unitSpan) {
-      unitSpan.innerText = isEN ? `(VISITS / ${freqWordEN})` : `(ครั้ง / ${freqWordTH})`;
+      unitSpan.innerText = isEN ? `(VISITS / ${freqWordHeaderEN})` : `(ครั้ง / ${freqWordTH})`;
   }
   const baseSpan = document.querySelector('[data-i18n="th_target_base"]');
   if (baseSpan) {
@@ -2348,7 +2353,7 @@ window.loadDoctorRatings = async function(docId) {
       </tr>
     `;
 
-    // ซ่อนโหมด Edit โค้ดส่วนล่าง (ให้คงเดิมของคุณได้เลยครับ ผมรวบรัดจะได้สั้นลง)
+    // ซ่อนโหมด Edit โค้ดส่วนล่าง (ตามเดิมของคุณ)
     html += `
       <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
         <td class="text-start ps-4"><select id="edit-prod-${index}" class="rating-product target-product-ts" style="width: 100%;" disabled><option value="${item.Product_ID}" selected>${productName}</option></select></td>
