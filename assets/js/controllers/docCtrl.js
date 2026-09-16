@@ -2904,7 +2904,7 @@ document.addEventListener('DOMContentLoaded', function() {
  // =========================================================
 // 🗑️ ฟังก์ชันลบ Product ผ่าน Custom Pop-up Modal (เช็คภาษาเป๊ะ 100%)
 // =========================================================
- window.deleteTargetCallRow = function(productId, productName) {
+window.deleteTargetCallRow = function(productId, productName) {
   const rawLang = (typeof window.getCurrentAppLang === 'function') 
     ? window.getCurrentAppLang() 
     : (localStorage.getItem('appLang') || window.currentLang || 'th');
@@ -2963,12 +2963,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
         const sb = window.supabaseClient || window.supabase;
 
-        // 🌟 🟢 กรณีที่ 1: ช่วง Unlocked -> ลบออกจากตารางตรงๆ ทันที
+        // 🌟 🟢 กรณีที่ 1: ช่วง Unlocked -> ลบออกจากตาราง "Rating" ตรงๆ ทันที
         if (!isLocked) {
-          const { error } = await sb.from('Doctor_Ratings')
+          const targetDocId = String(docId).trim();
+          const targetProdId = String(productId).trim();
+
+          const { error } = await sb.from('Rating')
             .delete()
-            .eq('Doc_ID', docId)
-            .eq('Product_ID', productId);
+            .eq('Doc_ID', targetDocId)
+            .eq('Product_ID', targetProdId);
 
           if (error) throw error;
 
@@ -2979,6 +2982,8 @@ document.addEventListener('DOMContentLoaded', function() {
           // รีโหลดตาราง Target ใหม่ทันที
           if (typeof window.loadDoctorRatings === 'function') {
             window.loadDoctorRatings(docId);
+          } else if (typeof window.openViewDoctorProfile === 'function') {
+            window.openViewDoctorProfile(docId);
           }
           return;
         }
