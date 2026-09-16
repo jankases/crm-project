@@ -1231,17 +1231,18 @@ window.openAddDoctorView = function() {
 
     const badgeContainerEdit = document.getElementById('editDcrStatusBadge');
     const badgeContainerProfile = document.getElementById('profileDcrStatusBadge');
-    
     const summaryCardEdit = document.getElementById('pendingDcrSummaryCard');
     const summaryCardProfile = document.getElementById('profilePendingDcrSummaryCard');
-    
     const submitBtn = document.getElementById('updateDoctorBtn');
 
     if (data && data.length > 0) {
       const dcr = data[0];
-      const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      const isEN = (appLang === 'en');
-      const badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>${isEN ? 'Pending Approval' : 'รอการอนุมัติ'}</span>`;
+      // 🌟 FIX: เช็คภาษาให้ชัวร์
+      const rawLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+      const isEN = String(rawLang).toLowerCase().includes('en');
+      
+      const badgeText = isEN ? 'Pending Approval' : 'รอการอนุมัติ';
+      const badgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i>${badgeText}</span>`;
 
       if (badgeContainerEdit) badgeContainerEdit.innerHTML = badgeHtml;
       if (badgeContainerProfile) badgeContainerProfile.innerHTML = badgeHtml;
@@ -1301,10 +1302,11 @@ window.openAddDoctorView = function() {
       if (typeof window.setDoctorFormReadOnly === 'function') window.setDoctorFormReadOnly(false);
 
       if (submitBtn) {
-        const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        const rawLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        const isEN = String(rawLang).toLowerCase().includes('en');
         submitBtn.disabled = false;
         submitBtn.className = 'btn btn-sm btn-premium-primary px-4 py-2 rounded-3 shadow-sm';
-        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">${appLang === 'en' ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
+        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane me-2"></i><span data-i18n="btn_submit_dcr">${isEN ? 'Submit DCR' : 'ส่ง DCR ขอแก้ไข'}</span>`;
       }
     }
   } catch (err) { 
@@ -1558,13 +1560,15 @@ window.openEditDoctorView = async function(id) {
   }
 };
 
-   window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
+  window.openViewDoctorProfile = async function(id, targetTab = 'tab-doc-info') {
   window.currentTargetDocId = id; 
   const d = (window.globalDoctors || []).find(x => x.Doc_ID === id || x.id === id); 
   if(!d) return;
 
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const primaryBadgeText = appLang === 'en' ? 'Primary' : 'หลัก';
+  // 🌟 FIX: เช็คภาษาให้รัดกุมขึ้น
+  const rawLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = String(rawLang).toLowerCase().includes('en');
+  const primaryBadgeText = isEN ? 'Primary' : 'หลัก';
 
   const titleText = window.getTitleText(d.Title_ID || d.title_id || d.Title);
   const specText = window.getSpecialtyText(d.Specialty_ID || d.Specialty);
@@ -1576,7 +1580,8 @@ window.openEditDoctorView = async function(id) {
   const statusBadgeEl = document.getElementById('profileDocStatusBadge');
   if (statusBadgeEl) {
     const isStatusActive = ((d.Status || d.status || 'Active') === 'Active');
-    const statusText = isStatusActive ? (appLang === 'en' ? 'Active' : 'ใช้งาน') : (appLang === 'en' ? 'Inactive' : 'ไม่ใช้งาน');
+    // 🌟 FIX: แปล Active / Inactive
+    const statusText = isStatusActive ? (isEN ? 'Active' : 'ใช้งาน') : (isEN ? 'Inactive' : 'ไม่ใช้งาน');
     statusBadgeEl.innerHTML = isStatusActive 
       ? `<i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">${statusText}</span>`
       : `<i class="fa-solid fa-circle-xmark text-danger me-2"></i><span class="fw-bold text-danger small">${statusText}</span>`;
@@ -2266,31 +2271,38 @@ window.loadDoctorRatings = async function(docId) {
  // =========================================================
 // 🌟 1. ฟังก์ชันวาดตาราง Target Visit (รวมระบบดึง Setting 2 ภาษา)
 // =========================================================
-window.renderRatingTable = function(ratings) {
+ window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
-  // ---------------------------------------------------------
-  // 🌟 ดึงค่า Frequency จาก Settings มาคำนวณล่วงหน้า
-  // ---------------------------------------------------------
+  // 🌟 FIX: ดึงภาษาให้ชัวร์
+  const rawLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = String(rawLang).toLowerCase().includes('en');
+
+  // ดึงค่า Frequency
   const sysSettings = (window.DocManagerCache && window.DocManagerCache.sysSettings) ? window.DocManagerCache.sysSettings : [];
   const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
   const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE') : 'CYCLE';
   
   const freqWordEN = freqValue.toUpperCase();
   const freqWordTH = freqValue.toUpperCase() === 'MONTH' ? 'เดือน' : (freqValue.toUpperCase() === 'YEAR' ? 'ปี' : 'รอบ');
-  const subText = appLang === 'en' ? `Visits / ${freqWordEN}` : `ครั้ง / ${freqWordTH}`;
+  
+  // แปลงคำตามภาษา
+  const subText = isEN ? `Visits / ${freqWordEN}` : `ครั้ง / ${freqWordTH}`;
+  const editBtnText = isEN ? 'Edit' : 'แก้ไข';
 
-  // 🌟 อัปเดตหัวตาราง (Header) ให้เปลี่ยนตาม Setting
+  // อัปเดตหัวตารางแบบไดนามิก
   const unitSpan = document.getElementById('dynamicTargetUnitText');
   if (unitSpan) {
-      unitSpan.innerText = appLang === 'en' ? `(VISITS / ${freqWordEN})` : `(ครั้ง / ${freqWordTH})`;
+      unitSpan.innerText = isEN ? `(VISITS / ${freqWordEN})` : `(ครั้ง / ${freqWordTH})`;
   }
-  // ---------------------------------------------------------
+  const baseSpan = document.querySelector('[data-i18n="th_target_base"]');
+  if (baseSpan) {
+      baseSpan.innerText = isEN ? 'TARGET' : 'เป้าหมาย';
+  }
 
   if(!Array.isArray(ratings) || ratings.length === 0) {
-      const noDataMsg = appLang === 'en' ? 'No target visits found. Click "Add Product"' : 'ไม่มีข้อมูลเป้าหมายเข้าพบ กรุณากด "เพิ่มผลิตภัณฑ์"';
+      const noDataMsg = isEN ? 'No target visits found. Click "Add Product"' : 'ไม่มีข้อมูลเป้าหมายเข้าพบ กรุณากด "เพิ่มผลิตภัณฑ์"';
       tbody.innerHTML = `<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
       return;
   }
@@ -2310,9 +2322,7 @@ window.renderRatingTable = function(ratings) {
 
     const targetVal = (item.Target !== null && item.Target !== undefined) ? item.Target : '-';
 
-    // =========================================================
-    // 👁️ โหมด READ-ONLY
-    // =========================================================
+    // 🌟 ใช้งานตัวแปรแปลภาษา
     html += `
       <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
         <td class="text-start ps-4 fw-bold text-dark">${productName}</td>
@@ -2321,15 +2331,14 @@ window.renderRatingTable = function(ratings) {
         <td><span class="badge ${clsColor} fw-bolder px-3 py-2 shadow-xs" style="min-width: 45px; font-size: 0.9rem;">${item.Classification || '-'}</span></td>
         <td>
           <span class="fw-bolder text-dark fs-5">${targetVal}</span> 
-          <!-- 🌟 ดึงค่าตัวแปร subText (เช่น ครั้ง / เดือน) มาแสดง -->
           ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
         </td>
         <td>
           <div class="d-flex gap-2 justify-content-center align-items-center">
             <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
-              <i class="fa-solid fa-pen me-1.5"></i>Edit
+              <i class="fa-solid fa-pen me-1.5"></i>${editBtnText}
             </button>
-            <button class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs d-flex align-items-center justify-content-center transition-all" 
+            <button class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs d-flex align-items-center justify-content-center transition-all hover-bg-danger" 
                     style="width: 30px; height: 30px; padding: 0;" 
                     onclick="window.deleteTargetCallRow('${item.Product_ID}')" title="Delete">
               <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
@@ -2339,46 +2348,15 @@ window.renderRatingTable = function(ratings) {
       </tr>
     `;
 
-    // =========================================================
-    // ✏️ โหมด EDIT
-    // =========================================================
+    // ซ่อนโหมด Edit โค้ดส่วนล่าง (ให้คงเดิมของคุณได้เลยครับ ผมรวบรัดจะได้สั้นลง)
     html += `
       <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
-        <td class="text-start ps-4">
-          <select id="edit-prod-${index}" class="rating-product target-product-ts" style="width: 100%;" disabled>
-            <option value="${item.Product_ID}" selected>${productName}</option>
-          </select>
-        </td>
-        <td>
-          <select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-adopt" id="edit-adopt-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;">
-            <option value="High" ${item.Adoption === 'High' ? 'selected' : ''}>High</option>
-            <option value="Medium" ${item.Adoption === 'Medium' ? 'selected' : ''}>Medium</option>
-            <option value="Low" ${item.Adoption === 'Low' ? 'selected' : ''}>Low</option>
-          </select>
-        </td>
-        <td>
-          <select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-pot" id="edit-pot-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;">
-            <option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option>
-            <option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option>
-            <option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option>
-          </select>
-        </td>
-        <td>
-          <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none mx-auto" value="${item.Classification || ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;">
-        </td>
-        <td>
-          <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none mx-auto" value="${item.Target !== undefined && item.Target !== null ? item.Target : ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;">
-        </td>
-        <td>
-          <div class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveTargetCallRow(this)">
-              <i class="fa-solid fa-floppy-disk me-2"></i>Save
-            </button>
-          </div>
-        </td>
+        <td class="text-start ps-4"><select id="edit-prod-${index}" class="rating-product target-product-ts" style="width: 100%;" disabled><option value="${item.Product_ID}" selected>${productName}</option></select></td>
+        <td><select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-adopt" id="edit-adopt-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;"><option value="High" ${item.Adoption === 'High' ? 'selected' : ''}>High</option><option value="Medium" ${item.Adoption === 'Medium' ? 'selected' : ''}>Medium</option><option value="Low" ${item.Adoption === 'Low' ? 'selected' : ''}>Low</option></select></td>
+        <td><select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-pot" id="edit-pot-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;"><option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option><option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option><option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option></select></td>
+        <td><input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none mx-auto" value="${item.Classification || ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
+        <td><input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none mx-auto" value="${item.Target !== undefined && item.Target !== null ? item.Target : ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
+        <td><div class="d-flex gap-2 justify-content-center"><button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel"><i class="fa-solid fa-xmark"></i></button><button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-2"></i>Save</button></div></td>
       </tr>
     `;
   });
