@@ -2262,13 +2262,33 @@ window.loadDoctorRatings = async function(docId) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Error: ${err.message}</td></tr>`;
   }
 };
- 
- // 🌟 1. ฟังก์ชันวาดตาราง Target Visit
+  
+ // =========================================================
+// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (รวมระบบดึง Setting 2 ภาษา)
+// =========================================================
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
+  // ---------------------------------------------------------
+  // 🌟 ดึงค่า Frequency จาก Settings มาคำนวณล่วงหน้า
+  // ---------------------------------------------------------
+  const sysSettings = (window.DocManagerCache && window.DocManagerCache.sysSettings) ? window.DocManagerCache.sysSettings : [];
+  const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
+  const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE') : 'CYCLE';
+  
+  const freqWordEN = freqValue.toUpperCase();
+  const freqWordTH = freqValue.toUpperCase() === 'MONTH' ? 'เดือน' : (freqValue.toUpperCase() === 'YEAR' ? 'ปี' : 'รอบ');
+  const subText = appLang === 'en' ? `Visits / ${freqWordEN}` : `ครั้ง / ${freqWordTH}`;
+
+  // 🌟 อัปเดตหัวตาราง (Header) ให้เปลี่ยนตาม Setting
+  const unitSpan = document.getElementById('dynamicTargetUnitText');
+  if (unitSpan) {
+      unitSpan.innerText = appLang === 'en' ? `(VISITS / ${freqWordEN})` : `(ครั้ง / ${freqWordTH})`;
+  }
+  // ---------------------------------------------------------
+
   if(!Array.isArray(ratings) || ratings.length === 0) {
       const noDataMsg = appLang === 'en' ? 'No target visits found. Click "Add Product"' : 'ไม่มีข้อมูลเป้าหมายเข้าพบ กรุณากด "เพิ่มผลิตภัณฑ์"';
       tbody.innerHTML = `<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
@@ -2301,19 +2321,26 @@ window.renderRatingTable = function(ratings) {
         <td><span class="badge ${clsColor} fw-bolder px-3 py-2 shadow-xs" style="min-width: 45px; font-size: 0.9rem;">${item.Classification || '-'}</span></td>
         <td>
           <span class="fw-bolder text-dark fs-5">${targetVal}</span> 
-          <!-- 🌟 ซ่อนคำว่า visits เล็กๆ ไว้เผื่อดูง่ายขึ้น -->
-          ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">Visits</span>` : ''}
+          <!-- 🌟 ดึงค่าตัวแปร subText (เช่น ครั้ง / เดือน) มาแสดง -->
+          ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
         </td>
         <td>
-          <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
-            <i class="fa-solid fa-pen me-2"></i>Edit
-          </button>
+          <div class="d-flex gap-2 justify-content-center align-items-center">
+            <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
+              <i class="fa-solid fa-pen me-1.5"></i>Edit
+            </button>
+            <button class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs d-flex align-items-center justify-content-center transition-all" 
+                    style="width: 30px; height: 30px; padding: 0;" 
+                    onclick="window.deleteTargetCallRow('${item.Product_ID}')" title="Delete">
+              <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
 
     // =========================================================
-    // ✏️ โหมด EDIT (มี TomSelect)
+    // ✏️ โหมด EDIT
     // =========================================================
     html += `
       <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
@@ -2358,19 +2385,35 @@ window.renderRatingTable = function(ratings) {
 
   tbody.innerHTML = html;
 
-  // 🌟 ปลุกเสก TomSelect (ซ่อนช่องพิมพ์เพื่อลบช่องว่าง)
   setTimeout(() => {
     const productSelects = document.querySelectorAll('.target-product-ts');
     productSelects.forEach(select => {
       if (select.tomselect) select.tomselect.destroy();
-      new TomSelect(select, {
-        maxItems: 1, 
-        create: false,
-        controlInput: null // 👈 ลบช่องว่างพิมพ์ 100%
-      });
+      new TomSelect(select, { maxItems: 1, create: false, controlInput: null });
     });
   }, 100);
 };
+
+// =========================================================
+// 🌟 ดึงค่า Frequency จาก Settings มาแสดงที่หัวตารางอัตโนมัติ
+// =========================================================
+const unitSpan = document.getElementById('dynamicTargetUnitText');
+if (unitSpan) {
+    // สมมติว่าค่าใน Database Setting ชื่อ 'Target_Frequency' (เปลี่ยนชื่อให้ตรงกับตาราง Setting ของคุณได้เลย)
+    const sysSettings = (window.DocManagerCache && window.DocManagerCache.sysSettings) ? window.DocManagerCache.sysSettings : [];
+    const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
+    
+    // ถ้าไม่มีค่าใน Setting ให้ Default เป็น 'CYCLE' ไว้ก่อน
+    const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE') : 'CYCLE';
+    
+    // แปลภาษาให้ตรงกับ Frequency ปัจจุบัน
+    const unitTextEN = `(VISITS / ${freqValue.toUpperCase()})`;
+    let unitTextTH = '(ครั้ง / รอบ)';
+    if (freqValue.toUpperCase() === 'MONTH') unitTextTH = '(ครั้ง / เดือน)';
+    else if (freqValue.toUpperCase() === 'YEAR') unitTextTH = '(ครั้ง / ปี)';
+
+    unitSpan.innerText = appLang === 'en' ? unitTextEN : unitTextTH;
+}
 
 // 🌟 สลับแสดงผล Read-Only <-> Edit
 window.toggleDocTargetEdit = function(index, isEdit) {
