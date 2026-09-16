@@ -2905,28 +2905,35 @@ document.addEventListener('DOMContentLoaded', function() {
 // 🗑️ ฟังก์ชันลบ Product ผ่าน Custom Pop-up Modal (เช็คภาษาเป๊ะ 100%)
 // =========================================================
 window.deleteTargetCallRow = function(productId, productName) {
-  // ดึงภาษาปัจจุบันของระบบ
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : (localStorage.getItem('appLang') || 'th');
-  const isEN = String(appLang).toLowerCase().includes('en');
+  // ดึงภาษาปัจจุบันของระบบให้แม่นยำ
+  const rawLang = (typeof window.getCurrentAppLang === 'function') 
+    ? window.getCurrentAppLang() 
+    : (localStorage.getItem('appLang') || window.currentLang || 'th');
+  const isEN = String(rawLang).toLowerCase().includes('en');
 
   const showProdName = (productName && productName !== 'undefined') ? productName : '';
 
-  // 1. กำหนดข้อความภาษาตามระบบปัจจุบัน
+  // 1. กำหนดข้อความตามภาษาปัจจุบัน
   const titleText = isEN ? 'Confirm Deletion Request' : 'ยืนยันการส่งคำขอลบเป้าหมาย';
   const bodyText = isEN 
     ? `Are you sure you want to submit a DCR to DELETE the target${showProdName ? ` for "${showProdName}"` : ''}?` 
     : `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อ "ลบเป้าหมาย"${showProdName ? ` ของผลิตภัณฑ์ "${showProdName}"` : ''}?`;
   
   const btnSubmitText = isEN ? 'Submit DCR' : 'ส่ง DCR ยืนยัน';
+  const btnCancelText = isEN ? 'Cancel' : 'ยกเลิก';
 
-  // 2. หยอดข้อความลงใน Custom Modal
+  // 2. หยอดข้อความลงใน Custom Modal พร้อมอัปเดต Element 2 ภาษา
   const modalTitle = document.getElementById('delModalTitle');
   const modalBody = document.getElementById('delModalBody');
   const btnConfirmText = document.getElementById('btnConfirmDeleteText');
+  
+  // 🌟 เพิ่มการอัปเดตปุ่ม Cancel ใน Modal
+  const modalCancelBtn = document.querySelector('#deleteTargetConfirmModal [data-i18n="btn_cancel"]');
 
   if (modalTitle) modalTitle.innerText = titleText;
   if (modalBody) modalBody.innerText = bodyText;
   if (btnConfirmText) btnConfirmText.innerText = btnSubmitText;
+  if (modalCancelBtn) modalCancelBtn.innerText = btnCancelText;
 
   // 3. ผูกคำสั่งกดยืนยันปุ่มสีแดงใน Modal
   const confirmBtn = document.getElementById('btnConfirmDeleteTarget');
@@ -2975,7 +2982,7 @@ window.deleteTargetCallRow = function(productId, productName) {
         const { error } = await sb.from('DCR').insert([dcrPayload]);
         if (error) throw error;
 
-        // แจ้งเตือนความสำเร็จผ่าน Toast สวยๆ
+        // แจ้งเตือนความสำเร็จผ่าน Toast
         if (typeof window.showToast === 'function') {
           window.showToast(isEN ? "Deletion request submitted to Manager!" : "ส่งคำขอลบไปยังผู้จัดการเรียบร้อยแล้ว!", "success");
         }
@@ -2998,7 +3005,7 @@ window.deleteTargetCallRow = function(productId, productName) {
   // 4. สั่งเปิด Custom Modal ขึ้นมา
   const modalEl = document.getElementById('deleteTargetConfirmModal');
   if (modalEl) {
-    const bsModal = new bootstrap.Modal(modalEl);
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     bsModal.show();
   }
 };
