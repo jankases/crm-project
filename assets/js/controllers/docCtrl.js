@@ -2593,29 +2593,40 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   }
 };
 
-window.saveTargetCallRow = async function(btn) {
+ window.saveTargetCallRow = async function(btn) {
   const tr = btn.closest('tr');
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = String(appLang).toLowerCase().includes('en');
   
   const selectEl = tr.querySelector('.rating-product');
   const selectedProductId = selectEl ? selectEl.value : '';
-  const adoptVal = tr.querySelector('.rating-adopt').value;
-  const potVal = tr.querySelector('.rating-pot').value;
-  const classificationValue = tr.querySelector('.rating-class').value;
-  const targetValue = tr.querySelector('.rating-target').value;
+  
+  const adoptEl = tr.querySelector('.rating-adopt');
+  const potEl = tr.querySelector('.rating-pot');
+  const classEl = tr.querySelector('.rating-class');
+  const targetEl = tr.querySelector('.rating-target');
+
+  const adoptVal = adoptEl ? adoptEl.value : '';
+  const potVal = potEl ? potEl.value : '';
+  const classificationValue = classEl ? (classEl.value || classEl.innerText) : '';
+  const targetValue = targetEl ? (targetEl.value || targetEl.innerText) : 0;
 
   if(!selectedProductId || !adoptVal || !potVal) {
-      const errMsg = appLang === 'en' ? "❌ Missing fields: Product, Adoption or Potential." : "❌ กรุณากรอกข้อมูลให้ครบถ้วน: ผลิตภัณฑ์, Adoption หรือ Potential";
+      const errMsg = isEN ? "❌ Missing fields: Product, Adoption or Potential." : "❌ กรุณากรอกข้อมูลให้ครบถ้วน: ผลิตภัณฑ์, Adoption หรือ Potential";
       alert(errMsg);
       return;
   }
 
-  const usedProductIds = window.getSelectedRatingProductIds(selectEl ? selectEl.id : null);
+  // ตรวจสอบการเลือกผลิตภัณฑ์ซ้ำ
+  const usedProductIds = (typeof window.getSelectedRatingProductIds === 'function') 
+    ? window.getSelectedRatingProductIds(selectEl ? selectEl.id : null) 
+    : [];
+
   if (usedProductIds.includes(String(selectedProductId))) {
       const pObj = (window.globalTeamProducts || window.globalProducts || []).find(p => String(p.Product_ID) === String(selectedProductId));
-      const productName = pObj ? pObj.Product : selectedProductId;
+      const productName = pObj ? (pObj.Product || pObj.Product_TH) : selectedProductId;
       
-      const duplicateMsg = appLang === 'en'
+      const duplicateMsg = isEN
         ? `❌ Duplicate Product! "${productName}" is already added in another row.`
         : `❌ ผลิตภัณฑ์ซ้ำ! "${productName}" มีการประเมินอยู่แล้วในแถวอื่น กรุณาเลือกผลิตภัณฑ์ใหม่`;
       
@@ -2624,19 +2635,22 @@ window.saveTargetCallRow = async function(btn) {
       return;
   }
 
+  // แสดง Spinner ที่ปุ่มขณะกำลังเซฟ
   btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
 
-  let crmUser = null; try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+  let crmUser = null; 
+  try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
   const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
+  const docId = window.currentTargetDocId;
 
   const payload = {
-      Doc_ID: window.currentTargetDocId,
+      Doc_ID: docId,
       Product_ID: selectedProductId,
       Adoption: adoptVal,
       Potential: potVal,
       Classification: classificationValue,
-      Target: targetValue ? parseInt(targetValue) : 0,
+      Target: targetValue ? parseInt(targetValue, 10) : 0,
       Whoupdated: whoUpdated, 
       Whenupdated: new Date().toISOString()
   };
@@ -2646,17 +2660,22 @@ window.saveTargetCallRow = async function(btn) {
       const { error } = await sb.from('Rating').upsert(payload, { onConflict: 'Doc_ID, Product_ID' });
       if (error) throw error;
 
-      const savedText = appLang === 'en' ? 'Saved' : 'บันทึกแล้ว';
-      const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
+      // แจ้งเตือนความสำเร็จ
+      const savedToastMsg = isEN ? 'Target saved successfully!' : 'บันทึกข้อมูลเรียบร้อยแล้ว!';
+      if (typeof window.showToast === 'function') {
+        window.showToast(savedToastMsg, "success");
+      }
 
-      btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> ${savedText}`;
-      setTimeout(() => {
-          btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}`;
-      }, 2000);
+      // 🌟 สั่งรีโหลดตารางเพื่อสลับกลับเป็น Read-Only Mode ทันที!
+      if (typeof window.loadDoctorRatings === 'function') {
+        await window.loadDoctorRatings(docId);
+      } else if (typeof window.openViewDoctorProfile === 'function') {
+        await window.openViewDoctorProfile(docId);
+      }
 
   } catch(err) {
-      const saveBtnText = appLang === 'en' ? 'Save' : 'บันทึก';
+      console.error("Save Rating Error:", err);
+      const saveBtnText = isEN ? 'Save' : 'บันทึก';
       alert("❌ Save failed: " + err.message);
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}`;
