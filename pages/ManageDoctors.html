@@ -913,7 +913,7 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 🌟 Custom Modal ยืนยันการลบเป้าหมาย (วางล่างสุดขององค์ประกอบ UI) -->
+<!-- 🌟 Custom Modal ยืนยันการลบเป้าหมาย (รองรับ 2 ภาษา Real-time) -->
 <!-- ========================================================= -->
 <div class="modal fade" id="deleteTargetConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
@@ -928,13 +928,13 @@
         <h5 class="fw-bold text-dark mb-2" id="delModalTitle">Confirm Deletion Request</h5>
         <p class="text-secondary small mb-4 px-2" id="delModalBody">Are you sure you want to submit a request to delete this target?</p>
 
-        <!-- ปุ่มกด Action -->
+        <!-- ปุ่มกด Action พร้อม data-i18n -->
         <div class="d-flex gap-2 justify-content-center">
           <button type="button" class="btn btn-light border text-secondary rounded-pill px-4 fw-bold shadow-xs flex-grow-1 py-2" data-bs-dismiss="modal">
             <span data-i18n="btn_cancel">Cancel</span>
           </button>
           <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm flex-grow-1 py-2" id="btnConfirmDeleteTarget">
-            <i class="fa-solid fa-paper-plane me-1.5"></i><span id="btnConfirmDeleteText">Submit DCR</span>
+            <i class="fa-solid fa-paper-plane me-1.5"></i><span id="btnConfirmDeleteText" data-i18n="btn_submit_dcr">Submit DCR</span>
           </button>
         </div>
 
