@@ -2901,4 +2901,75 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
- 
+// =========================================================
+// 🗑️ ฟังก์ชันลบ Product ออกจาก Target Call (ส่งผ่านระบบ DCR)
+// =========================================================
+window.deleteTargetCallRow = async function(productId, productName) {
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  
+  // 1. เด้งถามยืนยันก่อนส่ง DCR
+  const confirmMsg = appLang === 'en' 
+    ? `Are you sure you want to submit a request to DELETE the target for "${productName}"?` 
+    : `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอเพื่อ "ลบเป้าหมาย" ของผลิตภัณฑ์ "${productName}"?`;
+    
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const docId = window.currentTargetDocId;
+    if (!docId || !productId) throw new Error("Missing Doctor ID or Product ID");
+
+    // 2. ดึงข้อมูลคนกดส่ง (เพื่อหาว่าใครคือ Manager ของเขา)
+    let crmUser = null; 
+    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
+    
+    // 🌟 ดึง ID ของทีมหรือ BU เพื่อให้หลังบ้านรู้ว่าต้องส่งหา Manager คนไหน
+    const teamId = crmUser ? crmUser.Team_ID : ""; 
+    const buId = crmUser ? crmUser.BU_ID : "";
+
+    // 3. สร้าง Payload ส่งเข้า DCR
+    const payload = {
+      Doc_ID: docId,
+      Product_ID: productId,
+      Product_Name: productName,
+      Request_Type: "DELETE_TARGET",
+      Is_Locked_Period: window.globalRatingIsLocked,
+      // 🌟 แอบส่งข้อมูลให้ Backend รู้ว่าจะต้อง Route อีเมลไปหาใคร
+      Routing: {
+        Approver_Role: "Manager",
+        CC_Role: "BU_Head",
+        Team_ID: teamId,
+        BU_ID: buId
+      }
+    };
+
+    const dcrPayload = { 
+      Ref_ID: docId, 
+      Action: 'Delete Target',
+      Requested_Data: JSON.stringify(payload), 
+      Status: 'Pending', 
+      Whoupdated: whoUpdated 
+    };
+
+    const sb = window.supabaseClient || window.supabase;
+    const { error } = await sb.from('DCR').insert([dcrPayload]);
+    
+    if (error) throw error;
+
+    // 4. แจ้งเตือนความสำเร็จ
+    if (typeof window.showToast === 'function') {
+        window.showToast(appLang === 'en' ? "Deletion request sent to your Manager!" : "ส่งคำขอลบไปยังผู้จัดการของคุณแล้ว!", "success");
+    } else {
+        alert(appLang === 'en' ? "Request submitted. Waiting for Manager approval." : "ส่งคำขอสำเร็จ กรุณารอผู้จัดการอนุมัติ");
+    }
+
+    // 5. สั่งรีเฟรชหน้าต่าง DCR สรุป
+    if (typeof window.checkPendingDCR === 'function') {
+        window.checkPendingDCR(docId);
+    }
+
+  } catch (err) {
+    console.error("Delete Target DCR Error:", err);
+    alert("❌ Request failed: " + err.message);
+  }
+}; 
