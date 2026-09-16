@@ -2298,9 +2298,9 @@ window.loadDoctorRatings = async function(docId) {
 
   // อัปเดตหัวตารางแบบไดนามิก (ใช้ freqWordHeaderEN)
   const unitSpan = document.getElementById('dynamicTargetUnitText');
-  if (unitSpan) {
-      unitSpan.innerText = isEN ? `(VISITS / ${freqWordHeaderEN})` : `(ครั้ง / ${freqWordTH})`;
-  }
+if (unitSpan) {
+    unitSpan.innerHTML = ''; // ปล่อยว่างไว้เพื่อความคลีน ไม่ให้ยาวดันตารางล้น
+}
   const baseSpan = document.querySelector('[data-i18n="th_target_base"]');
   if (baseSpan) {
       baseSpan.innerText = isEN ? 'TARGET' : 'เป้าหมาย';
