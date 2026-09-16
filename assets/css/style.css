@@ -10,11 +10,12 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ ISOLATED MODULE WRAPPER */
+/* 🖥️ ISOLATED MODULE WRAPPER (ครอบคลุมทุกโมดูลระบบ) */
 .visit-module-wrapper,
 .hosp-module-wrapper,
 .doc-module-wrapper,
-.index-module-wrapper {
+.index-module-wrapper,
+.matrix-module-wrapper {
   height: calc(100vh - 85px) !important;
   width: 100% !important;
   overflow: hidden !important;
@@ -25,10 +26,13 @@ html, body {
   flex-direction: column !important;
 }
 
-/* 🌟 บังคับการ์ดสีขาว (เฉพาะหน้าตาราง List) ให้ยืดชนขอบล่างแบบปลอดภัย 100% */
+/* 🌟 บังคับการ์ดสีขาว (เฉพาะหน้าตาราง List และ Config) ให้ยืดชนขอบล่างแบบปลอดภัย 100% */
 #visitListView .visit-card,
 #doctorListView .visit-card,
-#hospListView .visit-card {
+#hospListView .visit-card,
+.matrix-card-container,
+.index-card-box,
+.sys-config-card {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   display: flex; 
@@ -38,7 +42,8 @@ html, body {
 /* 📊 FIXED TABLE-ONLY SCROLL ENGINE */
 #visitListView,
 #doctorListView,
-#hospListView {
+#hospListView,
+#matrixMainContainer {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -49,7 +54,8 @@ html, body {
 #visitMainContentContainer,
 #doctorMainContentContainer,
 .doc-main-content,
-.hosp-main-content {
+.hosp-main-content,
+.matrix-main-content {
   flex: 1 1 auto !important;
   display: flex !important;
   flex-direction: column !important;
@@ -124,6 +130,7 @@ html, body {
 .index-scroll-zone::-webkit-scrollbar,
 .visit-module-wrapper::-webkit-scrollbar,
 .doc-module-wrapper::-webkit-scrollbar,
+.matrix-module-wrapper::-webkit-scrollbar,
 .index-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
 #visitFormView::-webkit-scrollbar,
@@ -136,6 +143,7 @@ html, body {
 .index-scroll-zone::-webkit-scrollbar-track,
 .visit-module-wrapper::-webkit-scrollbar-track,
 .doc-module-wrapper::-webkit-scrollbar-track,
+.matrix-module-wrapper::-webkit-scrollbar-track,
 .index-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
 #visitFormView::-webkit-scrollbar-track,
@@ -147,6 +155,7 @@ html, body {
 .index-scroll-zone::-webkit-scrollbar-thumb,
 .visit-module-wrapper::-webkit-scrollbar-thumb,
 .doc-module-wrapper::-webkit-scrollbar-thumb,
+.matrix-module-wrapper::-webkit-scrollbar-thumb,
 .index-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
 #visitFormView::-webkit-scrollbar-thumb,
@@ -159,6 +168,7 @@ html, body {
 .index-scroll-zone::-webkit-scrollbar-thumb:hover,
 .visit-module-wrapper::-webkit-scrollbar-thumb:hover,
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
+.matrix-module-wrapper::-webkit-scrollbar-thumb:hover,
 .index-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
 #visitFormView::-webkit-scrollbar-thumb:hover,
@@ -2002,11 +2012,27 @@ button.feature-action-btn-lg.has-data-samples i {
 
 /* 📱 IPAD & TABLET RESPONSIVE FORM SCROLLING (จอน้อยกว่า 1199.98px) */
 @media (max-width: 1199.98px) {
-  .doc-module-wrapper {
-    height: auto !important;
-    min-height: 100vh !important;
+  /* 🌟 บังคับแก้ปัญหากล่องสีขาวลอยล่างสุดใน iPad ให้ครอบคลุมทุกโมดูลระบบ */
+  .doc-module-wrapper,
+  .matrix-module-wrapper,
+  .index-module-wrapper {
+    height: 100% !important;
+    min-height: calc(100vh - 85px) !important;
     padding-bottom: 0.5rem !important;
     box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .matrix-card-container,
+  .main-content-card,
+  .index-card-box,
+  .sys-config-card {
+    flex: 1 1 auto !important;
+    min-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
   #visitFormView,
@@ -2180,40 +2206,40 @@ button.feature-action-btn-lg.has-data-samples i {
 .has-data-gps {
     background-color: #d1fae5 !important; /* Soft Green */
     border-color: #a7f3d0 !important;
-    color: #065f46 !important;            /* Dark Green Text */
+    color: #065f46 !important;             /* Dark Green Text */
 }
 .has-data-gps i {
-    color: #059669 !important;            /* Green Icon */
+    color: #059669 !important;             /* Green Icon */
 }
 
 /* 2. Signature (สีฟ้าพาสเทล - ได้รับการยืนยัน/เซ็นแล้ว) */
 .has-data-sig {
     background-color: #dbeafe !important; /* Soft Blue */
     border-color: #bfdbfe !important;
-    color: #1e3a8a !important;            /* Dark Blue Text */
+    color: #1e3a8a !important;             /* Dark Blue Text */
 }
 .has-data-sig i {
-    color: #2563eb !important;            /* Blue Icon */
+    color: #2563eb !important;             /* Blue Icon */
 }
 
 /* 3. Samples (สีส้ม/เหลืองพาสเทล - ของแจก/ข้อควรระวังว่ามีการเบิกจ่าย) */
 .has-data-samples {
     background-color: #fef3c7 !important; /* Soft Amber */
     border-color: #fde68a !important;
-    color: #92400e !important;            /* Dark Amber Text */
+    color: #92400e !important;             /* Dark Amber Text */
 }
 .has-data-samples i {
-    color: #d97706 !important;            /* Amber Icon */
+    color: #d97706 !important;             /* Amber Icon */
 }
 
 /* 4. Attachments (สีม่วงพาสเทล - ไฟล์แนบเอกสารเพิ่มเติม) */
 .has-data-attach {
     background-color: #f3e8ff !important; /* Soft Purple */
     border-color: #e9d5ff !important;
-    color: #581c87 !important;            /* Dark Purple Text */
+    color: #581c87 !important;             /* Dark Purple Text */
 }
 .has-data-attach i {
-    color: #9333ea !important;            /* Purple Icon */
+    color: #9333ea !important;             /* Purple Icon */
 }
 
 /* 🌟 ทำให้ Transition ตอนสีเปลี่ยนดูนุ่มนวล สมูทขึ้น (Premium Feel) */
