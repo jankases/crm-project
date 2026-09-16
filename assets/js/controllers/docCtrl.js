@@ -2263,6 +2263,7 @@ window.loadDoctorRatings = async function(docId) {
   }
 };
 
+ // 🌟 1. วางทับฟังก์ชัน renderRatingTable เดิมทั้งหมด
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
@@ -2274,19 +2275,113 @@ window.renderRatingTable = function(ratings) {
       return;
   }
 
-  try {
-      ratings.forEach(row => {
-          window.addRatingRowHTML(
-              row.Product_ID || '', 
-              row.Adoption || '', 
-              row.Potential || '', 
-              row.Classification || '', 
-              row.Target || ''
-          );
+  let html = '';
+  // ดึงรายการสินค้ามาเตรียมไว้ เพื่อแปลง ID เป็นชื่อ
+  const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
+
+  ratings.forEach((item, index) => {
+    // 🔍 แปลง Product_ID จาก Database ให้เป็นชื่อสวยๆ
+    const prodObj = availableProducts.find(p => String(p.Product_ID) === String(item.Product_ID));
+    const productName = prodObj ? (prodObj.Product || prodObj.Product_Name || prodObj.Product_TH) : (item.Product_ID || '-');
+
+    // 🎨 จัดสี Classification
+    let clsColor = 'bg-secondary-subtle text-secondary';
+    if (item.Classification === 'A') clsColor = 'bg-danger-subtle text-danger';
+    else if (item.Classification === 'B') clsColor = 'bg-warning-subtle text-warning-emphasis';
+    else if (item.Classification === 'C') clsColor = 'bg-primary-subtle text-primary';
+    else if (item.Classification === 'D') clsColor = 'bg-success-subtle text-success';
+
+    const targetVal = (item.Target !== null && item.Target !== undefined) ? item.Target : '-';
+
+    // =========================================================
+    // 👁️ โหมด READ-ONLY (โชว์เป็นค่าเริ่มต้น ดูคลีนๆ)
+    // =========================================================
+    html += `
+      <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
+        <td class="text-start ps-4 fw-bold text-dark">${productName}</td>
+        <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Adoption || '-'}</span></td>
+        <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Potential || '-'}</span></td>
+        <td><span class="badge ${clsColor} fw-bolder px-3 py-2 shadow-xs" style="min-width: 45px; font-size: 0.9rem;">${item.Classification || '-'}</span></td>
+        <td class="fw-bolder text-dark fs-6">${targetVal}</td>
+        <td>
+          <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
+            <i class="fa-solid fa-pen me-2"></i>Edit
+          </button>
+        </td>
+      </tr>
+    `;
+
+    // =========================================================
+    // ✏️ โหมด EDIT (ซ่อนไว้ก่อน จะทำงานเมื่อกด Edit มีคลาสครบพร้อมเซฟ)
+    // =========================================================
+    html += `
+      <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
+        <td class="text-start ps-4">
+          <select id="edit-prod-${index}" class="rating-product target-product-ts" style="width: 100%;" disabled>
+            <option value="${item.Product_ID}" selected>${productName}</option>
+          </select>
+        </td>
+        <td>
+          <select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-adopt" id="edit-adopt-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;">
+            <option value="High" ${item.Adoption === 'High' ? 'selected' : ''}>High</option>
+            <option value="Medium" ${item.Adoption === 'Medium' ? 'selected' : ''}>Medium</option>
+            <option value="Low" ${item.Adoption === 'Low' ? 'selected' : ''}>Low</option>
+          </select>
+        </td>
+        <td>
+          <select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-pot" id="edit-pot-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;">
+            <option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option>
+            <option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option>
+            <option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none mx-auto" value="${item.Classification || ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;">
+        </td>
+        <td>
+          <input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none mx-auto" value="${item.Target !== undefined && item.Target !== null ? item.Target : ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;">
+        </td>
+        <td>
+          <div class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveTargetCallRow(this)">
+              <i class="fa-solid fa-floppy-disk me-2"></i>Save
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+
+  // 🌟 ปลุกเสก TomSelect (ซ่อนช่องพิมพ์เพื่อลบช่องว่าง)
+  setTimeout(() => {
+    const productSelects = document.querySelectorAll('.target-product-ts');
+    productSelects.forEach(select => {
+      if (select.tomselect) select.tomselect.destroy();
+      new TomSelect(select, {
+        maxItems: 1, 
+        create: false,
+        controlInput: null // 👈 ทีเด็ดอยู่ตรงนี้!
       });
-  } catch (e) {
-      window.clearRatingTable();
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Render Error: ${e.message}</td></tr>`;
+    });
+  }, 100);
+};
+
+// 🌟 สลับแสดงผล Read-Only <-> Edit
+window.toggleDocTargetEdit = function(index, isEdit) {
+  const readRow = document.getElementById(`row-target-read-${index}`);
+  const editRow = document.getElementById(`row-target-edit-${index}`);
+  
+  if (isEdit) {
+    if (readRow) readRow.classList.add('d-none');
+    if (editRow) editRow.classList.remove('d-none');
+  } else {
+    if (readRow) readRow.classList.remove('d-none');
+    if (editRow) editRow.classList.add('d-none');
   }
 };
 
@@ -2454,8 +2549,11 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   `;
   tbody.appendChild(tr);
 
+  // 🌟 2. เลื่อนไปท้ายฟังก์ชัน window.addRatingRowHTML แล้ววางทับบรรทัดนี้
   if (!disabledAttr && typeof TomSelect !== 'undefined') {
       const tsProd = new TomSelect(`#${selectId}`, { 
+        maxItems: 1,         // 👈 เพิ่ม 1: บังคับเลือกอันเดียว
+        controlInput: null,  // 👈 เพิ่ม 2: ปิดช่องว่างพิมพ์ (แก้ปัญหาในคลิปวิดีโอ)
         create: false, 
         placeholder: selectProdText, 
         allowEmptyOption: true, 
@@ -2776,115 +2874,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-
-// =========================================================
-// 🌟 ฟังก์ชันวาดตาราง Target Call แบบ Read-Only & Edit Mode
-// =========================================================
-window.renderDoctorTargets = function(targetsData) {
-  const tbody = document.getElementById('ratingTableBody');
-  if (!tbody) return;
-
-  if (!targetsData || targetsData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No targets found. Add a product to begin.</td></tr>`;
-    return;
-  }
-
-  let html = '';
-
-  targetsData.forEach((item, index) => {
-    let clsColor = 'bg-secondary-subtle text-secondary';
-    if (item.Classification === 'A') clsColor = 'bg-danger-subtle text-danger';
-    else if (item.Classification === 'B') clsColor = 'bg-warning-subtle text-warning-emphasis';
-    else if (item.Classification === 'C') clsColor = 'bg-primary-subtle text-primary';
-    else if (item.Classification === 'D') clsColor = 'bg-success-subtle text-success';
-
-    // ----------------------------------------------------------------
-    // 👁️ โหมด READ-ONLY: โชว์เป็น Text ธรรมดา (สวย เนี้ยบ)
-    // ----------------------------------------------------------------
-    html += `
-      <tr id="row-target-read-${index}" class="align-middle text-center">
-        <td class="text-start ps-4 fw-bold text-dark">${item.Product}</td>
-        <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Adoption}</span></td>
-        <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Potential}</span></td>
-        <td><span class="badge ${clsColor} fw-bolder px-3 py-2 shadow-xs" style="min-width: 45px; font-size: 0.9rem;">${item.Classification}</span></td>
-        <td class="fw-bolder text-dark fs-6">${item.TargetCall !== null ? item.TargetCall : '-'}</td>
-        <td>
-          <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
-            <i class="fa-solid fa-pen me-2"></i>Edit
-          </button>
-        </td>
-      </tr>
-    `;
-
-    // ----------------------------------------------------------------
-    // ✏️ โหมด EDIT: มี TomSelect สำหรับ Product ที่แก้ปัญหาช่องว่างแล้ว
-    // ----------------------------------------------------------------
-    html += `
-      <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4">
-        <td class="text-start ps-4">
-          <!-- 🌟 กล่อง Select ที่รอให้ TomSelect มาครอบ -->
-          <select id="edit-prod-${index}" class="target-product-ts" style="width: 100%;">
-            <option value="${item.Product_ID || item.Product}" selected>${item.Product}</option>
-            <!-- (คุณสามารถเติม option สินค้าอื่นๆ เพิ่มเข้าไปตรงนี้ได้เลยตอนดึงข้อมูล) -->
-          </select>
-        </td>
-        <td>
-          <select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto" id="edit-adopt-${index}" style="max-width: 120px; border-radius: 6px;">
-            <option value="High" ${item.Adoption === 'High' ? 'selected' : ''}>High</option>
-            <option value="Medium" ${item.Adoption === 'Medium' ? 'selected' : ''}>Medium</option>
-            <option value="Low" ${item.Adoption === 'Low' ? 'selected' : ''}>Low</option>
-          </select>
-        </td>
-        <td>
-          <select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto" id="edit-pot-${index}" style="max-width: 120px; border-radius: 6px;">
-            <option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option>
-            <option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option>
-            <option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option>
-          </select>
-        </td>
-        <td><span class="badge ${clsColor} fw-bold px-3 py-2 opacity-50">${item.Classification}</span></td>
-        <td class="fw-bold text-muted">${item.TargetCall !== null ? item.TargetCall : '-'}</td>
-        <td>
-          <div class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveDocTargetRow('${index}')">
-              <i class="fa-solid fa-floppy-disk me-2"></i>Save
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  });
-
-  tbody.innerHTML = html;
-
-  // 🌟 ปลุกเสก TomSelect ทันทีที่วาดตารางเสร็จ
-  setTimeout(() => {
-    const productSelects = document.querySelectorAll('.target-product-ts');
-    productSelects.forEach(select => {
-      if (select.tomselect) select.tomselect.destroy();
-      
-      new TomSelect(select, {
-        maxItems: 1, // บังคับเลือกได้อันเดียว
-        create: false,
-        controlInput: null // ✨ ทีเด็ดคือบรรทัดนี้! ปิดการโชว์ช่องพิมพ์ (Input) ถาวร
-      });
-    });
-  }, 100);
-};
-
-// 🌟 ฟังก์ชันสลับการแสดงผล (กด Edit <-> Cancel)
-window.toggleDocTargetEdit = function(index, isEdit) {
-  const readRow = document.getElementById(`row-target-read-${index}`);
-  const editRow = document.getElementById(`row-target-edit-${index}`);
-  
-  if (isEdit) {
-    readRow.classList.add('d-none');
-    editRow.classList.remove('d-none');
-  } else {
-    readRow.classList.remove('d-none');
-    editRow.classList.add('d-none');
-  }
-};
+ 
