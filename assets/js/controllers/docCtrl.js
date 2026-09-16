@@ -2901,21 +2901,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// =========================================================
-// 🗑️ ฟังก์ชันลบ Product ผ่าน Custom Pop-up Modal สวยงาม
+ // =========================================================
+// 🗑️ ฟังก์ชันลบ Product ผ่าน Custom Pop-up Modal (เช็คภาษาเป๊ะ 100%)
 // =========================================================
 window.deleteTargetCallRow = function(productId, productName) {
-  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  // ดึงภาษาปัจจุบันของระบบ
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : (localStorage.getItem('appLang') || 'th');
   const isEN = String(appLang).toLowerCase().includes('en');
 
   const showProdName = (productName && productName !== 'undefined') ? productName : '';
 
-  // 1. กำหนดข้อความภาษาตามคำแปล
+  // 1. กำหนดข้อความภาษาตามระบบปัจจุบัน
   const titleText = isEN ? 'Confirm Deletion Request' : 'ยืนยันการส่งคำขอลบเป้าหมาย';
   const bodyText = isEN 
     ? `Are you sure you want to submit a DCR to DELETE the target${showProdName ? ` for "${showProdName}"` : ''}?` 
     : `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อ "ลบเป้าหมาย"${showProdName ? ` ของผลิตภัณฑ์ "${showProdName}"` : ''}?`;
-  const btnText = isEN ? 'Submit DCR' : 'ส่ง DCR ยืนยัน';
+  
+  const btnSubmitText = isEN ? 'Submit DCR' : 'ส่ง DCR ยืนยัน';
 
   // 2. หยอดข้อความลงใน Custom Modal
   const modalTitle = document.getElementById('delModalTitle');
@@ -2924,12 +2926,11 @@ window.deleteTargetCallRow = function(productId, productName) {
 
   if (modalTitle) modalTitle.innerText = titleText;
   if (modalBody) modalBody.innerText = bodyText;
-  if (btnConfirmText) btnConfirmText.innerText = btnText;
+  if (btnConfirmText) btnConfirmText.innerText = btnSubmitText;
 
   // 3. ผูกคำสั่งกดยืนยันปุ่มสีแดงใน Modal
   const confirmBtn = document.getElementById('btnConfirmDeleteTarget');
   if (confirmBtn) {
-    // ล้าง Event ฟังเดิมก่อนหน้า
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
