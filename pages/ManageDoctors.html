@@ -95,24 +95,23 @@
     .workplace-scroll-area { flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding-right: 4px; }
 
     /* 🎯 กำจัดเส้นยาวๆ ใต้ Tab ให้สิ้นซาก (เจาะจง ID docProfileTabs) */
-  #docProfileTabs,
-  ul.nav-tabs {
-      border-bottom: none !important;
-  }
-  
-  #docProfileTabs .nav-link,
-  ul.nav-tabs .nav-link {
-      border: none !important;
-      border-bottom: 2px solid transparent !important;
-      margin-bottom: 0 !important; /* ป้องกันเส้นขยับ */
-  }
-  
-  #docProfileTabs .nav-link.active,
-  ul.nav-tabs .nav-link.active {
-      border-bottom: 2px solid #0d6efd !important; /* เส้นขีดใต้สีฟ้า */
-      background-color: transparent !important;
-  }
+    #docProfileTabs,
+    ul.nav-tabs {
+        border-bottom: none !important;
+    }
     
+    #docProfileTabs .nav-link,
+    ul.nav-tabs .nav-link {
+        border: none !important;
+        border-bottom: 2px solid transparent !important;
+        margin-bottom: 0 !important; /* ป้องกันเส้นขยับ */
+    }
+    
+    #docProfileTabs .nav-link.active,
+    ul.nav-tabs .nav-link.active {
+        border-bottom: 2px solid #0d6efd !important; /* เส้นขีดใต้สีฟ้า */
+        background-color: transparent !important;
+    }
   }
 
   /* ========================================================= */
@@ -660,7 +659,7 @@
         </div>
       </div>
 
- <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
+      <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
 
         <!-- 📌 FILTER ZONE & ACTION BAR -->
@@ -913,7 +912,38 @@
 
 </div>
 
-<!-- 🚀 วางโค้ดชุดนี้ไว้ล่างสุดของหน้า HTML เพื่อล้างอาถรรพ์ Cache และปิดจบปัญหา 100% -->
+<!-- ========================================================= -->
+<!-- 🌟 Custom Modal ยืนยันการลบเป้าหมาย (วางล่างสุดขององค์ประกอบ UI) -->
+<!-- ========================================================= -->
+<div class="modal fade" id="deleteTargetConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-body p-4 text-center">
+        
+        <!-- ไอคอนเตือนวงกลมสีแดงอ่อน -->
+        <div class="bg-danger-subtle text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 64px; height: 64px;">
+          <i class="fa-solid fa-triangle-exclamation fs-2"></i>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-2" id="delModalTitle">Confirm Deletion Request</h5>
+        <p class="text-secondary small mb-4 px-2" id="delModalBody">Are you sure you want to submit a request to delete this target?</p>
+
+        <!-- ปุ่มกด Action -->
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-light border text-secondary rounded-pill px-4 fw-bold shadow-xs flex-grow-1 py-2" data-bs-dismiss="modal">
+            <span data-i18n="btn_cancel">Cancel</span>
+          </button>
+          <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm flex-grow-1 py-2" id="btnConfirmDeleteTarget">
+            <i class="fa-solid fa-paper-plane me-1.5"></i><span id="btnConfirmDeleteText">Submit DCR</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🚀 สคริปต์สกัดกั้น Pagination & URL ขยะ (วางเป็นสคริปต์ตัวสุดท้าย) -->
 <script>
     setTimeout(function() {
         console.log("🚀 Applying Ultimate Pagination Override...");
