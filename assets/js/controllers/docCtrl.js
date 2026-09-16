@@ -2902,74 +2902,102 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // =========================================================
-// 🗑️ ฟังก์ชันลบ Product ออกจาก Target Call (ส่งผ่านระบบ DCR)
+// 🗑️ ฟังก์ชันลบ Product ผ่าน Custom Pop-up Modal สวยงาม
 // =========================================================
-window.deleteTargetCallRow = async function(productId, productName) {
+window.deleteTargetCallRow = function(productId, productName) {
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  
-  // 1. เด้งถามยืนยันก่อนส่ง DCR
-  const confirmMsg = appLang === 'en' 
-    ? `Are you sure you want to submit a request to DELETE the target for "${productName}"?` 
-    : `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอเพื่อ "ลบเป้าหมาย" ของผลิตภัณฑ์ "${productName}"?`;
-    
-  if (!confirm(confirmMsg)) return;
+  const isEN = String(appLang).toLowerCase().includes('en');
 
-  try {
-    const docId = window.currentTargetDocId;
-    if (!docId || !productId) throw new Error("Missing Doctor ID or Product ID");
+  const showProdName = (productName && productName !== 'undefined') ? productName : '';
 
-    // 2. ดึงข้อมูลคนกดส่ง (เพื่อหาว่าใครคือ Manager ของเขา)
-    let crmUser = null; 
-    try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
-    const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
-    
-    // 🌟 ดึง ID ของทีมหรือ BU เพื่อให้หลังบ้านรู้ว่าต้องส่งหา Manager คนไหน
-    const teamId = crmUser ? crmUser.Team_ID : ""; 
-    const buId = crmUser ? crmUser.BU_ID : "";
+  // 1. กำหนดข้อความภาษาตามคำแปล
+  const titleText = isEN ? 'Confirm Deletion Request' : 'ยืนยันการส่งคำขอลบเป้าหมาย';
+  const bodyText = isEN 
+    ? `Are you sure you want to submit a DCR to DELETE the target${showProdName ? ` for "${showProdName}"` : ''}?` 
+    : `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อ "ลบเป้าหมาย"${showProdName ? ` ของผลิตภัณฑ์ "${showProdName}"` : ''}?`;
+  const btnText = isEN ? 'Submit DCR' : 'ส่ง DCR ยืนยัน';
 
-    // 3. สร้าง Payload ส่งเข้า DCR
-    const payload = {
-      Doc_ID: docId,
-      Product_ID: productId,
-      Product_Name: productName,
-      Request_Type: "DELETE_TARGET",
-      Is_Locked_Period: window.globalRatingIsLocked,
-      // 🌟 แอบส่งข้อมูลให้ Backend รู้ว่าจะต้อง Route อีเมลไปหาใคร
-      Routing: {
-        Approver_Role: "Manager",
-        CC_Role: "BU_Head",
-        Team_ID: teamId,
-        BU_ID: buId
+  // 2. หยอดข้อความลงใน Custom Modal
+  const modalTitle = document.getElementById('delModalTitle');
+  const modalBody = document.getElementById('delModalBody');
+  const btnConfirmText = document.getElementById('btnConfirmDeleteText');
+
+  if (modalTitle) modalTitle.innerText = titleText;
+  if (modalBody) modalBody.innerText = bodyText;
+  if (btnConfirmText) btnConfirmText.innerText = btnText;
+
+  // 3. ผูกคำสั่งกดยืนยันปุ่มสีแดงใน Modal
+  const confirmBtn = document.getElementById('btnConfirmDeleteTarget');
+  if (confirmBtn) {
+    // ล้าง Event ฟังเดิมก่อนหน้า
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', async function() {
+      // ปิด Modal
+      const modalEl = document.getElementById('deleteTargetConfirmModal');
+      const bsModal = bootstrap.Modal.getInstance(modalEl);
+      if (bsModal) bsModal.hide();
+
+      // เริ่มกระบวนการส่ง DCR
+      try {
+        const docId = window.currentTargetDocId;
+        if (!docId || !productId) throw new Error("Missing Doctor ID or Product ID");
+
+        let crmUser = null; 
+        try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
+        const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
+
+        const payload = {
+          Doc_ID: docId,
+          Product_ID: productId,
+          Product_Name: showProdName,
+          Request_Type: "DELETE_TARGET",
+          Is_Locked_Period: window.globalRatingIsLocked,
+          Routing: {
+            Approver_Role: "Manager",
+            CC_Role: "BU_Head",
+            Team_ID: crmUser ? crmUser.Team_ID : "",
+            BU_ID: crmUser ? crmUser.BU_ID : ""
+          }
+        };
+
+        const dcrPayload = { 
+          Ref_ID: docId, 
+          Action: 'Delete Target',
+          Requested_Data: JSON.stringify(payload), 
+          Status: 'Pending', 
+          Whoupdated: whoUpdated 
+        };
+
+        const sb = window.supabaseClient || window.supabase;
+        const { error } = await sb.from('DCR').insert([dcrPayload]);
+        if (error) throw error;
+
+        // แจ้งเตือนความสำเร็จผ่าน Toast สวยๆ
+        if (typeof window.showToast === 'function') {
+          window.showToast(isEN ? "Deletion request submitted to Manager!" : "ส่งคำขอลบไปยังผู้จัดการเรียบร้อยแล้ว!", "success");
+        }
+
+        if (typeof window.checkPendingDCR === 'function') {
+          window.checkPendingDCR(docId);
+        }
+
+      } catch (err) {
+        console.error("Delete Target DCR Error:", err);
+        if (typeof window.showToast === 'function') {
+          window.showToast("❌ Request failed: " + err.message, "error");
+        } else {
+          alert("❌ Request failed: " + err.message);
+        }
       }
-    };
-
-    const dcrPayload = { 
-      Ref_ID: docId, 
-      Action: 'Delete Target',
-      Requested_Data: JSON.stringify(payload), 
-      Status: 'Pending', 
-      Whoupdated: whoUpdated 
-    };
-
-    const sb = window.supabaseClient || window.supabase;
-    const { error } = await sb.from('DCR').insert([dcrPayload]);
-    
-    if (error) throw error;
-
-    // 4. แจ้งเตือนความสำเร็จ
-    if (typeof window.showToast === 'function') {
-        window.showToast(appLang === 'en' ? "Deletion request sent to your Manager!" : "ส่งคำขอลบไปยังผู้จัดการของคุณแล้ว!", "success");
-    } else {
-        alert(appLang === 'en' ? "Request submitted. Waiting for Manager approval." : "ส่งคำขอสำเร็จ กรุณารอผู้จัดการอนุมัติ");
-    }
-
-    // 5. สั่งรีเฟรชหน้าต่าง DCR สรุป
-    if (typeof window.checkPendingDCR === 'function') {
-        window.checkPendingDCR(docId);
-    }
-
-  } catch (err) {
-    console.error("Delete Target DCR Error:", err);
-    alert("❌ Request failed: " + err.message);
+    });
   }
-}; 
+
+  // 4. สั่งเปิด Custom Modal ขึ้นมา
+  const modalEl = document.getElementById('deleteTargetConfirmModal');
+  if (modalEl) {
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+  }
+};
