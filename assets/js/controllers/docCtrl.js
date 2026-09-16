@@ -2262,29 +2262,26 @@ window.loadDoctorRatings = async function(docId) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Error: ${err.message}</td></tr>`;
   }
 };
-
- // 🌟 1. วางทับฟังก์ชัน renderRatingTable เดิมทั้งหมด
+ 
+ // 🌟 1. ฟังก์ชันวาดตาราง Target Visit
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   
   if(!Array.isArray(ratings) || ratings.length === 0) {
-      const noDataMsg = appLang === 'en' ? 'No data. Click "Add Product"' : 'ไม่มีข้อมูล กรุณากด "เพิ่มผลิตภัณฑ์"';
+      const noDataMsg = appLang === 'en' ? 'No target visits found. Click "Add Product"' : 'ไม่มีข้อมูลเป้าหมายเข้าพบ กรุณากด "เพิ่มผลิตภัณฑ์"';
       tbody.innerHTML = `<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
       return;
   }
 
   let html = '';
-  // ดึงรายการสินค้ามาเตรียมไว้ เพื่อแปลง ID เป็นชื่อ
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
 
   ratings.forEach((item, index) => {
-    // 🔍 แปลง Product_ID จาก Database ให้เป็นชื่อสวยๆ
     const prodObj = availableProducts.find(p => String(p.Product_ID) === String(item.Product_ID));
     const productName = prodObj ? (prodObj.Product || prodObj.Product_Name || prodObj.Product_TH) : (item.Product_ID || '-');
 
-    // 🎨 จัดสี Classification
     let clsColor = 'bg-secondary-subtle text-secondary';
     if (item.Classification === 'A') clsColor = 'bg-danger-subtle text-danger';
     else if (item.Classification === 'B') clsColor = 'bg-warning-subtle text-warning-emphasis';
@@ -2294,7 +2291,7 @@ window.renderRatingTable = function(ratings) {
     const targetVal = (item.Target !== null && item.Target !== undefined) ? item.Target : '-';
 
     // =========================================================
-    // 👁️ โหมด READ-ONLY (โชว์เป็นค่าเริ่มต้น ดูคลีนๆ)
+    // 👁️ โหมด READ-ONLY
     // =========================================================
     html += `
       <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
@@ -2302,7 +2299,11 @@ window.renderRatingTable = function(ratings) {
         <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Adoption || '-'}</span></td>
         <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Potential || '-'}</span></td>
         <td><span class="badge ${clsColor} fw-bolder px-3 py-2 shadow-xs" style="min-width: 45px; font-size: 0.9rem;">${item.Classification || '-'}</span></td>
-        <td class="fw-bolder text-dark fs-6">${targetVal}</td>
+        <td>
+          <span class="fw-bolder text-dark fs-5">${targetVal}</span> 
+          <!-- 🌟 ซ่อนคำว่า visits เล็กๆ ไว้เผื่อดูง่ายขึ้น -->
+          ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">Visits</span>` : ''}
+        </td>
         <td>
           <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
             <i class="fa-solid fa-pen me-2"></i>Edit
@@ -2312,7 +2313,7 @@ window.renderRatingTable = function(ratings) {
     `;
 
     // =========================================================
-    // ✏️ โหมด EDIT (ซ่อนไว้ก่อน จะทำงานเมื่อกด Edit มีคลาสครบพร้อมเซฟ)
+    // ✏️ โหมด EDIT (มี TomSelect)
     // =========================================================
     html += `
       <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
@@ -2365,7 +2366,7 @@ window.renderRatingTable = function(ratings) {
       new TomSelect(select, {
         maxItems: 1, 
         create: false,
-        controlInput: null // 👈 ทีเด็ดอยู่ตรงนี้!
+        controlInput: null // 👈 ลบช่องว่างพิมพ์ 100%
       });
     });
   }, 100);
