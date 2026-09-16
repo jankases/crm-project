@@ -842,38 +842,27 @@
         </div>
       </div>
 
-      <!-- 🌟 TAB 3: Target -->
+       <!-- 🌟 TAB 3: Target -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-target">
         
         <style>
-          /* 1. แก้เส้น Tab ตีกัน */
+          /* แก้เส้น Tab ตีกัน & แก้ช่องว่าง TomSelect */
           .nav-tabs { border-bottom: none !important; }
           .nav-tabs .nav-link { border: none !important; border-bottom: 2px solid transparent !important; }
           .nav-tabs .nav-link.active { border-bottom: 2px solid #0d6efd !important; background-color: transparent !important; }
           .editing-row { background-color: #f8fafc !important; box-shadow: inset 4px 0 0 0 #0d6efd; }
-          
-          /* 🌟 2. แก้ปัญหาช่องว่างกะพริบๆ ของ TomSelect (เมื่อเลือกแล้วให้ซ่อนช่องพิมพ์ทิ้งไปเลย) */
-          .ts-wrapper.single.full .ts-control > input {
-              display: none !important;
-          }
-          .ts-wrapper.single .ts-control {
-              min-height: 36px;
-              border-radius: 6px;
-              display: flex;
-              align-items: center;
-              background-color: #fff !important;
-          }
+          .ts-wrapper.single.full .ts-control > input { display: none !important; }
         </style>
 
         <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
-          <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
+          <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-bullseye me-2"></i><span data-i18n="sec_rating_targeting">Rating and Target Visits</span></h6>
           <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
             <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">+ Add Product</span>
           </button>
         </div>
 
         <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning flex-shrink-0" style="display: none; border-radius: 10px;">
-          <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">Locked:</strong> <span data-i18n="msg_rating_locked">The Target Call evaluation period is currently closed.</span>
+          <i class="fa-solid fa-lock me-2"></i><strong data-i18n="lbl_locked">Locked:</strong> <span data-i18n="msg_rating_locked">The Target Visit evaluation period is currently closed.</span>
         </div>
 
         <div class="table-responsive border rounded-3 bg-white flex-grow-1 overflow-y-auto" style="min-height: 0;">
@@ -884,7 +873,8 @@
                 <th class="py-3" style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
-                <th class="py-3" style="width: 15%;" data-i18n="th_target_call">TARGET (CALL)</th>
+                <!-- 🌟 เปลี่ยน Wording ตรงนี้ให้เคลียร์ชัดเจนว่าเป้าต่ออะไร -->
+                <th class="py-3" style="width: 15%;">TARGET <span class="text-primary">(VISITS / CYCLE)</span></th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_action">ACTION</th>
               </tr>
             </thead>
