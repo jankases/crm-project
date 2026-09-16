@@ -93,6 +93,26 @@
     .doc-col-right { padding-left: 0.5rem !important; }
     .doc-card { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px !important; }
     .workplace-scroll-area { flex-grow: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding-right: 4px; }
+
+    /* 🎯 กำจัดเส้นยาวๆ ใต้ Tab ให้สิ้นซาก (เจาะจง ID docProfileTabs) */
+  #docProfileTabs,
+  ul.nav-tabs {
+      border-bottom: none !important;
+  }
+  
+  #docProfileTabs .nav-link,
+  ul.nav-tabs .nav-link {
+      border: none !important;
+      border-bottom: 2px solid transparent !important;
+      margin-bottom: 0 !important; /* ป้องกันเส้นขยับ */
+  }
+  
+  #docProfileTabs .nav-link.active,
+  ul.nav-tabs .nav-link.active {
+      border-bottom: 2px solid #0d6efd !important; /* เส้นขีดใต้สีฟ้า */
+      background-color: transparent !important;
+  }
+    
   }
 
   /* ========================================================= */
@@ -872,9 +892,12 @@
                 <th class="py-3 text-start ps-4" style="width: 25%;" data-i18n="th_product">PRODUCT</th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
-                <th class="py-3" style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
-                <!-- 🌟 เปลี่ยน Wording ตรงนี้ให้เคลียร์ชัดเจนว่าเป้าต่ออะไร -->
-                <th class="py-3" style="width: 15%;">TARGET <span class="text-primary">(VISITS / CYCLE)</span></th>
+                <th class="py-3" style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th> 
+                <th class="py-3" style="width: 15%;">
+                  <span data-i18n="th_target_base">TARGET</span> 
+                  <!-- 🌟 รอรับค่าอัตโนมัติจาก JS -->
+                  <span class="text-primary" id="dynamicTargetUnitText"></span>
+                </th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_action">ACTION</th>
               </tr>
             </thead>
