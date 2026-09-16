@@ -844,6 +844,27 @@
 
       <!-- 🌟 TAB 3: Target -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-target">
+        
+        <style>
+          /* 1. แก้เส้น Tab ตีกัน */
+          .nav-tabs { border-bottom: none !important; }
+          .nav-tabs .nav-link { border: none !important; border-bottom: 2px solid transparent !important; }
+          .nav-tabs .nav-link.active { border-bottom: 2px solid #0d6efd !important; background-color: transparent !important; }
+          .editing-row { background-color: #f8fafc !important; box-shadow: inset 4px 0 0 0 #0d6efd; }
+          
+          /* 🌟 2. แก้ปัญหาช่องว่างกะพริบๆ ของ TomSelect (เมื่อเลือกแล้วให้ซ่อนช่องพิมพ์ทิ้งไปเลย) */
+          .ts-wrapper.single.full .ts-control > input {
+              display: none !important;
+          }
+          .ts-wrapper.single .ts-control {
+              min-height: 36px;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              background-color: #fff !important;
+          }
+        </style>
+
         <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
           <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-chart-line me-2"></i><span data-i18n="sec_rating_targeting">Rating and Targeting</span></h6>
           <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
@@ -856,19 +877,19 @@
         </div>
 
         <div class="table-responsive border rounded-3 bg-white flex-grow-1 overflow-y-auto" style="min-height: 0;">
-          <table class="table table-bordered text-center align-middle mb-0" id="ratingTable">
-            <thead class="table-custom-header bg-light" style="position: sticky; top: 0; z-index: 10;">
+          <table class="table table-hover align-middle mb-0" id="ratingTable">
+            <thead class="table-light text-secondary text-center" style="position: sticky; top: 0; z-index: 10; font-size: 0.8rem; letter-spacing: 0.5px;">
               <tr>
-                <th style="width: 25%;" data-i18n="th_product">PRODUCT</th>
-                <th style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
-                <th style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
-                <th style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
-                <th style="width: 15%;" data-i18n="th_target_call">TARGET (CALL)</th>
-                <th style="width: 15%;" data-i18n="th_action">Action</th>
+                <th class="py-3 text-start ps-4" style="width: 25%;" data-i18n="th_product">PRODUCT</th>
+                <th class="py-3" style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
+                <th class="py-3" style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
+                <th class="py-3" style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th>
+                <th class="py-3" style="width: 15%;" data-i18n="th_target_call">TARGET (CALL)</th>
+                <th class="py-3" style="width: 15%;" data-i18n="th_action">ACTION</th>
               </tr>
             </thead>
             <tbody id="ratingTableBody">
-              <tr class="no-data"><td colspan="6" class="text-muted py-4">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+              <tr class="no-data"><td colspan="6" class="text-muted py-4 text-center">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
             </tbody>
           </table>
         </div>
