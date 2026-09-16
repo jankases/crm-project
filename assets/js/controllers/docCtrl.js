@@ -2911,15 +2911,28 @@ document.addEventListener('DOMContentLoaded', function() {
   const isEN = String(rawLang).toLowerCase().includes('en');
 
   const showProdName = (productName && productName !== 'undefined') ? productName : '';
+  const isLocked = !!window.globalRatingIsLocked; // เช็คสถานะว่าล็อกหรือไม่
 
-  const titleText = isEN ? 'Confirm Deletion Request' : 'ยืนยันการส่งคำขอลบเป้าหมาย';
+  // 1. กำหนดข้อความตามสถานะการล็อกของระบบ
+  const titleText = isEN 
+    ? (isLocked ? 'Confirm Deletion Request' : 'Confirm Target Deletion')
+    : (isLocked ? 'ยืนยันการส่งคำขอลบเป้าหมาย' : 'ยืนยันการลบเป้าหมาย');
+
   const bodyText = isEN 
-    ? `Are you sure you want to submit a DCR to DELETE the target${showProdName ? ` for "${showProdName}"` : ''}?` 
-    : `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อ "ลบเป้าหมาย"${showProdName ? ` ของผลิตภัณฑ์ "${showProdName}"` : ''}?`;
+    ? (isLocked 
+        ? `Are you sure you want to submit a DCR to DELETE the target${showProdName ? ` for "${showProdName}"` : ''}?` 
+        : `Are you sure you want to DELETE the target${showProdName ? ` for "${showProdName}"` : ''}?`)
+    : (isLocked 
+        ? `คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อ "ลบเป้าหมาย"${showProdName ? ` ของผลิตภัณฑ์ "${showProdName}"` : ''}?` 
+        : `คุณแน่ใจหรือไม่ว่าต้องการ "ลบเป้าหมาย"${showProdName ? ` ของผลิตภัณฑ์ "${showProdName}"` : ''}?`);
   
-  const btnSubmitText = isEN ? 'Submit DCR' : 'ส่ง DCR ยืนยัน';
+  const btnSubmitText = isEN 
+    ? (isLocked ? 'Submit DCR' : 'Delete Target')
+    : (isLocked ? 'ส่ง DCR ยืนยัน' : 'ลบเป้าหมาย');
+
   const btnCancelText = isEN ? 'Cancel' : 'ยกเลิก';
 
+  // 2. แสดงผลข้อความลงใน Modal
   const modalTitle = document.getElementById('delModalTitle');
   const modalBody = document.getElementById('delModalBody');
   const btnConfirmText = document.getElementById('btnConfirmDeleteText');
@@ -2930,6 +2943,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnConfirmText) btnConfirmText.innerText = btnSubmitText;
   if (modalCancelBtn) modalCancelBtn.innerText = btnCancelText;
 
+  // 3. ผูก Event กดยืนยัน
   const confirmBtn = document.getElementById('btnConfirmDeleteTarget');
   if (confirmBtn) {
     const newConfirmBtn = confirmBtn.cloneNode(true);
@@ -2947,13 +2961,35 @@ document.addEventListener('DOMContentLoaded', function() {
         let crmUser = null; 
         try { crmUser = JSON.parse(sessionStorage.getItem('crmUser')); } catch(err) {}
         const whoUpdated = crmUser ? (crmUser.Email || crmUser.Rep_Name || "User") : "User";
+        const sb = window.supabaseClient || window.supabase;
 
+        // 🌟 🟢 กรณีที่ 1: ช่วง Unlocked -> ลบออกจากตารางตรงๆ ทันที
+        if (!isLocked) {
+          const { error } = await sb.from('Doctor_Ratings')
+            .delete()
+            .eq('Doc_ID', docId)
+            .eq('Product_ID', productId);
+
+          if (error) throw error;
+
+          if (typeof window.showToast === 'function') {
+            window.showToast(isEN ? "Target deleted successfully!" : "ลบรายการเป้าหมายเรียบร้อยแล้ว!", "success");
+          }
+
+          // รีโหลดตาราง Target ใหม่ทันที
+          if (typeof window.loadDoctorRatings === 'function') {
+            window.loadDoctorRatings(docId);
+          }
+          return;
+        }
+
+        // 🌟 🔴 กรณีที่ 2: ช่วง Locked -> ยื่นคำขอผ่าน DCR
         const payload = {
           Doc_ID: docId,
           Product_ID: productId,
           Product_Name: showProdName,
           Request_Type: "DELETE_TARGET",
-          Is_Locked_Period: window.globalRatingIsLocked,
+          Is_Locked_Period: true,
           Routing: {
             Approver_Role: "Manager",
             CC_Role: "BU_Head",
@@ -2970,7 +3006,6 @@ document.addEventListener('DOMContentLoaded', function() {
           Whoupdated: whoUpdated 
         };
 
-        const sb = window.supabaseClient || window.supabase;
         const { error } = await sb.from('DCR').insert([dcrPayload]);
         if (error) throw error;
 
@@ -2983,11 +3018,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
       } catch (err) {
-        console.error("Delete Target DCR Error:", err);
+        console.error("Delete Target Error:", err);
         if (typeof window.showToast === 'function') {
-          window.showToast("❌ Request failed: " + err.message, "error");
+          window.showToast("❌ Action failed: " + err.message, "error");
         } else {
-          alert("❌ Request failed: " + err.message);
+          alert("❌ Action failed: " + err.message);
         }
       }
     });
