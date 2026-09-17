@@ -11,7 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  
-  <!-- ดึง CSS หลักสำหรับคุมธีมทั้งระบบ (อัปเดต v=4.0 บังคับล้าง Cache ฝั่ง GitHub Pages) -->
+  <!-- ดึง CSS หลักสำหรับคุมธีมทั้งระบบ -->
   <link rel="stylesheet" href="assets/css/style.css?v=4.0">
 
   <style>
@@ -30,11 +30,11 @@
       }
 
       /* ซ่อนข้อความโลโก้เฉพาะตอนเปิดบนจอมือถือ (เล็กกว่า 576px) */
-@media (max-width: 575.98px) {
-    .app-logo-text { 
-        display: none !important; 
-    }
-}
+      @media (max-width: 575.98px) {
+        .app-logo-text { 
+          display: none !important; 
+        }
+      }
       
       .ipad-sidebar-rail {
         width: 70px;
@@ -169,12 +169,11 @@
 
   <div id="appContainer">
     <div class="app-layout-shell">
- 
+
        <!-- 📌 1. TOP NAVBAR (โชว์เฉพาะ Mobile และ Desktop จอใหญ่กว่า 1200px) -->
       <nav id="mainNavbar" class="navbar navbar-expand-lg sticky-top d-flex d-md-none d-xl-flex">
         <div class="container-fluid px-3 px-md-4">
           
-          <!-- ลบ href="#" ออกแล้ว -->
           <a class="navbar-brand fw-bold text-primary d-flex align-items-center me-3" onclick="loadComponent('dashboard')" style="cursor: pointer;">
             <div class="bg-primary text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 32px;">
               <i class="fa-solid fa-briefcase-medical fs-6"></i>
@@ -189,7 +188,6 @@
           <div class="collapse navbar-collapse" id="navbarNav">
             
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center mt-3 mt-lg-0">
-              <!-- ลบ href="#" ออกทั้งหมดแล้ว -->
               <li class="nav-item"><a class="nav-link nav-menu-item menu-visit" data-page="visit" onclick="loadComponent('visit')"><i class="fa-solid fa-calendar-check me-2"></i> <span data-i18n="menu_visit">Visit Logs</span></a></li>
               <li class="nav-item"><a class="nav-link nav-menu-item menu-doctor" data-page="doctor" onclick="loadComponent('doctor')"><i class="fa-solid fa-user-doctor me-2"></i> <span data-i18n="menu_doctor">Doctors</span></a></li>
               <li class="nav-item"><a class="nav-link nav-menu-item menu-hospital" data-page="hospital" onclick="loadComponent('hospital')"><i class="fa-solid fa-hospital me-2"></i> <span data-i18n="menu_hospital">Hospitals</span></a></li>
@@ -199,7 +197,6 @@
                   <i class="fa-solid fa-sliders me-2"></i> <span data-i18n="menu_admin_tools">Admin Tools</span>
                 </a>
                 <ul class="dropdown-menu admin-dropdown-menu border-0 shadow-lg mt-2" aria-labelledby="adminToolsDropdown">
-                  <!-- ลบ href="#" ใน Dropdown ออกทั้งหมดแล้ว -->
                   <li><a class="dropdown-item d-flex align-items-center" style="cursor: pointer;" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
                   <li><a class="dropdown-item d-flex align-items-center" style="cursor: pointer;" onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
                   <li><a class="dropdown-item d-flex align-items-center" style="cursor: pointer;" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
@@ -262,14 +259,14 @@
             </a>
             <ul class="dropdown-menu admin-dropdown-menu border-0 shadow-lg ms-2" aria-labelledby="ipadAdminDropdown">
               <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('organization')"><i class="fa-solid fa-sitemap"></i> <span data-i18n="menu_org">Organization</span></a></li>
-              <li><a class="dropdown-item d-flex align-items-center"  onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('target')"><i class="fa-solid fa-bullseye"></i> <span>Manage Targets</span></a></li>
               <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('matrix')"><i class="fa-solid fa-border-all"></i> <span data-i18n="menu_matrix">Matrix</span></a></li>
               <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('assignment')"><i class="fa-solid fa-link"></i> <span data-i18n="menu_assign">Assignment</span></a></li>
               <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('indexData')"><i class="fa-solid fa-list-ul"></i> <span data-i18n="menu_setting">Settings</span></a></li>
               <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('dcr')"><i class="fa-solid fa-file-signature"></i> <span data-i18n="menu_dcr">DCR Approvals</span></a></li>
               <li><a class="dropdown-item d-flex align-items-center text-primary" onclick="loadComponent('media')"><i class="fa-solid fa-file-powerpoint text-danger"></i> <span data-i18n="menu_media">Media Management</span></a></li>
               <li><hr class="dropdown-divider opacity-50"></li>
-              <li><a class="dropdown-item d-flex align-items-center" href="#" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
+              <li><a class="dropdown-item d-flex align-items-center" onclick="loadComponent('user')"><i class="fa-solid fa-users"></i> <span data-i18n="menu_user">Users Management</span></a></li>
             </ul>
           </div>
         </nav>
@@ -289,7 +286,7 @@
 
       <!-- 📌 3. MAIN CONTENT CANVAS -->
       <main id="mainContent" class="container-fluid w-100 p-0">
-        <!-- หน้า ManageVisits.html / ManageDoctors.html จะถูกโหลดมาวางตรงนี้ -->
+        <!-- Dynamic View Components Loaded Here -->
       </main>
 
     </div>
@@ -300,7 +297,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   
-  <!-- โหลดสคริปต์ภายในโปรเจกต์ (เพิ่ม ?v=4.0 บังคับ GitHub Pages ส่งไฟล์ล่าสุด 100%) -->
+  <!-- โหลดสคริปต์ภายในโปรเจกต์ (บังคับ ?v=4.0 เคลียร์ Cache) -->
   <script src="assets/js/config.js?v=4.0"></script>
   <script src="assets/js/utils.js?v=4.0"></script>
   <script src="assets/js/i18n.js?v=4.0"></script>
@@ -308,7 +305,7 @@
   <script src="assets/js/controllers/visitCtrl.js?v=4.0"></script>
   <script src="assets/js/controllers/indexCtrl.js?v=4.0"></script>
   <script src="assets/js/controllers/docCtrl.js?v=4.0"></script>
-  <script src="assets/js/controllers/orgCtrl.js"></script>
+  <script src="assets/js/controllers/orgCtrl.js?v=4.0"></script>
 
 </body>
 </html>
