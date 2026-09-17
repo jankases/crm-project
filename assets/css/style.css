@@ -10,12 +10,13 @@ html, body {
   overflow: hidden !important;
 }
 
-/* 🖥️ ISOLATED MODULE WRAPPER (ครอบคลุมทุกโมดูลระบบ) */
+/* 🖥️ ISOLATED MODULE WRAPPER (ครอบคลุมทุกโมดูลระบบ รวม org-module-wrapper) */
 .visit-module-wrapper,
 .hosp-module-wrapper,
 .doc-module-wrapper,
 .index-module-wrapper,
-.matrix-module-wrapper {
+.matrix-module-wrapper,
+.org-module-wrapper {
   height: calc(100vh - 85px) !important;
   width: 100% !important;
   overflow: hidden !important;
@@ -32,7 +33,8 @@ html, body {
 #hospListView .visit-card,
 .matrix-card-container,
 .index-card-box,
-.sys-config-card {
+.sys-config-card,
+.org-card {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   display: flex; 
@@ -132,6 +134,7 @@ html, body {
 .doc-module-wrapper::-webkit-scrollbar,
 .matrix-module-wrapper::-webkit-scrollbar,
 .index-module-wrapper::-webkit-scrollbar,
+.org-module-wrapper::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar,
 #visitFormView::-webkit-scrollbar,
 #visitFormView .col-12 > div::-webkit-scrollbar,
@@ -145,6 +148,7 @@ html, body {
 .doc-module-wrapper::-webkit-scrollbar-track,
 .matrix-module-wrapper::-webkit-scrollbar-track,
 .index-module-wrapper::-webkit-scrollbar-track,
+.org-module-wrapper::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track,
 #visitFormView::-webkit-scrollbar-track,
 #visitFormView .col-12 > div::-webkit-scrollbar-track,
@@ -157,6 +161,7 @@ html, body {
 .doc-module-wrapper::-webkit-scrollbar-thumb,
 .matrix-module-wrapper::-webkit-scrollbar-thumb,
 .index-module-wrapper::-webkit-scrollbar-thumb,
+.org-module-wrapper::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb,
 #visitFormView::-webkit-scrollbar-thumb,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb,
@@ -170,6 +175,7 @@ html, body {
 .doc-module-wrapper::-webkit-scrollbar-thumb:hover,
 .matrix-module-wrapper::-webkit-scrollbar-thumb:hover,
 .index-module-wrapper::-webkit-scrollbar-thumb:hover,
+.org-module-wrapper::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover,
 #visitFormView::-webkit-scrollbar-thumb:hover,
 #visitFormView .col-12 > div::-webkit-scrollbar-thumb:hover,
@@ -596,6 +602,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   color: #334155 !important;
   background-color: rgba(0,0,0,0.04) !important;
 }
+
 /* ==========================================
    ✨ HIGH-END PREMIUM BUTTON STYLES
    ========================================== */
@@ -676,7 +683,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* ==========================================
-   🎨 MODERN UNDERLINE SUB-TABS
+   🎨 MODERN UNDERLINE SUB-TABS & ORG PILLS
    ========================================== */
 #docProfileTabs, .nav-tabs-custom {
   border-bottom: 2px solid #e2e8f0 !important;
@@ -707,6 +714,25 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-bottom: 3px solid #2563eb !important;
   font-weight: 700 !important;
   box-shadow: none !important;
+}
+
+.org-nav-pills .nav-link { 
+  color: #6c757d; 
+  font-weight: 600; 
+  border-radius: 10px; 
+  margin-right: 5px; 
+  padding: 10px 20px; 
+  transition: all 0.3s ease; 
+}
+.org-nav-pills .nav-link:hover { 
+  background-color: #f8f9fa; 
+  color: #0d6efd; 
+}
+.org-nav-pills .nav-link.active { 
+  background-color: #0d6efd; 
+  color: white; 
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3); 
+  transform: translateY(-2px); 
 }
 
 .btn-premium-warning {
@@ -1705,6 +1731,55 @@ button.feature-action-btn-lg.has-data-samples i {
 }
 
 /* ==========================================
+   🏢 ORGANIZATION MODULE STYLING
+   ========================================== */
+.org-card {
+  border-radius: 16px !important;
+  border: 1px solid #eef2f6 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  background-color: #ffffff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+.org-subview-container {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.hub-card {
+  border-radius: 15px !important;
+  border: 1px solid #e9ecef !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100% !important;
+}
+
+.hub-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.hub-icon-box {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.5rem !important;
+}
+
+.max-w-700 {
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ==========================================
    🌟 BOOTSTRAP D-NONE ULTIMATE OVERRIDE
    ========================================== */
 .d-none,
@@ -2015,7 +2090,8 @@ button.feature-action-btn-lg.has-data-samples i {
   /* 🌟 บังคับแก้ปัญหากล่องสีขาวลอยล่างสุดใน iPad ให้ครอบคลุมทุกโมดูลระบบ */
   .doc-module-wrapper,
   .matrix-module-wrapper,
-  .index-module-wrapper {
+  .index-module-wrapper,
+  .org-module-wrapper {
     height: 100% !important;
     min-height: calc(100vh - 85px) !important;
     padding-bottom: 0.5rem !important;
@@ -2027,12 +2103,17 @@ button.feature-action-btn-lg.has-data-samples i {
   .matrix-card-container,
   .main-content-card,
   .index-card-box,
-  .sys-config-card {
+  .sys-config-card,
+  .org-card {
     flex: 1 1 auto !important;
     min-height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
+  }
+
+  .hub-card {
+    margin-bottom: 0.75rem !important;
   }
 
   #visitFormView,
