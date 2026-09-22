@@ -1,63 +1,4 @@
-<div class="login-wrapper" id="loginScreen">
-  <div class="login-card text-center">
-    
-    <!-- 🌟 Alert Banner สำหรับแจ้งเตือนเมื่อ Session หมดอายุ (Idle Timeout) -->
-    <div id="loginAlertBanner" class="d-none mb-3"></div>
-
-    <!-- Brand Icon -->
-    <div class="login-brand-icon">
-      <i class="fa-solid fa-user-lock fs-2"></i>
-    </div>
-
-    <!-- Title & Subtitle -->
-    <h3 class="login-title mb-1">CRM System</h3>
-    <p class="login-subtitle">Please log in with your company email</p>
-
-    <!-- Login Form -->
-    <form id="loginForm" onsubmit="handleLogin(event)">
-      
-      <!-- Email Field -->
-      <div class="text-start mb-3">
-        <label class="login-label">Email</label>
-        <div class="input-group login-input-group">
-          <span class="input-group-text login-input-icon">
-            <i class="fa-solid fa-envelope"></i>
-          </span>
-          <input type="email" class="form-control login-input" id="loginEmail" placeholder="name@roche.com" required value="surasak.jankasem2@roche.com">
-        </div>
-      </div>
-
-      <!-- Password Field -->
-      <div class="text-start mb-4">
-        <label class="login-label">Password</label>
-        <div class="input-group login-input-group">
-          <span class="input-group-text login-input-icon">
-            <i class="fa-solid fa-key"></i>
-          </span>
-          <input type="password" class="form-control login-input" id="loginPassword" placeholder="••••••••" required value="123456">
-        </div>
-      </div>
-
-      <!-- Submit Button -->
-      <button type="submit" class="btn btn-primary w-100 btn-login-submit mb-4" id="btnLoginBtn">
-        Log In
-      </button>
-
-      <!-- Footer Links -->
-      <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-        <a href="#" class="login-footer-link" onclick="alert('โปรดติดต่อ Admin เพื่อขอรีเซ็ตรหัสผ่าน'); return false;">
-          <i class="fa-solid fa-file-signature me-1"></i> Forgot Password
-        </a>
-        <a href="#" class="login-footer-link" onclick="alert('ฟังก์ชั่นนี้อยู่ระหว่างการพัฒนา'); return false;">
-          <i class="fa-solid fa-key me-1"></i> Change Password
-        </a>
-      </div>
-
-    </form>
-  </div>
-</div>
-
- <script>
+<script>
   async function handleLogin(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -89,26 +30,30 @@
     }
 
     try {
-      // 1. ค้นหาผู้ใช้จาก Rep_Users
-      const { data, error } = await sb
-        .from('Rep_Users')
-        .select('*')
-        .eq('Email', email)
-        .maybeSingle();
+      // 🌟 1. เข้าสู่ระบบด้วย Supabase Auth (ยืนยันตัวตนระดับ Enterprise)
+      const { data: authData, error: authError } = await sb.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
 
-      if (error) throw error;
-
-      if (!data) {
-        alert("❌ ไม่พบผู้ใช้งานนี้ในระบบ กรุณาตรวจสอบ Email");
-        btn.disabled = false;
-        btn.innerHTML = 'Log In';
-        return;
+      if (authError) {
+        throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       }
 
-      // 2. ตรวจสอบ Password
-      const userPass = String(data.Password || data.Password_Hash || data.Pin || '123456').trim();
-      if (password !== userPass && password !== '123456') {
-        alert("❌ รหัสผ่านไม่ถูกต้อง");
+      const authUserId = authData.user.id; // ได้ UUID มาจากระบบ Supabase Auth
+
+      // 🌟 2. ดึงข้อมูล Profile & Role จากตาราง Rep_Users โดยใช้ Rep_ID = authUserId
+      const { data: profile, error: profileError } = await sb
+        .from('Rep_Users')
+        .select('*')
+        .eq('Rep_ID', authUserId)
+        .eq('Status', 'Active')
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+
+      if (!profile) {
+        alert("❌ ไม่พบข้อมูลโปรไฟล์ผู้ใช้งาน หรือบัญชีถูกระงับการใช้งาน");
         btn.disabled = false;
         btn.innerHTML = 'Log In';
         return;
@@ -120,23 +65,23 @@
       if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
       if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
 
-      // 4. บันทึก Session หลัก
-      sessionStorage.setItem('crmUser', JSON.stringify(data));
+      // 4. บันทึก Session หลัก (ใช้ข้อมูล profile จาก Rep_Users)
+      sessionStorage.setItem('crmUser', JSON.stringify(profile));
       sessionStorage.setItem('loginTime', Date.now().toString());
 
-      // 5. บันทึก Permission State รายฟิลด์เพื่อนำไปใช้ข้ามหน้าได้ง่าย
-      const roleUpper = String(data.Role || '').trim().toUpperCase();
+      // 5. บันทึก Permission State รายฟิลด์เพื่อนำไปใช้ข้ามหน้า
+      const roleUpper = String(profile.Role || '').trim().toUpperCase();
       sessionStorage.setItem('userRole', roleUpper);
-      if (data.BU_ID) sessionStorage.setItem('userBuId', data.BU_ID);
-      if (data.Team_ID) sessionStorage.setItem('userTeamId', data.Team_ID);
-      if (data.Territory_ID) sessionStorage.setItem('userTerritoryId', data.Territory_ID);
+      if (profile.BU_ID) sessionStorage.setItem('userBuId', profile.BU_ID);
+      if (profile.Team_ID) sessionStorage.setItem('userTeamId', profile.Team_ID);
+      if (profile.Territory_ID) sessionStorage.setItem('userTerritoryId', profile.Territory_ID);
 
       // 6. ดึงข้อมูลพิเศษสำหรับ Product Manager (PM) จากตาราง Rep_Products
       if (roleUpper.includes('PRODUCT MANAGER') || roleUpper === 'PM') {
         const { data: pmProds, error: pmErr } = await sb
           .from('Rep_Products')
           .select('Product_ID')
-          .eq('Rep_ID', data.Rep_ID)
+          .eq('Rep_ID', profile.Rep_ID)
           .eq('Status', 'Active');
 
         if (!pmErr && pmProds) {
@@ -147,7 +92,7 @@
 
       // 7. บันทึก Log การเข้าใช้งาน
       if (typeof saveUserLog === 'function') {
-        saveUserLog(data, 'Login', '-');
+        saveUserLog(profile, 'Login', '-');
       }
 
       // 8. สลับหน้าจอไปยังระบบ
