@@ -140,6 +140,20 @@ async function ensureControllerLoaded(page) {
                 document.head.appendChild(script);
             });
         }
+    } else if (page === 'organization') { // 🌟 เพิ่มการเช็คและโหลด orgCtrl.js อัตโนมัติ
+        if (typeof window.forceReloadOrgData !== 'function') {
+            await new Promise((resolve) => {
+                const oldScript = document.getElementById('script_ctrl_org');
+                if (oldScript) oldScript.remove();
+
+                const script = document.createElement('script');
+                script.id = 'script_ctrl_org';
+                script.src = `assets/js/controllers/orgCtrl.js?v=${Date.now()}`;
+                script.onload = resolve;
+                script.onerror = resolve;
+                document.head.appendChild(script);
+            });
+        }
     }
 }
 
@@ -217,9 +231,11 @@ async function loadComponent(page) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
             enforceLoadingState();
             if (typeof window.initVisitPage === 'function') await window.initVisitPage(false);
-        } else if (page === 'matrix') { // 🌟 เรียก Init หน้า Manage Matrix เมื่อเข้าหน้าเดิมซ้ำ!
+        } else if (page === 'matrix') {
             if (typeof window.switchMatrixView === 'function') window.switchMatrixView('matrixListView');
             if (typeof window.initManageMatrixPage === 'function') await window.initManageMatrixPage();
+        } else if (page === 'organization') { // 🌟 เรียกรีโหลดข้อมูล Organization เมื่อเปลี่ยนกลับมาหน้านี้
+            if (typeof window.forceReloadOrgData === 'function') await window.forceReloadOrgData();
         }
 
         const navbarCollapse = document.getElementById('navbarNav');
@@ -262,9 +278,11 @@ async function loadComponent(page) {
             if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
             enforceLoadingState();
             if (typeof window.initVisitPage === 'function') await window.initVisitPage(false);
-        } else if (page === 'matrix') { // 🌟 เรียก Init หน้า Manage Matrix ครั้งแรก!
+        } else if (page === 'matrix') {
             if (typeof window.switchMatrixView === 'function') window.switchMatrixView('matrixListView');
             if (typeof window.initManageMatrixPage === 'function') await window.initManageMatrixPage();
+        } else if (page === 'organization') {
+            if (typeof window.forceReloadOrgData === 'function') await window.forceReloadOrgData();
         }
         
         const navbarCollapse = document.getElementById('navbarNav');
@@ -327,7 +345,7 @@ async function checkSession() {
                              (roleUpper.indexOf('MANAGER') !== -1 || roleUpper.indexOf('LEAD') !== -1);
         window.myIsSalesRole = !window.myIsGlobalViewer && !window.myIsProductManager && !window.myIsBuHead && !window.myIsManager;
 
-        var myAllowedRepIds = [String(user.Rep_ID || user.id || '').trim()];
+        var myAllowedRepIds = [String(user.Rep_ID || user.id || user.uid || '').trim()];
         var myAllowedTerIds = [];
         var myAllowedDocIds = [];
 
@@ -455,8 +473,9 @@ async function logout() {
         if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
         if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
 
-        if (window.supabaseClient) {
-            await window.supabaseClient.auth.signOut();
+        const sb = window.supabaseClient || window.supabase;
+        if (sb && sb.auth) {
+            await sb.auth.signOut();
         }
     } catch (e) {
         console.error("Logout Error:", e);
