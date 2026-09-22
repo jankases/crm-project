@@ -1,4 +1,6 @@
 // assets/js/utils.js
+
+// ⚡ 1. Notification Toast Engine
 window.showToast = function(message, type = 'success') {
   var container = document.getElementById('toastContainer');
   if (!container) return;
@@ -21,6 +23,7 @@ window.showToast = function(message, type = 'success') {
   toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
 };
 
+// ⚡ 2. UUID Generator
 window.generateUUID = function() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -29,6 +32,7 @@ window.generateUUID = function() {
   });
 };
 
+// ⚡ 3. Date & Time Formatters
 window.formatDateToLocal = function(dateStr) {
   if (!dateStr) return '-';
   var d = new Date(dateStr);
@@ -46,6 +50,7 @@ window.formatTimeString = function(timeStr) {
   return str;
 };
 
+// ⚡ 4. Search Highlight Engine
 window.applySearchHighlight = function(text, searchKeyword) {
   if (!text || text === '-') return '-';
   if (!searchKeyword || searchKeyword.trim() === '') return text;
@@ -65,8 +70,25 @@ window.applySearchHighlight = function(text, searchKeyword) {
   return safeText;
 };
 
+// ⚡ 5. Global Current User Email Helper (ใช้สำหรับคอลัมน์ Whoupdated)
+window.getUserEmail = function() {
+  try {
+    var u = JSON.parse(sessionStorage.getItem('crmUser'));
+    if (u && u.Email) return u.Email;
+  } catch (e) {}
+  return "User";
+};
+
 // ⚡ 6. Optimized Fast-Fetch All Records with Memory Cache
 window.globalDataCache = window.globalDataCache || {};
+
+window.clearDataCache = function(tableName) {
+  if (tableName) {
+    delete window.globalDataCache[tableName];
+  } else {
+    window.globalDataCache = {};
+  }
+};
 
 window.fetchAllRecords = async function(tableName, queryModifier) {
     // ใช้ Cache ในหน่วยความจำหากไม่มีการใช้ Query Modifier พิเศษ
@@ -77,9 +99,15 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     var allData = [];
     var start = 0;
     var step = 1000;
+    var sb = window.supabaseClient || window.supabase;
+
+    if (!sb) {
+      console.error("Supabase client not initialized.");
+      return [];
+    }
     
     while (true) {
-        var baseQuery = window.supabaseClient.from(tableName).select('*');
+        var baseQuery = sb.from(tableName).select('*');
         
         if (typeof queryModifier === 'function') {
             var modified = queryModifier(baseQuery);
@@ -101,7 +129,7 @@ window.fetchAllRecords = async function(tableName, queryModifier) {
     return allData;
 };
 
- // ⚡ 7. ฟังก์ชันวาดปุ่มแบ่งหน้า (Pagination)
+// ⚡ 7. Pagination Render Engine
 window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
   var ul = document.getElementById(ulId);
   if (!ul) return;
@@ -113,8 +141,6 @@ window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChan
 
   var html = '';
 
-  // 🌟 THE FIX: เปลี่ยนจาก href="#" เป็น href="javascript:void(0);" 
-  // และส่งคำว่า 'event' เข้าไปในวงเล็บ เพื่อให้ฟังก์ชัน goToPage ดักจับได้สมบูรณ์แบบ
   html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
             '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + ', event);">' + prevText + '</a>' +
           '</li>';
