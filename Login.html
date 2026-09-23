@@ -144,17 +144,9 @@
       // 7. บันทึก Log
       if (typeof saveUserLog === 'function') saveUserLog(profile, 'Login', '-');
 
- 
-      // 🌟 8. สลับหน้าจอไปยังระบบ (คืนค่า initVisitPage กลับมา)
-      if (typeof checkSession === 'function') {
-        await checkSession();
-        if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
-      } else if (typeof window.checkSession === 'function') {
-        await window.checkSession();
-        if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
-      } else {
-        window.location.reload();
-      }
+  
+      // 🌟 8. สลับหน้าจอไปยังระบบ (วิธีที่เสถียรที่สุด 100%)
+      window.location.reload();
 
     } catch (err) {
       console.error("Login Error:", err);
