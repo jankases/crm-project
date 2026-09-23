@@ -1,3 +1,45 @@
+<div id="loginScreen" class="login-wrapper">
+  <div class="login-card">
+    
+    <!-- โลโก้แอป -->
+    <div class="login-brand-icon">
+      <i class="fa-solid fa-briefcase-medical fa-2x"></i>
+    </div>
+    
+    <!-- ข้อความต้อนรับ -->
+    <div class="text-center">
+      <h2 class="login-title">CRM System</h2>
+      <p class="login-subtitle">Please enter your details to sign in</p>
+    </div>
+
+    <!-- แบนเนอร์แจ้งเตือน (เช่น หมดเวลา Session) -->
+    <div id="loginAlertBanner"></div>
+
+    <!-- ฟอร์มเข้าสู่ระบบ -->
+    <form onsubmit="handleLogin(event)">
+      
+      <label class="login-label" for="loginEmail">Email Address</label>
+      <div class="login-input-group input-group mb-3 d-flex align-items-center">
+        <div class="login-input-icon"><i class="fa-solid fa-envelope"></i></div>
+        <input type="email" id="loginEmail" class="form-control login-input" placeholder="name@company.com" required>
+      </div>
+
+      <label class="login-label" for="loginPassword">Password</label>
+      <div class="login-input-group input-group mb-4 d-flex align-items-center">
+        <div class="login-input-icon"><i class="fa-solid fa-lock"></i></div>
+        <input type="password" id="loginPassword" class="form-control login-input" placeholder="Enter your password" required>
+      </div>
+
+      <button type="submit" id="btnLoginBtn" class="btn btn-login-submit w-100 text-white">
+        Log In
+      </button>
+      
+    </form>
+    
+  </div>
+</div>
+
+<!-- 🌟 ส่วนสคริปต์ที่ประมวลผลการ Login -->
 <script>
   async function handleLogin(e) {
     e.preventDefault();
@@ -95,13 +137,11 @@
         saveUserLog(profile, 'Login', '-');
       }
 
-      // 8. สลับหน้าจอไปยังระบบ
+      // 🌟 8. สลับหน้าจอไปยังระบบ (แก้ไขใส่ await ป้องกันโหลดชนกัน)
       if (typeof checkSession === 'function') {
-        checkSession();
-        if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
+        await checkSession();
       } else if (typeof window.checkSession === 'function') {
-        window.checkSession();
-        if (typeof window.initVisitPage === 'function') window.initVisitPage(true);
+        await window.checkSession();
       } else {
         window.location.reload();
       }
