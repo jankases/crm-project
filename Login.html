@@ -144,9 +144,31 @@
       // 7. บันทึก Log
       if (typeof saveUserLog === 'function') saveUserLog(profile, 'Login', '-');
 
-  
-      // 🌟 8. สลับหน้าจอไปยังระบบ (วิธีที่เสถียรที่สุด 100%)
-      window.location.reload();
+   
+     // 🌟 8. สลับหน้าจอไปยังระบบ และสั่งเริ่มดึงข้อมูล
+      if (typeof checkSession === 'function' || typeof window.checkSession === 'function') {
+        
+        // 1. สั่งโหลดโครงสร้างหน้าเว็บ (ManageVisits.html)
+        if (typeof checkSession === 'function') {
+           checkSession();
+        } else {
+           window.checkSession();
+        }
+        
+        // 2. ตัวดักจับอัจฉริยะ: รอจนกว่าหน้าเว็บจะประกอบร่างเสร็จ แล้วค่อยสั่งสตาร์ทข้อมูล
+        var checkExist = setInterval(function() {
+           // เช็คว่าหน้า ManageVisits โผล่มาในระบบหรือยัง
+           if (document.getElementById('filterVisitStatus')) {
+              clearInterval(checkExist); // หยุดรอ
+              if (typeof window.initVisitPage === 'function') {
+                 window.initVisitPage(true); // สั่งดึงข้อมูลจาก Database!
+              }
+           }
+        }, 100); // เช็คทุกๆ 0.1 วินาที
+
+      } else {
+        window.location.reload();
+      }
 
     } catch (err) {
       console.error("Login Error:", err);
