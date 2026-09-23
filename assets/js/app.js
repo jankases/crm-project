@@ -29,16 +29,24 @@ function checkAuthSession() {
   }
 }
 
-// 2. ฟังก์ชัน Logout กลาง
-function handleLogout() {
-  sessionStorage.clear();
-  localStorage.clear();
-  
-  if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
-  if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
-  if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
+ 
 
-  window.location.href = './';
+// 2. ฟังก์ชัน Logout กลาง 
+function handleLogout() {
+  // ลองเรียกใช้ logout() หลักก่อน (ซึ่งมีเคลียร์ Cache และ Supabase SignOut อยู่แล้ว)
+  if (typeof logout === 'function') {
+    logout();
+  } else {
+    // 🛡️ Fallback: ถ้าหาฟังก์ชันหลักไม่เจอ ต้องเคลียร์ทุกอย่างให้เกลี้ยงเหมือนเดิม
+    sessionStorage.clear();
+    localStorage.clear();
+    
+    if (window.DocManagerCache) window.DocManagerCache.isLoaded = false;
+    if (window.VisitManagerCache) window.VisitManagerCache.isLoaded = false;
+    if (window.HospManagerCache) window.HospManagerCache.isLoaded = false;
+
+    window.location.href = './';
+  }
 }
 
 // 3. เริ่มทำงานเมื่อโหลดหน้า index.html
