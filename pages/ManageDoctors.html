@@ -191,7 +191,6 @@
        <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           
-          <!-- 🌟 แก้ไขตรงนี้: เอา flex-grow-1 ออก แล้วกำหนดความกว้างตายตัว -->
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <div style="width: 380px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
@@ -272,77 +271,78 @@
       <div class="doc-content doc-content-form custom-scrollbar px-1" style="min-height: 0;">
         <div class="row doc-row">
 
-          <!-- 🔹 Left Column -->
+          <!-- 🔹 Left Column (ADD) -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
+              <div class="d-flex align-items-center mb-3 flex-shrink-0">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                  <i class="fa-solid fa-stethoscope fs-6"></i>
+                </div>
+                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_gen_info">General Information</h6>
+              </div>
 
-              <!-- 🌟 รวบทุกฟิลด์ไว้ใน Row เดียว และใช้ g-3 จัดระยะช่องไฟให้เท่ากันเป๊ะ -->
+              <!-- 🌟 รวบเป็น row g-3 ให้เรียงกันสวยๆ -->
               <div class="row g-3">
-                
                 <div class="col-12">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocTitle" readonly>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
                 </div>
-
                 <div class="col-6">
-                  <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span></label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameEn" readonly>
+                  <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
                 </div>
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameTh" readonly>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                 </div>
-
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocSpecialty" readonly>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
                 </div>
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocType" readonly>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
                 </div>
-
               </div>
 
-              <!-- 🌟 หัวข้อแยกหมวดหมู่ (ใช้ mt-4 ผลักให้ห่างจากโซนบนนิดนึง) -->
-              <div class="d-flex align-items-center mt-4 mb-2 flex-shrink-0">
+              <div class="d-flex align-items-center mt-4 mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
                   <i class="fa-solid fa-shield-halved fs-7"></i>
                 </div>
                 <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
               </div>
 
-              <!-- 🌟 รวบโซนติดต่อไว้ใน Row เดียวเช่นกัน -->
-              <div class="row g-3">
-                
+              <!-- 🌟 โซนติดต่อและเงื่อนไขแบบ Grid แน่นๆ -->
+              <div class="row g-3 flex-shrink-0">
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocEmail" readonly>
+                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
                 </div>
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-phone text-muted me-2 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocMobile" readonly>
+                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
                 </div>
-
+                
                 <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0 h-100">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 border-0" style="height: 38px;">
                     <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocPrivacy">Yes</span>
+                    <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.5em; height: 1.3em; cursor: pointer;"></div>
                   </div>
+                  <input type="hidden" id="docPrivacy" value="Yes">
                 </div>
                 <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0 h-100">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 border-0" style="height: 38px;">
                     <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
-                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocTos">Yes</span>
+                    <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.5em; height: 1.3em; cursor: pointer;"></div>
                   </div>
+                  <input type="hidden" id="docTos" value="Yes">
                 </div>
-
               </div>
 
             </div>
           </div>
 
-          <!-- 🔹 Right Column -->
+          <!-- 🔹 Right Column (ADD) -->
           <div class="col-12 col-xl-6 doc-col doc-col-right">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
@@ -396,9 +396,9 @@
       <div class="doc-content doc-content-form custom-scrollbar px-1" style="min-height: 0;">
         <div class="row doc-row">
 
-          <!-- 🔹 Left Column -->
+          <!-- 🔹 Left Column (EDIT) -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
-            <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
+            <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                   <i class="fa-solid fa-stethoscope fs-6"></i>
@@ -406,12 +406,12 @@
                 <h6 class="text-primary fw-bold mb-0" data-i18n="sec_gen_info">General Information</h6>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
-                <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
-              </div>
-
-              <div class="row g-3 mb-2">
+              <!-- 🌟 รวบเป็น row g-3 ให้เรียงกันสวยๆ -->
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
+                  <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
+                </div>
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
@@ -420,9 +420,6 @@
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
                 </div>
-              </div>
-
-              <div class="row g-3 mb-2">
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
@@ -433,14 +430,15 @@
                 </div>
               </div>
 
-              <div class="d-flex align-items-center mb-3 mt-auto flex-shrink-0">
+              <div class="d-flex align-items-center mt-4 mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
                   <i class="fa-solid fa-shield-halved fs-7"></i>
                 </div>
                 <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
               </div>
 
-              <div class="row g-3 mb-3 flex-shrink-0">
+              <!-- 🌟 โซนติดต่อและเงื่อนไขแบบ Grid แน่นๆ -->
+              <div class="row g-3 flex-shrink-0">
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
                   <input type="email" class="form-control bg-white shadow-xs premium-radius" id="editDocEmail">
@@ -449,18 +447,16 @@
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-phone text-muted me-2 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocMobile">
                 </div>
-              </div>
-
-              <div class="row g-3 flex-shrink-0">
+                
                 <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 border-0" style="height: 38px;">
                     <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
                     <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="editDocPrivacyToggle" onchange="window.updateConsentHiddenInput('editDocPrivacy', this.checked)" style="width: 2.5em; height: 1.3em; cursor: pointer;"></div>
                   </div>
                   <input type="hidden" id="editDocPrivacy" value="Yes">
                 </div>
                 <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 border-0" style="height: 38px;">
                     <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
                     <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="editDocTosToggle" onchange="window.updateConsentHiddenInput('editDocTos', this.checked)" style="width: 2.5em; height: 1.3em; cursor: pointer;"></div>
                   </div>
@@ -471,7 +467,7 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column -->
+          <!-- 🔹 Right Column (EDIT) -->
           <div class="col-12 col-xl-6 doc-col doc-col-right">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
@@ -555,68 +551,63 @@
       <div class="tab-pane fade show active spa-tab-pane custom-scrollbar" id="tab-doc-info">
         <div class="row doc-row">
 
-          <!-- 🔹 Left Column -->
+          <!-- 🔹 Left Column (PROFILE VIEW) -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
-            <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
+            <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
 
-              <div class="mb-3 mt-1 flex-shrink-0">
-                <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
-                <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocTitle" readonly>
-              </div>
-
-              <div class="row g-3 m-0 w-100 p-0 mb-2 flex-shrink-0">
-                <div class="col-6 p-0 pe-2">
+              <!-- 🌟 รวบทุกฟิลด์ไว้ใน Row เดียว และใช้ g-3 จัดระยะช่องไฟให้เท่ากันเป๊ะ -->
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocTitle" readonly>
+                </div>
+                <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span></label>
                   <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameEn" readonly>
                 </div>
-                <div class="col-6 p-0 ps-2">
+                <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
                   <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameTh" readonly>
                 </div>
-              </div>
-
-              <div class="row g-3 m-0 w-100 p-0 mb-2 flex-shrink-0">
-                <div class="col-6 p-0 pe-2">
+                <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
                   <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocSpecialty" readonly>
                 </div>
-                <div class="col-6 p-0 ps-2">
+                <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label>
                   <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocType" readonly>
                 </div>
               </div>
 
-              <div class="w-100 mt-auto flex-shrink-0">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
-                    <i class="fa-solid fa-shield-halved fs-7"></i>
-                  </div>
-                  <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
+              <!-- 🌟 หัวข้อแยกหมวดหมู่ (ใช้ mt-4 ผลักให้ห่างจากโซนบนนิดนึง) -->
+              <div class="d-flex align-items-center mt-4 mb-3 flex-shrink-0">
+                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
+                  <i class="fa-solid fa-shield-halved fs-7"></i>
+                </div>
+                <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
+              </div>
+
+              <!-- 🌟 รวบโซนติดต่อไว้ใน Row เดียวเช่นกัน -->
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocEmail" readonly>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-phone text-muted me-2 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocMobile" readonly>
                 </div>
 
-                <div class="row g-3 m-0 w-100 p-0 mb-3">
-                  <div class="col-sm-6 p-0 pe-2">
-                    <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
-                    <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocEmail" readonly>
-                  </div>
-                  <div class="col-sm-6 p-0 ps-2">
-                    <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-phone text-muted me-2 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
-                    <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocMobile" readonly>
+                <div class="col-6">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0 h-100">
+                    <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
+                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocPrivacy">Yes</span>
                   </div>
                 </div>
-
-                <div class="row g-3 m-0 w-100 p-0">
-                  <div class="col-6 p-0 pe-2">
-                    <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0">
-                      <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                      <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocPrivacy">Yes</span>
-                    </div>
-                  </div>
-                  <div class="col-6 p-0 ps-2">
-                    <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0">
-                      <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
-                      <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocTos">Yes</span>
-                    </div>
+                <div class="col-6">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0 h-100">
+                    <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
+                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocTos">Yes</span>
                   </div>
                 </div>
               </div>
@@ -624,7 +615,7 @@
             </div>
           </div>
 
-          <!-- 🔹 Right Column -->
+          <!-- 🔹 Right Column (PROFILE VIEW) -->
           <div class="col-12 col-xl-6 doc-col doc-col-right">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
