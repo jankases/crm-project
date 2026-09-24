@@ -6414,36 +6414,7 @@ if (!window._urlHashKillerAttached) {
     }, true); // <- ใช้ Capture Phase สั่งการก่อน Browser
     window._urlHashKillerAttached = true;
 }
-
  
-// ==========================================
-// 💣 ULTIMATE KILL SWITCH (บังคับทำลายหน้า Loading)
-// ==========================================
-setTimeout(function() {
-    var card = document.getElementById('visitTableLoading');
-    var overlay = document.getElementById('tableLoadingOverlay');
-    var view = document.getElementById('visitListView');
-    
-    // บังคับซ่อน Loading ทันทีเมื่อผ่านไป 3 วินาที
-    if (card) {
-        card.style.setProperty('display', 'none', 'important');
-        card.classList.remove('d-flex');
-        card.classList.add('d-none');
-    }
-    if (overlay) overlay.classList.add('d-none');
-    if (view) view.classList.remove('is-loading');
-    
-    // ปลดล็อกตัวแปรระบบให้กลับมาทำงานต่อได้
-    window.isInitialLoading = false;
-    window._isInitRunning = false;
-    
-    // หากตารางยังว่างเปล่า ให้ลองสั่งโหลดเฉพาะตารางอีกครั้ง
-    if (window.globalVisits && window.globalVisits.length === 0 && typeof window.loadVisits === 'function') {
-        console.warn("⚠️ System hang detected! Forcing table render...");
-        window.loadVisits(true, true);
-    }
-}, 3000);
-
 // ==========================================
 // 🚀 Ultimate Pagination Override (Moved from HTML)
 // ==========================================
