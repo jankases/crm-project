@@ -191,6 +191,7 @@
        <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           
+          <!-- 🌟 เอา flex-grow-1 ออก แล้วกำหนดความกว้างตายตัว -->
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <div style="width: 380px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
@@ -274,11 +275,13 @@
           <!-- 🔹 Left Column (ADD) -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
+              
+              <!-- 🌟 หัวข้อ Personal Details -->
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                  <i class="fa-solid fa-stethoscope fs-6"></i>
+                  <i class="fa-solid fa-id-card fs-6"></i>
                 </div>
-                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_gen_info">General Information</h6>
+                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_personal_details">Personal Details</h6>
               </div>
 
               <!-- 🌟 รวบเป็น row g-3 ให้เรียงกันสวยๆ -->
@@ -399,11 +402,13 @@
           <!-- 🔹 Left Column (EDIT) -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
+              
+              <!-- 🌟 หัวข้อ Personal Details -->
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                  <i class="fa-solid fa-stethoscope fs-6"></i>
+                  <i class="fa-solid fa-id-card fs-6"></i>
                 </div>
-                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_gen_info">General Information</h6>
+                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_personal_details">Personal Details</h6>
               </div>
 
               <!-- 🌟 รวบเป็น row g-3 ให้เรียงกันสวยๆ -->
@@ -554,6 +559,14 @@
           <!-- 🔹 Left Column (PROFILE VIEW) -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
+
+              <!-- 🌟 หัวข้อ Personal Details -->
+              <div class="d-flex align-items-center mb-3 flex-shrink-0">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                  <i class="fa-solid fa-id-card fs-6"></i>
+                </div>
+                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_personal_details">Personal Details</h6>
+              </div>
 
               <!-- 🌟 รวบทุกฟิลด์ไว้ใน Row เดียว และใช้ g-3 จัดระยะช่องไฟให้เท่ากันเป๊ะ -->
               <div class="row g-3">
