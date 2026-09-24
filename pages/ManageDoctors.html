@@ -474,14 +474,12 @@
           <!-- 🔹 Right Column -->
           <div class="col-12 col-xl-6 doc-col doc-col-right">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
-
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                   <i class="fa-solid fa-hospital fs-6"></i>
                 </div>
                 <h6 class="text-primary fw-bold mb-0" data-i18n="lbl_workplace">Workplace History</h6>
               </div>
-
               <div id="workplaceContainerEdit" class="workplace-scroll-area custom-scrollbar d-flex flex-column gap-2 mb-3"></div>
 
               <div id="pendingDcrSummaryCard" class="flex-shrink-0 p-3 rounded-4 border border-warning-subtle bg-warning-subtle shadow-xs d-none" style="border-radius: 14px !important;">
@@ -735,97 +733,6 @@
 
         </div>
 
-        <!-- 🚀 SCRIPT: ปลุกเสก TomSelect + ตัวจัดการปุ่มกากบาทวันที่ -->
-        <script>
-          // 1. ฟังก์ชัน TomSelect ของเดิม
-          function initProfileProductFilter() {
-              var prodSelect = document.getElementById('filterProfileVisitProduct');
-              if (prodSelect && window.globalProductsList && window.globalProductsList.length > 0) {
-                  var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-                  var phText = appLang === 'en' ? '💊 - All Products -' : '💊 - ผลิตภัณฑ์ทั้งหมด -';
-                  
-                  var html = '';
-                  window.globalProductsList.forEach(function(p) {
-                      var pName = p.Product || p.Product_TH || p.Product_ID;
-                      html += '<option value="' + p.Product_ID + '">' + pName + '</option>';
-                  });
-                  prodSelect.innerHTML = html;
-
-                  if (typeof TomSelect !== 'undefined') {
-                      if (window.tomSelectProfileVisitProd) window.tomSelectProfileVisitProd.destroy();
-                      window.tomSelectProfileVisitProd = new TomSelect('#filterProfileVisitProduct', {
-                          plugins: ['remove_button'],
-                          create: false,
-                          placeholder: phText,
-                          dropdownParent: 'body',
-                          onChange: function() {
-                              if (typeof window.filterAndRenderDoctorVisits === 'function') {
-                                  window.filterAndRenderDoctorVisits();
-                              }
-                          }
-                      });
-                  }
-              } else {
-                  setTimeout(initProfileProductFilter, 500);
-              }
-          }
-          initProfileProductFilter();
-
-          // ==========================================================
-          // 🌟 2. ตัวจัดการปุ่ม ✖ ในช่องวันที่ (Inline Clear Button)
-          // ==========================================================
-          
-          // ฟังก์ชันเมื่อกดปุ่ม X
-          window.clearProfileVisitDateInline = function() {
-            const startInput = document.getElementById('filterProfileVisitStart');
-            const endInput = document.getElementById('filterProfileVisitEnd');
-            const clearBtn = document.getElementById('clearProfileDateInlineBtn');
-            
-            // ล้างค่าวันที่
-            if (startInput) {
-              startInput.value = '';
-              if (startInput._flatpickr) startInput._flatpickr.clear();
-            }
-            if (endInput) {
-              endInput.value = '';
-              if (endInput._flatpickr) endInput._flatpickr.clear();
-            }
-            
-            // ซ่อนปุ่ม X กลับไป
-            if (clearBtn) clearBtn.classList.add('d-none');
-            
-            // รีเฟรชตาราง
-            if (typeof window.filterAndRenderDoctorVisits === 'function') {
-                window.filterAndRenderDoctorVisits();
-            }
-          };
-
-          // ดักจับเวลาผู้ใช้เลือกวันที่ ให้โชว์ปุ่ม X
-          document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-              const startInput = document.getElementById('filterProfileVisitStart');
-              const endInput = document.getElementById('filterProfileVisitEnd');
-              const clearBtn = document.getElementById('clearProfileDateInlineBtn');
-              
-              if (!startInput || !endInput || !clearBtn) return;
-
-              function checkDateValue() {
-                if (startInput.value.trim() !== '' || endInput.value.trim() !== '') {
-                  clearBtn.classList.remove('d-none');
-                } else {
-                  clearBtn.classList.add('d-none');
-                }
-              }
-
-              // ตรวจจับเมื่อค่าเปลี่ยน (กรณีใช้ Flatpickr หรือพิมพ์เอง)
-              startInput.addEventListener('change', checkDateValue);
-              endInput.addEventListener('change', checkDateValue);
-              startInput.addEventListener('input', checkDateValue);
-              endInput.addEventListener('input', checkDateValue);
-            }, 1000); // ดีเลย์นิดนึงรอ Flatpickr Render เสร็จ
-          });
-        </script>
-
         <!-- 📌 TABLE CONTAINER -->
         <div class="table-responsive bg-white rounded-3 border shadow-xs flex-grow-1 overflow-y-auto" style="min-height: 0;">
           <table class="table table-hover align-middle border-0 mb-0 doc-visit-table-clean" style="font-size: 0.9rem;">
@@ -942,98 +849,3 @@
     </div>
   </div>
 </div>
-
-<!-- 🚀 สคริปต์สกัดกั้น Pagination & URL ขยะ (วางเป็นสคริปต์ตัวสุดท้าย) -->
-<script>
-    setTimeout(function() {
-        console.log("🚀 Applying Ultimate Pagination Override...");
-
-        // 1. ทับฟังก์ชันวาดปุ่มใน utils.js ทิ้ง (ถอนรากถอนโคนลิงก์ #)
-        window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
-            var ul = document.getElementById(ulId);
-            if (!ul) return;
-            var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-            var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
-            var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
-            var html = '';
-
-            // 🌟 เปลี่ยน href="#" เป็น javascript:void(0); และส่ง event ไปดักจับ
-            html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
-                    '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + ', event);">' + prevText + '</a></li>';
-
-            var startPage = Math.max(1, currentPage - 2);
-            var endPage = Math.min(totalPages, currentPage + 2);
-
-            if (startPage > 1) {
-                html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(1, event);">1</a></li>';
-                if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-            }
-
-            for (var i = startPage; i <= endPage; i++) {
-                html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
-                        '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + i + ', event);">' + i + '</a></li>';
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
-                html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + totalPages + ', event);">' + totalPages + '</a></li>';
-            }
-
-            html += '<li class="page-item ' + (currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '">' +
-                    '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + ', event);">' + nextText + '</a></li>';
-
-            ul.innerHTML = html;
-        };
-
-        // 2. ทับฟังก์ชันเปลี่ยนแถวใน visitCtrl.js (บังคับอัปเดต Database ตรงๆ)
-        window.changeRowsPerPage = function(el) {
-            var selectEl = el || document.getElementById('visitRowsPerPage');
-            if (selectEl && selectEl.value) {
-                window.rowsPerPage = parseInt(selectEl.value, 10);
-            }
-
-            // บังคับเปลี่ยนเลขโชว์ทุกกล่องให้ตรงกัน
-            document.querySelectorAll('select[id*="visitRowsPerPage"]').forEach(function(sel) {
-                sel.value = window.rowsPerPage;
-            });
-
-            window.currentPage = 1; 
-            var overlay = document.getElementById('tableLoadingOverlay');
-            if (overlay) overlay.classList.remove('d-none');
-
-            // สั่งวิ่งไปกวาดข้อมูลจาก Supabase ชุดใหม่มาให้ตรงกับจำนวนที่เลือก
-            if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
-        };
-
-        // 3. ทับฟังก์ชันเปลี่ยนหน้า (ฆ่า URL ขยะทิ้ง)
-        window.goToPage = function(page, event) {
-            var ev = event || window.event;
-            if (ev) {
-                if (typeof ev.preventDefault === 'function') ev.preventDefault();
-                ev.returnValue = false; 
-            }
-
-            var rows = parseInt(window.rowsPerPage) || 20;
-            var totalPages = Math.ceil((window.totalVisitsCount || 0) / rows);
-            if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
-
-            window.currentPage = page;
-            var overlay = document.getElementById('tableLoadingOverlay');
-            if (overlay) overlay.classList.remove('d-none');
-
-            if (typeof window.loadVisits === 'function') window.loadVisits(true, true);
-            return false;
-        };
-
-        // 4. สกัดกั้นไม้ตายสุดท้าย (Capture Phase)
-        var container = document.getElementById('visitPaginationContainer');
-        if (container) {
-            container.addEventListener('click', function(e) {
-                var a = e.target.closest('a');
-                if (a && (a.getAttribute('href') === '#' || a.getAttribute('href') === '')) {
-                    e.preventDefault();
-                }
-            }, true);
-        }
-    }, 1000); 
-</script>
