@@ -56,6 +56,10 @@ window.globalCurrentUserRole = '';
 window.currentPage = 1;
 window.rowsPerPage = 20;
 
+// 🌟 ตัวแปรใหม่สำหรับ Doctor Pagination โดยเฉพาะ ป้องกันตีกับตาราง Visit
+window.currentDocPage = 1;
+window.docRowsPerPage = 20;
+
 window._isDocInitRunning = false;
 window.isDocInitialLoading = true;
 window.docSearchDebounceTimer = null;
@@ -672,7 +676,7 @@ window.saveDocFilterState = function() {
     search: document.getElementById('smartDocSearchInput') ? document.getElementById('smartDocSearchInput').value : '',
     specialties: specEl && specEl.tomselect ? specEl.tomselect.getValue() : [],
     types: typeEl && typeEl.tomselect ? typeEl.tomselect.getValue() : [],
-    page: window.currentPage || 1
+    page: window.currentDocPage || 1
   };
 };
 
@@ -694,7 +698,7 @@ window.restoreDocFilterState = function() {
     typeEl.tomselect.setValue(sf.types, true);
   }
 
-  if (sf.page) window.currentPage = sf.page;
+  if (sf.page) window.currentDocPage = sf.page;
 };
 
 // ==========================================
@@ -778,8 +782,8 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     const sortCol = window.currentDocSortCol || 'Doc_Name';
     query = query.order(sortCol, { ascending: window.currentDocSortAsc });
 
-    const page = window.currentPage || 1;
-    const limit = parseInt(window.rowsPerPage) || 20;
+    const page = window.currentDocPage || 1;
+    const limit = parseInt(window.docRowsPerPage) || 20;
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
@@ -809,7 +813,7 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
 
   const data = window.globalDoctors || [];
   const totalItems = window.totalDoctorsCount || 0;
-  const rows = parseInt(window.rowsPerPage) || 20;
+  const rows = parseInt(window.docRowsPerPage) || 20;
   const totalPages = Math.ceil(totalItems / rows);
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
@@ -830,7 +834,7 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
     document.getElementById('doctorPaginationContainer').classList.remove('d-none');
   }
 
-  const startIndex = ((window.currentPage - 1) * rows) + 1;
+  const startIndex = ((window.currentDocPage - 1) * rows) + 1;
   const endIndex = Math.min(startIndex + data.length - 1, totalItems);
 
   if (document.getElementById('doctorPageInfo')) {
@@ -914,25 +918,52 @@ window.loadDoctors = async function(forceReload = false, isBackground = false) {
 
 window.renderDoctorPaginationControls = function(totalPages) {
   if (typeof window.renderGlobalPagination === 'function') {
-    window.renderGlobalPagination('doctorPagination', window.currentPage, totalPages, 'goToDoctorPage');
+    // ส่งตัวแปร currentDocPage แทน currentPage เพื่อไม่ให้ตีกับหน้า Visit
+    window.renderGlobalPagination('doctorPagination', window.currentDocPage, totalPages, 'goToDocPage');
   }
 };
 
-window.goToDoctorPage = function(page) {
-  window.currentPage = page;
+// 🌟 ฟังก์ชัน Pagination เฉพาะของหน้า Doctor
+window.goToDocPage = function(page, event) {
+  var ev = event || window.event;
+  if (ev) {
+      if (typeof ev.preventDefault === 'function') ev.preventDefault();
+      ev.returnValue = false; 
+  }
+  
+  var rows = parseInt(window.docRowsPerPage) || 20;
+  var totalPages = Math.ceil((window.totalDoctorsCount || 0) / rows);
+  if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
+  
+  window.currentDocPage = page;
+  var loading = document.getElementById('doctorTableLoading');
+  if (loading) loading.classList.remove('d-none');
+  
   window.loadDoctors(true);
+  return false;
 };
 
-window.changeRowsPerPage = function() {
-  const selectEl = document.getElementById('doctorRowsPerPage');
-  window.rowsPerPage = parseInt(selectEl.value) || 20;
-  window.currentPage = 1;
+// 🌟 ฟังก์ชันเปลี่ยนแถวเฉพาะของหน้า Doctor
+window.changeDocRowsPerPage = function(el) {
+  const selectEl = el || document.getElementById('doctorRowsPerPage');
+  if (selectEl && selectEl.value) {
+      window.docRowsPerPage = parseInt(selectEl.value, 10);
+  }
+  
+  document.querySelectorAll('select[id*="doctorRowsPerPage"]').forEach(function(sel) {
+      sel.value = window.docRowsPerPage;
+  });
+
+  window.currentDocPage = 1; 
+  var loading = document.getElementById('doctorTableLoading');
+  if (loading) loading.classList.remove('d-none');
+
   window.loadDoctors(true);
 };
 
 window.filterDoctors = function() {
   if (window.isDocInitialLoading) return;
-  window.currentPage = 1;
+  window.currentDocPage = 1;
   window.loadDoctors(true, true); 
 };
 
@@ -1008,7 +1039,7 @@ window.handleDocSearchInput = function(inputEl) {
   }
 
   window.docSearchDebounceTimer = setTimeout(() => {
-    window.currentPage = 1;
+    window.currentDocPage = 1;
     window.loadDoctors(true, true);
   }, 400);
 };
@@ -1024,7 +1055,7 @@ window.clearDocSearchInput = function() {
   if (inputEl) {
     inputEl.value = '';
     if (btnClear) btnClear.classList.add('d-none');
-    window.currentPage = 1;
+    window.currentDocPage = 1;
     window.loadDoctors(true, true);
   }
 };
@@ -1638,6 +1669,15 @@ window.openEditDoctorView = async function(id) {
   window.loadDoctorVisitHistory(id);
   window.loadDoctorRatings(id);
   window.switchDoctorView('doctorProfileView');
+  
+  // 🌟 ปลุกเสก TomSelect และผูก Event ให้กับตัวกรองวันที่ ทุกครั้งที่เปิดหน้าต่าง
+  if (typeof window.initProfileProductFilter === 'function') {
+      window.initProfileProductFilter();
+  }
+  if (typeof window.bindProfileDateClearButton === 'function') {
+      window.bindProfileDateClearButton();
+  }
+
   if (typeof window.switchDoctorProfileTab === 'function') window.switchDoctorProfileTab(targetTab);
 };
 
@@ -3057,4 +3097,98 @@ window.deleteTargetCallRow = function(productId, productName) {
     const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     bsModal.show();
   }
+};
+
+// ==========================================
+// 🌟 DOCTOR PROFILE FILTERS & TOMSELECT (ย้ายมาจาก ManageDoctors.html)
+// ==========================================
+
+// 1. ฟังก์ชันสร้าง TomSelect สำหรับช่องค้นหาสินค้า
+window.initProfileProductFilter = function() {
+    var prodSelect = document.getElementById('filterProfileVisitProduct');
+    if (prodSelect && window.globalProductsList && window.globalProductsList.length > 0) {
+        var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+        var phText = appLang === 'en' ? '💊 - All Products -' : '💊 - ผลิตภัณฑ์ทั้งหมด -';
+        
+        var html = '';
+        window.globalProductsList.forEach(function(p) {
+            var pName = p.Product || p.Product_TH || p.Product_ID;
+            html += '<option value="' + p.Product_ID + '">' + pName + '</option>';
+        });
+        prodSelect.innerHTML = html;
+
+        if (typeof TomSelect !== 'undefined') {
+            if (window.tomSelectProfileVisitProd) window.tomSelectProfileVisitProd.destroy();
+            window.tomSelectProfileVisitProd = new TomSelect('#filterProfileVisitProduct', {
+                plugins: ['remove_button'],
+                create: false,
+                placeholder: phText,
+                dropdownParent: 'body',
+                onChange: function() {
+                    if (typeof window.filterAndRenderDoctorVisits === 'function') {
+                        window.filterAndRenderDoctorVisits();
+                    }
+                }
+            });
+        }
+    } else {
+        // ถ้าข้อมูลยายังไม่มา ให้หน่วงเวลารอแล้วเรียกตัวเองใหม่
+        setTimeout(window.initProfileProductFilter, 500);
+    }
+};
+
+// 2. ฟังก์ชันปุ่ม ✖ ล้างข้อความวันที่
+window.clearProfileVisitDateInline = function() {
+    const startInput = document.getElementById('filterProfileVisitStart');
+    const endInput = document.getElementById('filterProfileVisitEnd');
+    const clearBtn = document.getElementById('clearProfileDateInlineBtn');
+    
+    // ล้างค่าวันที่
+    if (startInput) {
+        startInput.value = '';
+        if (startInput._flatpickr) startInput._flatpickr.clear();
+    }
+    if (endInput) {
+        endInput.value = '';
+        if (endInput._flatpickr) endInput._flatpickr.clear();
+    }
+    
+    // ซ่อนปุ่ม X กลับไป
+    if (clearBtn) clearBtn.classList.add('d-none');
+    
+    // รีเฟรชตาราง
+    if (typeof window.filterAndRenderDoctorVisits === 'function') {
+        window.filterAndRenderDoctorVisits();
+    }
+};
+
+// 3. ฟังก์ชันดักจับการพิมพ์เพื่อแสดง/ซ่อนปุ่ม ✖ (แก้บั๊ก DOMContentLoaded)
+window.bindProfileDateClearButton = function() {
+    setTimeout(function() {
+        const startInput = document.getElementById('filterProfileVisitStart');
+        const endInput = document.getElementById('filterProfileVisitEnd');
+        const clearBtn = document.getElementById('clearProfileDateInlineBtn');
+        
+        if (!startInput || !endInput || !clearBtn) return;
+
+        function checkDateValue() {
+            if (startInput.value.trim() !== '' || endInput.value.trim() !== '') {
+                clearBtn.classList.remove('d-none');
+            } else {
+                clearBtn.classList.add('d-none');
+            }
+        }
+
+        // ล้าง Event เก่าทิ้งก่อนเผื่อมีการเรียกซ้ำ
+        startInput.removeEventListener('change', checkDateValue);
+        endInput.removeEventListener('change', checkDateValue);
+        startInput.removeEventListener('input', checkDateValue);
+        endInput.removeEventListener('input', checkDateValue);
+
+        // ผูก Event ใหม่
+        startInput.addEventListener('change', checkDateValue);
+        endInput.addEventListener('change', checkDateValue);
+        startInput.addEventListener('input', checkDateValue);
+        endInput.addEventListener('input', checkDateValue);
+    }, 1000); // ดีเลย์นิดนึงรอ Flatpickr Render เสร็จ
 };
