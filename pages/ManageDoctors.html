@@ -190,7 +190,7 @@
     <div class="doc-content" id="doctorMainContentContainer">
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
+          <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -236,7 +236,7 @@
         <div id="doctorPaginationContainer" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top flex-shrink-0 d-none">
           <div class="d-flex align-items-center">
             <label class="text-muted small fw-bold me-2 mb-0" data-i18n="lbl_show_rows">Show rows:</label>
-            <select class="form-select form-select-sm shadow-sm premium-radius" id="doctorRowsPerPage" onchange="window.changeRowsPerPage()" style="width: 80px;">
+            <select class="form-select form-select-sm shadow-sm premium-radius" id="doctorRowsPerPage" onchange="window.changeDocRowsPerPage()" style="width: 80px;">
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
@@ -282,7 +282,7 @@
                 <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
               </div>
 
-              <div class="row g-3 mb-3">
+              <div class="row g-3 mb-2">
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
@@ -293,7 +293,7 @@
                 </div>
               </div>
 
-              <div class="row g-3 mb-4">
+              <div class="row g-3 mb-2">
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
@@ -411,7 +411,7 @@
                 <select class="form-select bg-white shadow-xs premium-radius" id="editDocTitle"></select>
               </div>
 
-              <div class="row g-3 mb-3">
+              <div class="row g-3 mb-2">
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
                   <input type="text" class="form-control bg-white shadow-xs premium-radius" id="editDocNameEn" placeholder="e.g. Surasak Jank" required>
@@ -422,7 +422,7 @@
                 </div>
               </div>
 
-              <div class="row g-3 mb-4">
+              <div class="row g-3 mb-2">
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
                   <select class="form-select bg-white shadow-xs premium-radius" id="editDocSpecialty"></select>
@@ -520,13 +520,11 @@
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
           <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <!-- 🌟 FIX: ถอด data-i18n ออก เพื่อป้องกันสคริปต์แปลภาษาทับชื่อหมอ -->
         <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-1"></div>
       </div>
       
       <div class="d-flex align-items-center gap-2">
-        <!-- 🌟 FIX: ใส่ค่า Fallback เป็น Active เสมอกันการหดตัวเป็นวงกลมเปล่า -->
         <div id="profileDocStatusBadge" class="d-inline-flex align-items-center bg-white border px-3 rounded-pill shadow-xs" style="height: 36px;">
           <i class="fa-solid fa-circle-check text-success me-2"></i><span class="fw-bold text-success small">Active</span>
         </div>
@@ -566,7 +564,7 @@
                 <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocTitle" readonly>
               </div>
 
-              <div class="row g-3 m-0 w-100 p-0 mb-3 flex-shrink-0">
+              <div class="row g-3 m-0 w-100 p-0 mb-2 flex-shrink-0">
                 <div class="col-6 p-0 pe-2">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span></label>
                   <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameEn" readonly>
@@ -577,7 +575,7 @@
                 </div>
               </div>
 
-              <div class="row g-3 m-0 w-100 p-0 mb-4 flex-shrink-0">
+              <div class="row g-3 m-0 w-100 p-0 mb-2 flex-shrink-0">
                 <div class="col-6 p-0 pe-2">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
                   <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocSpecialty" readonly>
@@ -657,21 +655,20 @@
         </div>
       </div>
 
-      <!-- 🌟 TAB 2: History (ปรับ UI ยุบรวมแถวเดียว ไม่ซ้ำซ้อน) -->
+      <!-- 🌟 TAB 2: History -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-history">
 
         <!-- 📌 FILTER ZONE & ACTION BAR -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2 mt-1" id="profileVisitFilterZone">
 
           <!-- โซนตัวกรองฝั่งซ้าย -->
-          <div class="d-flex align-items-center gap-3 flex-grow-1 flex-wrap">
+          <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
 
-            <!-- 🌟 1. Date Picker (สี bg-light-subtle + ปุ่ม ✖ ซ่อนรูป) -->
+            <!-- 🌟 1. Date Picker -->
             <div style="width: 280px; flex-shrink: 0;" class="position-relative">
               <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2 position-relative" style="height: 38px;">
                 <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
                 
-                <!-- ช่อง Input (เพิ่ม pe-4 เพื่อเว้นที่ให้ปุ่มกากบาทด้านขวา) -->
                 <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
                        id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                 
@@ -680,7 +677,6 @@
                 <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
                        id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                 
-                <!-- 🌟 ปุ่ม ✖ (Inline Clear) จะโชว์เมื่อมีวันที่ถูกเลือก -->
                 <i class="fa-solid fa-circle-xmark position-absolute text-muted d-none" 
                    id="clearProfileDateInlineBtn" 
                    onclick="window.clearProfileVisitDateInline()"
@@ -694,9 +690,7 @@
             <!-- 🌟 2. Product Multi-Select -->
             <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;">
               <style>
-                #profileVisitFilterZone .ts-wrapper {
-                    height: 38px !important;
-                }
+                #profileVisitFilterZone .ts-wrapper { height: 38px !important; }
                 #profileVisitFilterZone .ts-control {
                     height: 38px !important;
                     min-height: 38px !important;
@@ -709,16 +703,11 @@
                     flex-wrap: nowrap !important;
                     overflow-x: auto !important; 
                     overflow-y: hidden !important;
-                    -ms-overflow-style: none;  /* IE/Edge */
-                    scrollbar-width: none;  /* Firefox */
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
                 }
-                #profileVisitFilterZone .ts-control::-webkit-scrollbar {
-                    display: none; 
-                }
-                #profileVisitFilterZone .ts-control > .item {
-                    white-space: nowrap;
-                    margin: 0 4px 0 0 !important;
-                }
+                #profileVisitFilterZone .ts-control::-webkit-scrollbar { display: none; }
+                #profileVisitFilterZone .ts-control > .item { white-space: nowrap; margin: 0 4px 0 0 !important; }
               </style>
               <select id="filterProfileVisitProduct" multiple></select>
             </div>
@@ -772,7 +761,6 @@
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-target">
         
         <style>
-          /* แก้เส้น Tab ตีกัน & แก้ช่องว่าง TomSelect */
           .nav-tabs { border-bottom: none !important; }
           .nav-tabs .nav-link { border: none !important; border-bottom: 2px solid transparent !important; }
           .nav-tabs .nav-link.active { border-bottom: 2px solid #0d6efd !important; background-color: transparent !important; }
