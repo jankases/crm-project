@@ -155,11 +155,11 @@ window.loadScriptDynamically = function(url) {
 async function ensureControllerLoaded(page) {
     // กำหนดว่าหน้าไหน ต้องดึงไฟล์ JS ตัวไหนมาทำงาน (เพิ่มหน้าใหม่ในอนาคตได้ที่นี่เลย)
     const scriptMap = {
-        'visit': 'assets/js/controllers/visitCtrl.js?v=${Date.now()}`
-        'doctor': 'assets/js/controllers/docCtrl.js?v=${Date.now()}`
-        //'hospital': 'assets/js/controllers/hospCtrl.js?v=${Date.now()}`
-        'organization': `assets/js/controllers/orgCtrl.js?v=${Date.now()}`
-        //'target': `assets/js/controllers/orgCtrl.js?v=${Date.now()}`
+        'visit': 'assets/js/controllers/visitCtrl.js?v=${Date.now()}`,
+        'doctor': 'assets/js/controllers/docCtrl.js?v=${Date.now()}`,
+        //'hospital': 'assets/js/controllers/hospCtrl.js?v=${Date.now()}`,
+        'organization': `assets/js/controllers/orgCtrl.js?v=${Date.now()}`,
+        //'target': `assets/js/controllers/orgCtrl.js?v=${Date.now()}`,
         'matrix': `assets/js/controllers/matrixCtrl.js?v=${Date.now()}`,
         //'assignment': `assets/js/controllers/assignmentCtrl.js?v=${Date.now()}`,
         'indexData': `assets/js/controllers/indexCtrl.js?v=${Date.now()}`
