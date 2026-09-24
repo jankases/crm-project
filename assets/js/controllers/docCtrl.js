@@ -56,7 +56,6 @@ window.globalCurrentUserRole = '';
 window.currentPage = 1;
 window.rowsPerPage = 20;
 
-// 🌟 ตัวแปรใหม่สำหรับ Doctor Pagination โดยเฉพาะ ป้องกันตีกับตาราง Visit
 window.currentDocPage = 1;
 window.docRowsPerPage = 20;
 
@@ -281,8 +280,8 @@ window.renderFilterDropdowns = function(validDocsData) {
   window.DocManagerCache.validDocsData = validDocsData;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const phSpec = (appLang === 'en') ? '🩺 - All Specialties -' : '🩺 - ความเชี่ยวชาญทั้งหมด -';
-  const phType = (appLang === 'en') ? '🏷️ - All Types -' : '🏷️ - ประเภททั้งหมด -';
+  const phSpec = (appLang === 'en') ? '🩺 All Specialties' : '🩺 ความเชี่ยวชาญทั้งหมด';
+  const phType = (appLang === 'en') ? '🏷️ All Types' : '🏷️ ประเภททั้งหมด';
 
   const updateSelectElement = (elementId, optionsArray, placeholder) => {
     const el = document.getElementById(elementId);
@@ -607,9 +606,9 @@ window.loadIndexDropdowns = async function(forceReload = false) {
       window.DocManagerCache.indexLoaded = true;
 
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
-      const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
-      const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
+      const selectTitleText = (appLang === 'en') ? 'Select Title' : 'เลือกคำนำหน้า';
+      const selectSpecText = (appLang === 'en') ? 'Select Specialty' : 'เลือกความเชี่ยวชาญ';
+      const selectTypeText = (appLang === 'en') ? 'Select Type' : 'เลือกประเภท';
 
       window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
@@ -2212,7 +2211,7 @@ window.renderProfileVisitProductDropdown = function() {
   if (!selectEl) return;
 
   const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-  const placeholderText = (appLang === 'en') ? '💊 - All Products -' : '💊 - ผลิตภัณฑ์ทั้งหมด -';
+  const placeholderText = (appLang === 'en') ? '💊 All Products' : '💊 ผลิตภัณฑ์ทั้งหมด';
 
   const prodList = (window.DocManagerCache && window.DocManagerCache.products) || window.globalProducts || window.globalTeamProducts || [];
 
@@ -2552,8 +2551,8 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   const availableProducts = (window.globalTeamProducts && window.globalTeamProducts.length > 0) ? window.globalTeamProducts : (window.globalProducts || []);
   const usedProductIds = window.getSelectedRatingProductIds(selectId);
   
-  const selectProdText = appLang === 'en' ? '- Select Product -' : '- เลือกผลิตภัณฑ์ -';
-  const selectOptText = appLang === 'en' ? '- Select -' : '- เลือก -';
+  const selectProdText = appLang === 'en' ? 'Select Product' : 'เลือกผลิตภัณฑ์';
+  const selectOptText = appLang === 'en' ? 'Select' : 'เลือก';
 
   let prodOpts = `<option value="">${selectProdText}</option>`;
   availableProducts.forEach(p => {
@@ -2616,11 +2615,10 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   `;
   tbody.appendChild(tr);
 
-  // 🌟 2. เลื่อนไปท้ายฟังก์ชัน window.addRatingRowHTML แล้ววางทับบรรทัดนี้
   if (!disabledAttr && typeof TomSelect !== 'undefined') {
       const tsProd = new TomSelect(`#${selectId}`, { 
-        maxItems: 1,         // 👈 เพิ่ม 1: บังคับเลือกอันเดียว
-        controlInput: null,  // 👈 เพิ่ม 2: ปิดช่องว่างพิมพ์ (แก้ปัญหาในคลิปวิดีโอ)
+        maxItems: 1,         
+        controlInput: null,  
         create: false, 
         placeholder: selectProdText, 
         allowEmptyOption: true, 
@@ -2798,9 +2796,9 @@ window.initDoctorPage = async function(forceReload = false) {
 
     if (window.DocManagerCache && window.DocManagerCache.indexLoaded) {
       const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-      const selectTitleText = (appLang === 'en') ? '- Select Title -' : '- เลือกคำนำหน้า -';
-      const selectSpecText = (appLang === 'en') ? '- Select Specialty -' : '- เลือกความเชี่ยวชาญ -';
-      const selectTypeText = (appLang === 'en') ? '- Select Type -' : '- เลือกประเภท -';
+      const selectTitleText = (appLang === 'en') ? 'Select Title' : 'เลือกคำนำหน้า';
+      const selectSpecText = (appLang === 'en') ? 'Select Specialty' : 'เลือกความเชี่ยวชาญ';
+      const selectTypeText = (appLang === 'en') ? 'Select Type' : 'เลือกประเภท';
 
       window.updateTomSelect('docTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
       window.updateTomSelect('editDocTitle', window.getOptionsHtml('Title', selectTitleText), selectTitleText);
@@ -2880,6 +2878,7 @@ window.getOptionsHtml = function(typeName, defaultText) {
   }
   return html;
 }; 
+
 // ==========================================
 // 🌟 1. ฟังก์ชันจัดการไฮไลท์กล่อง Primary (ใช้ร่วมกัน Add/Edit)
 // ==========================================
@@ -3108,7 +3107,7 @@ window.initProfileProductFilter = function() {
     var prodSelect = document.getElementById('filterProfileVisitProduct');
     if (prodSelect && window.globalProductsList && window.globalProductsList.length > 0) {
         var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-        var phText = appLang === 'en' ? '💊 - All Products -' : '💊 - ผลิตภัณฑ์ทั้งหมด -';
+        var phText = appLang === 'en' ? '💊 All Products' : '💊 ผลิตภัณฑ์ทั้งหมด';
         
         var html = '';
         window.globalProductsList.forEach(function(p) {
