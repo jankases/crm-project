@@ -133,34 +133,50 @@ function hasUnsavedChanges() {
 } 
 
 // 🌟 Helper: บังคับโหลด Controller JS สำหรับแต่ละหน้าแบบ Dynamic
-async function ensureControllerLoaded(page) {
-    if (page === 'matrix') {
-        if (typeof window.initManageMatrixPage !== 'function') {
-            await new Promise((resolve) => {
-                const oldScript = document.getElementById('script_ctrl_matrix');
-                if (oldScript) oldScript.remove();
-
-                const script = document.createElement('script');
-                script.id = 'script_ctrl_matrix';
-                script.src = `assets/js/controllers/matrixCtrl.js?v=${Date.now()}`;
-                script.onload = resolve;
-                script.onerror = resolve;
-                document.head.appendChild(script);
-            });
+// 🌟 1. ฟังก์ชันหลักสำหรับโหลด Script แบบไดนามิก (Lazy Loading)
+window.loadScriptDynamically = function(url) {
+    return new Promise(function(resolve, reject) {
+        // ตัด parameter ?v=... ออกเพื่อเช็กชื่อไฟล์เพียวๆ ป้องกันการโหลดซ้ำ
+        var cleanUrl = url.split('?')[0]; 
+        if (document.querySelector('script[src^="' + cleanUrl + '"]')) {
+            resolve();
+            return;
         }
-    } else if (page === 'organization') { // 🌟 เพิ่มการเช็คและโหลด orgCtrl.js อัตโนมัติ
-        if (typeof window.forceReloadOrgData !== 'function') {
-            await new Promise((resolve) => {
-                const oldScript = document.getElementById('script_ctrl_org');
-                if (oldScript) oldScript.remove();
+        
+        var script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+};
 
-                const script = document.createElement('script');
-                script.id = 'script_ctrl_org';
-                script.src = `assets/js/controllers/orgCtrl.js?v=${Date.now()}`;
-                script.onload = resolve;
-                script.onerror = resolve;
-                document.head.appendChild(script);
-            });
+// 🌟 2. Script Registry: ศูนย์รวมการโหลด Controller อัตโนมัติ
+async function ensureControllerLoaded(page) {
+    // กำหนดว่าหน้าไหน ต้องดึงไฟล์ JS ตัวไหนมาทำงาน (เพิ่มหน้าใหม่ในอนาคตได้ที่นี่เลย)
+    const scriptMap = {
+        'visit': 'assets/js/controllers/visitCtrl.js?v=${Date.now()}`
+        'doctor': 'assets/js/controllers/docCtrl.js?v=${Date.now()}`
+        //'hospital': 'assets/js/controllers/hospCtrl.js?v=${Date.now()}`
+        'organization': `assets/js/controllers/orgCtrl.js?v=${Date.now()}`
+        //'target': `assets/js/controllers/orgCtrl.js?v=${Date.now()}`
+        'matrix': `assets/js/controllers/matrixCtrl.js?v=${Date.now()}`,
+        //'assignment': `assets/js/controllers/assignmentCtrl.js?v=${Date.now()}`,
+        'indexData': `assets/js/controllers/indexCtrl.js?v=${Date.now()}`
+         //'dcr': `assets/js/controllers/dcrCtrl.js?v=${Date.now()}`,
+        //'media': `assets/js/controllers/mediaCtrl.js?v=${Date.now()}`,
+        //'user': `assets/js/controllers/userCtrl.js?v=${Date.now()}`
+   
+    };
+ 
+
+
+    const targetScript = scriptMap[page];
+    if (targetScript) {
+        try {
+            await window.loadScriptDynamically(targetScript);
+        } catch (e) {
+            console.error(`❌ Failed to load script for page: ${page}`, e);
         }
     }
 }
@@ -534,3 +550,5 @@ function initIdleTimeout() {
 }
 
 initIdleTimeout();
+
+ 
