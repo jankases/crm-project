@@ -188,27 +188,32 @@
 
     <!-- MIDDLE CONTENT (Table) -->
     <div class="doc-content" id="doctorMainContentContainer">
-      <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
+       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
-            <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
+          
+          <!-- 🌟 แก้ไขตรงนี้: เอา flex-grow-1 ออก แล้วกำหนดความกว้างตายตัว -->
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div style="width: 380px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
                 <span class="input-group-text bg-transparent border-0 ps-2.5 text-muted cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" class="form-control border-0 bg-transparent shadow-none pe-1 fs-6" id="smartDocSearchInput" placeholder="Search Doctor Name or Hospital (EN/TH)..." oninput="window.handleDocSearchInput(this)">
               </div>
             </div>
-            <div style="min-width: 200px; max-width: 250px;">
+            <div style="width: 220px;">
               <select id="filterDocSpecialty" onchange="window.filterDoctors()" multiple></select>
             </div>
-            <div style="min-width: 200px; max-width: 250px;">
+            <div style="width: 200px;">
               <select id="filterDocType" onchange="window.filterDoctors()" multiple></select>
             </div>
           </div>
+          
+          <!-- ปุ่ม Clear -->
           <div class="d-flex ms-auto">
             <button class="btn btn-light border shadow-sm text-secondary premium-radius px-3 py-1.5" type="button" onclick="window.clearDoctorFilters()">
               <i class="fa-solid fa-eraser me-2 text-danger"></i> <span class="small fw-semibold" data-i18n="btn_clear_filters">Clear Filters</span>
             </button>
           </div>
+          
         </div>
       </div>
 
@@ -269,74 +274,69 @@
 
           <!-- 🔹 Left Column -->
           <div class="col-12 col-xl-6 doc-col doc-col-left">
-            <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle">
-              <div class="d-flex align-items-center mb-3 flex-shrink-0">
-                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                  <i class="fa-solid fa-stethoscope fs-6"></i>
+            <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
+
+              <!-- 🌟 รวบทุกฟิลด์ไว้ใน Row เดียว และใช้ g-3 จัดระยะช่องไฟให้เท่ากันเป๊ะ -->
+              <div class="row g-3">
+                
+                <div class="col-12">
+                  <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocTitle" readonly>
                 </div>
-                <h6 class="text-primary fw-bold mb-0" data-i18n="sec_gen_info">General Information</h6>
-              </div>
 
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
-                <select class="form-select bg-white shadow-xs premium-radius" id="docTitle"></select>
-              </div>
-
-              <div class="row g-3 mb-2">
                 <div class="col-6">
-                  <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span> <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameEn" placeholder="e.g. Surasak Jank" required>
+                  <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_en">Name (EN)</span></label>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameEn" readonly>
                 </div>
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1"><span data-i18n="lbl_doc_name_th">Name (TH)</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docNameTh" placeholder="e.g. สุรศักดิ์ จันทร์">
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocNameTh" readonly>
                 </div>
-              </div>
 
-              <div class="row g-3 mb-2">
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_specialty">Specialty</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docSpecialty"></select>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocSpecialty" readonly>
                 </div>
                 <div class="col-6">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_type">Type</label>
-                  <select class="form-select bg-white shadow-xs premium-radius" id="docType"></select>
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-bold text-dark" id="viewDocType" readonly>
                 </div>
+
               </div>
 
-              <div class="d-flex align-items-center mb-3 mt-auto flex-shrink-0">
+              <!-- 🌟 หัวข้อแยกหมวดหมู่ (ใช้ mt-4 ผลักให้ห่างจากโซนบนนิดนึง) -->
+              <div class="d-flex align-items-center mt-4 mb-2 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
                   <i class="fa-solid fa-shield-halved fs-7"></i>
                 </div>
                 <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
               </div>
 
-              <div class="row g-3 mb-3 flex-shrink-0">
+              <!-- 🌟 รวบโซนติดต่อไว้ใน Row เดียวเช่นกัน -->
+              <div class="row g-3">
+                
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
-                  <input type="email" class="form-control bg-white shadow-xs premium-radius" id="docEmail">
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocEmail" readonly>
                 </div>
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-phone text-muted me-2 opacity-50"></i><span data-i18n="lbl_mobile">Mobile</span></label>
-                  <input type="text" class="form-control bg-white shadow-xs premium-radius" id="docMobile">
+                  <input type="text" class="form-control bg-light-subtle border-0 shadow-none premium-radius fw-medium text-dark" id="viewDocMobile" readonly>
                 </div>
-              </div>
 
-              <div class="row g-3 flex-shrink-0">
                 <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0 h-100">
                     <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_privacy">Privacy Policy</span>
-                    <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="docPrivacyToggle" checked onchange="document.getElementById('docPrivacy').value = this.checked ? 'Yes' : 'No';" style="width: 2.5em; height: 1.3em; cursor: pointer;"></div>
+                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocPrivacy">Yes</span>
                   </div>
-                  <input type="hidden" id="docPrivacy" value="Yes">
                 </div>
                 <div class="col-6">
-                  <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center justify-content-between px-3 bg-light-subtle rounded-3 py-2 border-0 h-100">
                     <span class="fw-semibold text-secondary" style="font-size: 0.82rem;" data-i18n="lbl_tos">Terms of Service</span>
-                    <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="docTosToggle" checked onchange="document.getElementById('docTos').value = this.checked ? 'Yes' : 'No';" style="width: 2.5em; height: 1.3em; cursor: pointer;"></div>
+                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 rounded-2" id="viewDocTos">Yes</span>
                   </div>
-                  <input type="hidden" id="docTos" value="Yes">
                 </div>
+
               </div>
 
             </div>
@@ -664,16 +664,18 @@
           <!-- โซนตัวกรองฝั่งซ้าย -->
           <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
 
-            <!-- 🌟 1. Date Picker -->
-            <div style="width: 280px; flex-shrink: 0;" class="position-relative">
+            <!-- 🌟 1. Date Picker (ปรับความกว้างเหลือ 230px ให้พอดีเป๊ะ) -->
+            <div style="width: 230px; flex-shrink: 0;" class="position-relative">
               <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2 position-relative" style="height: 38px;">
                 <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
                 
-                <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
+                <!-- ช่อง Input ที่ 1 (เอา pe-4 ออก เพื่อลดช่องว่าง) -->
+                <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium" 
                        id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                 
                 <span class="text-muted px-1">-</span>
                 
+                <!-- ช่อง Input ที่ 2 (คง pe-4 ไว้เผื่อที่ให้ปุ่ม ✖) -->
                 <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
                        id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                 
@@ -688,7 +690,7 @@
             </div>
 
             <!-- 🌟 2. Product Multi-Select -->
-            <div style="min-width: 240px; max-width: 350px; flex-shrink: 0;">
+            <div style="width: 240px; flex-shrink: 0;">
               <style>
                 #profileVisitFilterZone .ts-wrapper { height: 38px !important; }
                 #profileVisitFilterZone .ts-control {
