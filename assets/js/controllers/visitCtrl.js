@@ -2373,8 +2373,7 @@ window.loadVisits = async function(forceReload, isBackground) {
           pendingC = countRes.data.filter(function(d) { return d.Status === 'Pending'; }).length;
           submittedC = countRes.data.filter(function(d) { return d.Status === 'Submitted'; }).length;
       }
-      if (typeof window.updateStatCards === 'function') window.updateStatCards(totalC, pendingC, submittedC);
-
+     
      // 📊 6. Server-Side Range (ดึงแค่ 20 แถว)
       var page = window.currentPage || 1;
       var limit = parseInt(window.rowsPerPage) || 20;
@@ -2392,6 +2391,8 @@ window.loadVisits = async function(forceReload, isBackground) {
       window.totalVisitsCount = res.count || 0;
 
       // 🛑 ลบการเซฟ Cache ตรงนี้ออกไปแล้ว เพื่อไปรอเซฟพร้อมข้อมูลย่อยด้านล่าง
+
+     if (typeof window.updateStatCards === 'function') window.updateStatCards(totalC, pendingC, submittedC);
 
       window._visitProductIndex = {};
       window._visitSampleIndex = {};
