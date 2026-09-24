@@ -6442,3 +6442,70 @@ setTimeout(function() {
         window.loadVisits(true, true);
     }
 }, 3000);
+
+// ==========================================
+// 💣 ULTIMATE KILL SWITCH (บังคับทำลายหน้า Loading)
+// ==========================================
+setTimeout(function() {
+    var card = document.getElementById('visitTableLoading');
+    var overlay = document.getElementById('tableLoadingOverlay');
+    var view = document.getElementById('visitListView');
+    
+    // บังคับซ่อน Loading ทันทีเมื่อผ่านไป 3 วินาที
+    if (card) {
+        card.style.setProperty('display', 'none', 'important');
+        card.classList.remove('d-flex');
+        card.classList.add('d-none');
+    }
+    if (overlay) overlay.classList.add('d-none');
+    if (view) view.classList.remove('is-loading');
+    
+    // ปลดล็อกตัวแปรระบบให้กลับมาทำงานต่อได้
+    window.isInitialLoading = false;
+    window._isInitRunning = false;
+    
+    // หากตารางยังว่างเปล่า ให้ลองสั่งโหลดเฉพาะตารางอีกครั้ง
+    if (window.globalVisits && window.globalVisits.length === 0 && typeof window.loadVisits === 'function') {
+        console.warn("⚠️ System hang detected! Forcing table render...");
+        window.loadVisits(true, true);
+    }
+}, 3000);
+
+// ==========================================
+// 🚀 Ultimate Pagination Override (Moved from HTML)
+// ==========================================
+// 🎯 เก็บไว้แค่ฟังก์ชันวาดปุ่ม (เพราะในไฟล์นี้ยังไม่มี) ส่วนที่ซ้ำซ้อนลบทิ้งหมดแล้ว
+window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChangeFnName) {
+    var ul = document.getElementById(ulId);
+    if (!ul) return;
+    var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+    var prevText = appLang === 'en' ? '&laquo; Prev' : '&laquo; ก่อนหน้า';
+    var nextText = appLang === 'en' ? 'Next &raquo;' : 'ถัดไป &raquo;';
+    var html = '';
+
+    html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+            '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage - 1) + ', event);">' + prevText + '</a></li>';
+
+    var startPage = Math.max(1, currentPage - 2);
+    var endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(1, event);">1</a></li>';
+        if (startPage > 2) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+    }
+
+    for (var i = startPage; i <= endPage; i++) {
+        html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">' +
+                '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + i + ', event);">' + i + '</a></li>';
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link border-0 text-muted">...</span></li>';
+        html += '<li class="page-item"><a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + totalPages + ', event);">' + totalPages + '</a></li>';
+    }
+
+    html += '<li class="page-item ' + (currentPage >= totalPages || totalPages === 0 ? 'disabled' : '') + '">' +
+            '<a class="page-link shadow-xs" href="javascript:void(0);" onclick="window.' + pageChangeFnName + '(' + (currentPage + 1) + ', event);">' + nextText + '</a></li>';
+
+    ul.innerHTML = html;
+};
