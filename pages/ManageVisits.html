@@ -82,8 +82,11 @@
     <div id="visitMainContentContainer" class="d-none flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
  
       <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 visit-filter-group visit-filter-compact w-100 flex-shrink-0">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
-          <div class="d-flex align-items-center gap-2.5 flex-grow-1 flex-wrap">
+        <!-- 🌟 แก้ไข gap-2.5 เป็น gap-2 -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          
+          <!-- 🌟 แก้ไข gap-2.5 เป็น gap-2 -->
+          <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
             
             <!-- Smart Search Input -->
             <div class="flex-grow-1" style="min-width: 320px; max-width: 520px;">
@@ -101,16 +104,19 @@
             </div>
  
             <!-- Date Range Picker Filter -->
-            <div style="width: 280px;"> 
-              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer position-relative" id="dateFilterRangeWrapper">
+            <!-- 🌟 ปรับกว้างเหลือ 240px + จัดฟอร์มให้ชิดขอบในแบบเดียวกับหน้าหมอ -->
+            <div style="width: 240px; flex-shrink: 0;" class="position-relative"> 
+              <div class="input-group input-group-sm border px-2 bg-light-subtle premium-radius align-items-center cursor-pointer position-relative" id="dateFilterRangeWrapper" style="height: 38px;">
                 <span class="text-muted pe-1" onclick="if(window.fpStartInstance) window.fpStartInstance.open();"><i class="fa-regular fa-calendar-days"></i></span>
-                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterStartDate" placeholder="dd/mm/yyyy" readonly>
-                <span class="text-muted small px-1">-</span>
-                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterEndDate" placeholder="dd/mm/yyyy" readonly>
                 
-                <!-- 🌟 เพิ่มปุ่มกากบาท (x) สำหรับเคลียร์วันที่ (ซ่อนไว้ก่อนด้วย d-none) -->
-                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent p-0 ms-1 d-none" type="button" id="btnClearDateFilter" onclick="window.clearDateFilterExternal(event)">
-                  <i class="fa-solid fa-circle-xmark opacity-50 hover-opacity-100 transition-all"></i>
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none" id="filterStartDate" placeholder="dd/mm/yyyy" readonly style="font-size: 0.85rem !important;">
+                <span class="text-muted small px-1">-</span>
+                
+                <input type="text" class="form-control border-0 bg-transparent text-secondary px-1 cursor-pointer text-center shadow-none pe-4" id="filterEndDate" placeholder="dd/mm/yyyy" readonly style="font-size: 0.85rem !important;">
+                
+                <!-- 🌟 เพิ่มปุ่มกากบาท (x) ให้ชิดขวาแบบ position-absolute -->
+                <button class="btn btn-link text-decoration-none text-muted border-0 bg-transparent p-0 position-absolute d-none" type="button" id="btnClearDateFilter" onclick="window.clearDateFilterExternal(event)" style="right: 8px; z-index: 10;">
+                  <i class="fa-solid fa-circle-xmark opacity-50 hover-opacity-100 transition-all text-danger"></i>
                 </button>
               </div>
             </div>
@@ -118,11 +124,12 @@
           </div>
  
           <!-- Action Buttons & Advanced Filters Dropdown (✨ Premium Horizontal Panel) -->
-          <div class="d-flex gap-2.5 align-items-center ms-auto">
+          <!-- 🌟 แก้ไข gap-2.5 เป็น gap-2 -->
+          <div class="d-flex gap-2 align-items-center ms-auto">
             <div class="dropdown position-relative">
               
               <!-- ปุ่มเปิดเมนู Advanced Filters -->
-              <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+              <button class="btn btn-light border shadow-sm text-secondary premium-radius px-4 py-1.5" type="button" id="btnAdvFilterDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="height: 38px;">
                 <i class="fa-solid fa-sliders me-2 text-primary"></i>
                 <span class="fw-semibold" data-i18n="btn_adv_filters">Advanced Filters</span>
               </button>
@@ -906,5 +913,3 @@
     </div>
   </div>
 </div>
-
- 
