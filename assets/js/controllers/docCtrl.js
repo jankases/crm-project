@@ -2306,24 +2306,21 @@ window.loadDoctorRatings = async function(docId) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">❌ Error: ${err.message}</td></tr>`;
   }
 };
-  
- // =========================================================
-// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (เพิ่มคอลัมน์ PROGRESS)
+
+// =========================================================
+// 🌟 1. ฟังก์ชันวาดตาราง Target Visit
 // =========================================================
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
   
-  // ดึงภาษาให้ชัวร์
   const rawLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const isEN = String(rawLang).toLowerCase().includes('en');
 
-  // ดึงค่า Frequency
   const sysSettings = (window.DocManagerCache && window.DocManagerCache.sysSettings) ? window.DocManagerCache.sysSettings : [];
   const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
   const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE') : 'CYCLE';
   
-  // แยกตัวพิมพ์ใหญ่/เล็กให้ถูกต้อง
   const freqWordHeaderEN = freqValue.toUpperCase();
   const freqWordSubEN = freqValue.charAt(0).toUpperCase() + freqValue.slice(1).toLowerCase();
   
@@ -2339,6 +2336,18 @@ window.renderRatingTable = function(ratings) {
   const baseSpan = document.querySelector('[data-i18n="th_target_base"]');
   if (baseSpan) {
       baseSpan.innerText = isEN ? 'TARGET' : 'เป้าหมาย';
+  }
+
+  // 🌟 ดึง Period ปัจจุบันที่ถูกเลือกมาจากตัวแปรของ Time Navigator
+  let currentPeriodLabel = "C4 (Oct-Dec)"; // ค่าเริ่มต้นกันเหนียว
+  if (window.targetPeriodsList && window.targetPeriodsList.length > 0 && window.currentTargetPeriodIndex !== undefined) {
+      const p = window.targetPeriodsList[window.currentTargetPeriodIndex];
+      if (p) {
+          // ใช้ฟังก์ชันแปลงภาษาเพื่อให้ป้าย Badge เป็นภาษาไทยด้วย (ถ้าจำเป็น)
+          currentPeriodLabel = typeof window.getLocalPeriodLabel === 'function' ? window.getLocalPeriodLabel(p.label, isEN) : p.label;
+          // หั่นคำว่า "Cycle 3" ให้เหลือแค่ "C3" เพื่อความกะทัดรัด
+          currentPeriodLabel = currentPeriodLabel.replace('Cycle ', 'C').replace('Quarter ', 'Q').replace('รอบการประเมินที่ ', 'C').replace('ไตรมาสที่ ', 'Q');
+      }
   }
 
   if(!Array.isArray(ratings) || ratings.length === 0) {
@@ -2362,14 +2371,12 @@ window.renderRatingTable = function(ratings) {
 
     const targetVal = (item.Target !== null && item.Target !== undefined) ? item.Target : '-';
     
-    // จำลองตัวเลข Progress (คุณสามารถเชื่อมต่อกับ Database ทีหลังได้)
     const actualVisits = 0; 
     let progressPercent = 0;
     if (targetVal > 0) {
       progressPercent = Math.min((actualVisits / targetVal) * 100, 100);
     }
     
-    // โหมด Read Only
     html += `
       <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
         <td class="text-start ps-4 fw-bold text-dark">${productName}</td>
@@ -2381,11 +2388,11 @@ window.renderRatingTable = function(ratings) {
           ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
         </td>
         
-        <!-- 🌟 เพิ่มคอลัมน์ PROGRESS -->
         <td class="align-middle px-3" style="width: 20%;">
           <div class="d-flex justify-content-between align-items-end mb-1">
+            <!-- 🌟 ยัดตัวแปร currentPeriodLabel ลงไปใน Badge -->
             <span class="badge bg-light border text-secondary shadow-xs" style="font-size: 0.65rem;">
-              <i class="fa-regular fa-calendar me-1"></i> C4 (Oct-Dec)
+              <i class="fa-regular fa-calendar me-1"></i> ${currentPeriodLabel}
             </span>
             <div class="text-end">
               <span class="fw-bold text-dark fs-6">${actualVisits}</span> 
@@ -2412,7 +2419,6 @@ window.renderRatingTable = function(ratings) {
       </tr>
     `;
 
-    // โหมด Edit
     html += `
       <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
         <td class="text-start ps-4"><select id="edit-prod-${index}" class="rating-product target-product-ts" style="width: 100%;" disabled><option value="${item.Product_ID}" selected>${productName}</option></select></td>
@@ -2420,10 +2426,7 @@ window.renderRatingTable = function(ratings) {
         <td><select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-pot" id="edit-pot-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;"><option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option><option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option><option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option></select></td>
         <td><input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none mx-auto" value="${item.Classification || ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
         <td><input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none mx-auto" value="${item.Target !== undefined && item.Target !== null ? item.Target : ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
-        
-        <!-- 🌟 เพิ่ม td ว่างสำหรับช่อง PROGRESS -->
         <td></td>
-
         <td><div class="d-flex gap-2 justify-content-center"><button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel"><i class="fa-solid fa-xmark"></i></button><button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-2"></i>Save</button></div></td>
       </tr>
     `;
