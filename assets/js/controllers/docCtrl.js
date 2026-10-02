@@ -3216,62 +3216,133 @@ window.bindProfileDateClearButton = function() {
     }, 1000); // ดีเลย์นิดนึงรอ Flatpickr Render เสร็จ
 };
 
+ // ==========================================
+// 📅 TARGET PERIOD NAVIGATOR ENGINE (Smart Auto-Generate)
 // ==========================================
-// 📅 TARGET PERIOD NAVIGATOR ENGINE (ระบบสลับ Cycle)
-// ==========================================
 
-// 1. จำลองฐานข้อมูล Cycle ทั้งหมด (จากเก่าไปใหม่)
-window.targetPeriodsList = [
-  { id: '2025-C4', label: 'Cycle 4 (Oct-Dec)', year: 2025 },
-  { id: '2026-C1', label: 'Cycle 1 (Jan-Mar)', year: 2026 },
-  { id: '2026-C2', label: 'Cycle 2 (Apr-Jun)', year: 2026 },
-  { id: '2026-C3', label: 'Cycle 3 (Jul-Sep)', year: 2026 },
-  { id: '2026-C4', label: 'Cycle 4 (Oct-Dec)', year: 2026 }
-];
+// 1. ฟังก์ชันสร้างรายการ Period อัตโนมัติ (คำนวณตาม Frequency)
+window.generateAutoPeriods = function() {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  
+  // ดึงค่า Frequency จากตั้งค่าระบบ (ถ้าไม่มีให้ค่าเริ่มต้นเป็น CYCLE)
+  const sysSettings = (window.DocManagerCache && window.DocManagerCache.sysSettings) ? window.DocManagerCache.sysSettings : [];
+  const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
+  const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE').toUpperCase() : 'CYCLE';
 
-// 2. กำหนดให้ Cycle ล่าสุด (Index 4) เป็นค่าเริ่มต้น
-window.currentTargetPeriodIndex = 4; 
+  let periodMap = [];
+  
+  if (freqValue === 'QUARTER') {
+    // 🌟 ไตรมาส: 1 ปี มี 4 รอบ (รอบละ 3 เดือน)
+    periodMap = [
+      { name: 'Quarter 1 (Jan-Mar)', startMonth: 1, endMonth: 3 },
+      { name: 'Quarter 2 (Apr-Jun)', startMonth: 4, endMonth: 6 },
+      { name: 'Quarter 3 (Jul-Sep)', startMonth: 7, endMonth: 9 },
+      { name: 'Quarter 4 (Oct-Dec)', startMonth: 10, endMonth: 12 }
+    ];
+  } else if (freqValue === 'MONTH') {
+    // 🌟 รายเดือน: 1 ปี มี 12 รอบ
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    for(let i = 1; i <= 12; i++) {
+      periodMap.push({ name: monthNames[i-1], startMonth: i, endMonth: i });
+    }
+  } else if (freqValue === 'YEAR') {
+    // 🌟 รายปี: 1 ปี มี 1 รอบ
+    periodMap = [{ name: `Year`, startMonth: 1, endMonth: 12 }];
+  } else {
+    // 🌟 CYCLE (Default): 1 ปี มี 3 รอบ (รอบละ 4 เดือน)
+    periodMap = [
+      { name: 'Cycle 1 (Jan-Apr)', startMonth: 1, endMonth: 4 },
+      { name: 'Cycle 2 (May-Aug)', startMonth: 5, endMonth: 8 },
+      { name: 'Cycle 3 (Sep-Dec)', startMonth: 9, endMonth: 12 }
+    ];
+  }
 
-// 3. ฟังก์ชันวาด Dropdown แบบไดนามิก
+  let periods = [];
+  let currentIndex = 0;
+  let counter = 0;
+
+  // ฟังก์ชันช่วยสร้าง ID ย่อ
+  const getPrefix = (freq) => freq === 'QUARTER' ? 'Q' : (freq === 'MONTH' ? 'M' : (freq === 'YEAR' ? 'Y' : 'C'));
+
+  // สร้างของ "ปีที่แล้ว"
+  periodMap.forEach((c) => {
+    let labelName = freqValue === 'YEAR' ? `Year ${currentYear - 1}` : c.name;
+    periods.push({ id: `${currentYear - 1}-${getPrefix(freqValue)}${counter + 1}`, label: labelName, year: currentYear - 1 });
+    counter++;
+  });
+
+  // สร้างของ "ปีนี้" และหาว่าตอนนี้อยู่รอบไหน
+  periodMap.forEach((c, idx) => {
+    let labelName = freqValue === 'YEAR' ? `Year ${currentYear}` : c.name;
+    periods.push({ id: `${currentYear}-${getPrefix(freqValue)}${idx + 1}`, label: labelName, year: currentYear });
+    if (currentMonth >= c.startMonth && currentMonth <= c.endMonth) {
+      currentIndex = periods.length - 1; // บันทึกตำแหน่งรอบปัจจุบัน
+    }
+  });
+
+  return { list: periods, defaultIndex: currentIndex };
+};
+
+// 2. ฟังก์ชันแปลภาษาข้อความ Period
+window.getLocalPeriodLabel = function(label, isEN) {
+  if (isEN) return label;
+  return label
+    .replace('Cycle', 'รอบการประเมินที่')
+    .replace('Quarter', 'ไตรมาสที่')
+    .replace('Year', 'ปี')
+    .replace('Jan', 'ม.ค.').replace('Feb', 'ก.พ.').replace('Mar', 'มี.ค.')
+    .replace('Apr', 'เม.ย.').replace('May', 'พ.ค.').replace('Jun', 'มิ.ย.')
+    .replace('Jul', 'ก.ค.').replace('Aug', 'ส.ค.').replace('Sep', 'ก.ย.')
+    .replace('Oct', 'ต.ค.').replace('Nov', 'พ.ย.').replace('Dec', 'ธ.ค.');
+};
+
+// 3. ฟังก์ชันวาด Dropdown แบบไดนามิก (สร้าง Auto + รองรับ 2 ภาษา)
 window.renderTargetPeriodDropdown = function() {
   const menu = document.getElementById('periodDropdownMenu');
   if (!menu) return;
+
+  // โหลดรายการใหม่เสมอเผื่อ Frequency เปลี่ยน
+  const periodData = window.generateAutoPeriods();
+  window.targetPeriodsList = periodData.list;
+  
+  if (window.currentTargetPeriodIndex === undefined || window.currentTargetPeriodIndex >= window.targetPeriodsList.length) {
+    window.currentTargetPeriodIndex = periodData.defaultIndex;
+  }
   
   let html = '';
   let currentYear = 0;
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = appLang === 'en';
 
-  // วนลูปวาดเมนูจาก "ใหม่สุด -> เก่าสุด" (Reverse) ให้ User ใช้ง่าย
   const reversedPeriods = [...window.targetPeriodsList].reverse();
 
   reversedPeriods.forEach((p, idx) => {
-    // หา Index จริงๆ ใน Array ต้นฉบับ
     const originalIndex = window.targetPeriodsList.length - 1 - idx;
     
-    // ถ้าขึ้นปีใหม่ ให้ใส่ขีดคั่นและโชว์ปี
     if (p.year !== currentYear) {
       if (currentYear !== 0) html += `<li><hr class="dropdown-divider"></li>`;
       html += `<li><h6 class="dropdown-header text-primary fw-bold">${p.year}</h6></li>`;
       currentYear = p.year;
     }
 
-    // จัดสไตล์อันที่ถูกเลือกอยู่
     const isActive = (originalIndex === window.currentTargetPeriodIndex);
     const activeClass = isActive ? 'active fw-bold bg-primary-subtle text-primary' : 'text-secondary';
     const checkIcon = isActive ? '<i class="fa-solid fa-check small text-primary ms-2"></i>' : '';
+    const showLabel = window.getLocalPeriodLabel(p.label, isEN);
 
-    html += `<li><a class="dropdown-item ${activeClass} d-flex justify-content-between align-items-center cursor-pointer" onclick="event.preventDefault(); window.selectTargetPeriod(${originalIndex})">${p.label} ${checkIcon}</a></li>`;
+    html += `<li><a class="dropdown-item ${activeClass} d-flex justify-content-between align-items-center cursor-pointer" onclick="event.preventDefault(); window.selectTargetPeriod(${originalIndex})">${showLabel} ${checkIcon}</a></li>`;
   });
 
   menu.innerHTML = html;
-  window.updateTargetPeriodUI(); // สั่งอัปเดตหน้าตาปุ่มด้วย
+  window.updateTargetPeriodUI(); 
 };
 
 // 4. ฟังก์ชันเมื่อกดเลือกเมนูใน Dropdown
 window.selectTargetPeriod = function(index) {
   window.currentTargetPeriodIndex = index;
-  window.renderTargetPeriodDropdown(); // วาดเมนูใหม่ให้เครื่องหมายติ๊กถูกเปลี่ยนที่
+  window.renderTargetPeriodDropdown(); 
   
-  // 🔄 สั่งโหลดข้อมูลตารางใหม่! (เพื่อให้ Progress Bar โหลดค่าของรอบใหม่)
   if (typeof window.loadDoctorRatings === 'function' && window.currentTargetDocId) {
     window.loadDoctorRatings(window.currentTargetDocId);
   }
@@ -3280,22 +3351,24 @@ window.selectTargetPeriod = function(index) {
 // 5. ฟังก์ชันเมื่อกดปุ่ม < (ถอยหลัง) และ > (เดินหน้า)
 window.changeTargetPeriod = function(step) {
   let newIndex = window.currentTargetPeriodIndex + step;
-  // ป้องกันไม่ให้ทะลุขอบเขต Array
   if (newIndex >= 0 && newIndex < window.targetPeriodsList.length) {
     window.selectTargetPeriod(newIndex);
   }
 };
 
-// 6. ฟังก์ชันอัปเดตข้อความตรงกลาง + ล็อคปุ่ม < >
+// 6. ฟังก์ชันอัปเดตข้อความตรงกลาง + ล็อคปุ่ม < > 
 window.updateTargetPeriodUI = function() {
   const p = window.targetPeriodsList[window.currentTargetPeriodIndex];
   if (!p) return;
   
-  // เปลี่ยนข้อความตรงกลาง
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = appLang === 'en';
+  
   const label = document.getElementById('currentPeriodLabel');
-  if (label) label.innerText = p.label;
+  if (label) {
+      label.innerText = window.getLocalPeriodLabel(p.label, isEN);
+  }
 
-  // ล็อคปุ่ม (Disabled) ถ้าสุดทางแล้ว
   const btnPrev = document.getElementById('btnPrevPeriod');
   const btnNext = document.getElementById('btnNextPeriod');
   
@@ -3303,7 +3376,11 @@ window.updateTargetPeriodUI = function() {
   if (btnNext) btnNext.disabled = (window.currentTargetPeriodIndex === window.targetPeriodsList.length - 1);
 };
 
-// 7. สั่งให้วาดเมนูทันทีที่โหลดหน้าจอเสร็จ
+// 7. ให้วาดใหม่เวลาเปลี่ยนภาษา หรือเปิดหน้าต่างครั้งแรก
+window.addEventListener('appLanguageChanged', function() {
+    window.renderTargetPeriodDropdown();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(window.renderTargetPeriodDropdown, 500);
 });
