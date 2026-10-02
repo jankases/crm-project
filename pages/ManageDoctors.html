@@ -159,7 +159,7 @@
   <!-- ================= 1. LIST VIEW ================= -->
   <div id="doctorListView" class="w-100 doc-view-container">
  
-    <!-- HEADER (ดึงกล่องค้นหาขึ้นมาให้ชิดขึ้น สเปกเดียวกับ Visit Logs) -->
+    <!-- HEADER -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 mb-2 gap-3 flex-shrink-0">
       
       <!-- 🌟 โซนซ้าย: Icon & Breadcrumb -->
@@ -191,7 +191,6 @@
        <div class="card p-2 px-3 border-0 shadow-sm visit-card mb-2.5 doctor-filter-group visit-filter-compact w-100 flex-shrink-0" id="doctorFilterZoneGroup">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           
-          <!-- 🌟 เอา flex-grow-1 ออก แล้วกำหนดความกว้างตายตัว -->
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <div style="width: 380px;">
               <div class="input-group border bg-light-subtle overflow-hidden premium-radius align-items-center">
@@ -255,11 +254,12 @@
   </div>
 
   <!-- ================= 2. ADD DOCTOR VIEW ================= -->
-  <div id="doctorAddView" class="d-none w-100 p-2 p-md-3 doc-view-container">
-    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="m-0 p-0">
+  <!-- 🌟 เอา p-2 p-md-3 ออกเพื่อลบ Double Padding ไม่ให้ขอบบนกว้างเกินไป -->
+  <div id="doctorAddView" class="d-none w-100 doc-view-container">
+    <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="m-0 p-0 h-100 d-flex flex-column">
 
       <!-- 📌 HEADER -->
-      <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
@@ -276,7 +276,6 @@
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
               
-              <!-- 🌟 หัวข้อ Personal Details -->
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                   <i class="fa-solid fa-id-card fs-6"></i>
@@ -284,7 +283,6 @@
                 <h6 class="text-primary fw-bold mb-0" data-i18n="sec_personal_details">Personal Details</h6>
               </div>
 
-              <!-- 🌟 รวบเป็น row g-3 ให้เรียงกันสวยๆ -->
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
@@ -315,7 +313,6 @@
                 <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
               </div>
 
-              <!-- 🌟 โซนติดต่อและเงื่อนไขแบบ Grid แน่นๆ -->
               <div class="row g-3 flex-shrink-0">
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
@@ -373,12 +370,13 @@
   </div>
 
   <!-- ================= 3. EDIT DOCTOR VIEW ================= -->
-  <div id="doctorEditView" class="d-none w-100 p-2 p-md-3 doc-view-container">
-    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="m-0 p-0">
+  <!-- 🌟 เอา p-2 p-md-3 ออกเพื่อลบ Double Padding -->
+  <div id="doctorEditView" class="d-none w-100 doc-view-container">
+    <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="m-0 p-0 h-100 d-flex flex-column">
       <input type="hidden" id="editDocId">
 
       <!-- 📌 HEADER -->
-      <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0 pe-2">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0 pe-2">
         <div class="d-flex align-items-center gap-2">
           <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center me-1" style="height: 36px;" onclick="window.switchDoctorView('doctorListView')">
             <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
@@ -403,7 +401,6 @@
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
               
-              <!-- 🌟 หัวข้อ Personal Details -->
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                   <i class="fa-solid fa-id-card fs-6"></i>
@@ -411,7 +408,6 @@
                 <h6 class="text-primary fw-bold mb-0" data-i18n="sec_personal_details">Personal Details</h6>
               </div>
 
-              <!-- 🌟 รวบเป็น row g-3 ให้เรียงกันสวยๆ -->
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
@@ -442,7 +438,6 @@
                 <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
               </div>
 
-              <!-- 🌟 โซนติดต่อและเงื่อนไขแบบ Grid แน่นๆ -->
               <div class="row g-3 flex-shrink-0">
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
@@ -512,10 +507,11 @@
     </form>
   </div>
 
- <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
-  <div id="doctorProfileView" class="d-none w-100 p-2 p-md-3 doc-view-container">
+  <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
+  <!-- 🌟 เอา p-2 p-md-3 ออกเพื่อลบ Double Padding -->
+  <div id="doctorProfileView" class="d-none w-100 doc-view-container">
 
-    <!-- 📌 HEADER ของหน้า Profile หมอ (🌟 ปรับ mb-3 เป็น mb-2 เพื่อให้กระชับขึ้น) -->
+    <!-- 📌 HEADER ของหน้า Profile หมอ (🌟 ปรับลดระยะเป็น mb-2 เพื่อกระชับพื้นที่) -->
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center flex-wrap gap-2">
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
@@ -540,7 +536,7 @@
       </div>
     </div>
 
-    <!-- 📌 TABS HEADER (🌟 ปรับ p-2 เป็น py-1 px-3 เพื่อลดความอ้วนของการ์ดเมนู) -->
+    <!-- 📌 TABS HEADER (🌟 ปรับการ์ดให้แคบลงด้วย py-1 px-3) -->
     <div class="card py-1 px-3 mb-2 border-0 shadow-sm rounded-4 flex-shrink-0">
       <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
         <li class="nav-item"><button type="button" class="nav-link active py-2" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')"><i class="fa-solid fa-address-card me-1.5"></i> <span data-i18n="tab_general_info">General Info</span></button></li>
