@@ -254,7 +254,6 @@
   </div>
 
   <!-- ================= 2. ADD DOCTOR VIEW ================= -->
-  <!-- 🌟 เอา p-2 p-md-3 ออกเพื่อลบ Double Padding ไม่ให้ขอบบนกว้างเกินไป -->
   <div id="doctorAddView" class="d-none w-100 doc-view-container">
     <form id="addDoctorForm" onsubmit="window.handleAddDoctor(event)" class="m-0 p-0 h-100 d-flex flex-column">
 
@@ -370,7 +369,6 @@
   </div>
 
   <!-- ================= 3. EDIT DOCTOR VIEW ================= -->
-  <!-- 🌟 เอา p-2 p-md-3 ออกเพื่อลบ Double Padding -->
   <div id="doctorEditView" class="d-none w-100 doc-view-container">
     <form id="editDoctorForm" onsubmit="window.handleUpdateDoctor(event)" class="m-0 p-0 h-100 d-flex flex-column">
       <input type="hidden" id="editDocId">
@@ -508,16 +506,15 @@
   </div>
 
   <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
-  <!-- 🌟 เอา p-2 p-md-3 ออกเพื่อลบ Double Padding -->
   <div id="doctorProfileView" class="d-none w-100 doc-view-container">
 
-    <!-- 📌 HEADER ของหน้า Profile หมอ (🌟 ปรับลดระยะเป็น mb-2 เพื่อกระชับพื้นที่) -->
+    <!-- 📌 HEADER ของหน้า Profile หมอ -->
     <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center flex-wrap gap-2">
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
           <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
         </button>
-        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍⚕️ Doctor Profile</h5>
+        <h5 class="text-dark fw-bold mb-0 ms-1" id="viewDocTitleName">👨‍‍⚕️ Doctor Profile</h5>
         <div id="profileDcrStatusBadge" class="ms-1"></div>
       </div>
       
@@ -536,7 +533,7 @@
       </div>
     </div>
 
-    <!-- 📌 TABS HEADER (🌟 ปรับการ์ดให้แคบลงด้วย py-1 px-3) -->
+    <!-- 📌 TABS HEADER -->
     <div class="card py-1 px-3 mb-2 border-0 shadow-sm rounded-4 flex-shrink-0">
       <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
         <li class="nav-item"><button type="button" class="nav-link active py-2" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')"><i class="fa-solid fa-address-card me-1.5"></i> <span data-i18n="tab_general_info">General Info</span></button></li>
@@ -753,7 +750,7 @@
         </div>
       </div>
 
-       <!-- 🌟 TAB 3: Target -->
+       <!-- 🌟 TAB 3: Target Visits -->
       <div class="tab-pane fade spa-tab-pane doc-content-table pb-1" id="tab-doc-target">
         
         <style>
@@ -764,11 +761,54 @@
           .ts-wrapper.single.full .ts-control > input { display: none !important; }
         </style>
 
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-shrink-0 mt-1">
-          <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-bullseye me-2"></i><span data-i18n="sec_rating_targeting">Rating and Target Visits</span></h6>
-          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs" id="btnAddRatingProduct" onclick="addNewRatingRow()">
-            <i class="fa-solid fa-plus me-1"></i> <span data-i18n="btn_add_product">+ Add Product</span>
-          </button>
+        <!-- 🌟 Header ของ TAB 3: Target (ใส่ Time Navigator เข้าไป) -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 flex-shrink-0 mt-1 gap-2">
+          
+          <!-- ชื่อ Section -->
+          <h6 class="fw-bold mb-0 text-secondary d-flex align-items-center">
+            <i class="fa-solid fa-bullseye me-2 fs-5"></i>
+            <span data-i18n="sec_rating_targeting">Rating and Target Visits</span>
+          </h6>
+
+          <!-- โซนเครื่องมือด้านขวา -->
+          <div class="d-flex align-items-center gap-3 ms-auto flex-wrap">
+            
+            <!-- 🌟 Premium Time Navigator (เลื่อนซ้ายขวา + Dropdown) -->
+            <div class="bg-white border shadow-xs d-inline-flex align-items-center p-1" style="border-radius: 12px;">
+              <!-- ปุ่มย้อนกลับ (Previous) -->
+              <button class="btn btn-sm btn-light border-0 text-secondary premium-radius px-2.5" title="Previous Period">
+                <i class="fa-solid fa-chevron-left fs-7"></i>
+              </button>
+              
+              <!-- ตัวเลือกตรงกลาง (Dropdown) -->
+              <div class="dropdown">
+                <button class="btn btn-sm btn-white border-0 fw-bold text-dark px-3 dropdown-toggle shadow-none" type="button" data-bs-toggle="dropdown" style="min-width: 160px;">
+                  <i class="fa-regular fa-calendar text-primary me-1.5"></i> <span id="currentPeriodLabel">Cycle 4 (Oct-Dec)</span>
+                </button>
+                <ul class="dropdown-menu shadow-sm border-0 mt-2 premium-radius" style="min-width: 220px; z-index: 1050;">
+                  <li><h6 class="dropdown-header text-primary fw-bold">2026</h6></li>
+                  <li><a class="dropdown-item active fw-bold d-flex justify-content-between align-items-center" href="#">Cycle 4 (Oct-Dec) <i class="fa-solid fa-check small"></i></a></li>
+                  <li><a class="dropdown-item" href="#">Cycle 3 (Jul-Sep)</a></li>
+                  <li><a class="dropdown-item" href="#">Cycle 2 (Apr-Jun)</a></li>
+                  <li><a class="dropdown-item" href="#">Cycle 1 (Jan-Mar)</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><h6 class="dropdown-header text-primary fw-bold">2025</h6></li>
+                  <li><a class="dropdown-item text-secondary" href="#">Cycle 4 (Oct-Dec)</a></li>
+                </ul>
+              </div>
+
+              <!-- ปุ่มเดินหน้า (Next) -->
+              <button class="btn btn-sm btn-light border-0 text-secondary premium-radius px-2.5" title="Next Period" disabled>
+                <i class="fa-solid fa-chevron-right fs-7"></i>
+              </button>
+            </div>
+
+            <!-- ปุ่ม Add Product -->
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold shadow-xs d-flex align-items-center" id="btnAddRatingProduct" onclick="addNewRatingRow()" style="height: 34px;">
+              <i class="fa-solid fa-plus me-1.5"></i> <span data-i18n="btn_add_product">Add Product</span>
+            </button>
+            
+          </div>
         </div>
 
         <div id="ratingLockBanner" class="alert alert-warning py-2 mb-3 shadow-sm border-warning flex-shrink-0" style="display: none; border-radius: 10px;">
@@ -779,18 +819,42 @@
           <table class="table table-hover align-middle mb-0" id="ratingTable">
             <thead class="table-light text-secondary text-center" style="position: sticky; top: 0; z-index: 10; font-size: 0.8rem; letter-spacing: 0.5px;">
               <tr>
-                <th class="py-3 text-start ps-4" style="width: 25%;" data-i18n="th_product">PRODUCT</th>
+                <th class="py-3 text-start ps-4" style="width: 20%;" data-i18n="th_product">PRODUCT</th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_adoption">ADOPTION</th>
                 <th class="py-3" style="width: 15%;" data-i18n="th_potential">POTENTIAL</th>
-                <th class="py-3" style="width: 15%;" data-i18n="th_classification">CLASSIFICATION</th> 
-                <th class="py-3" style="width: 15%;">
-                  <span data-i18n="th_target_base">TARGET</span>
-                </th>
-                <th class="py-3" style="width: 15%;" data-i18n="th_action">ACTION</th>
+                <th class="py-3" style="width: 10%;" data-i18n="th_classification">CLASSIFICATION</th> 
+                <th class="py-3" style="width: 10%;"><span data-i18n="th_target_base">TARGET</span></th>
+                <!-- 🌟 เพิ่มคอลัมน์ PROGRESS -->
+                <th class="py-3" style="width: 20%;" data-i18n="th_progress">PROGRESS</th>
+                <th class="py-3" style="width: 10%;" data-i18n="th_action">ACTION</th>
               </tr>
             </thead>
             <tbody id="ratingTableBody">
-              <tr class="no-data"><td colspan="6" class="text-muted py-4 text-center">Loading data... <i class="fa-solid fa-spinner fa-spin text-primary"></i></td></tr>
+              <!-- 🌟 ตัวอย่างแถวจำลองพร้อม Progress Bar (ถ้าเชื่อมต่อ DB แล้วสามารถลบ/ให้ JS วาดทับได้เลย) -->
+              <tr>
+                <td class="ps-4 fw-bold text-dark">Tecentriq</td>
+                <td class="text-center"><span class="badge bg-light text-dark border">High</span></td>
+                <td class="text-center"><span class="badge bg-light text-dark border">Medium</span></td>
+                <td class="text-center"><span class="badge bg-warning-subtle text-warning-emphasis">B</span></td>
+                <td class="text-center fw-bold fs-6">4 <br><span class="text-muted fw-normal" style="font-size: 0.65rem;">Visits / Cycle</span></td>
+                
+                <!-- 🌟 คอลัมน์ Progress -->
+                <td class="align-middle px-3">
+                  <div class="d-flex justify-content-between align-items-end mb-1">
+                    <span class="badge bg-light border text-secondary shadow-xs" style="font-size: 0.65rem;"><i class="fa-regular fa-calendar me-1"></i> C4 (Oct-Dec)</span>
+                    <div class="text-end"><span class="fw-bold text-dark fs-6">3</span> <span class="text-muted small fw-medium">/ 4</span></div>
+                  </div>
+                  <div class="progress bg-light-subtle shadow-none" style="height: 6px; border-radius: 10px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%; border-radius: 10px;"></div>
+                  </div>
+                </td>
+
+                <td class="text-center">
+                  <button class="btn btn-sm btn-link text-primary"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn btn-sm btn-link text-danger"><i class="fa-solid fa-trash"></i></button>
+                </td>
+              </tr>
+              <!-- ปิดแถวตัวอย่าง -->
             </tbody>
           </table>
         </div>
