@@ -2308,13 +2308,13 @@ window.loadDoctorRatings = async function(docId) {
 };
   
  // =========================================================
-// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (รวมระบบดึง Setting 2 ภาษา)
+// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (เพิ่มคอลัมน์ PROGRESS)
 // =========================================================
- window.renderRatingTable = function(ratings) {
+window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
   
-  // 🌟 FIX: ดึงภาษาให้ชัวร์
+  // ดึงภาษาให้ชัวร์
   const rawLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   const isEN = String(rawLang).toLowerCase().includes('en');
 
@@ -2323,23 +2323,19 @@ window.loadDoctorRatings = async function(docId) {
   const freqSetting = sysSettings.find(s => s.Setting_Name === 'Target_Frequency' || s.Name === 'Target_Frequency');
   const freqValue = freqSetting ? (freqSetting.Setting_Value || freqSetting.Value || 'CYCLE') : 'CYCLE';
   
-  // 🌟 FIX: แยกตัวพิมพ์ใหญ่/เล็กให้ถูกต้อง
-  // 1. แบบพิมพ์ใหญ่ทั้งหมด สำหรับหัวตาราง (CYCLE, MONTH, YEAR)
+  // แยกตัวพิมพ์ใหญ่/เล็กให้ถูกต้อง
   const freqWordHeaderEN = freqValue.toUpperCase();
-  // 2. แบบพิมพ์ใหญ่แค่ตัวแรก สำหรับข้อความย่อย (Cycle, Month, Year)
   const freqWordSubEN = freqValue.charAt(0).toUpperCase() + freqValue.slice(1).toLowerCase();
   
   const freqWordTH = freqValue.toUpperCase() === 'MONTH' ? 'เดือน' : (freqValue.toUpperCase() === 'YEAR' ? 'ปี' : 'รอบ');
   
-  // แปลงคำตามภาษา (ใช้ freqWordSubEN)
   const subText = isEN ? `Visits / ${freqWordSubEN}` : `ครั้ง / ${freqWordTH}`;
   const editBtnText = isEN ? 'Edit' : 'แก้ไข';
 
-  // อัปเดตหัวตารางแบบไดนามิก (ใช้ freqWordHeaderEN)
   const unitSpan = document.getElementById('dynamicTargetUnitText');
-if (unitSpan) {
-    unitSpan.innerHTML = ''; // ปล่อยว่างไว้เพื่อความคลีน ไม่ให้ยาวดันตารางล้น
-}
+  if (unitSpan) {
+      unitSpan.innerHTML = '';
+  }
   const baseSpan = document.querySelector('[data-i18n="th_target_base"]');
   if (baseSpan) {
       baseSpan.innerText = isEN ? 'TARGET' : 'เป้าหมาย';
@@ -2347,7 +2343,7 @@ if (unitSpan) {
 
   if(!Array.isArray(ratings) || ratings.length === 0) {
       const noDataMsg = isEN ? 'No target visits found. Click "Add Product"' : 'ไม่มีข้อมูลเป้าหมายเข้าพบ กรุณากด "เพิ่มผลิตภัณฑ์"';
-      tbody.innerHTML = `<tr class="no-data"><td colspan="6" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
+      tbody.innerHTML = `<tr class="no-data"><td colspan="7" class="text-center text-muted py-4">${noDataMsg}</td></tr>`;
       return;
   }
 
@@ -2365,8 +2361,15 @@ if (unitSpan) {
     else if (item.Classification === 'D') clsColor = 'bg-success-subtle text-success';
 
     const targetVal = (item.Target !== null && item.Target !== undefined) ? item.Target : '-';
-
-    // 🌟 ใช้งานตัวแปรแปลภาษา
+    
+    // จำลองตัวเลข Progress (คุณสามารถเชื่อมต่อกับ Database ทีหลังได้)
+    const actualVisits = 0; 
+    let progressPercent = 0;
+    if (targetVal > 0) {
+      progressPercent = Math.min((actualVisits / targetVal) * 100, 100);
+    }
+    
+    // โหมด Read Only
     html += `
       <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
         <td class="text-start ps-4 fw-bold text-dark">${productName}</td>
@@ -2377,6 +2380,23 @@ if (unitSpan) {
           <span class="fw-bolder text-dark fs-5">${targetVal}</span> 
           ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
         </td>
+        
+        <!-- 🌟 เพิ่มคอลัมน์ PROGRESS -->
+        <td class="align-middle px-3" style="width: 20%;">
+          <div class="d-flex justify-content-between align-items-end mb-1">
+            <span class="badge bg-light border text-secondary shadow-xs" style="font-size: 0.65rem;">
+              <i class="fa-regular fa-calendar me-1"></i> C4 (Oct-Dec)
+            </span>
+            <div class="text-end">
+              <span class="fw-bold text-dark fs-6">${actualVisits}</span> 
+              <span class="text-muted small fw-medium">/ ${targetVal}</span>
+            </div>
+          </div>
+          <div class="progress bg-light-subtle shadow-none" style="height: 6px; border-radius: 10px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: ${progressPercent}%; border-radius: 10px;"></div>
+          </div>
+        </td>
+
         <td>
           <div class="d-flex gap-2 justify-content-center align-items-center">
             <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-xs" onclick="window.toggleDocTargetEdit('${index}', true)">
@@ -2384,7 +2404,7 @@ if (unitSpan) {
             </button>
             <button class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs d-flex align-items-center justify-content-center transition-all hover-bg-danger" 
                     style="width: 30px; height: 30px; padding: 0;" 
-                    onclick="window.deleteTargetCallRow('${item.Product_ID}')" title="Delete">
+                    onclick="window.deleteTargetCallRow('${item.Product_ID}', '${productName}')" title="Delete">
               <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
             </button>
           </div>
@@ -2392,7 +2412,7 @@ if (unitSpan) {
       </tr>
     `;
 
-    // ซ่อนโหมด Edit โค้ดส่วนล่าง (ตามเดิมของคุณ)
+    // โหมด Edit
     html += `
       <tr id="row-target-edit-${index}" class="align-middle text-center d-none editing-row border-start border-primary border-4" style="background-color: #f8fafc;">
         <td class="text-start ps-4"><select id="edit-prod-${index}" class="rating-product target-product-ts" style="width: 100%;" disabled><option value="${item.Product_ID}" selected>${productName}</option></select></td>
@@ -2400,6 +2420,10 @@ if (unitSpan) {
         <td><select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-pot" id="edit-pot-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;"><option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option><option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option><option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option></select></td>
         <td><input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none mx-auto" value="${item.Classification || ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
         <td><input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none mx-auto" value="${item.Target !== undefined && item.Target !== null ? item.Target : ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
+        
+        <!-- 🌟 เพิ่ม td ว่างสำหรับช่อง PROGRESS -->
+        <td></td>
+
         <td><div class="d-flex gap-2 justify-content-center"><button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel"><i class="fa-solid fa-xmark"></i></button><button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-2"></i>Save</button></div></td>
       </tr>
     `;
