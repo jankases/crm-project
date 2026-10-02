@@ -268,7 +268,8 @@ const i18nDictionary = {
     th_product_name: "Product Name",
     title_confirm_delete_target: "Confirm Deletion Request",
     msg_confirm_delete_target: "Are you sure you want to submit a DCR to DELETE this target?",
-    th_target_base: "TARGET"
+    th_target_base: "TARGET",
+    title_pending_dcr_summary: "Pending DCR Summary"
     
   },
 
@@ -537,7 +538,8 @@ const i18nDictionary = {
     th_product_name: "ชื่อสินค้า",
     title_confirm_delete_target: "ยืนยันการส่งคำขอลบเป้าหมาย",
     msg_confirm_delete_target: "คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อลบเป้าหมายนี้?",
-    th_target_base: "เป้าหมาย"
+    th_target_base: "เป้าหมาย",
+    title_pending_dcr_summary: "สรุปรายการรออนุมัติ (Pending DCR)"
     
   }
 };
