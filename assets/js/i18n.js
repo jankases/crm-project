@@ -43,6 +43,8 @@ const i18nDictionary = {
     opt_select_purpose: "-- Select Purpose --",
     opt_select_doc_default: "-- Search/Select Doctor --",
     opt_all_team_members: "👥 All Team Members",
+    ph_search_doc_hosp: "Search Doctor Name or Hospital (EN/TH)...",
+    ph_date_format: "dd/mm/yyyy",
 
     // --- Common Buttons & Labels ---
     btn_filters: "Filters",
@@ -190,6 +192,7 @@ const i18nDictionary = {
     btn_submit_dcr: "Submit DCR",
     btn_add_hosp: "Add Hospital",
     sec_gen_info: "General Information",
+    sec_personal_details: "Personal Details",
     sec_contact_consent: "Contact & Consent",
     title_add_doc: "Add New Doctor (DCR)",
     title_edit_doc: "Edit Doctor (DCR)",
@@ -206,12 +209,14 @@ const i18nDictionary = {
 
     sec_rating_targeting: "Rating and Targeting",
     lbl_locked: "Locked:",
+    lbl_current_cycle: "Current Cycle",
     msg_rating_locked: "The Target Visit evaluation period is currently closed.",
     th_product: "PRODUCT",
     th_adoption: "ADOPTION",
     th_potential: "POTENTIAL",
     th_classification: "CLASSIFICATION",
     th_target_call: "TARGET (VISITS)",
+    th_progress: "PROGRESS",
 
     title_add_tot: "Add TOT (Time Off Territory)",
     lbl_tot_type: "TOT Type",
@@ -307,6 +312,8 @@ const i18nDictionary = {
     opt_select_purpose: "-- เลือกวัตถุประสงค์ --",
     opt_select_doc_default: "-- ค้นหา/เลือกแพทย์ --",
     opt_all_team_members: "👥 พนักงานทุกคนในทีม",
+    ph_search_doc_hosp: "ค้นหาชื่อแพทย์ หรือโรงพยาบาล (EN/TH)...",
+    ph_date_format: "วว/ดด/ปปปป",
 
     // --- Common Buttons & Labels ---
     btn_filters: "ตัวกรอง",
@@ -454,6 +461,7 @@ const i18nDictionary = {
     btn_submit_dcr: "ส่งคำขอ DCR",
     btn_add_hosp: "เพิ่มโรงพยาบาล",
     sec_gen_info: "ข้อมูลทั่วไป",
+    sec_personal_details: "ข้อมูลส่วนตัว",
     sec_contact_consent: "ข้อมูลติดต่อ และการยินยอม",
     title_add_doc: "เพิ่มแพทย์ใหม่ (DCR)",
     title_edit_doc: "แก้ไขข้อมูลแพทย์ (DCR)",
@@ -470,12 +478,14 @@ const i18nDictionary = {
 
     sec_rating_targeting: "เป้าหมายการเข้าพบ (Rating & Targeting)",
     lbl_locked: "ล็อกอยู่:",
+    lbl_current_cycle: "รอบเวลาปัจจุบัน",
     msg_rating_locked: "ขณะนี้ไม่อยู่ในช่วงเวลาประเมิน Target Visit",
     th_product: "ผลิตภัณฑ์",
     th_adoption: "การยอมรับใช้ยา (Adoption)",
     th_potential: "ศักยภาพแพทย์ (Potential)",
     th_classification: "การจัดกลุ่มแพทย์ (Classification)",
     th_target_call: "เป้าหมายการเข้าพบ",
+    th_progress: "ความคืบหน้า (PROGRESS)",
 
     title_add_tot: "เพิ่ม TOT (ลา/ประชุมนอกพื้นที่)",
     lbl_tot_type: "ประเภท TOT",
@@ -528,7 +538,6 @@ const i18nDictionary = {
     title_confirm_delete_target: "ยืนยันการส่งคำขอลบเป้าหมาย",
     msg_confirm_delete_target: "คุณแน่ใจหรือไม่ว่าต้องการส่งคำขอ DCR เพื่อลบเป้าหมายนี้?",
     th_target_base: "เป้าหมาย"
-
     
   }
 };
