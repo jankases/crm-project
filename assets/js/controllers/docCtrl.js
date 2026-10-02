@@ -3215,3 +3215,95 @@ window.bindProfileDateClearButton = function() {
         endInput.addEventListener('input', checkDateValue);
     }, 1000); // ดีเลย์นิดนึงรอ Flatpickr Render เสร็จ
 };
+
+// ==========================================
+// 📅 TARGET PERIOD NAVIGATOR ENGINE (ระบบสลับ Cycle)
+// ==========================================
+
+// 1. จำลองฐานข้อมูล Cycle ทั้งหมด (จากเก่าไปใหม่)
+window.targetPeriodsList = [
+  { id: '2025-C4', label: 'Cycle 4 (Oct-Dec)', year: 2025 },
+  { id: '2026-C1', label: 'Cycle 1 (Jan-Mar)', year: 2026 },
+  { id: '2026-C2', label: 'Cycle 2 (Apr-Jun)', year: 2026 },
+  { id: '2026-C3', label: 'Cycle 3 (Jul-Sep)', year: 2026 },
+  { id: '2026-C4', label: 'Cycle 4 (Oct-Dec)', year: 2026 }
+];
+
+// 2. กำหนดให้ Cycle ล่าสุด (Index 4) เป็นค่าเริ่มต้น
+window.currentTargetPeriodIndex = 4; 
+
+// 3. ฟังก์ชันวาด Dropdown แบบไดนามิก
+window.renderTargetPeriodDropdown = function() {
+  const menu = document.getElementById('periodDropdownMenu');
+  if (!menu) return;
+  
+  let html = '';
+  let currentYear = 0;
+
+  // วนลูปวาดเมนูจาก "ใหม่สุด -> เก่าสุด" (Reverse) ให้ User ใช้ง่าย
+  const reversedPeriods = [...window.targetPeriodsList].reverse();
+
+  reversedPeriods.forEach((p, idx) => {
+    // หา Index จริงๆ ใน Array ต้นฉบับ
+    const originalIndex = window.targetPeriodsList.length - 1 - idx;
+    
+    // ถ้าขึ้นปีใหม่ ให้ใส่ขีดคั่นและโชว์ปี
+    if (p.year !== currentYear) {
+      if (currentYear !== 0) html += `<li><hr class="dropdown-divider"></li>`;
+      html += `<li><h6 class="dropdown-header text-primary fw-bold">${p.year}</h6></li>`;
+      currentYear = p.year;
+    }
+
+    // จัดสไตล์อันที่ถูกเลือกอยู่
+    const isActive = (originalIndex === window.currentTargetPeriodIndex);
+    const activeClass = isActive ? 'active fw-bold bg-primary-subtle text-primary' : 'text-secondary';
+    const checkIcon = isActive ? '<i class="fa-solid fa-check small text-primary ms-2"></i>' : '';
+
+    html += `<li><a class="dropdown-item ${activeClass} d-flex justify-content-between align-items-center cursor-pointer" onclick="event.preventDefault(); window.selectTargetPeriod(${originalIndex})">${p.label} ${checkIcon}</a></li>`;
+  });
+
+  menu.innerHTML = html;
+  window.updateTargetPeriodUI(); // สั่งอัปเดตหน้าตาปุ่มด้วย
+};
+
+// 4. ฟังก์ชันเมื่อกดเลือกเมนูใน Dropdown
+window.selectTargetPeriod = function(index) {
+  window.currentTargetPeriodIndex = index;
+  window.renderTargetPeriodDropdown(); // วาดเมนูใหม่ให้เครื่องหมายติ๊กถูกเปลี่ยนที่
+  
+  // 🔄 สั่งโหลดข้อมูลตารางใหม่! (เพื่อให้ Progress Bar โหลดค่าของรอบใหม่)
+  if (typeof window.loadDoctorRatings === 'function' && window.currentTargetDocId) {
+    window.loadDoctorRatings(window.currentTargetDocId);
+  }
+};
+
+// 5. ฟังก์ชันเมื่อกดปุ่ม < (ถอยหลัง) และ > (เดินหน้า)
+window.changeTargetPeriod = function(step) {
+  let newIndex = window.currentTargetPeriodIndex + step;
+  // ป้องกันไม่ให้ทะลุขอบเขต Array
+  if (newIndex >= 0 && newIndex < window.targetPeriodsList.length) {
+    window.selectTargetPeriod(newIndex);
+  }
+};
+
+// 6. ฟังก์ชันอัปเดตข้อความตรงกลาง + ล็อคปุ่ม < >
+window.updateTargetPeriodUI = function() {
+  const p = window.targetPeriodsList[window.currentTargetPeriodIndex];
+  if (!p) return;
+  
+  // เปลี่ยนข้อความตรงกลาง
+  const label = document.getElementById('currentPeriodLabel');
+  if (label) label.innerText = p.label;
+
+  // ล็อคปุ่ม (Disabled) ถ้าสุดทางแล้ว
+  const btnPrev = document.getElementById('btnPrevPeriod');
+  const btnNext = document.getElementById('btnNextPeriod');
+  
+  if (btnPrev) btnPrev.disabled = (window.currentTargetPeriodIndex === 0);
+  if (btnNext) btnNext.disabled = (window.currentTargetPeriodIndex === window.targetPeriodsList.length - 1);
+};
+
+// 7. สั่งให้วาดเมนูทันทีที่โหลดหน้าจอเสร็จ
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(window.renderTargetPeriodDropdown, 500);
+});
