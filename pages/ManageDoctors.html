@@ -512,11 +512,11 @@
     </form>
   </div>
 
-  <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
+ <!-- ================= 4. DOCTOR PROFILE VIEW ================= -->
   <div id="doctorProfileView" class="d-none w-100 p-2 p-md-3 doc-view-container">
 
-    <!-- 📌 HEADER ของหน้า Profile หมอ (ปุ่มทั้งหมดต้องมาอยู่ตรงนี้เท่านั้น!) -->
-    <div class="d-flex align-items-center justify-content-between mb-3 flex-shrink-0">
+    <!-- 📌 HEADER ของหน้า Profile หมอ (🌟 ปรับ mb-3 เป็น mb-2 เพื่อให้กระชับขึ้น) -->
+    <div class="d-flex align-items-center justify-content-between mb-2 flex-shrink-0">
       <div class="d-flex align-items-center flex-wrap gap-2">
         <button type="button" class="btn btn-sm btn-light border bg-white text-secondary shadow-xs fw-bold rounded-pill px-3 d-inline-flex align-items-center" style="height: 36px;" onclick="window.goBackFromDoctorProfile()">
           <i class="fa-solid fa-arrow-left me-1.5 text-primary"></i> <span data-i18n="btn_back">Back</span>
@@ -540,8 +540,8 @@
       </div>
     </div>
 
-    <!-- 📌 TABS HEADER (ลด Margin ลงเพื่อให้ชิดกับ Filter ด้านล่าง) -->
-    <div class="card p-2 px-3 mb-2 border-0 shadow-sm rounded-4 flex-shrink-0">
+    <!-- 📌 TABS HEADER (🌟 ปรับ p-2 เป็น py-1 px-3 เพื่อลดความอ้วนของการ์ดเมนู) -->
+    <div class="card py-1 px-3 mb-2 border-0 shadow-sm rounded-4 flex-shrink-0">
       <ul class="nav nav-pills doctor-profile-tabs mb-0" id="docProfileTabs">
         <li class="nav-item"><button type="button" class="nav-link active py-2" id="tab-btn-info" onclick="window.switchDoctorProfileTab(this, 'tab-doc-info')"><i class="fa-solid fa-address-card me-1.5"></i> <span data-i18n="tab_general_info">General Info</span></button></li>
         <li class="nav-item"><button type="button" class="nav-link py-2" id="tab-btn-history" onclick="window.switchDoctorProfileTab(this, 'tab-doc-history')"><i class="fa-solid fa-calendar-check me-1.5"></i> <span data-i18n="tab_visit_history">Visit History</span></button></li>
@@ -560,7 +560,6 @@
           <div class="col-12 col-xl-6 doc-col doc-col-left">
             <div class="card p-3 p-md-4 bg-white shadow-xs doc-card border border-light-subtle h-100">
 
-              <!-- 🌟 หัวข้อ Personal Details -->
               <div class="d-flex align-items-center mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                   <i class="fa-solid fa-id-card fs-6"></i>
@@ -568,7 +567,6 @@
                 <h6 class="text-primary fw-bold mb-0" data-i18n="sec_personal_details">Personal Details</h6>
               </div>
 
-              <!-- 🌟 รวบทุกฟิลด์ไว้ใน Row เดียว และใช้ g-3 จัดระยะช่องไฟให้เท่ากันเป๊ะ -->
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label text-muted small fw-bold mb-1" data-i18n="lbl_doc_title">Title</label>
@@ -592,7 +590,6 @@
                 </div>
               </div>
 
-              <!-- 🌟 หัวข้อแยกหมวดหมู่ (ใช้ mt-4 ผลักให้ห่างจากโซนบนนิดนึง) -->
               <div class="d-flex align-items-center mt-4 mb-3 flex-shrink-0">
                 <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
                   <i class="fa-solid fa-shield-halved fs-7"></i>
@@ -600,7 +597,6 @@
                 <h6 class="text-primary fw-bold mb-0 fs-6" data-i18n="sec_contact_consent">Contact & Consent</h6>
               </div>
 
-              <!-- 🌟 รวบโซนติดต่อไว้ใน Row เดียวเช่นกัน -->
               <div class="row g-3">
                 <div class="col-sm-6">
                   <label class="form-label text-muted small fw-bold mb-1"><i class="fa-solid fa-envelope text-muted me-2 opacity-50"></i><span data-i18n="lbl_email">Email</span></label>
@@ -668,18 +664,16 @@
           <!-- โซนตัวกรองฝั่งซ้าย -->
           <div class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
 
-            <!-- 🌟 1. Date Picker (ปรับความกว้างเหลือ 230px ให้พอดีเป๊ะ) -->
-            <div style="width: 230px; flex-shrink: 0;" class="position-relative">
+            <!-- 🌟 1. Date Picker (ขยายความกว้างเป็น 260px ให้มีพื้นที่หายใจ) -->
+            <div style="width: 260px; flex-shrink: 0;" class="position-relative">
               <div class="input-group input-group-sm border bg-light-subtle overflow-hidden premium-radius align-items-center px-2 position-relative" style="height: 38px;">
                 <span class="text-muted pe-1.5"><i class="fa-regular fa-calendar-days fs-6"></i></span>
                 
-                <!-- ช่อง Input ที่ 1 (เอา pe-4 ออก เพื่อลดช่องว่าง) -->
                 <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium" 
                        id="filterProfileVisitStart" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                 
                 <span class="text-muted px-1">-</span>
                 
-                <!-- ช่อง Input ที่ 2 (คง pe-4 ไว้เผื่อที่ให้ปุ่ม ✖) -->
                 <input type="text" class="form-control border-0 bg-transparent shadow-none p-0 fs-6 text-center text-secondary fw-medium pe-4" 
                        id="filterProfileVisitEnd" placeholder="dd/mm/yyyy" style="font-size: 0.85rem !important;">
                 
