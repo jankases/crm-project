@@ -270,7 +270,6 @@ const i18nDictionary = {
     msg_confirm_delete_target: "Are you sure you want to submit a DCR to DELETE this target?",
     th_target_base: "TARGET",
     title_pending_dcr_summary: "Pending DCR Summary"
-    
   },
 
   th: {
@@ -409,8 +408,8 @@ const i18nDictionary = {
     btn_next_page: "ถัดไป",
 
     // --- System Settings Module ---
-    title_sys_settings: "ตั้งค่าระบบ",
-    desc_sys_settings: "จัดการข้อมูลหลักและข้อมูลดัชนี",
+    title_sys_settings: "ตั้งค่าระบบ (System Settings)",
+    desc_sys_settings: "จัดการข้อมูลหลักและข้อมูลดัชนี (Master Data & Index)",
     btn_control_panel: "แผงควบคุมและการตั้งค่า",
     title_app_config: "ตั้งค่าแอปพลิเคชัน",
     title_target_call: "สิทธิ์การเข้าถึง Target Visit (Rating)",
@@ -420,9 +419,9 @@ const i18nDictionary = {
     lbl_start_date: "วันที่เริ่ม",
     lbl_end_date: "วันที่สิ้นสุด",
     btn_save_target_call: "บันทึกตั้งค่า Target Visit",
-    title_categories: "1. หมวดหมู่",
+    title_categories: "1. หมวดหมู่ (Categories)",
     btn_add_category: "เพิ่มหมวดหมู่",
-    title_index_values: "2. ข้อมูลดัชนี",
+    title_index_values: "2. ข้อมูลดัชนี (Index Values)",
     btn_add_value: "เพิ่มข้อมูล",
     opt_all_categories: "- ทุกหมวดหมู่ -",
     th_category: "หมวดหมู่",
@@ -433,7 +432,7 @@ const i18nDictionary = {
     ph_category_name: "เช่น Zone, Specialty",
     title_add_index: "เพิ่มข้อมูลดัชนี",
     title_edit_index: "แก้ไขข้อมูลดัชนี",
-    lbl_category_select: "หมวดหมู่",
+    lbl_category_select: "หมวดหมู่ (Category)",
     title_visit_features: "ฟีเจอร์ในหน้าบันทึกเยี่ยม",
     desc_visit_features: "เปิด/ปิด การแสดงผลบางส่วนในหน้าฟอร์มบันทึกเยี่ยม (มีผลกับทุกคน)",
     btn_save_visit_features: "บันทึกฟีเจอร์ Visit",
@@ -483,7 +482,7 @@ const i18nDictionary = {
     msg_rating_locked: "ขณะนี้ไม่อยู่ในช่วงเวลาประเมิน Target Visit",
     th_product: "ผลิตภัณฑ์",
     th_adoption: "การยอมรับใช้ยา",
-    th_potential: "ศักยภาพแพทย์,
+    th_potential: "ศักยภาพแพทย์",
     th_classification: "การจัดกลุ่มแพทย์",
     th_target_call: "เป้าหมายการเข้าพบ",
     th_progress: "ความคืบหน้า",
