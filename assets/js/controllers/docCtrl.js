@@ -2262,8 +2262,8 @@ window.clearProfileVisitDateRange = function() {
   window.filterAndRenderDoctorVisits();
 };
 
-// =========================================================
-// 🌟 ฟังก์ชันเปิดหน้า Edit Visit จาก Profile หมอ (แก้ปัญหาจอดึงกลับ)
+ // =========================================================
+// 🌟 ฟังก์ชันเปิดหน้า Edit Visit จาก Profile หมอ (พร้อม Loading Overlay กันกระพริบ)
 // =========================================================
 window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overridePurposeId) {
   const docId = overrideDocId || window.currentTargetDocId;
@@ -2274,7 +2274,24 @@ window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overrid
   sessionStorage.setItem('pendingEditVisitId', visitId);
   if (overridePurposeId) sessionStorage.setItem('pendingEditPurposeId', overridePurposeId);
 
-  // 1. สั่งโหลดหน้า Visit Logs
+  // 🌟 1. สร้างและเปิดหน้าจอ Loading Overlay บังการกระพริบแบบ Premium
+  let overlay = document.getElementById('premiumTransitionOverlay');
+  if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'premiumTransitionOverlay';
+      overlay.innerHTML = `
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3.5rem; height: 3.5rem; border-width: 0.25rem;"></div>
+        <div class="fw-bold text-primary fs-5" style="letter-spacing: 1px;">Loading Form...</div>
+      `;
+      overlay.setAttribute('style', 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.85); backdrop-filter: blur(4px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease-in-out; opacity: 0;');
+      document.body.appendChild(overlay);
+  }
+  
+  // โชว์ม่านบังหน้าจอ
+  overlay.style.display = 'flex';
+  setTimeout(() => overlay.style.opacity = '1', 10);
+
+  // 2. สั่งโหลดหน้า Visit Logs (ทำงานอยู่เบื้องหลังม่าน Loading)
   if (typeof window.loadComponent === 'function') {
     window.loadComponent('visit');
   } else {
@@ -2282,7 +2299,7 @@ window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overrid
     if (visitMenu) visitMenu.click();
   }
 
-  // 2. ดักจับรอจนกว่าฟังก์ชันในหน้า Visit จะพร้อมทำงาน
+  // 3. ดักจับรอจนกว่าฟังก์ชันในหน้า Visit จะพร้อมทำงาน
   let attempts = 0;
   const checkReady = setInterval(function() {
     attempts++;
@@ -2290,14 +2307,22 @@ window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overrid
     if (typeof window.openEditVisitView === 'function') {
       clearInterval(checkReady);
       
-      // 🌟 FIX: หน่วงเวลา 400ms เพื่อรอให้หน้า Visit Logs วาดตารางหลักเสร็จก่อน
-      // ป้องกันไม่ให้โดนคำสั่งรีเซ็ตหน้าจอของ Visit โหลดทับ
+      // หน่วงเวลาให้ฟอร์มสร้างตัวเสร็จสมบูรณ์
       setTimeout(function() {
         window.openEditVisitView(visitId, docId, overridePurposeId);
+        
+        // 🌟 4. ปิดหน้าจอ Loading เมื่อเปิดฟอร์ม Edit สำเร็จ
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 300);
+        }, 200);
+
       }, 400); 
       
     } else if (attempts > 50) {
       clearInterval(checkReady); // เลิกรอถ้าเกิน 5 วินาที
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.style.display = 'none', 300);
     }
   }, 100);
 };
