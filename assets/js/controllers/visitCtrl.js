@@ -619,7 +619,7 @@ window.openMediaPresentation = async function(mediaId, isPreview) {
   
   if (!media) {
       var msgNotFound = appLang === 'en' ? "Media file not found." : "ไม่พบไฟล์สื่อการนำเสนอนี้";
-      return window.showToast ? window.showToast(msgNotFound, "error") : alert(msgNotFound);
+      return window.showToast ? window.showToast(msgNotFound, "error") : window.customAlert(msgNotFound, "error");
   }
 
   var visitIdInput = document.getElementById('visitId');
@@ -1037,26 +1037,31 @@ window.handleSaveTot = async function(e) {
   }
 };
 
-window.deleteTot = async function() {
-  var idEl = document.getElementById('totId'); var id = idEl ? idEl.value : '';
+ window.deleteTot = function() {
+  var idEl = document.getElementById('totId'); 
+  var id = idEl ? idEl.value : '';
   if(!id) return;
+  
   var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
   var confirmMsg = appLang === 'en' ? "Are you sure you want to delete this record?" : "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?";
-  if (!confirm(confirmMsg)) return;
-
-  try {
-      var {error} = await window.supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
-      if (error) throw error;
-      
-      var msgDeleted = appLang === 'en' ? "Record deleted successfully." : "ลบข้อมูลเรียบร้อยแล้ว";
-      if (window.showToast) window.showToast(msgDeleted, "success");
-      
-      if(window.totModalInstance) window.totModalInstance.hide();
-      if (typeof window.loadVisits === 'function') await window.loadVisits(true);
-  } catch(err) {
-      var msgErr = appLang === 'en' ? "Error: " : "เกิดข้อผิดพลาด: ";
-      if (window.showToast) window.showToast(msgErr + err.message, "error");
-  }
+  
+  // 🌟 เรียกใช้ customConfirm พร้อมส่งฟังก์ชันลบฐานข้อมูลเข้าไปทำงานทีหลัง
+  window.customConfirm(confirmMsg, async function() {
+      try {
+          var {error} = await window.supabaseClient.from('TOT_Logs').delete().eq('TOT_ID', id);
+          if (error) throw error;
+          
+          var msgDeleted = appLang === 'en' ? "Record deleted successfully." : "ลบข้อมูลเรียบร้อยแล้ว";
+          if (window.showToast) window.showToast(msgDeleted, "success");
+          
+          if(window.totModalInstance) window.totModalInstance.hide();
+          if (typeof window.loadVisits === 'function') await window.loadVisits(true);
+      } catch(err) {
+          var msgErr = appLang === 'en' ? "Error: " : "เกิดข้อผิดพลาด: ";
+          if (window.showToast) window.showToast(msgErr + err.message, "error");
+          else window.customAlert(msgErr + err.message, "error");
+      }
+  });
 };
 
 // ==========================================
@@ -3479,61 +3484,74 @@ window.requestUnlockVisit = async function(visitId) {
   }
 };
 
- window.cancelVisitForm = async function() {
+  window.cancelVisitForm = function() {
   // 🌟 1. เช็คสถานะฟอร์มก่อน ว่าเป็น Read-Only (Submitted) หรือไม่
   const statusEl = document.getElementById('visitStatus');
   const currentStatus = statusEl ? statusEl.value : '';
   const isReadOnly = (currentStatus === 'Submitted');
 
-  // 🌟 2. ดักแจ้งเตือน 2 ภาษา (เตือนเฉพาะตอนมีการแก้ไข และต้องไม่ใช่ฟอร์ม Read-Only)
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = appLang === 'en';
+
+  // 🌟 รวบรวมโค้ดปิดหน้าต่างและเคลียร์ขยะไว้ในฟังก์ชันนี้ เพื่อเรียกใช้ทีหลัง
+  const proceedToCancel = async function() {
+    // 🌟 3. เคลียร์ข้อมูลขยะและ LocalStorage
+    localStorage.removeItem('crm_visit_autosave');
+    if (typeof window.clearFormDraft === 'function') {
+      var vInput = document.getElementById('visitId');
+      var draftKey = (vInput && vInput.value) ? vInput.value : 'NEW';
+      window.clearFormDraft(draftKey);
+    }
+
+    // 🌟 4. ลบไฟล์แนบที่เพิ่งอัปโหลดใหม่ (กรณีไม่ได้กด Save)
+    if (window.newlyUploadedFiles && window.newlyUploadedFiles.length > 0) {
+      var sbClient = null;
+      if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
+      else if (window.supabase && window.supabase.storage) sbClient = window.supabase;
+      else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
+
+      if (sbClient && sbClient.storage) {
+        try {
+          await sbClient.storage.from('visit-attachments').remove(window.newlyUploadedFiles);
+        } catch(err) {}
+      }
+    }
+
+    window.currentAttachments = []; 
+    window.newlyUploadedFiles = []; 
+    window.pendingDeleteFiles = []; 
+    window.pendingDetailingLogs = [];
+    
+    // 🌟 5. รีเซ็ตสถานะการเตือน
+    window.isVisitFormChanged = false;
+
+    // 🌟 6. พาผู้ใช้กลับไปหน้าก่อนหน้า
+    var returnDocId = sessionStorage.getItem('returnToDocId');
+    if (returnDocId) {
+      sessionStorage.removeItem('returnToDocId');
+      if (typeof window.returnToDoctorProfile === 'function') window.returnToDoctorProfile(returnDocId); 
+    } else {
+      if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+    }
+  };
+
+  // 🌟 2. ดักแจ้งเตือน 2 ภาษาด้วย Premium Popup
   if (window.isVisitFormChanged && !isReadOnly) {
-    const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
-    const confirmMsg = appLang === 'en' 
+    const confirmMsg = isEN 
       ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
       : "คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการออกหรือไม่?";
       
-    if (!confirm(confirmMsg)) {
-      return; // ถ้าผู้ใช้กดยกเลิก (Cancel) ให้อยู่หน้าฟอร์มเดิมต่อไป
-    }
-  }
-
-  // 🌟 3. เคลียร์ข้อมูลขยะและ LocalStorage
-  localStorage.removeItem('crm_visit_autosave');
-  if (typeof window.clearFormDraft === 'function') {
-    var vInput = document.getElementById('visitId');
-    var draftKey = (vInput && vInput.value) ? vInput.value : 'NEW';
-    window.clearFormDraft(draftKey);
-  }
-
-  // 🌟 4. ลบไฟล์แนบที่เพิ่งอัปโหลดใหม่ (กรณีไม่ได้กด Save)
-  if (window.newlyUploadedFiles && window.newlyUploadedFiles.length > 0) {
-    var sbClient = null;
-    if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
-    else if (window.supabase && window.supabase.storage) sbClient = window.supabase;
-    else if (window.supabaseClient && window.supabaseClient.storage) sbClient = window.supabaseClient;
-
-    if (sbClient && sbClient.storage) {
-      try {
-        await sbClient.storage.from('visit-attachments').remove(window.newlyUploadedFiles);
-      } catch(err) {}
-    }
-  }
-
-  window.currentAttachments = []; 
-  window.newlyUploadedFiles = []; 
-  window.pendingDeleteFiles = []; 
-  window.pendingDetailingLogs = [];
-  
-  // 🌟 5. รีเซ็ตสถานะการเตือน
-  window.isVisitFormChanged = false;
-
-  // 🌟 6. พาผู้ใช้กลับไปหน้าก่อนหน้า
-  var returnDocId = sessionStorage.getItem('returnToDocId');
-  if (returnDocId) {
-    sessionStorage.removeItem('returnToDocId');
-    if (typeof window.returnToDoctorProfile === 'function') window.returnToDoctorProfile(returnDocId); 
+    // เรียก customConfirm แล้วส่ง proceedToCancel ไปรันเมื่อกดยืนยัน (เปลี่ยนชื่อปุ่มให้เข้ากับบริบท)
+    window.customConfirm(
+        confirmMsg, 
+        proceedToCancel, 
+        isEN ? "Unsaved Changes" : "ยังไม่ได้บันทึกข้อมูล", 
+        isEN ? "Leave" : "ออก", 
+        isEN ? "Stay" : "อยู่ต่อ"
+    );
   } else {
-    if (typeof window.switchVisitView === 'function') window.switchVisitView('visitListView');
+    // ถ้าไม่มีการแก้ไขข้อมูล หรือฟอร์มถูกล็อกอยู่แล้ว ก็ให้ออกได้ทันทีเลย
+    proceedToCancel();
   }
 };
 
