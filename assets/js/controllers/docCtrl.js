@@ -1864,7 +1864,7 @@ window.changePVisitRowsPerPage = function() {
   window.filterAndRenderDoctorVisits();
 };
  
-window.filterAndRenderDoctorVisits = function() {
+ window.filterAndRenderDoctorVisits = function() {
   const tbody = document.getElementById('viewVisitHistoryBody');
   if (!tbody) return;
 
@@ -1939,7 +1939,6 @@ window.filterAndRenderDoctorVisits = function() {
       const matchedVps = (window.globalCurrentDoctorVisitProducts || []).filter(vp => String(vp.Visit_ID).trim().toLowerCase() === cleanVid);
       const visitProdIds = matchedVps.map(vp => String(vp.Product_ID).trim().toLowerCase());
       
-      // 🌟 FIX: จับชน UUID แบบตรงๆ ห้ามเดาเอาจากชื่อเด็ดขาด
       const hasProd = selectedProdIds.some(pId => visitProdIds.includes(pId));
 
       if (!hasProd) return false;
@@ -2135,10 +2134,11 @@ window.filterAndRenderDoctorVisits = function() {
     let statusBadgeClass = rawStatus === 'Submitted' ? 'badge-soft-success' : (rawStatus === 'Draft' ? 'badge-soft-secondary' : 'badge-soft-pending');
     let statusShow = appLang === 'en' ? (rawStatus === 'Submitted' ? '✅ Submitted' : (rawStatus === 'Draft' ? '📝 Draft' : '⏳ Pending')) : (rawStatus === 'Submitted' ? '✅ ส่งแล้ว' : (rawStatus === 'Draft' ? '📝 ฉบับร่าง' : '⏳ รอส่ง'));
 
+    // 🌟 FIX: แก้ 'ile' กลับเป็นชื่อฟังก์ชันเต็ม
     htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">
-          <a href="#" class="text-primary text-decoration-underline" onclick="ile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
+          <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
         </td>
         <td class="fw-bold text-dark text-start ps-3">${repNameShow}${evidenceBadgesHtml}${distanceBadge}</td>
         <td class="text-center">${terrBadgeHtml}</td>
