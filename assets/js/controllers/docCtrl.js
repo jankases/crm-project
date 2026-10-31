@@ -1728,15 +1728,15 @@ window.handleAddDoctor = async function(e) {
   finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
 };
 
-window.handleUpdateDoctor = async function(e) {
+ window.handleUpdateDoctor = async function(e) {
   e.preventDefault(); 
 
   const workplaces = window.extractWorkplaces('workplaceContainerEdit');
   if (workplaces.length === 0) return window.customAlert("Please add at least 1 workplace.", "error"); 
-  if (!workplaces.some(w => w.isPrimary)) return window.customAlert("Please select a Primary hospital.", "error")); 
+  if (!workplaces.some(w => w.isPrimary)) return window.customAlert("Please select a Primary hospital.", "error"); // ✅ แก้แล้ว
   
   const hospIds = workplaces.map(w => w.hospitalId);
-  if (hospIds.length !== new Set(hospIds).size) return window.customAlert("Duplicate hospitals found. Please review.", "error")); 
+  if (hospIds.length !== new Set(hospIds).size) return window.customAlert("Duplicate hospitals found. Please review.", "error"); // ✅ แก้แล้ว
   
   const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
 
