@@ -2308,11 +2308,7 @@ window.loadDoctorRatings = async function(docId) {
 };
 
 // =========================================================
-// 🌟 1. ฟังก์ชันวาดตาราง Target Visit
-// =========================================================
-
-// =========================================================
-// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (คำนวณ Progress อัตโนมัติ)
+// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (คำนวณ Progress อัตโนมัติ เฉพาะ Submitted)
 // =========================================================
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
@@ -2344,14 +2340,12 @@ window.renderRatingTable = function(ratings) {
 
   // 🌟 1. ดึงข้อมูล Period (รอบเวลา) ปัจจุบันที่ถูกเลือก เพื่อเอาวันที่เริ่มต้นและสิ้นสุดไปคำนวณ
   let currentPeriodLabel = "C4 (Oct-Dec)"; 
-  let pStartMonth = 10, pEndMonth = 12, pYear = new Date().getFullYear(); // ค่าตั้งต้นกันเหนียว
+  let pStartMonth = 10, pEndMonth = 12, pYear = new Date().getFullYear(); 
 
   if (window.targetPeriodsList && window.targetPeriodsList.length > 0 && window.currentTargetPeriodIndex !== undefined) {
       const p = window.targetPeriodsList[window.currentTargetPeriodIndex];
       if (p) {
           pYear = p.year || pYear;
-          // แยกตัวเลขเดือนออกมา (ถ้าคุณเก็บเป็น Object startMonth/endMonth ให้ใช้เลย, ถ้าไม่มีให้ดึงเอาจาก id หรือชื่อ)
-          // สมมติว่าในฟังก์ชันสร้าง Auto-generate ของคุณมีการใส่ข้อมูล startMonth/endMonth ไว้แล้ว
           if (p.startMonth && p.endMonth) {
               pStartMonth = p.startMonth;
               pEndMonth = p.endMonth;
@@ -2362,11 +2356,14 @@ window.renderRatingTable = function(ratings) {
       }
   }
 
-  // 🌟 2. ดึงประวัติการเยี่ยมทั้งหมดของหมอคนปัจจุบัน แล้วกรองเอาเฉพาะที่อยู่ในรอบ (Period) ที่เลือก
+  // 🌟 2. ดึงประวัติการเยี่ยมทั้งหมดของหมอคนปัจจุบัน แล้วกรองเอาเฉพาะที่อยู่ในรอบ (Period) ที่เลือก และต้องเป็น "Submitted" เท่านั้น
   const allVisits = window.globalCurrentDoctorVisits || [];
   const allVisitProducts = window.globalCurrentDoctorVisitProducts || [];
   
   const visitsInPeriod = allVisits.filter(v => {
+      // 🌟 เงื่อนไขสำคัญ: ข้ามรายการที่ไม่ใช่ Submitted
+      if (String(v.Status || '').trim() !== 'Submitted') return false;
+
       if (!v.Visit_Date) return false;
       const vDate = new Date(v.Visit_Date);
       const vMonth = vDate.getMonth() + 1; // 1-12
@@ -2404,7 +2401,6 @@ window.renderRatingTable = function(ratings) {
     const targetProdId = String(item.Product_ID).toLowerCase().trim();
     
     allVisitProducts.forEach(vp => {
-        // เช็คว่า Visit_ID อยู่ในช่วงเวลาที่เลือกไหม และ Product ตรงกันไหม
         if (visitIdsInPeriod.includes(String(vp.Visit_ID)) && String(vp.Product_ID).toLowerCase().trim() === targetProdId) {
             actualVisits++;
         }
@@ -2471,7 +2467,10 @@ window.renderRatingTable = function(ratings) {
         <td><select class="form-select form-select-sm shadow-xs fw-medium border-primary mx-auto rating-pot" id="edit-pot-${index}" onchange="window.triggerCalcTarget(this)" style="max-width: 120px; border-radius: 6px;"><option value="High" ${item.Potential === 'High' ? 'selected' : ''}>High</option><option value="Medium" ${item.Potential === 'Medium' ? 'selected' : ''}>Medium</option><option value="Low" ${item.Potential === 'Low' ? 'selected' : ''}>Low</option></select></td>
         <td><input type="text" class="form-control form-control-sm text-center rating-class fw-bold text-primary shadow-none mx-auto" value="${item.Classification || ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
         <td><input type="number" class="form-control form-control-sm text-center rating-target fw-bold text-success shadow-none mx-auto" value="${item.Target !== undefined && item.Target !== null ? item.Target : ''}" readonly style="background-color:#e9ecef; max-width: 80px; border-radius: 6px;"></td>
+        
+        <!-- 🌟 เพิ่ม <td> ว่างๆ ให้ตรงกับคอลัมน์ PROGRESS -->
         <td></td>
+
         <td><div class="d-flex gap-2 justify-content-center"><button class="btn btn-sm btn-light border rounded-circle text-muted shadow-xs" style="width: 30px; height: 30px; padding: 0;" onclick="window.toggleDocTargetEdit('${index}', false)" title="Cancel"><i class="fa-solid fa-xmark"></i></button><button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="window.saveTargetCallRow(this)"><i class="fa-solid fa-floppy-disk me-2"></i>Save</button></div></td>
       </tr>
     `;
