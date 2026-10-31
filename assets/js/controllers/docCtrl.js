@@ -2310,8 +2310,8 @@ window.loadDoctorRatings = async function(docId) {
   }
 };
 
-// =========================================================
-// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (คำนวณ Progress อัตโนมัติ เฉพาะ Submitted)
+ // =========================================================
+// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (ฉบับสมบูรณ์ + Premium Progress Bar)
 // =========================================================
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
@@ -2359,12 +2359,12 @@ window.renderRatingTable = function(ratings) {
       }
   }
 
-  // 🌟 2. ดึงประวัติการเยี่ยมทั้งหมดของหมอคนปัจจุบัน แล้วกรองเอาเฉพาะที่อยู่ในรอบ (Period) ที่เลือก และต้องเป็น "Submitted" เท่านั้น
+  // 🌟 2. ดึงประวัติการเยี่ยมทั้งหมดของหมอคนปัจจุบัน แล้วกรองเอาเฉพาะ "Submitted"
   const allVisits = window.globalCurrentDoctorVisits || [];
   const allVisitProducts = window.globalCurrentDoctorVisitProducts || [];
   
   const visitsInPeriod = allVisits.filter(v => {
-      // 🌟 เงื่อนไขสำคัญ: ข้ามรายการที่ไม่ใช่ Submitted
+      // กรองเฉพาะสถานะ Submitted
       if (String(v.Status || '').trim() !== 'Submitted') return false;
 
       if (!v.Visit_Date) return false;
@@ -2375,7 +2375,6 @@ window.renderRatingTable = function(ratings) {
       return (vYear === pYear && vMonth >= pStartMonth && vMonth <= pEndMonth);
   });
 
-  // สร้าง List ของ Visit_ID ที่เข้าเงื่อนไข เพื่อใช้เช็คกับสินค้า
   const visitIdsInPeriod = visitsInPeriod.map(v => String(v.Visit_ID));
 
   if(!Array.isArray(ratings) || ratings.length === 0) {
@@ -2409,19 +2408,27 @@ window.renderRatingTable = function(ratings) {
         }
     });
 
+    // 🌟 4. คำนวณเปอร์เซ็นต์และตั้งค่าสี Progress แบบพรีเมียม
     let progressPercent = 0;
-    let progressColor = 'bg-secondary'; // สียังไม่เริ่ม (เทา)
+    let progressBarStyle = 'background-color: #cbd5e1;'; // สีเทาตั้งต้น
+    let textColor = 'text-secondary'; // สีตัวเลข
     
     if (targetVal > 0) {
       progressPercent = Math.min((actualVisits / targetVal) * 100, 100);
       
-      // เปลี่ยนสี Progress Bar ตามความสำเร็จ
-      if (progressPercent > 0 && progressPercent < 100) progressColor = 'bg-primary'; // ฟ้า (กำลังทำ)
-      if (progressPercent >= 100) progressColor = 'bg-success'; // เขียว (ครบเป้า)
+      if (progressPercent > 0 && progressPercent < 100) {
+          progressBarStyle = 'background: linear-gradient(90deg, #0d6efd 0%, #38bdf8 100%);'; // สีฟ้าไล่เฉด
+          textColor = 'text-primary';
+      } else if (progressPercent >= 100) {
+          progressBarStyle = 'background: linear-gradient(90deg, #16a34a 0%, #4ade80 100%);'; // สีเขียวไล่เฉด
+          textColor = 'text-success';
+      }
     }
 
     const targetDisplay = targetVal > 0 ? targetVal : '-';
-    const progressDisplay = targetVal > 0 ? `<span class="fw-bold text-dark fs-6">${actualVisits}</span> <span class="text-muted small fw-medium">/ ${targetVal}</span>` : `<span class="text-muted small fw-medium">- / -</span>`;
+    const progressDisplay = targetVal > 0 
+      ? `<span class="fw-bolder ${textColor} fs-5">${actualVisits}</span> <span class="text-muted small fw-semibold ms-1">/ ${targetVal}</span>` 
+      : `<span class="text-muted small fw-medium">- / -</span>`;
 
     html += `
       <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
@@ -2434,17 +2441,18 @@ window.renderRatingTable = function(ratings) {
           ${targetVal > 0 ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
         </td>
         
-        <td class="align-middle px-3" style="width: 20%;">
-          <div class="d-flex justify-content-between align-items-end mb-1">
-            <span class="badge bg-light border text-secondary shadow-xs" style="font-size: 0.65rem;">
-              <i class="fa-regular fa-calendar me-1"></i> ${currentPeriodLabel}
+        <td class="align-middle px-3" style="width: 22%;">
+          <div class="d-flex justify-content-between align-items-end mb-2">
+            <span class="badge bg-white border text-secondary shadow-xs px-2 py-1" style="font-size: 0.65rem; border-radius: 6px;">
+              <i class="fa-regular fa-calendar text-primary me-1"></i> ${currentPeriodLabel}
             </span>
-            <div class="text-end">
+            <div class="text-end" style="line-height: 1;">
               ${progressDisplay}
             </div>
           </div>
-          <div class="progress bg-light-subtle shadow-none" style="height: 6px; border-radius: 10px;">
-            <div class="progress-bar ${progressColor}" role="progressbar" style="width: ${progressPercent}%; border-radius: 10px;"></div>
+          <!-- กรอบหลอดสี #e2e8f0 ให้ตัดกับพื้นหลังขาว -->
+          <div class="progress shadow-none" style="height: 8px; border-radius: 12px; background-color: #e2e8f0; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;">
+            <div class="progress-bar" role="progressbar" style="width: ${progressPercent}%; border-radius: 12px; transition: width 0.8s ease-in-out; ${progressBarStyle}"></div>
           </div>
         </td>
 
