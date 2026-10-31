@@ -3495,7 +3495,6 @@ window.requestUnlockVisit = async function(visitId) {
 
   // 🌟 รวบรวมโค้ดปิดหน้าต่างและเคลียร์ขยะไว้ในฟังก์ชันนี้ เพื่อเรียกใช้ทีหลัง
   const proceedToCancel = async function() {
-    // 🌟 3. เคลียร์ข้อมูลขยะและ LocalStorage
     localStorage.removeItem('crm_visit_autosave');
     if (typeof window.clearFormDraft === 'function') {
       var vInput = document.getElementById('visitId');
@@ -3503,7 +3502,6 @@ window.requestUnlockVisit = async function(visitId) {
       window.clearFormDraft(draftKey);
     }
 
-    // 🌟 4. ลบไฟล์แนบที่เพิ่งอัปโหลดใหม่ (กรณีไม่ได้กด Save)
     if (window.newlyUploadedFiles && window.newlyUploadedFiles.length > 0) {
       var sbClient = null;
       if (typeof supabase !== 'undefined' && supabase && supabase.storage) sbClient = supabase;
@@ -3522,10 +3520,8 @@ window.requestUnlockVisit = async function(visitId) {
     window.pendingDeleteFiles = []; 
     window.pendingDetailingLogs = [];
     
-    // 🌟 5. รีเซ็ตสถานะการเตือน
     window.isVisitFormChanged = false;
 
-    // 🌟 6. พาผู้ใช้กลับไปหน้าก่อนหน้า
     var returnDocId = sessionStorage.getItem('returnToDocId');
     if (returnDocId) {
       sessionStorage.removeItem('returnToDocId');
@@ -3541,7 +3537,7 @@ window.requestUnlockVisit = async function(visitId) {
       ? "You have unsaved changes in the Visit Form. Are you sure you want to leave?" 
       : "คุณมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก ต้องการออกหรือไม่?";
       
-    // เรียก customConfirm แล้วส่ง proceedToCancel ไปรันเมื่อกดยืนยัน (เปลี่ยนชื่อปุ่มให้เข้ากับบริบท)
+    // เรียก customConfirm แล้วส่ง proceedToCancel ไปรันเมื่อกดยืนยัน
     window.customConfirm(
         confirmMsg, 
         proceedToCancel, 
@@ -3550,7 +3546,7 @@ window.requestUnlockVisit = async function(visitId) {
         isEN ? "Stay" : "อยู่ต่อ"
     );
   } else {
-    // ถ้าไม่มีการแก้ไขข้อมูล หรือฟอร์มถูกล็อกอยู่แล้ว ก็ให้ออกได้ทันทีเลย
+    // ถ้าไม่มีการแก้ไข หรือเป็นโหมด Read-Only ให้ออกได้เลย
     proceedToCancel();
   }
 };
