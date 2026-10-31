@@ -382,7 +382,7 @@ window.toggleSpeechSearch = function(inputId, btnId, iconId) {
     var appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
     var msgNoMic = appLang === 'en' ? "Sorry, your browser does not support voice dictation." : "ขออภัยครับ เบราว์เซอร์ของคุณไม่รองรับระบบสั่งงานด้วยเสียง";
     if (window.showToast) return window.showToast(msgNoMic, "error");
-    return alert(msgNoMic);
+    return window.customAlert(msgNoMic, "error");
   }
 
   if (window.activeSearchRecognition && window.currentSearchInputId === inputId) {
@@ -1684,11 +1684,11 @@ window.handleAddDoctor = async function(e) {
   e.preventDefault(); 
   
   const workplaces = window.extractWorkplaces('workplaceContainerAdd');
-  if (workplaces.length === 0) return alert("❌ Please add at least 1 workplace."); 
-  if (!workplaces.some(w => w.isPrimary)) return alert("❌ Please select a Primary hospital."); 
+  if (workplaces.length === 0) return window.customAlert("Please add at least 1 workplace.", "error");
+  if (!workplaces.some(w => w.isPrimary)) return window.customAlert("Please select a Primary hospital.", "error");
   
   const hospIds = workplaces.map(w => w.hospitalId);
-  if (hospIds.length !== new Set(hospIds).size) return alert("❌ Duplicate hospitals found. Please review."); 
+  if (hospIds.length !== new Set(hospIds).size) return window.customAlert("Duplicate hospitals found. Please review.", "error");
   
   const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
 
@@ -1720,11 +1720,11 @@ window.handleAddDoctor = async function(e) {
     const { error } = await sb.from('DCR').insert([dcrPayload]);
     if (error) throw error;
     
-    alert("✅ DCR submitted successfully. Waiting for Admin approval.");
+    window.customAlert("DCR submitted successfully. Waiting for Admin approval.", "success");
     window.switchDoctorView('doctorListView'); 
     await window.loadDoctors(true); 
 
-  } catch (err) { alert("❌ Error: " + err.message); } 
+  } catch (err) { window.customAlert(err.message, "error"); } 
   finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
 };
 
@@ -1732,11 +1732,11 @@ window.handleUpdateDoctor = async function(e) {
   e.preventDefault(); 
 
   const workplaces = window.extractWorkplaces('workplaceContainerEdit');
-  if (workplaces.length === 0) return alert("❌ Please add at least 1 workplace."); 
-  if (!workplaces.some(w => w.isPrimary)) return alert("❌ Please select a Primary hospital."); 
+  if (workplaces.length === 0) return window.customAlert("Please add at least 1 workplace.", "error"); 
+  if (!workplaces.some(w => w.isPrimary)) return window.customAlert("Please select a Primary hospital.", "error")); 
   
   const hospIds = workplaces.map(w => w.hospitalId);
-  if (hospIds.length !== new Set(hospIds).size) return alert("❌ Duplicate hospitals found. Please review."); 
+  if (hospIds.length !== new Set(hospIds).size) return window.customAlert("Duplicate hospitals found. Please review.", "error")); 
   
   const primaryHospId = workplaces.find(w => w.isPrimary).hospitalId;
 
@@ -1769,11 +1769,11 @@ window.handleUpdateDoctor = async function(e) {
     const { error } = await sb.from('DCR').insert([dcrPayload]);
     if (error) throw error;
     
-    alert("✅ DCR submitted successfully. Waiting for Admin approval.");
+    window.customAlert("DCR submitted successfully. Waiting for Admin approval.", "success");
     window.switchDoctorView('doctorListView'); 
     await window.loadDoctors(true); 
 
-  } catch (err) { alert("❌ Error: " + err.message); } 
+  } catch (err) { window.customAlert(err.message, "error"); } 
   finally { btn.disabled = false; btn.innerHTML = "Submit DCR"; }
 };
 
@@ -2647,7 +2647,7 @@ window.addNewRatingRow = function() {
       ? 'All available products have already been added to Target Call.' 
       : 'เลือกผลิตภัณฑ์ที่มีสิทธิ์ทั้งหมดครบเรียบร้อยแล้ว';
     if (window.showToast) window.showToast(msgAllSelected, "warning");
-    else alert(msgAllSelected);
+    else window.customAlert(msgAllSelected, "warning");
     return;
   }
 
@@ -2776,7 +2776,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
 
   if(!selectedProductId || !adoptVal || !potVal) {
       const errMsg = isEN ? "❌ Missing fields: Product, Adoption or Potential." : "❌ กรุณากรอกข้อมูลให้ครบถ้วน: ผลิตภัณฑ์, Adoption หรือ Potential";
-      alert(errMsg);
+      window.customAlert(errMsg, "error");
       return;
   }
 
@@ -2794,7 +2794,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
         : `❌ ผลิตภัณฑ์ซ้ำ! "${productName}" มีการประเมินอยู่แล้วในแถวอื่น กรุณาเลือกผลิตภัณฑ์ใหม่`;
       
       if (window.showToast) window.showToast(duplicateMsg, "error");
-      else alert(duplicateMsg);
+      else window.customAlert(duplicateMsg, "error");
       return;
   }
 
@@ -2839,7 +2839,7 @@ window.addRatingRowHTML = function(prodId, adopt, pot, cls, tgt) {
   } catch(err) {
       console.error("Save Rating Error:", err);
       const saveBtnText = isEN ? 'Save' : 'บันทึก';
-      alert("❌ Save failed: " + err.message);
+      window.customAlert("Save failed: " + err.message, "error");
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> ${saveBtnText}`;
   }
@@ -3210,7 +3210,7 @@ window.deleteTargetCallRow = function(productId, productName) {
         if (typeof window.showToast === 'function') {
           window.showToast("❌ Action failed: " + err.message, "error");
         } else {
-          alert("❌ Action failed: " + err.message);
+          window.customAlert("Action failed: " + err.message, "error");
         }
       }
     });
