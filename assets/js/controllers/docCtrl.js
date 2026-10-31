@@ -2310,6 +2310,10 @@ window.loadDoctorRatings = async function(docId) {
 // =========================================================
 // 🌟 1. ฟังก์ชันวาดตาราง Target Visit
 // =========================================================
+
+// =========================================================
+// 🌟 1. ฟังก์ชันวาดตาราง Target Visit (คำนวณ Progress อัตโนมัติ)
+// =========================================================
 window.renderRatingTable = function(ratings) {
   window.clearRatingTable();
   const tbody = document.getElementById('ratingTableBody');
@@ -2338,17 +2342,41 @@ window.renderRatingTable = function(ratings) {
       baseSpan.innerText = isEN ? 'TARGET' : 'เป้าหมาย';
   }
 
-  // 🌟 ดึง Period ปัจจุบันที่ถูกเลือกมาจากตัวแปรของ Time Navigator
-  let currentPeriodLabel = "C4 (Oct-Dec)"; // ค่าเริ่มต้นกันเหนียว
+  // 🌟 1. ดึงข้อมูล Period (รอบเวลา) ปัจจุบันที่ถูกเลือก เพื่อเอาวันที่เริ่มต้นและสิ้นสุดไปคำนวณ
+  let currentPeriodLabel = "C4 (Oct-Dec)"; 
+  let pStartMonth = 10, pEndMonth = 12, pYear = new Date().getFullYear(); // ค่าตั้งต้นกันเหนียว
+
   if (window.targetPeriodsList && window.targetPeriodsList.length > 0 && window.currentTargetPeriodIndex !== undefined) {
       const p = window.targetPeriodsList[window.currentTargetPeriodIndex];
       if (p) {
-          // ใช้ฟังก์ชันแปลงภาษาเพื่อให้ป้าย Badge เป็นภาษาไทยด้วย (ถ้าจำเป็น)
+          pYear = p.year || pYear;
+          // แยกตัวเลขเดือนออกมา (ถ้าคุณเก็บเป็น Object startMonth/endMonth ให้ใช้เลย, ถ้าไม่มีให้ดึงเอาจาก id หรือชื่อ)
+          // สมมติว่าในฟังก์ชันสร้าง Auto-generate ของคุณมีการใส่ข้อมูล startMonth/endMonth ไว้แล้ว
+          if (p.startMonth && p.endMonth) {
+              pStartMonth = p.startMonth;
+              pEndMonth = p.endMonth;
+          }
+
           currentPeriodLabel = typeof window.getLocalPeriodLabel === 'function' ? window.getLocalPeriodLabel(p.label, isEN) : p.label;
-          // หั่นคำว่า "Cycle 3" ให้เหลือแค่ "C3" เพื่อความกะทัดรัด
           currentPeriodLabel = currentPeriodLabel.replace('Cycle ', 'C').replace('Quarter ', 'Q').replace('รอบการประเมินที่ ', 'C').replace('ไตรมาสที่ ', 'Q');
       }
   }
+
+  // 🌟 2. ดึงประวัติการเยี่ยมทั้งหมดของหมอคนปัจจุบัน แล้วกรองเอาเฉพาะที่อยู่ในรอบ (Period) ที่เลือก
+  const allVisits = window.globalCurrentDoctorVisits || [];
+  const allVisitProducts = window.globalCurrentDoctorVisitProducts || [];
+  
+  const visitsInPeriod = allVisits.filter(v => {
+      if (!v.Visit_Date) return false;
+      const vDate = new Date(v.Visit_Date);
+      const vMonth = vDate.getMonth() + 1; // 1-12
+      const vYear = vDate.getFullYear();
+      
+      return (vYear === pYear && vMonth >= pStartMonth && vMonth <= pEndMonth);
+  });
+
+  // สร้าง List ของ Visit_ID ที่เข้าเงื่อนไข เพื่อใช้เช็คกับสินค้า
+  const visitIdsInPeriod = visitsInPeriod.map(v => String(v.Visit_ID));
 
   if(!Array.isArray(ratings) || ratings.length === 0) {
       const noDataMsg = isEN ? 'No target visits found. Click "Add Product"' : 'ไม่มีข้อมูลเป้าหมายเข้าพบ กรุณากด "เพิ่มผลิตภัณฑ์"';
@@ -2369,14 +2397,33 @@ window.renderRatingTable = function(ratings) {
     else if (item.Classification === 'C') clsColor = 'bg-primary-subtle text-primary';
     else if (item.Classification === 'D') clsColor = 'bg-success-subtle text-success';
 
-    const targetVal = (item.Target !== null && item.Target !== undefined) ? item.Target : '-';
+    const targetVal = (item.Target !== null && item.Target !== undefined && !isNaN(parseInt(item.Target))) ? parseInt(item.Target) : 0;
     
-    const actualVisits = 0; 
+    // 🌟 3. นับจำนวนการเยี่ยม (Actual Visits) แบบอัตโนมัติจาก Visit Products
+    let actualVisits = 0;
+    const targetProdId = String(item.Product_ID).toLowerCase().trim();
+    
+    allVisitProducts.forEach(vp => {
+        // เช็คว่า Visit_ID อยู่ในช่วงเวลาที่เลือกไหม และ Product ตรงกันไหม
+        if (visitIdsInPeriod.includes(String(vp.Visit_ID)) && String(vp.Product_ID).toLowerCase().trim() === targetProdId) {
+            actualVisits++;
+        }
+    });
+
     let progressPercent = 0;
+    let progressColor = 'bg-secondary'; // สียังไม่เริ่ม (เทา)
+    
     if (targetVal > 0) {
       progressPercent = Math.min((actualVisits / targetVal) * 100, 100);
+      
+      // เปลี่ยนสี Progress Bar ตามความสำเร็จ
+      if (progressPercent > 0 && progressPercent < 100) progressColor = 'bg-primary'; // ฟ้า (กำลังทำ)
+      if (progressPercent >= 100) progressColor = 'bg-success'; // เขียว (ครบเป้า)
     }
-    
+
+    const targetDisplay = targetVal > 0 ? targetVal : '-';
+    const progressDisplay = targetVal > 0 ? `<span class="fw-bold text-dark fs-6">${actualVisits}</span> <span class="text-muted small fw-medium">/ ${targetVal}</span>` : `<span class="text-muted small fw-medium">- / -</span>`;
+
     html += `
       <tr id="row-target-read-${index}" class="align-middle text-center bg-white">
         <td class="text-start ps-4 fw-bold text-dark">${productName}</td>
@@ -2384,23 +2431,21 @@ window.renderRatingTable = function(ratings) {
         <td><span class="badge bg-light text-secondary border px-3 py-2 shadow-xs" style="width: 90px;">${item.Potential || '-'}</span></td>
         <td><span class="badge ${clsColor} fw-bolder px-3 py-2 shadow-xs" style="min-width: 45px; font-size: 0.9rem;">${item.Classification || '-'}</span></td>
         <td>
-          <span class="fw-bolder text-dark fs-5">${targetVal}</span> 
-          ${targetVal !== '-' ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
+          <span class="fw-bolder text-dark fs-5">${targetDisplay}</span> 
+          ${targetVal > 0 ? `<span class="text-muted d-block" style="font-size: 0.65rem; margin-top: -3px;">${subText}</span>` : ''}
         </td>
         
         <td class="align-middle px-3" style="width: 20%;">
           <div class="d-flex justify-content-between align-items-end mb-1">
-            <!-- 🌟 ยัดตัวแปร currentPeriodLabel ลงไปใน Badge -->
             <span class="badge bg-light border text-secondary shadow-xs" style="font-size: 0.65rem;">
               <i class="fa-regular fa-calendar me-1"></i> ${currentPeriodLabel}
             </span>
             <div class="text-end">
-              <span class="fw-bold text-dark fs-6">${actualVisits}</span> 
-              <span class="text-muted small fw-medium">/ ${targetVal}</span>
+              ${progressDisplay}
             </div>
           </div>
           <div class="progress bg-light-subtle shadow-none" style="height: 6px; border-radius: 10px;">
-            <div class="progress-bar bg-primary" role="progressbar" style="width: ${progressPercent}%; border-radius: 10px;"></div>
+            <div class="progress-bar ${progressColor}" role="progressbar" style="width: ${progressPercent}%; border-radius: 10px;"></div>
           </div>
         </td>
 
