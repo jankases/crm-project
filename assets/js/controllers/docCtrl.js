@@ -3269,6 +3269,11 @@ window.bindProfileDateClearButton = function() {
 // ==========================================
 
 // 1. ฟังก์ชันสร้างรายการ Period อัตโนมัติ (คำนวณตาม Frequency)
+ // ==========================================
+// 📅 TARGET PERIOD NAVIGATOR ENGINE (Smart Auto-Generate)
+// ==========================================
+
+// 1. ฟังก์ชันสร้างรายการ Period อัตโนมัติ (คำนวณตาม Frequency)
 window.generateAutoPeriods = function() {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-12
@@ -3281,7 +3286,6 @@ window.generateAutoPeriods = function() {
   let periodMap = [];
   
   if (freqValue === 'QUARTER') {
-    // 🌟 ไตรมาส: 1 ปี มี 4 รอบ (รอบละ 3 เดือน)
     periodMap = [
       { name: 'Quarter 1 (Jan-Mar)', startMonth: 1, endMonth: 3 },
       { name: 'Quarter 2 (Apr-Jun)', startMonth: 4, endMonth: 6 },
@@ -3289,16 +3293,14 @@ window.generateAutoPeriods = function() {
       { name: 'Quarter 4 (Oct-Dec)', startMonth: 10, endMonth: 12 }
     ];
   } else if (freqValue === 'MONTH') {
-    // 🌟 รายเดือน: 1 ปี มี 12 รอบ
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     for(let i = 1; i <= 12; i++) {
       periodMap.push({ name: monthNames[i-1], startMonth: i, endMonth: i });
     }
   } else if (freqValue === 'YEAR') {
-    // 🌟 รายปี: 1 ปี มี 1 รอบ
     periodMap = [{ name: `Year`, startMonth: 1, endMonth: 12 }];
   } else {
-    // 🌟 CYCLE (Default): 1 ปี มี 3 รอบ (รอบละ 4 เดือน)
+    // 🌟 CYCLE: 1 ปี มี 3 รอบ (รอบละ 4 เดือน)
     periodMap = [
       { name: 'Cycle 1 (Jan-Apr)', startMonth: 1, endMonth: 4 },
       { name: 'Cycle 2 (May-Aug)', startMonth: 5, endMonth: 8 },
@@ -3310,22 +3312,35 @@ window.generateAutoPeriods = function() {
   let currentIndex = 0;
   let counter = 0;
 
-  // ฟังก์ชันช่วยสร้าง ID ย่อ
   const getPrefix = (freq) => freq === 'QUARTER' ? 'Q' : (freq === 'MONTH' ? 'M' : (freq === 'YEAR' ? 'Y' : 'C'));
 
   // สร้างของ "ปีที่แล้ว"
   periodMap.forEach((c) => {
     let labelName = freqValue === 'YEAR' ? `Year ${currentYear - 1}` : c.name;
-    periods.push({ id: `${currentYear - 1}-${getPrefix(freqValue)}${counter + 1}`, label: labelName, year: currentYear - 1 });
+    periods.push({ 
+        id: `${currentYear - 1}-${getPrefix(freqValue)}${counter + 1}`, 
+        label: labelName, 
+        year: currentYear - 1,
+        // 🌟 FIX: เพิ่ม startMonth และ endMonth
+        startMonth: c.startMonth,
+        endMonth: c.endMonth
+    });
     counter++;
   });
 
   // สร้างของ "ปีนี้" และหาว่าตอนนี้อยู่รอบไหน
   periodMap.forEach((c, idx) => {
     let labelName = freqValue === 'YEAR' ? `Year ${currentYear}` : c.name;
-    periods.push({ id: `${currentYear}-${getPrefix(freqValue)}${idx + 1}`, label: labelName, year: currentYear });
+    periods.push({ 
+        id: `${currentYear}-${getPrefix(freqValue)}${idx + 1}`, 
+        label: labelName, 
+        year: currentYear,
+        // 🌟 FIX: เพิ่ม startMonth และ endMonth
+        startMonth: c.startMonth,
+        endMonth: c.endMonth
+    });
     if (currentMonth >= c.startMonth && currentMonth <= c.endMonth) {
-      currentIndex = periods.length - 1; // บันทึกตำแหน่งรอบปัจจุบัน
+      currentIndex = periods.length - 1; 
     }
   });
 
