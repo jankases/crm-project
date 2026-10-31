@@ -5183,7 +5183,7 @@ window.attachAutosaveListeners = function() {
     }
 };
 
-window.checkAndRestoreAutosave = function() {
+ window.checkAndRestoreAutosave = function() {
     const savedDataStr = localStorage.getItem('crm_visit_autosave');
     if (savedDataStr) {
         try {
@@ -5191,27 +5191,46 @@ window.checkAndRestoreAutosave = function() {
             if (!savedData.docId && !savedData.details && !savedData.insight && !savedData.nextAction) return;
 
             var appLang = window.getCurrentAppLang ? window.getCurrentAppLang() : 'en';
-            var msg = appLang === 'en' ? "You have an unsaved draft. Do you want to restore it?" : "พบข้อมูลฟอร์มที่พิมพ์ค้างไว้รอบที่แล้ว ต้องการกู้คืนหรือไม่?";
+            var msg = appLang === 'en' 
+                ? "You have an unsaved draft. Do you want to restore it?" 
+                : "พบข้อมูลฟอร์มที่พิมพ์ค้างไว้รอบที่แล้ว ต้องการกู้คืนหรือไม่?";
             
-            if (confirm(msg)) {
-                if (savedData.docId) {
-                     const docSelect = document.getElementById('visitDocId');
-                     if(docSelect && docSelect.tomselect) docSelect.tomselect.setValue(savedData.docId);
-                     else if(docSelect) docSelect.value = savedData.docId;
+            // 🌟 เรียกใช้ customConfirm แทน confirm()
+            window.customConfirm(
+                msg, 
+                // 🟢 ฟังก์ชันนี้จะทำงานเมื่อผู้ใช้กด "ตกลง (Restore)"
+                function() {
+                    if (savedData.docId) {
+                         const docSelect = document.getElementById('visitDocId');
+                         if(docSelect && docSelect.tomselect) docSelect.tomselect.setValue(savedData.docId);
+                         else if(docSelect) docSelect.value = savedData.docId;
+                    }
+                    if (savedData.purpose) document.getElementById('visitPurpose').value = savedData.purpose;
+                    if (savedData.date) document.getElementById('visitDate').value = savedData.date;
+                    if (savedData.startTime) document.getElementById('visitStartTime').value = savedData.startTime;
+                    if (savedData.endTime) document.getElementById('visitEndTime').value = savedData.endTime;
+                    if (savedData.details) document.getElementById('visitDetails').value = savedData.details;
+                    if (savedData.insight) document.getElementById('visitInsight').value = savedData.insight;
+                    if (savedData.nextAction) document.getElementById('visitNextAction').value = savedData.nextAction;
+                    if (savedData.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = savedData.isCoaching;
+                    
+                    if (window.showToast) window.showToast(appLang === 'en' ? "Draft restored successfully." : "กู้คืนข้อมูลสำเร็จ", "success");
+                },
+                appLang === 'en' ? "Restore Draft" : "กู้คืนข้อมูลร่าง", 
+                appLang === 'en' ? "Restore" : "กู้คืน", 
+                appLang === 'en' ? "Discard" : "ทิ้งข้อมูล"
+            );
+
+            // 🔴 ดักจับการกดปุ่ม "ทิ้งข้อมูล (Cancel)" เพื่อเคลียร์ข้อมูลขยะ
+            setTimeout(function() {
+                var cancelBtn = document.getElementById('premiumConfirmCancelBtn');
+                if (cancelBtn) {
+                    cancelBtn.onclick = function() {
+                        localStorage.removeItem('crm_visit_autosave');
+                    };
                 }
-                if (savedData.purpose) document.getElementById('visitPurpose').value = savedData.purpose;
-                if (savedData.date) document.getElementById('visitDate').value = savedData.date;
-                if (savedData.startTime) document.getElementById('visitStartTime').value = savedData.startTime;
-                if (savedData.endTime) document.getElementById('visitEndTime').value = savedData.endTime;
-                if (savedData.details) document.getElementById('visitDetails').value = savedData.details;
-                if (savedData.insight) document.getElementById('visitInsight').value = savedData.insight;
-                if (savedData.nextAction) document.getElementById('visitNextAction').value = savedData.nextAction;
-                if (savedData.isCoaching !== undefined) document.getElementById('visitIsCoaching').checked = savedData.isCoaching;
-                
-                if (window.showToast) window.showToast(appLang === 'en' ? "Draft restored successfully." : "กู้คืนข้อมูลสำเร็จ", "success");
-            } else {
-                localStorage.removeItem('crm_visit_autosave');
-            }
+            }, 100);
+
         } catch(e) {}
     }
 };
