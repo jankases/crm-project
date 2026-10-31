@@ -1816,14 +1816,12 @@ window.sortDoctorVisits = function(col) {
   try {
     const sb = window.supabaseClient || window.supabase;
     
-    // 🌟 FIX: โหลดประวัติของหมอคนนี้มาก่อน
     const visitRes = await sb.from('Visit_Logs').select('*').eq('Doc_ID', docId).order('Visit_Date', { ascending: false });
     if (visitRes.error) throw visitRes.error;
     
     const visits = visitRes.data || [];
     const vIds = visits.map(v => v.Visit_ID).filter(id => id);
 
-    // 🌟 FIX: เอา Visit_ID ไปดึง Product ให้ตรงเป๊ะๆ เพื่อแก้ปัญหาทะลุ Limit ของ Database
     let vpData = [];
     if (vIds.length > 0) {
         for(let i = 0; i < vIds.length; i += 100) {
@@ -1842,6 +1840,11 @@ window.sortDoctorVisits = function(col) {
     
     window.currentPVisitPage = 1;
     window.filterAndRenderDoctorVisits();
+
+    // 🌟 FIX: สั่งอัปเดตตาราง Target อีกครั้ง หลังจากโหลด Visit เสร็จแล้ว!
+    if (typeof window.loadDoctorRatings === 'function') {
+        window.loadDoctorRatings(docId);
+    }
 
   } catch(err) {
     console.error("Error load visit history:", err);
