@@ -2138,7 +2138,7 @@ window.filterAndRenderDoctorVisits = function() {
     htmlBuffer += `
       <tr class="align-middle">
         <td class="text-center fw-bold">
-          <a href="#" class="text-primary text-decoration-underline" onclick="window.openEditVisitFromDoctorProfile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
+          <a href="#" class="text-primary text-decoration-underline" onclick="ile('${v.Visit_ID}', '${targetDocId}', '${v.Purpose_ID || ''}'); return false;">${dateStr}</a>
         </td>
         <td class="fw-bold text-dark text-start ps-3">${repNameShow}${evidenceBadgesHtml}${distanceBadge}</td>
         <td class="text-center">${terrBadgeHtml}</td>
@@ -2262,26 +2262,44 @@ window.clearProfileVisitDateRange = function() {
   window.filterAndRenderDoctorVisits();
 };
 
+// =========================================================
+// 🌟 ฟังก์ชันเปิดหน้า Edit Visit จาก Profile หมอ (แก้ปัญหาจอดึงกลับ)
+// =========================================================
 window.openEditVisitFromDoctorProfile = function(visitId, overrideDocId, overridePurposeId) {
   const docId = overrideDocId || window.currentTargetDocId;
   if (!docId || !visitId) return;
 
+  // เซ็ตสถานะไว้ เพื่อให้รู้ว่ากดกลับมาต้องเจอหมอคนเดิม
   sessionStorage.setItem('returnToDocId', docId);
   sessionStorage.setItem('pendingEditVisitId', visitId);
   if (overridePurposeId) sessionStorage.setItem('pendingEditPurposeId', overridePurposeId);
 
+  // 1. สั่งโหลดหน้า Visit Logs
   if (typeof window.loadComponent === 'function') {
     window.loadComponent('visit');
+  } else {
+    const visitMenu = document.querySelector('.nav-menu-item[data-page="visit"]');
+    if (visitMenu) visitMenu.click();
   }
 
-  var runOpen = function() {
+  // 2. ดักจับรอจนกว่าฟังก์ชันในหน้า Visit จะพร้อมทำงาน
+  let attempts = 0;
+  const checkReady = setInterval(function() {
+    attempts++;
+    
     if (typeof window.openEditVisitView === 'function') {
-      window.openEditVisitView(visitId, docId, overridePurposeId);
-    } else {
-      setTimeout(runOpen, 30);
+      clearInterval(checkReady);
+      
+      // 🌟 FIX: หน่วงเวลา 400ms เพื่อรอให้หน้า Visit Logs วาดตารางหลักเสร็จก่อน
+      // ป้องกันไม่ให้โดนคำสั่งรีเซ็ตหน้าจอของ Visit โหลดทับ
+      setTimeout(function() {
+        window.openEditVisitView(visitId, docId, overridePurposeId);
+      }, 400); 
+      
+    } else if (attempts > 50) {
+      clearInterval(checkReady); // เลิกรอถ้าเกิน 5 วินาที
     }
-  };
-  runOpen();
+  }, 100);
 };
 
 window.clearRatingTable = function() {
