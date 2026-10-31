@@ -170,3 +170,131 @@ window.renderGlobalPagination = function(ulId, currentPage, totalPages, pageChan
 
   ul.innerHTML = html;
 };
+
+// =========================================================
+// 🌟 Premium Custom Popup Engine (แทนที่ alert / confirm เดิม)
+// =========================================================
+
+// 1. ฟังก์ชันแทนที่ confirm() เดิม
+window.customConfirm = function(message, onConfirm, title = null, okText = null, cancelText = null) {
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = appLang === 'en';
+  
+  const defaultTitle = title || (isEN ? 'Confirm Action' : 'ยืนยันการดำเนินการ');
+  const defaultOk = okText || (isEN ? 'OK' : 'ตกลง');
+  const defaultCancel = cancelText || (isEN ? 'Cancel' : 'ยกเลิก');
+
+  // ตรวจสอบว่ามี Modal อยู่แล้วหรือไม่ ถ้าไม่มีให้สร้างใหม่
+  let modalEl = document.getElementById('premiumConfirmModal');
+  if (!modalEl) {
+    const modalHtml = `
+      <div class="modal fade" id="premiumConfirmModal" tabindex="-1" aria-hidden="true" style="z-index: 10500;">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+          <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+              <div class="mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis rounded-circle" style="width: 60px; height: 60px;">
+                  <i class="fa-solid fa-triangle-exclamation fs-2"></i>
+                </div>
+              </div>
+              <h5 class="fw-bold mb-2 text-dark" id="premiumConfirmTitle"></h5>
+              <p class="text-secondary mb-4" id="premiumConfirmMessage" style="font-size: 0.95rem;"></p>
+              <div class="d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-light border px-4 rounded-pill fw-bold text-secondary shadow-sm hover-bg-light transition-all" data-bs-dismiss="modal" id="premiumConfirmCancelBtn"></button>
+                <button type="button" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm transition-all" id="premiumConfirmOkBtn"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    modalEl = document.getElementById('premiumConfirmModal');
+  }
+
+  // เซ็ตข้อความต่างๆ
+  document.getElementById('premiumConfirmTitle').innerText = defaultTitle;
+  document.getElementById('premiumConfirmMessage').innerText = message;
+  document.getElementById('premiumConfirmCancelBtn').innerText = defaultCancel;
+  document.getElementById('premiumConfirmOkBtn').innerText = defaultOk;
+
+  // เคลียร์ Event กดยืนยันตัวเก่าออก (ป้องกันการทำงานซ้ำซ้อน)
+  const okBtn = document.getElementById('premiumConfirmOkBtn');
+  const newOkBtn = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+  // สั่งโชว์ Modal
+  const bsModal = new bootstrap.Modal(modalEl);
+  bsModal.show();
+
+  // ผูก Event ให้รันฟังก์ชันต่อไปเมื่อกดยืนยัน
+  newOkBtn.addEventListener('click', function() {
+    bsModal.hide();
+    if (typeof onConfirm === 'function') {
+      setTimeout(onConfirm, 250); // หน่วงเวลานิดนึงให้ Modal ปิดสนิท
+    }
+  });
+};
+
+// 2. ฟังก์ชันแทนที่ alert() เดิม
+window.customAlert = function(message, type = "warning", title = null) {
+  const appLang = (typeof window.getCurrentAppLang === 'function') ? window.getCurrentAppLang() : 'th';
+  const isEN = appLang === 'en';
+  
+  const defaultTitle = title || (isEN ? 'Notification' : 'แจ้งเตือน');
+  const okText = isEN ? 'OK' : 'ตกลง';
+
+  // กำหนดสีและไอคอนตามประเภท Alert
+  let iconClass = 'fa-circle-info text-info-emphasis';
+  let bgClass = 'bg-info-subtle';
+  let btnClass = 'btn-info text-white';
+  
+  if (type === 'error') {
+      iconClass = 'fa-circle-xmark text-danger-emphasis';
+      bgClass = 'bg-danger-subtle';
+      btnClass = 'btn-danger';
+  } else if (type === 'success') {
+      iconClass = 'fa-circle-check text-success-emphasis';
+      bgClass = 'bg-success-subtle';
+      btnClass = 'btn-success';
+  } else if (type === 'warning') {
+      iconClass = 'fa-triangle-exclamation text-warning-emphasis';
+      bgClass = 'bg-warning-subtle';
+      btnClass = 'btn-warning text-dark';
+  }
+
+  let modalEl = document.getElementById('premiumAlertModal');
+  if (!modalEl) {
+    const modalHtml = `
+      <div class="modal fade" id="premiumAlertModal" tabindex="-1" aria-hidden="true" style="z-index: 10500;">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+          <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+              <div class="mb-3">
+                <div id="premiumAlertIconBg" class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 60px; height: 60px;">
+                  <i id="premiumAlertIcon" class="fa-solid fs-2"></i>
+                </div>
+              </div>
+              <h5 class="fw-bold mb-2 text-dark" id="premiumAlertTitle"></h5>
+              <p class="text-secondary mb-4" id="premiumAlertMessage" style="font-size: 0.95rem;"></p>
+              <button type="button" class="btn px-5 rounded-pill fw-bold shadow-sm transition-all" data-bs-dismiss="modal" id="premiumAlertOkBtn"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    modalEl = document.getElementById('premiumAlertModal');
+  }
+
+  document.getElementById('premiumAlertTitle').innerText = defaultTitle;
+  document.getElementById('premiumAlertMessage').innerText = message;
+  document.getElementById('premiumAlertOkBtn').innerText = okText;
+  
+  document.getElementById('premiumAlertIconBg').className = `d-inline-flex align-items-center justify-content-center rounded-circle ${bgClass}`;
+  document.getElementById('premiumAlertIcon').className = `fa-solid fs-2 ${iconClass}`;
+  document.getElementById('premiumAlertOkBtn').className = `btn px-5 rounded-pill fw-bold shadow-sm transition-all ${btnClass}`;
+
+  const bsModal = new bootstrap.Modal(modalEl);
+  bsModal.show();
+};
